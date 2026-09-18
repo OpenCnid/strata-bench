@@ -1,0 +1,1382 @@
+# Strata: Minecraft adaptation benchmark meta-harness
+
+**Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
+
+**Specification version:** 0.2.0, proposed for implementation. **Written:** 2026-09-18. **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+
+**Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
+
+This document specifies a system; it does not report an implemented system. No Minecraft installation, paid inference, game interaction, compatibility experiment, or benchmark run was performed while writing it. CLI version/help and public source inspection are documentation evidence only. Every acceptance gate below is **NOT RUN** unless explicitly described as a source check. Example records are synthetic and cannot authorize execution.
+
+## 1. Purpose, evidence conventions, and scope
+
+Build a reproducible meta-harness for long, real-time Minecraft Java Edition playthroughs, including community expert modpacks, with configurable embodied teams using the user-selected **OpenCnid/dovetail-codex** native Codex plugin. Measure whether experience retained by a fixed experimental system improves later behavior, separately from progress caused by better equipment, changed terrain, more inference, or a newer model.
+
+The deliverable is an integrated implementation and longitudinal protocol, not a claim to invent Minecraft adaptation, persistent skills, modded evaluation, or multi-agent play. Prior work already covers these ideas in different combinations. A bounded source review did not verify a turnkey implementation of all the requested properties.
+
+**2026-09-18 decision D01 [U]:** the user selected Mineflayer for character control and as the first backend. This supersedes the v0.1 screenshot-first default. The primary track is now `structured-actions/v1`; full-client input remains an explicit extension/reference. CurseForge + Forge, expert-pack support, the keybinding skill, Dovetail, and private adaptation evaluation remain in scope. No implementation or compatibility pass is implied.
+
+**2026-09-18 decision D02 [D, user steering]:** direct Codex CLI integration is the default. Codex uses its native command tool to invoke a small `mcgame` client, which sends typed requests to a persistent Mineflayer worker over scoped local IPC and prints JSON. MCP is optional. Start host automation with pinned `codex exec --json` and tested session resume/fresh handoff; app-server is an optional lifecycle adapter, independent of game transport.
+
+### 1.1 Reading conventions
+
+**2026-09-18 decision D03 [U]:** the user named the project Strata, selected `strata-bench` as the repository name, and authorized a public GitHub repository. This design document is public operator material; runtime exclusion from gameplay-agent input remains required. Credentials, private evaluator instances, sealed fixtures and run data are not authorized for public storage. Public design availability is not a claim that models cannot infer the research objective or encounter it in pretraining.
+
+- **[U] User requirement:** binding scope: real Minecraft Java servers, Mineflayer as the first character-control backend, arbitrary positive configured N, selected Codex port including self-play, hidden research objective, CurseForge + Forge, expert packs, persistent keybinding repair, historical comparison and graduation.
+- **[F] Sourced fact:** supported by the linked primary material, at the stated revision/date. A project's feature claim is attributed, not independently validated.
+- **[D] Design decision:** this specification's default, including all numeric limits and statistical thresholds unless otherwise stated. These are proposed engineering/research choices, not empirical findings.
+- **[G] Verification gate:** a condition requiring actual installation, protocol inspection, testing, account access, or measured capacity. Unpassed gates cannot be relabeled as support.
+
+MUST requirements have IDs, owners, and observable tests in Section 3. Normative details in later sections inherit their listed requirement IDs and owners; the final traceability table closes the mapping. P0 means required before the relevant MVP release gate, not that all work happens in the first spike. P1 means the next research release; P2 is later extension work. A change to a default is a versioned protocol/configuration change, never an undocumented operator choice mid-run.
+
+### 1.2 Users and hypotheses
+
+Researchers preregister cohorts and analyze retained-experience effects. Operators acquire packs, reserve resources/accounts, and diagnose failures. Agent engineers implement the Codex/plugin seam and control clients. Pack integrators establish version-specific recipes, GUI coverage, saves, and authoritative predicates. Auditors reconstruct claims from locks, raw events, accounting, and sealed protocol commitments.
+
+Preregister these falsifiable hypotheses before confirmatory evaluation:
+
+1. **H1, primary:** at the final fixed exposure, retained campaign artifacts improve held-out success over initial artifacts, under matched model, fresh conversations, starting world, equipment, keymap, tools, and probe budgets.
+2. **H2, mechanism controls:** persistence of notes, procedural skills, and permitted self-play each changes held-out performance under matched opportunity budgets. These interventions identify effects of configurations, not a unique internal cognitive mechanism.
+3. **H3, retention/transfer:** retained experience remains useful on earlier families and transfers to fresh target-pack worlds without unacceptable retention loss.
+4. **H4, coordination:** N-player teams improve outcomes or efficiency at fixed aggregate resources. A separate fixed-per-agent condition measures scaling with additional resources.
+5. **H5, model generations:** new systems outperform earlier systems on frozen anchors and reach harder calibrated tiers. This is distinct from H1 learning within a fixed system.
+
+Null/negative findings, inability to reach prerequisites, and initial ceiling performance are legitimate results. No completion or improvement is assumed.
+
+### 1.3 Scope and non-goals
+
+MVP: current Windows development environment; Mineflayer protocol clients against vanilla 1.19.2 first and one locked E9E/Forge server after conformance; structured observations and bounded actions; native Codex plus the selected plugin; isolated agent state; private telemetry; a capability-gated keybinding skill/extension; one durable controller; long-horizon recovery; simultaneous teams when admitted; matched held-out evaluation and an auditable pilot/report. Vanilla backend success alone does not satisfy the modded MVP.
+
+Later: E6E and E2E compatibility modules, additional packs, distributed scheduling/storage, optional dashboard, separately labeled pixel and expanded-assistance conditions, optional mechanic interventions and budgeted practice worlds. A structured Forge client bridge is the fallback candidate if Mineflayer cannot pass a mandatory expert-pack mechanic; introducing it requires a recorded backend/system identity and its own conformance, never an invisible in-run switch.
+
+Not in scope: building this system during specification, installing games now, weight training, promising pack completion, unrestricted compatibility, a universal launcher CLI, bypassing distribution/authentication, perfect secrecy of the model's beliefs, deterministic modded replay, or comparing unlike action tracks as if equivalent.
+
+### 1.4 Definitions
+
+| Term | Operational definition |
+|---|---|
+| Experimental system | Immutable hash of model/provider identity policy, inference settings, runtime binary/schema, Dovetail commit, initial skills/prompts, tool/capability profile, learning/context policy, and information policy. Learned revisions are descendants, not changes to this initial identity. |
+| Cohort | Independent lineages assigned the same system, pack/protocol version, and treatment. Immutable model identity is required for unqualified fixed-model claims. |
+| Lineage | One independent learning history, including its ordered campaigns, permitted artifacts, costs, and ancestry. A shared team has one statistical lineage even with N memories. |
+| Campaign | One roster of N concurrent avatars in one persistent world under one lock and protocol, from admission through completion/abort. A cross-pack lineage starts a new campaign in a fresh world. |
+| Replica | An independent campaign/lineage sample. Replicas have separate worlds, memories, credentials/capabilities, and randomization. R replicas do not mean R avatars in one team. |
+| Episode | A declared contiguous gameplay segment within a campaign, default one active hour. It marks context/persistence boundaries, not an automatic world reset. |
+| Exposure | Acquired campaign experience measured on several clocks: active campaign wall time, actual server/avatar ticks, actions, and inference consumption. Probe work is excluded from training exposure but included in total cost. |
+| Probe | A held-out, resource-matched evaluation execution cloned from a checkpoint into disposable processes/worlds. Each arm gets its own copy of the same fixture. |
+| N | Positive integer of embodied players in a campaign. Each has a distinct Minecraft player identity, isolated backend worker (initially a Mineflayer client), Codex runtime, and selected plugin. Rendering is not required for Mineflayer. No small hard-coded roster limit; physical admission limits apply. |
+| Helper | A bounded reasoning delegate or self-play evaluator owned by an embodied agent. It has no avatar/action lease by default. It is neither a teammate nor an independent sample. |
+| Self-play | Isolated reasoning/evaluation of the agent's own plans, procedures, and development cases. It is not inherently PvP, extra avatars, or model weight training. |
+| Adaptation | Improved behavior attributable to retained experience for a fixed system, estimated with controlled probes. Campaign progress alone is not adaptation. |
+| Graduation | A versioned, independently confirmed promotion to a harder calibrated task tier. Pack edition numbers are compatibility families, not ranks. |
+| Epoch | Monotonic control-generation number fencing stale leases/input after a reset, restore, or ownership change. It never decreases, even when game state rolls back. |
+
+## 2. Prior art and compatibility evidence
+
+Links in this table are primary sources. Entries were opened during the 2026-09-18 spot check unless identified as carried-forward research. Source availability and metadata establish neither successful installation nor comparable affordances.
+
+| Source | [F] Established or author-reported evidence | Consequence / [G] limit |
+|---|---|---|
+| [MineRL](https://github.com/minerllabs/minerl), [MineDojo](https://docs.minedojo.org/), [MineStudio](https://github.com/CraftJarvis/MineStudio) | Minecraft agent/task infrastructure; MineStudio builds on MineRL. | Borrow dataset/task conventions. Instrumented environments and support mods are not proof of arbitrary expert-pack support. |
+| [Voyager paper](https://arxiv.org/abs/2305.16291), [repository](https://github.com/MineDojo/Voyager) | Automatic curriculum, executable skills, transfer; documented Mineflayer integration. | Prior ideas are not novel here. Its structured-action approach informs our primary track; action and information policies must still be matched. |
+| [Mindcraft](https://github.com/mindcraft-bots/mindcraft), [MineCollab](https://github.com/mindcraft-bots/mindcraft/blob/develop/minecollab.md) | Mineflayer-based LLM agents, task execution, cooperative benchmarks and evaluation logging. | Main harness reference; the [FAQ](https://github.com/mindcraft-bots/mindcraft/blob/develop/FAQ.md) excludes mechanics-changing mods. Reuse needs pinned source/license review and our private evaluator separation. |
+| [Mineflayer](https://github.com/PrismarineJS/mineflayer), [pathfinder](https://github.com/PrismarineJS/mineflayer-pathfinder), [Minecraft MCP Server](https://github.com/yuniko-software/minecraft-mcp-server) | Structured bot APIs, local pathfinding, and an existing MCP facade. | First backend and adapter references; neither the MCP facade nor Forge handshake support proves expert-pack operation. |
+| [Forge protocol plugin](https://github.com/PrismarineJS/node-minecraft-protocol-forge) | Forge/FML negotiation support is documented. | Validate exact loader handshake, registry decoding, custom channels, altered recipes and machines independently. No turnkey E9E support is assumed. |
+| [MineLand](https://github.com/cocacola-lab/MineLand), [TeamCraft](https://teamcraft-bench.github.io/) | Multi-agent precedents; MineLand's repository says it was archived June 4, 2026. | Published agent counts do not establish capacity for N Mineflayer workers or optional rendered E9E clients. |
+| [MirrorCraft](https://arxiv.org/html/2607.29218v1) | Matched standard/hidden-rule worlds measure intervention effects. | Changed-rule outcomes alone do not isolate learning after experience. |
+| [PAL paper](https://arxiv.org/abs/2301.11891), [Polycraft/PAL source](https://github.com/StephenGss/PAL) | Modded agent evaluation, task mutation and novelty trials. | No claim of first modded or adaptation benchmark. |
+| [MineMind](https://github.com/Boyan253/minemind) | Authors describe Reclamation/Forge 1.20.1 testing, quest/recipe access and a server companion, with incomplete general-pack/machine/reward support. | Implementation lead; E9E compatibility is not established. |
+| [Enigmatica installation](https://wiki.enigmatica.net/main/help-desk/guides/installation), [server guide](https://wiki.enigmatica.net/main/help-desk/guides/server-installation) | Launcher acquisition and release-specific loader/server startup are separate concerns. | Official CurseForge acquisition and pack-supplied Forge distribution remain the MVP path. |
+| [E9E client 8161120](https://www.curseforge.com/minecraft/modpacks/enigmatica9expert/files/8161120), [server 8161123](https://www.curseforge.com/minecraft/modpacks/enigmatica9expert/files/8161123) | Published 1.27.0 candidate, Minecraft 1.19.2/Forge. | Archive contents, resolved dependencies, JVM and installed compatibility remain untested. This is a candidate, not a sealed lock or a commitment to “latest.” |
+| [E9 tagged instance metadata](https://github.com/EnigmaticaModpacks/Enigmatica9/blob/d6bed3a552de25b3bc211856fcd276fbb35d1c43/minecraftinstance.json), [tagged server setup](https://github.com/EnigmaticaModpacks/Enigmatica9/blob/d6bed3a552de25b3bc211856fcd276fbb35d1c43/server_files_expert/server-setup-config.yaml) | Inspected source metadata names Forge 43.4.23; server setup references E9E 1.26.0. | Inspect the **distributed** 1.27.0 server archive and resulting inventory. Do not synthesize a release from a source tag or silently accept the older reference. |
+| [E9 packmode source](https://github.com/EnigmaticaModpacks/Enigmatica9/blob/d6bed3a552de25b3bc211856fcd276fbb35d1c43/kubejs/startup_scripts/packmode.js) | Startup mode logic includes a normal-mode default. | Assert effective expert configuration plus recipes/quests after cold start; a filename/title is insufficient. |
+| [CurseForge REST API](https://docs.curseforge.com/rest-api/), [download-auth announcement](https://blog.curseforge.com/introducing-api-key-authentication-for-curseforge-file-downloads/) | Documented API/file metadata and evolving download access requirements. | No universal unattended CLI/download path is assumed. Recheck policy and actual bootstrap behavior; missing artifacts become typed provisioning states. |
+| [GLFW input guide](https://www.glfw.org/docs/latest/input_guide.html), [Forge 1.19 key mappings](https://docs.minecraftforge.net/en/1.19.x/misc/keymappings/), [LWJGL2 Windows mapping source](https://github.com/LWJGL/lwjgl/blob/master/src/java/org/lwjgl/opengl/WindowsKeycodes.java) | Text characters and physical key events differ; contexts/modifiers and backend mappings matter. | Unicode is not an unlimited gameplay-key namespace. Discover and verify a usable key pool for each exact backend. |
+| [Pinned Dovetail manifest](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/.codex-plugin/plugin.json), [self-play](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/skills/self-play/SKILL.md), [surface map](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/docs/codex-surface-map.md) | Commit 15c306ccfef28eb5f616fadcd5fd8eac0663e361 declares plugin 0.4.1 and native skills. Self-play distinguishes conversational and filesystem isolation. | Use this Codex port, not an older sibling checkout, generic port, or invented Dovetail runtime SDK. Worker/tool integration remains a gate. |
+| [Codex app-server](https://learn.chatgpt.com/docs/app-server), [exec JSONL](https://learn.chatgpt.com/docs/non-interactive-mode) | Documented stdio initialization, thread/turn operations and generated version-specific schemas; exec emits JSONL. Local read-only help: CLI 0.154.0-alpha.6.2, app-server/schema tooling labeled experimental. | Pin and validate the binary/protocol; Desktop tool availability and full usage/resume coverage are not established by documentation. |
+
+Carried-forward family facts: E6E targets 1.16.5 and E2E 1.12.2, per [E6E](https://www.curseforge.com/minecraft/modpacks/enigmatica6expert) and [E2E](https://www.curseforge.com/minecraft/modpacks/enigmatica2expert). Revalidate their exact releases/toolchains when implementing them. The [Enigmatica Java guide](https://wiki.enigmatica.net/main/help-desk/guides/java) failed the current web fetch; Java 17 for 1.19.2 and Java 8 candidates for the older families remain research-backed starting points requiring release-specific verification. No installed compatibility row is green.
+
+## 3. Requirements and accountable owners
+
+Owner roles: **PL** platform lead/controller; **GI** game/pack integration; **AR** agent-runtime lead; **RS** research/statistics; **SI** security/integrity; **QA** reliability/validation. A role can be held by one engineer, but each requirement has one accountable owner. Test IDs are defined in Section 16.
+
+| ID | Priority | Requirement | Owner | Acceptance evidence |
+|---|---|---|---|---|
+| F01 | P0 | MUST run authentic Minecraft Java servers with Mineflayer as the first character-control backend; vanilla plus one E9E expert release remain initial targets. | GI | T02/T03: locks, expert assertions, structured vanilla/modded interaction and server events; joining alone cannot pass. |
+| F02 | P0 | MUST accept any representable positive integer N, reserve all N simultaneous bodies, and queue/reject the entire campaign when unavailable. | PL | T01/T09: positive-N validation, N=1/2/4 evidence or explicit capacity failures; no roster reduction. |
+| F03 | P0 | MUST give every body the pinned native dovetail-codex plugin and account for bounded helpers/self-play separately. | AR | T04/T12: skill load/use, helper isolation and reconciled nested usage. |
+| F04 | P0 | MUST hide research objectives, evaluation criteria and holdouts through actual capability isolation. | SI | T06: filesystem/process/network/tool/log leakage attempts fail. |
+| F05 | P0 | MUST use official CurseForge acquisition and the pack's Forge/server distribution, with exact provenance and explicit missing-artifact states. | GI | T02: clean install inventory; restricted/missing artifacts block sealing. |
+| F06 | P0 | MUST expose bounded structured observations/actions through a versioned backend contract and retain a capability-gated, tested keybinding skill for supported mod-control extensions. | GI | T03/T05: action/state correctness, deadlines/cancellation, unsupported-capability rejection; real conflict repair and persistence on a keybinding-capable backend before the full MVP. |
+| F07 | P0 | MUST define and enforce information, communication, learned-artifact and context policies per system/arm. | AR | T04/T06/T11: allowed corpus only, scoped messages, correct retained state. |
+| F08 | P0 | MUST keep persistent campaigns separate from disposable, matched, one-way held-out probes. | RS | T11: clone manifest diff contains only allowed artifacts; probe canary cannot return. |
+| F09 | P0 | MUST implement leases, lifecycle state, fenced input, consistent checkpoint sets and classified recovery. | PL | T07/T08: transition journals, fault injection, restore equivalence. |
+| F10 | P0 | MUST score from authoritative evidence and preserve positive/negative control results. | RS | T10/T13: false-positive controls fail, valid alternatives pass, deterministic report reconstruction. |
+| F11 | P0 | MUST charge all model/helper/retry/practice activity and enforce team, agent and evaluation budgets. | PL | T12: duplicate ingestion deduplicates; repeated actual calls still charge. |
+| F12 | P0 | MUST distinguish fixed-model experience from new-generation improvements and quarantine identity drift. | RS | T14: alias/reroute simulation splits or invalidates the affected segment. |
+| F13 | P0 | MUST export reproducible evidence, censoring, uncertainty, interventions and supported comparison limits. | RS | T13/T15: frozen report code consumes raw evidence and includes all assigned samples. |
+| F14 | P1 | MUST implement calibrated graduation/retention and frozen historical anchors before promotion claims. | RS | T16: decision reproduces from preregistration and independent confirmation. |
+| F15 | P1 | MUST require separate conformance for each later pack/version module, transferring artifacts to fresh worlds. | GI | T17: module-specific install/input/save/scoring tests; incompatible saves rejected. |
+| F16 | P0 | MUST expose typed lifecycle, acquisition, capability, game, settings, telemetry, communication, artifact and private evaluation contracts. | PL | T01: schema/API conformance, auth, deadline and error tests. |
+| N01 | P0 | MUST fail closed on unknown required capabilities, schemas, unresolved locks, or isolation/accounting gaps. | PL | T01/T04/T06: deliberate omissions stop preflight. |
+| N02 | P0 | MUST preserve exactly one avatar executor and at-most-once dispatch intent; ambiguous physical effects require resynchronization. | GI | T07: lost-ack/crash tests show no blind input replay. |
+| N03 | P0 | MUST maintain real-time clocks and performance evidence, including thinking latency and summed avatar exposure. | QA | T08/T09/T12: wall/tick/TPS/event-loop/lag/usage series (FPS only when rendering) and excluded intervals reconcile. |
+| N04 | P0 | MUST protect credentials, private records and immutable initial artifacts from agent code and extensions. | SI | T06: cross-identity access and indirect tool escape tests. |
+| N05 | P0 | MUST stop safely on resource exhaustion and retain all faults/costs without turning gameplay failure into infrastructure recovery. | QA | T07/T08/T12: exhaustion, death and stalled-progress classifications. |
+| N06 | P0 | MUST pin dependencies and experiment definitions and support audit replay without claiming deterministic gameplay replay. | PL | T01/T13: hash mismatch rejected; report rebuilt from recorded events. |
+| N07 | P0 | MUST meet declared operating-envelope targets before admitting confirmatory runs. | QA | T08/T09: staged soaks and measured capacity certificate. |
+| N08 | P0 | MUST keep storage durable, bounded and privacy-aware, with no silent deletion of required evidence. | PL | T07/T13: disk fault, retention/tombstone and restore checks. |
+
+## 4. Architectural decisions and deployment
+
+All rows are [D]. The selected launcher/port remain [U].
+
+| ADR | Decision and rationale | Rejected/default alternative and tradeoff |
+|---|---|---|
+| A01 | Mineflayer first [U], primary `structured-actions/v1`; one Node.js/TypeScript worker per avatar behind the scoped local game CLI. Structured state and local motor/pathfinding execution avoid mandatory screenshot inference. | Replaces the v0.1 pixel-first default (D01). Forge client bridges and `pixels-input-settings/v1` / `pixels-os/v1` remain explicit extensions/reference conditions. No automatic backend switch or score pooling. |
+| A02 | One controller with SQLite WAL, one worker supervisor per execution host, separate agent and evaluator security principals. | No broker/microservice mesh initially. Isolation boundaries are required; separate independently deployed business services are not. |
+| A03 | Python 3.12, asyncio, Pydantic 2, Typer; FastAPI for operator/worker transport. Node.js active LTS + TypeScript for Mineflayer and selected plugins. Java/Gradle for private Forge telemetry and optional client extensions. | Exact compatible Node/package/JVM patches are implementation locks. Keep research orchestration independent of game/loader versions. |
+| A04 | Native Codex CLI loop with pinned `codex exec --json` for supervised execution; local `mcgame` commands expose game actions and JSON state. Dovetail remains the native plugin. | MCP is an optional facade and app-server an optional lifecycle adapter; neither is required to move a character. No custom model reasoning loop or invented Dovetail SDK. CLI helper/accounting/resume behavior still needs conformance. |
+| A05 | Per-agent isolated runtime and backend worker; evaluator owned separately. Windows first; Mineflayer is headless and needs no per-avatar display. | Account/process/network isolation still applies. Optional rendered adapters require independent input/display routing and separately measured resources. |
+| A06 | Immutable local content-addressed evidence plus append-only JSONL; derived Parquet/DuckDB analysis; bounded FFmpeg recordings. | PostgreSQL/object storage follow demonstrated multi-controller/storage needs. Raw events remain the audit source, not mutable dashboard rows. |
+| A07 | Natural pack rules, bounded structured player/world/container state and pinned allowed documentation. Probes match backend, action/observation policy, learned-map reset and applicable keymaps. | Secret mechanic changes, open web, expanded world/recipe access and learned-keymap advantage are separate registered conditions. |
+| A08 | Clean-stop snapshots first; never copy live saves and call them consistent. | Live snapshot orchestration is deferred until each pack's asynchronous data writers are understood. Clean stops cost downtime, reported explicitly. |
+| A09 | Helpers and notes/procedural skills enabled; extra practice worlds disabled by default. | Practice branches materially expand game compute and leakage risks. Later enable them only with explicit quotas and provenance. |
+| A10 | Fixed exposure confirmatory cohorts; adaptive curriculum only on development data; anchors retained across releases. | Comparing only graduates or moving to harder packs without anchors creates selection and measurement confounding. |
+
+### 4.1 Process, host and trust boundaries
+
+```mermaid
+flowchart LR
+  subgraph Operator[Private operator host / identity]
+    CLI[CLI and operator API]
+    C[Controller: scheduler, ledger, locks]
+    E[Evaluator and sealed fixture store]
+    DB[(SQLite and private evidence)]
+    CLI --> C
+    C --> DB
+    E --> DB
+  end
+  subgraph Worker[Trusted worker host / service identity]
+    W[Supervisor and capability gateway]
+    MC[N Mineflayer workers / declared game backends]
+    S[Real Forge server and telemetry module]
+    W --> MC
+    MC <--> S
+  end
+  subgraph Agent[Per-agent isolated runtime boundary]
+    A[Codex CLI plus Dovetail]
+    H[Isolated bounded reasoning helpers]
+    F[(Own workspace, skills, allowed docs)]
+    A <--> F
+    A <--> H
+  end
+  C -->|Private lifecycle and leases| W
+  C -->|Sanitized brief and limits| A
+  A -->|Scoped structured observations, actions, capabilities| W
+  W -->|Pixels, receipts, permitted settings only| A
+  S -->|Private authoritative events| E
+  C -->|Checkpoint references and private protocol| E
+  A -->|Usage and artifact evidence, outward only| C
+  E -->|Operator report; no agent route| CLI
+```
+
+Roles may share physical hardware at N=1, but they do not share privileges. Use an isolated agent execution identity whose game access is only the gateway. Workers own game/backend installation, account credentials, process handles and protocol connections. Agent-authored code cannot access the raw Mineflayer bot, protocol socket, client/server filesystem, process memory or arbitrary ports. The gateway filters client-received state according to Section 8; possessing a full chunk packet does not make all its contents agent-visible. Network policy allows the gateway and controlled inference, and denies evaluator/admin services, sibling workers, arbitrary loopback and metadata endpoints. No arbitrary URL, path, JavaScript eval or protocol-packet proxy is exposed.
+
+The operator controller alone has scheduler and account-secret references. Evaluator telemetry endpoints require a separate identity unavailable to clients/agents; server telemetry is not broadcast as custom payloads to players. The evaluator's fixture administration is permitted only before probe start or during registered infrastructure stops. Server console/admin credentials never enter runtime processes. Authentication remains enabled for real player identities; agent avatars receive no operator permissions.
+
+Codex's own sandbox is defense in depth, not the whole boundary. Provider authentication needs a host-supported broker or a service identity protected from model-executed code and child processes. If the pinned host cannot separate provider credentials from arbitrary code tools, restrict those tools or use an external execution service; this changes the declared capability manifest and requires conformance. Never claim isolation merely because paths are absent from a prompt.
+
+| Data | Agent visibility | Private ownership and rule |
+|---|---|---|
+| Sanitized gameplay brief, scoped structured observations, own action acknowledgments | Yes | AR/GI; optional images only by capability; no scoring/objective/holdout labels. |
+| Controls-equivalent binding IDs/values and tested key pool | Only with declared keybinding capability | GI; stock Mineflayer returns unsupported; no arbitrary mod-object access. |
+| Own notes, learned skills, own sent/received team messages | Yes | AR; no implicit sibling filesystem sharing. |
+| Pinned permitted pack documentation | Yes, read-only corpus | AR; no benchmark research, sealed fixture text or evaluator sources. |
+| Runtime usage/status and remaining own allowance | Sanitized balance only | PL; full treatment/cohort ledger remains private. |
+| PackLock, full CampaignConfig/AgentConfig, process paths and account mapping | No direct mount | PL/GI; explicit allowlisted projections only. |
+| Server saves, other players' private state, authoritative evaluator GameEvents | No access | GI/RS; own coordinates/inventory and scoped client-observed state are allowed through the independent gameplay projection. |
+| EvaluationProtocol/Result, fixture seeds, weights, anchor selection, promotion data | Never during gameplay | RS/SI; separate store, endpoints and encryption/access keys. |
+| Other lineages, probe memories/transcripts, operator reports/spec/research | Never | SI; export only after runs under a publication policy. |
+
+## 5. Code organization and version policy
+
+Responsibility: PL (F16/N06), GI (F01/F05/F06), AR (F03/F07), SI (F04/N04).
+
+Proposed layout; these modules do **not** exist yet:
+
+```text
+pyproject.toml, uv.lock                 # exact Python/dependency lock, hashes
+src/mcbench/
+  cli.py                               # proposed `mcbench` operator CLI
+  contracts/                           # Pydantic models, exported JSON Schema 2020-12
+  controller/{scheduler,state,leases,budgets,checkpoints}.py
+  workers/{supervisor,processes,health,windows}.py
+  packs/{base,curseforge,locks,vanilla,e9e}.py
+  runtime/{base,codex_cli,exec_jobs,skills,context}.py  # app-server adapter optional
+  gateway/{auth,capabilities,observations,actions,keybindings,messages}.py
+  evidence/{journal,cas,retention,redaction}.py
+  analysis/{estimands,censoring,reports}.py
+  operator_api.py                      # private FastAPI service
+schemas/v1/{public,operator,evaluator}/ # deployed separately by capability
+backends/mineflayer/
+  package.json, package-lock.json, tsconfig.json
+  src/{worker,adapter,cli,observations,actions,navigation,events,capabilities}.ts
+  tests/                               # game/API conformance and worker isolation
+java/
+  wire/                                # protocol types without game dependencies
+  forge1192-client/                     # conditional structured/UI/keybinding extension; separately qualified
+  forge1192-telemetry/                  # private server-side observation
+  conformance/                         # instrumentation only in development fixtures
+skills/minecraft-keybindings/          # SKILL.md, typed plans, safe adapter references
+profiles/{system,pack_candidates,information}/
+tests/{unit,contract,host,actions,pack,security,recovery,statistics}/
+tools/{export_schemas,verify_lock,build_report}/
+docs/{operations,capabilities,compatibility}/
+```
+
+Private evaluator implementation is built as a separate package/image from an operator-only source root: `mcbench_evaluator/{protocols,predicates,fixtures,runner,results}`. Sealed fixtures, keys and results never ship in agent distributions. Public test fixtures and protocol schemas can be released after their secrecy window; future sealed data remain separate. The repository root is an operator workspace, not an agent workspace.
+
+Runtime data reside outside the checkout: controller database/journals; sealed installation templates; writable per-campaign game directories; per-agent runtime profiles; per-probe isolated roots; and distinct evaluator stores. A shared physical CAS is allowed only behind an authorization service; possession of a hash never grants read access. Agents cannot enumerate CAS contents. All agent path operations reject absolute paths, `..`, symlink/reparse escapes, alternate streams and cross-volume tricks.
+
+Pin the Python and Node.js patch releases, TypeScript, Mineflayer, minecraft-protocol/data, pathfinder and every enabled plugin/transitive package, Java vendor/build/architecture, Gradle wrapper/distribution hash, Forge mappings/loader/installer, Codex binary/hash and generated schema, Dovetail commit/tree, local CLI/IPC implementation (MCP only when enabled), OS build and backend capability/policy manifests; FFmpeg, GPU driver and input/capture backend only when used in a system/environment lock. Use Java 17 as the initial 1.19.2 candidate; compile against the exact release toolchain after G0 validation. Older modules can require separate JDKs. No floating `latest`, automatic pack updates or package upgrades during a cohort. Schema major changes reject negotiation; backward-compatible additions require an advertised minor capability and conformance.
+
+Initial deployment is one Windows controller with worker services and isolated runtime environments, local authenticated IPC and loopback-only HTTP where required. Remote services later use mTLS. Before automated campaigns, prove separate bot sockets/processes, action/state routing and account authentication; display/input routing is additional for rendered backends. Installer GUI steps may be operator-assisted and journaled; campaign play itself is autonomous. A CLI/static report suffices for MVP; a dashboard is not on the critical path.
+
+## 6. Codex and Dovetail integration seam
+
+Responsibility: AR (F03/F07), PL (F11/N01), SI (F04/N04). **Everything named `AgentRuntimeAdapter` below is a harness interface to implement, not an upstream Dovetail API.**
+
+### 6.1 Host contract and negotiation
+
+```text
+AgentRuntimeAdapter
+  inspect(RuntimeLock) -> RuntimeCapabilities
+  start(AgentLaunchProjection, WorkspaceGrant, BudgetGrant) -> RuntimeHandle
+  deliver(handle, GameplayMessage | ObservationRef) -> DeliveryReceipt
+  events(handle, after_cursor) -> ordered stream<RuntimeEvent>
+  interrupt(handle, reason, deadline) -> QuiescenceReceipt
+  export_state(handle, boundary) -> RuntimeStateManifest
+  resume(RuntimeStateManifest, new_epoch, grants) -> RuntimeHandle
+  spawn_helper(handle, HelperContract, subreservation) -> HelperHandle
+  stop(handle, deadline) -> StopReceipt
+```
+
+`RuntimeCapabilities` records schema digest, binary digest/version, plugin discovery/invocation proof, image delivery, scoped command execution, helper boundary type, all-call accounting coverage, interruption, resume mode and provider identity evidence. Required for the full default system: native plugin loaded, structured tool responses/events, tool allowlisting, clean helper contexts with enforced permitted files, nested usage attribution, cancellation, artifact checkpoint/restore, fresh-session startup, and restricted execution/egress. Optional: image delivery (required only for an image-enabled profile), exact conversation resume, streaming token estimates, provider immutable identity, live compaction notification. Optional identity affects scientific claim strength; it is not silently promoted to verified. Missing accounting or helper enforcement blocks this full-self-play system; a no-self-play control is an explicitly different configuration, not a fallback pass.
+
+[F] The official [Codex CLI documentation](https://learn.chatgpt.com/docs/codex/cli) describes native command execution; [noninteractive mode](https://learn.chatgpt.com/docs/non-interactive-mode) documents `codex exec --json` and session resume. Local read-only `codex --help` / `codex exec --help` also expose exec, resume, JSONL and working-directory controls. This verifies command availability, not full Dovetail/helper/budget isolation. No paid agent job was run.
+
+| Harness operation | First CLI mapping / optional alternative | Phase 0 evidence required |
+|---|---|---|
+| inspect/start | Launch the pinned `codex exec --json` process in an isolated agent profile/workspace; preserve Codex's native loop | Exact binary/config/event format, no inherited user integrations/private docs, plugin load and skill inventory. |
+| deliver | Initial/follow-up ordinary gameplay prompt; game state returned by native command calls to `mcgame`; resume session or fresh handoff at declared boundaries | Structured output consumed correctly, state freshness and action effects; optional images tested only when enabled. No fabricated live-stdin prompt injection. |
+| events | Parse exec JSONL plus separate durable gateway/action ledger | Observe commands, completion, root/descendant usage, ordering and failures. Pin the actual event schema; cumulative usage becomes deltas once. |
+| interrupt | Revoke game lease and cancel worker actions immediately; interrupt/terminate CLI process under validated host procedure | Late command results cannot act; preserve unresolved billable calls and prove safe quiescence. |
+| export/resume | Tested `codex exec resume` session persistence or controlled fresh CLI session with handoff | Restore exactly admitted session/files; no hidden in-flight work; correct resume_mode and fresh probe isolation. |
+| helpers | Native collaboration where available/enforceable or separately isolated CLI jobs through a validated Dovetail-compatible helper seam | Actual helper capability, child file/tool boundaries and complete accounting. If unavailable, the full self-play configuration remains blocked. |
+
+The game worker is a long-lived process: invoking `mcgame` does not launch another bot, reconnect or recreate game state. A CLI invocation sends one structured request and returns JSON; long actions return a request ID with explicit status/wait/cancel commands. Bound wait calls to 3 s by default; use recorded backoff/coalescing instead of busy polling. Within an episode, Codex can make many game commands in its native loop. Session supervision is separate from game transport.
+
+The optional [app-server adapter](https://learn.chatgpt.com/docs/app-server) can later implement finer thread/turn streaming and interruption if CLI lifecycle limitations justify it. Its protocol must be generated from a pinned binary and separately tested. Optional MCP exposes the same authorized contracts; it adds tool discovery/portability, not necessary game control or an automatic security boundary. Neither extension changes the model's permitted game state/actions without a new profile.
+
+[Dovetail's source](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/docs/codex-surface-map.md) references native collaboration and version-sensitive flags. It does not prove every Desktop tool exists in a headless CLI. Preserve the selected plugin; a helper shim must demonstrate equivalent declared capabilities and include its revision in system identity. Missing accounting/helper enforcement cannot be hidden by substituting a no-self-play run.
+
+### 6.2 Initial skills, learning and invocation
+
+Install the exact remote plugin commit `15c306ccfef28eb5f616fadcd5fd8eac0663e361` (manifest 0.4.1) into each isolated worker profile through the pinned host's supported plugin mechanism; retain original source and attribution. This is the initial candidate pin, not a claim that it is the newest commit. No global user skill directory or older sibling checkout is inherited.
+
+The immutable initial bundle contains the selected plugin, a small ordinary-gameplay instruction file, `minecraft-keybindings`, a tools/control card, and the allowed documentation index. It contains no solved held-out procedures or research vocabulary describing the hidden objective. Operator-generated projections are allowlisted field-by-field, not redacted copies of this spec. The gameplay brief is ordinary, for example: “Survive, build a sustainable base, and advance the pack's quests. Use the supplied controls and documentation. Keep useful notes and improve your procedures.” General self-play skill vocabulary is allowed; benchmark scoring names and adaptation-study objectives are not.
+
+Full arm permits notes and executable/procedural learned skills in an overlay. Skills cannot overwrite the plugin, initial instructions, tool definitions, permission grants, budget enforcement or scorer. Every published revision records parent, content digest, generating calls, inputs, development evidence and activation time. Activation occurs atomically at a turn boundary; partial files are not indexed. Executable snippets run only in the restricted agent environment; macros expand through the same allowlisted bounded actions and charge local execution. Fixed navigation and single-recipe crafting are allowed as declared in Section 8; teleportation, item grants, recursive resource/crafting planners and hidden quest solvers are not.
+
+Explicit-only workflows remain explicit: schedule an ordinary handoff request at episode boundaries when using upstream `upsum`; any `spark-steering` invocation is a logged, policy-defined gameplay problem-solving request. Enable self-play on agent request and offer one neutral procedure-review opportunity at each episode boundary; acceptance is optional and charged. No mandatory per-episode model call if the agent declines or lacks budget. All arms receive the same goal/context schedule; no-self-play arms receive an ordinary direct-planning opportunity under the same budget. Skill availability is verified separately from observed use.
+
+### 6.3 Context and helper policy
+
+Default episodes last 3,600 active campaign seconds. Within an episode, the native loop manages turns and model thinking while the game runs. At the boundary, stop issuing new turns, settle/intercept tool work, request a bounded ordinary handoff if permitted, and begin a fresh conversation. Full-arm state is only its admitted notes/skills/handoff; initial-state controls receive initial artifacts only. No hidden conversation carryover. Both retain equal within-episode context policy. Default handoff limit is 8,000 UTF-8 bytes; learned-artifact quota is 20 MiB per agent and maximum single skill 256 KiB. Limits are [D], frozen before a cohort.
+
+Record native compactions and summaries when exposed; otherwise record that their internals are unavailable and keep host/version/context limits identical. A harness handoff is not a claim to restore a hidden model state. Recovery can either resume an exact exported episode session or start a fresh one with the checkpoint handoff; select one tested mode per cohort. Probe arms always start fresh sessions.
+
+Default helper concurrency is two per embodied agent, configurable before admission. A helper gets a read-only copy of the explicitly supplied plan/artifact/evidence plus the same initial skill bundle. No parent conversation, private expected results, sibling directories, original author's hidden notes, or avatar input token. It writes only its result namespace. A clean conversation alone is insufficient when independent filesystem review is claimed. Helper outputs are untrusted advice; the designated executor decides actions and commits revisions. A helper cannot spawn unregistered billable descendants. Recursive work requires a parent-linked reservation within the same aggregate limits and maximum depth two in MVP.
+
+Campaign self-play uses agent-observed evidence and public development cases. Official private evaluation is a different trust domain. Helpers never receive its fixtures, rubrics, scores, schedules or process handles. Practice worlds default to zero. Enabling them later requires a separate campaign condition, fresh authorized development worlds, counted avatars/ticks and a way to prevent copying private probe fixtures.
+
+## 7. Pack acquisition, provenance and support
+
+Responsibility: GI (F01/F05/F15), PL (F02/N01). The launcher provider seam remains extensible, but MVP uses **official CurseForge + the pack's Forge distribution**.
+
+Proposed `PackProvider` operations are `resolve_candidate`, `request_acquisition`, `import_acquisition_receipt`, `verify_inventory`, `seal_template`, `materialize`, `launch_client`, `launch_server`, `health`, `stop`. These are not CurseForge commands or claims of an available unattended API.
+
+1. Operator selects explicit client/server release files and records official page/manifest provenance. For E9E, begin with the 1.27.0 candidates in Section 2. Acquire through the official app/site and permitted pack bootstrap; record any required operator step. An authorized API may assist metadata/acquisition only where its current access and download policy permit it. No alternative launcher substitution in MVP.
+2. Require suitable Java Edition accounts/entitlements and supported authentication, one distinct usable identity per simultaneous player. Verify permitted account/provider concurrency. Secrets stay in protected stores; record opaque references privately. Complete any required terms/EULA acceptance as an operator prerequisite, never assume it from a process launch.
+3. Install into an empty, dedicated, non-synchronized directory. Inspect the **actual server archive**, referenced client manifest, loader/installer, bootstrap version and transitive downloads. Run its documented platform-specific startup path; do not invent a universal `java -jar` command. If the distribution resolves a different release, block with `RELEASE_MISMATCH`; investigate upstream or choose another explicit candidate, creating a new lock.
+4. Inventory every file that affects mechanics or execution: mods, client/server exclusions, libraries/natives, scripts, configs/defaultconfigs, datapacks, quests, resources, installer/bootstrap and approved harness additions. Record distribution hashes separately from the final installed root. Client and server need compatible role inventories, not identical directories. Preserve license/provenance metadata and do not redistribute restricted game/mod binaries in benchmark exports.
+5. Configure expert mode **before the baseline world** through release-supported setup, then cold restart. The release module defines exact source-backed file paths/commands; no guessed universal mode API. Assert effective mode config, a representative expert recipe difference, and quest/team markers. Assertions require private runtime evidence plus independent player-accessible API or rendered-reference verification. A title, tag or successful join is insufficient. Configuration/mode changes are forbidden during scored play.
+6. Validate Mineflayer/protocol/data/plugin versions, player identities, view/simulation distance, observation filters, navigation limits, registry mappings, JVM flags, server difficulty/gamerules and spawn/team behavior. Mineflayer does not require a renderer or keymap. If a rendered extension/reference is used, additionally pin GUI scale, language, resources, keymap, window size and display settings; 1280x720/GUI scale 2/English/60 FPS are candidate reference values only. Freeze successful values, not silent optimizations mid-run.
+7. Run the compact modded API suite early: exact Forge handshake and required channels, namespaced modded blocks/items and metadata, safe physics/pathfinding, an expert-altered recipe, container transactions, a representative machine/energy/fluid operation and player-accessible quest/recipe information. Validate against server evidence and a real pack client/reference where needed. A successful join or vanilla craft does not prove modpack support. Unknown registry entries, serializers or mandatory custom messages produce typed unsupported errors. Add only locked adapter/telemetry modifications and verify mechanics preservation.
+8. Seal a complete PackLock and acquisition report; disable automatic updates. Create fresh writable instances from the template. Reinstall/repair replaces damaged instances from the same sealed bytes; unavailable exact artifacts put provisioning into `AWAITING_ARTIFACT`, not “best effort latest.” Re-run changed-component gates if any hash changes.
+
+Vanilla 1.19.2 uses an official CurseForge-managed profile if that path is supported, with Mojang-sourced vanilla assets and server distribution; it has no Forge loader by definition. **G0 verifies whether the official workflow supports the vanilla control.** If it does not, report a provisioning blocker and obtain an explicit protocol amendment for the vanilla-only acquisition path; do not quietly change the selected E9E launcher or call a Forge-instrumented profile pure vanilla. An optional Forge-with-no-content-mods diagnostic is separately labeled. The vanilla control uses Mineflayer directly against the authentic vanilla server; private server outcomes may use documented logs/admin inspection or a separately declared read-only instrumentation variant, whose parity also needs evidence.
+
+| Support stage | Target | Promotion evidence |
+|---|---|---|
+| Candidate | Metadata/source exists | No installed support claim. All current profiles are here. |
+| Provisioned | Exact official artifacts installed and locked | T02 including cold restart/expert assertions. |
+| Conformant | Declared structured mechanics/container suite works; settings extension qualified separately | T03/T10 and T05 for claimed settings capabilities; unsupported surfaces listed. |
+| Campaign-ready | Recovery, security and operating envelope proven | T06–T09, 24-hour soak; admitted N stated. |
+| Research-qualified | Probe isolation, scoring, accounting and protocol frozen | T11–T15; fixed-model claim separately conditioned on identity evidence. |
+
+E9E is the first expert target. E6E/1.16.5 and E2E/1.12.2 receive independent Java/Forge/input/quest/save modules later. They are not interchangeable versions or an ordered difficulty ladder. Never upgrade an E9E campaign save to another pack to graduate an agent.
+
+## 8. Observation, actions and the keybinding skill
+
+Responsibility: GI (F06/N02), AR (F07), QA (N03). Mineflayer is the first backend [U]; E9E compatibility is a verification gate, not an established feature.
+
+### 8.1 Primary body contract
+
+Primary track: `structured-actions/v1`, initially implemented by one isolated Node.js/TypeScript Mineflayer worker per avatar. The agent calls a typed local `mcgame` CLI through Codex's native command tool; a backend adapter owns connection, structured state, bounded execution, cancellation and health. Screenshots are not required for this track. The full Forge distribution remains the authentic modded server and installed pack reference; a Mineflayer process does not load its Java client mods.
+
+Proposed `GameBackend` operations: `connect`, `capabilities`, `observe`, `execute`, `action_status`, `cancel`, `stop_all`, `checkpoint_state`, `restore_state`, `health`, `disconnect`. These are harness contracts to implement. Pin backend implementation, plugins, capability manifest and observation/action policy in the system identity. Mindcraft/MineCollab inform orchestration, Voyager informs learned procedures, and existing Mineflayer MCP projects inform the facade; reuse does not replace Dovetail's native loop or expose their evaluators to agents.
+
+**Observations.** Publish compact snapshots on demand and bounded event summaries on action completion/failure, damage, inventory/container changes and disconnect. Events signal that a decision may be needed; they do not force an LLM turn every game tick. Provide own position/orientation, health/hunger, inventory, current open container, recent allowed chat and observed nearby blocks/entities. Default nearby queries cover at most 16 blocks radius and 128 entries of each kind; paginate without expanding the authorized region. Expose only line-of-sight surfaces/entities and previously observed entries, with timestamps and dimension IDs. Mask hidden blocks in received chunks, including ore behind walls; prior observations are stale knowledge, not live updates through walls. Pathfinding consumes the same filtered known-world view, treats unknown cells conservatively and cannot obtain a private all-world route. No server save, seed, hidden entity, unopened inventory or evaluator data is available. Agent-written maps are versioned artifacts governed by persistence/ablation/probe policy; backend caches are cleared for fresh probes and cannot become undeclared memory.
+
+Snapshots carry an observation ID, age, state/control revision and capability digest. An action's initial observation must be at most 2,000 ms old at gateway acceptance; the worker then checks local preconditions during execution. A 3 s event wait may time out normally and return the unchanged observation with its original age. Disconnected data is never labeled fresh. Bound snapshots to 64 KiB UTF-8; summaries to 32 events; record truncation and cursor gaps. Snapshot coalescing defaults to at most 2 deliveries/s/agent, while terminal/cancel/error receipts are delivered promptly. The model may request a refresh within its budget. Full snapshots and ordered events are retained; no screenshot token cost is mandatory. Optional images are a declared extension with separate capability, cost and comparative identity.
+
+**Actions.** Allow movement/looking, bounded attack/use, dig/place at an observed target, equip, open/interact with a reachable block/entity, inspect the open container, slot clicks/transfers, single-recipe craft, and permitted chat. Logical operation names such as `game.move_to`, `game.dig` and `game.click_slot` map to proposed `mcgame` subcommands, not claims about upstream method names. All mutations execute normal player mechanics and resource/reach/permission constraints. No teleport, item grants, direct machine-state mutation, arbitrary packets, operator commands or unfiltered JavaScript eval. Container mutation checks window ID plus revision and awaits server feedback; stale slots fail closed. Recipe/quest queries require a tested player-accessible source and declared discovery policy; do not use vanilla recipe tables for expert-changed recipes or dump a hidden dependency solution. Unsupported serializers/mechanics return `MECHANIC_UNSUPPORTED` or `REGISTRY_UNSUPPORTED`, never a guessed vanilla substitute.
+
+**Local execution.** Use a pinned, fixed pathfinder for a specified coordinate and fixed motor routines between LLM decisions. Initial movement disables automatic digging, block placement, resource gathering and recipe planning; tasks needing those actions remain agent decisions. Path execution may only use the allowed map and verified collision rules. No auto-eat/combat/equipment plugins are enabled implicitly. Record any later motor assistance as a new capability/system version. The LLM discovers goals, recipes, production dependencies, failure diagnoses and strategies; local routines execute its bounded choice.
+
+ActionBatch remains the envelope name for traceability, but structured v1 contains exactly one typed action per request. `move_to` defaults to a 30 s cap, other bounded actions to 10 s, and an individual attack/use hold to 2 s; these are proposed limits to calibrate. All actions have deadlines, preconditions, one executor and one active mutation lane. Return an accepted receipt quickly, then completion/failure/cancellation with a fresh observation reference. Damage, obstruction, state change or lost connection can interrupt; no hidden scorer predicate may do so. Worker watchdogs cancel navigation/dig/use and clear controls without an LLM round trip on deadline, budget stop, epoch/lease loss or explicit stop. A responsive worker must stop within 250 ms; a hung process is fenced/terminated within a further 2 s. If a packet may already have taken effect, report uncertainty and resynchronize without retrying it blindly. Count both requested actions and their versioned local execution events/ticks; a long navigation is not a zero-cost single primitive.
+
+**Extension policy.** The capability manifest includes exact pack/backend versions, supported observations/actions, recipe/container adapters, limits, and settings support. Stock Mineflayer declares `keybindings=false` and `screenshots=false`; it cannot press a client mod hotkey by inventing a Unicode code or binding ID. Retain the required keybinding workflow below for an explicit Forge-client/settings extension. If the expert pack needs unsupported behavior, record the failing mechanic and implement/test a Mineflayer extension or a structured Forge client backend. Backend changes create a new system/cohort; never silently route scored actions through a second avatar/client or pool unlike results. Optional `pixels-input-settings/v1` and `pixels-os/v1` retain bounded ordinary input, per-client routing, 2 s/64-event batches and OS parity checks when claimed; they are not the first implementation or default.
+
+### 8.2 `minecraft-keybindings` skill
+
+The skill is a required reasoning workflow over a narrow capability-gated settings API. Its full implementation/effect test remains an MVP requirement (T05/G1); it is not a prerequisite for the initial vanilla Mineflayer spike. Unsupported Mineflayer calls return `CAPABILITY_MISSING` without creating fake keymaps or claiming the skill passed. A keybinding-capable Forge client/settings extension must be separately qualified before advertising that feature. It triggers for controls setup or an agent-requested conflict repair on its own instance. Its output is a plan, transactional patch, evidence and a control card. It does not invoke mod actions by stable ID.
+
+1. **Discover:** enumerate visible binding identifiers, owning-mod evidence, localized label, current/default representation, context/modifier, persisted value and protected status. IDs combine owner, translation identifier and registration occurrence; ambiguous owner/occurrence disables mutation. Record backend/layout/runtime fingerprint and current revision. Unknown custom consumers are conservative conflicts and may remain unsupported.
+2. **Diagnose:** build a conflict graph from overlapping contexts, modifier behavior and tested effects. Same key in demonstrably disjoint contexts is not necessarily a conflict. Unknown context overlap is treated as conflict. Preserve Escape, movement, inventory, attack/use and host recovery shortcuts.
+3. **Allocate:** minimize changed bindings, deterministic stable-ID order; prefer free proven keys, then tested single-modifier chords, then verified context sharing. F13–F24 are candidates only, never a universal pool. A defined key constant or a value accepted by Controls does not prove the OS/backend can send it. Legacy LWJGL2 requires separate discovery. Unicode is allowed for chat/search but never substituted for a physical hotkey. Exhaustion returns `KEY_POOL_EXHAUSTED`; do not silently unbind required controls or reuse a conflicting fallback.
+4. **Apply transaction:** acquire per-profile exclusive lock, all-keys-up, compare expected revision/hashes, create backup/journal. Use a tested client-thread native settings writer, or patch transaction-owned fields with the client fully stopped. Never edit live options behind in-memory state. Save supported key fields only; protected gameplay/evaluator/graphics settings are not patchable through this API.
+5. **Verify:** read runtime and persistent values; use ordinary input to show intended effect, absence of competing effects, release behavior and essential controls intact in every relevant GUI/game context. Preplay verification may use a disposable public conformance fixture. In-campaign checks use only naturally available state/equipment. Missing prerequisites yield `unverified_context`, not success. All affected bindings, including competing bindings, need checks.
+6. **Persist/restart-check:** restart the affected client through the worker, rejoin and recheck values/effects. During a campaign the whole team remains the same and the world continues; client downtime and repair work are charged. If restart loses connectivity beyond the declared window, classify an infrastructure incident; do not hide it as training-free setup.
+7. **Commit or rollback:** mark verified and publish a new keymap digest only when all required checks pass. Otherwise restore only transaction-owned values with compare-and-swap, release inputs and verify the restore. Unrelated concurrent changes produce `ROLLBACK_CONFLICT` and stop input pending operator infrastructure repair. A crash leaves a recoverable journal, never an assumed commit.
+
+Initial bindings are verified before scored play. In-play repair enters `RECONFIGURING`: suspend only that avatar's input lane, cancel pending batches, preserve world and agent continuity, and log start/end/profile hashes. The server and other agents continue, with all real time, thinking, restart downtime and verification actions charged. No free evaluator-created items/fixtures. Automatic success from checking configuration bytes alone is forbidden. If no safe available effect test exists, roll back/defer the repair.
+
+Cognitive probes use the same backend/capability profile and, where bindings exist, one common preverified keymap/control card and disable reconfiguration in both arms, removing learned keymap improvements as an intended treatment difference. Retained keymap files/control cards are excluded from the experienced artifact projection; procedural references to old chords can remain and are a documented transfer cost. A separate keymap-learning condition can preserve them and permit matched repair affordances; do not mix its scores into H1.
+
+## 9. Typed records and illustrative wire examples
+
+Responsibility: PL (F16/N01/N06), with GI owning game/pack payload semantics and RS owning evaluation payloads. This is a language-neutral type contract expressed in TypeScript-like notation; the Mineflayer worker uses TypeScript while the controller uses Python. Implement strict Pydantic types and export JSON Schema 2020-12, then generate TypeScript worker bindings and Java bindings where used. Every listed field is required unless marked `?`; null is accepted only where shown. Unknown fields, enum values and major schemas are rejected. Numbers are finite; counts/sequences are integers. IDs are nonempty opaque strings, never paths or credentials.
+
+Common types:
+
+```typescript
+type Id = string;                         // 1..128 ASCII identifier characters
+type Digest = string;                     // exactly 64 lowercase hexadecimal characters
+type Ref = string;                        // cas:sha256:<Digest>, authorized separately
+type Utc = string;                        // RFC3339 UTC, ends in Z
+type UInt = number;                       // integer >= 0, interoperable range <= 2^53-1
+type Positive = number;                   // integer >= 1, interoperable range <= 2^53-1
+type Visibility = "agent" | "operator" | "evaluator";
+type RecordHeader = { schema: string; is_example: boolean };
+type Stream = { campaign_id: Id; epoch: UInt; seq: UInt; recorded_at: Utc };
+type GrantRef = string;                   // opaque secret-store name, NOT a bearer value
+type Pin = { version: string; digest: Digest };
+type Evidence = { test_id: Id; status: "not_run"|"pass"|"fail"; refs: Ref[] };
+type Limits = {
+  active_wall_s: UInt; input_tokens: UInt; output_tokens: UInt;
+  model_calls: UInt; primitive_events: UInt; avatar_ticks: UInt;
+  practice_world_s: UInt; spend_microusd: UInt|null
+};
+type Key = {
+  backend: "glfw"|"lwjgl2"|"os";
+  representation: "keysym"|"scancode"|"mouse_button"|"unbound";
+  code: UInt|null; name: string; modifiers: ("SHIFT"|"CONTROL"|"ALT")[];
+  persisted: string
+};
+type FileEntry = {
+  path: string; digest: Digest; bytes: UInt; role: "client"|"server"|"both";
+  origin: string; project_id: Positive|null; file_id: Positive|null;
+  license_ref: string|null; layer: "distribution"|"resolved"|"harness"
+};
+```
+
+`Ref` metadata includes owner namespace, visibility, media type, digest and bytes; the reference never bypasses authorization. A `Key` tuple must occur in the negotiated tested pool, with an explicit adapter translation to the injector representation. Unbound means null code and no modifiers; a numeric Unicode character is never a keysym by inference. `Limits` are multidimensional ceilings, not fungible currency. Larger-than-wire-range N is rejected as `CONFIG_RANGE` before reservation; there is no arbitrary small agent-count limit.
+
+### 9.1 Normative record shapes
+
+Every type intersects `RecordHeader`; `schema` is exactly `mcbench/<TypeName>/1`. Stream records additionally intersect `Stream` as marked.
+
+```typescript
+type PackLock = {
+  lock_id: Id; status: "candidate"|"sealed";
+  provider: "curseforge"; pack_slug: string; release: string;
+  project_id: Positive|null; client_file_id: Positive|null; server_file_id: Positive|null;
+  minecraft: string; loader: {name: "forge"|"none"; version: string|null};
+  source_revision: string|null; distribution_refs: Ref[];
+  resolved_inventory: Ref|null; installed_root_digest: Digest|null;
+  java: Pin|null; launcher: Pin|null; launch_profile: Ref|null;
+  expert_assertions: Ref|null; harness_additions: Ref[];
+  acquisition_report: Ref|null; sealed_at: Utc|null
+};
+type CampaignConfig = {
+  campaign_id: Id; lineage_id: Id; cohort_id: Id; system_digest: Digest;
+  pack_lock: Ref; protocol_ref: Ref; world_baseline: Ref;
+  track: "structured-actions/v1"|"pixels-input-settings/v1"|"pixels-os/v1"|"semantic-assisted/v1";
+  backend: {kind: "mineflayer"|"forge_client"|"os_input"; implementation: Pin; capability_manifest: Ref};
+  n: Positive; agent_ids: Id[]; topology: "shared_cooperative";
+  information_policy: Ref; communication_policy: Ref; runtime_profile: Ref;
+  budget_policy: "fixed_team"|"fixed_per_agent";
+  training_team_limits: Limits; per_agent_limits: Limits; evaluation_limits: Limits;
+  checkpoints_active_s: UInt[]; episode_s: Positive; checkpoint_period_s: Positive;
+  admission: "queue"|"reject"; drift_policy: "split_quarantine";
+  recovery_policy: "terminate_confirmatory"|"resume_development"
+};
+type AgentConfig = {
+  agent_id: Id; system_digest: Digest; runtime: Pin;
+  provider: string; requested_model: string; immutable_model_id: string|null;
+  identity_assurance: "immutable"|"provider_version_unverified";
+  inference_config: Ref; dovetail_commit: string; dovetail_version: string;
+  initial_skills: Ref; learned_overlay: Ref|null; memory_policy: Ref;
+  capability_profile: Ref; account_ref: GrantRef; provider_auth_ref: GrantRef;
+  helper_limit: UInt; helper_depth: UInt; self_play: boolean;
+  resume_mode: "session"|"fresh_handoff"
+};
+type Vec3 = {x: number; y: number; z: number};
+type ItemSlot = {slot: UInt; item_id: string|null; count: UInt; component_summary: object};
+type StructuredState = {
+  dimension: string; position: Vec3; yaw: number; pitch: number;
+  health: number; food: number; inventory: ItemSlot[];
+  window: {id: UInt; revision: UInt; type: string; slots: ItemSlot[]}|null;
+  nearby_blocks: {position: Vec3; block_id: string; observed_at: Utc}[];
+  nearby_entities: {id: Id; type: string; position: Vec3; observed_at: Utc}[];
+  active_request_id: Id|null; connected: boolean; truncated: boolean; next_cursor: Id|null
+};
+type PublicSignal = {cursor: UInt; kind: "action"|"health"|"inventory"|"window"|"chat"|"connection";
+  recorded_at: Utc; summary: string};
+type Observation = Stream & {
+  agent_id: Id; observation_id: Id; mode: "structured"|"pixels";
+  captured_mono_ms: UInt; gateway_sent_mono_ms: UInt; age_at_send_ms: UInt;
+  state_revision: UInt; capability_digest: Digest; state: StructuredState|null;
+  signals: PublicSignal[]; event_gap: boolean;
+  frame: Ref|null; width: Positive|null; height: Positive|null;
+  media_type: "image/png"|"image/jpeg"|null; control_revision: UInt;
+  keymap_digest: Digest|null; pointer_locked: boolean|null; held_keys: Key[];
+  last_action_seq: UInt|null
+};
+type InputEvent =
+  {at_ms: UInt; kind: "key_down"|"key_up"; key: Key} |
+  {at_ms: UInt; kind: "pointer_absolute"; x: UInt; y: UInt} |
+  {at_ms: UInt; kind: "pointer_relative"; dx: number; dy: number} |
+  {at_ms: UInt; kind: "scroll"; dx: number; dy: number} |
+  {at_ms: UInt; kind: "text"; text: string} |
+  {at_ms: UInt; kind: "wait"};
+type GameAction =
+  {kind: "move_to"; target: Vec3; tolerance: number} |
+  {kind: "look_at"; target: Vec3} |
+  {kind: "dig"; target: Vec3; expected_block_id: string} |
+  {kind: "place"; support: Vec3; face: Vec3; expected_item_id: string} |
+  {kind: "interact_block"; target: Vec3; expected_block_id: string} |
+  {kind: "interact_entity"|"attack"; entity_id: Id} |
+  {kind: "equip"; inventory_slot: UInt; expected_item_id: string; destination: "hand"|"off_hand"|"head"|"torso"|"legs"|"feet"} |
+  {kind: "use_item"; hand: "main"|"off"; hold_ms: UInt} |
+  {kind: "click_slot"; window_id: UInt; expected_window_revision: UInt; slot: UInt; button: "left"|"right"; mode: "pickup"|"quick_move"} |
+  {kind: "craft"; recipe_id: string; count: Positive; window_id: UInt; expected_window_revision: UInt} |
+  {kind: "chat"; text: string};
+type ActionBatch = Stream & {
+  agent_id: Id; lease_id: Id; request_id: Id; observation_id: Id;
+  mode: "structured"|"input"; expected_state_revision: UInt; capability_digest: Digest;
+  control_revision: UInt; keymap_digest: Digest|null; deadline_at: Utc;
+  duration_ms: UInt; action: GameAction|null; events: InputEvent[]; release_at_end: true
+};
+type ActionAck = Stream & {
+  agent_id: Id; request_id: Id; action_seq: UInt;
+  status: "accepted"|"executing"|"completed"|"failed"|"cancelled"|"emitted"|"rejected"|"unknown";
+  emitted_events: UInt|null; completed_mono_ms: UInt|null;
+  release_confirmed: boolean; error_code: string|null; requires_resync: boolean;
+  result_observation_id: Id|null
+};
+
+type GameEvent = Stream & {
+  server_boot_id: Id; server_event_seq: UInt; server_tick: UInt;
+  kind: string; payload_schema: string; payload: object;
+  actor_ids: Id[]; evidence_refs: Ref[]; visibility: "evaluator"
+};
+type SkillRevision = {
+  revision_id: Id; agent_id: Id; parent_revision_id: Id|null;
+  kind: "initial"|"notes"|"procedure"|"executable"|"handoff";
+  content: Ref; provenance_refs: Ref[]; generating_call_ids: Id[];
+  origin: "initial"|"campaign"|"practice"|"probe";
+  status: "candidate"|"active"|"rejected"; activated_at: Utc|null
+};
+type BindingChange = {
+  binding_id: Id; owner_mod: string; owner_evidence: Ref;
+  contexts: string[]; context_confidence: "known"|"unknown";
+  before: Key; after: Key; protected: boolean;
+  competing_binding_ids: Id[]; candidate_evidence: Ref; checks: Evidence[]
+};
+type KeybindingPatch = Stream & {
+  agent_id: Id; transaction_id: Id; expected_revision: UInt;
+  expected_keymap_digest: Digest; backend_fingerprint: Digest;
+  changes: BindingChange[]; backup_ref: Ref|null;
+  phase: "planned"|"applying"|"verifying"|"committed"|"rolled_back"|"failed";
+  resulting_revision: UInt|null; resulting_keymap_digest: Digest|null;
+  restart_check: Evidence; failure_code: string|null
+};
+type AgentSnapshot = {
+  agent_id: Id; workspace: Ref; skills: Ref; keymap: Ref|null; backend_state: Ref;
+  runtime_state: Ref; last_action_seq: UInt; model_identity: string|null
+};
+type CheckpointManifest = {
+  checkpoint_id: Id; campaign_id: Id; parent_checkpoint_id: Id|null;
+  status: "preparing"|"committed"; created_at: Utc; source_epoch: UInt;
+  scheduled_active_s: UInt|null;
+  pack_lock: Ref; system_digest: Digest; server_boot_id: Id; server_tick: UInt;
+  world_and_external_state: Ref; agents: AgentSnapshot[];
+  event_cursor: UInt; ledger_cursor: UInt; clean_stop_report: Ref;
+  clocks: {active_wall_s: UInt; elapsed_wall_s: UInt; avatar_ticks: UInt};
+  manifest_digest: Digest|null
+};
+type BudgetLedger = Stream & {
+  ledger_id: Id; campaign_account: "training"|"evaluation"|"development";
+  agent_id: Id|null; operation_id: Id; parent_operation_id: Id|null;
+  source_event_id: Id; posting: "reserve"|"settle"|"adjust";
+  kind: "model"|"helper"|"tool"|"practice"|"body"|"infrastructure";
+  usage: {input_tokens: number; cached_input_tokens: number; output_tokens: number;
+    reasoning_tokens: number|null; model_calls: number; primitive_events: number;
+    avatar_ticks: number; wall_ms: number; spend_microusd: number|null};
+  metering: "reported"|"estimated"|"unknown"; pricing_ref: Ref|null;
+  model_identity: string|null; raw_usage_ref: Ref|null; reason: string
+};
+type EvaluationProtocol = {
+  protocol_id: Id; visibility: "evaluator"; preregistered_at: Utc;
+  system_digests: Digest[]; suite_digest: Digest; sealed_instances: Ref;
+  scorer: Ref; family_weights: {[family: string]: number};
+  exposure_s: UInt[]; primary_checkpoint_s: UInt; probe_limits: Limits;
+  artifact_projection: Ref; control_keymap: Ref|null;
+  primary_estimand: "paired_success_gain";
+  sample_plan: Ref; randomization_plan: Ref; censoring_plan: Ref;
+  alpha: number; min_effect: number; retention_margin: number;
+  analysis_plan: Ref; access_log: Ref
+};
+type EvaluationResult = {
+  result_id: Id; protocol_id: Id; visibility: "evaluator";
+  lineage_id: Id; checkpoint_id: Id; pair_id: Id; instance_id: Id;
+  arm: "experienced"|"initial"; outcome: "success"|"failure"|"censored"|"invalid";
+  success: boolean|null; progress: number|null; active_time_s: UInt;
+  event_observed: boolean; censor_reason: string|null;
+  scores: Ref; evidence_refs: Ref[]; budget_ledger_ref: Ref;
+  validity_flags: string[]; scored_at: Utc
+};
+```
+
+Semantic validators supplement schemas:
+
+- A sealed PackLock has non-null JVM/launcher/launch profile, installed inventory/root hash, acquisition evidence and seal time. E9E requires client/server file IDs and expert assertions. Vanilla can have null CurseForge file IDs and `loader=none`, with official origin artifacts in its inventory. Inventories contain every `FileEntry`, exclusions, launch dependencies, scripts/recipe/quest/config digests, mode evidence, provenance and legal acquisition receipts. The launch profile stores command **argument arrays**, resolved executable hashes, working directories and environment allowlists, never shell strings with secrets.
+- Campaign agents are unique and `len(agent_ids)=n`; their system identities/limits match the assigned system/arm. Checkpoints begin at zero, are strictly increasing, and do not exceed training duration. Protocol references resolve only in the evaluator domain. Only sanitized gameplay projections reach agents. N=1 is still `shared_cooperative`; independent campaigns have distinct IDs rather than a second ambiguous N meaning.
+- Observation monotonic times share the gateway clock domain; backend timing is mapped with uncertainty privately. Structured mode requires state and permits no frame unless the profile advertises images; pixel mode requires frame/dimensions/media type. No private evaluator stream enters Observation. PublicSignal summaries use fixed allowlisted templates and player-accessible data; private event names/payloads cannot be passed through. Item components are bounded allowlisted projections, not arbitrary NBT. Enforce Section 8 limits and map visibility in both observation queries and navigation. Unknown state is represented as unavailable, never guessed from vanilla IDs. A Mineflayer profile without settings has null keymap/pointer state and an empty physical-key list.
+- Structured ActionBatch requires one non-null typed action, no raw events, a compatible capability digest and a permitted duration (move <=30 s, others <=10 s, hold <=2 s); input mode requires null action and <=64 events/2 s under the pixel profile. Reject stale epoch/revision/lease/deadline before dispatch; check block/item/window and dimension preconditions before mutation and throughout local execution. Unrelated state updates may refresh a read, but a failed compare-and-swap never executes optimistically. Text <=256 Unicode code points; place face is an axis unit vector, positions finite/in bounds, tolerance positive/bounded by policy, slot/recipe/count and reach validated. Input keys balance down/up and pointer bounds match the referenced frame.
+- Ack `accepted`/`executing` is not completion. `completed` requires the action-specific postcondition from current player-visible state, with result_observation_id; benchmark success still belongs only to the private scorer. Input-only `emitted` means events were sent, not that gameplay succeeded. `failed`/`cancelled` may have partial effects and must expose those through a fresh observation or require resync. Unknown emitted counts are null; `unknown` requires resynchronization. Exactly one terminal receipt per known request, with append-only corrections for uncertainty.
+- GameEvent payload is validated against its registered versioned `payload_schema`, never arbitrary scorer code. Private event deduplication key is `(server_boot_id, server_event_seq)`; score deduplication also includes predicate/instance and monotonic completion state. Epoch changes do not permit double scoring restored progress.
+- Active learned revisions from origin `probe` cannot be imported into campaign namespaces. A checkpoint is committed only after all N snapshots, complete server/external quest/team files and durable boundaries validate. `manifest_digest` hashes canonical content excluding itself. Auth caches are excluded from state exports and reattached through grants. Scheduled checkpoints record target and actual exposure separately; unscheduled recovery snapshots use a null target.
+- Ledger `reserve` holds capacity and is not spent usage; `settle` releases that reservation and records actual usage; `adjust` adds signed corrections referencing the same operation/source lineage. Counters on reserve/settle are nonnegative; only reconciliation adjustments can be negative, never gameplay rollback refunds. Raw usage counters, whether cumulative or deltas, are retained. Do not sum reserved and settled rows as cost. Cached tokens are a subset of input; reasoning tokens are a reported subset of output unless provider semantics explicitly differ. Unknown cost/usage stays null/unknown, never zero.
+- Family weights are positive and normalized by the scorer; probabilities/alpha/progress are within [0,1]. Censored/invalid results use null success when not observable. Failure within a complete allowed budget is false. Result visibility cannot be downgraded by an agent API.
+
+### 9.2 Synthetic examples
+
+All following JSON is illustrative, structurally valid under the shapes above, with `is_example=true`. Repeated `a` digests are synthetic references, not measured hashes. They do not resolve to real assets. IDs/accounts/model names are examples, not credentials. Admission rejects example records and unresolved content; the candidate PackLock is intentionally not executable. Examples of emitted/committed/passing records illustrate representation, **not actual results**.
+
+**PackLock**
+
+```json
+{"schema":"mcbench/PackLock/1","is_example":true,"lock_id":"e9e-candidate","status":"candidate","provider":"curseforge","pack_slug":"enigmatica9expert","release":"1.27.0","project_id":null,"client_file_id":8161120,"server_file_id":8161123,"minecraft":"1.19.2","loader":{"name":"forge","version":"43.4.23"},"source_revision":"d6bed3a552de25b3bc211856fcd276fbb35d1c43","distribution_refs":[],"resolved_inventory":null,"installed_root_digest":null,"java":null,"launcher":null,"launch_profile":null,"expert_assertions":null,"harness_additions":[],"acquisition_report":null,"sealed_at":null}
+```
+
+**CampaignConfig** (references are synthetic placeholders; this is not a resolvable run configuration and does not refer to the candidate lock above).
+
+```json
+{
+  "schema": "mcbench/CampaignConfig/1",
+  "is_example": true,
+  "campaign_id": "c1",
+  "lineage_id": "l1",
+  "cohort_id": "co1",
+  "system_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pack_lock": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "protocol_ref": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "world_baseline": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "track": "structured-actions/v1",
+  "n": 1,
+  "agent_ids": [
+    "a1"
+  ],
+  "topology": "shared_cooperative",
+  "information_policy": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "communication_policy": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runtime_profile": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "budget_policy": "fixed_team",
+  "training_team_limits": {
+    "active_wall_s": 86400,
+    "input_tokens": 2000000,
+    "output_tokens": 200000,
+    "model_calls": 5000,
+    "primitive_events": 200000,
+    "avatar_ticks": 1728000,
+    "practice_world_s": 0,
+    "spend_microusd": null
+  },
+  "per_agent_limits": {
+    "active_wall_s": 86400,
+    "input_tokens": 2000000,
+    "output_tokens": 200000,
+    "model_calls": 5000,
+    "primitive_events": 200000,
+    "avatar_ticks": 1728000,
+    "practice_world_s": 0,
+    "spend_microusd": null
+  },
+  "evaluation_limits": {
+    "active_wall_s": 14400,
+    "input_tokens": 600000,
+    "output_tokens": 60000,
+    "model_calls": 1000,
+    "primitive_events": 40000,
+    "avatar_ticks": 288000,
+    "practice_world_s": 0,
+    "spend_microusd": null
+  },
+  "checkpoints_active_s": [
+    0,
+    3600,
+    10800,
+    21600,
+    43200,
+    86400
+  ],
+  "episode_s": 3600,
+  "checkpoint_period_s": 3600,
+  "admission": "queue",
+  "drift_policy": "split_quarantine",
+  "recovery_policy": "terminate_confirmatory",
+  "backend": {
+    "kind": "mineflayer",
+    "implementation": {
+      "version": "example-unresolved-pin",
+      "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "capability_manifest": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}
+```
+
+**AgentConfig**
+
+```json
+{"schema":"mcbench/AgentConfig/1","is_example":true,"agent_id":"a1","system_digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","runtime":{"version":"0.154.0-alpha.6.2","digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"provider":"example-provider","requested_model":"example-fixed-model","immutable_model_id":null,"identity_assurance":"provider_version_unverified","inference_config":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","dovetail_commit":"15c306ccfef28eb5f616fadcd5fd8eac0663e361","dovetail_version":"0.4.1","initial_skills":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","learned_overlay":null,"memory_policy":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","capability_profile":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","account_ref":"example-account-slot","provider_auth_ref":"example-provider-slot","helper_limit":2,"helper_depth":2,"self_play":true,"resume_mode":"fresh_handoff"}
+```
+
+**Observation**
+
+```json
+{
+  "schema": "mcbench/Observation/1",
+  "is_example": true,
+  "campaign_id": "c1",
+  "epoch": 1,
+  "seq": 1,
+  "recorded_at": "2026-09-18T12:00:00Z",
+  "agent_id": "a1",
+  "captured_mono_ms": 10000,
+  "gateway_sent_mono_ms": 10020,
+  "age_at_send_ms": 20,
+  "frame": null,
+  "width": null,
+  "height": null,
+  "media_type": null,
+  "control_revision": 1,
+  "keymap_digest": null,
+  "pointer_locked": null,
+  "held_keys": [],
+  "last_action_seq": null,
+  "observation_id": "obs1",
+  "mode": "structured",
+  "state_revision": 1,
+  "capability_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "state": {
+    "dimension": "minecraft:overworld",
+    "position": {
+      "x": 0,
+      "y": 64,
+      "z": 0
+    },
+    "yaw": 0,
+    "pitch": 0,
+    "health": 20,
+    "food": 20,
+    "inventory": [],
+    "window": null,
+    "nearby_blocks": [],
+    "nearby_entities": [],
+    "active_request_id": null,
+    "connected": true,
+    "truncated": false,
+    "next_cursor": null
+  },
+  "signals": [],
+  "event_gap": false
+}
+```
+
+**ActionBatch** and **ActionAck** (a bounded movement request and hypothetical terminal receipt; no real outcome is claimed).
+
+```json
+{
+  "schema": "mcbench/ActionBatch/1",
+  "is_example": true,
+  "campaign_id": "c1",
+  "epoch": 1,
+  "seq": 1,
+  "recorded_at": "2026-09-18T12:00:01Z",
+  "agent_id": "a1",
+  "lease_id": "lease1",
+  "request_id": "request1",
+  "observation_id": "obs1",
+  "control_revision": 1,
+  "keymap_digest": null,
+  "deadline_at": "2026-09-18T12:00:11Z",
+  "duration_ms": 10000,
+  "events": [],
+  "release_at_end": true,
+  "mode": "structured",
+  "expected_state_revision": 1,
+  "capability_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "action": {
+    "kind": "move_to",
+    "target": {
+      "x": 1,
+      "y": 64,
+      "z": 0
+    },
+    "tolerance": 0.5
+  }
+}
+```
+
+```json
+{
+  "schema": "mcbench/ActionAck/1",
+  "is_example": true,
+  "campaign_id": "c1",
+  "epoch": 1,
+  "seq": 2,
+  "recorded_at": "2026-09-18T12:00:02Z",
+  "agent_id": "a1",
+  "request_id": "request1",
+  "action_seq": 1,
+  "status": "completed",
+  "emitted_events": 20,
+  "completed_mono_ms": 12000,
+  "release_confirmed": true,
+  "error_code": null,
+  "requires_resync": false,
+  "result_observation_id": "obs2"
+}
+```
+
+**GameEvent** (`mcbench/player-item-transition/1` payload has `item_id:string`, `before:UInt`, `after:UInt`, and `source:string`; scorer rules separately verify provenance).
+
+```json
+{"schema":"mcbench/GameEvent/1","is_example":true,"campaign_id":"c1","epoch":1,"seq":8,"recorded_at":"2026-09-18T12:00:02Z","server_boot_id":"boot1","server_event_seq":42,"server_tick":1200,"kind":"player_item_transition","payload_schema":"mcbench/player-item-transition/1","payload":{"item_id":"minecraft:oak_planks","before":0,"after":4,"source":"craft"},"actor_ids":["a1"],"evidence_refs":[],"visibility":"evaluator"}
+```
+
+**SkillRevision**
+
+```json
+{"schema":"mcbench/SkillRevision/1","is_example":true,"revision_id":"skill1","agent_id":"a1","parent_revision_id":null,"kind":"procedure","content":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","provenance_refs":[],"generating_call_ids":["call1"],"origin":"campaign","status":"candidate","activated_at":null}
+```
+
+**KeybindingPatch** (conditional keybinding-capable extension, not stock Mineflayer; hypothetical `examplemod`; F13 is only an illustrative proposed candidate whose evidence still needs verification).
+
+```json
+{
+  "schema":"mcbench/KeybindingPatch/1","is_example":true,"campaign_id":"c1","epoch":1,"seq":3,"recorded_at":"2026-09-18T12:00:03Z",
+  "agent_id":"a1","transaction_id":"kb1","expected_revision":1,
+  "expected_keymap_digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "backend_fingerprint":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "changes":[{"binding_id":"examplemod.open.0","owner_mod":"examplemod","owner_evidence":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","contexts":["IN_GAME"],"context_confidence":"known",
+    "before":{"backend":"glfw","representation":"keysym","code":66,"name":"B","modifiers":[],"persisted":"key.keyboard.b"},
+    "after":{"backend":"glfw","representation":"keysym","code":302,"name":"F13","modifiers":[],"persisted":"key.keyboard.f13"},
+    "protected":false,"competing_binding_ids":["examplemod.other.0"],"candidate_evidence":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","checks":[{"test_id":"intended-effect","status":"not_run","refs":[]}]}],
+  "backup_ref":null,"phase":"planned","resulting_revision":null,"resulting_keymap_digest":null,
+  "restart_check":{"test_id":"restart","status":"not_run","refs":[]},"failure_code":null
+}
+```
+
+**CheckpointManifest**
+
+```json
+{
+  "schema": "mcbench/CheckpointManifest/1",
+  "is_example": true,
+  "checkpoint_id": "cp1",
+  "campaign_id": "c1",
+  "parent_checkpoint_id": null,
+  "status": "preparing",
+  "created_at": "2026-09-18T13:00:00Z",
+  "source_epoch": 1,
+  "scheduled_active_s": 3600,
+  "pack_lock": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "system_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "server_boot_id": "boot1",
+  "server_tick": 72000,
+  "world_and_external_state": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "agents": [
+    {
+      "agent_id": "a1",
+      "workspace": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "skills": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "keymap": null,
+      "runtime_state": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "last_action_seq": 100,
+      "model_identity": null,
+      "backend_state": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "event_cursor": 120,
+  "ledger_cursor": 150,
+  "clean_stop_report": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "clocks": {
+    "active_wall_s": 3600,
+    "elapsed_wall_s": 3700,
+    "avatar_ticks": 72000
+  },
+  "manifest_digest": null
+}
+```
+
+**BudgetLedger** (amounts invented; null pricing is explicitly unknown).
+
+```json
+{"schema":"mcbench/BudgetLedger/1","is_example":true,"campaign_id":"c1","epoch":1,"seq":150,"recorded_at":"2026-09-18T13:00:00Z","ledger_id":"ledger150","campaign_account":"training","agent_id":"a1","operation_id":"call1","parent_operation_id":"turn1","source_event_id":"provider-event1","posting":"settle","kind":"model","usage":{"input_tokens":1000,"cached_input_tokens":200,"output_tokens":100,"reasoning_tokens":20,"model_calls":1,"primitive_events":0,"avatar_ticks":0,"wall_ms":2500,"spend_microusd":null},"metering":"reported","pricing_ref":null,"model_identity":null,"raw_usage_ref":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","reason":"completed-call"}
+```
+
+**EvaluationProtocol** and **EvaluationResult**, private only.
+
+```json
+{
+  "schema": "mcbench/EvaluationProtocol/1",
+  "is_example": true,
+  "protocol_id": "ep1",
+  "visibility": "evaluator",
+  "preregistered_at": "2026-09-18T11:00:00Z",
+  "system_digests": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "suite_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "sealed_instances": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "scorer": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "family_weights": {
+    "craft": 1,
+    "machine": 1
+  },
+  "exposure_s": [
+    0,
+    3600,
+    10800,
+    21600,
+    43200,
+    86400
+  ],
+  "primary_checkpoint_s": 86400,
+  "probe_limits": {
+    "active_wall_s": 600,
+    "input_tokens": 20000,
+    "output_tokens": 2000,
+    "model_calls": 50,
+    "primitive_events": 2000,
+    "avatar_ticks": 12000,
+    "practice_world_s": 0,
+    "spend_microusd": null
+  },
+  "artifact_projection": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "control_keymap": null,
+  "primary_estimand": "paired_success_gain",
+  "sample_plan": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "randomization_plan": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "censoring_plan": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "alpha": 0.05,
+  "min_effect": 0.1,
+  "retention_margin": 0.1,
+  "analysis_plan": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "access_log": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+```
+
+```json
+{"schema":"mcbench/EvaluationResult/1","is_example":true,"result_id":"er1","protocol_id":"ep1","visibility":"evaluator","lineage_id":"l1","checkpoint_id":"cp1","pair_id":"pair1","instance_id":"sealed1","arm":"experienced","outcome":"censored","success":null,"progress":null,"active_time_s":120,"event_observed":false,"censor_reason":"infrastructure_disconnect","scores":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","evidence_refs":[],"budget_ledger_ref":"cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","validity_flags":["infrastructure_interruption"],"scored_at":"2026-09-18T13:05:00Z"}
+```
+
+These examples demonstrate syntax, not referential integrity. T01 will require generated-schema validation and complete synthetic CAS fixtures for all cross-record invariants. Secret values use a separate deployment secret store and never appear in PackLock, published configs, event bodies or command lines. Publication removes account-reference mappings and sealed protocol references; preserving internal hashes alone is not safe if an export still grants access to private objects.
+
+## 10. APIs, authorization and delivery semantics
+
+Responsibility: PL (F16/N01), GI (F06/N02), SI (F04/N04). The following paths/tools are **proposed harness APIs**, not existing Minecraft, Forge, CurseForge or Codex APIs. Implement one internal contract layer with scoped facades, not a service per table row.
+
+### 10.1 Transport envelope
+
+Local controller-worker transport uses ACL-protected named pipes where supported; authenticated loopback HTTP is a tested alternative. Remote transport uses TLS/mTLS. The agent-facing default is a small `mcgame` executable that sends typed requests over an agent-scoped local IPC endpoint and prints bounded JSON on stdout (diagnostics go to stderr). It cannot start arbitrary workers or choose another agent endpoint. Worker authorization binds OS/process identity or a protected grant to campaign, agent, role, namespace, epoch, allowed methods, expiry and quotas; do not place tokens in model text or command arguments. The worker enforces checks regardless of which local program sends the request. Arbitrary shell access is confined to the isolated agent environment and cannot expose server files, bot internals or evaluator endpoints. A command allowlist alone is not isolation. Optional MCP stdio/HTTP facades use the same contracts and grants, with no extra permissions. The service rejects request identity mismatches.
+
+Requests carry `request_id`, schema/contract major, `deadline_at`, and where applicable epoch/sequence, expected revision and lease ID. The server bounds UTC deadlines against its synchronized clock, then uses a local monotonic timeout. Maximum accepted clock skew is 250 ms for distributed input; larger uncertainty blocks input admission until synchronized. Game ticks are never used as network deadlines. Read responses include schema version and server cursor. State writes require an idempotency key and compare-and-swap state revision; key reuse with different content yields `IDEMPOTENCY_CONFLICT`.
+
+Error shape: `{code, message, retryable, retry_after_ms, request_id, expected_epoch, details_ref}`; nullable fields are allowed. Agent errors contain sanitized messages and no private diagnostic reference. Codes include `SCHEMA_UNSUPPORTED`, `CAPABILITY_MISSING`, `FORBIDDEN`, `DEADLINE_EXCEEDED`, `STALE_EPOCH`, `STALE_OBSERVATION`, `REVISION_CONFLICT`, `OUT_OF_ORDER`, `LEASE_EXPIRED`, `ACTION_UNKNOWN`, `MECHANIC_UNSUPPORTED`, `REGISTRY_UNSUPPORTED`, `PRECONDITION_FAILED`, `PATH_BLOCKED`, `AWAITING_ARTIFACT`, `AWAITING_OPERATOR_AUTH`, `RELEASE_MISMATCH`, `CAPACITY_EXCEEDED`, `BUDGET_EXHAUSTED`, `METERING_UNAVAILABLE`, `KEY_UNSUPPORTED`, `KEY_POOL_EXHAUSTED`, `ROLLBACK_CONFLICT`, `DISK_RESERVE_LOW`, and `MODEL_IDENTITY_CHANGED`. Errors are classified independently from gameplay failure.
+
+`capabilities/negotiate` matches exact contract major, profile/pack/backend fingerprints and required feature set. A signed resolved manifest lists backend/plugin pins, observation filters, action/motor policy, optional features, settings support, tested key pool where applicable and payload limits. A required mismatch fails preflight; no optimistic feature use. Cache lifetimes end when binary, pack, device, driver, layout or backend changes. Unknown observational metadata is not automatically agent-visible.
+
+### 10.2 Operations and allowed callers
+
+Logical `game.*` names below are transport-neutral; the initial implementation maps them to local CLI subcommands. Example syntax to implement (not installed commands):
+
+```text
+mcgame observe --json
+mcgame move-to --x 10 --y 64 --z 20 --timeout-ms 10000 --json
+mcgame action-status --request-id action-123 --json
+mcgame wait-events --after 42 --timeout-ms 3000 --json
+mcgame cancel --request-id action-123 --json
+mcgame stop-all --json
+```
+
+Full action envelopes can be supplied as validated JSON on stdin or through an agent-owned request file, avoiding shell-escaped JSON and secret arguments. No user-supplied command strings are evaluated by the worker. CLI exits distinguish success, accepted/running, ordinary gameplay failure and transport/preflight failure, with a stable JSON status field as the source of truth. Local protocol and schema fingerprints are checked on every new connection.
+
+| Domain and proposed operation | Caller | Contract / deadline / idempotency |
+|---|---|---|
+| `POST /v1/campaigns`, `GET /v1/campaigns/{id}` | Operator | Validated CampaignConfig -> state revision/admission reason. Create idempotent by request ID; 10 s validation, asynchronous provisioning. |
+| `POST /v1/campaigns/{id}/{start,checkpoint,stop,abort}` | Operator/controller | Expected state revision; durable transition request. 10 s acknowledgment, completion by state deadline. Abort is idempotent and revokes all leases. |
+| `POST /v1/packs/resolve`, `/acquire`, `/verify`, `/seal`, `/materialize` | Operator/provisioner | Candidate/receipts -> PackLock/provisioning state. Acquisition may await official GUI/auth input; no fake synchronous success. Identical content-addressed import is idempotent. |
+| `POST /v1/workers/register`, `/heartbeat`, `/reserve`, `/release` | Worker/controller | Fingerprint, health, complete resource bundle; reservation has owner/expiry/revision. Reserve atomically for all N. |
+| `capabilities.negotiate` | Worker/runtime | Required profile -> resolved manifest or failure. 5 s; read-only. Agent receives sanitized subset only. |
+| `game.observe`, `game.wait_events` | Designated agent/helper with explicit read grant | Bounded structured snapshot / signals after cursor -> Observation; 3 s; original age retained for unchanged data and event gaps marked. Helpers default receive supplied evidence. Optional image projection requires an explicit profile. |
+| `game.act` and typed wrappers `game.move_to`, `game.dig`, `game.craft`, `game.click_slot`, etc. | Designated executor only | Structured ActionBatch -> accepted receipt within 500 ms, terminal within duration + 1 s. Exact action/precondition/cancel semantics in Section 8. `game.input` is conditional on the separate physical-input capability. |
+| `game.action_status`, `game.cancel`, `game.stop_all` | Executor/worker | Query receipt; cancel by request ID; stop navigation/dig/use and clear controls with current epoch. Idempotent control operations; 1 s response. `game.release_all` is a compatibility alias to stop_all on physical-input backends. |
+| `controls.list`, `controls.capabilities`, `controls.plan` | Agent/keybinding helper | Capability-gated Controls-equivalent view / proposed patch; 5 s. Mineflayer without an extension returns CAPABILITY_MISSING; no raw filesystem or mod-object access. |
+| `controls.apply`, `controls.status`, `controls.rollback` | Executor through skill; worker for recovery | KeybindingPatch with expected revision; asynchronous transaction, 5 s acknowledgment. Patch key is transaction ID. Status distinguishes verification pending from committed. |
+| `POST /v1/private/telemetry/events` or authenticated stream | Server telemetry identity only | GameEvent stream; durable receipt cursor within 2 s. At-least-once transport, deduplicated storage. No reverse admin commands on this endpoint. |
+| `team.send`, `team.receive` | Same-team agents | Opaque recipient IDs, UTF-8 body <=4 KiB, message ID; default 10 sends/minute/agent, total queue <=100 messages/agent, TTL 600 s. Durable send is idempotent, ordered per sender, receive by cursor. No cross-campaign delivery. |
+| `artifact.put`, `artifact.get`, `skill.publish` | Agent within own namespace | Relative safe path/content -> authorized Ref/SkillRevision; quota and content validation. Immutable put deduplicates bytes, not permissions. 5 s for metadata; bounded streaming for blobs. |
+| `POST /v1/private/evaluations/{schedule,score,export}` | Evaluator/controller only | Immutable protocol/checkpoint -> EvaluationResult/report; scoring keyed by protocol+instance+arm+attempt. Long jobs asynchronous. No game-tool catalog entry. |
+| `runtime.{start,deliver,interrupt,export_state,resume,stop}` | Controller/worker | Section 6 interface, private credentials; no raw runtime-control or optional app-server socket exposed to the model. |
+
+MVP team cooperation uses ordinary in-game chat plus the declared scoped message channel; both are logged, with no global shared memory folder. Messages consume output/input tokens where used by models and a separate bandwidth ledger. Shared quest/team configuration is fixed at campaign creation; unplanned joining/leaving is an incident, not a roster change. A later shared-artifact channel requires its own policy and system hash. Independent worlds cannot communicate or merge memories unless a separately labeled transfer experiment authorizes it.
+
+### 10.3 Action delivery and ambiguous acknowledgments
+
+Sequence scope is `(campaign, epoch, agent, stream_kind)`. Observations, actions, acknowledgments, telemetry and ledger each have independent cursors; never infer total ordering from UTC alone. Input seq starts at one, increases by one, and is persisted with the request digest before backend dispatch. Exactly one action lease and one in-flight batch exist per avatar. The worker durably records accepted/started/terminal state; repeated request IDs return the existing receipt and never redispatch. Sequence gaps are rejected until resynchronized.
+
+Game actions cannot promise exactly-once effects across a crash between emission and receipt persistence. If a response is lost, the caller queries `action_status` using the same ID. A known rejection-before-dispatch can be replaced by a new batch after state refresh. A known completed, partially executed, or emitted request is not replayed. An unknown started request triggers stop-all, revokes the old action lease, advances epoch, waits for a fresh structured snapshot and backend handshake, and lets the executor choose a new action from current state. Clear stale path goals and window references; reconnection never automatically resumes an unresolved task. Do not replay a click/craft/drop because its acknowledgment was missing. Loss of knowledge about a partial effect is recorded as `ACTION_UNKNOWN` with the affected event interval. It can invalidate a probe if the fixture/scorer outcome cannot be established.
+
+Safe-state controls and heartbeat servicing do not require model availability. Stale clients, delayed tools, replayed tokens and resurrected workers cannot regain a lease after epoch advancement. “At-most-once dispatch” is a command-deduplication policy, not a claim of known exactly-once gameplay.
+
+## 11. Durable state machines and clocks
+
+Responsibility: PL (F09/N01/N02), QA (N03/N05). State transitions append a journal event and update SQLite in one controller transaction/outbox pattern. Events/blobs are flushed before the database references them; recovery replays idempotently. Each entity has a revision, reason, owner, entry timestamp, deadline, parent campaign and last durable evidence cursor. Worker/runtime notifications propose transitions; only the owner below commits them. Unknown states fail closed.
+
+### 11.1 Campaign/run states
+
+```mermaid
+stateDiagram-v2
+  [*] --> DRAFT
+  DRAFT --> PROVISIONING: validate configuration
+  PROVISIONING --> AWAITING_ARTIFACT: exact files absent
+  AWAITING_ARTIFACT --> PROVISIONING: authorized receipt
+  PROVISIONING --> AWAITING_AUTH: operator action required
+  AWAITING_AUTH --> PROVISIONING: prerequisites complete
+  PROVISIONING --> VALIDATING: inventory sealed
+  VALIDATING --> QUEUED: capacity unavailable
+  QUEUED --> STARTING: atomic reservation
+  VALIDATING --> STARTING: admitted
+  STARTING --> RUNNING: all N ready
+  RUNNING --> CHECKPOINTING: registered boundary
+  CHECKPOINTING --> RUNNING: verified restart
+  RUNNING --> RECOVERING: infrastructure fault
+  CHECKPOINTING --> RECOVERING: incomplete stop or snapshot
+  RECOVERING --> RUNNING: permitted recovery
+  RUNNING --> STOPPING: objective or limit reached
+  STOPPING --> COMPLETE: final evidence sealed
+  RECOVERING --> ABORTED: invalid continuity or deadline
+  STARTING --> ABORTED: readiness failure
+  VALIDATING --> ABORTED: conformance failure
+```
+
+Any nonterminal state can transition to `ABORTED` on explicit abort, invalid configuration/security fault or unrecoverable failure, after release/stop cleanup. `COMPLETE` means the declared run ended with valid evidence, not necessarily successful gameplay. `ABORTED` includes classified interruption and partial evidence. `RECONFIGURING` is an agent substate; the campaign remains RUNNING unless an independent infrastructure incident requires whole-team recovery.
+
+Completion triggered by a goal refers only to a registered, agent-visible gameplay goal. Hidden scorer progress never changes action cadence, supplies hints or ends training early; fixed-exposure cohorts normally stop on their registered time/resource boundary. Graduation decisions affect only separately scheduled development campaigns or future cohorts. Neutral lifecycle notices omit evaluator reasons.
+
+| Transition group | Owner | Default timeout / durable behavior |
+|---|---|---|
+| Draft/provision | GI via controller | 30-minute acquisition attempt; external auth/artifact waits have no scored clock and no automatic retry loop. Operator expiry default 7 days, then cancel pending request. |
+| Validate | GI | 30 minutes per profile readiness/conformance attempt; seal only on required evidence. Repeated failure returns typed diagnosis, not alternate versions. |
+| Queue/admit | PL | Capacity reservation TTL 120 s while starting; all N/resources/accounts reserved atomically. Queue expiry configurable, default 24 h. |
+| Start | Worker supervisor | 20 minutes for heavy pack start/join; no scored start until all N backend connections, fresh observations, runtime grants, metering and telemetry are ready. |
+| Run/checkpoint | PL | Checkpoint every active hour plus scheduled probe boundaries; quiesce/clean stop 120 s, snapshot+restart 20 minutes. Timeout rejects snapshot; old committed checkpoint survives. |
+| Recover | QA/PL | Maximum 3 reconnect/restart attempts within 15 minutes; fault-specific rule below. Failure aborts with evidence. |
+| Stop/complete | PL/RS | Release inputs immediately; stop game cleanly within 120 s, finalize report manifest within 10 minutes. Scoring may remain a separately tracked asynchronous job; COMPLETE retains `report_pending` until sealed. |
+
+### 11.2 Worker and agent states
+
+Worker: `OFFLINE -> REGISTERING -> VALIDATING -> READY -> RESERVED -> STARTING -> ACTIVE -> DRAINING -> READY`. Health failure from reserved/active enters `QUARANTINED`; control grants revoked and processes stopped. Only the controller readmits after fingerprint/health checks. Heartbeats every 2 s; lease expires after 6 s without renewal. Action cancellation/control watchdog is much shorter and local. Capacity certificates expire after 24 h or any material configuration change. Missing accounts/artifacts yield `BLOCKED` diagnostics, not a ready worker.
+
+Agent: `CREATED -> PREFLIGHT -> CONNECTING -> READY -> OBSERVING -> THINKING -> ACTING -> OBSERVING`. `THINKING` includes native Codex tool cycles; the harness does not prescribe thought steps. One turn may alternate observations/actions while preserving the single executor. READY/OBSERVING/THINKING can enter `RECONFIGURING` only after cancellation and keys-up; it returns via fresh observation. Any active state may enter `QUIESCING -> CHECKPOINTED`, `INTERRUPTED`, or `STOPPED`. A runtime outage goes `INTERRUPTED -> RESUMING -> READY` only with a tested state manifest. Unsettled calls or leaked capabilities instead produce `FAILED` and terminate or label the campaign according to failure policy.
+
+Model calls have a proposed 120 s soft timeout and 300 s hard interrupt deadline. Native retries are logged and consume the same allowance. On provider backoff, no new actions run; the game normally continues and waiting counts as active exposure. A systemic outage requiring a clean infrastructure stop records the reason and stops every campaign runtime before excluding offline time. No free reasoning during a declared training pause.
+
+### 11.3 Clock definitions
+
+`elapsed_wall` is monotonic elapsed time from first scored start through final stop, including all pauses/outages. `active_wall` includes RUNNING/RECONFIGURING, model thinking, tool latency, idle avatar time, rate-limit waits while the server runs, and checkpoint quiescence until the server stops. It excludes only logged intervals where the whole campaign server is stopped and all campaign inference is suspended. Restart counts again from the first resumed simulation tick, including login/readiness time. Queue/provisioning/preplay checks are separate overhead. Agent-requested restart while the server continues is active time.
+
+`server_ticks` are actual ticks advanced, by boot ID/epoch; they are not inferred as 20 times wall time. `avatar_ticks` sums actual connected-avatar tick exposure across all bodies and practice branches; disconnected time is recorded separately. Also record reserved avatar seconds so disconnects cannot create an apparent resource-efficiency advantage. `primitive_events` counts versioned local execution units (each active motor tick and discrete dig/place/use/slot/craft emission, or raw input events on a physical backend), not high-level tool requests; rejected-before-dispatch requests still incur tool/model cost. All clocks and counters remain monotonic in the ledger across world rollback. Report both surviving game-state tick position and total ticks consumed, including lost work.
+
+Default confirmatory training checkpoints: 0, 1, 3, 6, 12 and 24 active hours for N=1/fixed-per-agent campaigns, subject to independent compute caps. If a cap ends exposure early, do not fabricate the later checkpoint. Section 13 defines reporting for truncated exposure and N comparisons. Probe simulations have their own clocks and budgets; they never advance training exposure.
+
+## 12. Reliability, snapshots and observability
+
+Responsibility: PL/QA (F09/N03/N05/N08), GI for pack persistence, RS for validity decisions.
+
+### 12.1 Consistent checkpoint procedure
+
+At a registered boundary: stop new model turns/helper launches; interrupt or settle in-flight work with ledger receipts; fence and drain input; release all keys; apply the arm's episode-retention transition and then seal the surviving notes/skill revisions and handoff/session state; cleanly stop clients and server using the validated release path. Frozen-persistence snapshots therefore contain the reset initial artifacts, never pre-discard episode notes. At an episode boundary, every arm's next conversation is fresh regardless of the emergency resume mode; unscheduled mid-episode snapshots follow the configured resume policy. Capture the final private event cursor and save completion. Hash/copy the entire world plus external player/quest/team/claimed-chunk/mod data, server instance mutable config, each backend checkpoint (observed-map cache with timestamps, control/capability digest, settled action cursors; no live socket/promise), any client keymap/options overlay, agent workspace/skills and runtime session exports. The pack module maintains an audited persistence-path inventory; files outside the world folder cannot be omitted merely because they are inconvenient.
+
+While the server winds down, the campaign continues consuming active time and any resulting player/world changes are in the snapshot. Agents take no further actions. Assemble into a staging directory, verify all hashes and N members, write/flush manifest, then atomically mark committed. Previous committed snapshots remain intact. Launch from that checkpoint, advance epoch, rotate capabilities, validate backend/policy/identity and applicable keymaps, obtain fresh observations and resume. Restore asserts representative player health/location/inventory, quest/team state, machine/fluid/energy state and time/weather fields where meaningful; it does not claim bitwise future equivalence.
+
+Raw execution evidence and the cost ledger are outside the rollback domain. Model caches, provider sessions and hidden reasoning cannot be assumed reversible. A rollback restores **both** game and agent/helper state to the same checkpoint and prohibits importing later artifacts. If any later knowledge remains in a resumed context or accessible file, label the recovery contaminated. For confirmatory campaigns, the default `terminate_confirmatory` policy ends the sample at the first state-losing rollback; its observations/costs remain and outcomes are classified/censored as preregistered. Development campaigns may resume whole-checkpoint state under `resume_development`, with a lost-interval record. Such resumed runs are descriptive unless a protocol prospectively admits this treatment. Never use a crash to undo death or bad play.
+
+### 12.2 Failure classification and action
+
+| Class / example | Response | Research disposition |
+|---|---|---|
+| Gameplay: death, item loss, bad plan, wasted materials | Continue under normal survival rules; no free restore or hint. | Outcome, not an infrastructure exclusion. Hard task failure may be absorbing. |
+| Policy/budget: exhausted tokens, prohibited tool attempt, no progress | Release on exhaustion and end normally; denied tool attempts logged. No-progress alone triggers no privileged rescue. | Failure within budget; report security violations/interventions separately. |
+| Recoverable transport/backend crash | Cancel/stop, revoke lease, reconnect with a fresh structured observation; server continues. Verify runtime/agent state continuity. | Time/cost charged; valid if evidence remains complete and preregistered outage bounds pass. |
+| Server crash/state loss | Freeze runtimes; classify crash, inspect last committed set; never mix old world/new memory. | Confirmatory sample terminates; development may restore as above. |
+| Controller crash | Workers release/fence on lease expiry; stop new calls. Rebuild from journal and resolve pending states. | Valid only if continuity/accounting proven; otherwise censored/invalid. |
+| Ambiguous input ack | Status query, cancel/stop-all, fresh epoch/observation; no blind replay. | Retain uncertainty and evidence; invalidate affected probe if outcome unresolvable. |
+| Rate limit/provider outage | Honor retry delay with bounded exponential backoff (1–60 s plus recorded jitter), up to 3 actual retries per call; no busy retry. | All consumed retries and game waiting charged. Outage outside bounds is infrastructure interruption. |
+| Storage/resource exhaustion | At reserve-low threshold drain input/inference and clean stop; retain terminal evidence. No deleting required observations to continue. | Interrupted, with resource diagnostics and all costs. |
+| Score/fixture failure, objective leak, changed identity/pack hash | Quarantine results, stop affected evaluation, preserve incident access logs. | Invalid for the affected claim; never silently score zero or rerun only failures. |
+| Human gameplay advice or world manipulation | Log exact intervention, actor and reason. | Assisted lineage; exclude from unassisted confirmatory analysis by preregistered rule, still report it. |
+
+Progress-stall alarms are operator-only: e.g., 30 active minutes without a new public gameplay-state change or milestone evidence. The evaluator does not send “stuck” hints to agents; hidden milestones must not influence their observations. A missing heartbeat or stopped state/event stream can trigger infrastructure checks; unchanged inventory or a stationary avatar while waiting is not by itself a fault. Ordinary timeouts are exposed neutrally as control failures, without hidden scores.
+
+### 12.3 Operating envelope and evidence retention
+
+[D] Initial targets, calibrated during development then frozen: server TPS >=18 and p95 MSPT <=55 over rolling 5-minute windows; p95 state-update-to-gateway age <=500 ms; p95 accepted-action dispatch <=100 ms; responsive-worker cancel/stop <=250 ms. Measure bot event-loop lag and tick processing; renderer FPS is not applicable to headless Mineflayer, never a fabricated zero or passing value. Image-enabled client extensions additionally target median FPS >=30/p5 >=20 and the same capture-age limit. Hung workers are fenced/terminated within a further 2 s. Report percentiles/violation durations. More than 60 consecutive seconds outside the admitted envelope marks an incident and suspends admission; >5% active-time violation disqualifies that capacity profile for confirmation. These are proposed targets, not measured performance.
+
+Collect worker CPU/RAM/disk/network/event-loop lag, server TPS/MSPT/GC/ticks, observation/action age, local action duration and interruption, model latency/usage, helper ancestry, restarts, watchdogs, capability/keymap changes, event gaps and interventions. GPU/VRAM/FPS/capture metrics apply only to enabled rendering or local inference. Private health sampling is 1 Hz, predicates/actions/accounting are event-driven. Measure instrumentation overhead against the same backend/policy without telemetry and verify normal mechanics against an authentic reference; keep added mods/plugins inventoried.
+
+Keep all configs/locks/skill revisions/action receipts/scoring events/delivered structured snapshots/signals and any delivered frames and consumed model/tool event records for at least 180 days after report publication; keep report manifests and aggregate tables for the benchmark release lifetime. Keep clean checkpoints at every evaluation exposure and the last two recovery boundaries. Optional FFmpeg rolling video is capped per campaign, e.g. 20 GiB, with milestone/failure windows retained; video is supplementary, not a substitute for delivered structured observations or any images actually shown. Delete only by policy with tombstones and ownership checks, never while referenced by required evidence. Encryption/access control applies to private transcripts and screenshots containing account data; publication exports are separately reviewed/redacted.
+
+Reserve disk before admission: predicted evidence plus two maximum checkpoint sets plus 20% headroom. Trigger drain if available space falls below one checkpoint set plus 5 GiB. Verify backups/checksums and restart journals after injected disk-full/corrupt-tail faults. An unavailable event interval is marked missing; do not reconstruct it as invented gameplay. Audit replay reruns scorers and accounting over recorded evidence; action replay into Minecraft is an optional diagnostic with nondeterminism explicitly acknowledged.
+
+## 13. Experimental design and analysis
+
+Responsibility: RS (F08/F10/F12/F13), SI (F04), PL (F11). All schedules, endpoints and thresholds here are [D] defaults to freeze after an unsealed development pilot. Confirmatory changes require a new preregistration and untouched holdouts.
+
+### 13.1 Training and evaluation separation
+
+Run natural persistent campaigns with ordinary survival/progression goals. No hidden mechanic alterations in the primary track. Record initial world/team state and all legitimate progress. Train on public/development tasks and naturally encountered pack mechanics; hold out specific world instances, goal compositions and selected task/pack families. Public pack rules may already exist in model pretraining or permitted documentation; never claim those facts are unknown to the model. Transfer to new layouts is different from transfer to unseen mechanics.
+
+Default exposure checkpoints are 0, 1, 3, 6, 12 and 24 active hours. Take immutable artifact snapshots at each; continue the campaign without evaluator feedback. Execute probes **after the campaign finishes** by default, or on separately admitted resources without competing with training. Probes never require campaign runtimes to remain running. Training pauses for clean checkpoints are logged; no campaign reasoning occurs during those offline intervals. A 72-hour research extension is a separate registered schedule after the 24-hour reliability/cost gate, not an MVP completion expectation.
+
+Schedule a checkpoint request at the target active time and record actual quiescence/save exposure, including handoff work. Default permitted overrun is 120 s; the protocol registers this timing tolerance, displays actual times, and applies it equally to arms. Exceeding it is an exposure deviation, not an exactly timed checkpoint. The next target is on the cumulative active clock, not “one hour after the previous restart.” Hard resource limits take precedence: final checkpointing can finish durable local writes but cannot authorize extra inference beyond the reserved budget.
+
+An active-time limit is a cutoff for new gameplay/inference dispatch, followed by bounded release and server drain. Simulation ticks and wall time consumed during unavoidable drain are still charged and reported as overrun; they are not a zero-cost extension. Predicates for success-within-budget stop at the registered cutoff. Final checkpoint artifacts are frozen at that cutoff, excluding later agent work; world state at clean stop is preserved separately for recovery evidence. Confirmatory analysis applies the declared timing tolerance, not a claim of instantaneous server shutdown.
+
+At each checkpoint, instantiate experienced and initial clones with:
+
+- Identical requested/verified model and inference configuration; same runtime/plugin/initial skill versions, tools, backend/plugins, observation/action limits, information policy, handoff length limits and per-probe allowance.
+- Fresh conversations with the same ordinary goal prompt; no campaign conversation replay or model-host session reuse. Experienced clones receive only approved notes/procedural/executable artifacts from that checkpoint; initial clones receive the initial bundle. Both can adapt locally inside that probe under the same policy, but nothing is retained afterward.
+- Byte-identical starting fixture world copies, inventory/equipment/health/spawn, machines/resources, time/weather, quests/teams, reset backend observed-world caches and a common capability/control card (plus common keymap where supported). State equivalence is asserted before either starts. Artifacts are projected to exclude personal keymaps, probe-origin files, server/private data and prior tool credentials.
+- Matched N and team composition. Each team arm runs on its own server copy; the two arms never coexist in one world. Role/account assignments are randomized where interchangeable; identities may differ but their state/permissions do not.
+- Randomized arm order and host allocation in blocks, or independently reserved simultaneous resources. Record provider time/version. Pairing fixtures reduces variance but does not make game dynamics or model sampling deterministic.
+
+Use a fresh instance for every checkpoint/pair/replica. The same instance is shared only by the two matched arm copies. Each clone sees one probe and is then destroyed, including provider/runtime session files and learned overlays. Preserve private evidence before deletion. Campaigns cannot read probe namespaces or model histories. Seed generators, sealed instance IDs and scores stay evaluator-only; opaque task briefs reveal only ordinary gameplay objectives. Developers do not inspect sealed intermediate results to tune prompts/skills/curriculum. Access logging and canary tests enforce this one-way boundary.
+
+### 13.2 Controls and artifact survival
+
+The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.
+
+| Campaign arm | Within an episode | At episode boundary | At probe start |
+|---|---|---|---|
+| Full | Native context, notes, learned skills, bounded self-play | Retain admitted notes/skills/handoff; reset conversation | Experienced artifacts vs initial artifacts; fresh conversation both. |
+| Frozen persistence | Same current-episode tools/context/self-play | Discard every newly written note/skill/handoff/session/cache; restore initial artifact tree | Initial artifacts only; tests exposure effects not carried by artifacts. Game world still persists during training. |
+| Frozen skills | Notes/context/self-play, immutable initial procedures | Retain notes/handoff, never activate new procedural/executable skills | Notes-only experienced projection versus matched initial. |
+| No self-play | Native direct reasoning and artifact editing; helper/self-play tools disabled | Retain notes/skills/handoff | Compare with full at the same opportunity ceilings; report actual spend. |
+
+Frozen-skills notes can encode procedural information; this intervention estimates the effect of executable/procedural packaging under the declared classifier, not the absence of all implicit skills. Enforce category rules (no executable blocks or tool-triggered procedures in notes), audit a sample, and report ambiguity. Frozen-persistence does not prevent short-term adaptation inside an episode or indirect information in the persistent world. Matched probes, not training progress differences, remove direct gear/world advantages.
+
+All arms keep ordinary world progress and lawful client settings across training episodes. “Frozen persistence” refers to cognitive artifacts; its Controls-equivalent card can be regenerated from current settings under the same convenience policy as other arms. Probes restore the common keymap and initial control card for both clones. These distinctions prevent an accidental extra memory channel from being described as a fully amnesic campaign.
+
+Defaults for MVP pilot: full and frozen-persistence campaigns plus experienced/initial probe pairing; retain configurations for frozen-skills and no-self-play and run them when budget permits. Do not claim isolated effects of unrun ablations. Human/scripted reference trajectories validate fixture reachability and scoring only; they are not model competitors or agent hints. Human gameplay repairs invalidate unassisted interpretation as specified in Section 12.
+
+### 13.3 Outcomes and estimands
+
+Let `l=1..L` index independent lineages/teams, `k` task families, `i=1..m_k` independent held-out instances within a family, `t` the registered exposure, and `a in {E,I}` experienced/initial. Let `Y_lkti^a` be server-verified binary success within the same probe budget. Family weights `w_k>0` are fixed before data and normalized to sum one. Default equal family weighting avoids dominance by prolific easy tasks.
+
+```text
+q_l^a(t) = sum_k w_k [ (1/m_k) sum_i Y_lkti^a ]
+d_l(t)   = q_l^E(t) - q_l^I(t)
+AG(t)    = (1/L) sum_l d_l(t)                   # retained-experience success gain
+Q_a(t)   = (1/L) sum_l q_l^a(t)                 # absolute competence, always reported
+
+AULC_a = (1/T) sum_j [(Q_a(t_j)+Q_a(t_(j-1)))/2] (t_j-t_(j-1))
+AUG    = (1/T) sum_j [(AG(t_j)+AG(t_(j-1)))/2] (t_j-t_(j-1))
+
+P_campaign = sum_j v_j I_j / sum_j v_j          # descriptive milestone progress
+RMST(tau) = integral_0^tau S(u) du             # time without milestone, lower is better
+Retention = Q_earlier(after) - Q_earlier(before)
+Transfer  = Q_target(source_artifacts) - Q_target(initial_artifacts)
+```
+
+Primary endpoint is `AG(24 h)` under the frozen training resource envelope for a fixed N, with paired experienced/initial **absolute success** reported alongside it. Proposed useful-effect threshold is 0.10 and the 95% interval should exclude zero before making a confirmatory positive-effect claim. These are project criteria, not literature facts. If compute caps end a campaign before 24 h, evaluate its final artifacts and report achieved exposure; that is a separately labeled **budget-capped endpoint**, not an invented 24 h checkpoint. Primary fixed-exposure inference includes attrition bounds below and cannot simply drop capped/failed lineages. Freeze generous-enough training caps from the pilot if a fixed 24 h estimand is the desired target.
+
+Plot Q and AG against observed active wall time, cumulative input/output tokens, actual avatar ticks and total cost, separately. AULC/AUG are calculated only over common observed support; absent later checkpoints are not linearly fabricated. Show the denominator, number at risk and attrition at every checkpoint. Compute family-specific effects as secondary endpoints; report all registered families, not only improvements.
+
+Server predicates validate causally relevant behavior: crafting source and consumption where needed; operating machines with output over a registered tick window; energy/fluid/network function; quest/team transitions; survival or sustainable resource production. Mere possession of a gifted item or quest reward cannot satisfy a functioning-automation predicate. Pack quest completion and evaluator milestones are distinct outputs. Predicate definitions include alternate valid strategies and invalid setup/teleport/admin routes. Primary automated outcomes do not depend on the agent's self-report or a language-model judge.
+
+For retention, compare fixed earlier-family variants at the registered mastery checkpoint and after a fixed later-training block, e.g. 6 additional active hours; use fresh variants, not the original instances. If no mastery checkpoint exists, report retention as not defined and report absolute earlier-family performance. For transfer, create fresh target-pack worlds and compare source-trained artifacts versus same-model initial artifacts at target exposure zero and matched later target exposure; include source-training cost. No world-save migration.
+
+Optional changed-mechanic diagnostic: independently validate reachability; randomize standard/changed worlds and predeclare observable encounters. Estimate `[(E-I)_changed - (E-I)_standard]`. An encounter is an authoritative rule-relevant action plus visible feedback, not the agent saying it noticed a change. This track has its own information policy; permitting a recipe browser that reveals the rule changes the inference being tested. Recovery latency/futile repetition after naturally occurring setbacks is descriptive unless exposure/perturbation was randomized.
+
+### 13.4 Replication, uncertainty, censoring and power
+
+The independent unit is the lineage/world/team, never individual teammates, messages, checkpoints or probe attempts. Match initial world seeds and training assignments across arms in randomized blocks, but maintain separate state. Use disjoint held-out fixture sets per lineage/checkpoint drawn from the same frozen generator distribution. Reused deterministic family templates are clustered at family/template level if generalization beyond those templates is claimed.
+
+Default uncertainty: resample independent lineage blocks with replacement, preserving all their paired probes/checkpoints, 10,000 bootstrap replicates, fixed analysis seed, percentile 95% intervals. For randomized control-arm comparisons resample matched assignment blocks. If claiming across-family generalization, additionally use a preregistered hierarchical bootstrap over families and lineages; do not infer such generalization from a small fixed family catalog. Bootstrap results with very small L are exploratory; display paired raw effects. Secondary comparisons use Holm adjustment within the declared family; one primary endpoint has alpha 0.05 and no optional stopping. Interim sealed outcome looks are disabled.
+
+Time-to-milestone is measured from registered task start; administrative end/budget timeout is right-censoring for the survival curve and also binary failure for success-within-budget. An absorbing gameplay failure is a competing failure with success-time set beyond the restricted horizon, not an innocuous independent censor. Report cumulative success incidence/RMST through fixed tau and failures, not mean completion time among survivors only. Infrastructure interruption is separately censored/missing and may be informative; Kaplan-Meier alone is not sufficient justification for ignoring it.
+
+Publish an assignment flow table: admitted, started, completed, capped, interrupted, contaminated, invalid, and paired observations available. Report the preregistered primary estimate with complete pairs **plus worst/best attrition bounds over all assigned lineages**, counting an unobserved paired gain in [-1,1]. A positive fixed-exposure claim requires the conservative bound/registered missingness sensitivity to support its direction, adequate planned sample and integrity gates. If not, conclude inconclusive. Do not quietly replace missing lineages or report only graduates. Budget-capped endpoint results remain useful but answer a different exposure question.
+
+For a probe infrastructure failure, retain the attempt and costs and rerun the **whole pair**, at most once, on a new sealed matched instance after repairing the cause. Neither arm's prior probe state survives. Choose this policy before scores are visible. Report both attempts and paired exclusion reasons; if the rerun fails, retain missingness. Training campaigns cannot be replayed selectively after bad outcomes. A replacement campaign is a new assigned sample with the original still in the flow table.
+
+Development pilot: 4 world seeds x 2 independent lineages per principal campaign arm (8/arm), starting with full and frozen-persistence. Begin at 1 h integration exposure; after costs/reliability are known, extend the unsealed pilot to the registered schedule. Default probe development families: survival/resource conversion, a pack-specific recipe/quest chain, a machine GUI/energy/fluid chain, and a composition/automation task. Use 2 fresh instances/family/checkpoint/arm as a planning default; the sealed confirmation sample plan may adjust this **before** preregistration. The example JSON's two-family budget is intentionally smaller than this pilot matrix.
+
+Estimate the SD `s_d` of independent lineage paired gains and plan approximately
+
+```text
+L_required = ceil(((1.96 + 0.84) * s_d / delta)^2)
+L_admitted = ceil(L_required / (1 - preregistered_attrition_allowance))
+```
+
+for two-sided alpha .05, 80% power and minimum useful effect `delta=.10`. This normal approximation is only a planning heuristic; confirm with simulation of the paired bounded/binary hierarchical design, family mix, ceilings, missingness and the actual CI procedure. Hypothetically `s_d=.20` gives about 32 lineages before attrition; this is **not observed variance or a sample-size promise**. Pre-register the final L, instance counts, budget, primary endpoint and exclusion rules; if resources cannot support it, publish an exploratory pilot without powered claims. Infrastructure/validity gates can pass even when H1 is null.
+
+### 13.5 Information policy, sealing and model drift
+
+Default external knowledge is a hash-pinned corpus of permitted pack documentation; in-game recipe/quest/manual interfaces are allowed through capability-tested player-accessible projections; optional rendered profiles may use pixels. No private quest answers or unfiltered global recipe/dependency dump. No general web or shell network retrieval. A logged open-web condition is separate; it requires an allowlisted retrieval proxy, captured content/timestamps and benchmark/private-resource exclusion, while acknowledging that perfect internet contamination control is impossible. No claim of model pretraining decontamination.
+
+Leak tests use unique private canaries and attempts through filesystem traversal, process listing/inspection, environment variables, inherited instructions/plugins, localhost/network scans, CAS guesses, tool schemas/errors, logs/crash dumps, client registry introspection, helper inheritance and cross-arm messages. Agents can receive ordinary success messages/quest rewards from the game; private evaluator success labels never flow back. Non-disclosure is enforceable; preventing the model from guessing that it is studied is not.
+
+Record requested model, returned identity/reroute signals when available, runtime/inference settings and request/response provenance for every call, including helpers. Query available identity evidence at session start and each checkpoint. Immutable identity, when offered and validated, is the fixed-model basis. Alias strings, response headers or scheduled anchor checks without an immutable guarantee cannot prove unchanged weights.
+
+On detected generation/reroute change: stop the fixed-model segment, quarantine observations/results after the **last verified identity boundary**, retain all cost, and prohibit contaminated artifacts in its fixed-model results. If the boundary is uncertain, quarantine the whole uncertain segment. Begin a new cohort with fresh initial artifacts and fresh anchor controls; any inherited-artifact arm is separately labeled transfer. If identities cannot be obtained, label the entire cohort `provider_version_unverified`, report residual drift confounding and do not attribute its longitudinal difference solely to fixed-model learning. Repeated anchor checks can detect some drift but are not a substitute for identity assurance.
+
+## 14. Difficulty catalog and graduation
+
+Responsibility: RS (F14), GI (F15). Pack generation numbers never determine tier. Calibrate task nodes using documented prerequisite depth, machine/GUI complexity, cross-mod dependencies, viable alternative routes, automation duration, hazard exposure and measured reference-system success/time/cost distributions. A task dependency DAG and a competence vector are preferable to pretending all packs have one linear rank.
+
+Initial catalog progression is: vanilla control/survival tasks -> compact modded conformance -> early E9E expert chains -> composed machine/automation chains -> later E9E progression. These are proposed groups awaiting calibration, not assigned empirical difficulty ratings. Each node stores pack lock, prerequisites, allowed information/tools, fixture generator/scorer versions, reference trajectories, budget, structural descriptors, pilot distributions and support status. Inaccessible mechanics block compatibility certification; they are not scored as low intelligence.
+
+Development curriculum can select the next accessible node based on public development outcomes and unmet prerequisites. Confirmatory anchors stay fixed across systems and suite versions. Publish raw success/cost by frozen anchor and tier, not a single quest-count comparison across unlike packs. A new release adds frontier tasks and retains an immutable anchor subset; any unavoidable pack/fixture change creates a new suite ID with overlapping bridge evaluations, never retrospectively rescoring history as equivalent. Historical sealed fixture bytes stay unchanged; new attempts use a frozen generator's previously unused seed sets for leakage control.
+
+[D] Promotion default, to preregister after calibration: a one-sided 95% lower confidence bound on macro-averaged core-task success of at least .80 under the tier cap; at least .60 observed success in every required family; retention loss upper confidence bound no worse than .10 on earlier anchors; all integrity/operating-envelope gates passed. The appropriate paired/cluster interval and simultaneous family guard are specified before testing. Initial mastery can satisfy competence without positive AG; promotion then says **initial mastery**, not learned adaptation.
+
+Use at most two development promotion looks per tier at predeclared exposures (12 h and 24 h by default), with Bonferroni-adjusted alpha .025 per look or a preregistered alternative. A candidate promotion then requires a single independent confirmation on fresh lineages/instances, inaccessible to curriculum tuning. Do not recycle a failed sealed confirmation as a training case. A failed confirmation retains the old tier; further attempts require a new protocol/version and fresh reserved tests. Confirmatory graduation and H1 are separate decisions, with separately registered multiplicity families.
+
+If a system begins at ceiling, keep the anchor evidence, record adaptation headroom as limited, and advance only the development curriculum after competence confirmation. If it never reaches a prerequisite, keep it at that node until budget ends; record the failed prerequisite and downstream tasks as **not attempted**, not successes or inferred zeros. Where a downstream diagnostic is useful, use a standardized prerequisite-equipped fixture for both arms and label it conditional competence. Lack of prerequisite attainment remains a campaign outcome. Transfer uses explicit approved memory projections into fresh worlds and includes source cost.
+
+## 15. Resource, budget and capacity model
+
+Responsibility: PL (F02/F11), QA (N03/N05/N07). Real simultaneous capacity is measured, not promised by configuration syntax or simulator agent counts.
+
+Let N be bodies/campaign, R simultaneous independent campaigns, H active hours, `m_c,m_r,m_s` measured peak backend-worker/runtime/server RAM, `v_c` optional rendered-client VRAM, `c_c,c_r,c_s` CPU demand, and `f` resource safety factor. Admission requires, per actual host placement:
+
+```text
+RAM_available >= f * [R*(N*(m_c+m_r) + m_s) + controller + helper_peak + OS]
+VRAM_available >= f * (resident_rendered_clients * v_c + capture_overhead)
+CPU_available >= f * [R*(N*(c_c+c_r) + c_s) + helpers + encoders]
+```
+
+Also check disk reserve/IOPS, authenticated identity slots, isolated backend processes/connections, ports, network bandwidth, provider in-flight limits/rate limits and telemetry health. Headless Mineflayer has no required client rendering/capture GPU allocation; local inference or optional rendered backends require measured GPU reservations and, for clients, independent displays/input paths. Default factor is 1.25 applied to measured p99/peak footprints, validated under 24-hour load. Resource sums alone cannot predict server tick bottlenecks; the capacity certificate requires observed operating-envelope results. Helpers/practice may need separate reservations even though they are not N.
+
+Hypothetical rendered-extension example only: two clients at 8 GiB, two runtimes at 1 GiB, server 10 GiB and shared services 6 GiB yield 42.5 GiB with 25% headroom. These invented values do not estimate Mineflayer or E9E requirements. For primary evidence sizing, 10 KiB structured snapshots averaging one per second for 24 h would use about 0.82 GiB/agent before action logs/checkpoints; actual event rates/compression must be measured. Optional images add their actual storage and inference costs.
+
+For call j, let `I_j` be billed input tokens, `K_j` cached subset, `O_j` output (with reasoning treatment per provider), `p_in,p_cached,p_out` frozen prices per million. Estimated currency is
+
+```text
+C_model = sum_j [ (I_j-K_j)*p_in + K_j*p_cached + O_j*p_out ] / 1e6
+C_total = C_model + host_hours*host_rate + storage_gib_months*storage_rate
+          + any separately billed provider/tool charges
+```
+
+This is an accounting formula, not a quoted price. Pin price source/date/currency and metering semantics when execution is authorized. If no billable price or exact usage is exposed, report known counts plus estimates/unknowns and do not assert an exact dollar comparison. Calls include root turns, delegates, self-play critics/judges, summaries, retry attempts, discarded branches, model-assisted compilation/revisions and probe jobs. Image processing is included under the provider's actual billing fields, not assumed free. Deterministic local tools still charge wall/resources/input where applicable.
+
+Before each billable operation, atomically reserve worst-case input/output/calls using known prompt size/image estimate and an enforced completion bound. Team limit is the parent authority; child reservations cannot multiply it. If the host cannot enforce a finite bound, reserve a conservative verified maximum or fail preflight for a hard-budget experiment. Reconcile reported actual usage after completion; keep reserves for unresolved calls. Non-cancellable in-flight provider charges can overshoot local estimates: report bounded exposure and stop new work, never promise impossible zero overshoot. Duplicate usage events deduplicate by provider/runtime operation identity; a retry with a new actual call ID is charged again.
+
+Training, evaluation and development are separate subaccounts under an overall operator spending cap. They are all reported; evaluation does not consume the training treatment budget or leak into training exposure. Evaluation allowance is computed from the entire pair/checkpoint/family/replica matrix including reserved reruns. Quotas in the JSON examples are illustrations, not approved expenditures. Campaign start requires actual operator-supplied hard ceilings and a reservation that can support the registered plan, or an explicit exploratory budget-capped protocol.
+
+For **fixed-team N comparisons**, fix aggregate model/input/practice allowances and a summed avatar exposure cap across N. If the cap is 24 avatar-hours, an N=4 healthy simultaneous team has at most roughly 6 real hours, not the same 24-hour horizon as N=1. Enforce this as a reserved-body-time ceiling through `active_wall_s = floor(team_avatar_seconds / N)`, so a disconnected body does not earn replacement free time; also enforce and report actual summed avatar ticks. Define checkpoints as fractions of that budget and store their N-specific active-wall schedule in CampaignConfig; report disconnected time. Wall clock remains a separate maximum. Holding 24 wall hours and tokens fixed while granting 4x body exposure is a third condition, explicitly labeled, not the fixed-total-body comparison. For **fixed-per-agent scaling**, multiply aggregate allowance and avatar exposure by N, retaining the common 24-hour schedule; report the increased total cost. In both conditions keep each avatar's action/motor/observation limits unchanged; aggregate quotas can stop a team earlier but cannot silently reduce its active roster.
+
+Per-agent ceilings can be equal shares by default; unused shares are not silently redistributed. A preregistered pooled-team policy may reallocate through logged subreservations while preserving the same team ceiling. Helpers consume the owner's share. Only a shared-world team is a statistical sample; R independent campaigns can run sequentially with concurrency and host/time blocks recorded.
+
+Requesting N above measured simultaneous capacity returns `CAPACITY_EXCEEDED` with private resource deficits and public neutral queue status, or queues the **whole** campaign. Never launch fewer bodies, time-share a smaller active roster or silently serialize a shared team. N=4 tests on inadequate hardware remain blocked, with rejection tests still runnable. Hardware procurement/hosting and account costs require separate execution authorization; this document spends nothing.
+
+## 16. Tests and staged acceptance gates
+
+Responsibility: QA coordinates; each test has the accountable owner below. **All execution tests are NOT RUN.** The only completed evidence is documentation/source inspection described in Section 2. A test report contains exact lock/config, host fingerprint, timestamps, operator actions, raw refs, expected/actual behavior, result (`pass`, `fail`, `blocked`, `not_run`) and limitations. A blocked test is never a pass.
+
+| Test | Owner | Cases and measurable pass evidence |
+|---|---|---|
+| T01: contracts/configuration | PL | Validate all 13 record types, complete fixture references, migrations and strict unknown-field handling. Negative cases: N=0/negative/fractional, duplicate roster, unknown schema, unresolved lock, stale epoch/revision, bad token/audience, expired deadline, traversal/reparse path. Positive large N parses then fails capacity without attempting allocation. Round-trip schemas agree across Python/TypeScript and conditional Java bindings. Structured/input discriminants, nullable keymap/frame fields, action limits and capability mismatches are negative cases. |
+| T02: official provisioning | GI | On a clean authorized machine/profile, official acquisition of exact vanilla/E9E artifacts, inspected server bootstrap and inventory; no floating downloads. Required expert config+recipe+quest assertions survive cold restart. Missing/restricted files/auth produce typed blocked states. Repeat materialization verifies hashes without overwriting personal instances. |
+| T03: authentic body/actions | GI | Vanilla Mineflayer: structured position/health/inventory, navigation, break/place, equip/use, single-recipe craft, container transfer, state/event freshness, bounded cancellation and reconnect. E9E: exact Forge join/channels, modded registry decoding/metadata, safe collision/navigation, expert-altered recipe, modded container/machine transaction and player-accessible recipe/quest surface. Server evidence verifies resource/reach/mechanics preservation. Hidden chunks/unopened containers and unsupported serializers are negative cases. Connecting alone fails. For optional rendered profiles additionally retain camera/pointer-lock/scroll/text/modifier/polled-input and OS parity tests; results are separate. |
+| T04: native host/plugin | AR | Pinned binary loads exact native plugin and actual selected skill body; structured state changes affect a bounded response; scoped game CLI action reaches the Mineflayer avatar. Image conformance is required only when advertised. Exercise clean helper/self-play, explicit skill invocation, child permissions, event streaming, interrupts, no inherited user tools, fresh handoff and resume. Usage for every call reconciles. Missing Desktop-only capability fails or requires a versioned equivalent conformance report. |
+| T05: keybinding skill | GI | Stock Mineflayer rejects settings/hotkey calls with CAPABILITY_MISSING and no fabricated map; this negative test alone cannot pass the full suite. A separately declared keybinding-capable extension must demonstrate the following before full MVP. Positive overlapping conflict repaired; intended and competing effects checked; disjoint-context no-conflict case unchanged. Unsupported high key/Unicode-hotkey rejected. Modern and legacy backend fixtures cannot exchange numeric codes. Test GUI/game/chat modifiers, key hold timeout, pool exhaustion, protected binding, unknown custom consumer, concurrent revision conflict, crash mid-patch, rollback, restart persistence and cross-client isolation. Actual legacy installed test is required only before legacy support; mocked legacy rejection is in MVP. |
+| T06: isolation/leaks | SI | Deny every path in Section 13.5 including subprocess/network/helper escape and guessed CAS refs. Private canary never appears in model inputs, tools, logs returned to agent or campaign artifacts. Deliberate public-canary retrieval succeeds to show the test can detect access. Probe-created canary never reaches the parent campaign after disposal. Correct team communication succeeds; cross-team attempts fail. |
+| T07: recovery/faults | QA | Inject lost input ack before/after emission, worker/runtime/client/server/controller crash, expired lease, hung client, dropped telemetry, corrupt JSONL tail, partial snapshot, credential expiry and disk-full. No blind duplicate input; watchdog/revocation timing demonstrated. Restore representative player/quest/team/machine state from clean set; reject mixed timestamps/state. Lost intervals and unrefunded usage remain visible. |
+| T08: long soaks | QA | Sequential 1-hour, then 8-hour, then 24-hour runs on each MVP claimed profile at admitted N, before scientific confirmation. Meet Section 12.3 envelope; zero unresolved stuck controls, missing required evidence, duplicate settled charges/scoring, leaked private records or unclassified faults. Demonstrate at least one scheduled checkpoint/restart and controlled recovery during development soaks. Record all interventions. Model-capacity limits can block paid soaks; synthetic-runtime engineering soaks are labeled and do not replace authentic host/game integration. |
+| T09: simultaneous capacity | PL | Attempt N=1,2,4 at identical profile/hardware. Successful tests prove all bodies concurrently present, unique identities, simultaneous independent actions/state delivery and no cross-client effects in both shared and independent-campaign topologies. Use 30-minute stress windows then certify intended N with the 24-hour soak. Over-capacity attempts atomically queue/reject; no partial team. A release claiming multi-agent capability requires actual N=2 success; N=4 may be explicitly blocked. |
+| T10: evaluator controls | RS | Reachability reference for each fixture; at least two valid strategies where available. Negative controls: idle, fake agent success text, duplicate events, gifted output, incomplete/unstable machine, wrong recipe/normal mode, admin spawn and wrong team. None earn the protected predicate. Valid server trajectories score correctly with blinded fixture IDs. Read-only telemetry overhead/mechanics parity checked. |
+| T11: matched probes/ablations | RS | Compare clone manifests before start: identical body/game/keymap/tools/budget/prompts, differing only allowed artifacts. Initial t=0 clone pair equal in configuration; seeded synthetic policy sanity check gives zero designed gain. Probe-derived revisions/imports denied; helper cases use development namespace only. Frozen arms discard exact designated state, including session caches. |
+| T12: clocks/budgets | PL | Count root/child/grandchild/self-play/retry/summary/practice/evaluation calls. Replayed usage notifications charge once; two actual retries charge twice. Test reserves/settles/adjustments, cached-token semantics, unknown metering, concurrent team reservations and noncancellable-call exposure. Wall/ticks/events reconcile through stop/restart and rollback; reconfiguration consumes active time. No cap multiplication by N or helpers. |
+| T13: evidence/report replay | RS | Rebuild progress/success/censoring/cost tables from raw refs with frozen analysis/scorer and obtain identical output digests. Verify all required artifacts/hashes and retention/tombstones; export contains no secrets/private future tests. Report missing data explicitly. No claim that replaying the actions reconstructs identical game evolution. |
+| T14: generation drift | RS | Inject explicit model reroute, alias-only identity, changed runtime/plugin and delayed identity detection. End/quarantine correct segment from last verified boundary; reject old grants/state import into fixed-model cohort; create fresh anchors. Unverifiable identity produces the required qualification, never a false fixed-model pass. |
+| T15: confirmatory adaptation pilot | RS | Complete independent preregistered sample plan, sealed matched evaluation and frozen analysis, with all assigned samples/attrition bounds/costs. Positive H1 claim only if primary effect criteria, missingness sensitivity, identity and integrity gates pass; report absolute competence. Null or inconclusive effect can pass implementation validation. Small development pilot alone cannot pass a powered claim. |
+| T16: graduation/history | RS | Recompute development looks, multiple-look adjustment, tier prerequisites, retention and independent confirmation. Ceiling case reports initial mastery; never-prerequisite case reports not attempted. New model reruns frozen anchors. Test retired/changed lock generates a new suite identity. |
+| T17: legacy/pack extension | GI | Each new release passes relevant T02–T14, including its loader/registry/action backend and any claimed custom GUI/keybinding polling, mode setup, quest/team persistence and machine predicates. Import artifacts into fresh world; reject incompatible save migration. Source metadata alone cannot promote support. |
+
+### 16.1 First runnable vertical slice: G0
+
+Build the Mineflayer vanilla slice first, then immediately attempt the exact E9E profile before expanding scale. These are short integration experiments, not pack completion or long-soak claims. All six items are required for G0; a vanilla-only success is a recorded partial result.
+
+1. A pinned Codex worker loads native Dovetail, consumes structured observations through the scoped local game CLI, executes one bounded action and accounts for an isolated helper/self-play case.
+2. Official vanilla/E9E distributions are acquired/locked and authentic servers launch. Mineflayer joins vanilla; the E9E backend attempt records exact Forge negotiation, registry/channel compatibility and expert config/recipe/quest assertions. Unsupported vanilla acquisition remains an explicit provisioning issue.
+3. Vanilla navigation, mining, inventory, crafting and container operations work without screenshots. For E9E, verify a modded item/block, an expert-altered recipe and actual modded machine/container operation using the structured API and server evidence. A join or vanilla interaction inside E9E does not satisfy this step.
+4. Bound/cancel an in-flight action, stop all local controls, disconnect/reconnect and resynchronize without duplicate mutation. Stock Mineflayer advertises keybindings unsupported and rejects such requests. The full keybinding skill/extension remains open under T05/G1, rather than becoming a fake G0 pass or being removed.
+5. A short server-verified milestone reaches only the private report, with positive/negative scorer controls and no score/criterion leakage.
+6. All root/helper/tool/local-execution costs and real-time intervals are recorded with backend/plugin/pack/runtime locks, observation/action policy, public observations and private evidence refs.
+
+Mineflayer is always the first backend implemented. If a mandatory E9E mechanic fails, record a typed compatibility gap, implement/test a Mineflayer extension where feasible, or qualify a structured Forge client backend under the same public contract. That is a new backend/system identity and separate evidence, not a silent in-run substitution or claim that Mineflayer passed. Official installation and authentic mechanics remain required. A fallback that passes may close the modded harness gate for its own profile while the Mineflayer/E9E profile remains unsupported. Resolve the modded gate before treating a vanilla-only prototype as the requested MVP.
+
+### 16.2 Release gates
+
+| Gate | Prerequisites and exit evidence | Release meaning |
+|---|---|---|
+| G0: Mineflayer-first pack/host/API slice | T02–T06/T10/T12 subset and the six items above | Feasibility demonstrated for one exact profile only. |
+| G1: contract/integrity foundation | G0 plus complete T01/T04/T05/T06/T10/T11, including the required keybinding-capable extension | Data, authority and probe boundaries trustworthy enough for reliability work. |
+| G2: durable single-agent | G1 plus T07/T08/T12/T13 at N=1 | 24-hour campaign operation within declared envelope, no scientific improvement claim. |
+| G3: admitted teams | G2 plus T09, actual N=2 and explicit N=4 disposition; N=2 soak/security | Configurable roster and demonstrated simultaneous cooperative play. |
+| G4: research MVP | G3 plus developmental sample/cost pilot, T14, frozen protocol, T15 confirmatory execution/report | Research-capable meta-harness. Positive adaptation is a separate empirical result, never a software release prerequisite. |
+| G5: graduation/catalog expansion | G4 plus T16/T17 for new targets | Versioned promotion claims and individually qualified packs. |
+
+## 17. Delivery roadmap and executable work breakdown
+
+The following are implementation deliverables, not work performed for this specification. Estimates are deliberately omitted until G0 provides installation/host/control effort and cost evidence. Each milestone produces runnable commands, fixture inputs and an evidence bundle, not just documentation. Milestones M0–M5 form the MVP; M6 onward is later expansion.
+
+```mermaid
+flowchart LR
+  M0[M0 Mineflayer and expert-pack API spike] --> M1[M1 strict contracts and trust boundaries]
+  M1 --> M2[M2 durable single-agent]
+  M1 --> M3[M3 private probes and scorer controls]
+  M2 --> M4[M4 simultaneous teams and admission]
+  M3 --> M5[M5 preregistered pilot and research release]
+  M4 --> M5
+  M5 --> M6[M6 calibrated graduation and legacy modules]
+  M5 --> M7[M7 needs-driven distributed scale and dashboard]
+```
+
+| Milestone | Accountable role | Deliverables / prerequisites | Exit evidence and fallback decision |
+|---|---|---|---|
+| M0: prove the risky path | GI, with AR as host workstream owner | Minimal Mineflayer/TypeScript worker, scoped local CLI, observation filtering, bounded actions/cancel/reconnect, private telemetry; official acquisition receipts; verified Codex CLI JSONL event schema; plugin proof; vanilla then immediate compact E9E suite. Requires actual accounts/hardware and authorized inference ceiling. | G0 evidence; record vanilla success separately. Resolve Forge/registry/recipe/machine gaps with tested extensions or a separately qualified backend. No false Mineflayer compatibility or launcher substitution. |
+| M1: consolidate contracts/isolation | PL | Pydantic/TypeScript and conditional Java schemas, scoped local CLI, journal/migrations, capability projections, private evaluator, and full keybinding skill plus qualified settings extension. Depends M0. | G1 including complete T05, synthetic contracts and secrecy tests. Fix credential isolation before admission. |
+| M2: durable campaigns | QA | Lease/watchdog/ack journal, clean-stop snapshot inventory, recovery runbook, disk/cost reserves, clocks and static operational report. Depends M1. | G2 1/8/24-hour reports. If snapshot consistency cannot be proven, confirmatory runs stop on failure; do not advertise resumability. |
+| M3: probes and scientific controls | RS | Fixture generator/scorer, private protocol/result store, artifact projections, matched-clone runner, ablation policies, paired analysis and attrition report. Depends M1; can proceed on public fixtures alongside M2. | T10/T11/T13 with synthetic known-effect controls; secrecy canary suite. Unsupported predicates use a narrower declared task family, not agent self-report. |
+| M4: N-body admission | PL | Team roster/communications, atomic multi-resource reservation, distinct account mapping and per-client routing; N=1/2/4 stress matrix. Depends M2. | G3. If N=4 exceeds resources, publish explicit capacity denial; if N=2 cannot pass, multi-agent MVP gate remains open. |
+| M5: research MVP | RS | Frozen system/pack/schema/protocol release; development pilot, power/cost plan, independently preregistered confirmatory pilot, complete report/evidence export and operator handbook. Depends M3/M4. | G4; positive, null or inconclusive scientific verdict correctly labeled. If immutable identity unavailable, release a qualified longitudinal evaluation, not an unqualified fixed-model adaptation claim. |
+| M6: harder tasks and older packs | GI for modules, RS for calibration | Calibrated task DAG, anchors, retention/transfer, independent promotion tests; E6E/E2E Java/loader/input/quest modules. Depends M5. | G5/T16/T17 per profile. Keep unsupported packs at candidate status; fresh worlds for transfers. |
+| M7: scale only as needed | PL | Remote worker mTLS, PostgreSQL if multiple controllers are necessary, object storage, scheduling quotas and optional interactive dashboard. Depends stable M5 workload evidence. | Same conformance suite and comparison-preserving resource certificates. No dashboard or distributed rewrite justified solely by anticipated arbitrary N. |
+
+Proposed operator commands to implement (not existing CLI claims):
+
+```text
+mcbench doctor --profile profiles/system/locked.json
+mcbench pack resolve --candidate profiles/pack_candidates/e9e.json
+mcbench pack acquire --request <provisioning-id>
+mcbench pack verify --receipt <official-acquisition-receipt>
+mcbench conformance run --profile <profile-id> --suite compact-modded
+mcbench campaign validate --config <operator-config.json>
+mcbench campaign admit --config <operator-config.json>
+mcbench campaign start --id <admitted-campaign-id>
+mcbench campaign checkpoint --id <campaign-id>
+mcbench campaign status --id <campaign-id>
+mcbench campaign abort --id <campaign-id> --reason <reason-code>
+mcbench evaluate --protocol <private-protocol-ref> --checkpoint-set <ref>
+mcbench report build --campaign <id> --verify-evidence
+```
+
+`validate`, `doctor` and `resolve` have a no-inference mode and declare whether any network metadata access is needed. Acquisition is distinct from launching; admission is distinct from starting billable work. Every mutating command emits a request ID and durable state; the CLI exits nonzero for blocked/failure and does not silently advance to the next stage. Implementation CI uses synthetic fixtures/mock providers by default; real-game and paid-provider tests are explicitly selected future jobs.
+
+## 18. Risk register and remaining decisions
+
+Each unresolved decision has a default and a falsifiable resolution, not an unbounded options list. No choice below authorizes execution during this specification task.
+
+| Risk / open decision | Impact | Recommended default and mitigation | Owner / resolution gate |
+|---|---|---|---|
+| R01: Mineflayer cannot negotiate or implement required Forge mechanics | Expert-pack progression blocked despite a working vanilla backend. | Immediate exact-pack join/registry/channel/recipe/machine suite; typed gaps; tested extension or separately qualified Forge client backend, with no false Mineflayer pass. | GI, G0/T03. |
+| R02: official artifacts/bootstrap differ from source tag or download policy | Irreproducible/wrong pack, acquisition failure. | E9E 1.27.0 candidate, inspect actual distributions, pin resolved bytes; await authorized files on denial. | GI, G0/T02. |
+| R03: vanilla acquisition/control instrumentation path | False vanilla-control claim or launcher substitution. | Verify official CurseForge-managed vanilla path; keep vanilla/Forge identities distinct and disclose instrumentation. Amend explicitly if blocked. | GI, G0. |
+| R04: Codex schema/plugin/helper behavior differs headlessly | Selected skills cannot operate or usage is incomplete. | Pin local candidate binary, generate schema, load native port and test actual helpers; version any shim. | AR, G0/T04. |
+| R05: model-generated code reads provider/game/private secrets | Evaluation invalid; credentials exposed. | Separate process/VM identities and credential/execution broker; capability allowlists and adversarial tests. | SI, G1/T06. |
+| R06: JVM/loader/pack mode unknown | Wrong mechanics or launch failure. | Java 17/E9E candidate; obtain exact release evidence, cold-start expert config+recipe+quest assertions. | GI, T02. |
+| R07: finite key pool or unknown custom consumers | Required hotkeys remain unusable. | Tested pool, conservative conflicts, protected controls and transactional rollback; report unresolved prerequisite. | GI, T05. |
+| R08: account/hardware/provider capacity below N | Cannot run requested team concurrently. | Distinct authenticated identities; measure envelope and atomically queue/reject whole team. | PL, T09. |
+| R09: non-world-folder state or async writes omitted | Invalid recovery and future-knowledge advantage. | Clean-stop persistence inventory, paired game/agent restore; terminate confirmatory sample on state loss. | GI/QA, T07. |
+| R10: hidden state or excessive automation leaks through structured tools | Measures adapter assistance instead of intended agent adaptation. | Filter packet state and pathfinder map; bounded actions, single recipes, fixed motor policy; no raw bot/eval access. Separate expanded-assistance/pixel/backend identities. | SI/GI, T03/T06. |
+| R11: sealed-test leakage through self-play or tuning | Apparent learning is contamination. | Separate fixture namespaces, one-way probe disposal, no intermediate sealed feedback, access audit. | RS/SI, T06/T11. |
+| R12: provider drift is unobservable | Cannot isolate fixed-model learning. | Prefer immutable identity; otherwise qualify all claims and use fresh generation cohorts/anchors. | RS, T14. |
+| R13: sparse success/ceiling, costly long runs | Underpowered or uninformative gain. | Development calibration, budget pilot and power simulation; preserve absolute outcomes and ceiling/prerequisite labels. | RS, T15/T16. |
+| R14: false-positive milestone/team sharing | Possessions or teammates incorrectly credited as competence. | Server predicate provenance, sustained operation, proper team unit and negative controls. | RS, T10. |
+| R15: rates/costs/hidden retries unmetered | Unfair comparisons or budget overrun. | Precall reservations plus descendant usage reconciliation; fail closed where a hard bound cannot be established. | PL/AR, T04/T12. |
+| R16: storage/recording overhead dominates | FPS/TPS degradation or missing audit evidence. | Bounded supplementary video, reserve disk for observations/action logs/checkpoints and any delivered images, telemetry-overhead measurement. | QA, T08/T13. |
+| R17: publication exposes accounts or sealed tests | Privacy and future benchmark integrity loss. | Export projection, private raw archive, embargoed fixtures and versioned release hashes. | SI/RS, T06/T13. |
+
+Decisions to settle **before G0 execution**: exact supported Codex binary/schema and provider authentication path; account slots/hardware; official vanilla profile feasibility; resolved E9E server/client/JVM lock; pinned Mineflayer/plugin versions, compact-suite registry/recipe/quest/machine predicates, observation/motor policy and conditional settings backend. Defaults are stated above, but success requires evidence. Decisions to settle **after development pilot and before confirmation**: actual token/currency ceilings, final sample size/probe instance count, calibrated task budgets/thresholds, immutable model identity availability and permitted scientific claim. Optional dashboard/distribution choices are not blockers.
+
+## 19. Traceability and consistency obligations
+
+| Requirement group | Detailed sections | Tests / release gates |
+|---|---|---|
+| F01, F05, F15 | 2, 5, 7, 8 | T02/T03/T17; G0/G5 |
+| F02 | 1.4, 10, 11, 15 | T01/T09; G3 |
+| F03, F07 | 6, 8, 10, 13.2 | T04/T06/T11/T12; G0/G1 |
+| F04, N04 | 4.1, 5, 6.3, 10, 13.5 | T06; G1 and every release |
+| F06, N02 | 8, 9, 10.3, 11 | T03/T05/T07; G0/G2 |
+| F08 | 9, 13.1–13.4 | T11/T15; G1/G4 |
+| F09, N05 | 10–12 | T07/T08/T12; G2 |
+| F10 | 9, 13.3 | T10/T13; G0/G1 |
+| F11, N03 | 9–11, 13.4, 15 | T08/T09/T12; G2–G4 |
+| F12 | 6, 13.5 | T14; G4 |
+| F13 | 12.3, 13, 16 | T13/T15; G4 |
+| F14 | 14 | T16; G5 |
+| F16, N01 | 5–11 | T01/T04/T06; G1 |
+| N06, N08 | 5, 9, 11–12 | T01/T07/T13; G2/G4 |
+| N07 | 12.3, 15–16 | T08/T09; G2/G3 |
+
+Before any release, QA signs a cross-contract consistency review: roster size equals resource reservation and snapshot members; observation/action revisions, capability hashes and epochs agree; only the executor can act; evaluator-only records have no gameplay route; all source examples remain labeled synthetic; training/probe/development accounts and clocks do not overlap ambiguously; rollback restores all learning state while retaining all consumed cost; probe keymaps/tools/fixtures match; frozen arms reset exactly the declared artifacts; missingness and provider drift affect claim validity as specified; each support claim links to a passed test on the exact profile. The generated schemas and API contract tests are part of this review.
+
+Source provenance for this document consists of the linked primary pages/revisions in Section 2 and the supporting local [build plan](BUILD_PLAN.md), [runtime research](research/modpack-runtime.md), [control research](research/control-keybindings.md), [Dovetail research](research/dovetail-integration.md), [benchmark research](research/benchmark-design.md), and [handoff review](research/handoff-review.md). These were supporting evidence, not instructions overriding the user. Recheck moving URLs and APIs before implementation locks are signed. Future evidence bundles should preserve permitted source excerpts/hashes and access dates rather than relying only on live links.
+
+**v0.1 document review (historical, 2026-09-18):** reviewed schema/visibility/budget/clock/state/gate interactions; parsed all 13 JSON examples successfully; checked that all 24 numbered MUST requirements have owners and observable test references, code fences are balanced, and supporting local links exist. This is document-level validation, not generated-schema conformance or execution evidence. It does not pass G0–G5 or establish actual pack, model-host, input, capacity, reliability or adaptation results.
+
+**v0.2 change D01 (2026-09-18):** Mineflayer-first structured control authorized by the user. Updated body contracts, schema examples, scope, stack, tests, gates and roadmap; keybinding and expert-pack requirements remain visible. Validation and remaining gaps are recorded in [MILESTONES.md](MILESTONES.md). No runtime test or release gate is passed by this document change.
+
+**v0.2 change D02 (2026-09-18):** following the user's question about direct Codex CLI integration, the initial game transport is `mcgame` + scoped IPC to a persistent worker; MCP and app-server are optional adapters. Read-only CLI help and official documentation were checked; no live agent/game integration was executed.

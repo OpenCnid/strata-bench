@@ -1,0 +1,55 @@
+# Credentials and local account state
+.env
+.env.*
+!.env.example
+!.env.*.example
+auth.json
+keys.json
+credentials.json
+*.pem
+*.key
+/.codex/
+/.local/
+/secrets/
+
+# Private runtime, evaluation and game data (store outside this repo)
+/runtime-data/
+/runs/
+/evidence/
+/checkpoints/
+/private/
+/sealed-fixtures/
+/installations/
+/instances/
+/.minecraft/
+/world/
+/worlds/
+/saves/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log
+
+# Dependencies and generated artifacts
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.gradle/
+build/
+dist/
+target/
+coverage/
+*.tsbuildinfo
+
+# Editor and operating system state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini

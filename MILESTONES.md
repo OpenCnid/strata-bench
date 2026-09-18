@@ -8,7 +8,7 @@ Updated: 2026-09-18. Authority: [SPEC.md](SPEC.md) v0.2.0; maintenance rules: [A
 
 - Delivered: specification, standing instructions and ledger, updated for D01 (Mineflayer first / structured actions), D02 (direct Codex CLI; MCP optional), and D03 (Strata / public strata-bench repository).
 - Implementation: **not started**. No installed/launch-tested game, paid agent job, compatibility result, soak, capacity certificate, or benchmark result is recorded.
-- Active work: Strata naming and initial public repository publication; implementation remains not started.
+- Active work: Strata naming and public repository publication completed at [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench); implementation remains not started.
 - Next implementation action, when requested: M0.1–M0.3 (below): pin a Node/TypeScript Mineflayer worker and scoped local CLI, prove bounded vanilla actions, then immediately test the exact E9E Forge/registry/recipe/machine surface. G0 requires modded evidence; vanilla-only success is partial.
 - Execution prerequisites unresolved: exact official acquisition/vanilla path, E9E distribution/JVM lock, account and hardware availability, pinned headless Codex capabilities, and any required paid-inference budget/experiment authorization. These do not block independent documentation or authorized local implementation.
 - Most recent verification: 2026-09-18 document checks passed for 13 JSON examples/top-level type shapes, all original IDs, local links, balanced fences and the revised CLI/backend defaults. No T-suite or G-gate has passed.
@@ -224,3 +224,9 @@ Baseline history: the initial ledger recorded no authorized scope changes. **D01
 - User selected **Strata** as the project name and **strata-bench** as the repository name, and explicitly authorized public GitHub creation/publication. Target owner is the authenticated **OpenCnid** account.
 - Updated README, specification, build plan, fresh-session prompt and standing instructions. Added repository ignore rules for credentials, private evaluation/run data, installed games and generated build artifacts; removed a workstation-specific temporary path from this log for publication.
 - Scope: naming and repository setup only (C02/C30/C35). All implementation milestones and T/G execution results remain unchanged. Publication verification is recorded below after the remote exists and files have been pushed.
+
+### 2026-09-18 — Public repository publication verified
+
+- Created [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench) as a **public** repository with default branch `main`, connected local `origin`, and pushed the 14-file specification/research baseline in [commit 526a4db](https://github.com/OpenCnid/strata-bench/commit/526a4dbdcdcd21aa2575a612233e833f917e9ead).
+- Verification: `gh repo view` reported `PUBLIC` and `main`; the GitHub commit API and local `git rev-parse HEAD` matched the initial commit exactly. The working tree was clean after the initial push. Document checks and `git diff --cached --check` passed; the staged credential-pattern scan had no matches. Ignore checks excluded example credential/run/fixture/dependency paths while allowing `.env.example`.
+- Repository setup is complete. No game, backend, model, compatibility, reliability or benchmark execution result is implied; M0–M7 and T01–T17/G0–G5 retain their prior statuses. Next implementation work remains M0.1/M0.2 followed by the exact-pack M0.3 gate.

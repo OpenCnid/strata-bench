@@ -170,6 +170,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     public JsonObject recipePage()throws IOException {tick();return quests.recipePage(loadedArtifacts);}
     public JsonObject recipeQuery(GameRecipeQuery.Query query) throws IOException {
         tick();
+        if (query.source().equals("emi")) return EmiRecipeSource.query(query, loadedArtifacts);
         if (!net.minecraftforge.fml.ModList.get().isLoaded("jei")) throw new IOException("CAPABILITY_MISSING");
         return JeiRecipePlugin.query(query, loadedArtifacts);
     }

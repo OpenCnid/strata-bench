@@ -10,6 +10,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent scripted predictions/replies. No Minecraft/server effect claim. */
 class GameInventoryTest {
+    @Test void derivedPreviewUpdateDoesNotInvalidateConfirmedOwnedTransfer() throws Exception {
+        var before=view(Map.of(1,stack("minecraft:andesite",1),2,stack("minecraft:andesite",1)),stack("minecraft:andesite",3),0);
+        var received=view(Map.of(1,stack("minecraft:andesite",1),2,stack("minecraft:andesite",1),3,stack("minecraft:andesite",1)),stack("minecraft:andesite",2),0);
+        var port=new Port(before,received);
+        var motor=GameInventory.click(port,3,true,false,port::emit);port.ack();
+        var slots=new ArrayList<>(received.slots());slots.set(0,stack("minecraft:andesite_slab",6));
+        port.current=new GameInventory.View(slots,received.cursor(),0);
+        assertTrue(motor.tick(port::emit));assertEquals(List.of(3),port.clicks);assertEquals(2,port.charges);
+        assertThrows(IOException.class,()->GameInventory.click(port,0,false,false,port::emit));
+        slots.set(10,stack("minecraft:diamond",1));
+        assertFalse(GameInventory.sameOwned(received,new GameInventory.View(slots,received.cursor(),0)));
+        assertFalse(GameInventory.sameOwned(received,new GameInventory.View(received.slots(),stack("minecraft:andesite",1),0)));
+    }
     static GameInventory.Stack stack(String id, int count) { return new GameInventory.Stack(id, count, "component-identity"); }
     static GameInventory.View view(Map<Integer, GameInventory.Stack> values, GameInventory.Stack cursor, int preview) {
         var slots = new ArrayList<GameInventory.Stack>();

@@ -1,4 +1,5 @@
 import type { Bot } from 'mineflayer';
+import { isDeepStrictEqual } from 'node:util';
 import { RecipeBook } from './recipes.js';
 import { requireThat, type Action } from './protocol.js';
 
@@ -16,14 +17,22 @@ export async function craft(bot: Bot, book: RecipeBook, action: Extract<Action, 
   requireThat(width > 0, 'MECHANIC_UNSUPPORTED');
   const syncBot = bot as Bot & {_syncWindow?: (w: typeof window) => Promise<void>};
   requireThat(typeof syncBot._syncWindow === 'function', 'MECHANIC_UNSUPPORTED');
-  const recipe = book.get(action.recipe_id);
-  const bookRevision = book.revision;
+  const binding = book.bind(action.recipe_id);
+  const recipe = binding.recipe;
   const check = () => {
-    guard(); requireThat((bot.currentWindow ?? bot.inventory) === window && book.revision === bookRevision,
-      'REVISION_CONFLICT');
+    guard(); requireThat((bot.currentWindow ?? bot.inventory) === window, 'REVISION_CONFLICT');
+    // Crafting often unlocks additional recipes. Bind this recipe's definition
+    // and authorization; unrelated unlocks must not interrupt a partial craft.
+    // A selected-recipe revoke/regrant or declaration reload still invalidates it.
+    book.validate(binding);
   };
   const inventory = () => window.slots.slice(window.inventoryStart, window.inventoryEnd);
   const cursor = () => window.selectedItem;
+  const resultMatches = (item: ReturnType<typeof cursor>) => item?.type === recipe.result.type
+    && item.count === recipe.result.count && isDeepStrictEqual(item.nbt ?? null, recipe.result.nbt ?? null);
+  const tagged = (exclude = -1) => window.slots.flatMap((item,slot) =>
+    slot >= window.inventoryStart && slot < window.inventoryEnd && slot !== exclude && item?.nbt != null
+      ? [{slot,type:item.type,metadata:item.metadata,count:item.count,nbt:structuredClone(item.nbt)}] : []);
   const totals = () => {
     const result = new Map<number,number>();
     for (const item of inventory()) if (item) result.set(item.type, (result.get(item.type) ?? 0) + item.count);
@@ -40,6 +49,7 @@ export async function craft(bot: Bot, book: RecipeBook, action: Extract<Action, 
     requireThat(destination >= 0, 'PRECONDITION_FAILED');
     const selected = book.select(recipe, inventory(), width);
     const before = totals();
+    const taggedBefore = tagged();
     const expected = new Map(before);
     for (const type of selected) if (type !== null) expected.set(type, expected.get(type)! - 1);
     expected.set(recipe.result.type, (expected.get(recipe.result.type) ?? 0) + recipe.result.count);
@@ -50,20 +60,24 @@ export async function craft(bot: Bot, book: RecipeBook, action: Extract<Action, 
         slot < window.inventoryEnd && item !== null && item.type === type && item.nbt == null);
       requireThat(source >= 0 && !window.selectedItem && !window.slots[index+1], 'PRECONDITION_FAILED');
       await click(source,0);
-      requireThat(cursor()?.type === type, 'PRECONDITION_FAILED');
+      requireThat(cursor()?.type === type && cursor()?.nbt == null, 'PRECONDITION_FAILED');
       await click(index+1,1);
-      requireThat(window.slots[index+1]?.type === type && window.slots[index+1]?.count === 1, 'PRECONDITION_FAILED');
+      requireThat(window.slots[index+1]?.type === type && window.slots[index+1]?.count === 1
+        && window.slots[index+1]?.nbt == null, 'PRECONDITION_FAILED');
       if (window.selectedItem) await click(source,0);
       requireThat(!window.selectedItem, 'PRECONDITION_FAILED');
     }
-    requireThat(window.slots[0]?.type === recipe.result.type && window.slots[0]?.count === recipe.result.count,
-      'PRECONDITION_FAILED');
+    requireThat(resultMatches(window.slots[0] ?? null), 'PRECONDITION_FAILED');
     await click(0,0); // server-produced output, not an invented local recipe result
-    requireThat(cursor()?.type === recipe.result.type && cursor()?.count === recipe.result.count,
-      'PRECONDITION_FAILED');
+    requireThat(resultMatches(cursor()), 'PRECONDITION_FAILED');
     await click(destination,0);
     requireThat(!window.selectedItem && window.slots.slice(0,width*width+1).every(s => !s), 'PRECONDITION_FAILED');
     const after = totals();
+    // Every pre-existing tagged stack stays in its slot; only the new exact
+    // declared output may introduce a tagged stack at the reserved destination.
+    const taggedAfter = tagged(destination);
+    requireThat(isDeepStrictEqual(taggedBefore, taggedAfter), 'PRECONDITION_FAILED');
+    requireThat(resultMatches(window.slots[destination] ?? null), 'PRECONDITION_FAILED');
     requireThat([...new Set([...before.keys(), ...expected.keys(), ...after.keys()])]
       .every(type => (after.get(type) ?? 0) === (expected.get(type) ?? 0)), 'PRECONDITION_FAILED');
   }

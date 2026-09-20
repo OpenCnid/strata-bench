@@ -121,8 +121,9 @@ def test_real_http_python_java_projection_pagination_and_negative_coordinates(ga
         game_jvm.observe("guessed-cursor")
 
 
-def test_focused_recipe_query_crosses_real_http_and_jvm_with_synthetic_source(game_jvm):
-    query = {"source": "jei", "category": "minecraft:crafting", "item_id": "fixture:output", "role": "output", "after": 0}
+@pytest.mark.parametrize("source", ["jei", "emi"])
+def test_focused_recipe_query_crosses_real_http_and_jvm_with_synthetic_source(game_jvm, source):
+    query = {"source": source, "category": "minecraft:crafting", "item_id": "fixture:output", "role": "output", "after": 0}
     result = game_jvm.call("recipe_query", query)
     assert result["query"] == query and result["source_generation"] == 1
     assert result["recipes"][0]["craft_authority"] == "discovery_only"

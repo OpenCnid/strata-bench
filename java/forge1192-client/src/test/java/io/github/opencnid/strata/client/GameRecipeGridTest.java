@@ -9,6 +9,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent click/menu simulation; no Minecraft visibility or mechanics claim. */
 class GameRecipeGridTest {
+    @Test void completedManualGridNeedsFreshServerOutputBeforeTakingAnyResult() throws Exception {
+        var port=new Port(1);var motor=GameCrafting.start(port,1,port::emit);
+        // Pick, place, then the separate final refresh. No output click yet.
+        port.ack();assertFalse(motor.tick(port::emit));
+        port.ack();assertFalse(motor.tick(port::emit));
+        assertEquals(0,port.takes);assertEquals(3,port.ticket);
+        for(int i=0;i<5;i++)assertFalse(motor.tick(port::emit));
+        assertEquals(0,port.takes);
+        // A stale/wrong authoritative output cannot be replaced by prediction.
+        var slots=new ArrayList<>(port.slots);slots.set(0,EMPTY);
+        port.reply=new GameInventory.View(slots,port.cursor,0);
+        assertThrows(IOException.class,()->motor.tick(port::emit));assertEquals(0,port.takes);
+        var good=new Port(1);var valid=GameCrafting.start(good,1,good::emit);good.finish(valid);
+        assertEquals(1,good.takes);assertTrue(good.cursor.empty());
+    }
     static final GameInventory.Stack EMPTY=GameInventory.Stack.EMPTY;
     static GameInventory.Stack item(String name,int count) { return new GameInventory.Stack("test:"+name,count,"component-"+name); }
     static class Port implements GameCrafting.Port {

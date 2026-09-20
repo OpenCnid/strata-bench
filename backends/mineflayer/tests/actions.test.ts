@@ -271,6 +271,27 @@ test('initial connecting state is not ready and does not consume a recovery fenc
   assert.equal(lane.observe().state!.connected, true);
 });
 
+test('real backend reports a blocked authentication cache before any spawn or dispatch', async t => {
+  const {MineflayerBackend} = await import('../src/adapter.js');
+  const {protectedCache, lockCache} = await import('../src/auth_cache.js');
+  const directory = mkdtempSync(join(tmpdir(), 'strata-startup-failure-'));
+  const cache = protectedCache(join(directory, 'credentials'), true);
+  const unlock = lockCache(cache);
+  const journal = new Journal(directory, 1);
+  const backend = new MineflayerBackend({host:'127.0.0.1',port:1,username:'synthetic',profilesFolder:cache});
+  const lane = new ActionLane({campaign_id:'c',agent_id:'a',epoch:1,lease_id:'lease'},
+    'a'.repeat(64), backend, journal, ['look_at'], 100, 60000);
+  t.after(async () => {await lane.close();journal.close();unlock();rmSync(directory,{recursive:true});});
+  await delay(60);
+  assert.deepEqual(lane.health(), {connected:false,connected_once:false,fenced:true,reason:'AUTH_CACHE_IN_USE'});
+  assert.equal(journal.counter('primitive_events'), 0);
+  // A late connection cannot revive this failed startup's authority.
+  backend.connected = true;
+  lane.health();
+  await lane.fence('AUTH_CACHE_IN_USE');
+  assert.equal(lane.health().fenced, true);
+});
+
 test('disconnect callbacks cannot recurse through fencing or replace terminal receipts', async t => {
   const f = fixture(t);
   f.backend.task = async (signal, emit) => {emit(); await delay(1000, undefined, {signal});};

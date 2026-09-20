@@ -1241,3 +1241,23 @@ full-menu read when the first response exactly echoes the pre-click owned state.
 It never repeats the click or accepts prediction as feedback. A fresh server reply
 and current state must still exactly match the predicted cursor and all 36 player
 slots; other mismatches, a second stale reply or exhausted bounds remain unknown.
+
+### Explicit EMI crafting source
+
+The installed E9E pack routes vanilla crafting discovery through EMI: its pinned
+JEI compatibility mixin skips JEI vanilla recipe registration. Capability minor
+36 adds `--source emi` explicitly, under query policy
+`jei-thermal-emi-crafting-visible-focus-pages32/3`. Existing calls default to JEI;
+an empty JEI query never silently changes source.
+
+```text
+mcgame recipe-query --source emi --category minecraft:crafting --item minecraft:furnace --role output --after 0 --json
+```
+
+EMI accepts crafting item focuses only. Exact loaded artifact, ordinary indexed
+visibility, disabled/hidden filtering, stable reload/connection and standard
+display/native definition checks are mandatory. Copy the returned query, source
+generation and revision into `recipe_selection` for the existing ordinary manual
+craft action. Unsupported/custom rows do not authorize crafting. Source-unavailable
+during initial EMI loading is a read-only readiness failure, never permission to
+repeat a mutation. [Implementation and authentic evidence](../verification/2026-09-20-emi-crafting.md).

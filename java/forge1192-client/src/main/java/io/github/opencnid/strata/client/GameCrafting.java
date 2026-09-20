@@ -6,7 +6,7 @@ import java.util.List;
 
 /** One requested recipe. Normal book-fill and slot inputs always await actual menu feedback. */
 final class GameCrafting {
-    static final String POLICY = "known-recipe-book-fill-single-output-remainders/1";
+    static final String POLICY = "known-recipe-fill-final-server-output-remainders/2";
     interface Port extends GameInventory.Port {
         int gridWidth();
         int inventoryStart();
@@ -66,7 +66,11 @@ final class GameCrafting {
             port.validate();
             if (phase == Phase.MANUAL_FILL) {
                 if (!step.tick(emit)) return false;
-                filled = view();
+                // Intermediate slot transfers may see changing derived previews.
+                // Require a fresh full server reply for this completed grid and
+                // its intended output before any result-slot click is admitted.
+                phase = Phase.FILL;
+                emit.invoke(() -> ticket = port.requestSync()); return false;
             }
             if (phase == Phase.FILL) {
                 filled = feedback(emit); if (filled == null) return false;

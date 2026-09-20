@@ -57,3 +57,28 @@ partial success. An acknowledgment repair is being implemented before fresh-epoc
 resynchronization and collection of the existing output, followed by crafting.
 M0 and G0 remain incomplete. Raw evidence is external under
 `C:\Users\Darian\.strata\evidence\2026-09-20-machine-conformance-02`.
+
+## Existing-output continuation
+
+Operation-02 is terminal. The epoch-2 development launch validated its actual
+bootstrap identity before publishing static authority, observed existing output,
+collected three ingots and closed the machine through the scoped API. Independent
+saved state confirms exactly player +3 ingots, empty machine and unchanged 8000 RF.
+The prior unknown deposit was never replayed. This establishes narrow actual
+machine processing plus collection, not the complete mechanics gate.
+
+The following JEI furnace query returned a valid empty page, so no crafting was
+attempted. Installed EMI 1.1.24 PluginCallerMixin skips jei:minecraft recipe
+registration while retaining its category; ordinary crafting recipes are in EMI.
+The fix adds an explicit EMI source rather than assuming JEI/EMI equivalence.
+
+Three unique intents/12 primitives reconcile; this pair retained 496.312 s.
+Combined history is 39 primitives/1018.031 s, with the original unknown receipt
+unchanged. Guardian termination still fails at 513.8277/500 ms. All processes
+ended, arguments were retired and the input desktop remained unchanged.
+
+Private operation-02/operation-audit-03.json is the superseding completed audit.
+Two earlier audits failed on stale epoch-1 journal/telemetry references and remain
+immutable. Audit-03 uses epoch 2 and the same saved snapshot and game records; it
+retains aggregate fail, recipe/craft failure and guardian failure. No threshold
+was changed and no game was rerun to repair audit code.

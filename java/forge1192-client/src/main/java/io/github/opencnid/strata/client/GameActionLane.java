@@ -261,6 +261,14 @@ final class GameActionLane implements AutoCloseable {
                 finish("emitted", null);
             }
         } catch (IOException | RuntimeException error) {
+            // Operator-only bounded source locations. Do not log arguments,
+            // exception messages, inventory contents or credentials to diagnose a motor.
+            String sites = java.util.Arrays.stream(error.getStackTrace())
+                .filter(frame -> frame.getClassName().startsWith("io.github.opencnid.strata.client."))
+                .limit(8).map(frame -> frame.getClassName()+"."+frame.getMethodName()+":"+frame.getLineNumber())
+                .collect(java.util.stream.Collectors.joining(","));
+            System.getLogger(GameActionLane.class.getName()).log(System.Logger.Level.WARNING,
+                "STRATA_MOTOR_FAILURE code="+code(error)+" request="+(active == null ? "none" : active.batch.id)+" sites="+sites);
             boolean uncertain = active != null && active.attempted > 0;
             if (uncertain) markFenced(code(error));
             finish(uncertain ? "unknown" : "failed", code(error));

@@ -61,9 +61,13 @@ final class GameInventory {
             port.validate(); View received = port.reply(ticket);
             if (received == null) { emit.invoke(() -> {}); return false; } // Charge the active feedback-wait motor tick.
             verify(expected, received);
-            // The native handler has applied this exact reply; unsolicited changes
-            // between reply and continuation invalidate the rest of the fixed motor.
-            if (!received.equals(port.view())) throw new IOException("REVISION_CONFLICT");
+            // A later result-slot packet may update a derived crafting preview.
+            // This motor never clicks that slot. Every owned slot and the cursor
+            // must still equal the actual reply before the next ordinary input.
+            View current = port.view();
+            if (!sameOwned(received,current)) throw new IOException("REVISION_CONFLICT");
+            if (!received.equals(current)) System.getLogger(GameInventory.class.getName()).log(
+                System.Logger.Level.INFO,"STRATA_DERIVED_PREVIEW_CHANGED owned_slots_and_cursor_exact=true");
             index++;
             if (returnSlot >= 0 && index == 2 && !received.cursor.empty()) slots.add(returnSlot);
             if (index < slots.size()) { next(emit); return false; }
@@ -72,6 +76,13 @@ final class GameInventory {
             }
             return true;
         }
+    }
+    static boolean sameOwned(View expected, View actual) {
+        if (expected.slots.size()!=actual.slots.size() || expected.resultSlot!=actual.resultSlot
+                || !expected.cursor.equals(actual.cursor)) return false;
+        for(int i=0;i<expected.slots.size();i++)
+            if(i!=expected.resultSlot && !expected.slots.get(i).equals(actual.slots.get(i))) return false;
+        return true;
     }
     private static Expected predict(Port port, View view, int slot, boolean right, boolean quick) throws IOException {
         if (slot < 0 || slot >= view.slots.size() || slot == view.resultSlot) throw new IOException("MECHANIC_UNSUPPORTED");

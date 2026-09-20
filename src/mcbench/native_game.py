@@ -24,7 +24,7 @@ from .storage import Fault, canonical, require
 
 READ_OPERATIONS = ["capabilities", "observe", "identity", "observe_bound", "recipes", "recipe_query", "quests", "quest_text", "quest_components", "quest_menu", "quest_screen", "recipe_page"]
 QUEST_POLICY = "ftb-visible-chapters-quests-own-team-pages32/1"
-RECIPE_QUERY_POLICY = "jei-visible-crafting-thermal-item-fluid-focus-pages32/2"
+RECIPE_QUERY_POLICY = "jei-thermal-emi-crafting-visible-focus-pages32/3"
 LANE_OPERATIONS = ["arm", "renew", "deliver", "act", "action_status", "cancel", "stop_all", "lane_status", "authority"]
 MUTATIONS = {"arm", "renew", "deliver", "act", "cancel", "stop_all"}
 ACTIONS = ["attack", "chat", "click_slot", "close_window", "craft", "dig", "equip", "interact_block", "interact_entity", "look_at", "move_to", "place", "quest_menu", "quest_navigate", "quest_reward", "quest_task", "quest_ui", "recipe_navigate", "use_item"]
@@ -53,7 +53,7 @@ class GameCapabilities(Strict):
     block_target_policy: Literal["observed-outline-centers64-local16/1"]
     menu_close_policy: Literal["explicit-close-own-inventory-feedback-conservation/1"]
     recipe_policy: Literal["player-book-exact-shaped-shapeless-pages32/1"]
-    recipe_query_policy: Literal["jei-visible-crafting-thermal-item-fluid-focus-pages32/2"]
+    recipe_query_policy: Literal["jei-thermal-emi-crafting-visible-focus-pages32/3"]
     recipe_page_policy: Literal["jei-task-drawn-slot-header-controls-empty-loop/4"]
     recipe_navigation_policy: Literal["jei-current-page-controls-history-fresh-frame200/2"]
     quest_policy: Literal["ftb-visible-chapters-quests-own-team-pages32/1"]
@@ -65,7 +65,7 @@ class GameCapabilities(Strict):
     quest_task_policy: Literal["ftb-visible-item-task-menu-or-jei-open/2"]
     quest_open_policy: Literal["ftb-own-team-open-screen-cas/1"]
     quest_menu_policy: Literal["ftb-current-item-choice-clipped-pages32/4"]
-    crafting_policy: Literal["known-recipe-book-fill-single-output-remainders/1"]
+    crafting_policy: Literal["known-recipe-fill-final-server-output-remainders/2"]
     manual_crafting_policy: Literal["visible-recipe-manual-grid-feedback-search4096/1"]
     machine_observation_policy: Literal["thermal-current-gui-energy-fluid-base-slots/1"]
     machine_inventory_policy: Literal["thermal-visible-slot-owned-transfer-feedback/2"]
@@ -239,7 +239,7 @@ class GameRecipeQuery(GameRecipeList):
     wire_schema: Literal["strata/NativeRecipeQuery/1"] = Field(alias="schema")
     query: DiscoveryQuery
     source_generation: UInt
-    policy: Literal["jei-visible-crafting-thermal-item-fluid-focus-pages32/2"]
+    policy: Literal["jei-thermal-emi-crafting-visible-focus-pages32/3"]
     recipes: list[GameQueryRecipe | GameMachineRecipe | GameQueryUnknown] = Field(max_length=32)
     next_cursor: Annotated[int, Field(strict=True, ge=0, le=512)] | None
 

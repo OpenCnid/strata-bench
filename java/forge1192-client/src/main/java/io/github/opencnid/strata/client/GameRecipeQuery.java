@@ -7,13 +7,16 @@ import java.util.Set;
 
 /** Focused player-visible recipe projection; discovery never grants execution authority. */
 final class GameRecipeQuery {
-    static final String POLICY = "jei-visible-crafting-thermal-item-fluid-focus-pages32/2";
+    static final String POLICY = "jei-thermal-emi-crafting-visible-focus-pages32/3";
     static final int MAX_MATCHES = 512;
     static final long MAX_NANOS = 100_000_000L;
-    record Query(String category, String targetKind, String item, String role, int after) {
+    record Query(String source, String category, String targetKind, String item, String role, int after) {
+        Query(String category, String targetKind, String item, String role, int after) { this("jei", category, targetKind, item, role, after); }
         Query(String item, String role, int after) { this("minecraft:crafting", "item", item, role, after); }
         Query {
-            if (category == null || !Set.of("minecraft:crafting", "thermal:furnace", "thermal:crucible").contains(category)
+            if (source == null || !Set.of("jei", "emi").contains(source)
+                    || source.equals("emi") && !"minecraft:crafting".equals(category)
+                    || category == null || !Set.of("minecraft:crafting", "thermal:furnace", "thermal:crucible").contains(category)
                     || targetKind == null || !Set.of("item", "fluid").contains(targetKind)
                     || category.equals("minecraft:crafting") && !targetKind.equals("item")
                     || item == null || item.length() > 256 || !item.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")
@@ -23,17 +26,16 @@ final class GameRecipeQuery {
         }
         boolean crafting() { return category.equals("minecraft:crafting"); }
         JsonObject json() {
-            var result = new JsonObject(); result.addProperty("source", "jei");
+            var result = new JsonObject(); result.addProperty("source", source);
             result.addProperty("category", category); result.addProperty(targetKind + "_id", item);
             result.addProperty("role", role); result.addProperty("after", after); return result;
         }
         static Query read(JsonObject value) throws IOException {
             String target = value.has("fluid_id") ? "fluid" : "item";
             SettingsJson.fields(value, "source", "category", target + "_id", "role", "after");
-            if (!SettingsJson.string(value, "source").equals("jei")) throw new IOException("MECHANIC_UNSUPPORTED");
             long after = SettingsJson.integer(value, "after");
             if (after > MAX_MATCHES) throw new IOException("GAME_RECIPE_BOUNDS");
-            try { return new Query(SettingsJson.string(value,"category"), target,
+            try { return new Query(SettingsJson.string(value,"source"), SettingsJson.string(value,"category"), target,
                 SettingsJson.string(value, target + "_id"), SettingsJson.string(value, "role"), (int) after); }
             catch (IllegalArgumentException invalid) { throw new IOException("GAME_RECIPE_QUERY_INVALID"); }
         }
@@ -76,7 +78,7 @@ final class GameRecipeQuery {
         }
         checkTime(started);
         if (source.generation() != generation) throw new IOException("GAME_RECIPE_CHANGED");
-        String focus = query.category + ":" + query.targetKind + ":" + query.item + ":" + query.role;
+        String focus = query.source + ":" + query.category + ":" + query.targetKind + ":" + query.item + ":" + query.role;
         if (lastGeneration != generation || !focus.equals(lastFocus)) {
             pages.invalidate(); lastGeneration = generation; lastFocus = focus;
         }

@@ -23,6 +23,7 @@ export const ACTION_KINDS = ['move_to', 'look_at', 'dig', 'place', 'craft', 'equ
 export class MineflayerBackend implements Backend {
   revision = 0;
   connected = false;
+  connectionFailure: string | null = null;
   windowRevision = 0;
   private map: ObservedMap;
   private readonly pages = new SpatialPages();
@@ -42,7 +43,8 @@ export class MineflayerBackend implements Backend {
       hideErrors: true, logErrors: false});
     this.bodyRevision = trackBodyRevision(this.bot, () => {this.revision++;});
     this.map = new ObservedMap(p => this.bot.blockAt(p, false));
-    this.recipes = new RecipeBook(item => this.bot.registry?.items[item]?.name);
+    this.recipes = new RecipeBook(item => this.bot.registry?.items[item]?.name,
+      item => this.bot.registry?.items[item]?.maxDurability);
     this.bot._client.on('declare_recipes', packet => {
       try { this.recipes.declare(packet); } catch { this.disconnect(); }
     });
@@ -53,9 +55,15 @@ export class MineflayerBackend implements Backend {
     });
     this.bot.on('spawn', () => {this.connected = true; this.revision++; this.map.reset(); this.pages.reset(); this.entities.reset();
       this.publicEvents.emit('signal', 'connection', 'Connected.');});
-    this.bot.on('end', () => {this.authenticationAbort.abort(); this.connected = false; this.revision++; this.pages.reset(); this.entities.reset();
+    this.bot.on('end', () => {this.authenticationAbort.abort(); this.connected = false;
+      this.connectionFailure ??= 'CONNECTION_LOST'; this.revision++; this.pages.reset(); this.entities.reset();
       this.publicEvents.emit('signal', 'connection', 'Disconnected.');});
-    this.bot.on('error', () => {this.connected = false; this.stop();});
+    this.bot.on('error', error => {
+      this.connectionFailure ??= error instanceof Fault && /^[A-Z0-9_]{1,96}$/.test(error.code)
+        ? error.code : 'CONNECTION_FAILED';
+      this.connected = false; this.stop();
+      this.publicEvents.emit('signal', 'connection', 'Connection failed.');
+    });
     this.bot.on('physicsTick', () => {
       if (this.moving) {
         try { this.activeEmit?.(); } catch { this.stop(); this.disconnect(); }

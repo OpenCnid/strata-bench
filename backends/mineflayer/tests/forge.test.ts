@@ -125,7 +125,7 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/2');
   assert.equal(manifest.backend,'forge_client'); assert.equal(manifest.campaign_admission,false);
   assert.equal(manifest.keybindings,false); assert.equal(manifest.motor.completion,'emitted-input-only');
-  assert.equal(manifest.contract_minor,35);
+  assert.equal(manifest.contract_minor,37);
   assert.equal(manifest.motor.block_target,'observed-outline-centers64-local16/1');
   for (const patch of [{backend:'mineflayer'},{server_kind:'vanilla'},{pack_version:'latest'},
     {private_extra:true},{purpose:'campaign'},{connection_file:repo},{schema:'strata/ForgeDevelopmentWorker/1'},
@@ -186,15 +186,16 @@ test('recipe transport rejects hidden fields, malformed recipes and non-advancin
   }
 });
 
-test('focused recipe transport binds query and policy, rejects injected fields and never retries',async t => {
+for (const source of ['jei','emi'] as const) test(`${source} recipe transport binds query and policy, rejects injected fields and never retries`,async t => {
+  const selectedQuery={...recipeQuery,source};
   const page = {schema:'strata/NativeRecipeQuery/1',body_fingerprint:fingerprint,connection_generation:1,
-    revision:1,query:recipeQuery,policy:RECIPE_QUERY_POLICY,source_generation:1,
+    revision:1,query:selectedQuery,policy:RECIPE_QUERY_POLICY,source_generation:1,
     recipes:[{recipe_id:'fixture:expert',supported:false,craft_authority:'discovery_only'}],next_cursor:null};
   let payload:unknown=page, posts=0;
   const server=createServer(async (req,res) => {
     let body='';for await (const chunk of req) body+=chunk;
     const request=JSON.parse(body);posts++;
-    assert.equal(request.operation,'recipe_query');assert.deepEqual(request.args,recipeQuery);
+    assert.equal(request.operation,'recipe_query');assert.deepEqual(request.args,selectedQuery);
     res.writeHead(200,{'Content-Type':'application/json'});
     res.end(JSON.stringify({schema:'strata/NativeGameResponse/1',request_id:request.request_id,
       session_id:'session',status:'completed',result:payload,error_code:null}));
@@ -204,18 +205,18 @@ test('focused recipe transport binds query and policy, rejects injected fields a
   const address=server.address();assert.ok(address && typeof address !== 'string');
   const client=new NativeGameClient({schema:'strata/NativeGameConnection/1',host:'127.0.0.1',port:address.port,
     session_id:'session',bearer_token:'b'.repeat(64),fingerprint,operator_development_only:true});
-  assert.deepEqual(await client.call('recipe_query',recipeQuery),page);
-  for (const patch of [{query:{...recipeQuery,role:'input'}},{policy:'global-recipes'},{source_generation:-1},
+  assert.deepEqual(await client.call('recipe_query',selectedQuery),page);
+  for (const patch of [{query:{...selectedQuery,role:'input'}},{policy:'global-recipes'},{source_generation:-1},
     {recipes:[{...page.recipes[0],hidden_solution:'canary'}]},
     {recipes:[{...page.recipes[0],craft_authority:'arbitrary'}]},
     {recipes:[{...page.recipes[0],supported:0}]},{next_cursor:513},{next_cursor:2}]) {
     payload={...page,...patch};const before=posts;
-    await assert.rejects(client.call('recipe_query',recipeQuery),/GAME_RESPONSE_INVALID/);assert.equal(posts,before+1);
+    await assert.rejects(client.call('recipe_query',selectedQuery),/GAME_RESPONSE_INVALID/);assert.equal(posts,before+1);
   }
   const before=posts;
   for (const patch of [{source:'server'},{category:'minecraft:smelting'},{role:'all'},
     {item_id:'*'},{after:-1},{after:513},{after:true},{include_hidden:true}]) {
-    await assert.rejects(client.call('recipe_query',{...recipeQuery,...patch}));
+    await assert.rejects(client.call('recipe_query',{...selectedQuery,...patch}));
   }
   assert.equal(posts,before);
 });

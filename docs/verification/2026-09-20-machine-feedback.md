@@ -49,8 +49,8 @@ Installation occurred only after all Java processes ended. The previous candidat
 is retained externally. Source/build logs and install receipt remain in the private
 `2026-09-20-machine-conformance-02` evidence directory.
 
-A fresh epoch-2 development continuation is now running on the existing world.
+The fresh epoch-2 development continuation ended on the existing world.
 It must observe current resources, collect existing output and perform the expert
 craft without repeating the prior unknown deposit. This is not a complete campaign
 checkpoint restore or a refund of prior exposure. Prior 521.719 s and 27 primitives
-remain part of the aggregate development history. Authentic result is pending.
+remain part of the aggregate development history. Actual identity binding and output collection passed their narrow checks; expert crafting stopped at an empty JEI query. The collection does not establish that the optional pre-click echo branch fixed the original ambiguous deposit. See the [saved-state result](2026-09-20-machine-crafting.md).

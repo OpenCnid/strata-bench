@@ -20,7 +20,7 @@ async function main(): Promise<number> {
       'mcgame quest-menu --after CURSOR --json\n' +
       'mcgame quest-screen --json\n' +
       'mcgame recipe-page --json\n' +
-      'mcgame recipe-query [--category minecraft:crafting|thermal:furnace|thermal:crucible] --item ITEM_ID|--fluid FLUID_ID --role input|output --after CURSOR --json\n' +
+      'mcgame recipe-query [--source jei|emi] [--category minecraft:crafting|thermal:furnace|thermal:crucible] --item ITEM_ID|--fluid FLUID_ID --role input|output --after CURSOR --json\n' +
       'mcgame move-to|look-at --x N --y N --z N [--timeout-ms N] --json\n' +
       'act reads a full ActionBatch from stdin. action-status/cancel require --request-id ID.');
     return 0;
@@ -87,20 +87,21 @@ async function main(): Promise<number> {
     questQuery={source:'ftb_quests',chapter_id:chapter,after:page};
   } else if (method === 'recipes.query') {
     const options: Record<string,string> = {};
-    requireThat(jsonArgs.length === 6 || jsonArgs.length === 8, 'SCHEMA_UNSUPPORTED');
+    requireThat([6,8,10].includes(jsonArgs.length), 'SCHEMA_UNSUPPORTED');
     for (let i=0;i<jsonArgs.length;i+=2) {
       const name=jsonArgs[i]!;
-      requireThat(['--category','--item','--fluid','--role','--after'].includes(name) && !Object.hasOwn(options,name), 'SCHEMA_UNSUPPORTED');
+      requireThat(['--source','--category','--item','--fluid','--role','--after'].includes(name) && !Object.hasOwn(options,name), 'SCHEMA_UNSUPPORTED');
       options[name]=jsonArgs[i+1]!;
     }
-    const category=options['--category'] ?? 'minecraft:crafting';
+    const category=options['--category'] ?? 'minecraft:crafting', source=options['--source'] ?? 'jei';
     const item = options['--item'] ?? options['--fluid'], role = options['--role']!, page = Number(options['--after']);
     requireThat((options['--item'] === undefined) !== (options['--fluid'] === undefined)
       && typeof item==='string' && item.length <= 256 && /^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(item)
       && ['input','output'].includes(role) && Number.isSafeInteger(page) && page >= 0 && page <= 512, 'SCHEMA_UNSUPPORTED');
-    requireThat(['minecraft:crafting','thermal:furnace','thermal:crucible'].includes(category)
+    requireThat(['jei','emi'].includes(source) && (source !== 'emi' || category === 'minecraft:crafting')
+      && ['minecraft:crafting','thermal:furnace','thermal:crucible'].includes(category)
       && (category!=='minecraft:crafting' || options['--fluid']===undefined), 'SCHEMA_UNSUPPORTED');
-    recipeQuery = {source:'jei',category,...(options['--fluid']===undefined ? {item_id:item} : {fluid_id:item}),
+    recipeQuery = {source,category,...(options['--fluid']===undefined ? {item_id:item} : {fluid_id:item}),
       role:role as 'input'|'output',after:page} as RecipeQuery;
   } else if (method === 'observe' && jsonArgs.length) {
     requireThat(jsonArgs.length === 2 && jsonArgs[0] === '--cursor', 'SCHEMA_UNSUPPORTED');

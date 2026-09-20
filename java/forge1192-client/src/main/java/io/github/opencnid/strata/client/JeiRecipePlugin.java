@@ -65,6 +65,7 @@ public final class JeiRecipePlugin implements IModPlugin {
     private static IOException viewChanged(){return new IOException("GAME_QUEST_RECIPE_SOURCE_UNAVAILABLE");}
 
     static JsonObject query(GameRecipeQuery.Query query, java.util.Map<String,String> artifacts) throws IOException {
+        if (!query.source().equals("jei")) throw new IOException("MECHANIC_UNSUPPORTED");
         Minecraft client = Minecraft.getInstance();
         if (!client.isSameThread()) throw new IOException("CLIENT_THREAD_REQUIRED");
         if (client.player == null || client.level == null || client.getConnection() == null) throw new IOException("GAME_NOT_CONNECTED");

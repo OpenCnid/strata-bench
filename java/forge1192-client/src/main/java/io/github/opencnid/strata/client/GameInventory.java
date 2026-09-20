@@ -44,6 +44,7 @@ final class GameInventory {
         final Port port; final List<Integer> slots; final boolean right, quick;
         final int returnSlot; final String equippedId; final int destination;
         int index; long ticket; Expected expected;
+        boolean refreshed;
         Steps(Port port, List<Integer> slots, boolean right, boolean quick, int returnSlot, String equippedId,
               GameActionLane.Emitter emit) throws IOException {
             this.port = port; this.slots = new ArrayList<>(slots); this.right = right; this.quick = quick;
@@ -54,6 +55,7 @@ final class GameInventory {
             port.validate();
             View before = port.view(); int slot = slots.get(index);
             expected = predict(port, before, slot, right, quick);
+            refreshed = false;
             emit.invoke(() -> port.click(slot, right ? 1 : 0, quick));
             emit.invoke(() -> ticket = port.requestSync());
         }
@@ -65,7 +67,28 @@ final class GameInventory {
             // This motor never clicks that slot. Every owned slot and the cursor
             // must still equal the actual reply before the next ordinary input.
             View current = port.view();
-            if (!sameOwned(received,current)) throw new IOException("REVISION_CONFLICT");
+            if (!sameOwned(received,current)) {
+                var predicted = new ArrayList<>(expected.before.slots);
+                predicted.set(expected.slot,expected.target);
+                boolean exactReply = !quick && sameOwned(received,
+                    new View(predicted,expected.cursor,expected.before.resultSlot));
+                boolean exactBefore = sameOwned(current,expected.before);
+                var changed = new ArrayList<Integer>();
+                for (int i=0;i<Math.min(received.slots.size(),current.slots.size()) && changed.size()<16;i++)
+                    if (i!=received.resultSlot && !received.slots.get(i).equals(current.slots.get(i))) changed.add(i);
+                System.getLogger(GameInventory.class.getName()).log(System.Logger.Level.WARNING,
+                    "STRATA_OWNED_FEEDBACK_MISMATCH slot="+expected.slot+" reply_is_prediction="+exactReply
+                    +" current_is_before="+exactBefore+" cursor_changed="+!received.cursor.equals(current.cursor)
+                    +" changed_slots="+changed+" refreshed="+refreshed);
+                // A later applied packet may roll back exactly this click's
+                // pre-state. Reacquire once; never repeat the mutation or accept
+                // prediction as confirmation. Other owned changes still fence.
+                if (!quick && !refreshed && exactReply && exactBefore) {
+                    refreshed = true;
+                    emit.invoke(() -> ticket=port.requestSync()); return false;
+                }
+                throw new IOException("REVISION_CONFLICT");
+            }
             if (!received.equals(current)) System.getLogger(GameInventory.class.getName()).log(
                 System.Logger.Level.INFO,"STRATA_DERIVED_PREVIEW_CHANGED owned_slots_and_cursor_exact=true");
             index++;
@@ -122,6 +145,10 @@ final class GameInventory {
             }
         } else if (!Objects.equals(expected.target, target) || !Objects.equals(expected.cursor, actual.cursor)) {
             throw new IOException("PRECONDITION_FAILED");
+        } else {
+            for (int i=0;i<before.slots.size();i++)
+                if (i!=before.resultSlot && i!=expected.slot && !before.slots.get(i).equals(actual.slots.get(i)))
+                    throw new IOException("PRECONDITION_FAILED");
         }
     }
     static boolean conserved(View before, View after) {

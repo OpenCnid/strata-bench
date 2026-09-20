@@ -70,3 +70,9 @@ remain part of aggregate T07/G0. Exact machine processing/collection and EMI
 discovery are narrow authentic successes; crafting and complete gate qualification
 remain failed/incomplete. Next diagnostic adds bounded private source locations
 without exception messages or data, before any further Forge craft attempt.
+
+## Operation 05 and the next feedback candidate
+
+Operation 05 again discovers the exact EMI expert recipe but fails unknown craft `8177553c-c197-4ef2-be49-c65ac4986de5` with REVISION_CONFLICT. The new private source-location log identifies GameInventory.Steps.tick:68: its verified server reply differs from the current owned view. The precise differing state was not captured. Two intents, 38 primitives and 397.703 s remain charged; aggregate 118 primitives/2221.594 s. Saved player plus drops preserve all inputs: five andesite and three polished andesite dropped, three ingots owned, no furnace. Machine remains empty at 8000 RF. All processes terminal, arguments retired; unchanged guardian bound passes narrowly at 445.1679 ms, without superseding earlier failures.
+
+Minor 38 implements one fixed charged refresh only if the reply matches the full predicted owned post-state and the current view is exactly the pre-click owned state. It never repeats the click; repeated or unrelated changes still fail. Non-quick-move replies additionally preserve every unaffected owned slot. The final fresh server-output barrier remains. Bounded private diagnostics record mismatch classifications/slot indices. Thirty-four focused Java Inventory/Grid/Crafting checks and the build pass (23 s); TypeScript build and the capability identity check pass. This candidate is not authentically qualified, and no causal diagnosis beyond the logged failure location is claimed.

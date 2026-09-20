@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.46](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.47](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,11 +16,13 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `6a11962`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `a2a5b2b`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
+
+Latest continuation: all five vanilla mechanics attempts are terminal; the final saved pickaxe audit passes narrowly. Forge operation 05 is also terminal and failed craft `8177553c-c197-4ef2-be49-c65ac4986de5` at `GameInventory.Steps.tick:68`, the owned current/reply comparison. Its exact mismatch shape remains unknown. Preserve all five Forge pairs, 118 primitives/2221.594 s, five andesite plus three polished-andesite drops, owned ingots 3 and machine 8000 RF. Minor 38 now permits one charged refresh only for an exact current pre-state rollback with an exact predicted server reply; other changes still fence. Java 34 focused tests/build and Node capability check pass. Operation 06 is running with candidate ccd0aa4edd54147aa31b3aabea7ab20638a927cbf76390631389a550a7366655. The scope is `machine-craft-feedback-02-06`, epoch 6; it waits for ordinary recovery of both five andesite and three polished-andesite drops. Inspect bounded mismatch diagnostics in the private client stderr stream, then reconcile saved resources and all costs when terminal. Do not replay an unknown request or refill resources.
 
 The user corrected the work priority: focus on closing SPEC's milestone gates.
 The active settings pair was completed safely; [two native write-boundary

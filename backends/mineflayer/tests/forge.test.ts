@@ -125,7 +125,7 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/2');
   assert.equal(manifest.backend,'forge_client'); assert.equal(manifest.campaign_admission,false);
   assert.equal(manifest.keybindings,false); assert.equal(manifest.motor.completion,'emitted-input-only');
-  assert.equal(manifest.contract_minor,37);
+  assert.equal(manifest.contract_minor,38);
   assert.equal(manifest.motor.block_target,'observed-outline-centers64-local16/1');
   for (const patch of [{backend:'mineflayer'},{server_kind:'vanilla'},{pack_version:'latest'},
     {private_extra:true},{purpose:'campaign'},{connection_file:repo},{schema:'strata/ForgeDevelopmentWorker/1'},

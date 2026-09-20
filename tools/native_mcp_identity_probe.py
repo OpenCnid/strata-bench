@@ -6,6 +6,7 @@ durable participant/request budgets. All providers and game outcomes are fake.
 """
 
 import argparse
+import base64
 import json
 import os
 import sys
@@ -52,7 +53,7 @@ def serve(log):
 
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
-        inherited_helper=False, bootstrap_mode=False):
+        inherited_helper=False, bootstrap_mode=False, ingress_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -73,6 +74,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not admission_mode or broker_mode, "ADMISSION_BROKER_REQUIRED")
     require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
     require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
+    require(not ingress_mode or bootstrap_mode, "INGRESS_BOOTSTRAP_REQUIRED")
     canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -246,6 +248,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                           "game": {"approval_mode": "approve"}},
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
             validate_broker_settings(config)
+        ingress_checks = []
+        if ingress_mode:
+            from mcbench.native_ingress import HEADER, POLICY as INGRESS_POLICY, NativeIngress, credential
+            ingress_secret = credential()
+            config["model_providers.strata_local_fixture.http_headers"] = {HEADER: ingress_secret}
         bootstrap = {}
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
@@ -266,11 +273,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             bootstrap = {"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]}
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "broker_policy": POLICY if admission_mode else None,
+            "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
             "prompt": "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
         provider.plan = plan
+        if ingress_mode:
+            NativeIngress(db).register(plan)
         if broker_mode:
             provider.grant_expiry = int((time.time() + 50) * 1000)
             if not bootstrap_mode:
@@ -284,6 +294,30 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         reserve = ledger(plan, plan.operation_id, parent=None, calls=12, spend=120000,
             pricing=put(cas, {"is_example": True, "real_usd": 0}), inputs=1200000, outputs=120000)
         runtime.start(plan, reserve)
+        if ingress_mode:
+            # Owned negative clients have no tools and send no model request. The
+            # real CLI supplies the positive root/helper controls independently.
+            from http.client import HTTPConnection
+            for case in ("missing", "wrong", "duplicate", "host", "double_host", "route", "cookie"):
+                client = HTTPConnection("127.0.0.1", provider.server.server_port, timeout=3)
+                path = "/v1/responses?unapproved=1" if case == "route" else "/v1/responses"
+                client.putrequest("POST", path, skip_host=True)
+                client.putheader("Host", "localhost" if case == "host" else
+                                 f"127.0.0.1:{provider.server.server_port}")
+                if case == "double_host":
+                    client.putheader("Host", f"127.0.0.1:{provider.server.server_port}")
+                if case != "missing":
+                    client.putheader(HEADER, credential() if case == "wrong" else ingress_secret)
+                if case == "duplicate":
+                    client.putheader(HEADER, ingress_secret)
+                if case == "cookie":
+                    client.putheader("Cookie", "STRATA_SYNTHETIC_INGRESS_CANARY")
+                client.putheader("Content-Length", "2")
+                client.endheaders(b"{}")
+                response = client.getresponse()
+                ingress_checks.append({"case": case, "status": response.status})
+                response.read()
+                client.close()
         wait_job(runtime, plan)
     finally:
         for job in list(runtime.live):
@@ -358,6 +392,23 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         "WHERE kind='helper'").fetchone()[0] == 0,
                 })
     db.export_journal(output / "journal.jsonl")
+    if ingress_mode:
+        native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])
+            for r in db.connection.execute("SELECT body FROM native_events WHERE channel IN ('stdout','stderr')"))
+        visible = native_raw + json.dumps(provider.outputs).encode() + (output / "journal.jsonl").read_bytes()
+        requests = list(output.glob("dispatch-*-request.json"))
+        bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests").fetchone()[0]
+        result["ingress"] = {"negative_clients": ingress_checks, "denials": provider.ingress_denials,
+                             "authenticated_bindings": bindings}
+        result["checks"].update({
+            "ingress_negative_clients_denied": len(ingress_checks) == 7 and
+                all(c["status"] == 403 for c in ingress_checks) and len(provider.ingress_denials) == 7,
+            "ingress_all_requests_bound": bindings == len(provider.requests) and
+                all(r["ingress_authenticated"] for r in provider.requests),
+            "ingress_secret_absent_from_context_and_journal": ingress_secret.encode() not in visible and
+                all(ingress_secret.encode() not in p.read_bytes() for p in requests),
+            "ingress_no_upstream_oauth_in_fixture": not any(r["authorization_present"] for r in provider.requests),
+        })
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}
@@ -373,6 +424,7 @@ def main():
     parser.add_argument("--admission", action="store_true")
     parser.add_argument("--inherited-helper", action="store_true")
     parser.add_argument("--bootstrap", action="store_true")
+    parser.add_argument("--ingress", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -391,12 +443,13 @@ def main():
         root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py",
         root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py",
         root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
-        root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py"]
+        root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",
+        root / "src/mcbench/native_ingress.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
     result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission,
-                 args.inherited_helper, args.bootstrap)
+                 args.inherited_helper, args.bootstrap, args.ingress)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

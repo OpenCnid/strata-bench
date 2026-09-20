@@ -62,6 +62,7 @@ class NativeLaunch(Strict):
     broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
     bootstrap_manifest: str | None = None
     bootstrap_digest: Digest | None = None
+    ingress_policy: Literal["native-job-http-header/1"] | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -83,6 +84,8 @@ class NativeLaunch(Strict):
             body["broker_policy"] = self.broker_policy
         if self.bootstrap_digest is not None:
             body["bootstrap_digest"] = self.bootstrap_digest
+        if self.ingress_policy is not None:
+            body["ingress_policy"] = self.ingress_policy
         return digest(body)
 
 
@@ -214,6 +217,10 @@ class NativeExec:
             require(plan.broker_policy is not None, "BOOTSTRAP_BROKER_REQUIRED")
         if not self.simulation and plan.broker_policy is not None:
             require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
+            require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")
+        if plan.ingress_policy is not None:
+            from .native_ingress import provider_binding
+            provider_binding(plan)
         if not self.simulation:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
@@ -244,7 +251,7 @@ class NativeExec:
             plan_body.pop("accounting_basis_digest")
         if plan.broker_policy is None:
             plan_body.pop("broker_policy")
-        for key in ("bootstrap_manifest", "bootstrap_digest"):
+        for key in ("bootstrap_manifest", "bootstrap_digest", "ingress_policy"):
             if plan_body[key] is None:
                 plan_body.pop(key)
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),

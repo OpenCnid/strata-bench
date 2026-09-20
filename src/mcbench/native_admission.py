@@ -169,6 +169,9 @@ class NativeAdmission:
                                max_object_bytes=1024 * 1024)
         with self.db.transaction() as db:
             plan = self._plan(db, attempt.runtime_job_id)
+            if plan.ingress_policy is not None:
+                from .native_ingress import require_ingress_request
+                require_ingress_request(db, plan, reserve.operation_id, attempt.request_digest)
             require(plan.profile_digest() == attempt.profile_digest and plan.account == account and
                     plan.campaign_id == reserve.campaign_id and plan.agent_id == reserve.agent_id and
                     plan.epoch == reserve.epoch and body.get("model") == plan.model == reserve.model_identity,

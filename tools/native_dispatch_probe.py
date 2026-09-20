@@ -77,6 +77,7 @@ class LocalProvider:
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
         self.plan = None
         self.requests, self.errors = [], []
+        self.ingress_denials = []
         self.lock = threading.Lock()
         self.release = threading.Event()
         self.entered = threading.Event()
@@ -141,10 +142,26 @@ class LocalProvider:
                 self.response_started = False
                 db = None
                 try:
+                    plan = provider.plan
+                    require(plan is not None, "RUNTIME_MISSING")
+                    ingress = None
+                    if plan.ingress_policy is not None:
+                        from mcbench.native_ingress import NativeIngress
+                        db = Database(provider.database_path)
+                        ingress = NativeIngress(db)
+                        try:
+                            ingress.authenticate(plan.job_id, self.headers, self.path)
+                        except Fault as error:
+                            with provider.lock:
+                                provider.ingress_denials.append(error.code)
+                            self.send_error(403, "Ingress denied")
+                            self.close_connection = True
+                            return
+                    require(len(self.headers.get_all("Content-Length", [])) == 1, "REQUEST_SIZE")
                     length = int(self.headers.get("Content-Length", "0"))
                     require(0 < length <= MAX_REQUEST, "REQUEST_SIZE")
                     require(self.path in {"/v1/responses", "/v1/responses/compact"}, "ROUTE")
-                    require(self.headers.get("Authorization") is None and
+                    require((ingress is not None or self.headers.get("Authorization") is None) and
                             self.headers.get("Transfer-Encoding") is None and
                             self.headers.get("Content-Encoding") is None, "CREDENTIAL_OR_ENCODING")
                     raw = self.rfile.read(length)
@@ -161,10 +178,14 @@ class LocalProvider:
                             "tool_catalog": [{"type": t.get("type"), "name": t.get("name"),
                                 "tools": [v.get("name") for v in t.get("tools", [])]}
                                 for t in body.get("tools", [])],
-                            "authorization_present": False, "state": "RECEIVED"}
+                            "authorization_present": self.headers.get("Authorization") is not None,
+                            "ingress_authenticated": ingress is not None, "state": "RECEIVED"}
                         provider.requests.append(item)
                     (provider.database_path.parent / (operation + "-request.json")).write_bytes(raw)
-                    db = Database(provider.database_path)
+                    db = db or Database(provider.database_path)
+                    if ingress is not None:
+                        ingress.bind_request(plan.job_id, operation, item["request_digest"],
+                                             self.headers, self.path)
                     cas = CAS(db, provider.objects)
                     gate = InferenceDispatches(db, cas, simulation=True)
                     plan = provider.plan

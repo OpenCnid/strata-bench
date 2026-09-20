@@ -148,7 +148,8 @@ class InferenceDispatches:
             (attempt.runtime_job_id,)).fetchone() if exists else None
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(job["plan"]) if job else None
-        if not self.simulation or plan is not None and plan.broker_policy is not None:
+        if not self.simulation or plan is not None and (
+                plan.broker_policy is not None or plan.ingress_policy is not None):
             require(job is not None and job["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")
             require(plan.profile_digest() == attempt.profile_digest and plan.account == account and
                     plan.budget_mode == "per_dispatch" and
@@ -162,6 +163,9 @@ class InferenceDispatches:
                 require_request_admission(self.db.connection, plan, attempt, reserve, account)
             else:
                 require(plan.operation_id == reserve.parent_operation_id, "DISPATCH_SCOPE_MISMATCH")
+            if plan.ingress_policy is not None:
+                from .native_ingress import require_ingress_request
+                require_ingress_request(self.db.connection, plan, reserve.operation_id, attempt.request_digest)
 
     def _bound(self, attempt):
         raw = json.loads(self._private_ref(attempt.bound_ref, 16384))

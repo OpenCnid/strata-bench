@@ -8,6 +8,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent toy menu: scripted recipe, no native/server correctness claim. */
 class GameCraftingTest {
+    @Test void fillAndTakeBarriersRequireOriginalExactMetadataAfterOneRead() throws Exception {
+        for(boolean take:List.of(false,true)) for(int outcome=0;outcome<3;outcome++) {
+            var p=new Port(1);var original=item("backpack",1);
+            var changed=new GameInventory.Stack(original.id(),1,"client-generated-uuid");
+            p.slots.set(44,original);var motor=GameCrafting.start(p,1,p::emit);
+            if(take) {p.ack();assertFalse(motor.tick(p::emit));}
+            p.ack();var authoritative=p.reply;p.slots.set(44,changed);
+            int clicks=p.clicks;long ticket=p.ticket;
+            assertFalse(motor.tick(p::emit));assertEquals(ticket+1,p.ticket);assertEquals(clicks,p.clicks);
+            if(outcome==0) {
+                p.slots.set(44,original);p.ack();assertFalse(motor.tick(p::emit));
+                p.complete(motor);assertEquals(1,p.takes);assertEquals(p.output,p.slots.get(9));
+            } else {
+                if(outcome==1) p.reply=authoritative;else p.ack();
+                assertThrows(IOException.class,()->motor.tick(p::emit));
+                assertEquals(ticket+1,p.ticket);assertEquals(clicks,p.clicks);
+            }
+        }
+    }
     static final GameInventory.Stack EMPTY = GameInventory.Stack.EMPTY;
     static GameInventory.Stack item(String id, int count) { return new GameInventory.Stack("test:" + id, count, "components"); }
     static final class Port implements GameCrafting.Port {

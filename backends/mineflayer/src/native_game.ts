@@ -181,7 +181,7 @@ export const nativeCapabilities = (mutation: boolean) => ({
   campaign_admission:false, conformance:'unverified', operator_development_only:true,
   operations:[...READ,...(mutation ? LANE : [])], actions:mutation ? [...FORGE_ACTIONS] : [],
   native_action_policy:'durable-intent-client-thread-nineteen-actions/2',block_target_policy:'observed-outline-centers64-local16/1',menu_close_policy:'explicit-close-own-inventory-feedback-conservation/1',
-  recipe_policy:'player-book-exact-shaped-shapeless-pages32/1',crafting_policy:'known-recipe-fill-final-server-output-remainders/2',
+  recipe_policy:'player-book-exact-shaped-shapeless-pages32/1',crafting_policy:'known-recipe-fill-output-exact-metadata-reacquire/3',
   recipe_query_policy:RECIPE_QUERY_POLICY,
   quest_policy:QUEST_POLICY,
   quest_text_policy:QUEST_TEXT_POLICY,

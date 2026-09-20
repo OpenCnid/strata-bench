@@ -15,9 +15,14 @@ final class NativeItemDiagnostics {
     }
     static synchronized void mismatch(GameInventory.View reply, GameInventory.View current) {
         int[] remaining = {16};
-        for (int i=0;i<Math.min(reply.slots().size(),current.slots().size()) && remaining[0]>0;i++) {
-            var a=reply.slots().get(i);var b=current.slots().get(i);
-            if (i==reply.resultSlot() || a.equals(b)) continue;
+        for (int i=-1;i<Math.min(reply.slots().size(),current.slots().size()) && remaining[0]>0;i++) {
+            var a=i<0?reply.cursor():reply.slots().get(i);var b=i<0?current.cursor():current.slots().get(i);
+            if (a.equals(b)) continue;
+            remaining[0]--;
+            System.getLogger(NativeItemDiagnostics.class.getName()).log(System.Logger.Level.WARNING,
+                "STRATA_ITEM_STATE_DIFFERENCE slot="+i+" result_slot="+reply.resultSlot()
+                +" reply_id="+a.id()+" current_id="+b.id()+" reply_count="+a.count()+" current_count="+b.count()
+                +" components_equal="+a.components().equals(b.components()));
             var before=snapshots.get(a.components());var after=snapshots.get(b.components());
             if (before!=null && after!=null) diff(before,after,"slot"+i,0,remaining);
         }

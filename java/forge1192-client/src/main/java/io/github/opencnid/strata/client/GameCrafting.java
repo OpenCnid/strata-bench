@@ -6,7 +6,7 @@ import java.util.List;
 
 /** One requested recipe. Normal book-fill and slot inputs always await actual menu feedback. */
 final class GameCrafting {
-    static final String POLICY = "known-recipe-fill-final-server-output-remainders/2";
+    static final String POLICY = "known-recipe-fill-output-exact-metadata-reacquire/3";
     interface Port extends GameInventory.Port {
         int gridWidth();
         int inventoryStart();
@@ -26,7 +26,7 @@ final class GameCrafting {
         enum Phase { FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
         final Port port; final int gridSize; int remaining, remainderIndex;
         Phase phase; long ticket;
-        GameInventory.View before, filled, taken;
+        GameInventory.View before, filled, taken, reacquireBaseline;
         List<GameInventory.Stack> remainders;
         List<Integer> destinations;
         GameActionLane.Motor step;
@@ -41,6 +41,7 @@ final class GameCrafting {
             return view;
         }
         private void fill(GameActionLane.Emitter emit) throws IOException {
+            reacquireBaseline = null;
             before = view();
             if (!before.cursor().empty()) throw new IOException("PRECONDITION_FAILED");
             for (int i = 0; i <= gridSize; i++) if (!before.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
@@ -59,7 +60,25 @@ final class GameCrafting {
         private GameInventory.View feedback(GameActionLane.Emitter emit) throws IOException {
             port.validate(); var reply = port.reply(ticket);
             if (reply == null) { emit.invoke(() -> {}); return null; }
-            if (!reply.equals(view())) throw new IOException("REVISION_CONFLICT");
+            // The first actual reply remains the exact authority for a retry.
+            // A new server component, output, grid or remainder cannot replace it.
+            if (reacquireBaseline != null && !reply.equals(reacquireBaseline)) throw new IOException("REVISION_CONFLICT");
+            var current = view();
+            if (!reply.equals(current)) {
+                port.mismatch(reply,current);
+                boolean metadataOnly = reply.slots().size()==current.slots().size()
+                    && reply.resultSlot()==current.resultSlot() && reply.cursor().equals(current.cursor());
+                for (int i=0;metadataOnly && i<reply.slots().size();i++) {
+                    var a=reply.slots().get(i);var b=current.slots().get(i);
+                    metadataOnly = i>=port.inventoryStart() && i<port.inventoryEnd()
+                        ? a.id().equals(b.id()) && a.count()==b.count() : a.equals(b);
+                }
+                if (reacquireBaseline == null && metadataOnly) {
+                    reacquireBaseline = reply;
+                    emit.invoke(() -> ticket = port.requestSync()); return null;
+                }
+                throw new IOException("REVISION_CONFLICT");
+            }
             return reply;
         }
         public boolean tick(GameActionLane.Emitter emit) throws IOException {
@@ -100,6 +119,7 @@ final class GameCrafting {
                 if (!port.mayPickup(0)) throw new IOException("PRECONDITION_FAILED");
                 // Output click is allowed only here, after recipe/grid/result and resource validation.
                 phase = Phase.TAKE;
+                reacquireBaseline = null;
                 emit.invoke(() -> port.click(0, 0, false));
                 emit.invoke(() -> ticket = port.requestSync()); return false;
             }

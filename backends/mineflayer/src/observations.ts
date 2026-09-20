@@ -33,13 +33,16 @@ export function trace(origin: Vec3, direction: Vec3, radius: number, read: (p: V
 }
 
 export class ObservedMap {
-  private cells = new Map<string, {block: Block; at: string}>();
-  private dimension = '';
+    private cells = new Map<string, {block: Block; at: string}>();
+    private dimension = '';
+    private anchor: Vec3 | null = null;
   constructor(private read: (p: Vec3) => Block | null) {}
-  reset(): void { this.cells.clear(); }
+  reset(): void { this.cells.clear(); this.anchor = null; this.dimension = ''; }
   blockAt = (p: Vec3): Block | null => this.cells.get(key(p))?.block ?? null;
   capture(eye: Vec3, dimension: string): {block: Block; at: string}[] {
     if (dimension !== this.dimension) { this.reset(); this.dimension = dimension; }
+    // Own-body geometry only. Capture still cannot promote an undisclosed block.
+    this.anchor = eye.clone();
     const candidates = new Map<string, {block: Block; at: string}>();
     const now = utc();
     const ray = (d: Vec3) => {
@@ -72,7 +75,14 @@ export class ObservedMap {
       this.cells.delete(key(entry.block.position));
       this.cells.set(key(entry.block.position), entry);
     }
-    while (this.cells.size > 1024) this.cells.delete(this.cells.keys().next().value!);
+    if (this.cells.size > 1024 && this.anchor) {
+      const anchor = this.anchor;
+      // Far pages must not evict the nearby floor/head cells needed to walk.
+      // Retain only already delivered cells, with the same fixed capacity.
+      this.cells = new Map([...this.cells].sort(([ka,a],[kb,b]) =>
+        a.block.position.distanceSquared(anchor)-b.block.position.distanceSquared(anchor) || ka.localeCompare(kb))
+        .slice(0,1024));
+    }
   }
   scan(eye: Vec3, dimension: string): StructuredState['nearby_blocks'] {
     const entries = this.capture(eye, dimension).slice(0, 128);

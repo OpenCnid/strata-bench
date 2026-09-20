@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.48](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.50](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,13 +16,15 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `4ca796e`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `114122c`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
 
-Latest continuation: vanilla mechanics and its saved pickaxe audit pass narrowly. Forge operation 07 is terminal: native unknown craft `b0e405b3-9d02-426f-adb0-439be5d6b285` fails REVISION_CONFLICT because current backpack slot 45 adds tag/contentsUuid absent in the confirmed reply; its public report ends LEASE_EXPIRED. Full saved player/drop NBT resources reconcile; 192 primitives/3022.173 s remain across seven corrected-fixture pairs. No replay/refill. Minor 39 permits one charged reacquisition only for untouched component drift with exact resource/position/cursor/clicked-stack state. Both renewed server and current view must return to the ORIGINAL exact components; nothing is normalized or accepted on prediction. Java 35 focused checks/build and named Node capability check pass. Operation 08 is running candidate `5424bfd7d7d75d2149321e4edeb8d2d2d7c9f1345d740c6989bb034975758c18`, scope `machine-craft-resync-02-08`, epoch 8. Inspect its result and bounded component diagnostics, then preserve logs and audit final resources/costs. Do not infer authentic qualification from the unit checks.
+Latest continuation: vanilla minor-10 cancel/reconnect now has a passing independent saved-player/journal audit. Raw phases remain fail/fail/fail/pass: first two PATH_BLOCKED before input exposed cache eviction; phase 03 moves/cancels with confirmed release but its checker wrongly rejects mandatory resynchronization; phase 04 passes fresh epoch, preserved receipt/dedup, stale epoch denial and new look. All full inventory NBT, previous receipts/events and counters persist. New 24 primitives plus inherited 37 = journal 61; four phases 297.156 s. All vanilla targets terminal. [Report](verification/2026-09-20-vanilla-reconnect.md).
+
+Forge operation 11 passes the public expert furnace craft and independent saved-resource audit: 5 andesite + 3 polished andesite -> exactly 1 furnace; all other full stack NBT unchanged, 3 ingots/8000 RF retained. All targets terminal, arguments retired. Candidate `48ff462042134cc0d5f3464db8acba6edebfd513f83b9f85c6d81e31cd89bf0a`. Three actions/70 primitives/393.234 s, eleven-pair aggregate 377/4523.516 s. Prior operation 10 final mismatch cause remains unproven; no failed sample erased. `operation-11/operation-audit.json` passes all checks. No further craft retry is needed for this selected mechanics case. Raw server callback still cannot score. Next implementation: server-observed consumption provenance and private positive/negative milestone controls.
 
 The user's priority correction keeps **M0/G0 closure** active. M1 settings work
 is paused after two verified narrow write-boundary recoveries; four boundaries
@@ -36,7 +38,7 @@ Retain its unknown deposit, crash/save failure, charges and raw evidence.
 The corrected fixture continues without replenishment. The active background
 thread diagnostic profile does not resolve the original CTM startup failure.
 
-After the expert craft repair, close the remaining G0 checklist in MILESTONES:
+After the selected expert craft pass, close the remaining G0 checklist in MILESTONES:
 authentic reconnect/resynchronization, private causal scorer controls,
 installation/role locks and joined host/game cost evidence. Existing monetary
 conversion and isolated-worker questions remain pending; no paid inference

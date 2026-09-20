@@ -132,3 +132,89 @@ The first Node selector matched no cases and is not evidence. Operation 08 uses
 candidate `5424bfd7d7d75d2149321e4edeb8d2d2d7c9f1345d740c6989bb034975758c18`
 on the same saved resources, fresh epoch/scope, no inference or desktop input.
 Its authentic outcome is pending.
+
+## Operation 08 and fill/take barriers
+
+Minor 39 reacquired two separate backpack UUID changes without repeating clicks,
+then completed the ingredient grid. Unknown craft
+`1a16ae11-b6eb-4153-a9e2-0bb53cca4761` failed in GameCrafting.feedback at the final
+filled-grid barrier, before taking output. That boundary did not yet log differing
+fields, so the exact cause there remains unproven. All full-NBT resources
+reconcile in player plus drops; no furnace. Retain 55 primitives/405.859 s;
+aggregate 247/3428.032 s. All processes terminal, arguments retired; guardian
+472.6411/500 ms passes narrowly, previous failures retained.
+
+Minor 40 applies one fixed charged reacquisition to fill/take barriers when only
+player-inventory components differ locally. The first full server reply is frozen;
+the renewed reply must equal it entirely and then match current state. Grid,
+result, cursor and non-inventory slots must already be exact. All original recipe,
+conservation, output and remainder checks follow before another mutation. No
+metadata stripping, time/budget increase, changed baseline or repeated fill/take.
+Persistent local drift and changed server metadata reject. The same bounded
+private field diagnostics now cover this comparison.
+
+Executed: eleven focused Java crafting checks pass, no failure/skip; pinned
+build/reobfuscation 19 s, TypeScript build and named capability test pass.
+Operation 09 is running candidate
+`75d9308fe42ec90f3f0742b18cd159fb24ecbe4ffb2cba287a2eec2f1b684def`.
+Authentic full craft/close and independent saved outcome remain pending.
+
+## Operation 09: policy admission failure
+
+The Java policy changed to v3, but Python and TypeScript native-handshake validators
+still expected v2. The run stops before worker admission with ValidationError:
+zero API actions/primitives, client terminal and arguments retired. The driver's
+world-ready flag is false, but ordinary join/pickup did occur: independent saved
+player-plus-drop NBT accounts for all former drops now in the player. Machine
+remains empty/8000 RF. Preserve 305.485 s; aggregate 247 primitives/3733.517 s.
+This is an implementation/admission failure, not a crafting attempt or success.
+
+Both policy validators are corrected. Real Python-to-JVM and Node-to-JVM handshake
+checks pass (two Python, one Node, zero skips); an additional targeted Python check
+rejects the old craft policy. Targeted Ruff passes. Operation 10 is now running the
+same Java candidate with new compiled broker/source pins and a fresh scope/epoch.
+All preceding failed actions and costs remain; nothing was replayed or replenished.
+
+## Operation 10 and complete state diagnostics
+
+The corrected handshake passes. Ingredient transfers recover several client UUID
+drifts, but unknown craft `a17a9de7-b7c3-4334-9f42-6d266c89a20f` fails at the final
+feedback comparison. No component-field diagnostic accompanies that comparison;
+the previous logger omitted result-slot, count and cursor differences. Their
+precise values are therefore unresolved. All full saved player/drop resources
+reconcile, no furnace; machine empty/8000 RF. Preserve 60 primitives/396.765 s,
+aggregate 307/4130.282 s. All targets terminal, arguments retired. Guardian
+356.6464/500 ms passes narrowly without erasing previous failures.
+
+The bounded private logger now includes result/cursor slot identifiers, registry
+IDs/counts and component equality, plus bounded field hashes. No metadata values,
+new gameplay observations or acceptance changes. Pinned build/reobfuscation passes
+in 16 s. Operation 11 is running candidate
+`48ff462042134cc0d5f3464db8acba6edebfd513f83b9f85c6d81e31cd89bf0a`.
+
+
+## Operation 11: authentic craft and independent resource audit pass
+
+The unchanged minor-40 acceptance policy completes the expert recipe and closes
+its table through the scoped public API. The additional diagnostics observe one
+backpack UUID mismatch that the bounded restoration handles; no final mismatch
+occurs in this sample. This does not prove the cause of operation 10's failure.
+The independent audit confirms exactly five andesite plus three polished andesite
+become one furnace, with all other full saved stack NBT unchanged. All previously
+dropped ingredients were naturally picked up; no drops remain. The three earlier
+ingots, empty machine and 8000 RF persist. No world reset, refill or inference.
+
+Three unique terminal actions emit 70 charged primitives across 49 native usage
+records. Preserve 393.234 s, bringing all eleven corrected-fixture pairs to
+377 primitives/4523.516 s. All earlier failed/unknown requests and their charges
+remain; none was replayed. Client/server processes are terminal, logs complete,
+arguments retired and the input desktop unchanged. This guardian sample passes
+414.9795/500 ms; historical timing failures still prevent aggregate qualification.
+
+Audit SHA256 `61b72ee2db7943fdadff01a61d07daa33b92edce74b54dff030c73df3a5dc362`;
+public sequence SHA256 `32f703b6c5b37a91ac595beb934cd123064180b6b69e07f0bff2d0707b1d0335`;
+native journal SHA256 `7468108bb238e71a9a4c33b3d2d153c8ec1568b0188aae2930b62269ae8c667b`.
+Private artifacts are in the same external evidence root, `operation-11`.
+The server spool includes exactly one raw craft callback, still correctly marked
+score-ineligible. The complete selected expert craft has authentic mechanics
+evidence; full T03/G0, broad reliability and private causal scoring remain open.

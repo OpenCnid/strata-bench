@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.55](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.56](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,11 +16,13 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `8cf0cbe`. Last fetched origin/main resolves
+`codex/strata-native-dispatch`; inspect its current HEAD when continuing. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
+
+Latest implementation: [reusable journal staging](verification/2026-09-20-journal-staging.md), M0.2k.2a. Use the typed private operation for the next qualified stopped-source transfer; do not duplicate the old staging script. Exact lineage/stop pins/authority and cost checks precede copying, with expiry rechecked before manifest-last publication. Unknown receipts persist and nothing is replayed. Synthetic success/failure checks pass; the retained authentic source correctly rejects its expired authority. Successful authentic use remains unverified. No game or inference launched for this change.
 
 Latest continuation: vanilla minor-10 cancel/reconnect now has a passing independent saved-player/journal audit. Raw phases remain fail/fail/fail/pass: first two PATH_BLOCKED before input exposed cache eviction; phase 03 moves/cancels with confirmed release but its checker wrongly rejects mandatory resynchronization; phase 04 passes fresh epoch, preserved receipt/dedup, stale epoch denial and new look. All full inventory NBT, previous receipts/events and counters persist. New 24 primitives plus inherited 37 = journal 61; four phases 297.156 s. All vanilla targets terminal. [Report](verification/2026-09-20-vanilla-reconnect.md).
 
@@ -47,7 +49,9 @@ Do not replay unknown actions, relax bounds, erase failed attempts, expand M1
 microcases ahead of M0, or stop at another source checkpoint.
 
 
-Current next M0 deliverable: client-role config evidence (.3.2b.3). Telemetry 0.3.2 adds an explicitly armed private connected-client probe; JAR 120dd7f445c809ef47fae7024b9cb09e354bd5410380926f569ee1ac712531de. Seven Java tests/build, 11 private importer tests and 10 producer compatibility cases pass. Dedicated server installation stays at 0.3.1; the forthcoming separately pinned client diagnostic adds 0.3.2. Authentic trial 01 is terminal and all 18 independent audit checks pass under C:/Users/Darian/.strata/evidence/2026-09-20-client-config-role-01. Two CLIENT files loaded; two legacy files unregistered; COMMON/Create raw snapshots equal prior server. Full saved inventory/ender/position and selected files unchanged. Two releases/404.063 s; linked pairs 713/7377.346 s plus setups 266.907 s. Guardian 367.8943/500 ms passes this sample. Actual importer CLI passes, arguments retired and zero Java confirmed. The client retains the added pinned telemetry-0.3.2 JAR; future client pins must include it. No file exemptions or full lock/consumer/cold-restart/isolation pass.
+Completed selected M0 deliverable: client-role config evidence (.3.2b.3). Telemetry 0.3.2 adds an explicitly armed private connected-client probe; JAR 120dd7f445c809ef47fae7024b9cb09e354bd5410380926f569ee1ac712531de. Seven Java tests/build, 11 private importer tests and 10 producer compatibility cases pass. Dedicated server installation stays at 0.3.1; the forthcoming separately pinned client diagnostic adds 0.3.2. Authentic trial 01 is terminal and all 18 independent audit checks pass under C:/Users/Darian/.strata/evidence/2026-09-20-client-config-role-01. Two CLIENT files loaded; two legacy files unregistered; COMMON/Create raw snapshots equal prior server. Full saved inventory/ender/position and selected files unchanged. Two releases/404.063 s; linked pairs 713/7377.346 s plus setups 266.907 s. Guardian 367.8943/500 ms passes this sample. Actual importer CLI passes, arguments retired and zero Java confirmed. The client retains the added pinned telemetry-0.3.2 JAR; future client pins must include it. No file exemptions or full lock/consumer/cold-restart/isolation pass.
+
+Current Forge restart state: both phases under C:/Users/Darian/.strata/evidence/2026-09-20-forge-reconnect-02 are terminal; continuation session 46848 finished. Both public checkers and full saved-state/journal/cost continuity pass. Native authority/fingerprint and all prior receipts/counters are retained; epoch 2 adds four primitives to 27, total31. Both guardian waits fail unchanged500 ms (529.8644 and505.9196), with independently observed actual delayed exit. Overall continuation/audits remain fail. Normal server stops, retired session arguments and zero Java confirmed. No rerun, journal staging or shared-authority renewal is needed. Current linked totals744 primitives/8410.081 s plus witness setups266.907 s; interphase gap15.760 s is recorded separately. M0.2c.1a is verified only for stopped-journal reconciliation. M0.2k.2/G0 and complete accounting/isolation remain open. Preserve all raw failures and earlier incompatible route preparation. See [current report](verification/2026-09-20-forge-reconnect.md).
 
 ## Overall position
 

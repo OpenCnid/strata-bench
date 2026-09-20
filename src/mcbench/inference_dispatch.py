@@ -114,6 +114,7 @@ class InferenceDispatches:
             from .native import NativeLaunch
             plan = NativeLaunch.model_validate_json(job["plan"])
             require(plan.profile_digest() == attempt.profile_digest and plan.account == account and
+                    plan.budget_mode == "per_dispatch" and
                     plan.campaign_id == reserve.campaign_id and plan.agent_id == reserve.agent_id and
                     plan.epoch == reserve.epoch and plan.model == reserve.model_identity and
                     plan.provider == attempt.provider and plan.auth_mode == attempt.auth_mode and

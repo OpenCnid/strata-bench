@@ -70,6 +70,29 @@ class WindowsJob:
         if self.handle:
             require(bool(self.kernel.TerminateJobObject(self.handle, 125)), "PROCESS_STOP_FAILED")
 
+    def accounting(self):
+        """Read the held job's whole-tree process counts without PID rediscovery."""
+        import ctypes
+        from ctypes import wintypes
+
+        class Accounting(ctypes.Structure):
+            _fields_ = [(name, ctypes.c_int64) for name in (
+                "user_time", "kernel_time", "period_user_time", "period_kernel_time")] + [
+                (name, wintypes.DWORD) for name in (
+                    "page_faults", "total_processes", "active_processes", "terminated_processes")]
+
+        require(bool(self.handle), "PROCESS_FENCING_UNAVAILABLE")
+        query = self.kernel.QueryInformationJobObject
+        query.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                          wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+        query.restype = wintypes.BOOL
+        value, returned = Accounting(), wintypes.DWORD()
+        require(bool(query(self.handle, 1, ctypes.byref(value), ctypes.sizeof(value),
+                           ctypes.byref(returned))) and returned.value == ctypes.sizeof(value),
+                "PROCESS_STATE_UNAVAILABLE")
+        return {key: getattr(value, key) for key in (
+            "total_processes", "active_processes", "terminated_processes")}
+
     def close(self):
         if self.handle:
             self.kernel.CloseHandle(self.handle)

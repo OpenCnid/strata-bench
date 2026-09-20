@@ -34,6 +34,16 @@ overruns and unknown prices. Active campaign clocks come from measured intervals
 model-call wall latency must not be summed as campaign active wall time. No code
 path restores the ledger when materializing an earlier game checkpoint.
 
+Native `per_dispatch` jobs explicitly reserve nested envelopes; individual
+requests and helpers consume the reserved capacity without duplicating charges.
+Ordinary parent-linked operations remain additive. An open envelope keeps its
+full bound (or an observed overrun), and unknown requests block its ancestors.
+Only fenced native processes/ingress, an exact sealed request inventory and
+settled descendants permit atomic envelope closure/native finalization.
+See the [native accounting verification](../verification/2026-09-20-native-dispatch.md)
+for runnable credential-free fixtures and the unresolved production gates.
+The synthetic HTTP adapter rejects live stores and non-loopback endpoints.
+
 The sanitized gameplay keybinding skill is under `gameplay/skills/`. Package it
 with an isolated gameplay runtime only after loading and tool conformance are
 qualified. The current Mineflayer worker advertises settings unsupported.

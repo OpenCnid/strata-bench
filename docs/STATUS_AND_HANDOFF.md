@@ -1,16 +1,19 @@
 # Implementation checkpoint and next-session handoff
 
-Reviewed September 19, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.33](../SPEC.md) remains the target;
+Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
+MVP or scientific result. [SPEC v0.2.34](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
-The user requested a commit/PR/merge stopping point and a review for the next
-session. New feature and live experiment work stops at this checkpoint without
-removing any required scope. Older verification reports describe their dated
-candidates; use this review and the ledger for current state.
+The user explicitly resumed implementation beyond the prior commit/merge
+stopping point, with a long-horizon goal for every required M0–M6 deliverable
+and gate; M7 remains conditional. Continue across intermediate checkpoints.
+Older verification reports describe their dated candidates; use this review
+and the ledger for current state.
 
-Delivery: [PR #1](https://github.com/OpenCnid/strata-bench/pull/1), starting with
-source checkpoint `3aca278`. The PR records the final merge commit and delivery
-state; its initial source snapshot passed the checks below.
+Delivery: [PR #1](https://github.com/OpenCnid/strata-bench/pull/1) is confirmed
+merged at `579796da40eeb9e6063196462767f60e9c87eac7` by fresh GitHub metadata
+and fetched `origin/main`. The clean current worktree branched from that revision
+as `codex/strata-native-dispatch`. The initial source checkpoint checks below
+remain historical evidence; the resumed accounting change is described here.
 
 ## Overall position
 
@@ -94,11 +97,48 @@ Raw test logs and publication inventories/hashes stay in the operator's external
 `C:\Users\Darian\.strata\evidence\2026-09-19-merge-checkpoint-01` directory.
 Published reports contain bounded findings, not raw account or run data.
 
-## First task for the next session
+## Current native accounting work
 
-Continue **M0.1c.1**, starting with a bounded, zero-inference integration of the
-new durable dispatch accounting boundary into the actual pinned native CLI's
-local synthetic transport. Do not begin another broad menu-feature pass first.
+M0.1c.1b now has [eight passing actual-CLI/synthetic-provider cases](verification/2026-09-20-native-dispatch.md)
+and 130 passing relevant Python checks. Nested job/helper envelopes consume the
+same reservation; distinct requests charge separately; duplicate receipts charge
+once; missing usage/lost streams retain holds and block forwarding. Compaction
+and two separate native helper/executor jobs reconcile. A fresh supervisor
+process refuses replay after an already classified interruption. Exact sealed
+inventory closure and native finalization are atomic. Private operator schemas
+are regenerated; gameplay records/tools are unchanged.
+
+The final credential-free fixture matrix is external
+`C:\Users\Darian\.strata\evidence\2026-09-20-native-dispatch-08`; its manifest
+hashes tested code and CLI. Earlier attempts/failures remain in -01 through -07.
+All these native processes/listeners are terminal. No paid inference or game
+launch occurred. The inspected known roots contain 25 accounting stores, all
+newly simulated or prior synthetic tool-only stores, with no live profiles.
+Do not interpret the absence of a live ledger as a fresh budget authorization.
+
+M0.1c.1c.1 now adds bounded upstream SSE/JSON parsing and forwarding plus abrupt
+supervisor-death recovery. The final nine-case `--wire` matrix passes at private
+`2026-09-20-native-dispatch-wire-final-01`: 15 ingress requests, 13 forwarded,
+eight settled/five intentionally unresolved and ten CLI jobs. A stream prefix
+is flushed before supervisor exit; independent held-job counts go from 13 to
+zero before fresh recovery retains the holds and refuses replay. The expanded
+165-test Python run and final 30 transport checks pass; see the report's
+follow-up for exact source pins, raw evidence and limitations.
+
+Continue native pinned Dovetail plugin/skill/helper conformance. The transport
+adapter remains explicitly synthetic-only. Actual OAuth monetary conversion,
+finite exposure, complete project spending authority and adversarial isolation
+remain unqualified. A request for the account's documented USD-per-credit rate
+and non-secret source is pending; do not ask again unless the answer is unclear.
+Advance independent credential-free host/plugin/skill/helper work while live
+admission remains blocked.
+
+## Original resumed task and retained acceptance criteria
+
+The user selected **M0.1c.1** first: bounded, zero-inference integration of the
+durable dispatch boundary into the actual pinned CLI's local synthetic transport.
+The original task criteria below remain traceable; see current work above for
+completed synthetic scope and the remaining production boundary.
 
 1. Read this handoff, the ledger's current position, SPEC sections 3, 6, 15–19,
    and the [native budget](verification/2026-09-19-native-budget.md) and
@@ -106,8 +146,8 @@ local synthetic transport. Do not begin another broad menu-feature pass first.
 2. Inspect [inference_dispatch.py](../src/mcbench/inference_dispatch.py),
    [budgets.py](../src/mcbench/budgets.py), [native.py](../src/mcbench/native.py)
    and [dispatch tests](../tests/test_inference_dispatch.py). The module is
-   implemented but unverified in production and currently has no transport
-   caller. Its trusted evidence flags do not establish real pricing or bounds.
+   implemented but unverified in production. The new local fixture is a transport
+   caller; trusted evidence flags still do not establish real pricing or bounds.
 3. Reuse the credential-free native probe under the private
    `2026-09-19-native-budget-01` evidence directory as a reference. It already
    observed one rejected POST and two POSTs for one retry, with identical body

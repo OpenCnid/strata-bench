@@ -110,3 +110,24 @@ def test_native_noninteractive_process_cannot_receive_later_console_input(tmp_pa
     finally:
         proc.stop()
         proc.close()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object query")
+def test_job_accounting_observes_whole_owned_tree_stop(tmp_path):
+    proc = ManagedProcess([sys.executable, "-I", "-c",
+        "import subprocess,sys,time; subprocess.Popen([sys.executable,'-I','-c',"
+        "'import time; time.sleep(30)']); print('ready',flush=True); time.sleep(30)"],
+        tmp_path, {}, "")
+    try:
+        assert proc.process.stdout.readline().strip() == b"ready"
+        live = proc.job.accounting()
+        assert live["total_processes"] >= 3 and live["active_processes"] >= 3
+        proc.stop()
+        deadline = time.monotonic() + 2
+        while proc.job.accounting()["active_processes"] and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert proc.job.accounting()["active_processes"] == 0
+    finally:
+        proc.close()
+    with pytest.raises(Fault, match="PROCESS_FENCING_UNAVAILABLE"):
+        proc.job.accounting()

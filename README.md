@@ -9,14 +9,14 @@ native Codex loop, with typed `mcgame` commands to a persistent game worker.
 Mineflayer is the first backend; the separately identified Forge extension is
 the authorized development fallback for exact E9E compatibility work.
 
-**Status: implementation checkpoint, not a runnable research MVP.** M0–M5 have
+**Status: implementation in progress, not a runnable research MVP.** M0–M5 have
 partial implementations, M6 remains required later work, and M7 is conditional.
 Narrow authentic vanilla and E9E checks have passed; every aggregate release
 gate remains open. Exact E9E's Mineflayer handshake failed, and Forge fallback
 evidence does not convert it into a Mineflayer pass.
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
-- [Specification v0.2.33](SPEC.md): complete target contract and acceptance gates
+- [Specification v0.2.34](SPEC.md): complete target contract and acceptance gates
 - [Milestone ledger](MILESTONES.md): coverage, decisions, failures and evidence
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence
@@ -29,7 +29,7 @@ evidence does not convert it into a Mineflayer pass.
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
 | Native Codex adapter | Pinned process lifecycle, Dovetail installation inspection and usage parsing | Actual model/plugin/helper execution, complete accounting, credential and network isolation |
-| Inference accounting | Atomic reservation plus dispatch intent, receipt deduplication and uncertain-cost holds | Qualified OAuth transport, finite call exposure and real USD conversion |
+| Inference accounting | Atomic dispatch intent, nested job envelopes, receipt deduplication and uncertain-cost holds; pinned CLI/local synthetic transport checks | Qualified OAuth transport, finite call exposure and real USD conversion |
 | Evaluator source | Private telemetry import, saved-state readers, synthetic scorers/probes and analysis/reporting | Authoritative live scoring, matched experiments, power pilot and confirmation |
 
 The latest authentic E9E evidence includes paired mayapple removal, a short level

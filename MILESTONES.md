@@ -1,15 +1,15 @@
 # Strata implementation milestones and coverage ledger
 
-Updated: 2026-09-19. Authority: [SPEC.md](SPEC.md) v0.2.33; maintenance rules: [AGENTS.md](AGENTS.md).
+Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.34; maintenance rules: [AGENTS.md](AGENTS.md).
 
 **Operator-only. Never expose this ledger or its linked private evidence to gameplay agents or their helpers.**
 
 ## Current position
 
-- **Checkpoint requested by the user:** pause new feature/experiment work, commit the implementation, create and merge a PR, then hand off. The [current review and next-session handoff](docs/STATUS_AND_HANDOFF.md) is the concise entry point. This is a source checkpoint, not milestone/MVP completion; all M0–M6 scope and gates remain, M7 conditional. Earlier evidence and failures remain in the append-only log and linked reports.
-- **Latest implementation:** M0.1c.1a [durable inference dispatch accounting](docs/verification/2026-09-19-inference-dispatch.md), implemented_unverified for production. Atomic reservation/intent, distinct retry charges, receipt deduplication, uncertain-cost holds, crash no-replay and simulation separation have synthetic evidence. No transport caller, real OAuth price/bound proof or isolation qualification exists yet. Native whole-job/per-call composition remains open.
+- **Implementation resumed:** the user explicitly authorized continuing beyond the checkpoint and created the full M0–M6 long-horizon objective. Git fetch and GitHub PR metadata confirm PR #1 merged at `579796da40eeb9e6063196462767f60e9c87eac7`; clean worktree branch `codex/strata-native-dispatch` starts there. M7 remains conditional. Earlier evidence and failures remain in the append-only log and linked reports.
+- **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
-- **Next session's first bounded task:** integrate the per-dispatch accounting boundary with actual pinned CLI requests to a credential-free synthetic local provider, including streaming interruption, retries, compaction/helpers and restart. Reconcile whole-job and per-call reservations without duplicate charges. See M0.1c.1 and the handoff's exit evidence. Do not dispatch paid calls until real USD conversion, finite exposure and isolation are qualified.
+- **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
 - **Authentic game position:** vanilla has partial authenticated join/look/dig/flat movement/cancellation/menu evidence. Exact E9E 1.27.0 boots, but Mineflayer's handshake failed; the D06 Forge fallback remains separately identified. Five overlay checks, full artifact seals and expert recipe/machine conformance remain unresolved. G0 remains fail; G1–G5 remain not_run.
 - **Latest authentic Forge evidence:** minor 34 passes narrow paired mayapple removal, short level walking, basic quest lifecycle and [cancellation before arrival](docs/verification/2026-09-19-native-cancel.md). The last trial passes 13 scoped calls, eight saved-player and thirteen reference checks; 0.2101399846-block displacement occurred during initial centering and stopped outside 0.2 destination tolerance. Saved 256 IDs and one intent/20 primitives/five usage records reconcile. This is not general navigation or complete accounting qualification.
 - **Reliability remains open:** latest guardian wait 451.9577 ms passes one unchanged 500 ms bound; prior 501.9950/503.5059/507.6092 ms failures remain. Prior CTM startup crash and incomplete initial terrain frame remain historical failures. Do not relax timing, replay ambiguous actions or erase costs/outcomes to qualify a sample.
@@ -53,6 +53,10 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.1c | AR | Pinned native Codex/Dovetail execution, helpers, interrupts/resume and all-call accounting | in_progress | [Native runner](src/mcbench/native.py), [exact plugin installer](src/mcbench/plugins.py): durable dispatch, process-tree fencing, helper limits, raw events, uncertain holds and fresh-handoff manifests; actual Windows process and native plugin-install evidence. Model-side skill invocation, helper isolation, OAuth all-call/billing bounds and restore integration remain unqualified; D04 supplies the model/auth/$10 ceiling. |
 | M0.1c.1 | AR/PL/SI | Qualify OAuth monetary conversion, per-dispatch bounds and complete native call/retry/helper metering | in_progress | [Installed native budget surface and transport probes](docs/verification/2026-09-19-native-budget.md): exact CLI/schema and two actual-CLI/synthetic-local-provider cases pass without inference. Requests/retries have no output-token bound; identical request digests are distinct dispatches. Goal budgets, account limits and published credit rates do not establish the required USD bound. Next: streaming/compaction/helper paths, reservation enforcement, actual OAuth conversion/exposure and isolated gateway conformance; no qualification receipt issued. |
 | M0.1c.1a | AR/PL | Durable reservation and dispatch-intent boundary; F03/F11/F16, N01/N03/N04/N06, C06/C20, partial T01/T04/T07/T12 | implemented_unverified | [Accounting implementation and synthetic evidence](docs/verification/2026-09-19-inference-dispatch.md). Atomic reserve/intent, dedup, distinct retry charges, uncertainty/recovery and simulation fencing pass local tests. No production transport, OAuth monetary/bound proof or isolation qualification. Next: actual native CLI/local synthetic transport integration and whole-job/per-call reconciliation. |
+| M0.1c.1b | AR/PL | Actual pinned CLI/local synthetic provider dispatch, job/request/helper reservation composition, streaming/compaction/retry/interruption/restart evidence | implemented_unverified | [Eight-case native fixture / 130 Python checks](docs/verification/2026-09-20-native-dispatch.md) pass; explicit envelopes, deduplicated receipts, retained unknowns and sealed atomic closure. Restart reopens an already classified interruption. Provider fixtures are deterministic; production OAuth transport, price/exposure and isolation are not qualified. |
+| M0.1c.1c | AR/PL/SI | Bounded upstream usage parsing/forwarding, abrupt supervisor-loss no-replay, durable project spending authority and qualified production ingress/receipt coverage | in_progress | Continue from .1b without treating direct synthetic-provider receipts as an upstream parser. Read-only inventory finds 25 accounting stores, all newly simulated or three earlier synthetic tool-only stores, zero live profiles/errors. No live D04 ledger is installed in the inspected roots; complete historical spending authority is unqualified. OAuth conversion question is pending; finite exposure and isolation remain mandatory. |
+| M0.1c.1c.1 | AR/PL/QA | Synthetic upstream wire-usage parsing/forwarding, strict finite transport and abrupt supervisor-loss no-replay | implemented_unverified | [Wire/crash follow-up](docs/verification/2026-09-20-native-dispatch.md): nine actual-CLI cases pass; 15 ingress requests, 13 forwarded, eight settled/five unresolved, ten CLI jobs. Actual stream prefix precedes supervisor exit; independent held-job accounting goes 13-to-zero before fresh recovery. 165 relevant Python / final 30 transport checks pass. Synthetic-only; no OAuth proxy/price/bound or adversarial isolation qualification. |
+| M0.1c.1c.2 | AR/PL/SI | Durable project spending authority and qualified live OAuth ingress, pricing, finite exposure, all-request/descendant receipts and isolation | blocked | Account monetary evidence requested; live ledger not installed in inspected roots. No $10 reset or paid dispatch. Production capability/pricing/exposure and historical audit evidence are required; continue independent native plugin/skill/helper conformance. Parent .1c and all aggregate gates remain open. |
 | M0.2a | GI | Bounded player/window projection, ray occlusion, filtered-map planning, ordinary mutation subset | in_progress | Filtered player/window observations, opaque fixed-capture spatial pages, bounded public signals, player-unlocked recipes and fixed crafting slot motor; placement and furnace/table opening implemented but authentic behavior unverified. Remaining action/movement/reconnect gaps persist. |
 | M0.2b | GI/QA | Journal, one executor/lane, ID/sequence/epoch fencing, stop/cancel and retained partial effects | in_progress | [Journal](backends/mineflayer/src/journal.ts), [lane](backends/mineflayer/src/actions.ts), fault fixtures pass; real interruption timings, corruption/disk faults, supervised termination and automatic resync open. |
 | M0.2c | GI/AR/RS | Real vanilla server, host action/helper, private milestone and full clocks/costs | in_progress | Actual official server, authenticated worker, scoped CLI, look/dig/flat movement and cancellation evidence in [long-horizon report](docs/verification/2026-09-18-long-horizon.md). Native model/helper, private authoritative milestone and complete clocks/costs still blocked; no gate pass. |
@@ -328,6 +332,12 @@ Latest discovery cross-reference: M0.3b.3.2.3a advances F01/F06/F16/N01/N04/N06 
 Latest cross-reference: M0.3b.3.2.2a adds [Thermal transfers/input fences](docs/verification/2026-09-19-thermal-transactions.md) under F01/F06/F09/F16/N01/N02/N03/N04/N05/N06, extending .1's exact GUI projection. Ordinary mechanics, owned transfer checks, hidden-slot masking, charges/unknown/cancel and D10 revision policy have implementation/synthetic evidence. Authentic mechanics and isolation coverage remain incomplete; requirement statuses below are unchanged.
 
 Status refers to complete requirement coverage, not the first related prototype. In-progress rows link the actual partial work; no local synthetic test closes an entire requirement.
+
+September 20 accounting cross-reference: M0.1c.1b advances partial F03/F11/F16,
+N01/N03/N04/N06, C06/C20, T01/T04/T07/T12 through the
+[native synthetic dispatch report](docs/verification/2026-09-20-native-dispatch.md).
+The operator-only NativeLaunch accounting mode is regenerated in JSON/TypeScript;
+all thirteen canonical records, gameplay affordances and aggregate statuses remain.
 
 | ID | Required behavior | Owner | Milestones | Tests | Status | Implementation / evidence / gap |
 |---|---|---|---|---|---|---|
@@ -639,6 +649,19 @@ September 19 route-cancel addendum: [fresh bounded trial](docs/verification/2026
 September 19 native-budget addendum: [exact CLI/schema and two local provider probes](docs/verification/2026-09-19-native-budget.md) cover synthetic rejection/retry transport with no paid model or credentials. Turn-start and actual requests lack an output-token bound; no authenticated monetary/call-exposure proof exists. T04/T12 remain incomplete; no all-call gateway qualification or live host admission.
 
 ## Blockers, open decisions, and change history
+
+**Native accounting continuation, 2026-09-20:** AR/PL/SI own M0.1c.1c.
+The user explicitly resumed the full M0–M6 objective beyond merged PR #1;
+the former checkpoint stopping point is superseded, not a scope reduction.
+SPEC v0.2.34 records nested reservation composition within the existing D04
+ceiling, with no new budget or authentication authorization. A read-only audit
+of known external roots found no live inference accounting profile; the $0
+handoff report is retained but is not silently converted into a fresh allowance.
+Actual account USD-per-credit evidence was requested asynchronously; live
+OAuth dispatch remains blocked by monetary conversion, finite exposure,
+complete spending authority and credential/process/network isolation.
+Independent credential-free implementation continues. Eight native synthetic
+cases do not close these blockers or the full T04/T07/T12/G0/G1 gates.
 
 **Rendered-client stop confirmation, 2026-09-19:** GI/QA own the open
 `PROCESS_STOP_UNCONFIRMED` gate under M0.3b.2c.3c.2b.2b.2, F09/N05,
@@ -3998,3 +4021,68 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   all ledger IDs, wrapper hash), and `git diff --cached --check` passes.
   The PR is the durable reference for its eventual merge commit; subsequent
   delivery-link edits are documentation-only and do not change tested code.
+
+### 2026-09-20 — resumed native CLI dispatch accounting
+
+- Created the explicitly requested long-horizon M0–M6 goal; M7 remains conditional.
+  Verified clean main/worktree and GitHub PR #1 merge at 579796d, fetched origin,
+  and branched codex/strata-native-dispatch without altering existing worktrees.
+- M0.1c.1b, F03/F11/F16, N01/N03/N04/N06, C06/C20, partial T01/T04/T07/T12:
+  [native synthetic dispatch report](docs/verification/2026-09-20-native-dispatch.md).
+  Added nested job/helper envelopes, exact request-inventory closure and atomic
+  native finalization; preserved ordinary additive lineage and unknown holds.
+  NativeLaunch budget mode is profile-pinned and generated only in operator schemas.
+- Executed the pinned CLI against a credential-free deterministic local provider:
+  eight final cases pass, 13 received requests, 12 admitted dispatches, eight
+  settled/four intentionally unresolved, nine CLI jobs. Identical-body retries
+  charge distinctly; lost-stream retry is blocked before provider execution;
+  compaction and separate-job helper totals reconcile; a fresh supervisor
+  refuses replay. Restart is after classified interruption, not abrupt crash.
+- 130 relevant Python tests pass, zero skips, two existing Typer/Click warnings;
+  28 schema checks pass again after LF-preserving generation. Pydantic export,
+  TypeScript generation/build, actual gameplay package exclusion, full Ruff and
+  diff checks pass. Earlier timestamp/compaction-fixture failures and the stale
+  schema failure (128 pass/one fail before regeneration) remain documented.
+- Raw evidence/source hashes are external under 2026-09-20-native-dispatch-08;
+  earlier -01 through -07 attempts are retained. Read-only accounting inventory:
+  25 stores, no live profiles or errors; the three prior accounting stores have
+  synthetic tool usage only. No new allowance installed, no OAuth/paid call,
+  credentials, game launch, shared-desktop input or threshold change.
+- SPEC v0.2.34 documents reservation composition. Production upstream receipts,
+  OAuth monetary/exposure bounds, historical spend authority and isolation stay
+  unqualified under new M0.1c.1c; USD-per-credit evidence requested asynchronously.
+  Next: bounded upstream wire parsing/forwarding and abrupt supervisor-loss
+  coverage, then actual pinned plugin/skill/helper and remaining host gates.
+  Full M0–M6 remains active; no aggregate gate/milestone closed.
+
+### 2026-09-20 — upstream wire receipts and abrupt supervisor recovery
+
+- M0.1c.1c.1 implemented_unverified for production; .1c.2 explicitly retains
+  live monetary/exposure/spending-authority/isolation blockers. Added bounded
+  simulation-only HTTP transport and incremental SSE/JSON accounting; unknown,
+  conflicting, truncated or unsupported receipts retain holds. Literal loopback,
+  no redirects/credentials/internal retry, strict request binding and finite
+  response/deadline limits are tested. No live OAuth adapter is implied.
+- Final pinned CLI/separate-upstream matrix: nine cases pass in private
+  2026-09-20-native-dispatch-wire-final-01, with source/binary hashes. Fifteen
+  ingress requests, thirteen upstream dispatches, eight settled/five unresolved,
+  ten CLI jobs. Both unknown-usage retries are stopped before upstream execution.
+  Compaction/helper/retry totals and receipt deduplication reconcile.
+- Abrupt supervisor exit follows an actual flushed stream prefix and bypasses
+  cleanup. Durable RUNNING/DISPATCHING states survive. A held outer Windows job
+  shows 13 active processes before the crash and zero after; only then does a
+  new supervisor recover the pending attempt. Full reservation retained, no
+  native/request replay and no new admission. Existing process fencing API gains
+  read-only whole-job counts; ordinary stop behavior and bounds are unchanged.
+- Expanded relevant Python run: 165 pass, zero skips, 15.24 s, two dependency
+  warnings. Final additional transport hardening: all 30 transport checks pass,
+  3.51 s. Seven actual process checks pass, including owned grandchild counts.
+  Concurrent child envelope admission is tested. Ruff passes; initial unused
+  transport-test import was removed. Earlier direct-provider and intermediate
+  wire/crash samples remain dated evidence, not erased by final passes.
+- F03/F09/F11/F16, N01/N02/N03/N04/N05/N06/N08, C06/C18/C20 and partial
+  T01/T04/T07/T12 advanced; no aggregate test/release/milestone closure. Private
+  raw bytes, request captures, failure receipts and process evidence stay external.
+  [Report and exact limits](docs/verification/2026-09-20-native-dispatch.md).
+  Next: actual pinned plugin/skill/helper conformance in credential-free native
+  fixtures while the live USD/exposure/isolation gates remain blocked. Goal active.

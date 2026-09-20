@@ -12,6 +12,8 @@ from mcbench.inventory import file_hash
 from mcbench.native import NativeExec, NativeLaunch, native_argv
 from mcbench.records import BudgetLedger
 from mcbench.storage import Fault
+from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
+from mcbench.storage import Principal, canonical, digest
 
 
 @pytest.fixture
@@ -320,3 +322,82 @@ def test_journal_write_failure_fences_process_before_propagating(runtime, make_p
     assert managed.poll() is not None
     assert plan.job_id not in runtime.live
     assert runtime.budgets.status("a1")["uncertain"]
+
+
+@pytest.fixture
+def dispatch_job(runtime, make_plan):
+    gate = InferenceDispatches(runtime.db, runtime.cas, simulation=True)
+    def put(value, visibility="operator"):
+        return runtime.cas.put(Principal("operator", "operator"), "operator", visibility,
+                               canonical(value))
+    plan, reserve = make_plan(budget_mode="per_dispatch")
+    runtime.start(plan, reserve, fixture_argv=command("import time; time.sleep(30)"))
+    price = put({"is_example": True, "price": "synthetic"})
+    call = BudgetLedger.model_validate(reserve.model_dump() | {
+        "operation_id": "call1", "source_event_id": "call1-reserve", "ledger_id": "call1-reserve",
+        "parent_operation_id": plan.operation_id, "pricing_ref": price,
+        "model_identity": plan.model, "metering": "estimated",
+        "usage": reserve.usage.model_dump() | {"model_calls": 1, "spend_microusd": 60}})
+    fields = {"runtime_job_id": plan.job_id, "profile_digest": plan.profile_digest(),
+              "provider": "synthetic", "auth_mode": "api_key", "request_digest": "a" * 64}
+    bound = put({"schema": "strata/InferenceDispatchBound/1", "is_example": True, **fields,
+        "reservation_digest": digest(call.model_dump()), "pricing_ref": price, "currency": "USD",
+        "finite_dispatch_bound_verified": True, "pricing_semantics_verified": True,
+        "expires_unix_ms": time.time_ns() // 1000000 + 60000})
+    attempt = InferenceAttempt.model_validate({"schema": "strata/InferenceAttempt/1", **fields,
+                                              "bound_ref": bound})
+    assert gate._begin("a1", attempt, call)
+    receipt = BudgetLedger.model_validate(call.model_dump() | {
+        "posting": "settle", "source_event_id": "call1-settle", "ledger_id": "call1-settle",
+        "metering": "reported", "raw_usage_ref": put({"is_example": True, "actual": 20}),
+        "usage": call.usage.model_dump() | {"spend_microusd": 20}})
+    seal = {"schema": "strata/InferenceIngressSeal/1", "is_example": True,
+        "job_id": plan.job_id, "profile_digest": plan.profile_digest(),
+        "process_tree_dead": True, "ingress_closed": True, "handlers_fenced": True,
+        "attempt_ids": ["call1"]}
+    return gate, plan, receipt, seal, put
+
+
+def test_dispatch_envelope_closes_only_fenced_complete_inventory(runtime, dispatch_job):
+    gate, plan, receipt, seal, put = dispatch_job
+    with pytest.raises(Fault, match="RUNTIME_NOT_QUIESCENT"):
+        runtime.close_dispatch_budget(plan.job_id, put(seal))
+    runtime.interrupt(plan.job_id, "synthetic_stop")
+    gate.recover()
+    with pytest.raises(Fault, match="METERING_UNKNOWN"):
+        runtime.close_dispatch_budget(plan.job_id, put(seal))
+    assert runtime.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == 100
+    gate.settle("call1", "synthetic-late-receipt", receipt)
+    assert runtime.budgets.status("a1")["uncertain"]  # Native ingress not sealed yet.
+    assert runtime.close_dispatch_budget(plan.job_id, put(seal))["state"] == "FINALIZED"
+    status = runtime.budgets.status("a1")
+    assert not status["uncertain"] and status["committed_and_reserved"]["spend_microusd"] == 20
+    assert status["committed_and_reserved"]["model_calls"] == 1
+
+
+@pytest.mark.parametrize("change", [
+    {"is_example": False}, {"job_id": "other"}, {"profile_digest": "f" * 64},
+    {"process_tree_dead": False}, {"ingress_closed": False}, {"handlers_fenced": False},
+    {"attempt_ids": []}, {"attempt_ids": ["call1", "call1"]},
+])
+def test_dispatch_seal_mismatch_preserves_reservation(runtime, dispatch_job, change):
+    gate, plan, receipt, seal, put = dispatch_job
+    runtime.interrupt(plan.job_id, "synthetic_stop")
+    gate.settle("call1", "synthetic-receipt", receipt)
+    with pytest.raises(Fault, match="DISPATCH_SEAL_UNVERIFIED"):
+        runtime.close_dispatch_budget(plan.job_id, put(seal | change))
+    assert runtime.budgets.status("a1")["uncertain"]
+    assert runtime.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == 100
+
+
+def test_dispatch_closure_and_native_finalization_are_atomic(runtime, dispatch_job):
+    gate, plan, receipt, seal, put = dispatch_job
+    runtime.interrupt(plan.job_id, "synthetic_stop")
+    gate.settle("call1", "synthetic-receipt", receipt)
+    runtime.db.connection.execute("CREATE TRIGGER fail_finalization BEFORE UPDATE ON native_jobs "
+        "WHEN NEW.state='FINALIZED' BEGIN SELECT RAISE(ABORT,'synthetic disk fault'); END")
+    with pytest.raises(Exception, match="synthetic disk fault"):
+        runtime.close_dispatch_budget(plan.job_id, put(seal))
+    assert runtime.status(plan.job_id)["state"] == "UNSETTLED"
+    assert runtime.budgets.status("a1")["uncertain"]
+    assert runtime.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == 100

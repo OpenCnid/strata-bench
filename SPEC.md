@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.33, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-19 (bounded worker bootstrap and initialization liveness). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.34, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (explicit native job/per-dispatch reservation composition). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -1351,6 +1351,23 @@ C_total = C_model + host_hours*host_rate + storage_gib_months*storage_rate
 This is an accounting formula, not a quoted price. Pin price source/date/currency and metering semantics when execution is authorized. If no billable price or exact usage is exposed, report known counts plus estimates/unknowns and do not assert an exact dollar comparison. Calls include root turns, delegates, self-play critics/judges, summaries, retry attempts, discarded branches, model-assisted compilation/revisions and probe jobs. Image processing is included under the provider's actual billing fields, not assumed free. Deterministic local tools still charge wall/resources/input where applicable.
 
 Before each billable operation, atomically reserve worst-case input/output/calls using known prompt size/image estimate and an enforced completion bound. Team limit is the parent authority; child reservations cannot multiply it. If the host cannot enforce a finite bound, reserve a conservative verified maximum or fail preflight for a hard-budget experiment. Reconcile reported actual usage after completion; keep reserves for unresolved calls. Non-cancellable in-flight provider charges can overshoot local estimates: report bounded exposure and stop new work, never promise impossible zero overshoot. Duplicate usage events deduplicate by provider/runtime operation identity; a retry with a new actual call ID is charged again.
+
+Native jobs explicitly select whole-job accounting or per-dispatch accounting in
+their pinned operator launch profile. Under `nested-envelope/1`, a per-dispatch
+job reserves an envelope, and each request/retry and helper subjob consumes that
+envelope. Open-envelope exposure is the dimension-wise maximum of its reserved
+bound and descendant exposure; it is not the sum of both. Ordinary operation
+lineage remains additive unless explicitly registered as an envelope. Admission
+enforces every enclosing envelope and account limit. Actual overruns remain
+recorded above those bounds. The job itself carries no duplicate model-call
+charge. Release unused capacity only after the native process tree and gateway
+handlers are fenced, ingress is closed, the exact request inventory is sealed,
+and every descendant has authoritative settlement. Closure and native
+finalization commit atomically; unresolved requests retain their full holds and
+block further dispatch through the ancestor budget. A successful CLI exit or
+turn summary cannot close the envelope. This composition implements F11's
+existing aggregate ceiling; it neither grants new funds nor qualifies OAuth
+pricing, exposure or isolation. Synthetic profiles cannot become live profiles.
 
 Training, evaluation and development are separate subaccounts under an overall operator spending cap. They are all reported; evaluation does not consume the training treatment budget or leak into training exposure. Evaluation allowance is computed from the entire pair/checkpoint/family/replica matrix including reserved reruns. Quotas in the JSON examples are illustrations, not approved expenditures. Campaign start requires actual operator-supplied hard ceilings and a reservation that can support the registered plan, or an explicit exploratory budget-capped protocol.
 

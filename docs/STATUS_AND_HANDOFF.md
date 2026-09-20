@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `b62dc2c`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `2f398f5`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -30,7 +30,7 @@ options restored and arguments retired. Four remaining M1 cases stay unrun;
 resume them after higher-priority M0 work. No default-profile startup or complete
 T05 pass is claimed.
 
-[The private saved-machine reader](verification/2026-09-20-machine-reference.md) is now implemented with 102 focused synthetic tests and full Ruff passing. A protected server/world copy has an authentic verified baseline. First operation startup failed before admission because the harness confused settings/game fingerprints; zero intents/resources changed and cleanup is verified. Corrected fresh operation-02 is running with unchanged limits. Next qualify **M0.3b.3.2.4b / G0 item 3**: ordinary E9E
+[The private saved-machine reader](verification/2026-09-20-machine-reference.md) is now implemented with 103 focused Python/package checks and full Ruff passing. A protected server/world copy has an authentic verified baseline. First operation startup failed before admission because the harness confused settings/game fingerprints; zero intents/resources changed and cleanup is verified. [Operation-02](verification/2026-09-20-native-machine.md) then transfers three dust successfully by independent saved-state reconciliation, but its harness incorrectly expects completed instead of emitted and the guardian fails 505.7315/500 ms. Operation-03 fails the 2,250-ms worker bootstrap bound before any native intent; independent final references prove unchanged full inventory, three dust retained and empty furnace/20,000 RF. All processes and arguments are terminal/retired. [Build-time schema compilation](verification/2026-09-20-worker-schema-startup.md) removes measured startup work while retaining runtime schema hashes, all semantics and fixed deadlines; Node 128 plus 55 pinned-JVM/Windows cases and Python 64 checks pass. Loaded-game qualification is next, using already-collected input with no withdrawal replay or fixture reset. Keep all charges, elapsed time and failures. Next qualify **M0.3b.3.2.4b / G0 item 3**: ordinary E9E
 machine/container operation through the structured API, with independent private
 server evidence for resource and energy changes. A received action or visible
 output alone cannot establish the result. Preserve fixture/setup provenance and

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "generate": "node tools/generate.mjs",
-    "build": "tsc -p tsconfig.json",
+    "build": "node tools/validators.mjs --check && tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "worker": "node dist/src/worker.js",
     "mcgame": "node dist/src/cli.js"

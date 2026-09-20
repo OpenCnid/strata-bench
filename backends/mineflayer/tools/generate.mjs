@@ -1,8 +1,12 @@
 import { compile } from 'json-schema-to-typescript';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { validatorSource } from './validators.mjs';
 const base = new URL('../../../schemas/v1/public/', import.meta.url);
 const out = new URL('../src/generated/', import.meta.url);
 await mkdir(out, { recursive: true });
+// Top-level compiled module: implementationPins includes its executable bytes.
+await writeFile(new URL('../src/schema_validators.ts', import.meta.url),
+  await validatorSource());
 for (const name of ['ActionBatch', 'ActionAck', 'Observation', 'RpcRequest', 'SkillRevision', 'KeybindingPatch']) {
   const schema = JSON.parse(await readFile(new URL(`${name}.json`, base), 'utf8'));
   await writeFile(new URL(`${name}.ts`, out), await compile(schema, name, {

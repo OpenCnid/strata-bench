@@ -603,36 +603,55 @@ def run_crash_case(binary, directory, *, wire):
         thread = threading.Thread(target=drain, args=(source, name), daemon=True)
         thread.start()
         drains.append(thread)
+    evidence = {"is_example": True, "verdict": "fail",
+                "method": "held job accounting and complete signaled member handles"}
     try:
         deadline = time.monotonic() + 15
         ready_path = directory / "crash-ready.json"
         while not ready_path.exists():
             require(child.poll() is None and time.monotonic() < deadline, "CRASH_CHILD_NOT_READY")
+            child.job.observe_members()
             time.sleep(0.02)
         ready = json.loads(ready_path.read_bytes())
         require(ready["native_state"]["state"] == "RUNNING" and
                 len(ready["dispatch_states"]) == 1 and
                 ready["dispatch_states"][0]["state"] == "DISPATCHING", "CRASH_POINT_MISSED")
+        child.job.observe_members()
         before = child.job.accounting()
+        before_members = child.job.member_status()
+        evidence.update(before_crash=before, before_members=before_members)
         require(before["active_processes"] >= 4, "CRASH_TREE_NOT_OBSERVED")
+        require(before["total_processes"] == before_members["held_processes"],
+                "CRASH_MEMBER_INVENTORY_INCOMPLETE")
         (directory / "crash-now").touch(exist_ok=False)
         code = child.process.wait(timeout=5)
+        evidence["child_exit_code"] = code
         require(code == 79, "CRASH_CHILD_WRONG_EXIT")
-        deadline = time.monotonic() + 3
-        counts = child.job.accounting()
-        while counts["active_processes"] and time.monotonic() < deadline:
+        fence_started = time.monotonic()
+        deadline = fence_started + 3
+        counts, members = child.job.accounting(), child.job.member_status()
+        while (counts["active_processes"] or members["signaled_processes"] != counts["total_processes"]) and time.monotonic() < deadline:
             time.sleep(0.01)
-            counts = child.job.accounting()
-        require(counts["active_processes"] == 0, "CRASH_TREE_NOT_FENCED")
-        evidence = {"is_example": True, "child_exit_code": code,
-                    "before_crash": before, "job_counts": counts,
-                    "method": "held Windows Job Object basic accounting"}
-        (directory / "process-fence.json").write_bytes(canonical(evidence))
+            counts, members = child.job.accounting(), child.job.member_status()
+        observed = time.monotonic()
+        evidence.update(job_counts=counts, member_counts=members,
+                        wait_bound_ms=3000, observed_after_ms=(observed - fence_started) * 1000)
+        require(observed <= deadline and counts["active_processes"] == 0 and
+                0 < counts["total_processes"] == members["held_processes"] == members["signaled_processes"],
+                "CRASH_TREE_NOT_FENCED")
+        evidence["verdict"] = "pass"
+    except Fault as error:
+        evidence["failure"] = error.code
+        raise
     finally:
-        child.stop()
-        for thread in drains:
-            thread.join(2)
-        child.close()
+        try:
+            child.stop()
+        finally:
+            for thread in drains:
+                thread.join(2)
+            child.close()
+            (directory / "process-fence.json" if directory.is_dir() else
+             directory.parent / "process-fence.json").write_bytes(canonical(evidence))
     require(not failures and all(not t.is_alive() for t in drains), "CRASH_CHILD_OUTPUT_LIMIT")
     # A second native supervisor process must classify the persisted RUNNING /
     # DISPATCHING states, retain both holds and refuse both native/request replay.

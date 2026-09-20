@@ -177,6 +177,8 @@ native-job and request replay. No receipt is invented for the interrupted call.
 The [job accounting query](../../src/mcbench/processes.py) follows Microsoft's
 [QueryInformationJobObject contract](https://learn.microsoft.com/en-us/windows/win32/api/jobapi2/nf-jobapi2-queryinformationjobobject).
 This process-count proof does not certify adversarial filesystem/network isolation.
+It also does not establish that all process handles are signaled; the later
+guardian counterexample and stronger crash fixture below narrow this claim.
 
 The expanded relevant regression run passes **165 tests**, no skips, in 15.24 s,
 with the same two dependency warnings. After the final parser checks for
@@ -198,3 +200,30 @@ T01/T04/T07/T12. M0.1c.1c remains in progress: production transport/ingress
 qualification, OAuth bounds/pricing, historical spending authority and isolation
 are still open. Continue native pinned plugin/skill/helper conformance while
 those external/live prerequisites remain unresolved; do not reset D04's cap.
+
+## Follow-up: complete process-handle fence before crash recovery
+
+The [guardian counterexample](2026-09-20-guardian-tree.md) shows why zero active
+job accounting cannot alone certify completed process exit. The crash fixture
+now retains membership-verified read-only handles while the actual native CLI
+starts. Before triggering the abrupt supervisor loss it requires its cumulative
+job total to match the complete held inventory. Recovery requires zero active
+processes and total = held = signaled > 0 within the existing three-second
+post-supervisor-exit fixture bound. This is distinct from the guardian's 500 ms
+Java-stop contract. Incomplete observations, errors and late proof fail without
+starting the fresh recovery supervisor. Private fence evidence is written only
+after cleanup, so storage failure cannot postpone process termination.
+
+Two credential-free `--wire --cases crash` runs pass: external
+`2026-09-20-native-crash-handles-01` and final `-02`. The latter additionally
+records/enforces the observation deadline and cleanup ordering. Its source and
+pinned CLI hashes are in the private manifest. All **13** cumulative members
+have retained handles before the abrupt `os._exit(79)`; after the crash, zero
+remain active and all 13 handles signal in 31.0000 ms after the supervisor-exit
+wait. Only then does a fresh supervisor recover the single RUNNING/DISPATCHING
+attempt. It retains the 80,000 synthetic-microUSD envelope and every associated
+dimension, sets uncertainty, rejects new admission and performs **zero replays**.
+No usage receipt or zero-cost outcome is invented; real inference spend is $0.
+Focused Ruff passes. The other eight scenarios were not rerun for this
+crash-only fixture edit. Production OAuth, monetary/exposure and isolation gates
+remain blocked, and historical zero-count evidence remains historical.

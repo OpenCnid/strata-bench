@@ -163,8 +163,13 @@ checks and 12 Node checks pass, plus package/Ruff/build checks. The fixed
 256-handle development bound, missed-member failures, authentic timing and
 production launch/isolation remain unqualified. Next apply the stronger proof
 to the synthetic native crash/restart fixture: its historical 13-to-zero counts
-are accounting evidence only. Then continue independent authentic reliability
-and mechanics with regenerated source pins while external inputs are pending.
+are accounting evidence only. That follow-up now passes two actual-CLI crash
+cases; final `2026-09-20-native-crash-handles-02` retains all 13 handles and
+observes every one signaled before fresh recovery retains the full ambiguous
+reservation with zero replays. See the [dispatch report follow-up](verification/2026-09-20-native-dispatch.md).
+Guardian checkpoint `0312d53` is committed. Continue independent native helper
+conformance and authentic reliability/mechanics with regenerated source pins
+while external inputs are pending. Neither partial proof closes live admission.
 
 The user selected **M0.1c.1** first: bounded, zero-inference integration of the
 durable dispatch boundary into the actual pinned CLI's local synthetic transport.

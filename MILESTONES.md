@@ -10,6 +10,7 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.36; maintenance rules: [
 - **Native plugin follow-up:** accounting checkpoint `66baa0f` is committed locally. M0.1c.2a now exercises actual native discovery, a fixed skill-body read, explicit-only skill injection and disabled-plugin controls through the credential-free wire gateway. Long-path inventory and literal-quoted override failures were found and corrected; nested public package fixtures are disabled in the catalog with all eight real skills retained. See the [plugin report](docs/verification/2026-09-20-native-plugin.md). Production tool/file/process/network isolation and actual model/helper behavior remain open.
 - **Latest isolation result:** plugin checkpoint `5e3a047` is committed. [Native canaries](docs/verification/2026-09-20-native-boundary.md) fail qualification: the unelevated tool loop reads a dummy operator file and reaches an unapproved listener; a stricter profile refuses unsupported read restrictions. The prepared elevated sandbox command blocks the file read but still reaches the listener as CodexSandboxOffline. Existing active firewall rules do not establish enforcement. No live admission; an existing isolated-worker/VM location is requested while independent authorized work continues.
 - **Independent guardian work:** isolation checkpoint `fafd8c3` is committed. [Owned-job stop proof](docs/verification/2026-09-20-guardian-tree.md) now requires every accounted process to have a signaled held handle, within the same 500 ms root/tree wait. Two initial fixture-count failures and a real count-only false confirmation are retained. Final 52 Python, five additional inventory checks and 12 Node checks pass; no authentic Minecraft qualification. Next strengthen the synthetic native crash fence using this result, then continue authentic reliability/mechanic work with new source pins.
+- **Native crash fence follow-up:** guardian checkpoint `0312d53` is committed. Two revised actual-CLI crash cases pass; final private `2026-09-20-native-crash-handles-02` retains all 13 job members and confirms 13 signaled handles plus zero active accounting before fresh recovery. The ambiguous envelope remains fully reserved and unreplayed. [Evidence](docs/verification/2026-09-20-native-dispatch.md). Continue native helper and independent authentic conformance; live monetary/exposure/isolation inputs remain pending.
 - **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
 - **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
@@ -4224,3 +4225,25 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
 - Final review places the guard's clock read after member observation to prevent
   using a stale lease/deadline time. Five relevant lease/challenge/cleanup checks
   pass again, 6.74 s; private source manifest explicitly records this final edit.
+
+### 2026-09-20 — native crash recovery waits for complete process-handle proof
+
+- Continued after guardian checkpoint `0312d53`; M0.1c.1c.1 remains
+  implemented_unverified for production. F03/F09/F11/F16,
+  N01/N02/N03/N04/N05/N06/N08, C06/C15/C18/C20, partial T01/T04/T07/T12.
+- Strengthened only the synthetic crash fixture with observed member handles,
+  cumulative completeness and signaled exit, following the retained guardian
+  counterexample. Existing three-second post-supervisor-exit bound stays; this
+  does not alter Java's 500 ms bound. Failure cannot invoke fresh recovery.
+  Fence evidence is persisted after process cleanup, not before stopping.
+- Two real pinned-CLI/separate-upstream synthetic runs pass at private
+  `2026-09-20-native-crash-handles-01` / final `-02`. Final source manifest pins
+  code and binary. Thirteen active/held members before abrupt supervisor exit;
+  zero active and 13 held/signaled members after, observed in 31.0000 ms.
+  Fresh recovery retains one ambiguous attempt, full 80,000 synthetic-microUSD
+  envelope and other dimensions; new admission denied, zero replay, $0 real USD.
+- Focused Ruff and diff checks pass. Other eight matrix cases were not rerun
+  for this fixture-only change. [Report](docs/verification/2026-09-20-native-dispatch.md)
+  narrows historical count-only proof and retains all previous failures. No
+  production OAuth/isolation or aggregate test/gate pass. Continue native helper
+  conformance and independent reliability/mechanics while external inputs pend.

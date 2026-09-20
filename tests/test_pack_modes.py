@@ -110,6 +110,36 @@ def test_quoted_keys_lists_and_boolean_integer_distinction():
     assert modes._differences({"x": [1]}, {"x": [1], "y": 2}) == []
 
 
+def test_failed_overlay_evidence_binds_bytes_without_leaking_values_or_changing_gate(installation):
+    (installation / "mode.json").write_text('{"mode":"expert"}')
+    actual = b'["quoted.key"]\nvalue = 1\nitems = [1, 3]\nprivate_value = "do-not-export"\n'
+    (installation / "config/test.toml").write_bytes(actual)
+    (installation / "config/test.json").write_bytes(b'{"private":"do-not-export"}')
+    def snapshot():
+        return {path.relative_to(installation).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in installation.rglob("*") if path.is_file()}
+    before = snapshot()
+    result = modes.inspect_e9e_mode(installation, "server", effective=True, world="world")
+    diagnostic = check(result, "effective:config/test.toml")["diagnostic"]
+    assert diagnostic == {"comparison": "toml_key_subset",
+        "source_sha256": hashlib.sha256((installation / modes.OVERLAY / "config/test.toml").read_bytes()).hexdigest(),
+        "target_sha256": hashlib.sha256(actual).hexdigest(),
+        "key_paths": [["quoted.key", "value"], ["quoted.key", "items", "1"]],
+        "difference_count": 2, "key_paths_omitted": 0}
+    assert check(result, "effective:config/test.json")["diagnostic"]["comparison"] == "replacement_bytes"
+    assert result["file_result"] == "fail" and result["gate_result"] == "not_run"
+    assert "do-not-export" not in json.dumps(result)
+    assert snapshot() == before
+
+
+def test_overlay_diagnostics_bound_count_depth_keys_and_utf8_without_hiding_failure():
+    paths = [["x" * 129], ["x"] * 33, ["界" * 128] * 32] + [["k" + str(i)] for i in range(50)]
+    error = modes.OverlayMismatch(b"source", b"target", key_paths=paths)
+    assert error.code == "MODE_OVERLAY_MISMATCH"
+    assert error.evidence["key_paths"] == [["k" + str(i)] for i in range(32)]
+    assert error.evidence["difference_count"] == 53 and error.evidence["key_paths_omitted"] == 21
+
+
 def test_unsafe_inputs_hardlinks_and_file_quota(installation, tmp_path, monkeypatch):
     with pytest.raises(Fault, match="WORLD_PATH_REQUIRED"):
         modes.inspect_e9e_mode(installation, "server", effective=True)

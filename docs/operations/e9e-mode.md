@@ -41,6 +41,14 @@ Missing target files stay failures; review and pin any role-specific exclusions
 instead of assuming they are irrelevant. Passing this inspection proves file
 state only, and leaves the aggregate T02/G0 results `not_run`.
 
+Failed comparisons include private source/target SHA-256 digests. TOML failures
+also identify differing key paths as arrays (quoted dots remain literal keys),
+with a total difference count and an explicit omitted count. Output is bounded
+to 32 paths, 32 components per path, 128 characters per key and 4096 UTF-8 bytes
+per path; it contains no configuration values. These diagnostics never change
+the failed result. The [five-finding review](../verification/2026-09-20-e9e-overlay-review.md)
+distinguishes installed artifact evidence from loaded-runtime qualification.
+
 Private runtime and independent player/reference evidence must additionally
 establish loaded expert config; furnace recipe
 `enigmatica:expert/minecraft/shaped/furnace` with andesite/polished andesite;

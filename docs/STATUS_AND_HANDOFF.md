@@ -152,6 +152,10 @@ and non-secret source is pending; do not ask again unless the answer is unclear.
 Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
+## Exact-pack follow-up
+
+Native helper checkpoint `a1fbb0e` is committed. The [overlay review](verification/2026-09-20-e9e-overlay-review.md) adds bounded private mismatch diagnostics while retaining all five failures (263/268 passing stopped-server checks). Exact installed JARs, declared nested mods and original archives indicate client-specific and legacy overlays; no file exclusions, guessed migration or vendor edits were applied. Fifteen local tests and targeted Ruff pass. M0.3.2b now targets private loaded-config registration/spec/data, then role and cold-restart/reference/mechanics qualification. No new game run or paid inference.
+
 ## Original resumed task and retained acceptance criteria
 
 [Native collaboration](verification/2026-09-20-native-helpers.md) now has actual

@@ -6,6 +6,8 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.37; maintenance rules: [
 
 ## Current position
 
+- **Exact-pack overlay follow-up:** native helper checkpoint `a1fbb0e` is committed. [Five-finding review](docs/verification/2026-09-20-e9e-overlay-review.md) adds bounded private mismatch diagnostics and inspects exact installed/nested artifacts and original archives. All five server findings remain: 263/268 checks pass. Fifteen local tests/Ruff pass; no game launch or installation changes. Next: bounded private loaded-config evidence, then complete cold-restart/reference/expert mechanics.
+
 - **Implementation resumed:** the user explicitly authorized continuing beyond the checkpoint and created the full M0–M6 long-horizon objective. Git fetch and GitHub PR metadata confirm PR #1 merged at `579796da40eeb9e6063196462767f60e9c87eac7`; clean worktree branch `codex/strata-native-dispatch` starts there. M7 remains conditional. Earlier evidence and failures remain in the append-only log and linked reports.
 - **Native plugin follow-up:** accounting checkpoint `66baa0f` is committed locally. M0.1c.2a now exercises actual native discovery, a fixed skill-body read, explicit-only skill injection and disabled-plugin controls through the credential-free wire gateway. Long-path inventory and literal-quoted override failures were found and corrected; nested public package fixtures are disabled in the catalog with all eight real skills retained. See the [plugin report](docs/verification/2026-09-20-native-plugin.md). Production tool/file/process/network isolation and actual model/helper behavior remain open.
 - **Latest isolation result:** plugin checkpoint `5e3a047` is committed. [Native canaries](docs/verification/2026-09-20-native-boundary.md) fail qualification: the unelevated tool loop reads a dummy operator file and reaches an unapproved listener; a stricter profile refuses unsupported read restrictions. The prepared elevated sandbox command blocks the file read but still reaches the listener as CodexSandboxOffline. Existing active firewall rules do not establish enforcement. No live admission; an existing isolated-worker/VM location is requested while independent authorized work continues.
@@ -80,6 +82,8 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.2h.2 | AR/GI | Full native model/CLI freshness, state transitions, coalescing, deadlines and ordinary gameplay qualification | not_started | Local heartbeat repair and manual API checks cannot qualify native Codex/Dovetail command use or the full observation/action contract. |
 | M0.3.1 | GI | Official E9E archives and exact bootstrap | in_progress | D05: actual exact client/server archives acquired and hashed; manifest confirms 1.19.2 / Forge 43.4.23. Both dedicated profiles and reviewed install-only bootstrap/JVM are prepared; exact mod inventories and a complete bootstrap-tree hash scan are recorded. Full role provenance, cold game restart and sealed PackLock remain open; [evidence](docs/verification/2026-09-18-long-horizon.md). |
 | M0.3.2 | GI | Cold-start expert config, recipe and quest assertions | in_progress | [Mode inspector](src/mcbench/pack_modes.py): 263/268 effective-file checks pass unchanged across cold restart; five findings retained. [Private runtime inspector](evaluator/src/strata_evaluator/telemetry.py) confirms expert furnace ingredients/output and vanilla-recipe absence in actual instrumented E9E boots. Quest/team, player crafting, independent reference and full mode acceptance remain open. |
+| M0.3.2a | GI/QA | Exact-file mismatch diagnostics and source-backed review of all five overlay findings; F01/F05/F10/F16, N01/N04/N06/N08, C04/C16/C18, partial T01/T02/T10/T13 | implemented_unverified | [Review](docs/verification/2026-09-20-e9e-overlay-review.md): 15 local checks pass, unchanged 263/268 stopped-server result. Exact JAR/disassembly/nested-mod/original-archive evidence clarifies client/legacy settings without exclusions or config edits. Loaded behavior remains unqualified. |
+| M0.3.2b | GI/QA | Private loaded config registration/spec/data, role applicability and cold-restart/reference equivalence | in_progress | Follow .2a with bounded read-only native evidence. Preserve all five file failures pending exact role/consumer disposition; no guessed migrations or relaxed threshold. Full expert recipe/quest/mechanics and instrumentation parity remain required. |
 | M0.3.3 | GI | Exact Forge handshake and required channels | blocked | Actual case result **fail**: vanilla-style handshake rejected. [FML3 offer decoder](backends/mineflayer/src/forge_handshake.ts) decoded 233 mods / 111 channels / 39 registries / 2 custom datapack registries, with Quark's separate login message unsupported. No mod-channel claims/acknowledgments or game join; locked implementations and full handshake remain required. |
 | M0.3.4 | GI | Namespaced modded registry/metadata | not_started | No modded decoder conformance. |
 | M0.3.5 | GI | Exact-pack collision and navigation | not_started | Synthetic vanilla geometry cannot pass this case. |
@@ -4320,3 +4324,20 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   launch or OS input. [Report](docs/verification/2026-09-20-native-helpers.md).
   Next: trusted child/lifecycle/accounting work plus independent authentic
   reliability/mechanics; enforceable isolation and live monetary inputs pend.
+
+### 2026-09-20 — Exact E9E overlay findings retained and diagnosed
+
+- M0.3.2a adds bounded private key-path/digest diagnostics; same checks, failure codes
+  and acceptance rules. Source and tests are in pack_modes.py/test_pack_modes.py.
+- Fresh stopped-server comparison remains 263/268. Static exact-JAR review,
+  261 server/267 client JAR inventories including declared JarJar descriptors,
+  two client semantic file checks and original archive comparisons identify
+  client-specific and legacy settings without changing vendor files. Raw evidence
+  remains external in 2026-09-20-e9e-overlay-review-01.
+- First fixture snapshot failed the existing private-world inventory guard
+  (14 pass/one fail); corrected only the test snapshot. Final 15 pass/zero skips
+  in 1.06 s; two existing dependency warnings; targeted Ruff and diff checks pass.
+- No authentic runtime test, exclusion, gate promotion, installation change,
+  shared-desktop input or paid inference. [Report](docs/verification/2026-09-20-e9e-overlay-review.md).
+  Next .2b: bounded loaded-config evidence and source-backed role disposition,
+  followed by complete cold-restart/reference/expert-mechanic qualification.

@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `ea50836`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `bb22448`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -163,9 +163,13 @@ admission remains blocked.
 builds at SHA256 6332576ea722a9ab49255cb0187851b22e4e9f4fb8e42f70dbbdc19eb723f051.
 Six abrupt JVM/new-process recovery pairs use synthetic bindings; 448 full Java
 and 33 selected Python checks pass. The title-only private probe is inactive by
-default and rejects other diagnostic modes before listeners install. Preserve
-the installed artifact and collect authentic per-boundary native state/recovery
-evidence with a newly pinned fingerprint; do not treat these fixtures as T05.
+default and rejects other diagnostic modes before listeners install. The
+candidate is installed in the dedicated client; original bytes are preserved
+externally. The [first authentic attempt](verification/2026-09-20-settings-crash-startup.md)
+fails in recurring CTM startup before any settings journal or armed report.
+Options unchanged, process terminal, desktop unchanged, arguments retired.
+No recovery/later case runs. Diagnose B10 using exact source/bytecode and qualify
+an explicit pinned remedy before another sample; do not treat fixtures as T05.
 
 [Authentic native settings](verification/2026-09-20-native-settings.md) now pass
 the first Curios configuration apply/readback/rollback and a separate discovery

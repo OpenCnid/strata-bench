@@ -119,3 +119,34 @@ has SHA-256 `9e65749f4273cc1d7a5d6ed37715cc68a3b8fb848c63cb8cf66fce22701889d5`.
 Its wrapper JAR has SHA-256 `ed2c26eba7cfb93cc2b7785d05e534f07b5b48b5e7fc941921cd098628abca58`.
 Source/API evidence uses the exact Forge sources and the
 [Forge 1.19.x setup documentation](https://docs.minecraftforge.net/en/1.19.x/gettingstarted/).
+
+
+Telemetry 0.3.0 records the ordinary server result-slot click before/after in
+`CraftBegin/1` and `CraftEnd/1`, alongside its existing raw callback. Its required
+server mixin targets the pinned 1.19.2 SRG `m_150399_` method at HEAD/RETURN;
+startup failure or a missing/partial witness is not successful instrumentation.
+`ServerStarted/3` identifies `server-result-pickup-bracket/1`; older schemas stay
+readable. No action, output, component, recipe or inventory is altered.
+
+The private importer checks exact output, ingredient consumption, unchanged full
+component hashes for other inventory/armor/offhand slots, one matching callback,
+actor/scope/tick continuity and the observed runtime recipe. Valid mirrored and
+offset shaped recipes are allowed. Only a single untagged shaped recipe with no
+remainders and one item per grid cell is currently supported. Metadata-bearing
+ingredients, quick crafting, custom serializers, nested/partial calls and missing
+or foreign callbacks do not qualify. Failed witnesses remain in the report;
+duplicate transaction IDs and incomplete boundaries reject the spool.
+
+`craft_witnesses[].resource_witness` describes resource evidence only. All records
+and reports retain `score_eligible:false` / `scoring_eligible:false`. Deployment
+isolation, authenticated provenance, fixture validity, team assignment, registered
+private scoring controls and instrumentation parity are separate required gates.
+
+
+Telemetry 0.3.1 uses `ServerStarted/4` and
+`server-result-pickup-fastbench-bound/2`. Startup verifies that the required
+click mixin's marker was actually applied. The only additional result-slot class
+is exact FastWorkbench 7.1.4 CraftResultSlotExt, gated by its pinned loaded JAR
+hash. Unknown subclasses or changed artifacts reject. Native callback diagnostics
+record private class names and whether a bracket is pending. Every existing
+resource and scope check remains; no automatic scorer admission is added.

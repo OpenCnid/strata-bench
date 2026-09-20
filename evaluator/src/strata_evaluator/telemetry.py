@@ -15,10 +15,11 @@ from pydantic import Field, model_validator
 
 from mcbench.contracts import Id, Name, Strict, UInt
 from mcbench.records import GameEvent
-from mcbench.storage import reject_links, require
+from mcbench.storage import Fault, reject_links, require
 
 from .cli import write_report
 from .telemetry_configs import ConfigQuery, ConfigSnapshot
+from .craft_witness import CraftBegin, CraftEnd, qualify_click
 
 KINDS = {
     "server_started": "strata/ServerStarted/1",
@@ -27,6 +28,8 @@ KINDS = {
     "craft_callback": "strata/RawCraftCallback/1",
     "server_stopped": "strata/ServerStopped/1",
     "config_snapshot": "strata/ConfigSnapshot/1",
+    "craft_begin": "strata/CraftBegin/1",
+    "craft_end": "strata/CraftEnd/1",
 }
 
 
@@ -53,6 +56,22 @@ class ServerStartedV2(ServerStarted):
         require(len({q.file_name for q in self.config_queries}) == len(self.config_queries),
                 "TELEMETRY_CONFIG_QUERY")
         return self
+
+
+class ServerStartedV3(ServerStartedV2):
+    module: Literal["strata-forge1192-telemetry/0.3.0"]
+    craft_capture_policy: Literal["server-result-pickup-bracket/1"]
+
+
+class CraftCaptureSupport(Strict):
+    hook_verified: Literal[True]
+    fastbench_sha256: Literal["a2ac76078734a2506dec112cf9b6ba214528ce91e99ae5553070a88690f61c12"] | None
+
+
+class ServerStartedV4(ServerStartedV3):
+    module: Literal["strata-forge1192-telemetry/0.3.1"]
+    craft_capture_policy: Literal["server-result-pickup-fastbench-bound/2"]
+    craft_capture_support: CraftCaptureSupport
 
 
 class RecipeSnapshot(Strict):
@@ -102,7 +121,7 @@ class RawCraftCallback(Strict):
 
 
 PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
-                          RawCraftCallback, Strict, ConfigSnapshot), strict=True))
+                          RawCraftCallback, Strict, ConfigSnapshot, CraftBegin, CraftEnd), strict=True))
 
 
 def unique_object(pairs):
@@ -122,6 +141,9 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
     boot, previous_tick, count, health_tick = None, 0, 0, 0
     recipes, avatars, kinds, configs, config_queries = {}, {}, {}, {}, {}
     stopped = False
+    startup_model = ServerStarted
+    craft_policy = None
+    craft_stack, witnesses, craft_ids = [], [], set()
     health_wall_ns, health_ticks = 0, 0
     with path.open("rb") as stream:
         while line := stream.readline(1048577):
@@ -134,7 +156,9 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
             require(event.campaign_id == campaign_id and event.epoch == epoch,
                     "TELEMETRY_SCOPE_MISMATCH")
             version2 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/2"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2),
+            version3 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/3"
+            version4 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/4"
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -142,7 +166,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 require(event.kind == "server_started" and event.server_tick == 0,
                         "TELEMETRY_START_MISSING")
                 boot = event.server_boot_id
-                module = "strata-forge1192-telemetry/0.2.0" if version2 else "strata-forge1192-telemetry/0.1.0"
+                startup_model = ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.1" if version4 else
+                          "strata-forge1192-telemetry/0.3.0" if version3 else
+                          "strata-forge1192-telemetry/0.2.0" if version2 else
+                          "strata-forge1192-telemetry/0.1.0")
                 require(event.payload.get("module") == module
                         and event.payload.get("minecraft") == "1.19.2"
                         and event.payload.get("forge") == "43.4.23"
@@ -152,9 +180,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 require(event.server_boot_id == boot, "TELEMETRY_BOOT_MISMATCH")
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
-            parsed = (ServerStartedV2 if version2 else PAYLOADS[event.kind]).model_validate(data)
-            if version2:
+            parsed = (startup_model if event.kind == "server_started" else PAYLOADS[event.kind]).model_validate(data)
+            if version2 or version3 or version4:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
+            if version3 or version4:
+                craft_policy = parsed.craft_capture_policy
             if event.kind == "config_snapshot":
                 name = parsed.file_name
                 require(name in config_queries and name not in configs, "TELEMETRY_CONFIG_SCOPE")
@@ -188,12 +218,35 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 health_wall_ns += wall
             elif event.kind == "craft_callback":
                 require(data.get("score_eligible") is False, "TELEMETRY_UNPROVEN_SCORE")
+                if craft_stack:
+                    craft_stack[-1][1].append(event)
+                    require(len(craft_stack[-1][1]) <= 16, "TELEMETRY_CRAFT_QUOTA")
+            elif event.kind == "craft_begin":
+                require(startup_model in (ServerStartedV3, ServerStartedV4)
+                        and parsed.policy == craft_policy, "TELEMETRY_MODULE_MISMATCH")
+                require(len(craft_stack) < 16, "TELEMETRY_CRAFT_QUOTA")
+                require(parsed.transaction_id not in craft_ids, "TELEMETRY_CRAFT_DUPLICATE")
+                craft_ids.add(parsed.transaction_id)
+                craft_stack.append((event, []))
+            elif event.kind == "craft_end":
+                require(startup_model in (ServerStartedV3, ServerStartedV4)
+                        and parsed.policy == craft_policy and craft_stack, "TELEMETRY_CRAFT_UNPAIRED")
+                begin, callbacks = craft_stack.pop()
+                require(begin.payload["transaction_id"] == parsed.transaction_id, "TELEMETRY_CRAFT_UNPAIRED")
+                try:
+                    require(len(callbacks) == 1, "CRAFT_CALLBACK_UNPROVEN")
+                    witness = qualify_click(begin, callbacks[0], event, recipes.get(begin.payload["recipe_id"], {}))
+                except Fault as error:
+                    witness = {"transaction_id": parsed.transaction_id, "resource_witness": "fail",
+                               "error_code": error.code, "score_eligible": False}
+                witnesses.append(witness)
             stopped = event.kind == "server_stopped"
             kinds[event.kind] = kinds.get(event.kind, 0) + 1
             previous_tick = event.server_tick
             count += 1
             require(count <= 1000000, "TELEMETRY_QUOTA_EXHAUSTED")
     require(stopped, "TELEMETRY_CLEAN_STOP_MISSING")
+    require(not craft_stack, "TELEMETRY_CRAFT_INCOMPLETE")
     require(set(configs) == set(config_queries), "TELEMETRY_CONFIG_MISSING")
     return {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
             "file_sha256": hasher.hexdigest(), "campaign_id": campaign_id, "epoch": epoch,
@@ -202,6 +255,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
             "sampled_wall_ns": health_wall_ns, "avatar_ticks_at_last_sample": avatars,
             "recipe_snapshots": recipes, "clean_stop": True, "scoring_eligible": False,
             "config_queries": config_queries, "config_snapshots": configs,
+            "craft_witnesses": witnesses,
             "transport_identity_verified": False, "mechanics_parity_verified": False,
             "gate_result": "not_run"}
 

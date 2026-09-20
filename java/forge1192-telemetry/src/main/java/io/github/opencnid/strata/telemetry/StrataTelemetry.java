@@ -49,15 +49,18 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.2.0");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.1");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
             boot.addProperty("recipe_count", event.getServer().getRecipeManager().getRecipes().size());
             JsonArray queries = new JsonArray(); config.configQueries().forEach(q -> queries.add(q.json()));
             boot.add("config_queries", queries);
-            emit("server_started", "strata/ServerStarted/2", boot, new JsonArray());
+            boot.addProperty("craft_capture_policy",CraftCapture.POLICY);
+            boot.add("craft_capture_support",CraftCapture.support());
+            emit("server_started", "strata/ServerStarted/4", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
+            CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();
         } catch (IOException error) { throw failed(error); }
     }
@@ -129,6 +132,7 @@ public final class StrataTelemetry {
 
     private void crafted(PlayerEvent.ItemCraftedEvent event) {
         if (spool == null || !(event.getEntity() instanceof ServerPlayer player)) return;
+        CraftCapture.callback(player,event.getCrafting(),event.getInventory());
         JsonObject raw = new JsonObject();
         raw.addProperty("score_eligible", false);
         raw.addProperty("reason", "consumption_team_recipe_and_setup_provenance_unverified");
@@ -160,6 +164,7 @@ public final class StrataTelemetry {
     private void stopped(ServerStoppedEvent event) {
         if (spool == null) return;
         try {
+            CraftCapture.close();
             emit("server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());
         } finally {
             try { spool.close(); }

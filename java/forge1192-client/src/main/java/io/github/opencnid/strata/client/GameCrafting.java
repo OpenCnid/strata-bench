@@ -6,7 +6,7 @@ import java.util.List;
 
 /** One requested recipe. Normal book-fill and slot inputs always await actual menu feedback. */
 final class GameCrafting {
-    static final String POLICY = "known-recipe-fill-output-exact-metadata-reacquire/3";
+    static final String POLICY = "known-recipe-server-baseline-fill-output/4";
     interface Port extends GameInventory.Port {
         int gridWidth();
         int inventoryStart();
@@ -23,7 +23,7 @@ final class GameCrafting {
         return new Motor(port, count, emit);
     }
     private static final class Motor implements GameActionLane.Motor {
-        enum Phase { FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
+        enum Phase { BASELINE, FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
         final Port port; final int gridSize; int remaining, remainderIndex;
         Phase phase; long ticket;
         GameInventory.View before, filled, taken, reacquireBaseline;
@@ -42,10 +42,20 @@ final class GameCrafting {
         }
         private void fill(GameActionLane.Emitter emit) throws IOException {
             reacquireBaseline = null;
-            before = view();
-            if (!before.cursor().empty()) throw new IOException("PRECONDITION_FAILED");
-            for (int i = 0; i <= gridSize; i++) if (!before.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
-            if (emptyDestinations(before).isEmpty()) throw new IOException("INVENTORY_FULL");
+            requireClean(view());
+            // Local component materialization is not a resource baseline. Take
+            // the first snapshot from actual server feedback before any fill.
+            phase = Phase.BASELINE;
+            emit.invoke(() -> ticket = port.requestSync());
+        }
+        private void requireClean(GameInventory.View value) throws IOException {
+            if (!value.cursor().empty()) throw new IOException("PRECONDITION_FAILED");
+            for (int i = 0; i <= gridSize; i++) if (!value.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
+            if (emptyDestinations(value).isEmpty()) throw new IOException("INVENTORY_FULL");
+        }
+        private void startFill(GameActionLane.Emitter emit) throws IOException {
+            requireClean(before);
+            reacquireBaseline = null;
             step = port.gridMotor(emit);
             if (step != null) { phase = Phase.MANUAL_FILL; return; }
             phase = Phase.FILL;
@@ -83,6 +93,10 @@ final class GameCrafting {
         }
         public boolean tick(GameActionLane.Emitter emit) throws IOException {
             port.validate();
+            if (phase == Phase.BASELINE) {
+                before = feedback(emit); if (before == null) return false;
+                startFill(emit); return false;
+            }
             if (phase == Phase.MANUAL_FILL) {
                 if (!step.tick(emit)) return false;
                 // Intermediate slot transfers may see changing derived previews.
@@ -96,7 +110,14 @@ final class GameCrafting {
             }
             if (phase == Phase.FILL || phase == Phase.MANUAL_FILL) {
                 if (!filled.cursor().empty() || !GameInventory.conserved(before, filled)
-                        || !filled.slots().get(0).equals(port.output())) throw new IOException("PRECONDITION_FAILED");
+                        || !filled.slots().get(0).equals(port.output())) {
+                    port.mismatch(before,filled);
+                    System.getLogger(GameCrafting.class.getName()).log(System.Logger.Level.WARNING,
+                        "STRATA_CRAFT_FILL_CHECK cursor_clean="+filled.cursor().empty()
+                        +" conserved="+GameInventory.conserved(before,filled)
+                        +" output_matches="+filled.slots().get(0).equals(port.output()));
+                    throw new IOException("PRECONDITION_FAILED");
+                }
                 boolean ingredient = false;
                 for (int i = 1; i <= gridSize; i++) {
                     int count = filled.slots().get(i).count();

@@ -230,6 +230,31 @@ def test_prepared_request_cannot_dispatch_after_job_deadline(admitted):
     assert gate.db.connection.execute("SELECT count(*) FROM inference_attempts").fetchone()[0] == 0
 
 
+def test_ingress_waits_for_durable_native_stdout_without_reserving_or_fabricating_identity(admitted):
+    import threading
+    admission, gate, _, _, _, _, _ = admitted
+    event = gate.db.connection.execute("SELECT * FROM native_events").fetchone()
+    gate.db.connection.execute("DELETE FROM native_events")
+    with pytest.raises(Fault, match="NATIVE_ROOT_EVENT_REQUIRED"):
+        admission.wait_for_root("job", timeout_s=0.02)
+    def journal():
+        time.sleep(0.03)
+        db = Database(gate.db.path)
+        try:
+            with db.transaction() as connection:
+                connection.execute("INSERT INTO native_events VALUES(?,?,?,?)", tuple(event))
+        finally:
+            db.close()
+    writer = threading.Thread(target=journal)
+    writer.start()
+    try:
+        assert admission.wait_for_root("job", timeout_s=1) == "root"
+    finally:
+        writer.join()
+    assert gate.db.connection.execute("SELECT count(*) FROM inference_attempts").fetchone()[0] == 0
+    assert gate.db.connection.execute("SELECT count(*) FROM operations").fetchone()[0] == 1
+
+
 def test_grant_reenrollment_does_not_undo_revocation(admitted):
     admission, _, broker, _, request, _, _ = admitted
     begin(admitted, request("one"))

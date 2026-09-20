@@ -51,7 +51,8 @@ def serve(log):
         print(json.dumps({"jsonrpc": "2.0", "id": request["id"], "result": result}), flush=True)
 
 
-def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False, inherited_helper=False):
+def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
+        inherited_helper=False, bootstrap_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -71,12 +72,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
     require(not admission_mode or broker_mode, "ADMISSION_BROKER_REQUIRED")
     require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
+    require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
     canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
             self.direct_calls = []
+            self.direct_agents = set()
             super().__init__(*args, **kwargs)
 
         def respond(self, handler, body, index, operation):
@@ -156,7 +159,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
-            elif agent == "/root" and step in {1, 2}:
+            elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
+                    not inherited_helper and self.steps.get("/root/identity_child", 0) < 2 + int(canary_mode)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
                     "message": "Exercise only the synthetic inspect_identity tool. "
                                "Do not read files or call any other tool."}) if step == 1 else (
@@ -164,15 +168,18 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = {"id": "tool-" + operation, "type": "function_call",
                     "call_id": "call-" + operation, "namespace": "collaboration",
                     "name": call[0], "arguments": json.dumps(call[1])}
-            elif canaries and step == (3 if agent == "/root" else 1):
+            elif canaries and (step == (3 if agent == "/root" else 1) or
+                    bootstrap_mode and agent == "/root" and agent not in self.direct_agents):
                 call_id = "direct-" + operation
                 self.direct_calls.append(call_id)
+                self.direct_agents.add(agent)
                 item = {"id": "tool-" + operation, "type": "function_call", "call_id": call_id,
                     "namespace": "functions", "name": "exec_command",
                     "arguments": json.dumps({"cmd": canaries.command(), "login": False,
                                               "max_output_tokens": 1000})}
             else:
-                require(step == (3 if agent == "/root" else 1) + int(canary_mode), "UNEXPECTED_RETRY")
+                require(step == (3 if agent == "/root" else 1) + int(canary_mode) or
+                        bootstrap_mode and agent == "/root" and step >= 3, "UNEXPECTED_RETRY")
             response = {"id": "response-" + operation, "object": "response", "created_at": 1,
                 "status": "completed", "model": body["model"], "output": [item], "usage": {
                     "input_tokens": 10, "output_tokens": 4, "total_tokens": 14,
@@ -239,21 +246,41 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                           "game": {"approval_mode": "approve"}},
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
             validate_broker_settings(config)
-        plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "broker_policy": POLICY if admission_mode else None,
-            "session_storage": "private_profile" if inherited_helper else plan.session_storage,
-            "hard_timeout_s": 45, "prompt": "Synthetic MCP identity test. Use only the fixed "
-            "synthetic broker and one clean-context native helper."})
-        provider.plan = plan
-        if broker_mode:
-            provider.grant_expiry = int((time.time() + 50) * 1000)
-            (output / "broker.json").write_text(json.dumps({"database": str(db.path),
-                "objects": str(cas.root), "runtime_id": "root", "profile_digest": plan.profile_digest(),
+        bootstrap = {}
+        if bootstrap_mode:
+            from mcbench.native_bootstrap import prepare_bundle
+            (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
+                "database": str(db.path), "objects": str(cas.root), "runtime_id": "root",
                 "worker_grant": str(output / "worker.json")}), encoding="utf-8")
             (output / "worker.json").write_text(json.dumps({
                 "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
                 "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": "synthetic-campaign",
                 "agent_id": "a1", "epoch": 1}), encoding="utf-8")
+            commands = json.loads((Path(plan.profile_directory) / "installation-commands.json").read_bytes())
+            plugin_root = Path(json.loads(commands[-1]["stdout"])["installedPath"])
+            sealed = prepare_bundle(output / "broker-runtime", native_executable=binary,
+                plugin_root=plugin_root, broker_config=output / "broker.json", static_files=[
+                    Path(plan.profile_directory) / "config.toml",
+                    Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json"])
+            config["mcp_servers.strata_broker"] = sealed["server"]
+            bootstrap = {"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]}
+        plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
+            "broker_policy": POLICY if admission_mode else None,
+            "session_storage": "private_profile" if inherited_helper else plan.session_storage,
+            **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
+            "prompt": "Synthetic MCP identity test. Use only the fixed "
+            "synthetic broker and one clean-context native helper."})
+        provider.plan = plan
+        if broker_mode:
+            provider.grant_expiry = int((time.time() + 50) * 1000)
+            if not bootstrap_mode:
+                (output / "broker.json").write_text(json.dumps({"database": str(db.path),
+                    "objects": str(cas.root), "runtime_id": "root", "profile_digest": plan.profile_digest(),
+                    "worker_grant": str(output / "worker.json")}), encoding="utf-8")
+                (output / "worker.json").write_text(json.dumps({
+                    "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
+                    "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": "synthetic-campaign",
+                    "agent_id": "a1", "epoch": 1}), encoding="utf-8")
         reserve = ledger(plan, plan.operation_id, parent=None, calls=12, spend=120000,
             pricing=put(cas, {"is_example": True, "real_usd": 0}), inputs=1200000, outputs=120000)
         runtime.start(plan, reserve)
@@ -294,6 +321,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "worker_credential_not_returned": "STRATA_SYNTHETIC_WORKER_SECRET" not in outputs,
             "provider_clean": not provider.errors and len(provider.requests) == (8 if canary_mode else 6),
         }
+        if bootstrap_mode:
+            result["checks"]["provider_clean"] = not provider.errors and 6 <= len(provider.requests) <= 12
         if canaries:
             result["canaries"] = canaries.report(provider.direct_calls)
             result["checks"].update(result["canaries"]["checks"])
@@ -343,6 +372,7 @@ def main():
     parser.add_argument("--canaries", action="store_true")
     parser.add_argument("--admission", action="store_true")
     parser.add_argument("--inherited-helper", action="store_true")
+    parser.add_argument("--bootstrap", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -359,11 +389,14 @@ def main():
         root / "tools/native_dispatch_probe.py", root / "src/mcbench/native.py",
         root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py",
         root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py",
-        root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py"]
+        root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py",
+        root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
+        root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
-    result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission, args.inherited_helper)
+    result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission,
+                 args.inherited_helper, args.bootstrap)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

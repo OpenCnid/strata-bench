@@ -19,7 +19,7 @@ from .native import NativeLaunch
 from .native_broker_policy import validate_broker_settings
 from .runtime import CODEX_VERSION, DOVETAIL_COMMIT
 from .records import BudgetLedger
-from .storage import Principal, canonical, digest, require
+from .storage import Fault, Principal, canonical, digest, require
 
 
 def context_metadata(body):
@@ -124,6 +124,9 @@ class NativeAdmission:
                 plan.dovetail_commit == DOVETAIL_COMMIT and plan.role == "executor" and
                 plan.budget_mode == "per_dispatch", "NATIVE_ADMISSION_PROFILE")
         validate_broker_settings(plan.config_overrides)
+        if plan.bootstrap_digest is not None:
+            from .native_bootstrap import verify_native_inventory
+            verify_native_inventory(plan)
         return plan
 
     @staticmethod
@@ -136,6 +139,20 @@ class NativeAdmission:
                 found.append(event.get("thread_id"))
         require(len(found) == 1 and isinstance(found[0], str), "NATIVE_ROOT_EVENT_REQUIRED")
         return found[0]
+
+    def wait_for_root(self, job, *, timeout_s=2):
+        """Bounded ingress wait for independently journaled native stdout identity."""
+        require(0 < timeout_s <= 3, "NATIVE_IDENTITY_WAIT_BOUND")
+        deadline = time.monotonic() + timeout_s
+        while True:
+            row = self.db.connection.execute("SELECT state FROM native_jobs WHERE id=?", (job,)).fetchone()
+            require(row is not None and row[0] == "RUNNING", "RUNTIME_NOT_RUNNING")
+            try:
+                return self._root_thread(self.db.connection, job)
+            except Fault as error:
+                if error.code != "NATIVE_ROOT_EVENT_REQUIRED" or time.monotonic() >= deadline:
+                    raise
+            time.sleep(min(0.01, max(0, deadline - time.monotonic())))
 
     def prepare(self, account, attempt, reserve, raw, *, child_envelope=None):
         """Before dispatch: validate caller/context and reserve a child sub-envelope.
@@ -285,6 +302,9 @@ def require_active_participant(db, job, thread):
 
 
 def require_request_admission(db, plan, attempt, reserve, account):
+    if plan.bootstrap_digest is not None:
+        from .native_bootstrap import verify_native_inventory
+        verify_native_inventory(plan)
     require(db.execute("SELECT 1 FROM sqlite_master WHERE name='native_request_admissions'").fetchone(),
             "NATIVE_REQUEST_NOT_ADMITTED")
     row = db.execute("SELECT a.*,p.state FROM native_request_admissions a JOIN native_participants p "

@@ -95,6 +95,14 @@ and sealed closure, exercised through actual native CLI/synthetic-provider
 fixtures. This does not qualify protected live ingress, credential separation
 or complete helper lifecycle/slot reuse.
 
+[Sealed bootstrap](../verification/2026-09-20-native-bootstrap.md) now pins the
+private interpreter/broker/plugin/configuration, holds Windows file leases and
+restricts imports to pinned source/native modules with site initialization off.
+Changed-profile native root/helper canaries pass narrowly. File integrity does
+not authenticate ingress or protect credentials from arbitrary same-user code.
+Implement and qualify authenticated job-bound upstream transport next; actual
+skill/artifact/lifecycle and OAuth evidence remain required.
+
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.
 Named policy/firewall labels, packaging, a fresh conversation and separate

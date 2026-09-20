@@ -88,7 +88,7 @@ def respond(broker, request, game_transport=None):
     raise Fault("BROKER_METHOD_FORBIDDEN")
 
 
-def serve(broker, input_stream, output_stream, game_transport=None):
+def serve(broker, input_stream, output_stream, game_transport=None, integrity_guard=None):
     while True:
         raw = input_stream.readline(384 * 1024 + 1)
         if not raw:
@@ -98,6 +98,8 @@ def serve(broker, input_stream, output_stream, game_transport=None):
             break
         request_id = None
         try:
+            if integrity_guard:
+                integrity_guard()
             request = json.loads(raw)
             if isinstance(request, dict) and "id" not in request:
                 continue
@@ -116,12 +118,27 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
     args = parser.parse_args()
-    reject_links(args.config.absolute())
-    config = json.loads(args.config.read_bytes())
-    require(set(config) == {"database", "objects", "runtime_id", "profile_digest", "worker_grant"},
+    run_config(args.config)
+
+
+def run_config(path, *, integrity_guard=None, bootstrap_digest=None):
+    reject_links(path.absolute())
+    config = json.loads(path.read_bytes())
+    sealed = bootstrap_digest is not None
+    require(set(config) == ({"schema", "database", "objects", "runtime_id", "worker_grant"} if sealed
+                           else {"database", "objects", "runtime_id", "profile_digest", "worker_grant"}),
             "BROKER_CONFIG")
     db = Database(Path(config["database"]))
     try:
+        if sealed:
+            from .native import NativeLaunch
+            require(config["schema"] == "strata/SealedBrokerConfig/1", "BROKER_CONFIG")
+            row = db.connection.execute("SELECT plan,state FROM native_jobs WHERE id=?",
+                                        (config["runtime_id"],)).fetchone()
+            require(row is not None and row["state"] in {"STARTING", "RUNNING"}, "BROKER_RUNTIME_REVOKED")
+            plan = NativeLaunch.model_validate_json(row["plan"])
+            require(plan.bootstrap_digest == bootstrap_digest, "BROKER_BOOTSTRAP_MISMATCH")
+            config["profile_digest"] = plan.profile_digest()
         broker = NativeBroker(db, CAS(db, Path(config["objects"])), config["runtime_id"],
                               config["profile_digest"])
         transport = None
@@ -129,7 +146,7 @@ def main():
             path = Path(config["worker_grant"])
             reject_links(path.absolute())
             transport = WorkerTransport(json.loads(path.read_bytes()))
-        serve(broker, sys.stdin.buffer, sys.stdout.buffer, transport)
+        serve(broker, sys.stdin.buffer, sys.stdout.buffer, transport, integrity_guard)
     finally:
         db.close()
 

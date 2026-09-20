@@ -30,6 +30,25 @@ def test_native_override_inline_tables_round_trip_and_reject_null(make_plan):
             native_argv(invalid)
 
 
+def test_changed_bootstrap_rejects_before_budget_or_process(runtime, make_plan, tmp_path):
+    from mcbench.broker import POLICY
+    from mcbench.launch_integrity import IntegrityError
+    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+    manifest = tmp_path / "bootstrap.json"
+    manifest.write_text('{"schema":"strata/NativeBootstrap/1"}', encoding="utf-8")
+    config = restricted_settings() | {"mcp_servers.strata_broker": {
+        "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
+            "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
+    plan, reserve = make_plan(config_overrides=config, broker_policy=POLICY,
+        bootstrap_manifest=str(manifest), bootstrap_digest="f" * 64)
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_DIGEST"):
+        runtime.start(plan, reserve, fixture_argv=command("raise Exception('must not start')"))
+    assert runtime.status(plan.job_id)["state"] == "REJECTED"
+    assert runtime.status(plan.job_id)["reason"] == "bootstrap_integrity_failed"
+    assert not runtime.live
+    assert runtime.db.connection.execute("SELECT count(*) FROM operations").fetchone()[0] == 0
+
+
 @pytest.fixture
 def runtime(database, cas):
     adapter = NativeExec(database, cas, simulation=True)

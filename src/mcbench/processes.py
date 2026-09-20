@@ -165,7 +165,7 @@ class ManagedProcess:
     """
 
     def __init__(self, argv: list[str], cwd: Path, environment: dict[str, str], prompt: str,
-                 *, interactive=False):
+                 *, interactive=False, bootstrap_python=None, bootstrap_script=None):
         require(bool(argv) and all(isinstance(x, str) and "\x00" not in x for x in argv),
                 "INVALID_ARGUMENT")
         require(Path(argv[0]).is_absolute() and cwd.is_absolute(), "UNSAFE_PATH")
@@ -187,10 +187,13 @@ class ManagedProcess:
         boot_env = {k: os.environ[k] for k in ("SystemRoot", "WINDIR") if k in os.environ}
         options = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {
             "start_new_session": True}
-        bootstrap = Path(__file__).with_name("process_bootstrap.py")
+        bootstrap = Path(bootstrap_script) if bootstrap_script else Path(__file__).with_name("process_bootstrap.py")
         reject_links(bootstrap)
+        interpreter = Path(bootstrap_python) if bootstrap_python else Path(sys.executable)
+        require(interpreter.is_absolute() and bootstrap.is_absolute(), "UNSAFE_PATH")
+        reject_links(interpreter)
         try:
-            self.process = subprocess.Popen([sys.executable, "-I", str(bootstrap)],
+            self.process = subprocess.Popen([str(interpreter), "-I", "-S", "-B", str(bootstrap)],
                 cwd=bootstrap.parent, env=boot_env, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, **options)
             if self.job:

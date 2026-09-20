@@ -60,6 +60,8 @@ class NativeLaunch(Strict):
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     accounting_basis_digest: Digest | None = None
     broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
+    bootstrap_manifest: str | None = None
+    bootstrap_digest: Digest | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -79,6 +81,8 @@ class NativeLaunch(Strict):
             body["accounting_basis_digest"] = self.accounting_basis_digest
         if self.broker_policy is not None:
             body["broker_policy"] = self.broker_policy
+        if self.bootstrap_digest is not None:
+            body["bootstrap_digest"] = self.bootstrap_digest
         return digest(body)
 
 
@@ -95,7 +99,8 @@ def _toml_value(value):
 def native_argv(plan: NativeLaunch):
     argv = [plan.executable, "exec", "--json", "--strict-config", "--ignore-user-config",
             "--ignore-rules", "--skip-git-repo-check", "--color", "never",
-            "--sandbox", "workspace-write", "--cd", plan.workspace, "--model", plan.model]
+            "--sandbox", "read-only" if plan.bootstrap_digest else "workspace-write",
+            "--cd", plan.workspace, "--model", plan.model]
     if plan.session_storage == "ephemeral":
         argv.append("--ephemeral")
     for key, value in sorted(plan.config_overrides.items()):
@@ -115,6 +120,7 @@ class NativeExec:
         self.authorization_id = authorization_id
         self.authorizations = Authorizations(database)
         self.live = {}
+        self.integrity_holds = {}
         with self.db.transaction() as db:
             self.authorizations.require_store_mode(simulation)
             if db.execute("SELECT name FROM sqlite_master "
@@ -203,6 +209,11 @@ class NativeExec:
             validate_broker_settings(plan.config_overrides)
             require(not {"STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"} & set(plan.environment),
                     "BROKER_CREDENTIAL_ENVIRONMENT")
+        require((plan.bootstrap_manifest is None) == (plan.bootstrap_digest is None), "BOOTSTRAP_REQUIRED")
+        if plan.bootstrap_digest is not None:
+            require(plan.broker_policy is not None, "BOOTSTRAP_BROKER_REQUIRED")
+        if not self.simulation and plan.broker_policy is not None:
+            require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
         if not self.simulation:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
@@ -233,6 +244,9 @@ class NativeExec:
             plan_body.pop("accounting_basis_digest")
         if plan.broker_policy is None:
             plan_body.pop("broker_policy")
+        for key in ("bootstrap_manifest", "bootstrap_digest"):
+            if plan_body[key] is None:
+                plan_body.pop(key)
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),
                            "fixture_argv": fixture_argv})
         with self.db.transaction() as db:
@@ -270,10 +284,18 @@ class NativeExec:
                        (plan.job_id, plan.campaign_id, plan.agent_id, plan.epoch, plan.role,
                         plan.parent_job_id, identity, canonical(plan_body).decode(), "PREPARED"))
             self.db.event(db, "runtime.prepared", {"job_id": plan.job_id, "digest": identity})
+        integrity = None
         try:
+            if plan.bootstrap_digest is not None:
+                from .native_bootstrap import acquire_native_bootstrap
+                integrity = acquire_native_bootstrap(plan)
             self.budgets.post(plan.account, reserve, envelope=plan.budget_mode == "per_dispatch")
         except BaseException:
-            self._state(plan.job_id, "REJECTED", "budget_reservation_failed")
+            if integrity:
+                integrity.close()
+            reason = ("bootstrap_integrity_failed" if plan.bootstrap_digest and integrity is None
+                      else "budget_reservation_failed")
+            self._state(plan.job_id, "REJECTED", reason)
             raise
         environment = plan.environment | {"CODEX_HOME": str(profile), "HOME": str(profile),
             "USERPROFILE": str(profile), "APPDATA": str(profile / "appdata"),
@@ -285,7 +307,7 @@ class NativeExec:
         process = None
         try:
             process = ManagedProcess(fixture_argv or native_argv(plan), workspace, environment,
-                                     plan.prompt)
+                                     plan.prompt, **(integrity.managed_bootstrap if integrity else {}))
             events = queue.Queue(maxsize=128)
             overflow = threading.Event()
             threads = []
@@ -297,7 +319,8 @@ class NativeExec:
                 threads.append(thread)
             self.live[plan.job_id] = {"plan": plan, "process": process, "queue": events,
                 "overflow": overflow, "threads": threads, "reader": ExecUsageReader(),
-                "source_cursor": 0, "bytes": 0, "eof": set(), "start": time.monotonic()}
+                "source_cursor": 0, "bytes": 0, "eof": set(), "start": time.monotonic(),
+                "integrity": integrity, "integrity_checked": time.monotonic()}
             self._state(plan.job_id, "RUNNING", None)
         except BaseException:
             # STARTING was durable before dispatch; even a failed start is treated as
@@ -305,6 +328,8 @@ class NativeExec:
             if process:
                 process.stop()
                 process.close()
+            if integrity:
+                integrity.close()
             self.live.pop(plan.job_id, None)
             self.budgets.hold_uncertain(plan.account, plan.operation_id, "runtime_start_uncertain")
             self._state(plan.job_id, "UNSETTLED", "runtime_start_uncertain")
@@ -355,6 +380,12 @@ class NativeExec:
         if not live:
             return self.status(job)
         plan = live["plan"]
+        if live.get("integrity") and time.monotonic() - live["integrity_checked"] >= 1:
+            try:
+                live["integrity"].recheck()
+                live["integrity_checked"] = time.monotonic()
+            except Exception:
+                return self.interrupt(job, "bootstrap_integrity_changed")
         if live["overflow"].is_set():
             return self.interrupt(job, "runtime_output_quota")
         if time.monotonic() - live["start"] > plan.hard_timeout_s:
@@ -437,7 +468,11 @@ class NativeExec:
             for thread in live["threads"]:
                 thread.join(timeout=1)
             live["process"].close()
+            if live.get("integrity"):
+                live["integrity"].close()
         except BaseException as error:
+            if live.get("integrity"):
+                self.integrity_holds[job] = live["integrity"]
             cleanup_error = error
             reason = "process_stop_failed"
         try:

@@ -205,6 +205,7 @@ class LocalProvider:
                         from mcbench.native_admission import NativeAdmission, context_metadata
                         metadata = context_metadata(body)
                         participant_admission = NativeAdmission(db, cas)
+                        participant_admission.wait_for_root(plan.job_id)
                         thread = metadata["thread_id"]
                         participant = db.connection.execute("SELECT * FROM native_participants "
                             "WHERE job=? AND thread=?", (plan.job_id, thread)).fetchone()

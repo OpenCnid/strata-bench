@@ -66,3 +66,5 @@ Final native journal:
 This supplies successful authentic use of staging/verification and the public
 footprint selector. Reliable shutdown, complete checkpoints, isolation and G0
 remain incomplete.
+
+The retained phase2 independent observer corroborates the timeout: its final root-alive wait begins509.1911 ms after termination starts and returns timeout523.9194 ms after start; first signaled confirmation is539.5148 ms. This rules out merely rounding the guardian return across500 ms. Source-bound private derivation is phase-02/stop-failure-crosscheck.json. No new client/game dispatch was used.

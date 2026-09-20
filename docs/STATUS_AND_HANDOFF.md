@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `b8675a7`. Fresh origin/main still resolves
+`codex/strata-native-dispatch` through `e4edad7`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -56,9 +56,9 @@ aggregate T01–T17 or G0–G5 pass.
   the operator's active desktop. Private game frames have been decoded and
   inspected. Public capabilities still advertise `screenshots:false`. This
   desktop separation is neither a security sandbox nor full input parity.
-- The latest guardian wait passed at 451.9577 ms against 500 ms; earlier measured
-  failures at 501.9950, 503.5059 and 507.6092 ms remain unresolved. A single pass
-  does not establish reliable shutdown. CTM startup failure and an earlier frame
+- The latest current-policy guardian wait fails at 510.8433 ms against 500 ms;
+  T07 is fail, with its remaining cases incomplete. Earlier failures at 501.9950,
+  503.5059 and 507.6092 ms and one 451.9577 ms pass remain. CTM startup failure and an earlier frame
   missing terrain also remain in the retained history.
 
 ## Checkpoint verification and publication review
@@ -158,6 +158,15 @@ Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
 ## Native helper lifecycle follow-up
+
+The [authentic current-policy guardian trial](verification/2026-09-20-guardian-live.md)
+fails: startup and three public reads pass, but the root wait times out at
+510.8433 ms against 500 ms. It produces no complete tree proof or stop receipt.
+The server saves normally; zero Java processes, unchanged desktop and retired
+arguments are verified. Raw failure/observer/telemetry evidence stays external.
+Do not repeat an unchanged trial to obtain a pass. Next independent work is the
+built native title-screen settings transaction probe; diagnose guardian cleanup/
+scheduling and retain all full acceptance gates.
 
 [Native overlap/limit fixtures](verification/2026-09-20-native-helper-topology.md)
 now pass two concurrent children and exact second-child rejection at one slot,

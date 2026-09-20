@@ -1222,3 +1222,22 @@ in `supervisor-EPOCH.jsonl`; no process grant, guardian pipe or native credentia
 is added to the gameplay package. [Synthetic integration evidence](../verification/2026-09-18-forge-guard-integration.md)
 does not establish live Minecraft timing, controller authority, complete process
 tree containment or filesystem/process/network isolation.
+
+## Binding a rebuilt native client before action authority
+
+For an operator-owned bounded development launch, `-Dstrata.awaitGameAuthority=true`
+adds a private startup barrier. The prepared bridge directory receives an immutable
+`game-bootstrap.json` (`strata/PrivateGameBootstrap/1`) with exact `identity_json`
+bytes and their fingerprint. The client creates neither its transport nor its
+action lane while the existing `game-authority.json` is absent. The operator checks
+the runtime/JAR/capability pins, derives the matching broker capabilities, then
+publishes the strict authority atomically. The original startup and process
+watchdogs still apply; a missing authority never grants input. Keep this directory
+and the loaded-artifact identity outside gameplay access. This is a development
+binding mechanism, not installation sealing, account isolation or campaign admission.
+
+Machine transfer policy v2 (Forge capability minor 35) permits one extra charged
+full-menu read when the first response exactly echoes the pre-click owned state.
+It never repeats the click or accepts prediction as feedback. A fresh server reply
+and current state must still exactly match the predicted cursor and all 36 player
+slots; other mismatches, a second stale reply or exhausted bounds remain unknown.

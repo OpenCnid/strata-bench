@@ -191,7 +191,7 @@ export const nativeCapabilities = (mutation: boolean) => ({
   recipe_navigation_policy:RECIPE_NAVIGATION_POLICY,
   manual_crafting_policy:'visible-recipe-manual-grid-feedback-search4096/1',
   machine_observation_policy:'thermal-current-gui-energy-fluid-base-slots/1',
-  machine_inventory_policy:'thermal-visible-slot-owned-transfer-feedback/1',
+  machine_inventory_policy:'thermal-visible-slot-owned-transfer-feedback/2',
   machine_input_policy:'thermal-display-independent-slot-cursor-fence/1',
   navigation_policy:'delivered-shapes-level-bfs512-radius16/1', collision_policy:'delivered-static-vanilla-shapes-age30s/1',
   movement_policy:'level-forward-coast-neutral8-charged-ticks/1', keybindings:false, screenshots:false,

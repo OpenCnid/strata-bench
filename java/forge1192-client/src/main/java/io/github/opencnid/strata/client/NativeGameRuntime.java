@@ -48,6 +48,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     private final GameObservedMap<net.minecraft.world.level.block.state.BlockState> observed = new GameObservedMap<>();
     private Object levelIdentity, playerIdentity;
     private final String fingerprint;
+    private final JsonObject runtimeIdentity;
     private final java.util.Map<String, String> loadedArtifacts;
     private String windowDigest;
     private Object windowIdentity;
@@ -82,8 +83,10 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
         identity.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
         identity.add("capabilities", NativeGameProtocol.capabilities());
         fingerprint = KeyOptions.sha256(identity.toString());
+        runtimeIdentity = identity.deepCopy();
     }
     String fingerprint() { return fingerprint; }
+    JsonObject bootstrapIdentity() { return runtimeIdentity.deepCopy(); }
     public void requireClientThread() throws IOException {
         if (!client.isSameThread()) throw new IOException("CLIENT_THREAD_REQUIRED");
     }

@@ -20,6 +20,7 @@ final class ClientGameBridge {
     private static SettingsHttpBridge bridge;
     private static NativeGameRuntime runtime;
     private static GameActionLane lane;
+    private static GameBootstrap bootstrap;
     private static final GameStartupReadiness startup = new GameStartupReadiness();
     static void install() {
         MinecraftForge.EVENT_BUS.addListener(ClientGameBridge::tick);
@@ -79,12 +80,18 @@ final class ClientGameBridge {
             boolean title = client.screen instanceof TitleScreen && client.player == null && client.level == null;
             boolean connected = bodyReady(client);
             if (!title && !connected) return;
-            attempted = true;
             Path root = SettingsFiles.safeExisting(Path.of(directory));
             if (!Files.isDirectory(root) || root.startsWith(client.gameDirectory.toPath().toAbsolutePath().normalize())) {
                 throw new IOException("GAME_PRIVATE_OUTPUT_REQUIRED");
             }
-            runtime = new NativeGameRuntime(client);
+            if (runtime == null) runtime = new NativeGameRuntime(client);
+            if (Boolean.getBoolean("strata.awaitGameAuthority")) {
+                if (bootstrap == null) bootstrap = new GameBootstrap(root, runtime.fingerprint(), runtime.bootstrapIdentity());
+                // No transport or action lane exists during this operator-only
+                // barrier. The bounded launch owner must issue authority or stop.
+                if (!bootstrap.authorityPresent()) return;
+            }
+            attempted = true;
             Path authority = root.resolve("game-authority.json");
             if (Files.exists(authority)) {
                 lane = new GameActionLane(root, runtime.fingerprint(),
@@ -96,6 +103,7 @@ final class ClientGameBridge {
             SettingsFiles.writeNew(root.resolve("game-connection-" + UUID.randomUUID() + ".json"),
                 (bridge.descriptor(runtime.fingerprint()) + "\n").getBytes(StandardCharsets.UTF_8));
         } catch (IOException error) {
+            attempted = true;
             if (bridge != null) bridge.close();
             bridge = null;
             if (lane != null) try { lane.close(); } catch (IOException ignored) { }

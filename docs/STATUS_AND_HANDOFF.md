@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.41](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.42](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -32,7 +32,7 @@ T05 pass is claimed.
 
 Current priority is **M0/G0 item 3: actual E9E machine processing and expert crafting**, not further M1 settings cases. Operation-05 passed fixed worker startup bounds after build-time schema compilation, but a malformed setup fixture caused a CoFH activation crash and failed tile save. Its partial NBT saved Facing=DOWN against a north-facing block. The deposit is unknown and must never be replayed; 3 intents, 11 primitives and 370.828 s remain charged. All processes are terminal and arguments retired. The original normal-save inference based on zero wrapper exit is superseded by [crash/save evidence](verification/2026-09-20-server-save-integrity.md).
 
-The runner now detects recognized crash/save failures even with zero wrapper exit. Saved-machine reader v2 rejects inconsistent facing and invalid side values. Focused Python 136 pass and full Ruff pass; these are implementation checks, not machine qualification. The old fixture stays quarantined. Prepare a separate native-initialized machine with energy merged into its full native NBT, plus explicit dust/andesite/crafting-table resources; check its actual saved baseline, then perform ordinary scoped API processing/crafting and independent final reconciliation. New private evidence root is `2026-09-20-machine-conformance-02`. No output has yet qualified.
+The runner now detects recognized crash/save failures even with zero wrapper exit. Saved-machine reader v2 rejects inconsistent facing and invalid side values. Focused Python 136 pass and full Ruff pass; these are implementation checks, not machine qualification. The old fixture stays quarantined. Prepare a separate native-initialized machine with energy merged into its full native NBT, plus explicit dust/andesite/crafting-table resources; check its actual saved baseline, then perform ordinary scoped API processing/crafting and independent final reconciliation. New private evidence root is `2026-09-20-machine-conformance-02`. The corrected setup now has a passing authoritative saved baseline (199.422 s, no joins). The [machine/crafting operation](verification/2026-09-20-machine-crafting.md) is terminal: the server produced 3 ingots using 12,000 RF, but deposit acknowledgment is unknown. Collection/crafting remain pending. Retain 8 intents, 27 primitives and 521.719 s; guardian fails 500.5117/500 ms. [Machine policy v2/Forge minor 35 and private identity-before-authority bootstrap](verification/2026-09-20-machine-feedback.md) are implemented, focused checks pass, and candidate 32e0fb4 is installed with its predecessor retained. The epoch-2 development continuation is running to observe, collect existing output and craft; never repeat the uncertain deposit. No relaxed exact-state or timing checks. Actual outcome pending.
 
 Continue independent M0 work while the existing live-model monetary-conversion and isolated-worker questions remain pending. No paid inference is admitted. Preserve every failed attempt and unchanged acceptance threshold.
 

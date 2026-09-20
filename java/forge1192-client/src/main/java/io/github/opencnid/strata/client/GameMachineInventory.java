@@ -7,7 +7,7 @@ import java.io.IOException;
  * is confirmed here. Machine production/provenance is not an action postcondition.
  */
 final class GameMachineInventory {
-    static final String POLICY = "thermal-visible-slot-owned-transfer-feedback/1";
+    static final String POLICY = "thermal-visible-slot-owned-transfer-feedback/2";
     interface SlotSource { GameInventory.Stack read(int slot) throws IOException; }
     record Layout(GameMachineMenu.Kind kind, int augments) {
         Layout {
@@ -41,10 +41,12 @@ final class GameMachineInventory {
     }
     private static final class Step implements GameActionLane.Motor {
         final GameInventory.Port port; final Layout layout;
+        final GameInventory.View before;
         GameInventory.View predicted; IOException predictionFailure; long ticket;
+        boolean echoedBefore;
         Step(GameInventory.Port port, Layout layout, GameInventory.View before, int slot, boolean right, boolean quick,
              GameActionLane.Emitter emit) throws IOException {
-            this.port = port; this.layout = layout;
+            this.port = port; this.layout = layout; this.before = before;
             emit.invoke(() -> {
                 port.click(slot, right ? 1 : 0, quick);
                 try {
@@ -62,7 +64,24 @@ final class GameMachineInventory {
             if (received == null) { emit.invoke(() -> {}); return false; }
             layout.check(received);
             if (predictionFailure != null) throw predictionFailure;
-            requireOwned(layout, predicted, received);
+            if (!sameOwned(layout, predicted, received)) {
+                var current = port.view(); layout.check(current);
+                // Full-menu packets have no request identifier. A packet already
+                // in flight can occupy this ticket after the click was sent.
+                // Only an exact echo of the pre-click owned state permits one
+                // further read. Gifts/loss/component changes still fail at once.
+                // This refresh emits no second click and cannot confirm success
+                // until a new applied server reply has the exact predicted state.
+                if (!echoedBefore && sameOwned(layout, before, received)
+                        && (sameOwned(layout, before, current) || sameOwned(layout, predicted, current))) {
+                    echoedBefore = true;
+                    System.getLogger(GameMachineInventory.class.getName()).log(System.Logger.Level.INFO,
+                        "STRATA_MACHINE_PRECLICK_ECHO_REFRESH current_matches_prediction={0}", sameOwned(layout, predicted, current));
+                    emit.invoke(() -> ticket = port.requestSync());
+                    return false;
+                }
+                throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+            }
             // A later GUI update may advance processing, but cannot alter the
             // confirmed owned inventory/cursor before this terminal receipt.
             var current = port.view(); layout.check(current); requireOwned(layout, received, current);
@@ -84,8 +103,12 @@ final class GameMachineInventory {
         }
     }
     private static void requireOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) throws IOException {
-        if (!expected.cursor().equals(actual.cursor())) throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+        if (!sameOwned(layout, expected, actual)) throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+    }
+    private static boolean sameOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) {
+        if (!expected.cursor().equals(actual.cursor())) return false;
         for (int i = layout.playerStart(); i < layout.total(); i++)
-            if (!expected.slots().get(i).equals(actual.slots().get(i))) throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+            if (!expected.slots().get(i).equals(actual.slots().get(i))) return false;
+        return true;
     }
 }

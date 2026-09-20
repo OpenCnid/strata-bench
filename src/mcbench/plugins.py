@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import subprocess
+import tomllib
 from pathlib import Path
 
 from .inventory import file_hash
@@ -18,6 +19,19 @@ from .storage import canonical, digest, reject_links, require, safe_relative
 CODEX_BINARY_SHA256 = "960c111d47afd61669954b9df9e56083e302edbfa3ef6962d81dcc14a30051dc"
 MARKETPLACE = "strata-pinned"
 PLUGIN_ID = "dovetail-codex@" + MARKETPLACE
+CORE_SKILLS = tuple("skills/" + name + "/SKILL.md" for name in (
+    "better-skill-creator", "hypershot-protocol", "judge-composition", "prompt-engineering",
+    "self-play", "spark-steering", "subagent-composition", "upsum"))
+EXPLICIT_SKILLS = ("skills/spark-steering/SKILL.md", "skills/upsum/SKILL.md")
+
+
+def _extended_path(path: Path):
+    """Use Windows long-path I/O without changing manifest or Git-relative names."""
+    path = path.absolute()
+    value = str(path)
+    if os.name == "nt" and not value.startswith("\\\\?\\"):
+        value = "\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value
+    return Path(value)
 
 
 def isolated_environment(profile: Path):
@@ -37,6 +51,24 @@ def pinned_marketplace():
                 "url": "https://github.com/OpenCnid/dovetail-codex.git", "ref": DOVETAIL_COMMIT},
                 "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
                 "category": "Productivity"}]}
+
+
+def discovery_policy(root: Path, inventory):
+    """Pin discovery without modifying the selected upstream plugin source.
+
+    Nested public test fixtures are not gameplay skills. This is catalog policy,
+    not filesystem isolation: inaccessible fixture/source directories still need
+    the separate OS boundary before gameplay admission.
+    """
+    require(inventory["source_commit"] == DOVETAIL_COMMIT and
+            sorted(inventory["skills"]) == sorted(CORE_SKILLS), "PLUGIN_SKILL_INVENTORY_MISMATCH")
+    excluded = sorted(e["path"] for e in inventory["files"] if e["path"].startswith("skills/")
+                      and e["path"].endswith("/SKILL.md") and e["path"] not in CORE_SKILLS)
+    return {"schema": "strata/NativeSkillDiscovery/1", "policy": "dovetail-top-level-eight/1",
+            "core": list(CORE_SKILLS), "explicit_only": list(EXPLICIT_SKILLS),
+            "excluded_nested": excluded, "config_overrides": {"skills.config": [
+                {"path": str(root.joinpath(*safe_relative(p).parts)), "enabled": False}
+                for p in excluded]}}
 
 
 def inspect_plugin_tree(root: Path, *, git="git", expected_commit=DOVETAIL_COMMIT):
@@ -78,7 +110,7 @@ def inspect_plugin_tree(root: Path, *, git="git", expected_commit=DOVETAIL_COMMI
         mode, kind, oid = metadata.decode().split()
         require(kind == "blob" and mode in {"100644", "100755"}, "PLUGIN_PATH_UNSUPPORTED")
         relative = name.decode("utf-8")
-        path = root.joinpath(*safe_relative(relative).parts)
+        path = _extended_path(root.joinpath(*safe_relative(relative).parts))
         reject_links(path)
         data = path.read_bytes()
         # git status checks normalized content; hash both the installed bytes and
@@ -127,13 +159,24 @@ def install_dovetail(binary: Path, profile: Path):
     root = Path(installed["installedPath"])
     require(root.absolute().is_relative_to(profile), "PLUGIN_OUTSIDE_PROFILE")
     inventory = inspect_plugin_tree(root)
+    discovery = discovery_policy(root, inventory)
+    # The CLI records a canonical Windows extended path as marketplace identity.
+    # Preserve that identity when --ignore-user-config requires explicit overrides.
+    settings = tomllib.loads((profile / "config.toml").read_text(encoding="utf-8"))
+    registered = settings.get("marketplaces", {}).get(MARKETPLACE, {})
+    require(registered.get("source_type") == "local" and
+            isinstance(registered.get("source"), str) and
+            Path(registered["source"]).samefile(source), "PLUGIN_MARKETPLACE_MISMATCH")
     report = {"schema": "strata/NativePluginInstallation/1", "binary_digest": CODEX_BINARY_SHA256,
               "binary_version": version, "plugin_id": PLUGIN_ID,
               "marketplace_digest": digest(pinned_marketplace()), "inventory": inventory,
+              "discovery_policy": discovery,
               "inference_started": False, "credential_imported": False,
               "required_config_overrides": {
-                  f'plugins."{PLUGIN_ID}".enabled': True,
+                  "features.plugins": True,
+                  f"plugins.{PLUGIN_ID}.enabled": True,
                   f"marketplaces.{MARKETPLACE}.source_type": "local",
-                  f"marketplaces.{MARKETPLACE}.source": str(source)}}
+                  f"marketplaces.{MARKETPLACE}.source": registered["source"],
+                  **discovery["config_overrides"]}}
     (profile / "installation-report.json").write_bytes(canonical(report))
     return report

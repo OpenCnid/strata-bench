@@ -4,6 +4,7 @@ import base64
 import json
 import sys
 import time
+import tomllib
 
 import pytest
 
@@ -14,6 +15,19 @@ from mcbench.records import BudgetLedger
 from mcbench.storage import Fault
 from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
 from mcbench.storage import Principal, canonical, digest
+
+
+def test_native_override_inline_tables_round_trip_and_reject_null(make_plan):
+    settings = [{"path": "C:/synthetic/skill/SKILL.md", "enabled": False},
+                {"path": 'C:/synthetic/quoted"name/SKILL.md', "enabled": True}]
+    plan, _ = make_plan(config_overrides={"skills.config": settings})
+    argv = native_argv(plan)
+    text = argv[argv.index("-c") + 1]
+    assert tomllib.loads(text)["skills"]["config"] == settings
+    for value in (None, [None], {"enabled": None}):
+        invalid = plan.model_copy(update={"config_overrides": {"skills.config": value}})
+        with pytest.raises(Fault, match="CONFIG_UNSUPPORTED"):
+            native_argv(invalid)
 
 
 @pytest.fixture

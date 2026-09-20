@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.34](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.35](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -125,7 +125,15 @@ zero before fresh recovery retains the holds and refuses replay. The expanded
 165-test Python run and final 30 transport checks pass; see the report's
 follow-up for exact source pins, raw evidence and limitations.
 
-Continue native pinned Dovetail plugin/skill/helper conformance. The transport
+Accounting source checkpoint `66baa0f` is committed on the resumed branch.
+The [native plugin follow-up](verification/2026-09-20-native-plugin.md) adds
+actual discovery and skill-body/tool-loop evidence with a synthetic provider,
+including the two explicit-only upstream skills and disabled-plugin controls.
+The long-path reader and plugin override key are corrected. Native catalog
+policy excludes nested package fixtures without changing the selected source
+or dropping any of its eight core skills. All earlier failed samples remain.
+
+Continue M0.1c.2b command/helper boundary and canary isolation conformance. The transport
 adapter remains explicitly synthetic-only. Actual OAuth monetary conversion,
 finite exposure, complete project spending authority and adversarial isolation
 remain unqualified. A request for the account's documented USD-per-credit rate

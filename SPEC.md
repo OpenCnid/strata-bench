@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.34, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (explicit native job/per-dispatch reservation composition). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.35, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (pinned native skill discovery and retained invocation policy). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -296,6 +296,16 @@ The game worker is a long-lived process: invoking `mcgame` does not launch anoth
 The optional [app-server adapter](https://learn.chatgpt.com/docs/app-server) can later implement finer thread/turn streaming and interruption if CLI lifecycle limitations justify it. Its protocol must be generated from a pinned binary and separately tested. Optional MCP exposes the same authorized contracts; it adds tool discovery/portability, not necessary game control or an automatic security boundary. Neither extension changes the model's permitted game state/actions without a new profile.
 
 [Dovetail's source](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/docs/codex-surface-map.md) references native collaboration and version-sensitive flags. It does not prove every Desktop tool exists in a headless CLI. Preserve the selected plugin; a helper shim must demonstrate equivalent declared capabilities and include its revision in system identity. Missing accounting/helper enforcement cannot be hidden by substituting a no-self-play run.
+
+Pin discovery policy `dovetail-top-level-eight/1` with the unchanged selected
+plugin source. Preserve all eight top-level skills: six allow implicit discovery;
+`spark-steering` and `upsum` retain their upstream explicit-invocation-only policy.
+Disable nested package-test skills in the native skill catalog and hash those
+settings into the system profile. Verify both implicit discovery/tool-body loading
+and explicit native injection, plus a disabled-plugin negative control. This
+catalog filtering is not filesystem protection: test fixtures, operator material,
+credentials, and evaluator state still require the enforced private boundary.
+Initial plugin bytes remain immutable and separate from learned overlays.
 
 ### 6.2 Initial skills, learning and invocation
 

@@ -16,7 +16,7 @@ gate remains open. Exact E9E's Mineflayer handshake failed, and Forge fallback
 evidence does not convert it into a Mineflayer pass.
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
-- [Specification v0.2.34](SPEC.md): complete target contract and acceptance gates
+- [Specification v0.2.35](SPEC.md): complete target contract and acceptance gates
 - [Milestone ledger](MILESTONES.md): coverage, decisions, failures and evidence
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence

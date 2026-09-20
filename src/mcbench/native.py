@@ -73,8 +73,10 @@ class NativeLaunch(Strict):
 
 
 def _toml_value(value):
-    # JSON scalar/array encodings form the supported TOML subset; objects/null do not.
-    require(value is not None and not isinstance(value, dict), "CONFIG_UNSUPPORTED")
+    require(value is not None, "CONFIG_UNSUPPORTED")
+    if isinstance(value, dict):
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + "=" + _toml_value(v)
+                              for k, v in sorted(value.items())) + "}"
     if isinstance(value, list):
         return "[" + ",".join(_toml_value(v) for v in value) + "]"
     return json.dumps(value, ensure_ascii=False, allow_nan=False)

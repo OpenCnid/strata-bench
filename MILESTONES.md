@@ -1,12 +1,13 @@
 # Strata implementation milestones and coverage ledger
 
-Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.34; maintenance rules: [AGENTS.md](AGENTS.md).
+Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.35; maintenance rules: [AGENTS.md](AGENTS.md).
 
 **Operator-only. Never expose this ledger or its linked private evidence to gameplay agents or their helpers.**
 
 ## Current position
 
 - **Implementation resumed:** the user explicitly authorized continuing beyond the checkpoint and created the full M0–M6 long-horizon objective. Git fetch and GitHub PR metadata confirm PR #1 merged at `579796da40eeb9e6063196462767f60e9c87eac7`; clean worktree branch `codex/strata-native-dispatch` starts there. M7 remains conditional. Earlier evidence and failures remain in the append-only log and linked reports.
+- **Native plugin follow-up:** accounting checkpoint `66baa0f` is committed locally. M0.1c.2a now exercises actual native discovery, a fixed skill-body read, explicit-only skill injection and disabled-plugin controls through the credential-free wire gateway. Long-path inventory and literal-quoted override failures were found and corrected; nested public package fixtures are disabled in the catalog with all eight real skills retained. See the [plugin report](docs/verification/2026-09-20-native-plugin.md). Production tool/file/process/network isolation and actual model/helper behavior remain open.
 - **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
 - **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
@@ -57,6 +58,9 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.1c.1c | AR/PL/SI | Bounded upstream usage parsing/forwarding, abrupt supervisor-loss no-replay, durable project spending authority and qualified production ingress/receipt coverage | in_progress | Continue from .1b without treating direct synthetic-provider receipts as an upstream parser. Read-only inventory finds 25 accounting stores, all newly simulated or three earlier synthetic tool-only stores, zero live profiles/errors. No live D04 ledger is installed in the inspected roots; complete historical spending authority is unqualified. OAuth conversion question is pending; finite exposure and isolation remain mandatory. |
 | M0.1c.1c.1 | AR/PL/QA | Synthetic upstream wire-usage parsing/forwarding, strict finite transport and abrupt supervisor-loss no-replay | implemented_unverified | [Wire/crash follow-up](docs/verification/2026-09-20-native-dispatch.md): nine actual-CLI cases pass; 15 ingress requests, 13 forwarded, eight settled/five unresolved, ten CLI jobs. Actual stream prefix precedes supervisor exit; independent held-job accounting goes 13-to-zero before fresh recovery. 165 relevant Python / final 30 transport checks pass. Synthetic-only; no OAuth proxy/price/bound or adversarial isolation qualification. |
 | M0.1c.1c.2 | AR/PL/SI | Durable project spending authority and qualified live OAuth ingress, pricing, finite exposure, all-request/descendant receipts and isolation | blocked | Account monetary evidence requested; live ledger not installed in inspected roots. No $10 reset or paid dispatch. Production capability/pricing/exposure and historical audit evidence are required; continue independent native plugin/skill/helper conformance. Parent .1c and all aggregate gates remain open. |
+| M0.1c.2 | AR/SI | Actual pinned Dovetail/native skills, tools, helpers and enforceable inherited-context boundaries | in_progress | Children preserve native discovery, invocation and helper/isolation contracts separately. F03/F07/F11/F16, N01/N03/N04/N06, C06/C18/C20; partial T01/T04/T07/T12. Synthetic native plumbing does not qualify live reasoning or security. |
+| M0.1c.2a | AR/QA | Native six-skill implicit catalog, two explicit-only skill injections, real skill-file/tool response, disabled-plugin and nested-fixture negatives | implemented_unverified | [Native plugin probe](tools/native_plugin_probe.py) and [evidence](docs/verification/2026-09-20-native-plugin.md). Pinned real CLI/plugin and synthetic provider; long-path Git inventory and inline TOML configuration tests pass. Preserve prior failures and source hashes. No production qualification. |
+| M0.1c.2b | AR/SI | Scoped native command/helper seam, clean contexts and denied file/process/network/operator/fixture access; immutable initial skills and admitted learned overlays | in_progress | The documented unelevated Windows sandbox permits the fixed public skill read in the fixture; it is not an established Strata private-data/egress boundary. Next: explicit synthetic canary adversarial checks and enforceable production boundary. Native collaboration/isolated helper equivalence and live use remain unqualified. |
 | M0.2a | GI | Bounded player/window projection, ray occlusion, filtered-map planning, ordinary mutation subset | in_progress | Filtered player/window observations, opaque fixed-capture spatial pages, bounded public signals, player-unlocked recipes and fixed crafting slot motor; placement and furnace/table opening implemented but authentic behavior unverified. Remaining action/movement/reconnect gaps persist. |
 | M0.2b | GI/QA | Journal, one executor/lane, ID/sequence/epoch fencing, stop/cancel and retained partial effects | in_progress | [Journal](backends/mineflayer/src/journal.ts), [lane](backends/mineflayer/src/actions.ts), fault fixtures pass; real interruption timings, corruption/disk faults, supervised termination and automatic resync open. |
 | M0.2c | GI/AR/RS | Real vanilla server, host action/helper, private milestone and full clocks/costs | in_progress | Actual official server, authenticated worker, scoped CLI, look/dig/flat movement and cancellation evidence in [long-horizon report](docs/verification/2026-09-18-long-horizon.md). Native model/helper, private authoritative milestone and complete clocks/costs still blocked; no gate pass. |
@@ -4086,3 +4090,32 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   [Report and exact limits](docs/verification/2026-09-20-native-dispatch.md).
   Next: actual pinned plugin/skill/helper conformance in credential-free native
   fixtures while the live USD/exposure/isolation gates remain blocked. Goal active.
+
+
+### 2026-09-20 — actual native plugin discovery and skill loading
+
+- Continued beyond local accounting checkpoint `66baa0f`; goal remains active.
+  Added M0.1c.2/.2a/.2b with F03/F07/F11/F16, N01/N03/N04/N06,
+  C06/C18/C20 and partial T01/T04/T07/T12 traceability. SPEC v0.2.35 pins
+  discovery without removing any of the eight real upstream skills.
+- Fixed Windows long-path installed-byte inventory and literal-quoted native
+  plugin override keys. Preserve the registered marketplace path. Native TOML
+  inline-table serialization permits the actual documented skill-disable array.
+  Initial upstream plugin bytes remain unchanged; nested public test fixtures
+  are omitted from discovery, not declared inaccessible at the OS boundary.
+- Final actual-CLI/synthetic-upstream matrix passes enabled, disabled and explicit
+  cases. Six implicit skill entries, both explicit-only bodies in the initial
+  native request, the exact fixed skill read/tool result, zero fixture entries,
+  unchanged plugin trees and five settled/deduplicated requests are observed.
+  Three envelopes finalize; zero real USD. Private source/binary-pinned evidence:
+  `2026-09-20-native-plugin-final-01`. Failed samples -01 through -10 and
+  intermediate passes -11/-12 remain external with their actual reservations.
+- Focused Python: 30 passed, zero skips, 4.35 s; Ruff passes. Initial long-path
+  test setup failed until Git longpaths was enabled, then passed. The earlier
+  native command-policy rejection and wire-parser expectation failures remain
+  documented. Configuring the native unelevated Windows sandbox allowed the
+  fixed public read; no shared-desktop input or sandbox-bypass flag was used.
+- [Full result, limits and reproduction](docs/verification/2026-09-20-native-plugin.md).
+  No model reasoning, gameplay, immutable ACL, helper or adversarial isolation
+  pass is implied. Next: M0.1c.2b synthetic canaries and enforceable boundaries;
+  live OAuth monetary/exposure/spending-authority gates remain blocked.

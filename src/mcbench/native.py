@@ -63,6 +63,7 @@ class NativeLaunch(Strict):
     bootstrap_manifest: str | None = None
     bootstrap_digest: Digest | None = None
     ingress_policy: Literal["native-job-http-header/1"] | None = None
+    gateway_config_digest: Digest | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -86,6 +87,8 @@ class NativeLaunch(Strict):
             body["bootstrap_digest"] = self.bootstrap_digest
         if self.ingress_policy is not None:
             body["ingress_policy"] = self.ingress_policy
+        if self.gateway_config_digest is not None:
+            body["gateway_config_digest"] = self.gateway_config_digest
         return digest(body)
 
 
@@ -218,6 +221,10 @@ class NativeExec:
         if not self.simulation and plan.broker_policy is not None:
             require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
             require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")
+            require(plan.gateway_config_digest is not None, "GATEWAY_REQUIRED")
+        if plan.gateway_config_digest is not None:
+            from .native_gateway import require_gateway
+            require_gateway(db, plan, "OPEN")
         if plan.ingress_policy is not None:
             from .native_ingress import provider_binding
             provider_binding(plan)
@@ -251,7 +258,7 @@ class NativeExec:
             plan_body.pop("accounting_basis_digest")
         if plan.broker_policy is None:
             plan_body.pop("broker_policy")
-        for key in ("bootstrap_manifest", "bootstrap_digest", "ingress_policy"):
+        for key in ("bootstrap_manifest", "bootstrap_digest", "ingress_policy", "gateway_config_digest"):
             if plan_body[key] is None:
                 plan_body.pop(key)
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),
@@ -536,6 +543,9 @@ class NativeExec:
                 and proof.get("process_tree_dead") is True and
                 proof.get("ingress_closed") is True and proof.get("handlers_fenced") is True,
                 "DISPATCH_SEAL_UNVERIFIED")
+        if plan.gateway_config_digest is not None:
+            from .native_gateway import require_gateway_seal
+            require_gateway_seal(self.db, self.cas, plan, proof, self.simulation)
         with self.db.transaction() as db:
             children = db.execute("SELECT id FROM native_jobs WHERE parent=? AND "
                                   "state NOT IN ('FINALIZED','REJECTED')", (job,)).fetchone()

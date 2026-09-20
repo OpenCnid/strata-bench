@@ -53,7 +53,8 @@ def serve(log):
 
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
-        inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False):
+        inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
+        gateway_mode=False, skills_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -65,7 +66,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from mcbench.native import NativeExec, NativeLaunch
     from mcbench.native_broker_policy import validate_broker_settings
     from mcbench.plugins import install_dovetail
-    from mcbench.storage import CAS, Database, require
+    from mcbench.storage import CAS, Database, Principal, require
     from native_dispatch_probe import LocalProvider, close_budget, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
     from native_broker_canaries import Canaries
@@ -76,6 +77,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
     require(not ingress_mode or bootstrap_mode, "INGRESS_BOOTSTRAP_REQUIRED")
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
+    require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
+    require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
     canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -146,6 +149,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ("artifact_write", {"path": "notes/root.md" if agent == "/root" else
                             "results/advice.md", "text": "STRATA_OWN_ARTIFACT", "expected_ref": None}),
                         ("game", {"request": game_request})]
+                    if skills_mode:
+                        calls.append(("artifact_read", {"path":
+                            "initial/dovetail/skills/prompt-engineering/SKILL.md"}))
+                        calls.append(("artifact_write", {"path":
+                            "initial/dovetail/skills/prompt-engineering/SKILL.md",
+                            "text": "must remain immutable", "expected_ref": None}))
                     if agent != "/root":
                         calls.extend([("artifact_read", {"path": "docs/root-only.md"}),
                             ("artifact_write", {"path": "notes/root.md", "text": "spoof", "expected_ref": None}),
@@ -204,10 +213,31 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     runtime = NativeExec(db, cas, simulation=True)
     gate = InferenceDispatches(db, cas, simulation=True)
     limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": 120000}
+    if gateway_mode:
+        limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
         category="development")
-    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12, oauth_fixture=oauth_mode)
+    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12,
+                        oauth_fixture=oauth_mode, gateway_fixture=gateway_mode)
+    gateway = None
+    if gateway_mode:
+        from mcbench.accounting import EstimateBasis, FiniteExposure
+        from mcbench.native_gateway import GatewayConfig, NativeGateway
+        gateway = NativeGateway(db.path, cas.root, simulation=True,
+            fixture_upstream=f"http://127.0.0.1:{provider.upstream.server_port}")
+        basis = EstimateBasis.model_validate(json.loads((Path(__file__).resolve().parents[1] /
+            "configs/operator/live-validation.json").read_bytes())["accounting_basis"])
+        price = put(cas, basis.model_dump())
+        exposure = FiniteExposure.model_validate({"schema": "strata/FiniteInferenceExposure/1",
+            "basis_digest": basis.fingerprint(), "max_input_tokens": basis.context_window_tokens,
+            "max_output_tokens": basis.max_output_tokens, "max_requests": 1,
+            "input_bound_method": "provider_context_limit", "output_bound_method": "provider_model_limit",
+            "enforcement_ref": "cas:sha256:" + "a" * 64})
+        gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
+            "job_id": "root", "profile_digest": "a" * 64, "pricing_ref": price, "exposure": exposure,
+            "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 4,
+            "max_requests": 12})
     worker_calls = []
     worker = None
     if broker_mode:
@@ -233,6 +263,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     try:
         plan = plan_for(binary, output, provider, "root")
         installed = install_dovetail(binary, Path(plan.profile_directory))
+        if skills_mode:
+            from mcbench.native_skills import INSTRUCTIONS, prepare_skill_corpus, read_skill_corpus
+            commands = json.loads((Path(plan.profile_directory) / "installation-commands.json").read_bytes())
+            plugin_root = Path(json.loads(commands[-1]["stdout"])["installedPath"])
+            gateway_config.skill_corpus_ref = prepare_skill_corpus(cas, plugin_root)
+            skill_corpus = read_skill_corpus(cas, gateway_config.skill_corpus_ref)
         config = plan.config_overrides | installed["required_config_overrides"] | RESTRICTIONS | {
             "mcp_servers.strata_probe": {"command": sys.executable,
                 "args": [str(Path(__file__).resolve()), "--serve", str(output / "mcp.jsonl")],
@@ -267,6 +303,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "tokens": {"id_token": fake_id, "access_token": "STRATA_SYNTHETIC_OAUTH_ACCESS",
                     "refresh_token": "STRATA_SYNTHETIC_OAUTH_REFRESH", "account_id": "strata-fixture-account"},
                 "last_refresh": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")}), encoding="utf-8")
+        if gateway_mode:
+            config["model_providers.strata_local_fixture.base_url"] = gateway.base_url
+        if skills_mode:
+            config["developer_instructions"] = INSTRUCTIONS
         bootstrap = {}
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
@@ -293,6 +333,17 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
             "prompt": "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
+        if gateway_mode:
+            plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
+                "gateway_config_digest": gateway_config.profile_fingerprint()})
+            gateway_config.profile_digest = plan.profile_digest()
+            gateway_config.exposure.enforcement_ref = put(cas, {
+                "schema": "strata/InferenceExposureEvidence/1", "is_example": True,
+                "profile_digest": plan.profile_digest(), "result": "pass",
+                "scope": "fixed fixture output, not provider limit qualification",
+                **{k: getattr(exposure, k) for k in ("basis_digest", "input_bound_method",
+                    "output_bound_method", "max_input_tokens", "max_output_tokens")}})
+            gateway.bind(plan, gateway_config)
         provider.plan = plan
         if ingress_mode:
             NativeIngress(db).register(plan)
@@ -308,19 +359,24 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "agent_id": "a1", "epoch": 1}), encoding="utf-8")
         reserve = ledger(plan, plan.operation_id, parent=None, calls=12, spend=120000,
             pricing=put(cas, {"is_example": True, "real_usd": 0}), inputs=1200000, outputs=120000)
+        if gateway_mode:
+            reserve = ledger(plan, plan.operation_id, parent=None, calls=12,
+                spend=exposure.amount(basis) * 12, pricing=price,
+                inputs=exposure.max_input_tokens * 12, outputs=exposure.max_output_tokens * 12)
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
             # real CLI supplies the positive root/helper controls independently.
             from http.client import HTTPConnection
+            port = gateway.server.server_port if gateway else provider.server.server_port
             for case in ("missing", "wrong", "duplicate", "host", "double_host", "route", "cookie"):
-                client = HTTPConnection("127.0.0.1", provider.server.server_port, timeout=3)
+                client = HTTPConnection("127.0.0.1", port, timeout=3)
                 path = "/v1/responses?unapproved=1" if case == "route" else "/v1/responses"
                 client.putrequest("POST", path, skip_host=True)
                 client.putheader("Host", "localhost" if case == "host" else
-                                 f"127.0.0.1:{provider.server.server_port}")
+                                 f"127.0.0.1:{port}")
                 if case == "double_host":
-                    client.putheader("Host", f"127.0.0.1:{provider.server.server_port}")
+                    client.putheader("Host", f"127.0.0.1:{port}")
                 if case != "missing":
                     client.putheader(HEADER, credential() if case == "wrong" else ingress_secret)
                 if case == "duplicate":
@@ -335,8 +391,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 client.close()
         wait_job(runtime, plan)
     finally:
+        if gateway:
+            gateway.stop_admission()
         for job in list(runtime.live):
             runtime.interrupt(job, "probe_cleanup")
+        if gateway:
+            gateway_seal = gateway.close(runtime)
         provider.close()
         if worker:
             worker.shutdown()
@@ -351,7 +411,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "identities": provider.identities, "broker_calls": calls,
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
-        "closure": close_budget(runtime, plan, provider), "budget": gate.budgets.status("project")}
+        "closure": runtime.close_dispatch_budget(plan.job_id, gateway_seal) if gateway else
+            close_budget(runtime, plan, provider), "budget": gate.budgets.status("project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
         result["worker_calls"] = worker_calls
@@ -388,7 +449,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "all_envelopes_closed": db.connection.execute("SELECT count(*) FROM budget_envelopes e "
                     "JOIN operations o ON e.operation=o.id WHERE o.actual IS NULL OR o.uncertain=1").fetchone()[0] == 0,
                 "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"]
-                    == 14 * len(provider.requests),
+                    == (7 if gateway_mode else 14) * len(provider.requests),
             })
             if inherited_helper:
                 for key in ("helper_result_written", "helper_game_denied", "spoof_arguments_denied",
@@ -411,13 +472,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])
             for r in db.connection.execute("SELECT body FROM native_events WHERE channel IN ('stdout','stderr')"))
         visible = native_raw + json.dumps(provider.outputs).encode() + (output / "journal.jsonl").read_bytes()
-        requests = list(output.glob("dispatch-*-request.json"))
+        requests = list(output.glob("*-request.json"))
         bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests").fetchone()[0]
         result["ingress"] = {"negative_clients": ingress_checks, "denials": provider.ingress_denials,
                              "authenticated_bindings": bindings}
         result["checks"].update({
             "ingress_negative_clients_denied": len(ingress_checks) == 7 and
-                all(c["status"] == 403 for c in ingress_checks) and len(provider.ingress_denials) == 7,
+                all(c["status"] == 403 for c in ingress_checks) and
+                (gateway_mode or len(provider.ingress_denials) == 7),
             "ingress_all_requests_bound": bindings == len(provider.requests) and
                 all(r["ingress_authenticated"] for r in provider.requests),
             "ingress_secret_absent_from_context_and_journal": ingress_secret.encode() not in visible and
@@ -440,6 +502,63 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     all(secret not in p.read_bytes() for p in requests) for secret in (
                         b"STRATA_SYNTHETIC_OAUTH_ACCESS", b"STRATA_SYNTHETIC_OAUTH_REFRESH", fake_id.encode())),
             })
+            if gateway_mode:
+                result["checks"].pop("native_protocol_headers_preserved")
+                result["checks"]["native_protocol_headers_received"] = all(
+                    {"session-id", "x-codex-turn-metadata", "originator"}.issubset(r["native_headers_received"])
+                    for r in provider.upstream_requests)
+    if gateway_mode:
+        result["gateway"] = {"config_digest": plan.gateway_config_digest,
+            "state": db.connection.execute("SELECT state FROM native_gateways").fetchone()[0],
+            "requests": [dict(r) for r in db.connection.execute(
+                "SELECT operation,state,reason FROM native_gateway_requests ORDER BY ordinal")],
+            "seal": gateway_seal, "valuation": "api_equivalent_estimate", "token_evidence": "synthetic_fixture"}
+        result["checks"]["gateway_all_requests_settled_and_fenced"] = (
+            result["gateway"]["state"] == "CLOSED" and len(result["gateway"]["requests"]) == result["requests"]
+            and all(r["state"] == "SETTLED" for r in result["gateway"]["requests"]))
+    if skills_mode:
+        rows = [dict(r) for r in db.connection.execute("SELECT namespace,path,ref,immutable FROM broker_files "
+            "WHERE path LIKE 'initial/dovetail/%' ORDER BY namespace,path")]
+        result["skills"] = {"corpus_ref": gateway_config.skill_corpus_ref, "projected": rows,
+                            "supporting_files_and_learned_activation": "unavailable"}
+        expected = next(x["text"] for x in skill_corpus["bodies"] if
+                        x["path"].endswith("/prompt-engineering/SKILL.md"))
+        # Decode actual typed native tool outputs, not provider-emitted call inputs.
+        import hashlib
+        def contains_skill(value, depth=0):
+            if depth > 12:
+                return False
+            if isinstance(value, dict):
+                return any(contains_skill(v, depth+1) for v in value.values())
+            if isinstance(value, list):
+                return any(contains_skill(v, depth+1) for v in value)
+            if isinstance(value, str):
+                if value == expected:
+                    return True
+                for line in [value, *value.splitlines()]:
+                    try:
+                        decoded = json.loads(line)
+                    except (ValueError, TypeError):
+                        continue
+                    if decoded != value and contains_skill(decoded, depth+1):
+                        return True
+            return False
+        matched = set()
+        for path in output.glob("gateway-*-request.json"):
+            body = json.loads(path.read_bytes())
+            outputs = [x for x in body.get("input", []) if x.get("type") in {
+                "custom_tool_call_output", "function_call_output"}]
+            if contains_skill(outputs):
+                matched.add(json.loads(body["client_metadata"]["x-codex-turn-metadata"])["agent_name"])
+        result["skills"]["skill_read_agents"] = sorted(matched)
+        expected_hashes = {x["path"]: x["sha256"] for x in skill_corpus["bodies"]}
+        result["checks"].update({
+            "eight_immutable_skill_bodies_per_participant": len(rows) == 16 and
+                all(r["immutable"] == 1 and hashlib.sha256(cas.read(
+                    Principal(r["namespace"], "executor"),
+                    r["namespace"], r["ref"])).hexdigest() == expected_hashes[r["path"]] for r in rows),
+            "root_and_helper_exact_skill_read": matched == {"/root", "/root/identity_child"},
+        })
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}
@@ -457,6 +576,8 @@ def main():
     parser.add_argument("--bootstrap", action="store_true")
     parser.add_argument("--ingress", action="store_true")
     parser.add_argument("--oauth", action="store_true")
+    parser.add_argument("--gateway", action="store_true")
+    parser.add_argument("--skills", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -477,12 +598,13 @@ def main():
         root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
         root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",
         root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",
-        root / "src/mcbench/inference_transport.py"]
+        root / "src/mcbench/inference_transport.py", root / "src/mcbench/native_gateway.py",
+        root / "src/mcbench/native_skills.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
     result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission,
-                 args.inherited_helper, args.bootstrap, args.ingress, args.oauth)
+                 args.inherited_helper, args.bootstrap, args.ingress, args.oauth, args.gateway, args.skills)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

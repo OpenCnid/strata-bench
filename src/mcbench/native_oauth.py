@@ -118,6 +118,7 @@ class NativeOAuthTransport(_ResponsesTransport):
         require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
         require(credentials.path in PATHS, "INGRESS_ROUTE")
         self.gate, self.credentials, self.deadline_s = dispatches, credentials, deadline_s
+        self._init_lifetime()
 
     def _preflight(self, attempt, reserve):
         c = self.credentials

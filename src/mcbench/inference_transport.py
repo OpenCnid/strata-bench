@@ -9,6 +9,8 @@ at most one upstream POST; each actual retry needs a distinct reservation.
 import hashlib
 import http.client
 import json
+import socket
+import threading
 import time
 from urllib.parse import urlsplit
 
@@ -138,10 +140,26 @@ class _ResponsesTransport:
     def _preflight(self, attempt, reserve):
         pass
 
+    def _init_lifetime(self):
+        self.cancelled = threading.Event()
+        self.connection_lock = threading.Lock()
+        self.active_socket = None
+
+    def cancel(self):
+        self.cancelled.set()
+        with self.connection_lock:
+            sock = self.active_socket
+        if sock is not None:
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+
     def _filter(self, chunk, *, final=False):
         return chunk
 
-    def execute(self, account, attempt, reserve, body, *, on_headers, on_chunk):
+    def execute(self, account, attempt, reserve, body, *, on_headers, on_chunk, after_begin=None):
+        require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
         require(isinstance(body, bytes) and 0 < len(body) <= 1024 * 1024, "REQUEST_SIZE")
         require(hashlib.sha256(body).hexdigest() == attempt.request_digest, "REQUEST_DIGEST_MISMATCH")
         parsed = strict_json(body)
@@ -165,12 +183,18 @@ class _ResponsesTransport:
         def forward():
             started = time.monotonic()
             deadline = started + self.deadline_s
+            require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
+            if after_begin is not None:
+                after_begin()
             connection, path, headers = self._request()
             capture = None
             raw_ref = None
             try:
                 connection.connect()
                 sock = connection.sock
+                with self.connection_lock:
+                    self.active_socket = sock
+                require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
                 connection.request("POST", path, body=body, headers=headers)
                 remaining = deadline - time.monotonic()
                 require(remaining > 0, "TRANSPORT_DEADLINE")
@@ -228,6 +252,8 @@ class _ResponsesTransport:
                 return event, receipt
             finally:
                 connection.close()
+                with self.connection_lock:
+                    self.active_socket = None
                 if capture is not None and raw_ref is None:
                     # Retain even malformed/partial usage; no zero-cost settlement.
                     self._save(capture, reserve.operation_id)
@@ -257,6 +283,7 @@ class SyntheticResponsesTransport(_ResponsesTransport):
                 "SYNTHETIC_ENDPOINT_REQUIRED")
         require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
         self.gate, self.url, self.deadline_s = dispatches, url, deadline_s
+        self._init_lifetime()
 
     def _request(self):
         return (http.client.HTTPConnection("127.0.0.1", self.url.port, timeout=self.deadline_s),

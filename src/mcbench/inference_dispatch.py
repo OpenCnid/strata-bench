@@ -166,6 +166,9 @@ class InferenceDispatches:
             if plan.ingress_policy is not None:
                 from .native_ingress import require_ingress_request
                 require_ingress_request(self.db.connection, plan, reserve.operation_id, attempt.request_digest)
+            if plan.gateway_config_digest is not None:
+                from .native_gateway import require_gateway
+                require_gateway(self.db.connection, plan, "OPEN")
 
     def _bound(self, attempt):
         raw = json.loads(self._private_ref(attempt.bound_ref, 16384))

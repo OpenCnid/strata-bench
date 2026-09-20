@@ -71,7 +71,7 @@ class LocalProvider:
     """
 
     def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
-                 estimate_basis=None, oauth_fixture=False):
+                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
         self.max_requests = max_requests
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
@@ -86,6 +86,7 @@ class LocalProvider:
         self.wire = wire
         self.estimate_basis = estimate_basis
         self.oauth_fixture = oauth_fixture
+        self.gateway_fixture = gateway_fixture
         self.native_oauth_headers = {}
         require(not oauth_fixture or wire, "OAUTH_WIRE_REQUIRED")
         require(estimate_basis is None or wire and scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
@@ -120,17 +121,31 @@ class LocalProvider:
                         (provider.plan.job_id, request_digest)))
                     require(len(active) == 1, "UPSTREAM_INTENT_NOT_DURABLE")
                     operation = active[0]["operation"]
-                    if provider.oauth_fixture:
+                    if provider.oauth_fixture and not provider.gateway_fixture:
                         expected = provider.native_oauth_headers[operation]
                         require(all(self.headers.get_all(k, []) == [v] for k, v in expected.items()),
                                 "UPSTREAM_NATIVE_HEADERS_CHANGED")
                     with provider.lock:
+                        if provider.gateway_fixture:
+                            body = json.loads(raw)
+                            provider.requests.append({"operation_id": operation, "path": self.path,
+                                "request_digest": request_digest, "bytes": len(raw), "body_keys": sorted(body),
+                                "tool_catalog": [{"type": t.get("type"), "name": t.get("name"),
+                                    "tools": [v.get("name") for v in t.get("tools", [])]}
+                                    for t in body.get("tools", [])],
+                                "authorization_present": True, "ingress_authenticated": bool(
+                                    observer.connection.execute("SELECT 1 FROM native_ingress_requests "
+                                        "WHERE operation=?", (operation,)).fetchone()),
+                                "header_names": sorted(k.lower() for k in self.headers.keys()),
+                                "state": "DISPATCHING"})
+                            (provider.database_path.parent / (operation + "-request.json")).write_bytes(raw)
                         index = len(provider.upstream_requests)
                         require(index < provider.max_requests, "REQUEST_COUNT")
                         provider.upstream_requests.append({"operation_id": operation,
                             "request_digest": request_digest,
                             "authorization_present": self.headers.get("Authorization") is not None,
-                            "native_headers_preserved": provider.oauth_fixture})
+                            "native_headers_preserved": provider.oauth_fixture and not provider.gateway_fixture,
+                            "native_headers_received": sorted(k.lower() for k in self.headers.keys())})
                         next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
                     provider.entered.set()
                     provider.respond(self, json.loads(raw), index, operation)

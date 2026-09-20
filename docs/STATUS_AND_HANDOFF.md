@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 20, 2026. Operator-only. [SPEC v0.2.60](../SPEC.md)
+Updated September 20, 2026. Operator-only. [SPEC v0.2.61](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -61,14 +61,14 @@ rejected; justified finite exposure before dispatch. Run focused affected tests
 and only the affected pinned-CLI fixture. Mark synthetic/source checks
 separately from authentic OAuth/game qualification.
 
-**Current next deliverable M0.1c.2b.2:** implement/test the smallest enforceable native tool/helper
+**Current next deliverable M0.1c.2b.2:** complete qualification of the native tool/helper
 boundary on available hardware. The agent needs scoped game access, its own
 notes/skills and allowed docs; evaluator/holdout/admin/credential/sibling access
 must be denied. Inspect host-supported restricted tools and protected brokerage,
 preserving the selected native Dovetail loop and declaring capability changes.
 The existing loopback canary failure remains evidence against the current
 profile. A VM is optional; no user-supplied machine is currently requested.
-If one path is blocked, advance independent authorized M0 work.
+The [broker report](verification/2026-09-20-restricted-native-tools.md) records implemented source, 28 unit checks and actual CLI/helper/synthetic-worker evidence, including the retained first-run failure. Continue from `broker.py`, `broker_stdio.py` and the existing probes. Next: protected bootstrap/config identity and budget-linked live child enrollment, adversarial file/process/network/resource canaries, actual Dovetail body projection/learned-artifact activation/export, then OAuth/game qualification. Do not repeat the passing synthetic broker fixture without a relevant change or a named evidence gap. If one path is blocked, advance independent authorized M0 work.
 
 ## Settled authority and limits
 

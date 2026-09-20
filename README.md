@@ -30,7 +30,8 @@ evidence does not convert it into a Mineflayer pass.
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
 | Native Codex adapter | Actual pinned CLI/plugin/tool/helper lifecycle exercised with a credential-free synthetic provider | Live scoped host/game integration, child admission/isolation, nested-depth and complete resume qualification |
-| Inference accounting | Atomic dispatch intent, nested job envelopes, distinct retry charges, receipt deduplication and uncertain-cost holds; actual CLI synthetic streaming/compaction/restart checks | Versioned D11 API-equivalent estimates, actual OAuth all-request accounting, finite exposure and enforced boundaries |
+| Inference accounting | Versioned D11 API-equivalent estimates, explicit original-authority migration, nested envelopes, distinct requests, deduplicated receipts and uncertain holds; pinned CLI synthetic integration | Actual OAuth all-request accounting, qualified finite exposure and enforced boundaries |
+| Restricted native broker candidate | Explicit caller projections, helper-only result writes and executor-only scoped worker forwarding; actual CLI/helper/synthetic HTTP checks | Full file/process/network negatives, live child admission, immutable skill loading and actual game/OAuth integration |
 | Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded

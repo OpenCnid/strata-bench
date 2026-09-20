@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.60, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (D11 versioned estimate accounting). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.61, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (D11 estimates and native broker candidate). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -296,6 +296,8 @@ AgentRuntimeAdapter
 The game worker is a long-lived process: invoking `mcgame` does not launch another bot, reconnect or recreate game state. A CLI invocation sends one structured request and returns JSON; long actions return a request ID with explicit status/wait/cancel commands. Bound wait calls to 3 s by default; use recorded backoff/coalescing instead of busy polling. Within an episode, Codex can make many game commands in its native loop. Session supervision is separate from game transport.
 
 The optional [app-server adapter](https://learn.chatgpt.com/docs/app-server) can later implement finer thread/turn streaming and interruption if CLI lifecycle limitations justify it. Its protocol must be generated from a pinned binary and separately tested. Optional MCP exposes the same authorized contracts; it adds tool discovery/portability, not necessary game control or an automatic security boundary. Neither extension changes the model's permitted game state/actions without a new profile.
+
+The native shell-boundary failures motivate a candidate MCP broker profile, `native-stdio-projected-artifacts-executor-game/1`, under C36. Its owned stdio transport derives caller identity from pinned native metadata outside tool arguments. Operator-only enrollment binds explicit root/helper permissions and prior admission evidence; model-supplied identity, guessed namespaces and unregistered descendants are denied. The broker copies only admitted artifacts, preserves immutable initial skills, restricts helpers to their own result writes, and forwards the unchanged typed game request only for the designated executor. Source and actual-CLI/synthetic-worker evidence are [partial](docs/verification/2026-09-20-restricted-native-tools.md): configuration integrity, trusted live child budgets, full tool/file/process/network conformance and actual skill/artifact/game integration remain required. This candidate does not waive the selected runtime, helper, executable-artifact or isolation requirements; app-server remains conditional.
 
 [Dovetail's source](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/docs/codex-surface-map.md) references native collaboration and version-sensitive flags. It does not prove every Desktop tool exists in a headless CLI. Preserve the selected plugin; a helper shim must demonstrate equivalent declared capabilities and include its revision in system identity. Missing accounting/helper enforcement cannot be hidden by substituting a no-self-play run.
 

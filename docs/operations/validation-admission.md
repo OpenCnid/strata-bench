@@ -82,6 +82,15 @@ Retain Dovetail's required native loop and skill/helper behavior. An unavailable
 enforcement capability becomes a specific compatibility gap with a resolving
 action, not a reason to stop unrelated source work.
 
+The [restricted native broker candidate](../verification/2026-09-20-restricted-native-tools.md)
+now implements explicit per-caller artifact projections, helper result writes,
+executor-only fixed-worker forwarding and durable no-replay. Native root/helper
+metadata and actual local synthetic-worker positive/negative cases were exercised.
+This activates the optional MCP facade for a demonstrated enforcement need;
+the native loop/plugin and game contracts are preserved. It remains unqualified
+until the remaining protected-bootstrap, live admission, skill and adversarial
+boundary cases pass. Do not treat its synthetic enrollment as live child admission.
+
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.
 Named policy/firewall labels, packaging, a fresh conversation and separate

@@ -133,7 +133,18 @@ The long-path reader and plugin override key are corrected. Native catalog
 policy excludes nested package fixtures without changing the selected source
 or dropping any of its eight core skills. All earlier failed samples remain.
 
-Continue M0.1c.2b command/helper boundary and canary isolation conformance. The transport
+Plugin checkpoint `5e3a047` is committed. The [native boundary canaries](verification/2026-09-20-native-boundary.md)
+now give concrete failed evidence: unelevated native tools read a dummy operator
+file and contact an unapproved loopback endpoint; stricter named read permissions
+refuse startup. The prepared elevated sandbox command blocks the file read but
+still contacts the endpoint as CodexSandboxOffline. Active firewall rules and
+matching account filters were inspected without changing them. No production
+qualification is issued. An existing isolated-worker/VM location is requested;
+do not repeat that question while pending. Continue independent authorized
+game/reliability work while the enforcement blocker remains open.
+
+Continue M0.1c.2b command/helper boundary and canary isolation conformance when
+an enforceable execution environment is available. The transport
 adapter remains explicitly synthetic-only. Actual OAuth monetary conversion,
 finite exposure, complete project spending authority and adversarial isolation
 remain unqualified. A request for the account's documented USD-per-credit rate

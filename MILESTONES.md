@@ -8,6 +8,7 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.35; maintenance rules: [
 
 - **Implementation resumed:** the user explicitly authorized continuing beyond the checkpoint and created the full M0–M6 long-horizon objective. Git fetch and GitHub PR metadata confirm PR #1 merged at `579796da40eeb9e6063196462767f60e9c87eac7`; clean worktree branch `codex/strata-native-dispatch` starts there. M7 remains conditional. Earlier evidence and failures remain in the append-only log and linked reports.
 - **Native plugin follow-up:** accounting checkpoint `66baa0f` is committed locally. M0.1c.2a now exercises actual native discovery, a fixed skill-body read, explicit-only skill injection and disabled-plugin controls through the credential-free wire gateway. Long-path inventory and literal-quoted override failures were found and corrected; nested public package fixtures are disabled in the catalog with all eight real skills retained. See the [plugin report](docs/verification/2026-09-20-native-plugin.md). Production tool/file/process/network isolation and actual model/helper behavior remain open.
+- **Latest isolation result:** plugin checkpoint `5e3a047` is committed. [Native canaries](docs/verification/2026-09-20-native-boundary.md) fail qualification: the unelevated tool loop reads a dummy operator file and reaches an unapproved listener; a stricter profile refuses unsupported read restrictions. The prepared elevated sandbox command blocks the file read but still reaches the listener as CodexSandboxOffline. Existing active firewall rules do not establish enforcement. No live admission; an existing isolated-worker/VM location is requested while independent authorized work continues.
 - **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
 - **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
@@ -61,6 +62,8 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.1c.2 | AR/SI | Actual pinned Dovetail/native skills, tools, helpers and enforceable inherited-context boundaries | in_progress | Children preserve native discovery, invocation and helper/isolation contracts separately. F03/F07/F11/F16, N01/N03/N04/N06, C06/C18/C20; partial T01/T04/T07/T12. Synthetic native plumbing does not qualify live reasoning or security. |
 | M0.1c.2a | AR/QA | Native six-skill implicit catalog, two explicit-only skill injections, real skill-file/tool response, disabled-plugin and nested-fixture negatives | implemented_unverified | [Native plugin probe](tools/native_plugin_probe.py) and [evidence](docs/verification/2026-09-20-native-plugin.md). Pinned real CLI/plugin and synthetic provider; long-path Git inventory and inline TOML configuration tests pass. Preserve prior failures and source hashes. No production qualification. |
 | M0.1c.2b | AR/SI | Scoped native command/helper seam, clean contexts and denied file/process/network/operator/fixture access; immutable initial skills and admitted learned overlays | in_progress | The documented unelevated Windows sandbox permits the fixed public skill read in the fixture; it is not an established Strata private-data/egress boundary. Next: explicit synthetic canary adversarial checks and enforceable production boundary. Native collaboration/isolated helper equivalence and live use remain unqualified. |
+| M0.1c.2b.1 | AR/SI | Actual native Windows file/network canaries with permitted-workspace controls | implemented_unverified | [Five retained samples](docs/verification/2026-09-20-native-boundary.md): narrow file controls pass in the prepared elevated sandbox command, but the unapproved loopback endpoint is reachable. Unelevated named-read restrictions refuse startup. Probe implemented; required qualification result fail. Process/helper/alternate-path/IPC/egress matrix remains open. |
+| M0.1c.2b.2 | AR/SI | Enforceable native network boundary and exact agent/helper profile bootstrap | blocked | Actual unapproved loopback success persists as CodexSandboxOffline with matching enabled/enforced firewall rules. Do not treat labels or account separation as proof. Resolution: demonstrate denied canary access plus authorized scoped IPC on a suitable isolated worker, then complete adversarial coverage. Existing worker/VM location requested; no sandbox secrets copied or machine/firewall setup changed. |
 | M0.2a | GI | Bounded player/window projection, ray occlusion, filtered-map planning, ordinary mutation subset | in_progress | Filtered player/window observations, opaque fixed-capture spatial pages, bounded public signals, player-unlocked recipes and fixed crafting slot motor; placement and furnace/table opening implemented but authentic behavior unverified. Remaining action/movement/reconnect gaps persist. |
 | M0.2b | GI/QA | Journal, one executor/lane, ID/sequence/epoch fencing, stop/cancel and retained partial effects | in_progress | [Journal](backends/mineflayer/src/journal.ts), [lane](backends/mineflayer/src/actions.ts), fault fixtures pass; real interruption timings, corruption/disk faults, supervised termination and automatic resync open. |
 | M0.2c | GI/AR/RS | Real vanilla server, host action/helper, private milestone and full clocks/costs | in_progress | Actual official server, authenticated worker, scoped CLI, look/dig/flat movement and cancellation evidence in [long-horizon report](docs/verification/2026-09-18-long-horizon.md). Native model/helper, private authoritative milestone and complete clocks/costs still blocked; no gate pass. |
@@ -4119,3 +4122,34 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   No model reasoning, gameplay, immutable ACL, helper or adversarial isolation
   pass is implied. Next: M0.1c.2b synthetic canaries and enforceable boundaries;
   live OAuth monetary/exposure/spending-authority gates remain blocked.
+
+
+### 2026-09-20 — native boundary canaries preserve failed enforcement
+
+- Continued after plugin checkpoint `5e3a047`. Added actual native/tool-loop and
+  non-model sandbox canaries, with private synthetic files and a temporary owned
+  listener only. No account cache, real operator/evaluator material, installation,
+  outside endpoint or shared-desktop input is targeted.
+- Private `2026-09-20-native-boundary-01`: workspace controls pass, but the
+  unelevated agent command reads the operator dummy and connects to the listener.
+  Initial-file write denied; two synthetic dispatches settle, zero real USD.
+  `-02`: stricter named filesystem permissions refuse startup because this
+  unelevated implementation cannot enforce split read restrictions. No calls.
+- Existing enrollment was inspected without copying secrets or invoking setup.
+  Non-model sandbox sample `-03` fails its .NET-based fixture under constrained
+  PowerShell. Corrected cmdlet/system-curl probes `-04` and `-05` pass workspace
+  controls and deny private read/initial write, but still connect to the unapproved
+  listener. Sample -05 observes CodexSandboxOffline as the process identity.
+  These direct sandbox commands make no agent/model session or inference call.
+- Read-only ActiveStore inspection shows matching offline-account SID filters,
+  enabled/enforced Codex outbound/loopback rules, active firewall profiles, local
+  rule merging and running BFE/MpsSvc. Configuration is not a pass: the independent
+  listener confirms the violation. Exact enforcement cause remains unresolved.
+  No firewall, account, existing user config or setup policy was changed.
+- M0.1c.2b.1 implemented_unverified with qualification fail; .2b.2 blocked on an
+  enforceable boundary. F03/F07/F09/F11/F16, N01/N04/N06/N08, C06/C18/C20,
+  partial T04/T07/T12. All aggregate gates remain unchanged. Ruff passes.
+  [Results/reproduction](docs/verification/2026-09-20-native-boundary.md).
+  An existing isolated-worker/VM location is requested; the monetary-evidence
+  question remains pending too. Continue independent authorized reliability/game
+  work; keep the long-horizon goal active and preserve all failed samples.

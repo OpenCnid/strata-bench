@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.35](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.36](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -153,6 +153,18 @@ Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
 ## Original resumed task and retained acceptance criteria
+
+Independent reliability work after isolation checkpoint `fafd8c3` adds
+[owned-job stop proof](verification/2026-09-20-guardian-tree.md). Zero active
+accounting was observed before a child handle signaled; that failed sample is
+retained. The revised guardian requires complete held/signaled member counts
+within the original shared 500 ms wait. 52 Python, five additional inventory
+checks and 12 Node checks pass, plus package/Ruff/build checks. The fixed
+256-handle development bound, missed-member failures, authentic timing and
+production launch/isolation remain unqualified. Next apply the stronger proof
+to the synthetic native crash/restart fixture: its historical 13-to-zero counts
+are accounting evidence only. Then continue independent authentic reliability
+and mechanics with regenerated source pins while external inputs are pending.
 
 The user selected **M0.1c.1** first: bounded, zero-inference integration of the
 durable dispatch boundary into the actual pinned CLI's local synthetic transport.

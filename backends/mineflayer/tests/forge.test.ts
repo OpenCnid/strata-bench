@@ -1121,6 +1121,13 @@ test('actual guarded supervisor and worker expose only a public grant and termin
   assert.equal(timing.value.wait_result,'signaled'); assert.equal(timing.value.wait_bound_ms,500);
   assert.ok(timing.value.job_returned_after_ns <= timing.value.wait_started_after_ns);
   assert.ok(timing.value.wait_started_after_ns <= timing.value.wait_returned_after_ns);
+  assert.equal(timing.value.policy,'job-call-wait-tree-qpc/2');
+  assert.equal(timing.value.tree_result,'empty');assert.equal(timing.value.active_processes,0);
+  assert.ok(timing.value.total_processes>0);
+  assert.equal(timing.value.total_processes,timing.value.held_processes);
+  assert.equal(timing.value.held_processes,timing.value.signaled_processes);
+  assert.ok(timing.value.tree_checked_after_ns >= timing.value.wait_returned_after_ns);
+  assert.ok(timing.value.tree_checked_after_ns-timing.value.wait_started_after_ns <= 500_000_000);
   assert.equal(stopped.value.termination_confirmed,true); assert.equal(stopped.value.release_confirmed,false);
   assert.equal(stopped.value.reason,'PROCESS_STOP_REQUESTED');
   let previous = '0'.repeat(64);

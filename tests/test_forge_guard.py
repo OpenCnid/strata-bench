@@ -107,10 +107,14 @@ def test_frozen_native_thread_stops_even_while_supervisor_keeps_answering(game_j
                     reply(guard, item)
                     renewed += 1
                 elif item["kind"] == "termination_timing":
-                    assert item["policy"] == "job-call-wait-qpc/1"
+                    assert item["policy"] == "job-call-wait-tree-qpc/2"
                     assert item["job_succeeded"] and item["wait_result"] == "signaled"
                     assert item["wait_bound_ms"] == 500
                     assert 0 <= item["job_returned_after_ns"] <= item["wait_started_after_ns"] <= item["wait_returned_after_ns"]
+                    assert item["tree_result"] == "empty" and item["active_processes"] == 0
+                    assert 0 < item["total_processes"] == item["held_processes"] == item["signaled_processes"]
+                    assert item["wait_returned_after_ns"] <= item["tree_checked_after_ns"]
+                    assert item["tree_checked_after_ns"] - item["wait_started_after_ns"] <= 500_000_000
                 else:
                     assert item["kind"] == "stopped"
                     assert item["reason"] != "PROCESS_LEASE_EXPIRED"

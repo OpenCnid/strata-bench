@@ -69,9 +69,18 @@ bounded to 1024 bytes and both IO queues are bounded. Separate daemon IO threads
 keep blocked pipes from blocking the watchdog loop. Absolute expiry is converted
 once to a local monotonic deadline; renewals cannot extend it or the wall cap.
 
-The guard polls at 10 ms and waits at most 500 ms for the held root handle to
-signal termination after requesting job termination. OS scheduling can exceed
-these engineering targets; exact-profile measurements remain required. `stopped`
+The guard polls at 10 ms and requests job termination once. It requires both the
+held root handle to signal, zero active processes in the held Windows Job and
+signaled observation handles for every process in its cumulative accounting.
+At attachment, each guard poll and immediately before stopping, it retains
+read-only handles for the job's current members and verifies their membership.
+The inventory is capped at 256 lifetime handles; quota, truncated inventories,
+unavailable handles or missed short-lived members prevent a confirmed stop.
+These handles never grant termination by PID. Processes created before job
+attachment remain outside this proof. The root wait and subsequent checks share 500 ms; descendants
+receive no additional allowance. A late zero count, remaining descendants or
+query failure cannot confirm stop. OS scheduling can exceed these engineering
+targets; exact-profile measurements remain required. `stopped`
 events explicitly include `termination_confirmed`, `release_confirmed=false`,
 `requires_resync=true`, elapsed time and termination wait. Events on pipes are
 best-effort diagnostics, not a durable controller evidence journal. A guard
@@ -186,16 +195,25 @@ checkpoint from a Java exit code. Complete archival, disk-fault recovery and
 controller reconciliation remain .3c/.2c.2 work.
 
 The current Forge route also retains `guard_stop_requested` before pipe dispatch
-and `guard_termination_timing` from the guardian's `job-call-wait-qpc/1` policy.
+and `guard_termination_timing` from the guardian's `job-call-wait-tree-qpc/2` policy.
 The latter records the QPC start as a decimal string, clock resolution and relative
-nanosecond job/wait boundaries, the existing 500 ms wait bound and separate
-job/wait outcomes. The guardian queues it only after closing its owned handles.
+nanosecond job/wait/tree-check boundaries, the existing 500 ms wait bound,
+active/total/held/signaled process counts and separate job/wait/tree outcomes. A root failure leaves
+the tree check unstarted. A root success still needs `tree_result: empty` and a
+timely zero active count with total = held = signaled > 0. Zero accounting alone
+was observed before a child's process handle signaled; it is insufficient.
+An incomplete lifetime inventory is an explicit failure. On timeout the tree timestamp can mark the deadline check
+after the last accounting query; retain the last count as such, not a new query.
+The guardian queues it only after closing its owned handles.
 Node rejects duplicate/malformed/contradictory records and still requires a
-separate confirmed-stop receipt. Diagnostics alone cannot prove successful stop,
+separate confirmed-stop receipt plus timely empty-job evidence. Diagnostics alone cannot prove successful stop,
 input release or a clean checkpoint. Missing terminal evidence remains missing.
 Process-local call timing includes scheduling/wrapper overhead; UTC and the time
 another observer sees a record do not identify the kernel call's exact start.
 The base guardian does not emit this extra record. See the
 [direct timing report](../verification/2026-09-19-stop-boundaries.md) for actual
 checks and unresolved authentic failures. No deadline or gameplay capability is
-extended by this diagnostic.
+extended by this diagnostic. Historical policy-1 records remain evidence for
+their original candidates; they cannot pass the current supervisor contract.
+See the [owned-job report](../verification/2026-09-20-guardian-tree.md) for the
+new fixture checks and retained authentic stop failures.

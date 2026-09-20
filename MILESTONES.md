@@ -1,6 +1,6 @@
 # Strata implementation milestones and coverage ledger
 
-Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.35; maintenance rules: [AGENTS.md](AGENTS.md).
+Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.36; maintenance rules: [AGENTS.md](AGENTS.md).
 
 **Operator-only. Never expose this ledger or its linked private evidence to gameplay agents or their helpers.**
 
@@ -9,6 +9,7 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.35; maintenance rules: [
 - **Implementation resumed:** the user explicitly authorized continuing beyond the checkpoint and created the full M0–M6 long-horizon objective. Git fetch and GitHub PR metadata confirm PR #1 merged at `579796da40eeb9e6063196462767f60e9c87eac7`; clean worktree branch `codex/strata-native-dispatch` starts there. M7 remains conditional. Earlier evidence and failures remain in the append-only log and linked reports.
 - **Native plugin follow-up:** accounting checkpoint `66baa0f` is committed locally. M0.1c.2a now exercises actual native discovery, a fixed skill-body read, explicit-only skill injection and disabled-plugin controls through the credential-free wire gateway. Long-path inventory and literal-quoted override failures were found and corrected; nested public package fixtures are disabled in the catalog with all eight real skills retained. See the [plugin report](docs/verification/2026-09-20-native-plugin.md). Production tool/file/process/network isolation and actual model/helper behavior remain open.
 - **Latest isolation result:** plugin checkpoint `5e3a047` is committed. [Native canaries](docs/verification/2026-09-20-native-boundary.md) fail qualification: the unelevated tool loop reads a dummy operator file and reaches an unapproved listener; a stricter profile refuses unsupported read restrictions. The prepared elevated sandbox command blocks the file read but still reaches the listener as CodexSandboxOffline. Existing active firewall rules do not establish enforcement. No live admission; an existing isolated-worker/VM location is requested while independent authorized work continues.
+- **Independent guardian work:** isolation checkpoint `fafd8c3` is committed. [Owned-job stop proof](docs/verification/2026-09-20-guardian-tree.md) now requires every accounted process to have a signaled held handle, within the same 500 ms root/tree wait. Two initial fixture-count failures and a real count-only false confirmation are retained. Final 52 Python, five additional inventory checks and 12 Node checks pass; no authentic Minecraft qualification. Next strengthen the synthetic native crash fence using this result, then continue authentic reliability/mechanic work with new source pins.
 - **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
 - **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
@@ -212,6 +213,12 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.3b.3.2.4a | GI/QA | Authentic quest book open, chapter/detail, text, back/close, dedup and retained resource effects | in_progress | [Third authentic trial](docs/verification/2026-09-19-native-quest-cancel.md) passes all five quest mutations, readable text and dedup through scoped CLI. Six total intents/39 primitives including cancelled walk reconcile; 256 saved IDs, settled pose and selected inventory agree. Prior CTM startup crash and stale-catalog harness failure retained; corrected refresh and 19 focused Java checks pass. Full rendered UI, resource/failure-path and isolation evidence remain open; overall run fails cancellation-before-arrival and guardian shutdown. |
 | M0.3b.3.2.4b | GI/RS/QA | Remaining authentic quest/task/choice/JEI/custom menus, occupied crafting, machine/resource mechanics, rendered parity, private server references and isolation | not_started | Preserve all .3.2 contracts and required failure cases. Basic quest navigation cannot substitute for submissions/claims, custom content, modded crafting/energy/fluid transactions or independent causal/resource verification. |
 
+Guardian continuation child:
+
+| ID | Owner | Scope / affected coverage | Status | Evidence / next action |
+|---|---|---|---|---|
+| M0.3b.2c.3c.2b.2b.2.2 | GI/QA | Owned-job accounting plus complete held-member exit proof within the existing 500 ms bound; F09/F16, N01/N03/N04/N05/N06/N08, C14/C15/C18, partial T01/T07/T12/T13 | implemented_unverified | [Code, failed samples and fixture checks](docs/verification/2026-09-20-guardian-tree.md): membership-verified observation handles, cumulative completeness and strict Node evidence. Actual JVM cases pass after zero-count-only proof failed. Authentic timing, inventory completeness/quota suitability and production launch/isolation remain open; do not reinterpret historical policy-1 records as current proof. |
+
 ### Independent core implementation children
 
 These children advance authorized software work while real M0 dependencies remain unavailable. They do not bypass milestone dependencies or integration gates.
@@ -248,6 +255,13 @@ These children advance authorized software work while real M0 dependencies remai
 | M5.1 | RS/PL | Offline report reconstruction/publication and operator commands/runbook | in_progress | [Command/report tests](tests/test_operator_commands.py); no pilot or confirmation, complete evidence audit/report still open. |
 
 ## Requirement coverage
+
+September 20 owned-job delta — F09/F16, N01/N03/N04/N05/N06/N08:
+[guardian proof](docs/verification/2026-09-20-guardian-tree.md) advances child
+M0.3b.2c.3c.2b.2b.2.2. Root exit or zero active accounting alone is insufficient;
+the final candidate reconciles cumulative totals with held, signaled member
+handles under the existing bound. Fixture evidence passes; authentic behavior,
+inventory completeness and all aggregate requirement statuses remain open.
 
 Checkpoint accounting addendum: M0.1c.1a advances partial F03/F11/F16 and N01/N03/N04/N06 through [durable private dispatch accounting](docs/verification/2026-09-19-inference-dispatch.md). Synthetic reservation/receipt/recovery tests pass; production host, clocks, monetary semantics and isolation remain unqualified. No parent status or release gate is promoted.
 
@@ -374,6 +388,12 @@ all thirteen canonical records, gameplay affordances and aggregate statuses rema
 | N08 | Durable bounded private storage; no silent evidence deletion | PL | M1, M2 | T07, T13 | in_progress | [Private CAS/outbox](src/mcbench/storage.py), quota-before-write/checkpoint commits and M0.3b.2a forced native intent/delivery/event journal. Native development ceiling fences instead of discarding evidence; archival/rotation, complete disk exhaustion/retention and deployment controls remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. |
 
 ## Feature coverage beyond requirement titles
+
+September 20 C14/C15/C18 delta: [complete owned-member stop evidence](docs/verification/2026-09-20-guardian-tree.md)
+adds bounded read-only handles and strict private proof. Missing members, late
+proof, unsignaled children and query failures never yield confirmed termination.
+No clean checkpoint, input release, refunded cost or new gameplay capability is
+implied. Pre-attachment and adversarial launch containment remain separate.
 
 C09/C14/C15/C18/C19: [paired modded block failure and candidate repair](docs/verification/2026-09-19-paired-block-reference.md)
 add independent boundary saves, retained uncertainty, actual stop timing and
@@ -504,6 +524,13 @@ Each domain inherits SPEC section 10's authentication/authorization, version neg
 | Agent runtime | Inspect/start/deliver/events/interrupt/export/resume/helpers/stop | in_progress | [Read-only inspection/turn-usage reader](src/mcbench/runtime.py); start/deliver/helper/isolation/interrupt/resume adapter not implemented. |
 
 ## Test suites and release gates
+
+September 20 guardian delta: partial T01/T07/T12/T13 only. Initial runs retain
+46 pass/two fixture failures and 47 pass/one count-only false-confirmation failure.
+The revised candidate passes 52 Python checks, five subsequently added inventory
+checks, 12 Node checks, one gameplay-package check and Ruff. Offline fixture
+compilation/TypeScript build pass. [Exact evidence and limits](docs/verification/2026-09-20-guardian-tree.md).
+G0 remains fail; G1–G5 remain not_run; no full test suite is promoted.
 
 September 19 source checkpoint: [review and environment](docs/STATUS_AND_HANDOFF.md), 738 Python / 166 Node / 445 Java tests, no skips, Ruff pass. The [dispatch child](docs/verification/2026-09-19-inference-dispatch.md) covers local positive/negative reservation, scope, concurrency, unknown-cost and crash cases for partial T01/T04/T07/T12. Complete integration suites and G0–G5 retain their existing results.
 
@@ -656,6 +683,17 @@ September 19 route-cancel addendum: [fresh bounded trial](docs/verification/2026
 September 19 native-budget addendum: [exact CLI/schema and two local provider probes](docs/verification/2026-09-19-native-budget.md) cover synthetic rejection/retry transport with no paid model or credentials. Turn-start and actual requests lack an output-token bound; no authenticated monetary/call-exposure proof exists. T04/T12 remain incomplete; no all-call gateway qualification or live host admission.
 
 ## Blockers, open decisions, and change history
+
+**Owned-member proof, 2026-09-20:** GI/QA own child
+M0.3b.2c.3c.2b.2b.2.2. A real fixture disproves zero-job-accounting as complete
+process exit proof. SPEC v0.2.36 requires complete signaled member handles plus
+zero active accounting at the unchanged 500 ms bound. The bounded implementation
+passes fixtures but must fail on incomplete observation or more than 256 lifetime
+members; real workload suitability remains unqualified. Previous native crash
+13-to-zero counts retain their narrow accounting meaning. Next strengthen that
+fixture's recovery fence, then qualify authentic guardian behavior; all previous
+stop failures remain. This implementation choice grants no new live/model/input
+authorization and removes no acceptance requirement.
 
 **Native accounting continuation, 2026-09-20:** AR/PL/SI own M0.1c.1c.
 The user explicitly resumed the full M0–M6 objective beyond merged PR #1;
@@ -4153,3 +4191,36 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   An existing isolated-worker/VM location is requested; the monetary-evidence
   question remains pending too. Continue independent authorized reliability/game
   work; keep the long-horizon goal active and preserve all failed samples.
+
+### 2026-09-20 — owned-job exit proof and retained counterexample
+
+- Continued after isolation checkpoint `fafd8c3` on the active M0–M6 goal.
+  Added M0.3b.2c.3c.2b.2b.2.2, SPEC v0.2.36 and the linked report/runbook.
+  F09/F16, N01/N03/N04/N05/N06/N08, C14/C15/C18 and partial T01/T07/T12/T13.
+- Initial private `2026-09-20-guardian-tree-01`: 46 pass/two fixture failures;
+  the actual job contains three members, not the assumed two. `-02`: 47 pass/
+  one real false-confirmation failure. Zero active accounting preceded the
+  independently held child's signaled exit after its root had exited normally.
+  Both failures remain; the terminal zero/500 ms requirements are not relaxed.
+- WindowsJob now retains only membership-verified read-only handles, within a
+  256-lifetime-member bound. Guardian stop requires cumulative total = held =
+  signaled > 0 and zero active processes. Root/tree checks share one 500 ms wait;
+  no repeated terminate or new allowance. Missing members, unsignaled/late exit,
+  inventory/query errors and quota exhaustion fail closed. No PID-based kill,
+  process arguments, credentials or shared-desktop input is involved.
+- Private `-03`: 52 Python pass, zero skips, 34.06 s; five additional synthetic
+  member-inventory checks pass in 0.05 s. Direct owned JVM tests reconcile three
+  handles at 21.3362/21.3316 ms; no delayed marker mutation. Twelve selected Node
+  tests pass, zero skips, 27.034 s, including six guarded process integrations.
+  Native-freeze/worker-kill/worker-hang/parent-kill detection-to-exit measurements
+  are 1027/44/1818/37 ms, distinct from the stop wait. Ruff, TypeScript and one
+  gameplay-package check pass. Offline pinned Java fixture compilation succeeds
+  with eight existing API warnings; the full Java suite was not rerun.
+- [Report](docs/verification/2026-09-20-guardian-tree.md) preserves previous
+  authentic stop failures and the new inventory limitations. No model call,
+  Minecraft launch, milestone or aggregate gate pass. Historical native crash
+  zero-count evidence cannot establish complete handle exit; strengthen that
+  synthetic fence next, then continue independent reliability/mechanic work.
+- Final review places the guard's clock read after member observation to prevent
+  using a stale lease/deadline time. Five relevant lease/challenge/cleanup checks
+  pass again, 6.74 s; private source manifest explicitly records this final edit.

@@ -56,10 +56,12 @@ export function recordGuardFailure(evidence: SupervisorEvidence, message: Record
 /** Diagnostic timestamps never replace a separate confirmed-stop receipt. */
 export function recordTerminationTiming(evidence: SupervisorEvidence, message: Record<string,unknown>): string {
   fields(message,['schema','kind','policy','started_qpc_ns','clock_resolution_ns','wait_bound_ms',
-    'job_succeeded','job_returned_after_ns','wait_started_after_ns','wait_returned_after_ns','wait_result']);
+    'job_succeeded','job_returned_after_ns','wait_started_after_ns','wait_returned_after_ns','wait_result',
+    'tree_checked_after_ns','active_processes','tree_result',
+    'total_processes','held_processes','signaled_processes']);
   const duration = (value:unknown):value is number => Number.isSafeInteger(value) && Number(value)>=0;
   requireThat(message.schema === 'strata/ProcessGuardEvent/1' && message.kind === 'termination_timing'
-    && message.policy === 'job-call-wait-qpc/1' && typeof message.started_qpc_ns === 'string'
+    && message.policy === 'job-call-wait-tree-qpc/2' && typeof message.started_qpc_ns === 'string'
     && /^(0|[1-9][0-9]{0,19})$/.test(message.started_qpc_ns)
     && BigInt(message.started_qpc_ns)<=18446744073709551615n
     && duration(message.clock_resolution_ns) && message.clock_resolution_ns>0 && message.clock_resolution_ns<=1000000
@@ -75,8 +77,29 @@ export function recordTerminationTiming(evidence: SupervisorEvidence, message: R
     requireThat(message.wait_started_after_ns === null && message.wait_returned_after_ns === null
       && message.wait_result === 'not_started', 'PROCESS_GUARD_PROTOCOL');
   }
+  if (message.wait_result === 'signaled') {
+    const counts=[message.active_processes,message.total_processes,message.held_processes,message.signaled_processes];
+    const counted=counts.every(duration) && Number(message.active_processes)<=Number(message.total_processes)
+      && Number(message.signaled_processes)<=Number(message.held_processes)
+      && Number(message.held_processes)<=Number(message.total_processes) && Number(message.held_processes)<=256;
+    requireThat(duration(message.tree_checked_after_ns)
+      && message.tree_checked_after_ns>=Number(message.wait_returned_after_ns)
+      && (counted || counts.every(x=>x===null))
+      && typeof message.tree_result==='string' && ['empty','timeout','error','incomplete'].includes(message.tree_result),
+    'PROCESS_GUARD_PROTOCOL');
+    if (message.tree_result==='empty') requireThat(counted && message.active_processes===0
+      && Number(message.total_processes)>0 && message.total_processes===message.held_processes
+      && message.held_processes===message.signaled_processes
+      && message.tree_checked_after_ns-Number(message.wait_started_after_ns)<=500_000_000,
+    'PROCESS_GUARD_PROTOCOL');
+  } else {
+    requireThat(message.tree_result==='not_started' && message.tree_checked_after_ns===null
+      && message.active_processes===null && message.total_processes===null
+      && message.held_processes===null && message.signaled_processes===null,'PROCESS_GUARD_PROTOCOL');
+  }
   evidence.event('guard_termination_timing',message);
-  return message.wait_result as string;
+  return message.wait_result==='signaled' && message.tree_result!=='empty'
+    ? `tree_${message.tree_result}` : message.wait_result as string;
 }
 
 /** Dedicated Java lifetime owner, independent of the worker event loop. */

@@ -1,0 +1,286 @@
+{
+  "$defs": {
+    "Loader": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "forge",
+            "none"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "Loader",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/PackLock/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "lock_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Lock Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "sealed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "provider": {
+      "const": "curseforge",
+      "title": "Provider",
+      "type": "string"
+    },
+    "pack_slug": {
+      "title": "Pack Slug",
+      "type": "string"
+    },
+    "release": {
+      "title": "Release",
+      "type": "string"
+    },
+    "project_id": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Project Id"
+    },
+    "client_file_id": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Client File Id"
+    },
+    "server_file_id": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Server File Id"
+    },
+    "minecraft": {
+      "title": "Minecraft",
+      "type": "string"
+    },
+    "loader": {
+      "$ref": "#/$defs/Loader"
+    },
+    "source_revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Source Revision"
+    },
+    "distribution_refs": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Distribution Refs",
+      "type": "array"
+    },
+    "resolved_inventory": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resolved Inventory"
+    },
+    "installed_root_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Installed Root Digest"
+    },
+    "java": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Pin"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "launcher": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Pin"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "launch_profile": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Launch Profile"
+    },
+    "expert_assertions": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expert Assertions"
+    },
+    "harness_additions": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Harness Additions",
+      "type": "array"
+    },
+    "acquisition_report": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Acquisition Report"
+    },
+    "sealed_at": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Sealed At"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "lock_id",
+    "status",
+    "provider",
+    "pack_slug",
+    "release",
+    "project_id",
+    "client_file_id",
+    "server_file_id",
+    "minecraft",
+    "loader",
+    "source_revision",
+    "distribution_refs",
+    "resolved_inventory",
+    "installed_root_digest",
+    "java",
+    "launcher",
+    "launch_profile",
+    "expert_assertions",
+    "harness_additions",
+    "acquisition_report",
+    "sealed_at"
+  ],
+  "title": "PackLock",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,246 @@
+{
+  "$defs": {
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "active_wall_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Active Wall S",
+          "type": "integer"
+        },
+        "input_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "model_calls": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Model Calls",
+          "type": "integer"
+        },
+        "primitive_events": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Primitive Events",
+          "type": "integer"
+        },
+        "avatar_ticks": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Avatar Ticks",
+          "type": "integer"
+        },
+        "practice_world_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Practice World S",
+          "type": "integer"
+        },
+        "spend_microusd": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spend Microusd"
+        }
+      },
+      "required": [
+        "active_wall_s",
+        "input_tokens",
+        "output_tokens",
+        "model_calls",
+        "primitive_events",
+        "avatar_ticks",
+        "practice_world_s",
+        "spend_microusd"
+      ],
+      "title": "Limits",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/EvaluationProtocol/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "protocol_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Protocol Id",
+      "type": "string"
+    },
+    "visibility": {
+      "const": "evaluator",
+      "title": "Visibility",
+      "type": "string"
+    },
+    "preregistered_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Preregistered At",
+      "type": "string"
+    },
+    "system_digests": {
+      "items": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "System Digests",
+      "type": "array"
+    },
+    "suite_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Suite Digest",
+      "type": "string"
+    },
+    "sealed_instances": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Sealed Instances",
+      "type": "string"
+    },
+    "scorer": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Scorer",
+      "type": "string"
+    },
+    "family_weights": {
+      "additionalProperties": {
+        "exclusiveMinimum": 0,
+        "type": "number"
+      },
+      "title": "Family Weights",
+      "type": "object"
+    },
+    "exposure_s": {
+      "items": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "title": "Exposure S",
+      "type": "array"
+    },
+    "primary_checkpoint_s": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Primary Checkpoint S",
+      "type": "integer"
+    },
+    "probe_limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "artifact_projection": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Artifact Projection",
+      "type": "string"
+    },
+    "control_keymap": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Control Keymap"
+    },
+    "primary_estimand": {
+      "const": "paired_success_gain",
+      "title": "Primary Estimand",
+      "type": "string"
+    },
+    "sample_plan": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Sample Plan",
+      "type": "string"
+    },
+    "randomization_plan": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Randomization Plan",
+      "type": "string"
+    },
+    "censoring_plan": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Censoring Plan",
+      "type": "string"
+    },
+    "alpha": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Alpha",
+      "type": "number"
+    },
+    "min_effect": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Min Effect",
+      "type": "number"
+    },
+    "retention_margin": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Retention Margin",
+      "type": "number"
+    },
+    "analysis_plan": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Analysis Plan",
+      "type": "string"
+    },
+    "access_log": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Access Log",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "protocol_id",
+    "visibility",
+    "preregistered_at",
+    "system_digests",
+    "suite_digest",
+    "sealed_instances",
+    "scorer",
+    "family_weights",
+    "exposure_s",
+    "primary_checkpoint_s",
+    "probe_limits",
+    "artifact_projection",
+    "control_keymap",
+    "primary_estimand",
+    "sample_plan",
+    "randomization_plan",
+    "censoring_plan",
+    "alpha",
+    "min_effect",
+    "retention_margin",
+    "analysis_plan",
+    "access_log"
+  ],
+  "title": "EvaluationProtocol",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,8 @@
+{
+  "required": false,
+  "minVersion": "0.8.5",
+  "package": "io.github.opencnid.strata.client.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": ["JeiLayoutsDrawMixin", "JeiSlotDrawMixin", "JeiScreenDrawMixin", "JeiCategoryDrawMixin", "JeiHeaderDrawMixin", "JeiControlDrawMixin", "JeiButtonFactoryMixin", "JeiInputRouterMixin", "JeiButtonInputMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

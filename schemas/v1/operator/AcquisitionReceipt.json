@@ -1,0 +1,149 @@
+{
+  "$defs": {
+    "DistributionInput": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "client",
+            "server"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "file_id": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "File Id"
+        },
+        "license_ref": {
+          "minLength": 1,
+          "title": "License Ref",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Evidence Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "path",
+        "sha256",
+        "origin",
+        "file_id",
+        "license_ref",
+        "evidence_ref"
+      ],
+      "title": "DistributionInput",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/AcquisitionReceipt/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "provider": {
+      "const": "curseforge",
+      "title": "Provider",
+      "type": "string"
+    },
+    "target": {
+      "enum": [
+        "vanilla",
+        "e9e"
+      ],
+      "title": "Target",
+      "type": "string"
+    },
+    "distributions": {
+      "items": {
+        "$ref": "#/$defs/DistributionInput"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Distributions",
+      "type": "array"
+    },
+    "launcher": {
+      "$ref": "#/$defs/Pin"
+    },
+    "java": {
+      "$ref": "#/$defs/Pin"
+    },
+    "official_workflow_evidence": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Official Workflow Evidence",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "request_id",
+    "provider",
+    "target",
+    "distributions",
+    "launcher",
+    "java",
+    "official_workflow_evidence"
+  ],
+  "title": "AcquisitionReceipt",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,116 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/SkillRevision/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "revision_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Revision Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "parent_revision_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Revision Id"
+    },
+    "kind": {
+      "enum": [
+        "initial",
+        "notes",
+        "procedure",
+        "executable",
+        "handoff"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "content": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Content",
+      "type": "string"
+    },
+    "provenance_refs": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Provenance Refs",
+      "type": "array"
+    },
+    "generating_call_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+        "type": "string"
+      },
+      "title": "Generating Call Ids",
+      "type": "array"
+    },
+    "origin": {
+      "enum": [
+        "initial",
+        "campaign",
+        "practice",
+        "probe"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "active",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "activated_at": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Activated At"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "revision_id",
+    "agent_id",
+    "parent_revision_id",
+    "kind",
+    "content",
+    "provenance_refs",
+    "generating_call_ids",
+    "origin",
+    "status",
+    "activated_at"
+  ],
+  "title": "SkillRevision",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

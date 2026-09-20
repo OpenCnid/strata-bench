@@ -1,0 +1,13 @@
+{
+  "schema": "strata/ExecutionAuthorization/1",
+  "authorization_id": "validation-2026-09-18",
+  "decision_id": "D04",
+  "provider": "openai",
+  "auth_mode": "chatgpt_oauth",
+  "models": ["gpt-5.6-luna"],
+  "total_spend_microusd": 10000000,
+  "currency": "USD",
+  "scope": "live_validation",
+  "includes": ["development", "training", "evaluation"],
+  "unknown_metering": "block"
+}

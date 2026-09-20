@@ -1,0 +1,90 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/ExecutionAuthorization/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "authorization_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "decision_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "provider": {
+      "const": "openai",
+      "title": "Provider",
+      "type": "string"
+    },
+    "auth_mode": {
+      "enum": [
+        "chatgpt_oauth",
+        "api_key"
+      ],
+      "title": "Auth Mode",
+      "type": "string"
+    },
+    "models": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Models",
+      "type": "array"
+    },
+    "total_spend_microusd": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Total Spend Microusd",
+      "type": "integer"
+    },
+    "currency": {
+      "const": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "scope": {
+      "const": "live_validation",
+      "title": "Scope",
+      "type": "string"
+    },
+    "includes": {
+      "items": {
+        "enum": [
+          "development",
+          "training",
+          "evaluation"
+        ],
+        "type": "string"
+      },
+      "title": "Includes",
+      "type": "array"
+    },
+    "unknown_metering": {
+      "const": "block",
+      "title": "Unknown Metering",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "authorization_id",
+    "decision_id",
+    "provider",
+    "auth_mode",
+    "models",
+    "total_spend_microusd",
+    "currency",
+    "scope",
+    "includes",
+    "unknown_metering"
+  ],
+  "title": "ExecutionAuthorization",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

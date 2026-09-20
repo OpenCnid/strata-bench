@@ -1,0 +1,178 @@
+{
+  "$defs": {
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/AgentConfig/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "system_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "System Digest",
+      "type": "string"
+    },
+    "runtime": {
+      "$ref": "#/$defs/Pin"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "requested_model": {
+      "title": "Requested Model",
+      "type": "string"
+    },
+    "immutable_model_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Immutable Model Id"
+    },
+    "identity_assurance": {
+      "enum": [
+        "immutable",
+        "provider_version_unverified"
+      ],
+      "title": "Identity Assurance",
+      "type": "string"
+    },
+    "inference_config": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Inference Config",
+      "type": "string"
+    },
+    "dovetail_commit": {
+      "title": "Dovetail Commit",
+      "type": "string"
+    },
+    "dovetail_version": {
+      "title": "Dovetail Version",
+      "type": "string"
+    },
+    "initial_skills": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Initial Skills",
+      "type": "string"
+    },
+    "learned_overlay": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Learned Overlay"
+    },
+    "memory_policy": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Memory Policy",
+      "type": "string"
+    },
+    "capability_profile": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Capability Profile",
+      "type": "string"
+    },
+    "account_ref": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Account Ref",
+      "type": "string"
+    },
+    "provider_auth_ref": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Provider Auth Ref",
+      "type": "string"
+    },
+    "helper_limit": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Helper Limit",
+      "type": "integer"
+    },
+    "helper_depth": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Helper Depth",
+      "type": "integer"
+    },
+    "self_play": {
+      "title": "Self Play",
+      "type": "boolean"
+    },
+    "resume_mode": {
+      "enum": [
+        "session",
+        "fresh_handoff"
+      ],
+      "title": "Resume Mode",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "agent_id",
+    "system_digest",
+    "runtime",
+    "provider",
+    "requested_model",
+    "immutable_model_id",
+    "identity_assurance",
+    "inference_config",
+    "dovetail_commit",
+    "dovetail_version",
+    "initial_skills",
+    "learned_overlay",
+    "memory_policy",
+    "capability_profile",
+    "account_ref",
+    "provider_auth_ref",
+    "helper_limit",
+    "helper_depth",
+    "self_play",
+    "resume_mode"
+  ],
+  "title": "AgentConfig",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

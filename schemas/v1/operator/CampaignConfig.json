@@ -1,0 +1,311 @@
+{
+  "$defs": {
+    "BackendProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "mineflayer",
+            "forge_client",
+            "os_input"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "implementation": {
+          "$ref": "#/$defs/Pin"
+        },
+        "capability_manifest": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Capability Manifest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "implementation",
+        "capability_manifest"
+      ],
+      "title": "BackendProfile",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "active_wall_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Active Wall S",
+          "type": "integer"
+        },
+        "input_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "model_calls": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Model Calls",
+          "type": "integer"
+        },
+        "primitive_events": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Primitive Events",
+          "type": "integer"
+        },
+        "avatar_ticks": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Avatar Ticks",
+          "type": "integer"
+        },
+        "practice_world_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Practice World S",
+          "type": "integer"
+        },
+        "spend_microusd": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spend Microusd"
+        }
+      },
+      "required": [
+        "active_wall_s",
+        "input_tokens",
+        "output_tokens",
+        "model_calls",
+        "primitive_events",
+        "avatar_ticks",
+        "practice_world_s",
+        "spend_microusd"
+      ],
+      "title": "Limits",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/CampaignConfig/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "lineage_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Lineage Id",
+      "type": "string"
+    },
+    "cohort_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Cohort Id",
+      "type": "string"
+    },
+    "system_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "System Digest",
+      "type": "string"
+    },
+    "pack_lock": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Pack Lock",
+      "type": "string"
+    },
+    "protocol_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Protocol Ref",
+      "type": "string"
+    },
+    "world_baseline": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "World Baseline",
+      "type": "string"
+    },
+    "track": {
+      "enum": [
+        "structured-actions/v1",
+        "pixels-input-settings/v1",
+        "pixels-os/v1",
+        "semantic-assisted/v1"
+      ],
+      "title": "Track",
+      "type": "string"
+    },
+    "backend": {
+      "$ref": "#/$defs/BackendProfile"
+    },
+    "n": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "N",
+      "type": "integer"
+    },
+    "agent_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+        "type": "string"
+      },
+      "title": "Agent Ids",
+      "type": "array"
+    },
+    "topology": {
+      "const": "shared_cooperative",
+      "title": "Topology",
+      "type": "string"
+    },
+    "information_policy": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Information Policy",
+      "type": "string"
+    },
+    "communication_policy": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Communication Policy",
+      "type": "string"
+    },
+    "runtime_profile": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Runtime Profile",
+      "type": "string"
+    },
+    "budget_policy": {
+      "enum": [
+        "fixed_team",
+        "fixed_per_agent"
+      ],
+      "title": "Budget Policy",
+      "type": "string"
+    },
+    "training_team_limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "per_agent_limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "evaluation_limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "checkpoints_active_s": {
+      "items": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "title": "Checkpoints Active S",
+      "type": "array"
+    },
+    "episode_s": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Episode S",
+      "type": "integer"
+    },
+    "checkpoint_period_s": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Checkpoint Period S",
+      "type": "integer"
+    },
+    "admission": {
+      "enum": [
+        "queue",
+        "reject"
+      ],
+      "title": "Admission",
+      "type": "string"
+    },
+    "drift_policy": {
+      "const": "split_quarantine",
+      "title": "Drift Policy",
+      "type": "string"
+    },
+    "recovery_policy": {
+      "enum": [
+        "terminate_confirmatory",
+        "resume_development"
+      ],
+      "title": "Recovery Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "campaign_id",
+    "lineage_id",
+    "cohort_id",
+    "system_digest",
+    "pack_lock",
+    "protocol_ref",
+    "world_baseline",
+    "track",
+    "backend",
+    "n",
+    "agent_ids",
+    "topology",
+    "information_policy",
+    "communication_policy",
+    "runtime_profile",
+    "budget_policy",
+    "training_team_limits",
+    "per_agent_limits",
+    "evaluation_limits",
+    "checkpoints_active_s",
+    "episode_s",
+    "checkpoint_period_s",
+    "admission",
+    "drift_policy",
+    "recovery_policy"
+  ],
+  "title": "CampaignConfig",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

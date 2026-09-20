@@ -1,0 +1,19 @@
+{
+  "schema": "strata/ForgeBuildInputs/1",
+  "forge_cache_sha256": {
+    "deobf_dependencies/mezz/jei/jei-1.19.2-common-api/11.8.1.1034_mapped_official_1.19.2/jei-1.19.2-common-api-11.8.1.1034_mapped_official_1.19.2.jar": "675f184582a1407460511b65060c60790c1491745bc4f5a4660c15c322b5f504",
+    "minecraft_repo/versions/1.19.2/client.jar": "e1ac65de9b471b6916cc457fdcff00c1bafac17027aa79100c4df893b3d956db",
+    "minecraft_repo/versions/1.19.2/client_mappings.txt": "c5db94c44c1ce6c5d3bfce64152831090310c202f4abe4375adbb3454afcec76",
+    "minecraft_repo/versions/1.19.2/server_mappings.txt": "e3e93dac4d886924ff3b81ce5d210925b9e4112776fdef4d0e6d5fefb062a879",
+    "minecraft_repo/versions/1.19.2/mcp.zip": "fd4cf084b96492de87499b49d1ae5896ef14a3f85b5462d2842d7b193fba9135",
+    "maven_downloader/de/oceanlabs/mcp/mcp_config/1.19.2-20220805.130853/mcp_config-1.19.2-20220805.130853.zip": "fd4cf084b96492de87499b49d1ae5896ef14a3f85b5462d2842d7b193fba9135",
+    "maven_downloader/net/minecraftforge/forge/1.19.2-43.4.23/forge-1.19.2-43.4.23-sources.jar": "663e58cdde75ce06f4713cfcedea4414c39d17adcfddcfa81c6da5adcd59102f",
+    "maven_downloader/net/minecraftforge/forge/1.19.2-43.4.23/forge-1.19.2-43.4.23-universal.jar": "541d9db293276fda035e0b9274d6b66b166f716d798048fd9986ea172c2880cf",
+    "maven_downloader/net/minecraftforge/forge/1.19.2-43.4.23/forge-1.19.2-43.4.23-userdev.jar": "12c286506ea349fa4c9ef10473409d650c56b96e8b0b0de37ac28c419c5d3608"
+  },
+  "compiler": {
+    "profile": "windows-x64-temurin-17.0.20.1+1",
+    "javac_sha256": "9c71eee841aeebb723bfc2cceca7d72c6c1988fb679402f4123aa4d0e86aa549"
+  },
+  "wrapper_sha256": "ed2c26eba7cfb93cc2b7785d05e534f07b5b48b5e7fc941921cd098628abca58"
+}

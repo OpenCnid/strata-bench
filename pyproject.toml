@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "strata-bench"
+version = "0.1.0"
+description = "Strata Minecraft adaptation benchmark — operator tooling"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic==2.12.5",
+    "rfc8785==0.1.4",
+    "typer==0.21.1",
+]
+
+[project.scripts]
+mcbench = "mcbench.cli:app"
+
+[dependency-groups]
+dev = ["pytest==9.0.2", "ruff==0.14.14"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcbench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["evaluator/src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100

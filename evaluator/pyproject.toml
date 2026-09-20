@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "strata-evaluator"
+version = "0.1.0"
+description = "Private Strata evaluator; never install in gameplay runtimes"
+requires-python = ">=3.12,<3.13"
+dependencies = ["strata-bench==0.1.0"]
+
+[project.scripts]
+strata-evaluate = "strata_evaluator.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/strata_evaluator"]

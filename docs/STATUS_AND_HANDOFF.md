@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.57](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.58](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -21,6 +21,8 @@ to `579796d`. Continue this branch and preserve its unmerged commits; publicatio
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
+
+**D11 supersedes the missing-input interpretation below:** the user confirms no outside Strata model experiments and says $10 was a rough model-price estimate of subscription usage. Record zero opening experimental usage using that statement plus inspected synthetic-only runs; keep the original aggregate allowance. Implement explicit API-equivalent estimate semantics, conservative unresolved-call reservations and a small initial trial allocation. Legacy authorization code has not yet been migrated, so no live qualification is claimed. Isolation remains an implementation task to protect evaluator/admin/credential/sibling access; the user questioned its purpose but did not waive it. Do not insist on a user-supplied VM or exact OAuth-dollar billing evidence. Review the smallest enforceable capability boundary for the selected native runtime and helpers. No game/model dispatch occurred during this clarification.
 
 **Blocked as of 14:14 CDT September 20:** the same external admission conditions persist across three goal turns. No active Java process or newly qualified worker/operator input was found. Resume when the pending isolated worker/helper environment and authoritative original-project spending/qualified OAuth-bound inputs are supplied. Then revalidate them before dispatch; preserve the full M0–M6 objective, M7 conditions, failed guardian sample and remaining source/config/scorer gates. This is not completion.
 

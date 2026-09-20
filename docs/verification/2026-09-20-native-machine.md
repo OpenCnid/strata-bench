@@ -24,6 +24,8 @@ No shared-desktop input, paid inference or campaign admission occurs.
 | operation-01 | Harness supplies settings fingerprint in the game domain; fails before worker admission, zero native intents | Typed startup failure; resources unchanged, server saves, Java zero, arguments retired; 404.516 s retained |
 | operation-02 | Chest opens through scoped API; ordinary quick-move transfers three dust into player inventory. Harness then wrongly requires `completed` instead of the pinned Forge terminal `emitted` | Overall fail; transfer independently reconciled, not replayed. Two intents, eight charged primitives/seven usage records, twelve CLI calls; 514.437 s retained |
 | operation-03 | Client joins, but worker misses the fixed 2,250 ms bootstrap bound before any gateway or action | Fail; zero native intents, entire player inventory unchanged, three dust retained, furnace empty/20,000 RF; 417.546 s retained |
+| operation-04 | Operator omitted session preparation; client driver rejects the missing file after server startup, before launching Minecraft | Fail; no client/worker/native intents or session argument file; normal server stop and exact unchanged player/selected-region bytes; 173.954 s retained |
+| operation-05 | Updated worker and explicit pre-server artifact/session preflight; prepared session verified before launch | Running; same saved resources, no reset/replenishment or forward replay |
 
 In operation-02 the client readiness checks pass in 242.079 s with no startup
 read failures, and the private world frame is captured. The receipt for the
@@ -65,6 +67,15 @@ qualification result. Raw client log and selected immutable final region are
 retained. No action is replayed. The next attempt requires a concrete startup
 change and relevant checks; [schema startup work](2026-09-20-worker-schema-startup.md)
 does not itself pass authentic timing or the machine gate.
+
+Operation-04 is a harness sequencing error, not an authentic worker-startup
+measurement. The corrected private orchestrator verifies prepared session bytes,
+remaining lifetime (including bounded server startup), artifact and broker pins
+before it can start the server; the client driver rechecks these before its own
+launch. Operation-05 has an actual prepared session and retains all four prior
+attempts. No input or timing threshold changes. The private preparer's initial
+Python string-escape syntax error was caught by compilation before execution and
+corrected before any session or game process was started.
 
 Raw plans, scoped requests/responses, journals, saved references, logs and audits
 remain private under

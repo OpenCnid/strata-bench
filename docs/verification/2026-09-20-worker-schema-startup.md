@@ -57,6 +57,9 @@ Verification executed:
   classpath and Windows Python guardian: **55 pass, zero skip/fail** (113.082 s),
   including all 43 cases skipped by the general command. These are actual
   disposable JVM/process tests with synthetic game data, not Minecraft trials.
+- A generated-file final blank-line warning was corrected in the generator;
+  regenerated build and eight schema/startup tests pass afterward (1.954 s).
+  Validator behavior and emitted runtime implementation are unchanged.
 
 The next authentic trial is recorded when complete. Raw diagnostics, logs, failed-start audit and trial
 evidence remain outside the repository under

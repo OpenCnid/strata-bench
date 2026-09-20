@@ -3991,3 +3991,10 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   Refreshed stale settings/game API introductions and linked the accounting
   follow-up from the earlier native budget report. No code changed after the
   complete test runs; final staged diff and audit are checked before commit.
+- Delivery: source checkpoint `3aca278` committed and pushed on
+  `codex/strata-implementation-checkpoint`;
+  [PR #1](https://github.com/OpenCnid/strata-bench/pull/1) opened against main.
+  Final staged audit passes (462 files, 877 links, no unreviewed findings,
+  all ledger IDs, wrapper hash), and `git diff --cached --check` passes.
+  The PR is the durable reference for its eventual merge commit; subsequent
+  delivery-link edits are documentation-only and do not change tested code.

@@ -8,6 +8,10 @@ session. New feature and live experiment work stops at this checkpoint without
 removing any required scope. Older verification reports describe their dated
 candidates; use this review and the ledger for current state.
 
+Delivery: [PR #1](https://github.com/OpenCnid/strata-bench/pull/1), starting with
+source checkpoint `3aca278`. The PR records the final merge commit and delivery
+state; its initial source snapshot passed the checks below.
+
 ## Overall position
 
 | Milestone | Status | What exists / what prevents closure |

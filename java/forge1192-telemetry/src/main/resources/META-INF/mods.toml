@@ -4,8 +4,8 @@ license="MIT"
 
 [[mods]]
 modId="strata_telemetry"
-version="0.3.1"
-displayName="Strata private server telemetry"
+version="0.3.2"
+displayName="Strata private Forge evidence"
 description='''Read-only operator evidence. No player messages or admin commands.'''
 displayTest="IGNORE_SERVER_VERSION"
 
@@ -14,11 +14,11 @@ modId="forge"
 mandatory=true
 versionRange="[43.4.23]"
 ordering="NONE"
-side="SERVER"
+side="BOTH"
 
 [[dependencies.strata_telemetry]]
 modId="minecraft"
 mandatory=true
 versionRange="[1.19.2]"
 ordering="NONE"
-side="SERVER"
+side="BOTH"

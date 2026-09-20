@@ -150,3 +150,27 @@ is exact FastWorkbench 7.1.4 CraftResultSlotExt, gated by its pinned loaded JAR
 hash. Unknown subclasses or changed artifacts reject. Native callback diagnostics
 record private class names and whether a bracket is pending. Every existing
 resource and scope check remains; no automatic scorer admission is added.
+
+Telemetry 0.3.2 also supports an explicit private client configuration probe.
+Pass `-Dstrata.clientConfigProbePlan=<absolute-external-plan.json>` only on a
+separately pinned diagnostic client. Use `ForgeTelemetryConfig/2` with exactly
+one event, `max_bytes` between 65536 and 1048576, empty `recipe_ids`, and 1–16
+exact `config_queries`. The existing external `spool_directory` receives one
+create-exclusive `client-config-<session-id>.json` after connection. No server
+plan, game command or gameplay endpoint can activate the client probe.
+
+Inspect that artifact privately:
+
+```powershell
+$env:PYTHONPATH='evaluator/src'
+.\.venv\Scripts\python.exe -m strata_evaluator.client_configs `
+  --plan <absolute-private-plan.json> --snapshot <absolute-private-snapshot.json> `
+  --output <new-private-report.json>
+```
+
+Pin both input files, the loaded probe/client artifacts and the process identity
+in the surrounding operator evidence. The importer verifies complete ordered
+selectors and preserves absent/failed observations, but its result does not
+authenticate same-user files, qualify a pack lock, prove cached consumer effects
+or admit scores. Dedicated server 0.3.2 retains `ServerStarted/4`; the importer
+continues accepting 0.3.1 with its original payload and witness requirements.

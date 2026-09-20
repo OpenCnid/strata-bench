@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.54](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.55](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `8a1ac9a`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `8cf0cbe`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -45,6 +45,9 @@ conversion and isolated-worker questions remain pending; no paid inference
 is admitted. Advance independent M0 work while those inputs are unavailable.
 Do not replay unknown actions, relax bounds, erase failed attempts, expand M1
 microcases ahead of M0, or stop at another source checkpoint.
+
+
+Current next M0 deliverable: client-role config evidence (.3.2b.3). Telemetry 0.3.2 adds an explicitly armed private connected-client probe; JAR 120dd7f445c809ef47fae7024b9cb09e354bd5410380926f569ee1ac712531de. Seven Java tests/build, 11 private importer tests and 10 producer compatibility cases pass. Dedicated server installation stays at 0.3.1; the forthcoming separately pinned client diagnostic adds 0.3.2. Authentic trial 01 is terminal and all 18 independent audit checks pass under C:/Users/Darian/.strata/evidence/2026-09-20-client-config-role-01. Two CLIENT files loaded; two legacy files unregistered; COMMON/Create raw snapshots equal prior server. Full saved inventory/ender/position and selected files unchanged. Two releases/404.063 s; linked pairs 713/7377.346 s plus setups 266.907 s. Guardian 367.8943/500 ms passes this sample. Actual importer CLI passes, arguments retired and zero Java confirmed. The client retains the added pinned telemetry-0.3.2 JAR; future client pins must include it. No file exemptions or full lock/consumer/cold-restart/isolation pass.
 
 ## Overall position
 

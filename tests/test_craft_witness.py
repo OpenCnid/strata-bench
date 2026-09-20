@@ -252,12 +252,13 @@ def test_witness_requires_unique_transaction_and_qualified_producer_schema(examp
 @pytest.mark.parametrize(
     "case", ["pinned", "vanilla", "wrong_artifact", "missing_hook", "mixed_policy"]
 )
-def test_fastbench_source_and_applied_hook_are_bound_before_witnesses(example, tmp_path, case):
+@pytest.mark.parametrize("version", ["0.3.1", "0.3.2"])
+def test_fastbench_source_and_applied_hook_are_bound_before_witnesses(example, tmp_path, case, version):
     values = sequence(example)
     policy = "server-result-pickup-fastbench-bound/2"
     values[0]["payload_schema"] = "strata/ServerStarted/4"
     values[0]["payload"].update(
-        module="strata-forge1192-telemetry/0.3.1",
+        module=f"strata-forge1192-telemetry/{version}",
         craft_capture_policy=policy,
         craft_capture_support={
             "hook_verified": True,

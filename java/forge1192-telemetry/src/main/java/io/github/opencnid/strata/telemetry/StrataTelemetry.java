@@ -17,6 +17,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
@@ -34,6 +36,7 @@ public final class StrataTelemetry {
     private final Map<UUID, Long> avatarTicks = new HashMap<>();
 
     public StrataTelemetry() {
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfigExport::install);
         MinecraftForge.EVENT_BUS.addListener(this::started);
         MinecraftForge.EVENT_BUS.addListener(this::tick);
         MinecraftForge.EVENT_BUS.addListener(this::crafted);
@@ -41,7 +44,7 @@ public final class StrataTelemetry {
     }
 
     private void started(ServerStartedEvent event) {
-        // Dedicated server only. Client and integrated server installations stay inert.
+        // Server telemetry remains dedicated-only; client diagnostics need their explicit private plan.
         if (!event.getServer().isDedicatedServer()) return;
         String path = System.getenv("STRATA_TELEMETRY_CONFIG");
         if (path == null) return;
@@ -49,7 +52,7 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.1");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.2");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);

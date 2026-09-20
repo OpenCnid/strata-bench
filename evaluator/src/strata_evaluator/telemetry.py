@@ -69,7 +69,7 @@ class CraftCaptureSupport(Strict):
 
 
 class ServerStartedV4(ServerStartedV3):
-    module: Literal["strata-forge1192-telemetry/0.3.1"]
+    module: Literal["strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2"]
     craft_capture_policy: Literal["server-result-pickup-fastbench-bound/2"]
     craft_capture_support: CraftCaptureSupport
 
@@ -167,11 +167,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                         "TELEMETRY_START_MISSING")
                 boot = event.server_boot_id
                 startup_model = ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.1" if version4 else
+                module = (("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
                           "strata-forge1192-telemetry/0.1.0")
-                require(event.payload.get("module") == module
+                require(event.payload.get("module") in (module if isinstance(module, tuple) else (module,))
                         and event.payload.get("minecraft") == "1.19.2"
                         and event.payload.get("forge") == "43.4.23"
                         and event.payload.get("scoring_provenance_supported") is False,

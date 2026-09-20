@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.54, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private cost continuity across stopped epochs). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.55, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private client config role evidence). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -367,6 +367,8 @@ Vanilla 1.19.2 uses an official CurseForge-managed profile if that path is suppo
 | Research-qualified | Probe isolation, scoring, accounting and protocol frozen | T11–T15; fixed-model claim separately conditioned on identity evidence. |
 
 E9E is the first expert target. E6E/1.16.5 and E2E/1.12.2 receive independent Java/Forge/input/quest/save modules later. They are not interchangeable versions or an ordered difficulty ladder. Never upgrade an E9E campaign save to another pack to graduate an agent.
+
+**Private client configuration probe.** Telemetry 0.3.2 retains the server 0.3.1 payload contracts and adds an opt-in connected-client export. An operator JVM property supplies an external `ForgeTelemetryConfig/2` plan with exactly one event, 64 KiB–1 MiB output cap, no recipe queries and 1–16 exact config selectors. The client reads the same bounded registration/spec/raw-data snapshots after joining, without config getters, changes, corrections, reloads, reflection or consumer-cache claims. Pin unchanged plan bytes and record process/session/actor/dimension/runtime with selected queries/results in `ClientConfigSnapshot/1`. No gameplay endpoint exists. Strict private ingestion verifies scope, complete ordered selectors and source bytes, and retains unregistered/failed states. A same-user file does not authenticate the process, qualify a pack lock or prove consumer/mechanics parity; actual role comparison, cold restart, instrumentation and isolation gates remain required. Installing this optional probe changes the client artifact identity and must be pinned as a distinct diagnostic profile. Dedicated telemetry still requires its separate explicit server plan; integrated-server telemetry remains disabled.
 
 ## 8. Observation, actions and the keybinding skill
 

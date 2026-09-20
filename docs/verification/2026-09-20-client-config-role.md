@@ -1,0 +1,20 @@
+# Private connected-client configuration role evidence
+
+M0.3.2b.3; F01/F05/F10/F16, N01/N03/N04/N06/N08; partial T01/T02/T10/T13 and G0 item 2.
+
+Telemetry 0.3.2 adds an explicitly armed private client export using the existing bounded config snapshot reader. The JVM property `strata.clientConfigProbePlan` points to an external ForgeTelemetryConfig/2 plan: one event, 64 KiB–1 MiB, no recipe IDs, 1–16 exact selectors. It captures once after the client joins, records immutable plan hash/process/session/actor/dimension/runtime, and fsyncs a new private file. Unregistered, unloaded, unstable and unsupported results remain explicit. No getters, correction, reload, config changes, commands or gameplay transport are added. Integrated-server telemetry remains disabled; dedicated server telemetry still requires its own plan.
+
+The private `strata_evaluator.client_configs` importer checks plan bytes, scope, exact ordered query/snapshot coverage, path selectors, quotas and strict payload shapes. It preserves failed states and reports all process-authentication, consumer-cache, mechanics, restart, instrumentation and isolation limitations. It cannot qualify a pack lock or score. The five earlier strict effective-file failures remain unchanged.
+
+Executed: seven Java tests (two plan/activation bounds, five existing non-mutating snapshot cases), zero failures/skips; offline build/reobfuscation succeeds in 19 s. Eleven synthetic client importer cases pass (0.43 s). Ten old/new producer version and witness-support cases pass (0.20 s). Targeted Ruff passes. Candidate JAR SHA256 `120dd7f445c809ef47fae7024b9cb09e354bd5410380926f569ee1ac712531de`.
+
+Authentic trial 01 is terminal and its independent audit passes all 18 checks. Source/plan preflight and cached-session preparation pass. Private artifacts are under C:/Users/Darian/.strata/evidence/2026-09-20-client-config-role-01. The client gained exactly the pinned 0.3.2 diagnostic JAR; the server remains unchanged. Verification uses the existing separate non-input desktop and saved E9E world, unchanged ordinary client control and dedicated server telemetry 0.3.1, adding only the new client diagnostic JAR/property under a new fingerprint. No new resources or inference. Require all selected client-role snapshots, exact process/JAR/plan binding and saved-resource continuity; retain the original 480-s client, 90-s worker and 500-ms guardian bounds. A snapshot alone does not settle legacy consumer equivalence or any aggregate gate.
+
+An additional strict numeric-flag rejection passes (one targeted case, 0.20 s), bringing focused private importer coverage to twelve cases.
+
+
+The actual connected client registers `bhmenu-client.toml` and `nomoreworldsettings-client.toml` as CLIENT and loads the exact selected saved-file values. Both legacy `inventorysorter-server.toml` and `sophisticatedcore-server.toml` remain unregistered. Sophisticated Core COMMON and Create SERVER snapshots exactly equal the retained dedicated-server raw observations, including the undeclared/absent Create legacy paths. All six stopped client config-file presence/hashes remain unchanged.
+
+The audit binds the capture to the actual client PID, loaded 0.3.2 JAR, saved actor, exact plan and scoped observation dimension. Full inventory/ender NBT and saved position are unchanged; no game action intents exist. Both global safety releases remain charged. Trial elapsed 404.063 s; linked pairs total **713 primitives/7377.346 s**, plus retained witness setups 266.907 s. Guardian 367.8943/500 ms passes this sample; earlier failures remain. Arguments retired, normal server stop, zero Java processes confirmed. The actual private importer CLI also succeeds.
+
+Audit SHA256 `c6d857986330c392ae48ae34883208f85e930d4f0a88de991978dfb1812d6f15`; plan `7f451db7631827e6866fc8f9942208d76eb562761d2dd720ccb26f2ead87d4f4`; native snapshot `9441650dcd0395404d90cc6ce1806cb9766d5003434a197ba496ff1311deb81d`. This verifies the selected client-role observation contract. It does not close cold-restart/consumer/parity/isolation, exempt legacy files, change the 263/268 strict file outcome, or close G0.

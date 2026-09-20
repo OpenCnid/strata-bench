@@ -6,6 +6,8 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.38; maintenance rules: [
 
 ## Current position
 
+- **Authentic native settings:** [First round trip/cold readback](docs/verification/2026-09-20-native-settings.md) passes source-bound Curios unbound→F13→unbound, all 253 restored runtime mappings, exact unrelated options preservation and independent persisted/runtime restart comparison. Two title clients stop cleanly; desktop unchanged and arguments retired. No physical F13, world/server or inference. Full T05 effects/repair/isolation and interrupted recovery remain open; next use the private native bridge with retained journals and no forward replay.
+
 - **Latest authentic guardian result: fail.** [Current-policy E9E trial](docs/verification/2026-09-20-guardian-live.md) passes startup/public reads but times out at 510.8433 ms of the unchanged 500 ms wait. No tree proof or stop receipt is claimed. Server saves normally; all Java processes stop and arguments are retired. Current source/broker pins and telemetry 0.2.0 remain intact. Continue independent native settings/mechanics and diagnose cleanup/scheduling with prior failures retained; no unchanged rerun, shared input or inference.
 
 - **Native helper topology:** [Actual overlap/limit probes](docs/verification/2026-09-20-native-helper-topology.md) pass two active children and exact over-limit rejection with eight/seven all-call settlements. Nested native capability fails: child catalogs omit collaboration even with max depth two; the pinned bundled Luna catalog reports v1. Initial unsupported-call/unknown sample is retained with full 12-call hold and zero recovery replay. Final failed capability checks settle all four calls. 113 Python checks/full Ruff pass. M0.1c.2c.2b is implemented_unverified; .2c is blocked for this pinned nested profile. Continue independent authentic guardian and mechanics while qualifying a supported nested seam; no live dispatch.
@@ -268,8 +270,11 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1a.1 | GI | Runtime/default/persisted binding discovery, stable occurrences, explicit ownership basis and conservative contexts | implemented_unverified | [Client module](java/forge1192-client), [operator audit](src/mcbench/client_discovery.py), [actual evidence](docs/verification/2026-09-18-long-horizon.md): two exact client boots export 253 stable bindings (34 vanilla references, 219 unknown owners), with sampled Controls UI correspondence. Native options save/cold restart yielded all 253 persisted/runtime matches. Four Java tests and 13 synthetic Python audit cases pass. Mod ownership, complete runtime/layout fingerprint and broader discovery failure cases remain open; all mutation/input/restart capability flags remain false. Desktop stop signal cleared after supported session reset; no physical Escape attributed to the user. |
 | M1.1a.2 | GI | Native client-thread CAS writer, exclusive profile/journal/backup, owned-field rollback and crash recovery | in_progress | Children M1.1a.2.1–2.3 separate durable writer, native authority/adapter and real transaction recovery. Integrate with the Python transaction engine only after source-bound ownership and the native writer are qualified. |
 | M1.1a.2.1 | GI/QA | Profile-exclusive durable transaction journal, bounded owned-field file patch, revision fencing and conservative recovery | implemented_unverified | [Java core](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsStore.java), [tests](java/forge1192-client/src/test/java/io/github/opencnid/strata/client/SettingsStoreTest.java): 20 synthetic-runtime cases pass with real Windows temporary files/locks, plus four parser cases. Recovery never replays the forward write or assumes commit. Actual Minecraft recovery, foreign-writer exclusion, power-loss durability and full exhaustion qualification remain open. |
-| M1.1a.2.2 | GI | Source-bound native KeyMapping authority, client-thread setters and release/readback | in_progress | [Native adapter](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/NativeSettingsRuntime.java) compiles against pinned Forge: exact Curios JAR plus public registration-object identity; all other keys protected. Development-only unbound/F13 encoding probe, not a tested physical pool. New extension installed on September 19; only its game bridge enabled. Shared loaded-artifact hashing corrected; settings runtime/effects remain unrun. |
-| M1.1a.2.3 | GI/QA | Actual native apply/rollback and interrupted transaction recovery with private evidence | not_started | [Operator title-screen probe](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/ClientSettingsProbe.java) is built and installed but not enabled/executed. Desktop authorization renewed September 19. Synthetic runtime/file tests do not close this child; complete effects/restart/isolation remain M1.1b. |
+| M1.1a.2.2 | GI | Source-bound native KeyMapping authority, client-thread setters and release/readback | in_progress | [Native adapter](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/NativeSettingsRuntime.java): exact Curios JAR plus public registration-object identity; all other keys protected. [Authentic encoding round trip](docs/verification/2026-09-20-native-settings.md) now passes. General ownership, physical pool/context/consumer effects and full runtime qualification remain open. |
+| M1.1a.2.3 | GI/QA | Actual native apply/rollback and interrupted transaction recovery with private evidence | in_progress | Split .2.3a title-screen round trip, .2.3b cold restart/readback and .2.3c interrupted recovery. Existing authorized separate-desktop/API route; synthetic checks do not satisfy these real cases. Complete effects/input/isolation remain M1.1b. |
+| M1.1a.2.3a | GI/QA | Actual source-bound Curios native/persisted apply/readback/rollback; all unrelated mapping/options preservation | implemented_unverified | [Actual positive case](docs/verification/2026-09-20-native-settings.md): native pending apply/rollback, exact owned-file change, all 253 mappings restored, six-frame journal and title-client stop pass. No commit/physical F13, general conflict/foreign-writer or full T05 qualification. Failure-path integration remains .2.3c/M1.1b. |
+| M1.1a.2.3b | GI/QA | Fresh client restart reads the rolled-back runtime and persisted keymap; no forward transaction replay | implemented_unverified | [Independent read-only boot](docs/verification/2026-09-20-native-settings.md) passes 253 runtime/persisted matches and unchanged options digest; strict discovery audit passes format only. No forward transaction property/replay. Repaired-key physical-effect persistence, complete restore/isolation and full T05 remain open. |
+| M1.1a.2.3c | GI/QA | Actual interrupted native settings transaction, preserved journal/owned-field recovery and foreign-change conflict negatives | not_started | Use the existing private bridge with exact identity, bounded fault plan and conservative recovery; no blind apply replay. Synthetic SettingsStore cases remain supporting evidence only. |
 | M1.1a.2.4 | GI/PL | Transaction-aware private native transport and Python adapter; strict schema, session/deadline fencing, uncertain-response recovery | implemented_unverified | [Java bridge](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsHttpBridge.java), [Python client](src/mcbench/native_settings.py): five Java transport tests, 15 Python validation tests and four actual JVM/HTTP cases with synthetic runtime pass, including lost acknowledgement, process restart, duplicate transaction and foreign-edit recovery fencing. Native Minecraft, OS isolation, qualified Controls projection/verified commit, lifecycle/accounting and gameplay CLI integration remain open. Capability stays disabled. |
 | M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | not_started | Required before advertising keybinding support; byte comparisons and source inspection alone are insufficient. |
 | M1.1c | GI/PL | Host workflow profile ownership, durable phase fencing, rollback-conflict holds, qualification drift and verification coverage | in_progress | [Workflow](src/mcbench/controls.py), [contract](docs/operations/settings-workflow.md); c.1–c.3 distinguish implemented host checks from missing authentic provider/supervisor integration. |
@@ -4475,3 +4480,31 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   Next: built native title-screen settings round trip and independent mechanics;
   diagnose authentic cleanup/scheduling without unchanged retries or relaxed
   deadlines. G0 remains fail and G1–G5 remain not_run.
+
+### 2026-09-20 — First authentic native settings transaction and cold readback
+
+- After `11c18f2`, M1.1a.2.3 splits actual round trip (.2.3a), independent cold
+  readback (.2.3b), and still-unrun interrupted/foreign-change recovery (.2.3c).
+  Existing source-bound Curios probe and unchanged minor-34 JAR run on two fresh
+  non-input desktops with current source/Java/library pins, 480-second outer and
+  280-second readiness limits. No server/world, physical input or inference.
+- Actual first transaction passes unbound→F13→unbound in one client tick:
+  exact registered Curios object/JAR, 253 runtime mappings restored, only owned
+  file field changes, unrelated options bytes preserved, no commit, six valid
+  hash-linked journal frames. Report ready 126.468 s; total 127.015 s.
+- A distinct discovery-only client starts after verified terminal rollback.
+  All 253 current encodings and persisted values match the restored map; exact
+  options digest is unchanged, no transaction property or forward replay.
+  Ready 124.625 s; total 125.125 s. Strict client_discovery audit executes with
+  format pass/gate not_run, 34 vanilla and 219 unresolved mod owners preserved.
+- Both base guardians emit confirmed stop receipts (coarse 250 ms field), both
+  independent observation handles signal, input desktop stays unchanged, zero
+  Java processes remain and both private argument files are retired. These
+  title-screen results do not reverse the authentic-world T07 timeout.
+- [Report](docs/verification/2026-09-20-native-settings.md) and updated settings
+  runbook; exact private plans, sources, raw outputs, native journal, option
+  backups, cold discovery and logs remain under 2026-09-20-native-settings-01.
+  No broad tests were rerun for this evidence/documentation-only change. Full
+  T05/G1, input/effects, general ownership/CAS, repair charges, interrupted/mid-write
+  recovery and isolation remain open. Next: private-bridge pending transaction
+  interruption, status and owned rollback without replay; keep conflict cases.

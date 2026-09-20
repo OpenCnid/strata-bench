@@ -159,14 +159,22 @@ admission remains blocked.
 
 ## Native helper lifecycle follow-up
 
+[Authentic native settings](verification/2026-09-20-native-settings.md) now pass
+the first Curios configuration apply/readback/rollback and a separate discovery
+boot: 253 restored mappings/persisted values, unchanged options digest, intact
+transaction journal, both title clients stopped, desktop unchanged and arguments
+retired. No world/server/physical input/inference. Continue private-bridge pending
+transaction interruption/status/rollback recovery; retain mid-write/conflict,
+physical effects, repair accounting and complete T05/G1 as unqualified.
+
 The [authentic current-policy guardian trial](verification/2026-09-20-guardian-live.md)
 fails: startup and three public reads pass, but the root wait times out at
 510.8433 ms against 500 ms. It produces no complete tree proof or stop receipt.
 The server saves normally; zero Java processes, unchanged desktop and retired
 arguments are verified. Raw failure/observer/telemetry evidence stays external.
-Do not repeat an unchanged trial to obtain a pass. Next independent work is the
-built native title-screen settings transaction probe; diagnose guardian cleanup/
-scheduling and retain all full acceptance gates.
+Do not repeat an unchanged trial to obtain a pass. Native title-screen settings
+now have the separate narrow evidence above; continue interrupted recovery and
+diagnose guardian cleanup/scheduling while retaining all full acceptance gates.
 
 [Native overlap/limit fixtures](verification/2026-09-20-native-helper-topology.md)
 now pass two concurrent children and exact second-child rejection at one slot,

@@ -81,7 +81,7 @@ transaction or input-effect conformance. The Controls screen also logged an
 invalid-scancode GL error, retained for diagnosis. Full details and unresolved
 cases are in the [verification record](../verification/2026-09-18-long-horizon.md).
 
-## Development native transaction probe (not live-verified)
+## Development native transaction probe
 
 `SettingsStore` holds a per-profile file lock and writes a bounded, forced,
 hash-chained private journal. A transaction validates the expected runtime/options
@@ -121,10 +121,14 @@ presses F13, invokes Curios, or commits a patch. F13 here is an encoding probe,
 states; exceptions fail the probe and any retained pending journal needs operator
 recovery. Do not reuse a journal directory to retry a forward transaction.
 
-The current extension is installed in the dedicated development profile, but
-this settings probe has not been enabled or exercised in Minecraft. The user
-renewed desktop authorization on September 19; only the game bridge has live
-startup evidence. No scored run may enable these diagnostics.
+The current extension is installed in the dedicated development profile.
+[September 20 authentic evidence](../verification/2026-09-20-native-settings.md)
+passes its first title-screen round trip and an independent discovery-only cold
+restart: all 253 runtime mappings and persisted values match the restored map,
+with unrelated options bytes preserved. Physical F13, conflict/effect repair,
+interrupted recovery and complete T05 remain unqualified. Existing desktop
+authorization covers this separate-desktop/API route; shared input remains
+paused. No scored run may enable these diagnostics.
 
 ## Private native bridge (not qualified for gameplay)
 

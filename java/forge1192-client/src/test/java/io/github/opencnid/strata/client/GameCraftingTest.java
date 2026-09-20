@@ -8,6 +8,37 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent toy menu: scripted recipe, no native/server correctness claim. */
 class GameCraftingTest {
+    @Test void delayedServerPreviewRequiresFreshReplyWithoutRepeatingFill() throws Exception {
+        var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+        for(int i=0;i<3;i++) {p.ack();assertFalse(motor.tick(p::emit));}
+        assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        // A local preview is not a new server reply.
+        p.slots.set(0,p.output);assertFalse(motor.tick(p::emit));assertEquals(0,p.takes);
+        p.ack();assertFalse(motor.tick(p::emit));assertEquals(1,p.takes);
+        p.complete(motor);assertEquals(1,p.fills);assertEquals(p.output,p.slots.get(9));
+    }
+    @Test void previewWaitRejectsResourceMetadataAndWrongOutputChanges() throws Exception {
+        for(int fault=0;fault<5;fault++) {
+            var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+            p.ack();assertFalse(motor.tick(p::emit));
+            if(fault==0) {p.slots.set(1,EMPTY);p.slots.set(2,item("ingredient",1));}
+            if(fault==1) p.slots.set(1,new GameInventory.Stack("test:ingredient",1,"changed"));
+            if(fault==2) p.cursor=item("held",1);
+            if(fault==3) p.slots.set(0,item("wrong",4));
+            if(fault==4) p.matched=false;
+            p.ack();assertThrows(IOException.class,()->motor.tick(p::emit));
+            assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        }
+    }
+    @Test void missingPreviewAndExhaustedReadBudgetNeverTakeOrRefill() throws Exception {
+        var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+        for(int i=0;i<GameCrafting.MAX_PREVIEW_READS;i++) {p.ack();assertFalse(motor.tick(p::emit));}
+        long ticket=p.ticket;p.ack();assertThrows(IOException.class,()->motor.tick(p::emit));
+        assertEquals(ticket,p.ticket);assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        var next=new Port(1);var pending=startedFill(next);next.slots.set(0,EMPTY);next.ack();
+        assertThrows(IOException.class,()->pending.tick(op->{throw new IOException("BUDGET_EXHAUSTED");}));
+        assertEquals(1,next.fills);assertEquals(0,next.clicks);
+    }
     @Test void fillAndTakeBarriersRequireOriginalExactMetadataAfterOneRead() throws Exception {
         for(boolean take:List.of(false,true)) for(int outcome=0;outcome<3;outcome++) {
             var p=new Port(1);var original=item("backpack",1);

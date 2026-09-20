@@ -10,7 +10,7 @@ export function forgeCapabilities(nativeFingerprint: string) {
   const schemas = Object.fromEntries(['ActionBatch','ActionAck','Observation','RpcRequest']
     .map(name => [name, hashFile(new URL(`../../../../schemas/v1/public/${name}.json`, import.meta.url))]));
   return {
-    schema:'strata/Capabilities/1', contract_minor:41, profile:'forge1192-structured-development/1',
+    schema:'strata/Capabilities/1', contract_minor:42, profile:'forge1192-structured-development/1',
     backend:'forge_client', track:'structured-actions/v1', minecraft:'1.19.2', forge:'43.4.23',
     target_pack:'enigmatica9expert-1.27.0', node:'24.19.0', native_fingerprint:nativeFingerprint,
     implementation_digest:digest(sources), schema_digest:digest(schemas),
@@ -78,7 +78,7 @@ export function forgeCapabilities(nativeFingerprint: string) {
     motor:{policy:'durable-intent-client-thread-nineteen-actions/2',completion:'emitted-input-only',
       block_target:'observed-outline-centers64-local16/1',
       close_window:'explicit-close-own-inventory-feedback-conservation/1',
-      crafting:'known-recipe-server-baseline-fill-output/4',
+      crafting:'known-recipe-server-preview-bound20/5',
       manual_crafting:'visible-recipe-manual-grid-feedback-search4096/1',
       manual_crafting_limits:{sources:['jei','emi'],selection:'query-generation-initial-revision-and-current-definition/1',
         ingredient_search:4096,grid:9,inventory_slots:36,clicks_per_ingredient:3},

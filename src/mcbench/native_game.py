@@ -65,7 +65,7 @@ class GameCapabilities(Strict):
     quest_task_policy: Literal["ftb-visible-item-task-menu-or-jei-open/2"]
     quest_open_policy: Literal["ftb-own-team-open-screen-cas/1"]
     quest_menu_policy: Literal["ftb-current-item-choice-clipped-pages32/4"]
-    crafting_policy: Literal["known-recipe-server-baseline-fill-output/4"]
+    crafting_policy: Literal["known-recipe-server-preview-bound20/5"]
     manual_crafting_policy: Literal["visible-recipe-manual-grid-feedback-search4096/1"]
     machine_observation_policy: Literal["thermal-current-gui-energy-fluid-base-slots/1"]
     machine_inventory_policy: Literal["thermal-visible-slot-owned-transfer-feedback/2"]

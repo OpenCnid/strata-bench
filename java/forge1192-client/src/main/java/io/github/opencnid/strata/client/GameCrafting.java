@@ -6,7 +6,8 @@ import java.util.List;
 
 /** One requested recipe. Normal book-fill and slot inputs always await actual menu feedback. */
 final class GameCrafting {
-    static final String POLICY = "known-recipe-server-baseline-fill-output/4";
+    static final String POLICY = "known-recipe-server-preview-bound20/5";
+    static final int MAX_PREVIEW_READS = 20;
     interface Port extends GameInventory.Port {
         int gridWidth();
         int inventoryStart();
@@ -26,7 +27,8 @@ final class GameCrafting {
         enum Phase { BASELINE, FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
         final Port port; final int gridSize; int remaining, remainderIndex;
         Phase phase; long ticket;
-        GameInventory.View before, filled, taken, reacquireBaseline;
+        GameInventory.View before, filled, taken, reacquireBaseline, previewBaseline;
+        int previewReads;
         List<GameInventory.Stack> remainders;
         List<Integer> destinations;
         GameActionLane.Motor step;
@@ -42,6 +44,7 @@ final class GameCrafting {
         }
         private void fill(GameActionLane.Emitter emit) throws IOException {
             reacquireBaseline = null;
+            previewBaseline = null; previewReads = 0;
             requireClean(view());
             // Local component materialization is not a resource baseline. Take
             // the first snapshot from actual server feedback before any fill.
@@ -110,7 +113,8 @@ final class GameCrafting {
             }
             if (phase == Phase.FILL || phase == Phase.MANUAL_FILL) {
                 if (!filled.cursor().empty() || !GameInventory.conserved(before, filled)
-                        || !filled.slots().get(0).equals(port.output())) {
+                        || previewBaseline != null && !sameResources(previewBaseline, filled)
+                        || !filled.slots().get(0).empty() && !filled.slots().get(0).equals(port.output())) {
                     port.mismatch(before,filled);
                     System.getLogger(GameCrafting.class.getName()).log(System.Logger.Level.WARNING,
                         "STRATA_CRAFT_FILL_CHECK cursor_clean="+filled.cursor().empty()
@@ -128,6 +132,17 @@ final class GameCrafting {
                 remainders = List.copyOf(port.remainders(filled));
                 if (remainders.size() != gridSize || remainders.stream().anyMatch(item -> item.count() < 0 || item.count() > 64)) {
                     throw new IOException("GAME_REMAINDER_UNSUPPORTED");
+                }
+                if (filled.slots().get(0).empty()) {
+                    // Pinned FastWorkbench queues result computation at server
+                    // END ticks. A complete ingredient reply can precede it.
+                    // Freeze every real resource and await fresh server contents;
+                    // never repeat the fill, invent output, or click the result.
+                    if (previewReads == MAX_PREVIEW_READS) throw new IOException("PRECONDITION_FAILED");
+                    if (previewBaseline == null) previewBaseline = filled;
+                    previewReads++;
+                    reacquireBaseline = null;
+                    emit.invoke(() -> ticket = port.requestSync()); return false;
                 }
                 destinations = emptyDestinations(filled);
                 if (destinations.size() < 1 + remainders.stream().filter(item -> !item.empty()).count()) throw new IOException("INVENTORY_FULL");
@@ -172,6 +187,11 @@ final class GameCrafting {
             for (int i = 0; i <= gridSize; i++) if (!state.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
             if (--remaining == 0) return true;
             remainderIndex = 0; fill(emit); return false;
+        }
+        private static boolean sameResources(GameInventory.View a, GameInventory.View b) {
+            return a.resultSlot() == b.resultSlot() && a.slots().size() == b.slots().size()
+                && a.cursor().equals(b.cursor())
+                && a.slots().subList(1,a.slots().size()).equals(b.slots().subList(1,b.slots().size()));
         }
     }
 }

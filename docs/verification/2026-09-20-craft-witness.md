@@ -114,3 +114,12 @@ bytes and the exact prior player file, confirms the eight supplied inputs in the
 chest and unchanged machine energy. Both witness setups total 266.907 s. Control
 03 is running the unchanged minor-41 client against telemetry 0.3.1; its native
 witness, saved effects and guardian outcome remain pending.
+
+
+## Control 03 and delayed result synchronization
+
+Control 03 fails before taking a result. Private diagnostic guards show a clean cursor and exact conservation, but empty derived output. The exact eight ingredients occupy the expected grid. Saved-state audit preserves them as drops, all three furnaces/three ingots, and empty machine/8000 RF. No callback or witness occurs. Retain unknown `08b7aaed-80ec-4571-afc9-7e033fb65095`, 69 primitives/398.547 s and linked pair totals 583/5726.735 s; both witness setups remain separately charged at 266.907 s. Guardian passes 375.1394/500 ms for this run; overall result remains fail. All targets terminal, arguments retired. Audit SHA256 `369c2a294273d450739c07ec63b404c91a2b5a72fa8f017d6e13f5c3d72ea4ba`.
+
+Exact installed FastWorkbench bytecode routes slotsChanged through SlotUpdateManager, whose server END handler computes queued results at its configured interval. The loaded config is two ticks. A full grid reply may therefore precede output computation. Minor 42 adds up to 20 charged full-menu reads for an empty result after verifying the selected native recipe and frozen resources. Every non-result slot/cursor remains exact; wrong output or any resource drift rejects. No fill/click replay, deadline extension, budget increase or locally invented result. Focused verification is pending; authentic repair remains unverified.
+
+Minor-42 targeted verification passes: 15 Java checks (0.092 s), pinned build/reobfuscation (20 s), TypeScript build, two Node/JVM checks (1.90 s), two Python/JVM checks (2.78 s). Candidate `59f113e4972fbe0d07e349f9d83f6452ac4e9f5f802d7491c5c863176f4b0da4`. Control 04 is running with the saved dropped ingredients, fresh scope/epoch and unchanged telemetry 0.3.1; no new resources. Real witness and repair outcome pending.

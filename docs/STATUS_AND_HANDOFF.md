@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.39](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.40](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,9 +16,27 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `bb22448`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `b62dc2c`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
+
+## Immediate continuation priority
+
+The user corrected the work priority: focus on closing SPEC's milestone gates.
+The active settings pair was completed safely; [two native write-boundary
+recoveries](verification/2026-09-20-settings-crash-recovery.md) pass under the
+explicit CTM background-thread diagnostic profile. All clients are terminal,
+options restored and arguments retired. Four remaining M1 cases stay unrun;
+resume them after higher-priority M0 work. No default-profile startup or complete
+T05 pass is claimed.
+
+[The private saved-machine reader](verification/2026-09-20-machine-reference.md) is now implemented with 102 focused synthetic tests and full Ruff passing. A protected server/world copy has an authentic verified baseline. First operation startup failed before admission because the harness confused settings/game fingerprints; zero intents/resources changed and cleanup is verified. Corrected fresh operation-02 is running with unchanged limits. Next qualify **M0.3b.3.2.4b / G0 item 3**: ordinary E9E
+machine/container operation through the structured API, with independent private
+server evidence for resource and energy changes. A received action or visible
+output alone cannot establish the result. Preserve fixture/setup provenance and
+negative controls. Live native host work remains blocked on the already-requested
+monetary conversion and actual isolated-worker boundary; do not wait on those to
+advance this independent game work.
 
 ## Overall position
 

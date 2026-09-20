@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.39, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private settings crash-boundary conformance fixture). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.40, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private persisted machine reference). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -1203,6 +1203,23 @@ Raw execution evidence and the cost ledger are outside the rollback domain. Mode
 Progress-stall alarms are operator-only: e.g., 30 active minutes without a new public gameplay-state change or milestone evidence. The evaluator does not send “stuck” hints to agents; hidden milestones must not influence their observations. A missing heartbeat or stopped state/event stream can trigger infrastructure checks; unchanged inventory or a stationary avatar while waiting is not by itself a fault. Ordinary timeouts are exposed neutrally as control failures, without hidden scores.
 
 ### 12.3 Operating envelope and evidence retention
+
+**Private persisted machine reference foundation.** The evaluator's read-only
+`saved-thermal1192-furnace-base-plain/1` projection reads selected furnace positions
+from immutable, independently clean-stopped 1.19.2 server saves. Reuse bounded
+Anvil/NBT decoding and require both the persisted block and block-entity IDs,
+coordinates, energy/process field types and unique supported inventory slots.
+Missing or duplicate entities, orphaned states, packed entities, tagged/extended
+items, augment overrides and unsupported fluid/capability state reject; they
+never become empty resources or a pass. Preserve source digests and distinguish
+absent empty ItemInv from missing required energy/process fields according to
+the inspected Thermal/CoFH writer. The initial projection supports untagged
+base-slot items only; full machine/energy/fluid coverage remains required.
+No reader or private report reaches gameplay. Persisted state alone proves
+neither actual artifact binding, clean-stop consistency, registry validity,
+action causality nor scoring provenance. Those require the independent launch,
+setup, operation, player-resource and positive/negative control evidence before
+T03/T10/G0 qualification; gifts and fixture-provided resources must remain explicit.
 
 [D] Initial targets, calibrated during development then frozen: server TPS >=18 and p95 MSPT <=55 over rolling 5-minute windows; p95 state-update-to-gateway age <=500 ms; p95 accepted-action dispatch <=100 ms; responsive-worker cancel/stop <=250 ms. Measure bot event-loop lag and tick processing; renderer FPS is not applicable to headless Mineflayer, never a fabricated zero or passing value. Image-enabled client extensions additionally target median FPS >=30/p5 >=20 and the same capture-age limit. Hung workers are fenced/terminated within a further 2 s. Report percentiles/violation durations. More than 60 consecutive seconds outside the admitted envelope marks an incident and suspends admission; >5% active-time violation disqualifies that capacity profile for confirmation. These are proposed targets, not measured performance.
 

@@ -24,6 +24,8 @@ def string(value):
 def tag(kind, value):
     if kind in (1, 3):
         return struct.pack({1: ">b", 3: ">i"}[kind], value)
+    if kind == 7:
+        return struct.pack(">i", len(value)) + bytes(value)
     if kind == 8:
         return string(value)
     if kind == 9:

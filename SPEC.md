@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.40, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private persisted machine reference). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.41, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (server crash/save evidence and machine orientation validation). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -1205,10 +1205,15 @@ Progress-stall alarms are operator-only: e.g., 30 active minutes without a new p
 ### 12.3 Operating envelope and evidence retention
 
 **Private persisted machine reference foundation.** The evaluator's read-only
-`saved-thermal1192-furnace-base-plain/1` projection reads selected furnace positions
+`saved-thermal1192-furnace-base-plain/2` projection reads selected furnace positions
 from immutable, independently clean-stopped 1.19.2 server saves. Reuse bounded
 Anvil/NBT decoding and require both the persisted block and block-entity IDs,
 coordinates, energy/process field types and unique supported inventory slots.
+Require persisted horizontal Facing to agree with the block's facing property,
+and six side-mode bytes in the exact pinned CoFH enum range. The prior v1 resource
+projection did not check these fields; its idle fixture baseline is not proof of
+valid operating state. Retain that history and reject malformed state rather than
+repairing it during evaluation.
 Missing or duplicate entities, orphaned states, packed entities, tagged/extended
 items, augment overrides and unsupported fluid/capability state reject; they
 never become empty resources or a pass. Preserve source digests and distinguish
@@ -1220,6 +1225,15 @@ neither actual artifact binding, clean-stop consistency, registry validity,
 action causality nor scoring provenance. Those require the independent launch,
 setup, operation, player-resource and positive/negative control evidence before
 T03/T10/G0 qualification; gifts and fixture-provided resources must remain explicit.
+
+**Server process and save evidence.** A successful launcher exit, a stop request,
+or log messages announcing a save do not prove that the game server saved cleanly.
+Preserve raw logs and crash artifacts; recognized server crashes, watchdog failures
+and failed chunk/block-entity writes invalidate clean-save claims even when the
+launcher returns zero. Bound log processing and fail closed on incomplete evidence.
+Absence of recognized log signatures is only that limited negative result, never
+snapshot-integrity proof. Keep failed/partial saves and unresolved resource costs;
+do not turn a missing entity into an empty inventory or replay an ambiguous action.
 
 [D] Initial targets, calibrated during development then frozen: server TPS >=18 and p95 MSPT <=55 over rolling 5-minute windows; p95 state-update-to-gateway age <=500 ms; p95 accepted-action dispatch <=100 ms; responsive-worker cancel/stop <=250 ms. Measure bot event-loop lag and tick processing; renderer FPS is not applicable to headless Mineflayer, never a fabricated zero or passing value. Image-enabled client extensions additionally target median FPS >=30/p5 >=20 and the same capture-age limit. Hung workers are fenced/terminated within a further 2 s. Report percentiles/violation durations. More than 60 consecutive seconds outside the admitted envelope marks an incident and suspends admission; >5% active-time violation disqualifies that capacity profile for confirmation. These are proposed targets, not measured performance.
 

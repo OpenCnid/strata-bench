@@ -14,8 +14,9 @@ from mcbench.storage import require
 from .cli import write_report
 from .saved_blocks import NAME, NbtReader, _read_saved_points, block_states, field
 
-POLICY = "saved-thermal1192-furnace-base-plain/1"
+POLICY = "saved-thermal1192-furnace-base-plain/2"
 FURNACE = "thermal:machine_furnace"
+FACINGS = {2: "north", 3: "south", 4: "west", 5: "east"}
 
 
 def furnace_states(raw, chunk_x, chunk_z, points):
@@ -28,6 +29,8 @@ def furnace_states(raw, chunk_x, chunk_z, points):
     require(subtype in (0, 10) and (subtype == 10 or not entries)
             and len(entries) <= 4096, "SAVED_MACHINE_ENTITIES_INVALID")
     wanted = set(points)
+    block_facings = {tuple(block["position"][axis] for axis in ("x", "y", "z")):
+                     block["properties"].get("facing") for block in blocks}
     selected = {}
     for entry in entries:
         entity = entry.value
@@ -38,6 +41,15 @@ def furnace_states(raw, chunk_x, chunk_z, points):
         require(field(entity, "id", 8) == FURNACE, "SAVED_MACHINE_ENTITY_MISMATCH")
         require("keepPacked" not in entity or field(entity, "keepPacked", 1) == 0,
                 "SAVED_MACHINE_NOT_LOADED")
+        # Exact Reconfigurable4WayBlockEntity.load reads absent Facing as zero
+        # (DOWN). It can survive idle saves, then create null side modes when
+        # the horizontal block activates. Resource fields alone miss that fault.
+        facing = field(entity, "Facing", 1)
+        require(facing in FACINGS and FACINGS[facing] == block_facings[position],
+                "SAVED_MACHINE_ORIENTATION_INVALID")
+        sides = field(entity, "Sides", 7)
+        require(len(sides) == 6 and all(0 <= mode <= 4 for mode in sides),
+                "SAVED_MACHINE_SIDES_INVALID")
         # Legacy augment lists can override ItemInv on load. Do not silently
         # ignore a second inventory source, fluid storage or extended resources.
         require("Augments" not in entity, "SAVED_MACHINE_UNSUPPORTED")

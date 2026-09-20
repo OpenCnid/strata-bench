@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.40](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.41](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `2f398f5`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `73d81e3`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -30,13 +30,11 @@ options restored and arguments retired. Four remaining M1 cases stay unrun;
 resume them after higher-priority M0 work. No default-profile startup or complete
 T05 pass is claimed.
 
-[The private saved-machine reader](verification/2026-09-20-machine-reference.md) is now implemented with 103 focused Python/package checks and full Ruff passing. A protected server/world copy has an authentic verified baseline. First operation startup failed before admission because the harness confused settings/game fingerprints; zero intents/resources changed and cleanup is verified. [Operation-02](verification/2026-09-20-native-machine.md) then transfers three dust successfully by independent saved-state reconciliation, but its harness incorrectly expects completed instead of emitted and the guardian fails 505.7315/500 ms. Operation-03 fails the 2,250-ms worker bootstrap bound before any native intent; independent final references prove unchanged full inventory, three dust retained and empty furnace/20,000 RF. All processes and arguments are terminal/retired. [Build-time schema compilation](verification/2026-09-20-worker-schema-startup.md) removes measured startup work while retaining runtime schema hashes, all semantics and fixed deadlines; Node 128 plus 55 pinned-JVM/Windows cases and Python 64 checks pass. Operation-04 then fails before client launch because session preparation was omitted; its server saves normally and exact player/selected-region bytes remain unchanged. Operation-05 is now running with actual prepared-session verification and new pre-server artifact/session checks, using already-collected input with no withdrawal replay or fixture reset. Keep all charges, elapsed time and failures. Next qualify **M0.3b.3.2.4b / G0 item 3**: ordinary E9E
-machine/container operation through the structured API, with independent private
-server evidence for resource and energy changes. A received action or visible
-output alone cannot establish the result. Preserve fixture/setup provenance and
-negative controls. Live native host work remains blocked on the already-requested
-monetary conversion and actual isolated-worker boundary; do not wait on those to
-advance this independent game work.
+Current priority is **M0/G0 item 3: actual E9E machine processing and expert crafting**, not further M1 settings cases. Operation-05 passed fixed worker startup bounds after build-time schema compilation, but a malformed setup fixture caused a CoFH activation crash and failed tile save. Its partial NBT saved Facing=DOWN against a north-facing block. The deposit is unknown and must never be replayed; 3 intents, 11 primitives and 370.828 s remain charged. All processes are terminal and arguments retired. The original normal-save inference based on zero wrapper exit is superseded by [crash/save evidence](verification/2026-09-20-server-save-integrity.md).
+
+The runner now detects recognized crash/save failures even with zero wrapper exit. Saved-machine reader v2 rejects inconsistent facing and invalid side values. Focused Python 136 pass and full Ruff pass; these are implementation checks, not machine qualification. The old fixture stays quarantined. Prepare a separate native-initialized machine with energy merged into its full native NBT, plus explicit dust/andesite/crafting-table resources; check its actual saved baseline, then perform ordinary scoped API processing/crafting and independent final reconciliation. New private evidence root is `2026-09-20-machine-conformance-02`. No output has yet qualified.
+
+Continue independent M0 work while the existing live-model monetary-conversion and isolated-worker questions remain pending. No paid inference is admitted. Preserve every failed attempt and unchanged acceptance threshold.
 
 ## Overall position
 

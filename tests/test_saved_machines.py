@@ -13,7 +13,8 @@ from test_saved_blocks import chunk, region_file, root_bytes, section
 def entity(x=0):
     return {"x": (3, x), "y": (3, 0), "z": (3, 0), "id": (8, FURNACE),
             "Energy": (3, 20000), "Active": (1, 0), "Proc": (3, 0),
-            "ProcMax": (3, 2000), "ProcTick": (3, 20)}
+            "ProcMax": (3, 2000), "ProcTick": (3, 20),
+            "Facing": (1, 2), "Sides": (7, bytes(6))}
 
 
 def item(slot=0, item_id="minecraft:raw_iron", count=1):
@@ -21,7 +22,8 @@ def item(slot=0, item_id="minecraft:raw_iron", count=1):
 
 
 def machine_chunk(entities=None):
-    value = chunk(sections=[section(palette=[{"Name": (8, FURNACE)}])])
+    value = chunk(sections=[section(palette=[{"Name": (8, FURNACE),
+        "Properties": (10, {"facing": (8, "north"), "active": (8, "false")})}])])
     value["block_entities"] = (9, (10, entities if entities is not None else [entity()]))
     return value
 
@@ -52,6 +54,14 @@ def test_empty_and_plain_slots_retain_energy_process_and_block():
     ("Augments", (9, (0, [])), "UNSUPPORTED"),
     ("ForgeCaps", (10, {"test:extra": (3, 1)}), "UNSUPPORTED"),
     ("TankInv", (9, (10, [{}])), "UNSUPPORTED"),
+    ("Facing", (1, 0), "ORIENTATION_INVALID"),
+    ("Facing", (1, 1), "ORIENTATION_INVALID"),
+    ("Facing", (1, 3), "ORIENTATION_INVALID"),
+    ("Facing", (1, -1), "ORIENTATION_INVALID"),
+    ("Sides", (7, bytes(5)), "SIDES_INVALID"),
+    ("Sides", (7, bytes(7)), "SIDES_INVALID"),
+    ("Sides", (7, bytes([5, 0, 0, 0, 0, 0])), "SIDES_INVALID"),
+    ("Sides", (7, bytes([255, 0, 0, 0, 0, 0])), "SIDES_INVALID"),
     ("ItemInv", (9, (8, ["bad"])), "INVENTORY_UNSUPPORTED"),
 ])
 def test_wrong_partial_and_unsupported_persistence(name, value, code):
@@ -89,7 +99,7 @@ def test_missing_duplicate_or_orphaned_entity_never_becomes_empty_machine():
 
 
 def test_missing_fields_and_wrong_numeric_types_reject():
-    for key in ("Energy", "Proc", "Active", "id"):
+    for key in ("Energy", "Proc", "Active", "id", "Facing", "Sides"):
         e = entity()
         del e[key]
         with pytest.raises(Fault, match="SAVED_CHUNK_FIELD_INVALID"):
@@ -98,6 +108,17 @@ def test_missing_fields_and_wrong_numeric_types_reject():
     e["Energy"] = (1, 20)
     with pytest.raises(Fault, match="SAVED_CHUNK_FIELD_INVALID"):
         decode(machine_chunk([e]))
+
+
+@pytest.mark.parametrize(("code", "name"), [(2, "north"), (3, "south"), (4, "west"), (5, "east")])
+def test_each_horizontal_orientation_and_known_side_modes(code, name):
+    e = entity()
+    e["Facing"] = (1, code)
+    e["Sides"] = (7, bytes([0, 1, 2, 3, 4, 0]))
+    value = machine_chunk([e])
+    value["sections"] = (9, (10, [section(palette=[{"Name": (8, FURNACE),
+        "Properties": (10, {"facing": (8, name), "active": (8, "false")})}])]))
+    assert decode(value)[0]["properties"]["facing"] == name
 
 
 def test_projection_selection_order_source_hashes_and_no_eligibility(tmp_path):

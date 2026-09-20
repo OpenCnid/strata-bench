@@ -2,7 +2,7 @@
 
 September 20, 2026. Operator-only. M0.3b.2c.3c.2b.2b.2.1a;
 F01/F05/F16, N01/N02/N04/N06/N08; T01/T03/T07/T12, G0.
-Implemented; authentic loaded-game timing remains unverified. G0/T07 remain fail.
+Implemented; one authentic loaded-game startup passes narrowly. G0/T07 remain fail.
 
 [Machine operation-03](2026-09-20-native-machine.md) misses the fixed 2,250 ms
 bootstrap deadline after the exact E9E client joins. Zero actions run. This is a
@@ -61,7 +61,11 @@ Verification executed:
   regenerated build and eight schema/startup tests pass afterward (1.954 s).
   Validator behavior and emitted runtime implementation are unchanged.
 
-The next authentic trial is recorded when complete. Raw diagnostics, logs, failed-start audit and trial
+Operation-05 records bootstrap 215.441 ms and initialization 261.020 ms, with
+gateway readiness at 1,531.144 ms after fork. Its later machine-fixture/server
+crash remains failed and is [reported separately](2026-09-20-server-save-integrity.md).
+These startup observations do not qualify reliable operation or shutdown.
+Raw diagnostics, logs, failed-start audit and trial
 evidence remain outside the repository under
 `C:\Users\Darian\.strata\evidence\2026-09-20-machine-reference-01`.
 No inference or shared-desktop input occurs. The operating-machine requirement,

@@ -25,7 +25,7 @@ No shared-desktop input, paid inference or campaign admission occurs.
 | operation-02 | Chest opens through scoped API; ordinary quick-move transfers three dust into player inventory. Harness then wrongly requires `completed` instead of the pinned Forge terminal `emitted` | Overall fail; transfer independently reconciled, not replayed. Two intents, eight charged primitives/seven usage records, twelve CLI calls; 514.437 s retained |
 | operation-03 | Client joins, but worker misses the fixed 2,250 ms bootstrap bound before any gateway or action | Fail; zero native intents, entire player inventory unchanged, three dust retained, furnace empty/20,000 RF; 417.546 s retained |
 | operation-04 | Operator omitted session preparation; client driver rejects the missing file after server startup, before launching Minecraft | Fail; no client/worker/native intents or session argument file; normal server stop and exact unchanged player/selected-region bytes; 173.954 s retained |
-| operation-05 | Updated worker and explicit pre-server artifact/session preflight; prepared session verified before launch | Running; same saved resources, no reset/replenishment or forward replay |
+| operation-05 | Startup passes; furnace opens and input pickup succeeds; deposit becomes unknown during an actual server crash | Fail; malformed fixture orientation, failed tile save/missing entity, three dust absent from player, 11 charged primitives, no output credit or replay; 370.828 s retained |
 
 In operation-02 the client readiness checks pass in 242.079 s with no startup
 read failures, and the private world frame is captured. The receipt for the
@@ -76,6 +76,15 @@ launch. Operation-05 has an actual prepared session and retains all four prior
 attempts. No input or timing threshold changes. The private preparer's initial
 Python string-escape syntax error was caught by compilation before execution and
 corrected before any session or game process was started.
+
+**Operation-05 superseding evidence:** [Server/save postmortem](2026-09-20-server-save-integrity.md)
+proves that launcher exit zero concealed a server crash and failed furnace save.
+The v1 idle baseline had not validated the malformed orientation introduced by
+setup. The original audit's early normal-save field is superseded, not erased.
+The fixture is quarantined; the unknown deposit and lost/unresolved resources
+remain. Startup passes narrowly, while machine, save and guardian qualification
+do not. Do not restart this fixture or repeat that deposit. Fresh fixture work
+must preserve native initialization and use the stricter v2 private reader.
 
 Raw plans, scoped requests/responses, journals, saved references, logs and audits
 remain private under

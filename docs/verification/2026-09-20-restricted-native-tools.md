@@ -116,3 +116,8 @@ and revocation through the worker; actual OAuth ingress/exposure; then the
 authorized at-most-$1 trial inside the existing $10. No production qualification
 record was issued. Earlier loopback, shutdown, effective-file and pack failures
 remain unresolved in their stated scopes.
+
+Subsequent [owned adversarial canaries](2026-09-20-native-broker-canaries.md)
+exercise a changed profile with inherited project documents disabled. Root/helper
+file/resource/loopback and direct disabled-tool checks pass in their stated
+scope; protected bootstrap, live enrollment and full qualification remain open.

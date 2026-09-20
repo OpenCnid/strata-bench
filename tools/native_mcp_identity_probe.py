@@ -50,7 +50,7 @@ def serve(log):
         print(json.dumps({"jsonrpc": "2.0", "id": request["id"], "result": result}), flush=True)
 
 
-def run(binary, output, broker_mode=False):
+def run(binary, output, broker_mode=False, canary_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -59,14 +59,20 @@ def run(binary, output, broker_mode=False):
     from mcbench.budgets import DIMENSIONS
     from mcbench.inference_dispatch import InferenceDispatches
     from mcbench.native import NativeExec, NativeLaunch
+    from mcbench.native_broker_policy import validate_broker_settings
     from mcbench.plugins import install_dovetail
     from mcbench.storage import CAS, Database, require
     from native_dispatch_probe import LocalProvider, close_budget, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
+    from native_broker_canaries import Canaries
+
+    require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
+            self.direct_calls = []
             super().__init__(*args, **kwargs)
 
         def respond(self, handler, body, index, operation):
@@ -138,6 +144,8 @@ def run(binary, output, broker_mode=False):
                         ' const t=ALL_TOOLS.find(t=>t.name.endsWith("__"+name)); '
                         ' if (!t) throw new Error("MCP_TOOL_MISSING:"+name); '
                         ' text({name,result:await tools[t.name](args)}); }')
+                    if canaries:
+                        code += "\n" + canaries.code()
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
@@ -149,8 +157,15 @@ def run(binary, output, broker_mode=False):
                 item = {"id": "tool-" + operation, "type": "function_call",
                     "call_id": "call-" + operation, "namespace": "collaboration",
                     "name": call[0], "arguments": json.dumps(call[1])}
+            elif canaries and step == (3 if agent == "/root" else 1):
+                call_id = "direct-" + operation
+                self.direct_calls.append(call_id)
+                item = {"id": "tool-" + operation, "type": "function_call", "call_id": call_id,
+                    "namespace": "functions", "name": "exec_command",
+                    "arguments": json.dumps({"cmd": canaries.command(), "login": False,
+                                              "max_output_tokens": 1000})}
             else:
-                require(step == (3 if agent == "/root" else 1), "UNEXPECTED_RETRY")
+                require(step == (3 if agent == "/root" else 1) + int(canary_mode), "UNEXPECTED_RETRY")
             response = {"id": "response-" + operation, "object": "response", "created_at": 1,
                 "status": "completed", "model": body["model"], "output": [item], "usage": {
                     "input_tokens": 10, "output_tokens": 4, "total_tokens": 14,
@@ -216,6 +231,7 @@ def run(binary, output, broker_mode=False):
                 "tools": {"artifact_write": {"approval_mode": "approve"},
                           "game": {"approval_mode": "approve"}},
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
+            validate_broker_settings(config)
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "hard_timeout_s": 45, "prompt": "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
@@ -241,6 +257,8 @@ def run(binary, output, broker_mode=False):
             worker.shutdown()
             worker.server_close()
             worker_thread.join(3)
+        if canaries:
+            canaries.close()
     calls = [json.loads(line) for path in sorted(output.glob("mcp-*.jsonl"))
              for line in path.read_text(encoding="utf-8").splitlines()]
     result = {"schema": "strata/NativeMcpIdentityProbe/1", "is_example": True,
@@ -265,8 +283,11 @@ def run(binary, output, broker_mode=False):
             "immutable_and_parent_write_denied": "BROKER_WRITE_FORBIDDEN" in outputs,
             "spoof_arguments_denied": "BROKER_ARGUMENTS_INVALID" in outputs,
             "worker_credential_not_returned": "STRATA_SYNTHETIC_WORKER_SECRET" not in outputs,
-            "provider_clean": not provider.errors and len(provider.requests) == 6,
+            "provider_clean": not provider.errors and len(provider.requests) == (8 if canary_mode else 6),
         }
+        if canaries:
+            result["canaries"] = canaries.report(provider.direct_calls)
+            result["checks"].update(result["canaries"]["checks"])
     db.export_journal(output / "journal.jsonl")
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
@@ -279,6 +300,7 @@ def main():
     parser.add_argument("--codex", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--broker", action="store_true")
+    parser.add_argument("--canaries", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -293,11 +315,12 @@ def main():
     output.mkdir(parents=True)
     paths = [Path(__file__), root / "tools/native_restricted_tools_probe.py",
         root / "tools/native_dispatch_probe.py", root / "src/mcbench/native.py",
-        root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py"]
+        root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py",
+        root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
-    result = run(args.codex.resolve(), output, args.broker)
+    result = run(args.codex.resolve(), output, args.broker, args.canaries)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

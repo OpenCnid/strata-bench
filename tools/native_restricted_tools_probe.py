@@ -13,6 +13,7 @@ from mcbench.budgets import DIMENSIONS
 from mcbench.inference_dispatch import InferenceDispatches
 from mcbench.inventory import file_hash
 from mcbench.native import NativeExec, NativeLaunch
+from mcbench.native_broker_policy import restricted_settings
 from mcbench.plugins import install_dovetail
 from mcbench.storage import CAS, Database, require
 from native_dispatch_probe import (
@@ -27,20 +28,7 @@ from native_dispatch_probe import (
 )
 
 # These are supported feature settings on the inspected host, not a policy claim.
-RESTRICTIONS = {
-    "features.shell_tool": False,
-    "features.view_image": False,
-    "features.apps": False,
-    "features.browser_use": False,
-    "features.browser_use_external": False,
-    "features.computer_use": False,
-    "features.image_generation": False,
-    "features.tool_suggest": False,
-    "features.hooks": False,
-    "features.skill_mcp_dependency_install": False,
-    "features.multi_agent_v2": True,
-    "web_search": "disabled",
-}
+RESTRICTIONS = restricted_settings()
 
 
 class RestrictedProvider(LocalProvider):

@@ -188,3 +188,18 @@ def test_stdio_bounded_catalog_metadata_and_redacted_errors(broker):
 def test_worker_endpoint_is_operator_pinned_loopback_only(url):
     with pytest.raises(Fault, match="BROKER_WORKER_DESCRIPTOR"):
         WorkerTransport({"url": url, "token": "x" * 32, "campaign_id": "c1", "agent_id": "a1", "epoch": 1})
+
+
+def test_native_broker_policy_rejects_tool_and_ancestor_instruction_expansion():
+    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings, validate_broker_settings
+    config = restricted_settings() | {"mcp_servers.strata_broker": {
+        "enabled_tools": list(BROKER_TOOLS), "required": True,
+        "tools": {"artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
+    validate_broker_settings(config)
+    for change in ({"features.shell_tool": True}, {"project_doc_max_bytes": 32768},
+                   {"mcp_servers.unapproved": {}}, {"features.hooks": True}):
+        with pytest.raises(Fault, match="BROKER_TOOL_POLICY|BROKER_SERVER_POLICY"):
+            validate_broker_settings(config | change)
+    config["mcp_servers.strata_broker"]["enabled_tools"].append("admin")
+    with pytest.raises(Fault, match="BROKER_SERVER_POLICY"):
+        validate_broker_settings(config)

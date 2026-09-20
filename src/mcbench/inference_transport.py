@@ -12,6 +12,7 @@ import json
 import time
 from urllib.parse import urlsplit
 
+from .accounting import EstimateBasis, TokenUsage, UsageValuation
 from .records import BudgetLedger
 from .storage import Principal, require
 
@@ -154,11 +155,15 @@ class SyntheticResponsesTransport:
         # These are synthetic per-token integer rates, not OpenAI prices. Pin the
         # exact private price record also named by the qualified bound/reservation.
         price = strict_json(self.gate._private_ref(reserve.pricing_ref, 16384))
-        require(price.get("schema") == "strata/SyntheticTokenPricing/1" and
-                price.get("is_example") is True and price.get("currency") == "USD",
-                "SYNTHETIC_PRICING_REQUIRED")
-        rates = {key: count(price.get(key)) for key in (
-            "input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")}
+        basis = None
+        if price.get("schema", price.get("schema_")) == "strata/ApiEquivalentEstimateBasis/1":
+            basis = EstimateBasis.model_validate(price)
+        else:
+            require(price.get("schema") == "strata/SyntheticTokenPricing/1" and
+                    price.get("is_example") is True and price.get("currency") == "USD",
+                    "SYNTHETIC_PRICING_REQUIRED")
+            rates = {key: count(price.get(key)) for key in (
+                "input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")}
 
         def forward():
             started = time.monotonic()
@@ -194,18 +199,31 @@ class SyntheticResponsesTransport:
                 observed = capture.finish()
                 event = observed.pop("event")
                 # Cached input and reasoning output are subsets, never added twice.
-                spend = ((observed["input_tokens"] - observed["cached_input_tokens"]) *
-                         rates["input_microusd_per_token"] + observed["cached_input_tokens"] *
-                         rates["cached_microusd_per_token"] + observed["output_tokens"] *
-                         rates["output_microusd_per_token"])
+                if basis:
+                    tokens = TokenUsage.model_validate({k: observed[k] for k in (
+                        "input_tokens", "cached_input_tokens", "output_tokens", "reasoning_tokens")}
+                        | {"model": reserve.model_identity, "cache_write_tokens": None})
+                    spend = basis.estimate(tokens)
+                else:
+                    spend = ((observed["input_tokens"] - observed["cached_input_tokens"]) *
+                             rates["input_microusd_per_token"] + observed["cached_input_tokens"] *
+                             rates["cached_microusd_per_token"] + observed["output_tokens"] *
+                             rates["output_microusd_per_token"])
                 count(spend)
                 raw_ref = self._save(capture, reserve.operation_id)
                 event_id = "wire-" + hashlib.sha256(reserve.operation_id.encode()).hexdigest()
                 receipt = BudgetLedger.model_validate(reserve.model_dump() | {
                     "posting": "settle", "source_event_id": event_id + ":settle",
-                    "ledger_id": event_id + ":receipt", "metering": "reported",
+                    "ledger_id": event_id + ":receipt",
+                    "metering": "estimated" if basis else "reported",
                     "raw_usage_ref": raw_ref, "usage": reserve.usage.model_dump() | observed |
                     {"spend_microusd": spend, "wall_ms": int((time.monotonic() - started) * 1000)}})
+                if basis:
+                    valuation = UsageValuation.model_validate({"schema": "strata/UsageValuation/1",
+                        "kind": "api_equivalent_estimate", "basis_digest": basis.fingerprint(),
+                        "raw_usage_ref": raw_ref, "usage": tokens, "amount_microusd": spend,
+                        "token_evidence": "synthetic_fixture"})
+                    return event, receipt, valuation
                 return event, receipt
             finally:
                 connection.close()

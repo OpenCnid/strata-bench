@@ -1,13 +1,13 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 20, 2026. Operator-only. [SPEC v0.2.59](../SPEC.md)
+Updated September 20, 2026. Operator-only. [SPEC v0.2.60](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
 ## Start here
 
-The user requested this documentation/PR/merge checkpoint for a new session.
-The existing long-horizon objective remains:
+Implementation resumed from the merged documentation checkpoint. The active
+long-horizon goal preserves the user's objective:
 
 > Complete Strata according to SPEC.md and AGENTS.md through every required
 > M0–M6 deliverable and acceptance gate. Preserve M7 and other conditional
@@ -27,8 +27,9 @@ Verify the new session's goal state instead of declaring completion.
 2. Fetch origin and inspect local changes/worktrees and
    [PR #2](https://github.com/OpenCnid/strata-bench/pull/2). PR #1 merged at
    `579796da40eeb9e6063196462767f60e9c87eac7`; PR #2 carries this continuation.
-   If PR #2 is merged, create a fresh branch/worktree from updated main.
-   If it is not, preserve and inspect its branch before proceeding.
+   PR #2 was verified merged at `542a77ac760fb305b26941085e33447f392f8ba8`;
+   current worktree `09a0` uses fresh branch `codex/strata-estimated-usage`. Preserve it.
+   Preserve uncommitted implementation before any subsequent branch transition.
 3. Verify current private process/accounting/profile state using only necessary
    metadata. No game needs to launch just to inspect this checkpoint. Preserve
    existing work and raw evidence; never print auth caches or secret-bearing
@@ -37,19 +38,20 @@ Verify the new session's goal state instead of declaring completion.
    Maintain the ledger alongside source changes. A test result alone cannot
    close the complete M0 gate.
 
-## First deliverable and verification
+## Delivered accounting and next implementation
 
-**M0.1c.1c.2: implement D11's versioned API-equivalent estimate basis.**
+**M0.1c.1c.2a: D11 versioned estimate implementation and migration delivered.**
 Use [validation admission](operations/validation-admission.md) as the precise
-continuation contract. Inspect `src/mcbench/authorization.py`, `budgets.py`,
+continuation contract; do not restart the completed accounting implementation. Inspect `src/mcbench/authorization.py`, `budgets.py`,
 `inference_dispatch.py`, `inference_transport.py`, `native.py`, their tests and
 `configs/operator/live-validation.json`.
 
 The durable actual-CLI/local-synthetic-provider dispatch task originally called
 M0.1c.1c.1 already has streaming, retries, compaction, helpers and restart evidence.
-Do not start it from scratch. The remaining source gap is explicit estimate
-semantics and migration of the legacy hard-dollar authorization, followed by
-real native/OAuth ingress and boundary qualification.
+Do not start it from scratch. The versioned estimate semantics, finite exposure records, settlement valuations
+and explicit migration are implemented with focused synthetic verification and
+one actual pinned-CLI/local-wire estimate fixture. See the [D11 report](verification/2026-09-20-estimated-accounting.md).
+Real native/OAuth ingress and boundary qualification remain required.
 
 Exit evidence: pinned price/usage basis; original allowance/store lineage
 preserved; root/helper/retry/summary aggregation without envelope double counting;
@@ -59,7 +61,7 @@ rejected; justified finite exposure before dispatch. Run focused affected tests
 and only the affected pinned-CLI fixture. Mark synthetic/source checks
 separately from authentic OAuth/game qualification.
 
-**Then M0.1c.2b.2:** implement/test the smallest enforceable native tool/helper
+**Current next deliverable M0.1c.2b.2:** implement/test the smallest enforceable native tool/helper
 boundary on available hardware. The agent needs scoped game access, its own
 notes/skills and allowed docs; evaluator/holdout/admin/credential/sibling access
 must be denied. Inspect host-supported restricted tools and protected brokerage,
@@ -80,9 +82,12 @@ assistant used no subscription resources.
 
 Recommend at most $1 for the first qualified trial within the same $10 total,
 then measure consumption. No allowance increase/reset occurred. Recheck durable
-accounting before spending; preserve ambiguous holds. The D11 runtime migration
-has **not** been implemented. Do not use legacy JSON or invented qualification
-flags to admit live calls. Finite exposure and actual all-request accounting
+accounting before spending; preserve ambiguous holds. The D11 runtime migration was executed in the existing private project store
+`C:/Users/Darian/.strata/operator/provisioning/controller.sqlite`, under the original
+`validation-2026-09-18` ID and $10 cap. Fresh inventory found no installed prior
+authority and only synthetic model stores; archived D04 was installed then explicitly
+migrated with a store/snapshot/inventory/decision audit. Opening experimental usage
+is zero. Do not create another allowance or use invented qualification flags to admit calls. Finite exposure and actual all-request accounting
 remain required.
 
 Isolation is needed for benchmark validity and private-state protection. It is

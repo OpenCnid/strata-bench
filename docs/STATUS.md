@@ -17,9 +17,10 @@ research MVP or a scientific result.
 | Retained failures | Mineflayer/E9E negotiation, unauthorized native loopback, five effective-file checks, repeated 500-ms shutdown failures | None is waived by a fallback, a later passing sample or local tests |
 | Research qualification | Source for controls, analysis and reports | No confirmatory study, 1/8/24-hour soak or simultaneous capacity certification |
 
-The next source deliverable is **D11 versioned API-equivalent estimate accounting**
-(M0.1c.1c.2), followed by the smallest enforceable native tool/helper boundary
-(M0.1c.2b.2). The [admission contract](operations/validation-admission.md)
+D11 versioned API-equivalent estimate accounting and explicit durable migration
+now have [source/synthetic evidence](verification/2026-09-20-estimated-accounting.md)
+(M0.1c.1c.2a). The next deliverable is the smallest enforceable native tool/helper
+boundary (M0.1c.2b.2), followed by qualified OAuth ingress and the staged trial. The [admission contract](operations/validation-admission.md)
 defines files, failure cases and exit evidence. No VM procurement or exact OAuth
 billing-conversion question remains pending. The original $10 total, OAuth/Luna
 selection, conservative reservations and shared-desktop pause remain in force.
@@ -42,6 +43,6 @@ Primary evidence entry points:
   [scorer source binding](verification/2026-09-20-scorer-scope.md).
 - [Session merge checks](verification/2026-09-20-session-handoff.md).
 
-Publication is tracked by [PR #2](https://github.com/OpenCnid/strata-bench/pull/2).
-Verify its merge commit and fetched main when starting a new session. Publication
+PR #2 merged at `542a77ac760fb305b26941085e33447f392f8ba8`; fetched main was verified.
+Current implementation branch: `codex/strata-estimated-usage`. Publication
 does not change the implementation or gate statuses above.

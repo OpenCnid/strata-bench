@@ -16,6 +16,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue
 
+from .accounting import EstimateBasis
 from .budgets import Budgets
 from .authorization import Authorizations
 from .contracts import Digest, Id, Positive, Ref, Strict, UInt
@@ -57,6 +58,7 @@ class NativeLaunch(Strict):
     auth_mode: Literal["chatgpt_oauth", "api_key"] = "chatgpt_oauth"
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
+    accounting_basis_digest: Digest | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -67,10 +69,14 @@ class NativeLaunch(Strict):
 
     def profile_digest(self):
         # Episode text, identities and locations vary; execution affordances do not.
-        return digest({k: getattr(self, k) for k in (
+        body = {k: getattr(self, k) for k in (
             "binary_digest", "binary_version", "dovetail_commit", "model",
             "config_overrides", "hard_timeout_s", "output_limit_bytes", "helper_limit",
-            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")})
+            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")}
+        # Preserve historical profile hashes; new estimate profiles bind the basis.
+        if self.accounting_basis_digest is not None:
+            body["accounting_basis_digest"] = self.accounting_basis_digest
+        return digest(body)
 
 
 def _toml_value(value):
@@ -107,6 +113,7 @@ class NativeExec:
         self.authorizations = Authorizations(database)
         self.live = {}
         with self.db.transaction() as db:
+            self.authorizations.require_store_mode(simulation)
             if db.execute("SELECT name FROM sqlite_master "
                           "WHERE name='inference_dispatch_profile'").fetchone():
                 dispatch = db.execute("SELECT simulation FROM inference_dispatch_profile").fetchone()
@@ -156,8 +163,15 @@ class NativeExec:
                         item.get("pricing_semantics_verified") is True and
                         item.get("finite_dispatch_bound_verified") is True,
                         "BILLING_BOUND_UNVERIFIED")
+                require(plan.accounting_basis_digest is not None and
+                        item.get("accounting_basis_digest") == plan.accounting_basis_digest,
+                        "ACCOUNTING_BASIS_MISMATCH")
 
     def _validate(self, plan, reserve, fixture_argv):
+        db = self.db.connection
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='inference_exposure_faults'").fetchone():
+            require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
+                    "INFERENCE_EXPOSURE_QUARANTINED")
         require(reserve.posting == "reserve" and reserve.campaign_id == plan.campaign_id and
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
@@ -187,8 +201,19 @@ class NativeExec:
                     "RUNTIME_PIN_MISMATCH")
             require(callable(self.revoke_game), "REVOCATION_REQUIRED")
             self._proof(plan)
-            self.authorizations.check(self.authorization_id, plan.account, plan.provider,
-                                      plan.auth_mode, plan.model)
+            policy = self.authorizations.check(self.authorization_id, plan.account, plan.provider,
+                                              plan.auth_mode, plan.model)
+            require(plan.budget_mode == "per_dispatch", "VERSIONED_ESTIMATE_REQUIRED")
+            require(reserve.pricing_ref is not None, "ACCOUNTING_BASIS_MISMATCH")
+            basis = EstimateBasis.model_validate(self.cas.json(
+                Principal("operator", "operator"), self.namespace, reserve.pricing_ref))
+            require(basis == policy.accounting_basis and
+                    plan.accounting_basis_digest == basis.fingerprint(),
+                    "ACCOUNTING_BASIS_MISMATCH")
+            # Keep the initial live-validation stage bounded to at most $1/job.
+            # Every job still consumes the original shared $10 authority.
+            require(reserve.usage.spend_microusd <= policy.first_trial_max_microusd,
+                    "INITIAL_TRIAL_LIMIT")
             # A different home alone is not isolation. Qualification must separately
             # prove that this workspace cannot access operator docs or provider auth.
         return workspace, profile
@@ -196,6 +221,8 @@ class NativeExec:
     def start(self, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
         workspace, profile = self._validate(plan, reserve, fixture_argv)
         plan_body = plan.model_dump()
+        if plan.accounting_basis_digest is None:
+            plan_body.pop("accounting_basis_digest")
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),
                            "fixture_argv": fixture_argv})
         with self.db.transaction() as db:

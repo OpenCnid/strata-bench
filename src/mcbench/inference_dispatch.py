@@ -12,6 +12,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from .accounting import EstimateBasis, FiniteExposure, UsageValuation
 from .authorization import Authorizations
 from .budgets import Budgets
 from .contracts import Digest, Id, Positive, Ref, Strict
@@ -47,6 +48,11 @@ class DispatchBound(Strict):
     expires_unix_ms: Positive
 
 
+class EstimateDispatchBound(DispatchBound):
+    schema_: Literal["strata/InferenceDispatchBound/2"] = Field(alias="schema")
+    exposure: FiniteExposure
+
+
 class InferenceDispatches:
     def __init__(self, database, cas, *, simulation=False, namespace="operator",
                  authorization_id=None):
@@ -58,6 +64,7 @@ class InferenceDispatches:
         self.budgets = Budgets(database)
         self.authorizations = Authorizations(database)
         with database.transaction() as db:
+            self.authorizations.require_store_mode(simulation)
             if db.execute("SELECT name FROM sqlite_master WHERE name='native_profile'").fetchone():
                 native = db.execute("SELECT simulation FROM native_profile").fetchone()
                 require(native is not None and bool(native[0]) == simulation,
@@ -78,6 +85,12 @@ class InferenceDispatches:
                        "state TEXT NOT NULL, receipt_digest TEXT, provider_event TEXT, reason TEXT)")
             db.execute("CREATE UNIQUE INDEX IF NOT EXISTS inference_provider_event "
                        "ON inference_attempts(provider_event) WHERE provider_event IS NOT NULL")
+            db.execute("CREATE TABLE IF NOT EXISTS inference_valuations "
+                       "(operation TEXT PRIMARY KEY REFERENCES inference_attempts(operation), "
+                       "body TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS inference_exposure_faults "
+                       "(operation TEXT PRIMARY KEY REFERENCES inference_attempts(operation), "
+                       "profile_digest TEXT NOT NULL)")
 
     def _private_ref(self, ref, max_bytes):
         row = self.db.connection.execute(
@@ -93,7 +106,7 @@ class InferenceDispatches:
                 reserve.metering != "unknown" and reserve.pricing_ref is not None and
                 reserve.model_identity is not None and reserve.usage.spend_microusd is not None,
                 "DISPATCH_BOUND_REQUIRED")
-        bound = DispatchBound.model_validate_json(self._private_ref(attempt.bound_ref, 16384))
+        bound = self._bound(attempt)
         expected = attempt.model_dump(exclude={"schema_", "bound_ref"})
         require(all(getattr(bound, k) == v for k, v in expected.items()) and
                 bound.reservation_digest == digest(reserve.model_dump()) and
@@ -101,10 +114,34 @@ class InferenceDispatches:
                 bound.is_example == self.simulation and
                 bound.finite_dispatch_bound_verified and bound.pricing_semantics_verified and
                 bound.expires_unix_ms > time.time_ns() // 1000000, "DISPATCH_BOUND_UNVERIFIED")
-        self._private_ref(bound.pricing_ref, 65536)
+        price_raw = self._private_ref(bound.pricing_ref, 65536)
+        if isinstance(bound, EstimateDispatchBound):
+            basis = EstimateBasis.model_validate_json(price_raw)
+            require(reserve.model_identity == basis.model and
+                    reserve.usage.input_tokens == bound.exposure.max_input_tokens and
+                    reserve.usage.output_tokens == bound.exposure.max_output_tokens and
+                    reserve.usage.spend_microusd == bound.exposure.amount(basis),
+                    "DISPATCH_ESTIMATE_MISMATCH")
+            proof = json.loads(self._private_ref(bound.exposure.enforcement_ref, 65536))
+            require(proof.get("schema") == "strata/InferenceExposureEvidence/1" and
+                    proof.get("is_example") is self.simulation and
+                    proof.get("profile_digest") == attempt.profile_digest and
+                    proof.get("basis_digest") == basis.fingerprint() and
+                    proof.get("input_bound_method") == bound.exposure.input_bound_method and
+                    proof.get("output_bound_method") == bound.exposure.output_bound_method and
+                    proof.get("max_input_tokens") == bound.exposure.max_input_tokens and
+                    proof.get("max_output_tokens") == bound.exposure.max_output_tokens and
+                    proof.get("result") == "pass", "EXPOSURE_UNQUALIFIED")
+            # Smaller bounds require request-specific enforcement evidence.
+            if (bound.exposure.input_bound_method != "provider_context_limit" or
+                    bound.exposure.output_bound_method != "provider_model_limit"):
+                require(proof.get("request_digest") == attempt.request_digest,
+                        "EXPOSURE_UNQUALIFIED")
         if not self.simulation:
-            self.authorizations.check(self.authorization_id, account, attempt.provider,
-                                      attempt.auth_mode, reserve.model_identity)
+            policy = self.authorizations.check(self.authorization_id, account, attempt.provider,
+                                              attempt.auth_mode, reserve.model_identity)
+            require(isinstance(bound, EstimateDispatchBound), "VERSIONED_ESTIMATE_REQUIRED")
+            require(basis == policy.accounting_basis, "ACCOUNTING_BASIS_MISMATCH")
             exists = self.db.connection.execute("SELECT name FROM sqlite_master "
                                                 "WHERE name='native_jobs'").fetchone()
             require(exists is not None, "RUNTIME_UNQUALIFIED")
@@ -120,6 +157,12 @@ class InferenceDispatches:
                     plan.provider == attempt.provider and plan.auth_mode == attempt.auth_mode and
                     plan.operation_id == reserve.parent_operation_id, "DISPATCH_SCOPE_MISMATCH")
 
+    def _bound(self, attempt):
+        raw = json.loads(self._private_ref(attempt.bound_ref, 16384))
+        cls = (EstimateDispatchBound if raw.get("schema", raw.get("schema_")) ==
+               "strata/InferenceDispatchBound/2" else DispatchBound)
+        return cls.model_validate(raw)
+
     def _begin(self, account, attempt, reserve):
         fingerprint = digest({"account": account, "attempt": attempt.model_dump(),
                               "reserve": reserve.model_dump()})
@@ -129,6 +172,8 @@ class InferenceDispatches:
             if old:
                 require(old[0] == fingerprint, "IDEMPOTENCY_CONFLICT")
                 return False
+            require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
+                    "INFERENCE_EXPOSURE_QUARANTINED")
             self._validate_bound(account, attempt, reserve)
             require(self.budgets.post_in_transaction(db, account, reserve),
                     "DISPATCH_RESERVATION_REUSED")
@@ -153,28 +198,55 @@ class InferenceDispatches:
         if not self._begin(account, attempt, reserve):
             return self.status(reserve.operation_id)
         try:
-            provider_event_id, receipt = forward()
-            self.settle(reserve.operation_id, provider_event_id, receipt)
+            result = forward()
+            require(isinstance(result, tuple) and len(result) in (2, 3),
+                    "AUTHORITATIVE_USAGE_REQUIRED")
+            provider_event_id, receipt = result[:2]
+            self.settle(reserve.operation_id, provider_event_id, receipt,
+                        valuation=result[2] if len(result) == 3 else None)
         except BaseException:
             self.mark_uncertain(reserve.operation_id, "transport_or_receipt_uncertain")
             raise
         return self.status(reserve.operation_id)
 
-    def settle(self, operation, provider_event_id, receipt: BudgetLedger):
+    def settle(self, operation, provider_event_id, receipt: BudgetLedger, *, valuation=None):
         require(isinstance(provider_event_id, str) and 0 < len(provider_event_id) <= 256 and
                 not any(ord(c) < 33 for c in provider_event_id), "PROVIDER_EVENT_INVALID")
         require(isinstance(receipt, BudgetLedger) and receipt.posting == "settle" and
-                receipt.metering == "reported" and receipt.raw_usage_ref is not None and
+                receipt.metering in {"reported", "estimated"} and receipt.raw_usage_ref is not None and
                 receipt.usage.spend_microusd is not None and
                 receipt.usage.model_calls in (0, 1), "AUTHORITATIVE_USAGE_REQUIRED")
         self._private_ref(receipt.raw_usage_ref, 256 * 1024)
-        fingerprint = digest({"provider_event_id": provider_event_id,
-                              "receipt": receipt.model_dump()})
+        fingerprint_body = {"provider_event_id": provider_event_id, "receipt": receipt.model_dump()}
+        if valuation is not None:
+            valuation = UsageValuation.model_validate(valuation)
+            fingerprint_body["valuation"] = valuation.model_dump()
+        fingerprint = digest(fingerprint_body)
         with self.db.transaction() as db:
             row = db.execute("SELECT * FROM inference_attempts WHERE operation=?",
                              (operation,)).fetchone()
             require(row is not None, "DISPATCH_NOT_FOUND")
             reserved = BudgetLedger.model_validate_json(row["reservation"])
+            attempt = InferenceAttempt.model_validate_json(row["request"])
+            bound = self._bound(attempt)
+            if isinstance(bound, EstimateDispatchBound):
+                basis = EstimateBasis.model_validate_json(self._private_ref(bound.pricing_ref, 65536))
+                require(valuation is not None and
+                        valuation.kind == "api_equivalent_estimate" and
+                        valuation.basis_digest == basis.fingerprint() and
+                        valuation.raw_usage_ref == receipt.raw_usage_ref and
+                        valuation.token_evidence == ("synthetic_fixture" if self.simulation else
+                                                      "provider_reported") and
+                        valuation.amount_microusd == basis.estimate(valuation.usage) ==
+                        receipt.usage.spend_microusd and receipt.metering == "estimated" and
+                        receipt.usage.model_calls == 1, "USAGE_VALUATION_MISMATCH")
+                require(valuation.usage.model == receipt.model_identity and all(
+                    getattr(valuation.usage, k) == getattr(receipt.usage, k) for k in
+                    ("input_tokens", "cached_input_tokens", "output_tokens", "reasoning_tokens")),
+                    "USAGE_VALUATION_MISMATCH")
+            else:
+                require(valuation is None and receipt.metering == "reported" and self.simulation,
+                        "VERSIONED_ESTIMATE_REQUIRED")
             fields = ("campaign_id", "agent_id", "campaign_account", "epoch", "operation_id",
                       "parent_operation_id", "kind", "pricing_ref", "model_identity")
             require(all(getattr(receipt, k) == getattr(reserved, k) for k in fields),
@@ -182,12 +254,23 @@ class InferenceDispatches:
             if row["state"] == "SETTLED":
                 require(row["receipt_digest"] == fingerprint, "IDEMPOTENCY_CONFLICT")
                 return False
-            attempt = InferenceAttempt.model_validate_json(row["request"])
             event_key = digest({"provider": attempt.provider, "event": provider_event_id})
             conflict = db.execute("SELECT operation FROM inference_attempts WHERE provider_event=?",
                                   (event_key,)).fetchone()
             require(conflict is None, "PROVIDER_EVENT_REUSED")
             self.budgets.post_in_transaction(db, row["account"], receipt)
+            if valuation is not None:
+                db.execute("INSERT INTO inference_valuations VALUES(?,?)",
+                           (operation, canonical(valuation.model_dump()).decode()))
+                if (receipt.usage.input_tokens > bound.exposure.max_input_tokens or
+                        receipt.usage.output_tokens > bound.exposure.max_output_tokens or
+                        receipt.usage.spend_microusd > reserved.usage.spend_microusd):
+                    # Preserve the full observed consumption, then revoke trust in
+                    # the bound. An inexpensive overrun still invalidates exposure.
+                    db.execute("INSERT INTO inference_exposure_faults VALUES(?,?)",
+                               (operation, attempt.profile_digest))
+                    self.db.event(db, "inference.exposure_quarantined", {
+                        "operation_id": operation, "profile_digest": attempt.profile_digest})
             db.execute("UPDATE inference_attempts SET state='SETTLED',receipt_digest=?,"
                        "provider_event=?,reason=NULL WHERE operation=?",
                        (fingerprint, event_key, operation))
@@ -224,4 +307,8 @@ class InferenceDispatches:
         require(row is not None, "DISPATCH_NOT_FOUND")
         return {"operation_id": operation, "state": row["state"], "reason": row["reason"],
                 "simulation": self.simulation, "policy": POLICY,
+                "accounting_kind": ("synthetic_fixture_units" if self.simulation else
+                                    "api_equivalent_estimate"),
+                "exposure_quarantined": self.db.connection.execute(
+                    "SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is not None,
                 "request_digest": json.loads(row["request"])["request_digest"]}

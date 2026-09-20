@@ -21,19 +21,19 @@ partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 - No user-supplied VM is required. Engineer the smallest enforceable boundary
   on available hardware; keep the user's ordinary desktop usable.
 
-## First deliverable: versioned estimated accounting
+## Versioned estimated accounting: implemented source foundation
 
-The current [authorization](../../src/mcbench/authorization.py) and
-[configuration](../../configs/operator/live-validation.json) still encode
-`strata/ExecutionAuthorization/1` with hard-dollar semantics. The
-[dispatch gate](../../src/mcbench/inference_dispatch.py),
-[budgets](../../src/mcbench/budgets.py),
-[native supervisor](../../src/mcbench/native.py) and
-[synthetic wire transport](../../src/mcbench/inference_transport.py) implement
-durable reservations, not a qualified OAuth estimate pipeline. Do not merely
-change a JSON label, disable qualification or fabricate an evidence receipt.
+The [authorization](../../src/mcbench/authorization.py), [estimate basis](../../src/mcbench/accounting.py)
+and [configuration](../../configs/operator/live-validation.json) now implement
+`ExecutionAuthorization/2` with explicit migration. The existing dispatch gate,
+wire transport and native supervisor now enforce versioned estimate bounds and
+valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
+records the actual private migration and focused source/synthetic evidence.
+The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
+read it before dispatch and do not install another allowance. Actual OAuth ingress,
+finite exposure enforcement and isolation still need qualification.
 
-Implement an explicit versioned accounting basis that distinguishes actual
+The implemented source contract requires an explicit versioned accounting basis that distinguishes actual
 charges, API-equivalent estimates and synthetic fixture units. Pin model, price
 source/date, currency, service tier and applicable context/cache rules. Preserve
 the original authorization lineage and all existing settled usage and unresolved
@@ -60,8 +60,8 @@ Exit evidence for this source deliverable:
    root/helper boundary require separate real evidence before a live trial.
 
 Published standard short-context Luna rates inspected September 20 were
-$0.20/M input, $0.02/M cached input and $1.20/M output. These are reference
-inputs for a future pinned estimate record, not a runtime policy installation.
+$0.20/M input, $0.02/M cached input and $1.20/M output. These are now pinned in the runtime estimate record; that installation is not
+OAuth ingress or boundary qualification.
 Separate cache-write, long-context and service-tier rules apply. Revalidate
 the chosen schedule when implementing it: [model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna),
 [API pricing](https://developers.openai.com/api/docs/pricing),

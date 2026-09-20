@@ -195,7 +195,7 @@ def test_conformance_bootstrap_requires_safety_billing_and_cannot_admit_a_campai
     from mcbench.native import CONFORMANCE_PREREQUISITES
     from mcbench.storage import Principal, canonical, digest
     runtime = NativeExec(database, cas, revoke_game=lambda *_: None)
-    plan, reserve = make_plan(purpose="conformance")
+    plan, reserve = make_plan(purpose="conformance", accounting_basis_digest="a" * 64)
     principal = Principal("operator", "operator")
 
     def evidence(checks, purpose="conformance"):
@@ -206,7 +206,8 @@ def test_conformance_bootstrap_requires_safety_billing_and_cannot_admit_a_campai
                     "profile_directory": plan.profile_directory, "role": plan.role,
                     "environment_digest": digest(plan.environment), "currency": "USD",
                     "auth_mode": "chatgpt_oauth", "pricing_semantics_verified": True,
-                    "finite_dispatch_bound_verified": True}
+                    "finite_dispatch_bound_verified": True,
+                    "accounting_basis_digest": plan.accounting_basis_digest}
             refs[check] = cas.put(principal, "operator", "operator", canonical(item))
         return cas.put(principal, "operator", "operator", canonical({
             "schema": "strata/RuntimeQualification/1", "is_example": False,

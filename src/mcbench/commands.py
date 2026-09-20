@@ -7,7 +7,7 @@ from typing import Annotated
 import typer
 
 from .controller import Controller
-from .authorization import Authorizations, ExecutionAuthorization
+from .authorization import Authorizations, ExecutionAuthorization, parse_authorization
 from .records import AgentConfig, CampaignConfig
 from .storage import CAS, Database, Fault, require
 
@@ -25,9 +25,43 @@ def authorize(file: Annotated[Path, typer.Option()], store: Annotated[Path, type
     """Persist an already approved aggregate allowance. Does not start a model or game."""
     database = Database(store / "controller.sqlite")
     try:
-        policy = ExecutionAuthorization.model_validate_json(file.read_text(encoding="utf-8"))
+        policy = parse_authorization(file.read_text(encoding="utf-8"))
         service = Authorizations(database)
         service.install(policy)
+        emit(service.status(policy.authorization_id))
+    finally:
+        database.close()
+
+
+@authorization_app.command("migration-snapshot")
+def authorization_snapshot(store: Annotated[Path, typer.Option()]):
+    """Get the required accounting fingerprint before explicit legacy migration."""
+    require((store / "controller.sqlite").is_file(), "STORE_MISSING")
+    database = Database(store / "controller.sqlite")
+    try:
+        emit({"snapshot_digest": Authorizations(database).snapshot()})
+    finally:
+        database.close()
+
+
+@authorization_app.command("migrate")
+def migrate_authorization(file: Annotated[Path, typer.Option()],
+                          evidence: Annotated[Path, typer.Option()],
+                          snapshot_digest: Annotated[str, typer.Option()],
+                          legacy_amount_semantics: Annotated[str, typer.Option()],
+                          store: Annotated[Path, typer.Option()]):
+    """Preserve the existing allowance/receipts/holds and install D11's estimate basis."""
+    require((store / "controller.sqlite").is_file(), "STORE_MISSING")
+    database = Database(store / "controller.sqlite")
+    try:
+        from .storage import Principal
+        policy = ExecutionAuthorization.model_validate_json(file.read_text(encoding="utf-8"))
+        cas = CAS(database, store / "objects")
+        ref = cas.put(Principal("operator", "operator"), "operator", "operator",
+                      evidence.read_bytes())
+        service = Authorizations(database)
+        service.migrate(policy, snapshot_digest=snapshot_digest, evidence_ref=ref,
+                        legacy_amount_semantics=legacy_amount_semantics, cas=cas)
         emit(service.status(policy.authorization_id))
     finally:
         database.close()

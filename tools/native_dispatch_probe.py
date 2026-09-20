@@ -20,6 +20,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from mcbench.accounting import EstimateBasis, FiniteExposure
 from mcbench.budgets import DIMENSIONS
 from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
 from mcbench.inference_transport import ResponsesUsage, SyntheticResponsesTransport
@@ -69,7 +70,8 @@ class LocalProvider:
     HTTP status alone is deliberately insufficient to infer zero-cost usage.
     """
 
-    def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS):
+    def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
+                 estimate_basis=None):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
         self.max_requests = max_requests
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
@@ -81,6 +83,8 @@ class LocalProvider:
         self.streaming = threading.Event()
         self.receipts = []
         self.wire = wire
+        self.estimate_basis = estimate_basis
+        require(estimate_basis is None or wire and scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
         self.upstream_requests = []
         provider = self
 
@@ -176,11 +180,32 @@ class LocalProvider:
                     scope = {"runtime_job_id": plan.job_id, "profile_digest": plan.profile_digest(),
                         "provider": "strata_local_fixture", "auth_mode": "api_key",
                         "request_digest": item["request_digest"]}
+                    extra = {}
+                    if provider.estimate_basis:
+                        basis = provider.estimate_basis
+                        price = put(cas, basis.model_dump(by_alias=True))
+                        proof = {"schema": "strata/InferenceExposureEvidence/1", "is_example": True,
+                            "profile_digest": plan.profile_digest(), "basis_digest": basis.fingerprint(),
+                            "input_bound_method": "provider_context_limit",
+                            "output_bound_method": "provider_model_limit",
+                            "max_input_tokens": basis.context_window_tokens,
+                            "max_output_tokens": basis.max_output_tokens, "result": "pass",
+                            "scope": "fixed local provider emits only 10 input and 4 output tokens"}
+                        exposure = FiniteExposure.model_validate({
+                            "schema": "strata/FiniteInferenceExposure/1",
+                            **{k: proof[k] for k in ("basis_digest", "input_bound_method",
+                                "output_bound_method", "max_input_tokens", "max_output_tokens")},
+                            "max_requests": 1, "enforcement_ref": put(cas, proof)})
+                        reserve = ledger(plan, operation, parent=plan.operation_id, calls=1,
+                            spend=exposure.amount(basis), pricing=price,
+                            inputs=exposure.max_input_tokens, outputs=exposure.max_output_tokens)
+                        extra = {"schema": "strata/InferenceDispatchBound/2",
+                                 "exposure": exposure.model_dump()}
                     bound = put(cas, {"schema": "strata/InferenceDispatchBound/1",
                         "is_example": True, **scope, "reservation_digest": digest(reserve.model_dump()),
                         "pricing_ref": price, "currency": "USD", "finite_dispatch_bound_verified": True,
                         "pricing_semantics_verified": True,
-                        "expires_unix_ms": time.time_ns() // 1000000 + 30000})
+                        "expires_unix_ms": time.time_ns() // 1000000 + 30000, **extra})
                     attempt = InferenceAttempt.model_validate({"schema": "strata/InferenceAttempt/1",
                                                                **scope, "bound_ref": bound})
 
@@ -239,7 +264,10 @@ class LocalProvider:
                     # Reingest the very same authoritative receipt through the public
                     # accounting method, verifying it does not charge again.
                     op, event, receipt = next(r for r in provider.receipts if r[0] == operation)
-                    require(not gate.settle(op, event, receipt), "DUPLICATE_CHARGE")
+                    valuation = db.connection.execute(
+                        "SELECT body FROM inference_valuations WHERE operation=?", (op,)).fetchone()
+                    require(not gate.settle(op, event, receipt,
+                        valuation=json.loads(valuation[0]) if valuation else None), "DUPLICATE_CHARGE")
                     item["receipt_deduplicated"] = True
                 except (Exception, BrokenPipeError) as error:
                     code = error.code if isinstance(error, Fault) else type(error).__name__
@@ -452,6 +480,9 @@ def validate_result(result):
     if scenario in {"success", "retry", "compaction", "helpers"}:
         count, spend = {"success": (1, 14), "retry": (2, 24),
                         "compaction": (3, 9032), "helpers": (2, 28)}[scenario]
+        if result.get("estimate_basis"):
+            require(scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
+            spend = 7  # ceil(8*.25 + 2*.02 + 4*1.2) microUSD; synthetic usage only.
         require(len(attempts) == count and all(a["state"] == "SETTLED" for a in attempts)
                 and all(r.get("receipt_deduplicated") for r in forwarded), "RECEIPT_COUNTS")
         require(result["closure"]["state"] == "FINALIZED" and
@@ -479,25 +510,35 @@ def validate_result(result):
     return "pass"
 
 
-def run_case(binary, directory, scenario, *, wire=False):
+def run_case(binary, directory, scenario, *, wire=False, estimate_basis=None):
     directory.mkdir()
     db = Database(directory / "synthetic.sqlite")
     cas = CAS(db, directory / "objects")
     runtime = NativeExec(db, cas, simulation=True)
     gate = InferenceDispatches(db, cas, simulation=True)
     limits = dict.fromkeys(DIMENSIONS, 1000000) | {"spend_microusd": 80000}
+    if estimate_basis:
+        limits = dict.fromkeys(DIMENSIONS, 100000000) | {"spend_microusd": 1000000}
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
                                 category="development")
     root_scenario = "helper_parent" if scenario == "helpers" else scenario
-    provider = LocalProvider(db.path, cas.root, root_scenario, wire=wire)
+    provider = LocalProvider(db.path, cas.root, root_scenario, wire=wire, estimate_basis=estimate_basis)
     plan = plan_for(binary, directory, provider, "root", scenario=root_scenario)
     price = put(cas, {"is_example": True, "real_usd": 0})
     reserve = ledger(plan, plan.operation_id, parent=None, calls=8, spend=80000,
                      pricing=price, inputs=800000, outputs=80000)
+    if estimate_basis:
+        price = put(cas, estimate_basis.model_dump(by_alias=True))
+        reserve = ledger(plan, plan.operation_id, parent=None, calls=8, spend=1000000,
+                         pricing=price, inputs=100000000, outputs=100000000)
     result = {"scenario": scenario, "is_example": True, "real_usd": 0,
               "binary_sha256": BINARY_SHA256, "production_qualified": False,
               "receipt_source": "upstream_wire" if wire else "direct_synthetic_provider"}
+    if estimate_basis:
+        result["estimate_basis"] = estimate_basis.model_dump(by_alias=True)
+        result["accounting_kind"] = "synthetic_fixture_units"
+        result["valuation_kind"] = "api_equivalent_estimate_on_synthetic_tokens"
     child_provider = None
     try:
         runtime.start(plan, reserve)
@@ -688,6 +729,8 @@ def main():
     parser.add_argument("--codex", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--wire", action="store_true", help="Use a separate upstream HTTP fixture")
+    parser.add_argument("--estimate-authorization", type=Path,
+                        help="Exercise the versioned basis using synthetic success tokens only")
     parser.add_argument("--cases", nargs="+", default=["success", "retry", "missing_usage",
         "stream_loss", "interrupt", "compaction", "helpers", "restart"])
     args = parser.parse_args()
@@ -699,6 +742,11 @@ def main():
         run_case(args.codex.resolve(), args.crash_child, "crash", wire=args.wire)
         raise AssertionError("CRASH_CHILD_RETURNED")
     require(args.codex is not None and args.output is not None, "PROBE_ARGUMENTS_REQUIRED")
+    estimate_basis = None
+    if args.estimate_authorization:
+        require(args.wire and args.cases == ["success"], "ESTIMATE_FIXTURE_SCOPE")
+        estimate_basis = EstimateBasis.model_validate(json.loads(
+            args.estimate_authorization.read_bytes())["accounting_basis"])
     require(os.name == "nt", "WINDOWS_PIN_REQUIRED")
     require(file_hash(args.codex) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
     root = Path(__file__).resolve().parents[1]
@@ -708,6 +756,9 @@ def main():
     source_paths = [Path(__file__).resolve(), root / "src/mcbench/budgets.py",
                     root / "src/mcbench/native.py", root / "src/mcbench/inference_dispatch.py",
                     root / "src/mcbench/inference_transport.py", root / "src/mcbench/processes.py"]
+    if estimate_basis:
+        source_paths.extend([root / "src/mcbench/accounting.py",
+                             root / "configs/operator/live-validation.json"])
     manifest = {"schema": "strata/SyntheticNativeDispatchProbe/1", "is_example": True,
                 "binary_sha256": BINARY_SHA256, "binary_version": CODEX_VERSION,
                 "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in source_paths},
@@ -721,7 +772,8 @@ def main():
                 "UNKNOWN_CASE")
         result = (run_crash_case(args.codex.resolve(), output / scenario, wire=args.wire)
                   if scenario == "crash" else
-                  run_case(args.codex.resolve(), output / scenario, scenario, wire=args.wire))
+                  run_case(args.codex.resolve(), output / scenario, scenario, wire=args.wire,
+                           estimate_basis=estimate_basis))
         results.append(result)
         print(json.dumps({k: result.get(k) for k in (
             "scenario", "verdict", "validation_error", "runtime", "attempts",

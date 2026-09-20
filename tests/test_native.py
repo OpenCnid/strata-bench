@@ -216,6 +216,8 @@ def test_conformance_bootstrap_requires_safety_billing_and_cannot_admit_a_campai
     # Synthetic attestation parser checks only. This fixture does not start any process.
     ref = evidence(CONFORMANCE_PREREQUISITES)
     runtime._proof(plan.model_copy(update={"qualification_ref": ref}))
+    with pytest.raises(Fault, match="RUNTIME_UNQUALIFIED"):
+        runtime._proof(plan.model_copy(update={"qualification_ref": ref, "session_storage": "private_profile"}))
     for omitted in CONFORMANCE_PREREQUISITES:
         partial = evidence(CONFORMANCE_PREREQUISITES - {omitted})
         with pytest.raises(Fault, match="RUNTIME_UNQUALIFIED"):
@@ -234,6 +236,9 @@ def test_arguments_keep_native_loop_and_stdin_prompt(make_plan):
     assert plan.prompt not in argv
     assert {"--json", "--ignore-user-config", "--ignore-rules", "--ephemeral"} <= set(argv)
     assert '--dangerously-bypass-approvals-and-sandbox' not in argv
+    persistent = plan.model_copy(update={"session_storage": "private_profile"})
+    assert native_argv(persistent) == [value for value in argv if value != "--ephemeral"]
+    assert persistent.profile_digest() != plan.profile_digest()
 
 
 def settle(runtime, reserve):

@@ -136,6 +136,15 @@
       "title": "Budget Mode",
       "type": "string"
     },
+    "session_storage": {
+      "default": "ephemeral",
+      "enum": [
+        "ephemeral",
+        "private_profile"
+      ],
+      "title": "Session Storage",
+      "type": "string"
+    },
     "config_overrides": {
       "additionalProperties": {
         "$ref": "#/$defs/JsonValue"

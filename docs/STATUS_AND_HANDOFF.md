@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.36](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.37](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -153,6 +153,16 @@ Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
 ## Original resumed task and retained acceptance criteria
+
+[Native collaboration](verification/2026-09-20-native-helpers.md) now has actual
+v2 spawn/wait/result evidence, extending the earlier two-independent-CLI helper
+fixture. Final `native-helper-08`/`-09` pass clean-context/ephemeral and full-history/
+private-profile forks. Each meters four requests while root JSONL usage covers
+only three; initial parser and ephemeral-thread lookup failures remain. NativeLaunch
+now fingerprints session storage and rejects stale qualification on mode changes.
+77 relevant Python checks and Ruff/schema/build pass. Native per-helper admission,
+budgets/permissions, further lifecycle and complete state resume remain .2c.2 work.
+Do not treat fresh contexts or stored rollout files as security isolation.
 
 Independent reliability work after isolation checkpoint `fafd8c3` adds
 [owned-job stop proof](verification/2026-09-20-guardian-tree.md). Zero active

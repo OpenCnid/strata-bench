@@ -104,11 +104,12 @@ class LocalProvider:
                         (provider.plan.job_id, request_digest)))
                     require(len(active) == 1, "UPSTREAM_INTENT_NOT_DURABLE")
                     operation = active[0]["operation"]
-                    index = len(provider.upstream_requests)
-                    require(index < MAX_REQUESTS, "REQUEST_COUNT")
-                    provider.upstream_requests.append({"operation_id": operation,
-                        "request_digest": request_digest, "authorization_present": False})
-                    next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
+                    with provider.lock:
+                        index = len(provider.upstream_requests)
+                        require(index < MAX_REQUESTS, "REQUEST_COUNT")
+                        provider.upstream_requests.append({"operation_id": operation,
+                            "request_digest": request_digest, "authorization_present": False})
+                        next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
                     provider.entered.set()
                     provider.respond(self, json.loads(raw), index, operation)
                 except Exception as error:

@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.36, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (owned-job termination proof within the existing stop bound). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.37, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (explicit native session storage and observed collaboration profile). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -296,6 +296,8 @@ The game worker is a long-lived process: invoking `mcgame` does not launch anoth
 The optional [app-server adapter](https://learn.chatgpt.com/docs/app-server) can later implement finer thread/turn streaming and interruption if CLI lifecycle limitations justify it. Its protocol must be generated from a pinned binary and separately tested. Optional MCP exposes the same authorized contracts; it adds tool discovery/portability, not necessary game control or an automatic security boundary. Neither extension changes the model's permitted game state/actions without a new profile.
 
 [Dovetail's source](https://github.com/OpenCnid/dovetail-codex/blob/15c306ccfef28eb5f616fadcd5fd8eac0663e361/docs/codex-surface-map.md) references native collaboration and version-sensitive flags. It does not prove every Desktop tool exists in a headless CLI. Preserve the selected plugin; a helper shim must demonstrate equivalent declared capabilities and include its revision in system identity. Missing accounting/helper enforcement cannot be hidden by substituting a no-self-play run.
+
+Declare native session storage in the frozen launch profile: `ephemeral` is the development default; `private_profile` retains native session artifacts in the private profile. Changing this mode changes the qualification digest. The pinned CLI's tested collaboration profile enables `features.multi_agent_v2`; its older feature flag alone does not establish tool availability. Full-history native forks require qualified persistent session storage in this candidate; clean-context forks omit parent conversation but still inherit runtime/tool/file affordances. Probe contexts must receive only admitted artifacts, never sibling/operator sessions. Preserve native spawn/wait/result/lineage evidence and meter all child calls separately from root turn totals. Aggregate gateway inclusion does not by itself prove enforceable child budgets, trustworthy helper identity, or file/process/network isolation. Retained session files alone are neither a complete game-plus-agent checkpoint nor a verified resume route. No lifecycle/isolation gate may be waived to use native collaboration.
 
 Pin discovery policy `dovetail-top-level-eight/1` with the unchanged selected
 plugin source. Preserve all eight top-level skills: six allow implicit discovery;

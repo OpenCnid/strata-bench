@@ -56,6 +56,7 @@ class NativeLaunch(Strict):
     provider: str = "openai"
     auth_mode: Literal["chatgpt_oauth", "api_key"] = "chatgpt_oauth"
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
+    session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -69,7 +70,7 @@ class NativeLaunch(Strict):
         return digest({k: getattr(self, k) for k in (
             "binary_digest", "binary_version", "dovetail_commit", "model",
             "config_overrides", "hard_timeout_s", "output_limit_bytes", "helper_limit",
-            "provider", "auth_mode", "purpose", "budget_mode")})
+            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")})
 
 
 def _toml_value(value):
@@ -84,8 +85,10 @@ def _toml_value(value):
 
 def native_argv(plan: NativeLaunch):
     argv = [plan.executable, "exec", "--json", "--strict-config", "--ignore-user-config",
-            "--ignore-rules", "--skip-git-repo-check", "--ephemeral", "--color", "never",
+            "--ignore-rules", "--skip-git-repo-check", "--color", "never",
             "--sandbox", "workspace-write", "--cd", plan.workspace, "--model", plan.model]
+    if plan.session_storage == "ephemeral":
+        argv.append("--ephemeral")
     for key, value in sorted(plan.config_overrides.items()):
         require(key and "\x00" not in key and "=" not in key and "\n" not in key,
                 "CONFIG_UNSUPPORTED")

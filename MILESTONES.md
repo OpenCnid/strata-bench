@@ -1,6 +1,6 @@
 # Strata implementation milestones and coverage ledger
 
-Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.36; maintenance rules: [AGENTS.md](AGENTS.md).
+Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.37; maintenance rules: [AGENTS.md](AGENTS.md).
 
 **Operator-only. Never expose this ledger or its linked private evidence to gameplay agents or their helpers.**
 
@@ -11,6 +11,7 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.36; maintenance rules: [
 - **Latest isolation result:** plugin checkpoint `5e3a047` is committed. [Native canaries](docs/verification/2026-09-20-native-boundary.md) fail qualification: the unelevated tool loop reads a dummy operator file and reaches an unapproved listener; a stricter profile refuses unsupported read restrictions. The prepared elevated sandbox command blocks the file read but still reaches the listener as CodexSandboxOffline. Existing active firewall rules do not establish enforcement. No live admission; an existing isolated-worker/VM location is requested while independent authorized work continues.
 - **Independent guardian work:** isolation checkpoint `fafd8c3` is committed. [Owned-job stop proof](docs/verification/2026-09-20-guardian-tree.md) now requires every accounted process to have a signaled held handle, within the same 500 ms root/tree wait. Two initial fixture-count failures and a real count-only false confirmation are retained. Final 52 Python, five additional inventory checks and 12 Node checks pass; no authentic Minecraft qualification. Next strengthen the synthetic native crash fence using this result, then continue authentic reliability/mechanic work with new source pins.
 - **Native crash fence follow-up:** guardian checkpoint `0312d53` is committed. Two revised actual-CLI crash cases pass; final private `2026-09-20-native-crash-handles-02` retains all 13 job members and confirms 13 signaled handles plus zero active accounting before fresh recovery. The ambiguous envelope remains fully reserved and unreplayed. [Evidence](docs/verification/2026-09-20-native-dispatch.md). Continue native helper and independent authentic conformance; live monetary/exposure/isolation inputs remain pending.
+- **Native collaboration follow-up:** crash checkpoint `3f8899d` is committed. [Actual helper evidence](docs/verification/2026-09-20-native-helpers.md) exercises native spawn/wait/result with v2 tools. Clean-context and persistent full-history cases pass; ephemeral full-history failure and an initial event-parser failure remain. Each successful case meters four requests versus the CLI's three-request root total. Explicit session storage is fingerprinted; 77 relevant Python checks/Ruff/schema/build pass. Native child-specific budgets/permissions, further lifecycle and actual export/resume remain open.
 - **Latest implementation:** M0.1c.1b [native CLI/local synthetic dispatch integration](docs/verification/2026-09-20-native-dispatch.md), implemented_unverified for production. Explicit nested job/helper envelopes eliminate duplicate reservation counting; exact sealed-request closure and native finalization commit atomically. Eight actual-CLI/synthetic-provider scenarios pass, including compaction, retry rejection after lost usage and a fresh supervisor's no-replay checks. Production OAuth forwarding/receipts, actual monetary bounds and isolation remain unqualified.
 - **Checkpoint verification:** 738 Python tests, 166 Node tests and 445 Java tests pass with all client/settings/guardian fixture opt-ins enabled and no skips; Ruff passes. Two Python warnings are dependency deprecations. These are local contract/process/fixture checks, not new game/model runs or aggregate gate passes. Raw logs remain in the external `2026-09-19-merge-checkpoint-01` evidence directory.
 - **Current verification/next action:** M0.1c.1c.1 has nine passing actual-CLI/separate-upstream synthetic cases, including abrupt supervisor loss with 13-to-zero held-job process counts and no replay. 165 relevant Python checks pass, followed by all 30 final transport checks; schema regeneration/TypeScript build, package exclusion and Ruff pass. Continue pinned plugin/skill/helper conformance and production isolation qualification. No paid dispatch until real USD conversion, finite exposure and the durable project spending authority are qualified.
@@ -214,6 +215,14 @@ The narrow `vanilla-development/1` profile is a development restriction, not an 
 | M0.3b.3.2.4a | GI/QA | Authentic quest book open, chapter/detail, text, back/close, dedup and retained resource effects | in_progress | [Third authentic trial](docs/verification/2026-09-19-native-quest-cancel.md) passes all five quest mutations, readable text and dedup through scoped CLI. Six total intents/39 primitives including cancelled walk reconcile; 256 saved IDs, settled pose and selected inventory agree. Prior CTM startup crash and stale-catalog harness failure retained; corrected refresh and 19 focused Java checks pass. Full rendered UI, resource/failure-path and isolation evidence remain open; overall run fails cancellation-before-arrival and guardian shutdown. |
 | M0.3b.3.2.4b | GI/RS/QA | Remaining authentic quest/task/choice/JEI/custom menus, occupied crafting, machine/resource mechanics, rendered parity, private server references and isolation | not_started | Preserve all .3.2 contracts and required failure cases. Basic quest navigation cannot substitute for submissions/claims, custom content, modded crafting/energy/fluid transactions or independent causal/resource verification. |
 
+Native collaboration continuation children:
+
+| ID | Owner | Scope / affected coverage | Status | Evidence / next action |
+|---|---|---|---|---|
+| M0.1c.2c | AR/PL/SI | Actual native collaboration discovery, context forks, lineage, lifecycle, bounded nested accounting and enforced child permissions | in_progress | Children .1/.2; retain M0.1c.2b boundary failure and all self-play requirements. |
+| M0.1c.2c.1 | AR/QA | Observed pinned v2 tool schemas, native spawn/wait/result, clean/full context and declared session storage; F03/F07/F09/F11/F16, N01/N03/N04/N06/N08, C06/C14/C18/C20, partial T01/T04/T07/T12 | implemented_unverified | [Actual CLI/synthetic provider evidence](docs/verification/2026-09-20-native-helpers.md): two final invocation cases pass, four all-call receipts each, unchanged plugin bytes; 77 relevant Python checks pass. Preserve absent legacy surface, ephemeral-fork and parser failures. No production helper/isolation qualification. |
+| M0.1c.2c.2 | AR/PL/SI | Trusted native child admission/lineage, child permission principals, nested/grandchild sub-budgets, full messaging/follow-up/interruption/restart and complete admitted session state | not_started | Aggregate inclusion and observed metadata do not supply these controls. Depends on enforceable M0.1c.2b.2 boundary for live admission; independent lifecycle/accounting fixtures may proceed. Session files are not complete checkpoint/restore evidence. |
+
 Guardian continuation child:
 
 | ID | Owner | Scope / affected coverage | Status | Evidence / next action |
@@ -256,6 +265,13 @@ These children advance authorized software work while real M0 dependencies remai
 | M5.1 | RS/PL | Offline report reconstruction/publication and operator commands/runbook | in_progress | [Command/report tests](tests/test_operator_commands.py); no pilot or confirmation, complete evidence audit/report still open. |
 
 ## Requirement coverage
+
+September 20 native-helper delta — F03/F07/F09/F11/F16 and
+N01/N03/N04/N06/N08: [native collaboration and storage](docs/verification/2026-09-20-native-helpers.md)
+advances M0.1c.2c.1 through actual pinned tools, clean/full context markers and
+four-call aggregate accounting. Root terminal usage excludes the child. Native
+child admission/budgets, permissions, further lifecycle and complete resume stay
+open under .2c.2; no aggregate requirement is promoted.
 
 September 20 owned-job delta — F09/F16, N01/N03/N04/N05/N06/N08:
 [guardian proof](docs/verification/2026-09-20-guardian-tree.md) advances child
@@ -389,6 +405,12 @@ all thirteen canonical records, gameplay affordances and aggregate statuses rema
 | N08 | Durable bounded private storage; no silent evidence deletion | PL | M1, M2 | T07, T13 | in_progress | [Private CAS/outbox](src/mcbench/storage.py), quota-before-write/checkpoint commits and M0.3b.2a forced native intent/delivery/event journal. Native development ceiling fences instead of discarding evidence; archival/rotation, complete disk exhaustion/retention and deployment controls remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. |
 
 ## Feature coverage beyond requirement titles
+
+September 20 C06/C14/C18/C20 delta: [native helper/context evidence](docs/verification/2026-09-20-native-helpers.md)
+adds fingerprinted ephemeral/private-profile storage and observed v2 tools.
+Root and child requests retain distinct native thread metadata and one root
+turn; private rollout persistence does not prove isolation or checkpoint scope.
+All later/self-play behavior and trusted per-helper budget/capability gates remain.
 
 September 20 C14/C15/C18 delta: [complete owned-member stop evidence](docs/verification/2026-09-20-guardian-tree.md)
 adds bounded read-only handles and strict private proof. Missing members, late
@@ -525,6 +547,13 @@ Each domain inherits SPEC section 10's authentication/authorization, version neg
 | Agent runtime | Inspect/start/deliver/events/interrupt/export/resume/helpers/stop | in_progress | [Read-only inspection/turn-usage reader](src/mcbench/runtime.py); start/deliver/helper/isolation/interrupt/resume adapter not implemented. |
 
 ## Test suites and release gates
+
+September 20 native-helper delta: partial T01/T04/T07/T12. Final actual-CLI
+clean-context and persistent full-history cases pass, four settled/deduplicated
+synthetic calls each. Retain absent legacy tools, ephemeral parent lookup failure
+and the initial native event-parser failure with unresolved reservations. 77
+relevant Python checks pass, zero skips, plus full Ruff/schema/build/diff checks.
+[Report](docs/verification/2026-09-20-native-helpers.md). No aggregate T/G result changes.
 
 September 20 guardian delta: partial T01/T07/T12/T13 only. Initial runs retain
 46 pass/two fixture failures and 47 pass/one count-only false-confirmation failure.
@@ -684,6 +713,16 @@ September 19 route-cancel addendum: [fresh bounded trial](docs/verification/2026
 September 19 native-budget addendum: [exact CLI/schema and two local provider probes](docs/verification/2026-09-19-native-budget.md) cover synthetic rejection/retry transport with no paid model or credentials. Turn-start and actual requests lack an output-token bound; no authenticated monetary/call-exposure proof exists. T04/T12 remain incomplete; no all-call gateway qualification or live host admission.
 
 ## Blockers, open decisions, and change history
+
+**Native collaboration/storage, 2026-09-20:** AR/PL/SI own M0.1c.2c.
+Observed v2 tools support actual clean/full forks, but the pinned ephemeral
+parent cannot support full-history lookup. SPEC v0.2.37 declares storage mode
+as part of runtime identity and preserves the default; a changed mode invalidates
+old qualification. All-call aggregation now has native child evidence, whereas
+child-specific budgets/permissions and full lifecycle remain unqualified. Native
+metadata is not an authenticated admission channel. No D04 allowance, live
+dispatch, shared-desktop input or model policy changes are authorized by this
+implementation; the existing monetary/isolation blockers remain.
 
 **Owned-member proof, 2026-09-20:** GI/QA own child
 M0.3b.2c.3c.2b.2b.2.2. A real fixture disproves zero-job-accounting as complete
@@ -4247,3 +4286,37 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   narrows historical count-only proof and retains all previous failures. No
   production OAuth/isolation or aggregate test/gate pass. Continue native helper
   conformance and independent reliability/mechanics while external inputs pend.
+
+### 2026-09-20 — actual native collaboration and explicit session storage
+
+- Continued after crash checkpoint `3f8899d`; added M0.1c.2c/.2c.1/.2c.2
+  with F03/F07/F09/F11/F16, N01/N03/N04/N06/N08, C06/C14/C18/C20,
+  partial T01/T04/T07/T12. SPEC v0.2.37 records the observed v2 tool surface
+  and fingerprinted session-storage mode. All full gates remain open.
+- Read-only native feature inventory retains an initial unsupported root flag
+  placement and corrected command. Fresh-profile discovery -01/-02 finds no
+  collaboration under the legacy feature/agents setting; -03 observes the v2
+  namespace and captures real tool schemas. No API/tool names were fabricated.
+- Native spawn/wait runs use the real CLI's child, not a second CLI shim. -04
+  executes a clean child but fails the fixture's ordinary-message assumption;
+  actual delivery is agent_message. -05 passes after parser correction. -06
+  full-history spawn fails because the ephemeral parent thread is unavailable;
+  both failed samples retain missing receipts/uncertain holds. -07 persistent
+  private-profile experiment passes. No failure or charge is erased.
+- Explicit NativeLaunch session_storage retains ephemeral default and supports
+  private_profile with a changed profile digest; old qualification cannot carry
+  across. Updated private schema. Final -08/-09 use ordinary NativeExec.start
+  and pass clean-context/ephemeral and full-history/private-profile cases. Each
+  observes distinct thread IDs, same root turn, expected parent-canary absence/
+  presence, real agent-message result, unchanged plugin bytes and four receipts.
+- Each fixture gateway records 40 input/16 output/56 synthetic microUSD; native
+  root turn totals are only 30 input/12 output, demonstrating missing child usage
+  in terminal totals. Receipt deduplication and one parent envelope reconcile.
+  Child-specific enforced sub-budgets and authenticated attribution remain open.
+- 77 relevant Python checks pass, zero skips, 5.23 s; full Ruff, schema export,
+  TypeScript build and diff checks pass. Request-index capture is locked for
+  concurrent native parent/child requests. Private evidence/source pins remain
+  in native-helper-01 through -09 outside the repository; zero real USD, game
+  launch or OS input. [Report](docs/verification/2026-09-20-native-helpers.md).
+  Next: trusted child/lifecycle/accounting work plus independent authentic
+  reliability/mechanics; enforceable isolation and live monetary inputs pend.

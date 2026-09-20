@@ -10,6 +10,8 @@ from mcbench.storage import CAS, Database, Fault, canonical
 
 @pytest.fixture
 def broker(database, cas, operator):
+    from mcbench.native import NativeExec
+    NativeExec(database, cas, simulation=True)
     b = NativeBroker(database, cas, "runtime", "a" * 64, clock=lambda: 100)
     evidence = cas.put(operator, "operator", "operator", canonical({"is_example": True}))
     root = BrokerGrant.model_validate({"schema": "strata/NativeBrokerGrant/1",

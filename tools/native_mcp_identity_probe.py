@@ -1,7 +1,8 @@
-"""Credential-free native root/helper MCP identity experiment, not qualification.
+"""Credential-free native identity/broker/admission fixtures, not qualification.
 
-The stdio server only echoes fixture text/metadata. It has no path, network,
-process or game operation. Its owned log path comes from operator argv only.
+The default stdio server only echoes fixture metadata. Optional broker mode
+uses scoped artifacts and an owned synthetic worker; admission mode exercises
+durable participant/request budgets. All providers and game outcomes are fake.
 """
 
 import argparse
@@ -50,12 +51,13 @@ def serve(log):
         print(json.dumps({"jsonrpc": "2.0", "id": request["id"], "result": result}), flush=True)
 
 
-def run(binary, output, broker_mode=False, canary_mode=False):
+def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False, inherited_helper=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
     from datetime import datetime, timezone
-    from mcbench.broker import BrokerGrant, NativeBroker
+    from mcbench.broker import BrokerGrant, NativeBroker, POLICY
+    from mcbench.native_admission import NativeAdmission
     from mcbench.budgets import DIMENSIONS
     from mcbench.inference_dispatch import InferenceDispatches
     from mcbench.native import NativeExec, NativeLaunch
@@ -67,6 +69,8 @@ def run(binary, output, broker_mode=False, canary_mode=False):
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(not admission_mode or broker_mode, "ADMISSION_BROKER_REQUIRED")
+    require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
     canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -116,7 +120,10 @@ def run(binary, output, broker_mode=False, canary_mode=False):
                             "depth": 0 if agent == "/root" else 1,
                             "expires_unix_ms": self.grant_expiry, "tool_calls": 20,
                             "admission_ref": admission})
-                        broker.admit(grant)
+                        if admission_mode:
+                            grant = NativeAdmission(connection, objects).enroll(operation, tool_calls=20)
+                        else:
+                            broker.admit(grant)
                         broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
                         if agent == "/root":
                             broker.project(grant.thread_id, "initial/skill.md", "STRATA_IMMUTABLE_SKILL")
@@ -150,7 +157,7 @@ def run(binary, output, broker_mode=False, canary_mode=False):
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
             elif agent == "/root" and step in {1, 2}:
-                call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "none",
+                call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
                     "message": "Exercise only the synthetic inspect_identity tool. "
                                "Do not read files or call any other tool."}) if step == 1 else (
                     "wait_agent", {"timeout_ms": 10000})
@@ -233,6 +240,8 @@ def run(binary, output, broker_mode=False, canary_mode=False):
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
             validate_broker_settings(config)
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
+            "broker_policy": POLICY if admission_mode else None,
+            "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             "hard_timeout_s": 45, "prompt": "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
         provider.plan = plan
@@ -276,7 +285,7 @@ def run(binary, output, broker_mode=False, canary_mode=False):
         result["checks"] = {
             "executor_worker_once": len(worker_calls) == 1 and worker_calls[0]["request_id"] == "game-root",
             "positive_game_return": "STRATA_SCOPED_GAME_CONTROL" in outputs,
-            "helper_result_written": any(r["namespace"] == "helper-results" and
+            "helper_result_written": any(
                 r["path"] == "results/advice.md" for r in result["files"]),
             "helper_game_denied": "BROKER_GAME_FORBIDDEN" in outputs,
             "root_only_projection_not_returned": "STRATA_ROOT_ONLY_CANARY" not in outputs,
@@ -288,6 +297,37 @@ def run(binary, output, broker_mode=False, canary_mode=False):
         if canaries:
             result["canaries"] = canaries.report(provider.direct_calls)
             result["checks"].update(result["canaries"]["checks"])
+        if admission_mode:
+            result["participants"] = [dict(r) for r in db.connection.execute(
+                "SELECT thread,name,parent,depth,envelope,state FROM native_participants ORDER BY depth")]
+            result["admissions"] = [dict(r) for r in db.connection.execute(
+                "SELECT operation,thread,envelope FROM native_request_admissions ORDER BY rowid")]
+            result["checks"].update({
+                "every_request_admitted": len(result["admissions"]) == len(provider.requests),
+                "distinct_root_helper_envelopes": len(result["participants"]) == 2 and len({
+                    p["envelope"] for p in result["participants"]}) == 2,
+                "participants_closed": all(p["state"] == "CLOSED" for p in result["participants"]),
+                "all_envelopes_closed": db.connection.execute("SELECT count(*) FROM budget_envelopes e "
+                    "JOIN operations o ON e.operation=o.id WHERE o.actual IS NULL OR o.uncertain=1").fetchone()[0] == 0,
+                "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"]
+                    == 14 * len(provider.requests),
+            })
+            if inherited_helper:
+                for key in ("helper_result_written", "helper_game_denied", "spoof_arguments_denied",
+                            "distinct_root_helper_envelopes", "every_request_admitted", "provider_clean"):
+                    result["checks"].pop(key)
+                result["checks"].update({
+                    "no_helper_artifact_written": not any(r["path"] == "results/advice.md" for r in result["files"]),
+                    "no_helper_game_call": not any(r["request_id"] == "game-child" for r in worker_calls),
+                    "only_root_enrolled": len(result["participants"]) == 1,
+                    "inherited_context_explicitly_rejected": provider.errors == ["HELPER_CONTEXT_INHERITED"]
+                        and len(provider.requests) == 5,
+                    "only_root_requests_admitted": len(result["admissions"]) == 4,
+                    "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"] == 56,
+                    "inherited_helper_not_forwarded": all(i["agent"] == "/root" for i in provider.identities),
+                    "no_child_reservation_created": db.connection.execute("SELECT count(*) FROM operations "
+                        "WHERE kind='helper'").fetchone()[0] == 0,
+                })
     db.export_journal(output / "journal.jsonl")
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
@@ -301,6 +341,8 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--broker", action="store_true")
     parser.add_argument("--canaries", action="store_true")
+    parser.add_argument("--admission", action="store_true")
+    parser.add_argument("--inherited-helper", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -316,11 +358,12 @@ def main():
     paths = [Path(__file__), root / "tools/native_restricted_tools_probe.py",
         root / "tools/native_dispatch_probe.py", root / "src/mcbench/native.py",
         root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py",
-        root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py"]
+        root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py",
+        root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
-    result = run(args.codex.resolve(), output, args.broker, args.canaries)
+    result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission, args.inherited_helper)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

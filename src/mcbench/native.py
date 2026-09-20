@@ -59,6 +59,7 @@ class NativeLaunch(Strict):
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     accounting_basis_digest: Digest | None = None
+    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -76,6 +77,8 @@ class NativeLaunch(Strict):
         # Preserve historical profile hashes; new estimate profiles bind the basis.
         if self.accounting_basis_digest is not None:
             body["accounting_basis_digest"] = self.accounting_basis_digest
+        if self.broker_policy is not None:
+            body["broker_policy"] = self.broker_policy
         return digest(body)
 
 
@@ -195,6 +198,11 @@ class NativeExec:
         require(set(plan.environment) <= {"PATH", "LANG", "TZ", "TMP", "TEMP",
                                          "STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"},
                 "FORBIDDEN_ENVIRONMENT")
+        if plan.broker_policy is not None:
+            from .native_broker_policy import validate_broker_settings
+            validate_broker_settings(plan.config_overrides)
+            require(not {"STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"} & set(plan.environment),
+                    "BROKER_CREDENTIAL_ENVIRONMENT")
         if not self.simulation:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
@@ -223,6 +231,8 @@ class NativeExec:
         plan_body = plan.model_dump()
         if plan.accounting_basis_digest is None:
             plan_body.pop("accounting_basis_digest")
+        if plan.broker_policy is None:
+            plan_body.pop("broker_policy")
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),
                            "fixture_argv": fixture_argv})
         with self.db.transaction() as db:
@@ -493,6 +503,9 @@ class NativeExec:
             require(sorted(r["operation"] for r in attempts) == proof.get("attempt_ids"),
                     "DISPATCH_SEAL_UNVERIFIED")
             require(all(r["state"] == "SETTLED" for r in attempts), "METERING_UNKNOWN")
+            if plan.broker_policy is not None:
+                from .native_admission import close_participant_envelopes
+                close_participant_envelopes(self.db, self.budgets, db, plan, proof, seal_ref)
             source = db.execute("SELECT body FROM ledger WHERE "
                 "json_extract(body,'$.operation_id')=? AND json_extract(body,'$.posting')='reserve'",
                 (plan.operation_id,)).fetchone()

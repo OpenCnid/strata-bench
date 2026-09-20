@@ -142,20 +142,26 @@ class InferenceDispatches:
                                               attempt.auth_mode, reserve.model_identity)
             require(isinstance(bound, EstimateDispatchBound), "VERSIONED_ESTIMATE_REQUIRED")
             require(basis == policy.accounting_basis, "ACCOUNTING_BASIS_MISMATCH")
-            exists = self.db.connection.execute("SELECT name FROM sqlite_master "
-                                                "WHERE name='native_jobs'").fetchone()
-            require(exists is not None, "RUNTIME_UNQUALIFIED")
-            job = self.db.connection.execute("SELECT plan,state FROM native_jobs WHERE id=?",
-                                             (attempt.runtime_job_id,)).fetchone()
+        exists = self.db.connection.execute("SELECT name FROM sqlite_master "
+                                            "WHERE name='native_jobs'").fetchone()
+        job = self.db.connection.execute("SELECT plan,state,started FROM native_jobs WHERE id=?",
+            (attempt.runtime_job_id,)).fetchone() if exists else None
+        from .native import NativeLaunch
+        plan = NativeLaunch.model_validate_json(job["plan"]) if job else None
+        if not self.simulation or plan is not None and plan.broker_policy is not None:
             require(job is not None and job["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")
-            from .native import NativeLaunch
-            plan = NativeLaunch.model_validate_json(job["plan"])
             require(plan.profile_digest() == attempt.profile_digest and plan.account == account and
                     plan.budget_mode == "per_dispatch" and
                     plan.campaign_id == reserve.campaign_id and plan.agent_id == reserve.agent_id and
                     plan.epoch == reserve.epoch and plan.model == reserve.model_identity and
-                    plan.provider == attempt.provider and plan.auth_mode == attempt.auth_mode and
-                    plan.operation_id == reserve.parent_operation_id, "DISPATCH_SCOPE_MISMATCH")
+                    plan.provider == attempt.provider and plan.auth_mode == attempt.auth_mode,
+                    "DISPATCH_SCOPE_MISMATCH")
+            if plan.broker_policy is not None:
+                require(job["started"] + plan.hard_timeout_s > time.time(), "RUNTIME_EXPIRED")
+                from .native_admission import require_request_admission
+                require_request_admission(self.db.connection, plan, attempt, reserve, account)
+            else:
+                require(plan.operation_id == reserve.parent_operation_id, "DISPATCH_SCOPE_MISMATCH")
 
     def _bound(self, attempt):
         raw = json.loads(self._private_ref(attempt.bound_ref, 16384))

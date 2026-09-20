@@ -20,7 +20,7 @@ research MVP or a scientific result.
 D11 versioned API-equivalent estimate accounting and explicit durable migration
 now have [source/synthetic evidence](verification/2026-09-20-estimated-accounting.md)
 (M0.1c.1c.2a). The next deliverable is the smallest enforceable native tool/helper
-boundary (M0.1c.2b.2). A [native broker candidate](verification/2026-09-20-restricted-native-tools.md) now passes scoped artifact/helper/synthetic-worker checks, with [owned adversarial canaries](verification/2026-09-20-native-broker-canaries.md) for the changed tool-restricted profile. Next are protected bootstrap/live enrollment and skill integration, then qualified OAuth ingress and the staged trial. The [admission contract](operations/validation-admission.md)
+boundary (M0.1c.2b.2). A [native broker candidate](verification/2026-09-20-restricted-native-tools.md) now passes scoped artifact/helper/synthetic-worker checks, with [owned adversarial canaries](verification/2026-09-20-native-broker-canaries.md) for the changed tool-restricted profile. [Participant and budget admission](verification/2026-09-20-native-admission.md) now has focused source and native synthetic evidence, including rejection of inherited helper history. Next are protected bootstrap/ingress identity, skill integration and helper lifecycle, then qualified OAuth ingress and the staged trial. The [admission contract](operations/validation-admission.md)
 defines files, failure cases and exit evidence. No VM procurement or exact OAuth
 billing-conversion question remains pending. The original $10 total, OAuth/Luna
 selection, conservative reservations and shared-desktop pause remain in force.

@@ -88,8 +88,12 @@ executor-only fixed-worker forwarding and durable no-replay. Native root/helper
 metadata and actual local synthetic-worker positive/negative cases were exercised.
 This activates the optional MCP facade for a demonstrated enforcement need;
 the native loop/plugin and game contracts are preserved. It remains unqualified
-until the remaining protected-bootstrap, live admission, skill and adversarial
-boundary cases pass. Do not treat its synthetic enrollment as live child admission.
+until the remaining protected-bootstrap, live ingress, skill and adversarial
+boundary cases pass. [Native participant admission](../verification/2026-09-20-native-admission.md)
+now implements stdout-bound root identity, clean child requests, nested budgets
+and sealed closure, exercised through actual native CLI/synthetic-provider
+fixtures. This does not qualify protected live ingress, credential separation
+or complete helper lifecycle/slot reuse.
 
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.

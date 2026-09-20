@@ -201,6 +201,26 @@ class LocalProvider:
                             inputs=exposure.max_input_tokens, outputs=exposure.max_output_tokens)
                         extra = {"schema": "strata/InferenceDispatchBound/2",
                                  "exposure": exposure.model_dump()}
+                    if plan.broker_policy is not None:
+                        from mcbench.native_admission import NativeAdmission, context_metadata
+                        metadata = context_metadata(body)
+                        participant_admission = NativeAdmission(db, cas)
+                        thread = metadata["thread_id"]
+                        participant = db.connection.execute("SELECT * FROM native_participants "
+                            "WHERE job=? AND thread=?", (plan.job_id, thread)).fetchone()
+                        helper = metadata["agent_name"] != "/root"
+                        parent = (participant_admission.child_envelope_id(plan.job_id, thread)
+                                  if helper else plan.operation_id)
+                        reserve = reserve.model_copy(update={"parent_operation_id": parent,
+                                                             "kind": "helper" if helper else "model"})
+                        child_envelope = None
+                        if helper and participant is None:
+                            parent_participant = db.connection.execute("SELECT envelope FROM native_participants "
+                                "WHERE job=? AND thread=?", (plan.job_id, metadata.get("parent_thread_id"))).fetchone()
+                            require(parent_participant is not None, "NATIVE_LINEAGE")
+                            child_envelope = ledger(plan, parent, parent=parent_participant[0], calls=4,
+                                spend=40000, inputs=400000, outputs=40000, pricing=price).model_copy(
+                                    update={"kind": "helper"})
                     bound = put(cas, {"schema": "strata/InferenceDispatchBound/1",
                         "is_example": True, **scope, "reservation_digest": digest(reserve.model_dump()),
                         "pricing_ref": price, "currency": "USD", "finite_dispatch_bound_verified": True,
@@ -208,6 +228,9 @@ class LocalProvider:
                         "expires_unix_ms": time.time_ns() // 1000000 + 30000, **extra})
                     attempt = InferenceAttempt.model_validate({"schema": "strata/InferenceAttempt/1",
                                                                **scope, "bound_ref": bound})
+                    if plan.broker_policy is not None:
+                        participant_admission.prepare(plan.account, attempt, reserve, raw,
+                                                      child_envelope=child_envelope)
 
                     def forward():
                         started = time.monotonic()
@@ -409,10 +432,14 @@ def wait_job(runtime, plan):
 
 
 def close_budget(runtime, plan, provider):
+    extra = {}
+    if plan.broker_policy is not None:
+        extra["participant_threads"] = sorted(r[0] for r in runtime.db.connection.execute(
+            "SELECT thread FROM native_participants WHERE job=?", (plan.job_id,)))
     seal = put(runtime.cas, {"schema": "strata/InferenceIngressSeal/1", "is_example": True,
         "job_id": plan.job_id, "profile_digest": plan.profile_digest(),
         "process_tree_dead": plan.job_id not in runtime.live, "ingress_closed": True,
-        "handlers_fenced": True,
+        "handlers_fenced": True, **extra,
         "attempt_ids": sorted(r[0] for r in runtime.db.connection.execute(
             "SELECT operation FROM inference_attempts WHERE json_extract(request,'$.runtime_job_id')=?",
             (plan.job_id,)))})

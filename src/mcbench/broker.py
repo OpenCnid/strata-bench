@@ -14,6 +14,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict, UInt
+from .budgets import Budgets
 from .runtime import CODEX_VERSION
 from .storage import Fault, Principal, canonical, digest, require, safe_relative
 
@@ -84,8 +85,7 @@ class NativeBroker:
         visibility = self.db.connection.execute("SELECT visibility FROM objects WHERE namespace=? "
             "AND ref=?", ("operator", grant.admission_ref)).fetchone()
         require(visibility is not None and visibility[0] == "operator", "BROKER_ADMISSION_PRIVATE")
-        self.cas.read(Principal("operator", "operator"), "operator", grant.admission_ref,
-                      max_bytes=65536)
+        self._admission(self.db.connection, grant, enrolling=True)
         body = grant.model_dump()
         with self.db.transaction() as db:
             old = db.execute("SELECT fingerprint FROM broker_grants WHERE runtime=? AND thread=?",
@@ -122,9 +122,55 @@ class NativeBroker:
         g = BrokerGrant.model_validate_json(row["body"])
         require(g.profile_digest == self.profile_digest and
                 g.expires_unix_ms > self.clock() * 1000, "BROKER_EXPIRED")
+        self._admission(db, g)
         if g.parent_thread_id is not None:
             self._grant(db, g.parent_thread_id)  # Revocation/expiry flows to descendants.
         return g, row
+
+    def _admission(self, db, grant, *, enrolling=False):
+        evidence = json.loads(self.cas.read(Principal("operator", "operator"), "operator",
+                                           grant.admission_ref, max_bytes=65536))
+        if evidence.get("schema") != "strata/NativeBrokerAdmission/1":
+            table = db.execute("SELECT 1 FROM sqlite_master WHERE name='native_profile'").fetchone()
+            require(evidence.get("is_example") is True and table is not None and
+                    db.execute("SELECT simulation FROM native_profile").fetchone()[0] == 1,
+                    "BROKER_RUNTIME_ADMISSION_REQUIRED")
+            return  # Historical fixture enrollment is explicitly simulation-only.
+        require(evidence.get("job") == grant.runtime_id and evidence.get("thread") == grant.thread_id
+                and evidence.get("profile_digest") == grant.profile_digest, "BROKER_ADMISSION_MISMATCH")
+        require(db.execute("SELECT 1 FROM sqlite_master WHERE name='native_request_admissions'").fetchone(),
+                "BROKER_RUNTIME_ADMISSION_REQUIRED")
+        row = db.execute("SELECT a.*,p.parent,p.depth,p.state participant_state,j.state job_state,j.plan,j.started "
+            "FROM native_request_admissions a JOIN native_participants p ON a.job=p.job AND a.thread=p.thread "
+            "JOIN native_jobs j ON a.job=j.id WHERE a.operation=?", (evidence.get("operation_id"),)).fetchone()
+        require(row is not None and row["job"] == grant.runtime_id and row["thread"] == grant.thread_id
+                and row["job_state"] == "RUNNING" and row["participant_state"] == "ACTIVE" and
+                row["parent"] == grant.parent_thread_id and row["depth"] == grant.depth and
+                row["envelope"] == evidence.get("envelope") and
+                row["request_digest"] == evidence.get("request_digest"), "BROKER_RUNTIME_REVOKED")
+        from .native import NativeLaunch
+        plan = NativeLaunch.model_validate_json(row["plan"])
+        require(plan.profile_digest() == grant.profile_digest and plan.broker_policy == POLICY and
+                all(getattr(plan, k) == getattr(grant, k)
+                for k in ("campaign_id", "agent_id", "epoch", "model")) and
+                grant.role == ("executor" if row["depth"] == 0 else "helper"), "BROKER_ADMISSION_MISMATCH")
+        require(grant.expires_unix_ms <= int((row["started"] + plan.hard_timeout_s) * 1000),
+                "BROKER_ADMISSION_MISMATCH")
+        root = db.execute("SELECT thread FROM native_participants WHERE job=? AND parent IS NULL",
+                          (grant.runtime_id,)).fetchone()
+        require(root is not None and root[0] == grant.session_id, "BROKER_ADMISSION_MISMATCH")
+        operation = db.execute("SELECT actual,uncertain FROM operations WHERE id=? AND account=?",
+                               (row["envelope"], row["account"])).fetchone()
+        require(operation is not None and operation["actual"] is None and not operation["uncertain"],
+                "BROKER_RUNTIME_REVOKED")
+        _, uncertain = Budgets.totals(db, row["account"])
+        require(not uncertain, "BROKER_BUDGET_UNCERTAIN")
+        require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
+                "BROKER_EXPOSURE_QUARANTINED")
+        if enrolling:
+            dispatch = db.execute("SELECT state FROM inference_attempts WHERE operation=?",
+                                  (row["operation"],)).fetchone()
+            require(dispatch is not None and dispatch[0] == "DISPATCHING", "BROKER_DISPATCH_NOT_ADMITTED")
 
     def _authenticate(self, db, meta):
         require(isinstance(meta, dict), "BROKER_FORBIDDEN")

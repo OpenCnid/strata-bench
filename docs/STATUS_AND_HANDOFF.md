@@ -22,6 +22,8 @@ is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
 
+**Blocked as of 14:14 CDT September 20:** the same external admission conditions persist across three goal turns. No active Java process or newly qualified worker/operator input was found. Resume when the pending isolated worker/helper environment and authoritative original-project spending/qualified OAuth-bound inputs are supplied. Then revalidate them before dispatch; preserve the full M0–M6 objective, M7 conditions, failed guardian sample and remaining source/config/scorer gates. This is not completion.
+
 Source checkpoint `5edcf3d` is pushed; PR2 head verified at 14:10 CDT. No operation remains running. The next admitted host/game integration requires the pending isolated-worker and original-project spending/qualified OAuth-bound inputs. Preserve the failed 500-ms shutdown profile and do not run unchanged trials while awaiting those inputs. M0 is not complete.
 
 **Current state — pair04 terminal; scorer fix applied:** session67334 finished; zero Java confirmed. Both public phases, corrected footprint cancellation, reusable journal staging/pre-client verification, saved state/receipts and 16 + 4 = 20 costs pass. Phase1 guardian passes339.9197/500 ms, phase2 fails508.2221/500 ms; overall fail. Private root C:/Users/Darian/.strata/evidence/2026-09-20-forge-reconnect-04. Pair824.829 s plus3.899-s gap; linked766 primitives/10233.723 s, previous setups/gaps retained separately. Do not repeat unchanged or renew authority. [Report](verification/2026-09-20-forge-reconnect.md).

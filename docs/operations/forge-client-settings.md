@@ -129,7 +129,11 @@ with unrelated options bytes preserved. A subsequent
 [two-client recovery sample](../verification/2026-09-20-native-settings-recovery.md)
 also passes forced termination after applied-pending, fresh-session status and
 rollback from the retained journal with zero forward replay. Physical F13,
-conflict/effect repair, mid-write faults and complete T05 remain unqualified. Existing desktop
+effect repair, mid-write faults and complete T05 remain unqualified.
+[Authentic disk-conflict negatives](../verification/2026-09-20-native-settings-conflicts.md)
+pass stale revision, unrelated-file and owned-third-value rejection without
+overwriting foreign changes, followed by conservative owned cleanup/rollback.
+In-memory foreign changes and exclusion of other writers remain unqualified. Existing desktop
 authorization covers this separate-desktop/API route; shared input remains
 paused. No scored run may enable these diagnostics.
 

@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `301a2ef`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `4ade4e5`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -168,8 +168,13 @@ retired. No world/server/physical input/inference.
 now also passes: one apply, forced first-client termination, new-session status
 before rollback, six valid journal frames with the original prefix preserved,
 253 restored runtime/persisted values and exact original options bytes. Both
-processes are terminal and arguments retired. Continue foreign-options/revision
-conflicts and precise mid-write faults; physical effects, repair accounting and
+processes are terminal and arguments retired.
+[Foreign disk conflicts](verification/2026-09-20-native-settings-conflicts.md)
+also pass stale apply, unrelated/owned-third-value rollback rejection and forward
+fencing, preserving all injected bytes until exact owned cleanup. One prepared
+transaction, all 253 mappings and original file restored; client terminal,
+desktop unchanged, arguments retired. Continue precise mid-write faults and
+in-memory foreign changes; physical effects, isolation, repair accounting and
 complete T05/G1 remain unqualified.
 
 The [authentic current-policy guardian trial](verification/2026-09-20-guardian-live.md)

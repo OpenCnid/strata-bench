@@ -100,7 +100,7 @@ private interpreter/broker/plugin/configuration, holds Windows file leases and
 restricts imports to pinned source/native modules with site initialization off.
 Changed-profile native root/helper canaries pass narrowly. File integrity does
 not authenticate ingress or protect credentials from arbitrary same-user code.
-[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. Implement protected upstream OAuth credential separation and transport next; actual skill/artifact/lifecycle and live OAuth evidence remain required. The synthetic wire adapter remains prohibited from live use.
+[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. [Native OAuth transport](../verification/2026-09-20-native-oauth-transport.md) now implements native header capture, fixed HTTPS/qualification guards and shared receipt accounting, with actual-CLI fabricated-cache/header-preservation evidence. Next wire production ingress/lifetime and private qualification artifacts, then finish actual skill/artifact/lifecycle and real OAuth/account/TLS/receipt/exposure evidence. No live qualification was issued. Both synthetic adapters remain prohibited from live use.
 
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.

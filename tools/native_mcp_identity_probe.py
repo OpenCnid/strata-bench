@@ -53,7 +53,7 @@ def serve(log):
 
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
-        inherited_helper=False, bootstrap_mode=False, ingress_mode=False):
+        inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -75,6 +75,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
     require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
     require(not ingress_mode or bootstrap_mode, "INGRESS_BOOTSTRAP_REQUIRED")
+    require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     canaries = Canaries(output) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -206,7 +207,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
         category="development")
-    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12)
+    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12, oauth_fixture=oauth_mode)
     worker_calls = []
     worker = None
     if broker_mode:
@@ -253,6 +254,19 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_ingress import HEADER, POLICY as INGRESS_POLICY, NativeIngress, credential
             ingress_secret = credential()
             config["model_providers.strata_local_fixture.http_headers"] = {HEADER: ingress_secret}
+        if oauth_mode:
+            config["model_providers.strata_local_fixture.requires_openai_auth"] = True
+            config["cli_auth_credentials_store"] = "file"
+            def encode(value):
+                return base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip("=")
+            fake_id = encode({"alg": "none"}) + "." + encode({"exp": int(time.time()) + 3600,
+                "email": "strata-fixture@example.invalid", "https://api.openai.com/auth": {
+                    "chatgpt_account_id": "strata-fixture-account", "chatgpt_plan_type": "plus"}}) + ".fixture"
+            (Path(plan.profile_directory) / "auth.json").write_text(json.dumps({
+                "auth_mode": "chatgpt", "OPENAI_API_KEY": None,
+                "tokens": {"id_token": fake_id, "access_token": "STRATA_SYNTHETIC_OAUTH_ACCESS",
+                    "refresh_token": "STRATA_SYNTHETIC_OAUTH_REFRESH", "account_id": "strata-fixture-account"},
+                "last_refresh": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")}), encoding="utf-8")
         bootstrap = {}
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
@@ -274,6 +288,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
+            "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
             "prompt": "Synthetic MCP identity test. Use only the fixed "
@@ -409,6 +424,22 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 all(ingress_secret.encode() not in p.read_bytes() for p in requests),
             "ingress_no_upstream_oauth_in_fixture": not any(r["authorization_present"] for r in provider.requests),
         })
+        if oauth_mode:
+            result["checks"].pop("ingress_no_upstream_oauth_in_fixture")
+            result["oauth"] = {"synthetic_credentials_only": True,
+                "native_header_names": sorted({h for r in provider.requests for h in r.get("header_names", [])}),
+                "upstream": provider.upstream_requests}
+            result["checks"].update({
+                "native_oauth_headers_all_requests": all(r["authorization_present"] and
+                    "chatgpt-account-id" in r.get("header_names", []) for r in provider.requests),
+                "upstream_credential_all_requests": len(provider.upstream_requests) == len(provider.requests)
+                    and all(r["authorization_present"] for r in provider.upstream_requests),
+                "native_protocol_headers_preserved": all(r["native_headers_preserved"]
+                                                          for r in provider.upstream_requests),
+                "oauth_secrets_absent_from_context_and_journal": all(secret not in visible and
+                    all(secret not in p.read_bytes() for p in requests) for secret in (
+                        b"STRATA_SYNTHETIC_OAUTH_ACCESS", b"STRATA_SYNTHETIC_OAUTH_REFRESH", fake_id.encode())),
+            })
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}
@@ -425,6 +456,7 @@ def main():
     parser.add_argument("--inherited-helper", action="store_true")
     parser.add_argument("--bootstrap", action="store_true")
     parser.add_argument("--ingress", action="store_true")
+    parser.add_argument("--oauth", action="store_true")
     args = parser.parse_args()
     if args.serve:
         serve(args.serve)
@@ -444,12 +476,13 @@ def main():
         root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py",
         root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
         root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",
-        root / "src/mcbench/native_ingress.py"]
+        root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",
+        root / "src/mcbench/inference_transport.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")
     result = run(args.codex.resolve(), output, args.broker, args.canaries, args.admission,
-                 args.inherited_helper, args.bootstrap, args.ingress)
+                 args.inherited_helper, args.bootstrap, args.ingress, args.oauth)
     print(json.dumps(result, indent=2))
     if args.broker:
         require(all(result["checks"].values()), "BROKER_FIXTURE_FAILED")

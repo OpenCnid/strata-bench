@@ -71,7 +71,7 @@ class LocalProvider:
     """
 
     def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
-                 estimate_basis=None):
+                 estimate_basis=None, oauth_fixture=False):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
         self.max_requests = max_requests
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
@@ -85,6 +85,9 @@ class LocalProvider:
         self.receipts = []
         self.wire = wire
         self.estimate_basis = estimate_basis
+        self.oauth_fixture = oauth_fixture
+        self.native_oauth_headers = {}
+        require(not oauth_fixture or wire, "OAUTH_WIRE_REQUIRED")
         require(estimate_basis is None or wire and scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
         self.upstream_requests = []
         provider = self
@@ -99,8 +102,14 @@ class LocalProvider:
                 observer = None
                 try:
                     size = int(self.headers.get("Content-Length", "0"))
-                    require(0 < size <= MAX_REQUEST and self.headers.get("Authorization") is None,
-                            "UPSTREAM_REQUEST_REJECTED")
+                    require(0 < size <= MAX_REQUEST, "UPSTREAM_REQUEST_REJECTED")
+                    if provider.oauth_fixture:
+                        require(self.headers.get("Authorization") == "Bearer STRATA_SYNTHETIC_OAUTH_ACCESS"
+                            and self.headers.get("ChatGPT-Account-ID") == "strata-fixture-account"
+                            and self.headers.get("X-Strata-Ingress") is None
+                            and self.headers.get("Cookie") is None, "UPSTREAM_CREDENTIAL_REJECTED")
+                    else:
+                        require(self.headers.get("Authorization") is None, "UPSTREAM_REQUEST_REJECTED")
                     raw = self.rfile.read(size)
                     request_digest = hashlib.sha256(raw).hexdigest()
                     observer = Database(provider.database_path)
@@ -111,11 +120,17 @@ class LocalProvider:
                         (provider.plan.job_id, request_digest)))
                     require(len(active) == 1, "UPSTREAM_INTENT_NOT_DURABLE")
                     operation = active[0]["operation"]
+                    if provider.oauth_fixture:
+                        expected = provider.native_oauth_headers[operation]
+                        require(all(self.headers.get_all(k, []) == [v] for k, v in expected.items()),
+                                "UPSTREAM_NATIVE_HEADERS_CHANGED")
                     with provider.lock:
                         index = len(provider.upstream_requests)
                         require(index < provider.max_requests, "REQUEST_COUNT")
                         provider.upstream_requests.append({"operation_id": operation,
-                            "request_digest": request_digest, "authorization_present": False})
+                            "request_digest": request_digest,
+                            "authorization_present": self.headers.get("Authorization") is not None,
+                            "native_headers_preserved": provider.oauth_fixture})
                         next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
                     provider.entered.set()
                     provider.respond(self, json.loads(raw), index, operation)
@@ -186,6 +201,14 @@ class LocalProvider:
                     if ingress is not None:
                         ingress.bind_request(plan.job_id, operation, item["request_digest"],
                                              self.headers, self.path)
+                    oauth_credentials = None
+                    if provider.oauth_fixture:
+                        from mcbench.native_oauth import NATIVE_HEADERS, NativeOAuthRequest
+                        oauth_credentials = NativeOAuthRequest(ingress, plan.job_id, operation,
+                            item["request_digest"], self.headers, self.path)
+                        item["header_names"] = sorted(k.lower() for k in self.headers.keys())
+                        provider.native_oauth_headers[operation] = {
+                            k: self.headers[k] for k in NATIVE_HEADERS if k in self.headers}
                     cas = CAS(db, provider.objects)
                     gate = InferenceDispatches(db, cas, simulation=True)
                     plan = provider.plan
@@ -199,7 +222,7 @@ class LocalProvider:
                     reserve = ledger(plan, operation, parent=plan.operation_id, calls=1,
                                      spend=10000, pricing=price)
                     scope = {"runtime_job_id": plan.job_id, "profile_digest": plan.profile_digest(),
-                        "provider": "strata_local_fixture", "auth_mode": "api_key",
+                        "provider": plan.provider, "auth_mode": plan.auth_mode,
                         "request_digest": item["request_digest"]}
                     extra = {}
                     if provider.estimate_basis:
@@ -289,8 +312,13 @@ class LocalProvider:
                             self.wfile.flush()
 
                         endpoint = f"http://127.0.0.1:{provider.upstream.server_port}" + self.path
-                        transport = SyntheticResponsesTransport(gate, endpoint,
-                            deadline_s=20 if provider.scenario == "helper_parent" else 3)
+                        if provider.oauth_fixture:
+                            from mcbench.native_oauth import SyntheticOAuthTransport
+                            transport = SyntheticOAuthTransport(gate, oauth_credentials, endpoint,
+                                deadline_s=20 if provider.scenario == "helper_parent" else 3)
+                        else:
+                            transport = SyntheticResponsesTransport(gate, endpoint,
+                                deadline_s=20 if provider.scenario == "helper_parent" else 3)
                         result = transport.execute(plan.account, attempt, reserve, raw,
                                                    on_headers=headers, on_chunk=chunk)
                         saved = db.connection.execute("SELECT body FROM ledger WHERE "

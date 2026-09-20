@@ -1,9 +1,9 @@
-"""Bounded Responses wire transport for credential-free integration qualification.
+"""Bounded Responses receipt transport with separate concrete admission adapters.
 
-Only literal loopback HTTP and permanently simulated stores are admitted. This
-does not implement an authenticated OAuth broker or supply its missing monetary,
-exposure and isolation evidence. One invocation makes at most one upstream POST;
-the caller must obtain a distinct durable reservation for each actual retry.
+SyntheticResponsesTransport admits only credential-free literal loopback HTTP
+and permanently simulated stores. The OAuth adapter lives in native_oauth.py.
+Shared parsing/accounting does not qualify either adapter. One invocation makes
+at most one upstream POST; each actual retry needs a distinct reservation.
 """
 
 import hashlib
@@ -127,24 +127,19 @@ class ResponsesUsage:
         return self.receipt.copy()
 
 
-class SyntheticResponsesTransport:
-    """Reusable one-request transport, explicitly unusable for live inference.
+class _ResponsesTransport:
+    """Shared bounded receipt transport. Concrete adapters enforce admission.
 
     ``on_headers``/``on_chunk`` are trusted bounded ingress writers. They must not
     retry, transform billing evidence or block indefinitely. Ingress closes/fences
     every writer before sealing a native job. This class owns the upstream socket.
     """
 
-    def __init__(self, dispatches, endpoint, *, deadline_s=3):
-        require(dispatches.simulation, "LIVE_TRANSPORT_UNQUALIFIED")
-        url = urlsplit(endpoint)
-        require(url.scheme == "http" and url.hostname == "127.0.0.1" and
-                url.port is not None and 0 < url.port < 65536 and
-                url.username is None and url.password is None and not url.query and
-                not url.fragment and url.path in {"/v1/responses", "/v1/responses/compact"},
-                "SYNTHETIC_ENDPOINT_REQUIRED")
-        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
-        self.gate, self.url, self.deadline_s = dispatches, url, deadline_s
+    def _preflight(self, attempt, reserve):
+        pass
+
+    def _filter(self, chunk, *, final=False):
+        return chunk
 
     def execute(self, account, attempt, reserve, body, *, on_headers, on_chunk):
         require(isinstance(body, bytes) and 0 < len(body) <= 1024 * 1024, "REQUEST_SIZE")
@@ -152,6 +147,7 @@ class SyntheticResponsesTransport:
         parsed = strict_json(body)
         require(isinstance(parsed, dict) and parsed.get("model") == reserve.model_identity,
                 "RESPONSE_SCOPE_MISMATCH")
+        self._preflight(attempt, reserve)
         # These are synthetic per-token integer rates, not OpenAI prices. Pin the
         # exact private price record also named by the qualified bound/reservation.
         price = strict_json(self.gate._private_ref(reserve.pricing_ref, 16384))
@@ -159,6 +155,7 @@ class SyntheticResponsesTransport:
         if price.get("schema", price.get("schema_")) == "strata/ApiEquivalentEstimateBasis/1":
             basis = EstimateBasis.model_validate(price)
         else:
+            require(self.gate.simulation, "VERSIONED_ESTIMATE_REQUIRED")
             require(price.get("schema") == "strata/SyntheticTokenPricing/1" and
                     price.get("is_example") is True and price.get("currency") == "USD",
                     "SYNTHETIC_PRICING_REQUIRED")
@@ -168,15 +165,13 @@ class SyntheticResponsesTransport:
         def forward():
             started = time.monotonic()
             deadline = started + self.deadline_s
-            connection = http.client.HTTPConnection("127.0.0.1", self.url.port,
-                                                     timeout=self.deadline_s)
+            connection, path, headers = self._request()
             capture = None
             raw_ref = None
             try:
                 connection.connect()
                 sock = connection.sock
-                connection.request("POST", self.url.path, body=body,
-                                   headers={"Content-Type": "application/json"})
+                connection.request("POST", path, body=body, headers=headers)
                 remaining = deadline - time.monotonic()
                 require(remaining > 0, "TRANSPORT_DEADLINE")
                 sock.settimeout(remaining)
@@ -194,8 +189,14 @@ class SyntheticResponsesTransport:
                     chunk = response.read1(16384)
                     if not chunk:
                         break
-                    capture.feed(chunk)
-                    on_chunk(chunk)
+                    safe = self._filter(chunk)
+                    if safe:
+                        capture.feed(safe)
+                        on_chunk(safe)
+                safe = self._filter(b"", final=True)
+                if safe:
+                    capture.feed(safe)
+                    on_chunk(safe)
                 observed = capture.finish()
                 event = observed.pop("event")
                 # Cached input and reasoning output are subsets, never added twice.
@@ -222,7 +223,7 @@ class SyntheticResponsesTransport:
                     valuation = UsageValuation.model_validate({"schema": "strata/UsageValuation/1",
                         "kind": "api_equivalent_estimate", "basis_digest": basis.fingerprint(),
                         "raw_usage_ref": raw_ref, "usage": tokens, "amount_microusd": spend,
-                        "token_evidence": "synthetic_fixture"})
+                        "token_evidence": "synthetic_fixture" if self.gate.simulation else "provider_reported"})
                     return event, receipt, valuation
                 return event, receipt
             finally:
@@ -239,5 +240,24 @@ class SyntheticResponsesTransport:
         with self.gate.db.transaction() as db:
             self.gate.db.event(db, "inference.wire_capture", {"operation_id": operation,
                 "raw_usage_ref": ref,
-                "bytes": len(capture.raw), "simulation": True})
+                "bytes": len(capture.raw), "simulation": self.gate.simulation})
         return ref
+
+
+class SyntheticResponsesTransport(_ResponsesTransport):
+    """Credential-free loopback adapter. Its simulation-only guard is mandatory."""
+
+    def __init__(self, dispatches, endpoint, *, deadline_s=3):
+        require(dispatches.simulation, "LIVE_TRANSPORT_UNQUALIFIED")
+        url = urlsplit(endpoint)
+        require(url.scheme == "http" and url.hostname == "127.0.0.1" and
+                url.port is not None and 0 < url.port < 65536 and
+                url.username is None and url.password is None and not url.query and
+                not url.fragment and url.path in {"/v1/responses", "/v1/responses/compact"},
+                "SYNTHETIC_ENDPOINT_REQUIRED")
+        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
+        self.gate, self.url, self.deadline_s = dispatches, url, deadline_s
+
+    def _request(self):
+        return (http.client.HTTPConnection("127.0.0.1", self.url.port, timeout=self.deadline_s),
+                self.url.path, {"Content-Type": "application/json"})

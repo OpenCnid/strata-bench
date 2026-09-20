@@ -37,3 +37,14 @@ retained one-off staging script. Its two guardian failures remain unchanged.
 An operator attestation does not establish authenticated process isolation,
 complete checkpoint consistency or safe campaign admission. M0.2k.2a remains
 implemented_unverified for its authentic success path; G0 remains fail.
+
+Follow-up: a first-class `--verify-digest` path validates staged bytes against
+the original trusted receipt before launch preparation. It rejects altered
+manifests, native/worker journals, stale extra files, incomplete publication,
+wrong expected digests and current expiry. Seven new/affected verifier and
+interruption checks pass (1.63 s, 15 deselected); targeted Ruff passes.
+This strengthens file continuity without granting process or gameplay authority.
+
+The existing staging CLI also passes its focused compatibility check after the
+argument-routing change (one pass,0.42 s). Final verifier source SHA256:
+`83fd34ed8fb4e58ab7cdb649db2275cdc92163d5afb2e51c51201f8b2084ce3b`.

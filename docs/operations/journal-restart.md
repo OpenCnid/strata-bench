@@ -42,6 +42,21 @@ inconsistent manifest, recheck its file digests and enforce fresh body, epoch,
 grant, observation and original-authority validity before use. This command does
 not implement that launch admission.
 
+Before launch preparation, verify the staged set against the manifest digest
+retained from the original staging receipt. Do not read the expected digest
+from the directory being verified:
+
+```powershell
+.\.venv\Scripts\python.exe -m strata_evaluator.journal_restart --destination <staged-private-directory> --verify-digest <original-manifest-digest> --minimum-remaining-ms <required-launch-interval>
+```
+
+This rechecks the manifest, every exact file, absence of extra files/WALs,
+authority identity, increasing epoch, input headroom and actual current expiry.
+It rejects incomplete publication and tampered counters or receipts. Output
+contains only verification status, manifest digest and `launched: false`.
+The required interval is explicit; there is no CLI clock override. Verification
+does not grant process or gameplay authority.
+
 No old observation grants, credentials, native descriptors, locks, world files
 or agent state are copied. Unknown actions remain unknown and no requests are
 replayed. This is a journal transfer operation, not the complete checkpoint

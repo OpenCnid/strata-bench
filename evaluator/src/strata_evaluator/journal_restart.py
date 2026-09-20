@@ -137,6 +137,7 @@ def stage_journals(plan: JournalRestart, destination: Path):
         "requires_fresh_body_epoch_observation": True,
         "complete_checkpoint": False, "campaign_admission": False, "gate_result": "not_run",
     }
+    require(len(canonical(receipt)) + 1 <= 65536, "RESTART_METADATA_QUOTA")
     # Sources are already verified frozen exports. Byte copying the SQLite file
     # preserves its exact identity, all tables and unknown receipts; no table
     # selection, ALTER, epoch insertion or WAL omission can lose old state.
@@ -170,11 +171,71 @@ def stage_journals(plan: JournalRestart, destination: Path):
     return receipt
 
 
+def verify_staged(destination: Path, expected_manifest_digest: str, minimum_remaining_ms: int):
+    """Check a retained trusted receipt and all staged bytes before launch preparation.
+
+    The expected digest comes from the original private staging receipt, never
+    from the directory being checked. This proves file continuity, not the fresh
+    body/process/grant/observation conditions enforced by the launch supervisor.
+    """
+    require(type(expected_manifest_digest) is str and len(expected_manifest_digest) == 64
+            and all(c in "0123456789abcdef" for c in expected_manifest_digest), "RESTART_MANIFEST_DIGEST")
+    require(type(minimum_remaining_ms) is int and 1 <= minimum_remaining_ms <= 1200000,
+            "RESTART_LIFETIME_BOUND")
+    require(destination.is_absolute(), "RESTART_DESTINATION_PATH")
+    reject_links(destination)
+    require(destination.is_dir(), "RESTART_MANIFEST_MISSING")
+    path = destination / "manifest.json"
+    reject_links(path)
+    require(path.is_file() and path.stat().st_nlink == 1 and path.stat().st_size <= 65536,
+            "RESTART_MANIFEST_MISSING")
+    raw = path.read_bytes()
+    require(len(raw) <= 65536, "RESTART_METADATA_QUOTA")
+    receipt = decode(raw)
+    require(digest(receipt) == expected_manifest_digest, "RESTART_MANIFEST_CHANGED")
+    require(isinstance(receipt, dict) and receipt.get("schema") == "strata/StagedNativeJournals/1"
+            and receipt.get("visibility") == "evaluator"
+            and receipt.get("replay_requests") == []
+            and all(receipt.get(key) is False for key in
+                    ("authority_renewed", "cost_refunded", "launched", "complete_checkpoint", "campaign_admission")),
+            "RESTART_MANIFEST_INVALID")
+    require(set(receipt.get("files", {})) == {"native.jsonl", "worker.sqlite", "authority.json"},
+            "RESTART_MANIFEST_INVALID")
+    require({p.name for p in destination.iterdir()} == {*receipt["files"], "manifest.json"},
+            "RESTART_STAGED_EXTRA_FILES")
+    items = [InputFile(path=str(destination / name), sha256=sha) for name, sha in receipt["files"].items()]
+    for item in items:
+        require(item.checked().stat().st_nlink == 1, "RESTART_LINKED_INPUT")
+    frozen_database(destination / "worker.sqlite")
+    authority = GameAuthority.model_validate(decode((destination / "authority.json").read_bytes()))
+    require((authority.campaign_id, authority.agent_id) == (receipt["campaign_id"], receipt["agent_id"]),
+            "RESTART_AUTHORITY_CHANGED")
+    require(type(receipt.get("source_epoch")) is int and type(receipt.get("next_epoch")) is int
+            and receipt["next_epoch"] > receipt["source_epoch"], "STALE_EPOCH")
+    require(type(receipt.get("inherited_primitive_events")) is int
+            and 0 <= receipt["inherited_primitive_events"] < authority.primitive_limit,
+            "RESTART_INPUT_BUDGET_EXHAUSTED")
+    for item in items:
+        item.checked()
+    require(path.read_bytes() == raw, "RESTART_MANIFEST_CHANGED")
+    frozen_database(destination / "worker.sqlite")
+    require(authority.expires_unix_ms - _now_ms() > minimum_remaining_ms, "RESTART_AUTHORITY_EXPIRED")
+    return receipt
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--plan", type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--plan", type=Path)
+    mode.add_argument("--verify-digest")
     parser.add_argument("--destination", type=Path, required=True)
+    parser.add_argument("--minimum-remaining-ms", type=int)
     args = parser.parse_args(argv)
+    if args.verify_digest is not None:
+        result = verify_staged(args.destination, args.verify_digest, args.minimum_remaining_ms)
+        print(json.dumps({"status": "verified", "manifest_digest": digest(result), "launched": False}))
+        return
+    require(args.minimum_remaining_ms is None, "RESTART_BOUND_IN_PLAN")
     reject_links(args.plan.absolute())
     require(args.plan.stat().st_size <= 1048576, "RESTART_PLAN_QUOTA")
     plan = JournalRestart.model_validate(decode(args.plan.read_bytes()))

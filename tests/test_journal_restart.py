@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from mcbench.storage import Fault
+from mcbench.storage import Fault, digest
 from strata_evaluator import journal_restart as restart
 from test_restart_costs import pair, pin
 from test_run_costs import build
@@ -170,5 +170,44 @@ def test_interrupted_publication_retains_partial_without_commit(tmp_path, exampl
     assert (target / "native.jsonl").read_bytes() == raw
     assert not (target / "manifest.json").exists()
     assert Path(latest.native_journal.path).read_bytes() == raw
+    with pytest.raises(Fault, match="RESTART_MANIFEST_MISSING"):
+        restart.verify_staged(target, "a" * 64, 1)
     with pytest.raises(Fault, match="RESTART_DESTINATION_EXISTS"):
         restart.stage_journals(plan, target)
+
+
+@pytest.mark.parametrize("change,code", [
+    ("receipt", "RESTART_MANIFEST_CHANGED"), ("native", "COST_INPUT_CHANGED"),
+    ("database", "COST_INPUT_CHANGED"), ("expired", "RESTART_AUTHORITY_EXPIRED"),
+    ("extra", "RESTART_STAGED_EXTRA_FILES"),
+])
+def test_staged_verification_rejects_changed_or_expired_state(tmp_path, example, monkeypatch, change, code):
+    plan, _, target = prepared(tmp_path, example, monkeypatch)
+    receipt = restart.stage_journals(plan, target)
+    trusted = digest(receipt)
+    assert restart.verify_staged(target, trusted, 1000) == receipt
+    if change == "receipt":
+        raw = json.loads((target / "manifest.json").read_bytes())
+        raw["inherited_primitive_events"] = 0
+        (target / "manifest.json").write_text(json.dumps(raw))
+    elif change in {"native", "database"}:
+        name = "native.jsonl" if change == "native" else "worker.sqlite"
+        with (target / name).open("ab") as stream:
+            stream.write(b"tampered")
+    elif change == "expired":
+        monkeypatch.setattr(restart, "_now_ms", lambda: 123456789)
+    elif change == "extra":
+        (target / "old-lock").write_bytes(b"stale")
+    with pytest.raises(Fault, match=code):
+        restart.verify_staged(target, trusted, 1000)
+
+
+def test_cli_verification_requires_original_receipt_digest(tmp_path, example, monkeypatch, capsys):
+    plan, _, target = prepared(tmp_path, example, monkeypatch)
+    receipt = restart.stage_journals(plan, target)
+    restart.main(["--verify-digest", digest(receipt), "--minimum-remaining-ms", "1000",
+                  "--destination", str(target)])
+    assert json.loads(capsys.readouterr().out) == {
+        "status": "verified", "manifest_digest": digest(receipt), "launched": False}
+    with pytest.raises(Fault, match="RESTART_MANIFEST_CHANGED"):
+        restart.verify_staged(target, "a" * 64, 1)

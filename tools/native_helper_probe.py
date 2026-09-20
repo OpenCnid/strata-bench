@@ -7,6 +7,8 @@ helper isolation or per-helper usage attribution is inferred from discovery.
 import argparse
 import json
 import os
+import subprocess
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -16,13 +18,16 @@ from mcbench.inference_dispatch import InferenceDispatches
 from mcbench.inventory import file_hash
 from mcbench.native import NativeExec, NativeLaunch
 from mcbench.plugins import install_dovetail, inspect_plugin_tree
-from mcbench.storage import CAS, Database, Fault, require
+from mcbench.storage import CAS, Database, Fault, canonical, require
 from native_dispatch_probe import (
     BINARY_SHA256, MODEL, LocalProvider, close_budget, ledger, plan_for, put, sse, wait_job,
 )
 
 PARENT_CANARY = "STRATA_PARENT_CONTEXT_4c57dca8"
 CHILD_RESULT = "STRATA_CHILD_RESULT_88ab269e"
+IDLE_NOTE = "STRATA_IDLE_MESSAGE_a4b1de72"
+FOLLOWUP_TASK = "STRATA_FOLLOWUP_TASK_22be0d1f"
+FOLLOWUP_RESULT = "STRATA_FOLLOWUP_RESULT_834e219d"
 
 
 class HelperProvider(LocalProvider):
@@ -31,6 +36,77 @@ class HelperProvider(LocalProvider):
         self.catalog = []
         self.mode, self.lineage, self.root_step = mode, [], 0
         self.child_seen = False
+        self.child_calls = 0
+        self.native_tool_calls, self.tool_outputs = {}, {}
+        self.stream_operation = None
+
+    @staticmethod
+    def delivered(body, result):
+        return any(item.get("type") == "agent_message" and
+            item.get("author") == "/root/synthetic_child" and item.get("recipient") == "/root" and
+            any(part.get("text", "").endswith("Payload:\n" + result) and
+                part["text"].startswith("Message Type: FINAL_ANSWER\n")
+                for part in item.get("content", [])) for item in body.get("input", []))
+
+    def lifecycle(self, body, agent):
+        """Fixed real native tools, no shell/code/game actions. Caller holds the lock."""
+        if agent != "/root":
+            step = self.child_calls
+            self.child_calls += 1
+            require(step in {0, 1} and PARENT_CANARY not in json.dumps(body), "UNEXPECTED_CHILD_CONTEXT")
+            if step == 1:
+                require(IDLE_NOTE in json.dumps(body) and FOLLOWUP_TASK in json.dumps(body),
+                        "NATIVE_FOLLOWUP_CONTEXT_MISSING")
+            return (CHILD_RESULT if step == 0 else FOLLOWUP_RESULT), None
+        step = self.root_step
+        self.root_step += 1
+        for item in body.get("input", []):
+            if item.get("type") == "function_call_output" and item.get("call_id") in self.native_tool_calls:
+                self.tool_outputs[item["call_id"]] = {
+                    "tool": self.native_tool_calls[item["call_id"]],
+                    "output": json.loads(item["output"]) if item["output"] else None}
+        if step == 2:
+            require(self.delivered(body, CHILD_RESULT), "INITIAL_RESULT_NOT_DELIVERED")
+        if step in {3, 4}:
+            require(self.child_calls == 1, "IDLE_MESSAGE_STARTED_CHILD")
+        if step == 6:
+            require(self.delivered(body, FOLLOWUP_RESULT), "FOLLOWUP_RESULT_NOT_DELIVERED")
+        calls = [
+            ("spawn_agent", {"task_name": "synthetic_child", "fork_turns": "none",
+                "message": "Return " + CHILD_RESULT + ". Do not call tools or access files."}),
+            ("wait_agent", {"timeout_ms": 10000}),
+            ("send_message", {"target": "synthetic_child", "message": IDLE_NOTE}),
+            ("list_agents", {}),
+            ("followup_task", {"target": "synthetic_child", "message": FOLLOWUP_TASK +
+                ": return " + FOLLOWUP_RESULT + ". Do not call tools or access files."}),
+            ("wait_agent", {"timeout_ms": 10000}),
+            ("list_agents", {}),
+            ("interrupt_agent", {"target": "synthetic_child"}),
+            ("list_agents", {}),
+        ]
+        require(step <= len(calls), "UNEXPECTED_PARENT_RETRY")
+        return "Synthetic native lifecycle complete.", calls[step] if step < len(calls) else None
+
+    def active_interrupt(self, body, agent):
+        if agent != "/root":
+            self.child_calls += 1
+            require(self.child_calls == 1 and PARENT_CANARY not in json.dumps(body), "UNEXPECTED_HELPER_RETRY")
+            return "", None
+        step = self.root_step
+        self.root_step += 1
+        for item in body.get("input", []):
+            if item.get("type") == "function_call_output" and item.get("call_id") in self.native_tool_calls:
+                self.tool_outputs[item["call_id"]] = {
+                    "tool": self.native_tool_calls[item["call_id"]],
+                    "output": json.loads(item["output"]) if item["output"] else None}
+        calls = [
+            ("spawn_agent", {"task_name": "synthetic_child", "fork_turns": "none",
+                "message": "Wait for this fixture's deterministic stream. Do not call tools or access files."}),
+            ("interrupt_agent", {"target": "synthetic_child"}),
+            ("list_agents", {}),
+        ]
+        require(step <= len(calls), "UNEXPECTED_PARENT_RETRY")
+        return "Synthetic active-child interruption complete.", calls[step] if step < len(calls) else None
 
     def respond(self, handler, body, index, operation):
         catalogs = [item["tools"] for item in body.get("input", [])
@@ -45,12 +121,19 @@ class HelperProvider(LocalProvider):
         require(agent in {"/root", "/root/synthetic_child"}, "UNEXPECTED_NATIVE_AGENT")
         text = "Synthetic native parent complete."
         call = None
+        if self.mode == "active_interrupt" and agent == "/root" and self.root_step == 1:
+            # Outside the lock: the child handler must be able to record/flush its stream.
+            require(self.streaming.wait(5), "CHILD_STREAM_NOT_STARTED")
         with self.lock:
             self.lineage.append({"operation_id": operation, "agent_name": agent,
                 "thread_id": metadata["thread_id"], "turn_id": metadata["turn_id"],
                 "root_turn_id": metadata["root_turn_id"],
                 "parent_canary_present": PARENT_CANARY in json.dumps(body), "model": body["model"]})
-            if agent != "/root":
+            if self.mode == "lifecycle":
+                text, call = self.lifecycle(body, agent)
+            elif self.mode == "active_interrupt":
+                text, call = self.active_interrupt(body, agent)
+            elif agent != "/root":
                 require(not self.child_seen, "UNEXPECTED_HELPER_RETRY")
                 require((PARENT_CANARY in json.dumps(body)) == (self.mode == "fork_all"),
                         "HELPER_FORK_CONTEXT_MISMATCH")
@@ -74,9 +157,25 @@ class HelperProvider(LocalProvider):
                             for part in item.get("content", [])) for item in body.get("input", []))
                     require(self.child_seen and delivered, "HELPER_RESULT_NOT_DELIVERED")
         event = "response-" + operation
+        if self.mode == "active_interrupt" and agent != "/root":
+            self.stream_operation = operation
+            handler.response_started = True
+            handler.send_response(200)
+            handler.send_header("Content-Type", "text/event-stream")
+            handler.end_headers()
+            handler.wfile.write(sse("response.created", response={"id": event,
+                "object": "response", "status": "in_progress", "model": MODEL, "output": []}))
+            handler.wfile.write(sse("response.output_text.delta", item_id="message-" + operation,
+                output_index=0, content_index=0, delta="Synthetic child stream prefix."))
+            handler.wfile.flush()
+            self.streaming.set()
+            require(self.release.wait(10), "CHILD_STREAM_RELEASE_TIMEOUT")
+            # Intentional EOF without authoritative usage, after native cancellation.
+            return {}, event
         item = {"id": "message-" + operation, "type": "message", "role": "assistant",
                 "status": "completed", "content": [{"type": "output_text", "text": text, "annotations": []}]}
         if call:
+            self.native_tool_calls["call-" + operation] = call[0]
             item = {"id": "tool-" + operation, "type": "function_call", "call_id": "call-" + operation,
                     "namespace": "collaboration", "name": call[0], "arguments": json.dumps(call[1])}
         response = {"id": event, "object": "response", "created_at": 1, "status": "completed",
@@ -92,7 +191,44 @@ class HelperProvider(LocalProvider):
         handler.wfile.write(sse("response.output_item.done", output_index=0, item=item))
         handler.wfile.write(sse("response.completed", response=response))
         handler.wfile.flush()
+        if self.mode == "active_interrupt" and agent == "/root" and self.root_step == 4:
+            self.release.set()
         return {}, event
+
+
+def validate_lifecycle_outputs(outputs):
+    """Pinned observed native result shapes; no text-based success guessing."""
+    expected_tools = ["spawn_agent", "wait_agent", "send_message", "list_agents", "followup_task",
+                      "wait_agent", "list_agents", "interrupt_agent", "list_agents"]
+    require([v["tool"] for v in outputs] == expected_tools, "NATIVE_LIFECYCLE_TOOL_ORDER")
+    def same(left, right):
+        return canonical(left) == canonical(right)
+    require(same(outputs[0]["output"], {"task_name": "/root/synthetic_child"}) and
+            all(same(outputs[i]["output"], {"message": "Wait completed.", "timed_out": False}) for i in (1, 5)) and
+            outputs[2]["output"] is None and outputs[4]["output"] is None and
+            outputs[7]["output"] == {"previous_status": {"completed": FOLLOWUP_RESULT}},
+            "NATIVE_LIFECYCLE_RESULT_MISMATCH")
+    for index, result in ((3, CHILD_RESULT), (6, FOLLOWUP_RESULT), (8, FOLLOWUP_RESULT)):
+        value = outputs[index]["output"]
+        require(isinstance(value, dict) and set(value) == {"agents"} and len(value["agents"]) == 2,
+                "NATIVE_AGENT_LIST_MISMATCH")
+        expected = [{"agent_name": "/root", "agent_status": "running"},
+                    {"agent_name": "/root/synthetic_child", "agent_status": {"completed": result}}]
+        require(all(v in expected for v in value["agents"]) and value["agents"][0] != value["agents"][1],
+                "NATIVE_AGENT_LIST_MISMATCH")
+
+
+def validate_interruption_outputs(outputs):
+    require([v["tool"] for v in outputs] == ["spawn_agent", "interrupt_agent", "list_agents"],
+            "NATIVE_INTERRUPTION_TOOL_ORDER")
+    require(outputs[0]["output"] == {"task_name": "/root/synthetic_child"} and
+            outputs[1]["output"] == {"previous_status": "running"}, "NATIVE_CHILD_NOT_INTERRUPTED")
+    value = outputs[2]["output"]
+    expected = [{"agent_name": "/root", "agent_status": "running"},
+                {"agent_name": "/root/synthetic_child", "agent_status": "interrupted"}]
+    require(isinstance(value, dict) and set(value) == {"agents"} and len(value["agents"]) == 2 and
+            all(v in expected for v in value["agents"]) and value["agents"][0] != value["agents"][1],
+            "NATIVE_CHILD_NOT_INTERRUPTED")
 
 
 def run(binary, output, variant, mode, persistent):
@@ -104,12 +240,14 @@ def run(binary, output, variant, mode, persistent):
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
                                 category="development")
-    provider = HelperProvider(db.path, cas.root, "success", wire=True, mode=mode)
+    scenario = "helper_parent" if mode == "active_interrupt" else "success"
+    provider = HelperProvider(db.path, cas.root, scenario, wire=True, mode=mode,
+                              max_requests=16 if mode == "lifecycle" else 8)
     result = {"is_example": True, "real_usd": 0, "production_qualified": False,
               "verdict": "fail", "mode": mode, "variant": variant, "ephemeral": not persistent}
     installed = None
     try:
-        plan = plan_for(binary, output, provider, "root")
+        plan = plan_for(binary, output, provider, "root", scenario=scenario)
         installation = install_dovetail(binary, Path(plan.profile_directory))
         commands = json.loads((Path(plan.profile_directory) / "installation-commands.json").read_bytes())
         installed = Path(json.loads(commands[-1]["stdout"])["installedPath"])
@@ -122,6 +260,7 @@ def run(binary, output, variant, mode, persistent):
             overrides["features.multi_agent_v2"] = True
         plan = NativeLaunch.model_validate(plan.model_dump() | {
             "session_storage": "private_profile" if persistent else "ephemeral",
+            "hard_timeout_s": 45 if mode in {"lifecycle", "active_interrupt"} else plan.hard_timeout_s,
             "config_overrides": plan.config_overrides | installation["required_config_overrides"] |
                 overrides,
             "prompt": ("Synthetic native helper conformance. Delegate only the fixed child task and "
@@ -130,7 +269,7 @@ def run(binary, output, variant, mode, persistent):
                 "Synthetic native helper discovery. Return a brief result; do not access files.")})
         provider.plan = plan
         price = put(cas, {"is_example": True, "real_usd": 0})
-        reserve = ledger(plan, plan.operation_id, parent=None, calls=8, spend=80000,
+        reserve = ledger(plan, plan.operation_id, parent=None, calls=provider.max_requests, spend=80000,
                          pricing=price, inputs=800000, outputs=80000)
         runtime.start(plan, reserve)
         wait_job(runtime, plan)
@@ -148,24 +287,65 @@ def run(binary, output, variant, mode, persistent):
     result["helper_qualification"] = "not_run" if result["helper_tools_advertised"] else "blocked"
     result["requests"], result["provider_errors"] = provider.requests, provider.errors
     result["lineage"] = provider.lineage
+    result["tool_outputs"] = list(provider.tool_outputs.values())
+    result["request_limit"] = provider.max_requests
+    result["stream_operation"] = provider.stream_operation
     if installed:
         result["plugin_tree_after"] = inspect_plugin_tree(installed)["installed_tree_digest"]
     try:
         result["runtime"] = runtime.status("root")
-        result["closure"] = close_budget(runtime, plan, provider)
+        result["budget"] = gate.budgets.status("project")
+        result["attempts"] = [dict(row) for row in db.connection.execute(
+            "SELECT operation,state FROM inference_attempts ORDER BY operation")]
+        try:
+            result["closure"] = close_budget(runtime, plan, provider)
+        except Fault as error:
+            result["closure_blocked"] = error.code
+            if mode != "active_interrupt":
+                raise
         result["budget"] = gate.budgets.status("project")
         result["turn_usage"] = runtime.usage_report("root")
         if mode != "discovery":
             roots = [item for item in provider.lineage if item["agent_name"] == "/root"]
             children = [item for item in provider.lineage if item["agent_name"] != "/root"]
-            require(len(roots) == 3 and len(children) == 1 and
+            require(len(roots) == (10 if mode == "lifecycle" else 4 if mode == "active_interrupt" else 3) and
+                    len(children) == (2 if mode == "lifecycle" else 1) and
                     roots[0]["thread_id"] != children[0]["thread_id"] and
                     {item["root_turn_id"] for item in provider.lineage} == {roots[0]["turn_id"]},
                     "NATIVE_HELPER_LINEAGE_MISMATCH")
-        require(not result.get("failure") and not provider.errors and
+            if mode == "lifecycle":
+                validate_lifecycle_outputs(result["tool_outputs"])
+                require(children[0]["thread_id"] == children[1]["thread_id"] and
+                        children[0]["turn_id"] != children[1]["turn_id"] and len(provider.tool_outputs) == 9,
+                        "NATIVE_HELPER_LIFECYCLE_MISMATCH")
+        if mode == "active_interrupt":
+            validate_interruption_outputs(result["tool_outputs"])
+            require(provider.errors == ["AUTHORITATIVE_USAGE_REQUIRED"], "UNEXPECTED_PROVIDER_ERRORS")
+            unsettled = [a for a in result["attempts"] if a["state"] == "UNSETTLED"]
+            settled = [a for a in result["attempts"] if a["state"] == "SETTLED"]
+            require(result.get("closure_blocked") == "METERING_UNKNOWN" and len(settled) == 4 and
+                    len(unsettled) == 1 and unsettled[0]["operation"] == provider.stream_operation and
+                    len(provider.upstream_requests) == 5 and len(provider.requests) == 5 and
+                    result["budget"]["uncertain"] and not result["budget"]["dispatch_allowed"] and
+                    result["budget"]["committed_and_reserved"]["spend_microusd"] == 80000 and
+                    all(r.get("receipt_deduplicated") for r in provider.requests if r["operation_id"] != provider.stream_operation),
+                    "NATIVE_CHILD_UNCERTAINTY_NOT_HELD")
+            process = subprocess.run([sys.executable, str(Path(__file__).with_name("native_dispatch_probe.py")),
+                "--recover-only", str(output)], capture_output=True, timeout=15,
+                creationflags=subprocess.CREATE_NO_WINDOW)
+            (output / "recovery-process.json").write_text(json.dumps({"returncode": process.returncode,
+                "stdout": process.stdout.decode("utf-8", errors="replace"),
+                "stderr": process.stderr.decode("utf-8", errors="replace")}, indent=2), encoding="utf-8")
+            require(process.returncode == 0, "HELPER_RECOVERY_FAILED")
+            result["recovery"] = json.loads((output / "recovery.json").read_bytes())
+            require(result["recovery"]["ambiguous_attempts"] == 1 and result["recovery"]["settled_attempts"] == 4 and
+                    result["recovery"]["process_id"] != os.getpid() and result["recovery"]["replayed"] == 0 and
+                    result["recovery"]["budget"] == result["budget"], "HELPER_RECOVERY_REPLAYED")
+        require(not result.get("failure") and (mode == "active_interrupt" or not provider.errors) and
                 result["runtime"]["returncode"] == 0 and
-                result["budget"]["committed_and_reserved"]["model_calls"] == (1 if mode == "discovery" else 4) and
-                all(item.get("receipt_deduplicated") for item in provider.requests) and
+                (mode == "active_interrupt" or result["budget"]["committed_and_reserved"]["model_calls"] ==
+                    (1 if mode == "discovery" else 12 if mode == "lifecycle" else 4)) and
+                (mode == "active_interrupt" or all(item.get("receipt_deduplicated") for item in provider.requests)) and
                 result["plugin_tree_after"] == result["plugin_tree_before"], "NATIVE_HELPER_PROBE_FAILED")
         result["verdict"] = "pass"
     except Fault as error:
@@ -181,7 +361,7 @@ def main():
     parser.add_argument("--codex", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--variant", choices=["feature", "agents", "v2"], default="feature")
-    parser.add_argument("--mode", choices=["discovery", "fork_none", "fork_all"], default="discovery")
+    parser.add_argument("--mode", choices=["discovery", "fork_none", "fork_all", "lifecycle", "active_interrupt"], default="discovery")
     parser.add_argument("--persistent", action="store_true", help="Keep fixture session in its private disposable profile")
     args = parser.parse_args()
     root, output = Path(__file__).resolve().parents[1], args.output.resolve()

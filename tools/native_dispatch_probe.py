@@ -61,7 +61,7 @@ def sse(kind, **fields):
 
 
 class LocalProvider:
-    """One scoped ingress per actual native process; never a forwarding proxy.
+    """One fixture ingress per native runtime; only its own loopback upstream.
 
     Each HTTP request receives a new operation ID, regardless of body equality.
     The provider callback starts only after durable admission. All responses and
@@ -69,7 +69,9 @@ class LocalProvider:
     HTTP status alone is deliberately insufficient to infer zero-cost usage.
     """
 
-    def __init__(self, database_path, objects, scenario, *, wire=False):
+    def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS):
+        require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
+        self.max_requests = max_requests
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
         self.plan = None
         self.requests, self.errors = [], []
@@ -106,7 +108,7 @@ class LocalProvider:
                     operation = active[0]["operation"]
                     with provider.lock:
                         index = len(provider.upstream_requests)
-                        require(index < MAX_REQUESTS, "REQUEST_COUNT")
+                        require(index < provider.max_requests, "REQUEST_COUNT")
                         provider.upstream_requests.append({"operation_id": operation,
                             "request_digest": request_digest, "authorization_present": False})
                         next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
@@ -147,7 +149,7 @@ class LocalProvider:
                     require(body.get("model") == MODEL, "MODEL_POLICY")
                     with provider.lock:
                         index = len(provider.requests)
-                        require(index < MAX_REQUESTS, "REQUEST_COUNT")
+                        require(index < provider.max_requests, "REQUEST_COUNT")
                         operation = "dispatch-" + uuid.uuid4().hex
                         item = {"operation_id": operation, "path": self.path,
                             "request_digest": hashlib.sha256(raw).hexdigest(),
@@ -406,6 +408,7 @@ def recover_only(directory):
             "is_example": True, "source": evidence})
         runtime.recover_fenced("root", fence)
     recovered = gate.recover()
+    before_replay_checks = gate.budgets.status("project")
     rows = list(db.connection.execute("SELECT * FROM inference_attempts"))
     require(rows, "MISSING_DISPATCH")
 
@@ -430,8 +433,12 @@ def recover_only(directory):
         require(error.code == "METERING_UNKNOWN", "WRONG_RESTART_REJECTION")
     else:
         raise AssertionError("UNKNOWN_COST_ADMITTED")
+    require(gate.budgets.status("project") == before_replay_checks and
+            db.connection.execute("SELECT COUNT(*) FROM inference_attempts").fetchone()[0] == len(rows),
+            "RECOVERY_REPLAY_CHANGED_ACCOUNTING")
     result = {"is_example": True, "process_id": os.getpid(), "recovered": recovered,
-              "ambiguous_attempts": len(rows), "replayed": 0,
+              "ambiguous_attempts": sum(row["state"] == "UNSETTLED" for row in rows),
+              "settled_attempts": sum(row["state"] == "SETTLED" for row in rows), "replayed": 0,
               "budget": gate.budgets.status("project")}
     db.close()
     (directory / "recovery.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

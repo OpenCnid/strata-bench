@@ -107,3 +107,8 @@ Next: trusted helper admission/lineage, full lifecycle and nested/grandchild
 accounting, per-helper permission enforcement, interruption and admitted complete
 session export/resume. A persistent rollout file alone satisfies none of those
 gates. Live OAuth pricing/exposure/spending authority and isolation remain blocked.
+
+Follow-up: [native lifecycle/interruption evidence](2026-09-20-native-helper-lifecycle.md)
+now covers idle message/follow-up/list behavior, active child interruption and
+retained missing usage through fresh recovery. It retains all earlier failures
+and does not supply the remaining production admission/permissions/depth gates.

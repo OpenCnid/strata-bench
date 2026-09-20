@@ -6,6 +6,8 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.38; maintenance rules: [
 
 ## Current position
 
+- **Native helper lifecycle:** loaded-config checkpoint `8479e97` is committed. [Actual lifecycle/interruption fixtures](docs/verification/2026-09-20-native-helper-lifecycle.md) pass final idle messaging/follow-up (12 metered calls) and active child cancellation (four settled/one unknown) with fresh-supervisor no-replay and full retained reservation. Initial empty-ack parser failure remains. Ninety-six Python checks/full Ruff and original helper/restart regressions pass. Trusted child admission/permissions/sub-budgets, depth/grandchild and complete resume remain open.
+
 - **Loaded-config evidence:** overlay checkpoint `ce3e465` is committed. [Telemetry 0.2.0](docs/verification/2026-09-20-e9e-loaded-config.md) has 51 Python/11 Java passes and an authentic two-boot selected-config persistence check (34/32 records, normal stops). Four files are unregistered; current Sophisticated Core/Create snapshots match across restart. Initial placeholder-plan failure is retained. All 268 stopped-file outcomes/digests are unchanged, including five failures. Server 0.2.0 is installed and stopped; no client or inference ran. Next: exact role/consumer disposition, full expert mechanics and authentic guardian recovery with current pins.
 
 - **Exact-pack overlay follow-up:** native helper checkpoint `a1fbb0e` is committed. [Five-finding review](docs/verification/2026-09-20-e9e-overlay-review.md) adds bounded private mismatch diagnostics and inspects exact installed/nested artifacts and original archives. All five server findings remain: 263/268 checks pass. Fifteen local tests/Ruff pass; no game launch or installation changes. Next: bounded private loaded-config evidence, then complete cold-restart/reference/expert mechanics.
@@ -229,7 +231,8 @@ Native collaboration continuation children:
 |---|---|---|---|---|
 | M0.1c.2c | AR/PL/SI | Actual native collaboration discovery, context forks, lineage, lifecycle, bounded nested accounting and enforced child permissions | in_progress | Children .1/.2; retain M0.1c.2b boundary failure and all self-play requirements. |
 | M0.1c.2c.1 | AR/QA | Observed pinned v2 tool schemas, native spawn/wait/result, clean/full context and declared session storage; F03/F07/F09/F11/F16, N01/N03/N04/N06/N08, C06/C14/C18/C20, partial T01/T04/T07/T12 | implemented_unverified | [Actual CLI/synthetic provider evidence](docs/verification/2026-09-20-native-helpers.md): two final invocation cases pass, four all-call receipts each, unchanged plugin bytes; 77 relevant Python checks pass. Preserve absent legacy surface, ephemeral-fork and parser failures. No production helper/isolation qualification. |
-| M0.1c.2c.2 | AR/PL/SI | Trusted native child admission/lineage, child permission principals, nested/grandchild sub-budgets, full messaging/follow-up/interruption/restart and complete admitted session state | not_started | Aggregate inclusion and observed metadata do not supply these controls. Depends on enforceable M0.1c.2b.2 boundary for live admission; independent lifecycle/accounting fixtures may proceed. Session files are not complete checkpoint/restore evidence. |
+| M0.1c.2c.2 | AR/PL/SI | Trusted native child admission/lineage, child permission principals, nested/grandchild sub-budgets, full messaging/follow-up/interruption/restart and complete admitted session state | in_progress | Aggregate inclusion and observed metadata do not supply these controls. Depends on enforceable M0.1c.2b.2 boundary for live admission; independent lifecycle/accounting fixtures may proceed. Session files are not complete checkpoint/restore evidence. |
+| M0.1c.2c.2a | AR/QA | Actual native idle messaging, follow-up, idle/active interruption/list lifecycle and unknown child usage through restart | implemented_unverified | [Evidence](docs/verification/2026-09-20-native-helper-lifecycle.md): final lifecycle 12 settled calls, active interruption four settled/one ambiguous with full held envelope and zero fresh-process replay. Exact native result shapes, dedup, unchanged plugin and original helper/restart regressions pass; 96 Python checks/full Ruff pass. Empty-ack parser failure retained. Fixture cap 16 applies only to declared idle case; old cap eight/live $10 unchanged. No trusted child budgets/permissions qualification. |
 
 Guardian continuation child:
 
@@ -4376,3 +4379,30 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   [Report](docs/verification/2026-09-20-e9e-loaded-config.md). No gate promotion.
   Next: exact role/consumer disposition, authoritative expert mechanics and
   authentic reliability work with current pins; live monetary/isolation inputs pend.
+
+### 2026-09-20 — Native helper lifecycle and active-stream accounting
+
+- Continued after loaded-config checkpoint 8479e97; M0.1c.2c.2a adds actual
+  v2 idle message/follow-up/list/interrupt and active-stream interruption fixtures.
+  Exact schemas came from prior native discovery, not invented adapters.
+- First lifecycle sample fails on empty acknowledgement JSON parsing: four
+  receipts settled, one unknown; full 16-call/80,000 synthetic microUSD hold
+  remains. Corrected -02 passes flow; final -03 validates exact native statuses.
+  Same child thread has two turns; queued message alone starts none; idle
+  interruption leaves completed child available. Twelve calls settle/dedup
+  to 120 input/48 output/168 synthetic microUSD; root totals omit both child calls.
+- Active -01 observes real running-to-interrupted status and missing usage.
+  Final -02 requires exact status/error shapes and a fresh supervisor: four
+  settled/one unknown, no replay, same complete eight-call envelope retained,
+  further admission denied. No claim of provider cancellation or complete resume.
+- Original clean-context helper and wire restart regressions pass. Ninety-six
+  Python checks pass, zero skips, 8.24 s; full Ruff/diff pass. A temporary patch
+  indentation error was caught before native execution and corrected. Private
+  source/ledger/receipt/plugin/request/recovery evidence and failed samples remain
+  in native-helper-lifecycle-01..03, native-helper-active-01..02 and the two
+  named regression directories. [Report](docs/verification/2026-09-20-native-helper-lifecycle.md).
+- No game launch, shared input or live inference. Scope is partial
+  F03/F07/F09/F11/F16, N01/N03/N04/N06/N08, C06/C14/C18/C20 and T01/T04/T07/T12.
+  Next: enforceable native child admission/permissions/budgets/depth and complete
+  state; continue independent game/guardian conformance while external live
+  monetary and isolation inputs remain pending. No milestone or gate closure.

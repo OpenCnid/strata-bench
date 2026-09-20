@@ -152,6 +152,10 @@ and non-secret source is pending; do not ask again unless the answer is unclear.
 Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
+## Native helper lifecycle follow-up
+
+Loaded-config checkpoint `8479e97` is committed. [Native lifecycle/interruption](verification/2026-09-20-native-helper-lifecycle.md) now has a 12-call idle messaging/follow-up case and active child interruption with four settled/one ambiguous request. Fresh recovery replays nothing and retains the full envelope. Exact native results, original helper/restart regressions, 96 Python checks and full Ruff pass. Empty-ack parser failure remains in its original store. Full child admission/permissions/sub-budgets, nested depth/grandchildren, isolation and complete resume remain open; do not treat native cancellation as provider usage settlement. No live inference or game run in this work.
+
 ## Exact-pack follow-up
 
 Overlay checkpoint `ce3e465` is committed. [Loaded-config telemetry 0.2.0](verification/2026-09-20-e9e-loaded-config.md) has 51 Python/11 Java checks and an authentic corrected two-boot comparison: 34/32 clean records, same six selected snapshots, both furnace assertions pass. Original placeholder-selector plan failure is retained. Four files are unregistered and current Create/common values persist; all 268 file outcomes/digests remain unchanged, including five failures. The dedicated server now has the pinned 0.2.0 telemetry JAR; old bytes are preserved privately. All three runs stopped normally; no client or inference ran. Next: exact role/consumer disposition and full expert mechanics/reliability with current pins.

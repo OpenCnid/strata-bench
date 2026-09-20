@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `e4edad7`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `301a2ef`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -163,9 +163,14 @@ admission remains blocked.
 the first Curios configuration apply/readback/rollback and a separate discovery
 boot: 253 restored mappings/persisted values, unchanged options digest, intact
 transaction journal, both title clients stopped, desktop unchanged and arguments
-retired. No world/server/physical input/inference. Continue private-bridge pending
-transaction interruption/status/rollback recovery; retain mid-write/conflict,
-physical effects, repair accounting and complete T05/G1 as unqualified.
+retired. No world/server/physical input/inference.
+[Pending transaction recovery](verification/2026-09-20-native-settings-recovery.md)
+now also passes: one apply, forced first-client termination, new-session status
+before rollback, six valid journal frames with the original prefix preserved,
+253 restored runtime/persisted values and exact original options bytes. Both
+processes are terminal and arguments retired. Continue foreign-options/revision
+conflicts and precise mid-write faults; physical effects, repair accounting and
+complete T05/G1 remain unqualified.
 
 The [authentic current-policy guardian trial](verification/2026-09-20-guardian-live.md)
 fails: startup and three public reads pass, but the root wait times out at
@@ -173,7 +178,7 @@ fails: startup and three public reads pass, but the root wait times out at
 The server saves normally; zero Java processes, unchanged desktop and retired
 arguments are verified. Raw failure/observer/telemetry evidence stays external.
 Do not repeat an unchanged trial to obtain a pass. Native title-screen settings
-now have the separate narrow evidence above; continue interrupted recovery and
+now have the separate narrow evidence above; continue remaining recovery cases and
 diagnose guardian cleanup/scheduling while retaining all full acceptance gates.
 
 [Native overlap/limit fixtures](verification/2026-09-20-native-helper-topology.md)

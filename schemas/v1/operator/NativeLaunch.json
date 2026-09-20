@@ -127,6 +127,24 @@
       "title": "Auth Mode",
       "type": "string"
     },
+    "budget_mode": {
+      "default": "whole_job",
+      "enum": [
+        "whole_job",
+        "per_dispatch"
+      ],
+      "title": "Budget Mode",
+      "type": "string"
+    },
+    "session_storage": {
+      "default": "ephemeral",
+      "enum": [
+        "ephemeral",
+        "private_profile"
+      ],
+      "title": "Session Storage",
+      "type": "string"
+    },
     "config_overrides": {
       "additionalProperties": {
         "$ref": "#/$defs/JsonValue"

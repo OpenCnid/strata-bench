@@ -315,6 +315,50 @@ def test_post_attachment_descendant_is_reaped_without_late_effect(jvm_factory, t
                 child.close()
 
 
+@pytest.mark.parametrize("root_exits_first", [False, True])
+def test_confirmed_stop_observes_empty_owned_job(jvm_factory, tmp_path, record_property,
+                                                root_exits_first):
+    marker = tmp_path / "late-effect"
+    with jvm_factory() as (java, output):
+        target = AttachedJava(inspect_process(java.pid))
+        child = None
+        try:
+            java.stdin.write(("spawn " + str(marker) + "\n").encode())
+            java.stdin.flush()
+            child = HeldProcess(int(output.get(timeout=5)))
+            until = time.monotonic() + 1
+            while not Path(str(marker) + ".ready").exists() and time.monotonic() < until:
+                time.sleep(.01)
+            assert Path(str(marker) + ".ready").exists()
+            before = target.job.accounting()
+            record_property("job_before_stop", json.dumps(before))
+            # The owned job can include OS/runtime descendants besides both JVMs.
+            assert before["active_processes"] >= 2
+            if root_exits_first:
+                java.stdin.write(b"stop\n")
+                java.stdin.flush()
+                assert java.wait(timeout=2) == 0
+                assert not child.exited()
+                remaining = target.job.accounting()
+                record_property("job_after_root_exit", json.dumps(remaining))
+                assert remaining["active_processes"] >= 1
+            target.terminate()
+            timing = target.termination_timing
+            record_property("termination_timing", json.dumps(timing))
+            assert timing["wait_result"] == "signaled" and timing["tree_result"] == "empty"
+            assert timing["active_processes"] == target.job.accounting()["active_processes"] == 0
+            assert timing["total_processes"] == timing["held_processes"] == timing["signaled_processes"]
+            assert timing["held_processes"] == before["total_processes"]
+            assert timing["tree_checked_after_ns"] - timing["wait_started_after_ns"] <= 500_000_000
+            assert child.exited(0) and target.process.exited(0)
+            time.sleep(2.1)
+            assert not marker.exists()
+        finally:
+            target.close()
+            if child:
+                child.close()
+
+
 def test_pipe_output_backpressure_cannot_block_guard_control_loop():
     blocked = threading.Event()
 
@@ -350,10 +394,20 @@ def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch,
     calls = []
 
     class Job:
+        def observe_members(self):
+            pass
+
+        def member_status(self):
+            return {"held_processes": 1, "signaled_processes": 1}
+
         def terminate(self):
             calls.append("terminate")
             if outcome == "job_error":
                 raise Fault("PROCESS_STOP_FAILED")
+
+        def accounting(self):
+            calls.append("accounting")
+            return {"active_processes": 0, "total_processes": 1}
 
     class Process:
         def exited(self, timeout):
@@ -364,7 +418,7 @@ def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch,
 
     target = AttachedJava.__new__(AttachedJava)
     target.job, target.process = Job(), Process()
-    stamps = iter([100000000000, 100000000007, 100000000011, 100500000019])
+    stamps = iter([100000000000, 100000000007, 100000000011, 100400000019, 100400000023])
     monkeypatch.setattr(module.time, "perf_counter_ns", lambda: next(stamps))
     errors = {"timeout": "PROCESS_STOP_UNCONFIRMED", "error": "PROCESS_STATE_UNAVAILABLE",
               "job_error": "PROCESS_STOP_FAILED"}
@@ -378,10 +432,90 @@ def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch,
     assert timing["wait_bound_ms"] == 500
     assert timing["job_returned_after_ns"] == 7
     assert timing["job_succeeded"] is (outcome != "job_error")
-    assert calls == (["terminate"] if outcome == "job_error" else ["terminate", ("wait", 500)])
+    expected = ["terminate"] if outcome == "job_error" else ["terminate", ("wait", 500)]
+    assert calls == expected + (["accounting"] if outcome == "signaled" else [])
+    assert timing["policy"] == "job-call-wait-tree-qpc/2"
     assert timing["wait_result"] == ("not_started" if outcome == "job_error" else outcome)
     assert timing["wait_started_after_ns"] == (None if outcome == "job_error" else 11)
-    assert timing["wait_returned_after_ns"] == (None if outcome == "job_error" else 500000019)
+    assert timing["wait_returned_after_ns"] == (None if outcome == "job_error" else 400000019)
+    assert timing["tree_result"] == ("empty" if outcome == "signaled" else "not_started")
+    assert timing["active_processes"] == (0 if outcome == "signaled" else None)
+    assert timing["tree_checked_after_ns"] == (400000023 if outcome == "signaled" else None)
+
+
+@pytest.mark.parametrize("case", ["drained", "lingering", "query_error", "invalid_count",
+                                  "late_zero", "late_root", "unsignaled", "inventory_gap",
+                                  "inventory_error", "member_error"])
+def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case):
+    import mcbench.process_guard as module
+    elapsed = 0
+    counts, calls, sleeps = [], [], []
+
+    class Process:
+        def exited(self, timeout):
+            nonlocal elapsed
+            calls.append(("wait", timeout))
+            elapsed += 510_000_000 if case == "late_root" else 480_000_000
+            return True
+
+    class Job:
+        def observe_members(self):
+            if case == "inventory_error":
+                raise Fault("PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+
+        def member_status(self):
+            if case == "member_error":
+                raise Fault("PROCESS_STATE_UNAVAILABLE")
+            return {"held_processes": 1, "signaled_processes": 0 if case == "unsignaled" else 1}
+
+        def terminate(self):
+            calls.append("terminate")
+
+        def accounting(self):
+            nonlocal elapsed
+            calls.append("accounting")
+            elapsed += 25_000_000 if case == "late_zero" else 1_000_000
+            if case == "query_error":
+                raise Fault("PROCESS_STATE_UNAVAILABLE")
+            count = True if case == "invalid_count" else (
+                0 if case in {"late_zero", "unsignaled", "inventory_gap"} or (case == "drained" and counts) else 1)
+            counts.append(count)
+            return {"active_processes": count, "total_processes": 2 if case == "inventory_gap" else 1}
+
+    def sleep(seconds):
+        nonlocal elapsed
+        sleeps.append(seconds)
+        elapsed += round(seconds * 1e9)
+
+    monkeypatch.setattr(module.time, "perf_counter_ns", lambda: 100_000_000_000 + elapsed)
+    monkeypatch.setattr(module.time, "sleep", sleep)
+    target = AttachedJava.__new__(AttachedJava)
+    target.job, target.process = Job(), Process()
+    if case == "drained":
+        target.terminate()
+        assert counts == [1, 0]
+    else:
+        error = "PROCESS_STATE_UNAVAILABLE" if case in {"query_error", "invalid_count", "member_error"} else (
+            "PROCESS_MEMBER_INVENTORY_UNAVAILABLE" if case == "inventory_error" else "PROCESS_STOP_UNCONFIRMED")
+        with pytest.raises(Fault, match=error):
+            target.terminate()
+    timing = target.termination_timing
+    assert calls.count("terminate") == 1 and calls.count(("wait", 500)) == 1
+    assert timing["wait_result"] == "signaled"
+    expected = "empty" if case == "drained" else (
+        "error" if case in {"query_error", "invalid_count", "inventory_error", "member_error"} else (
+            "incomplete" if case == "inventory_gap" else "timeout"))
+    assert timing["tree_result"] == expected
+    if case == "lingering":
+        assert elapsed == 500_000_000 and sum(sleeps) < .020
+        assert timing["active_processes"] == 1
+    if case == "late_root":
+        assert "accounting" not in calls
+    if case == "late_zero":
+        assert timing["active_processes"] == 0  # Empty too late cannot pass.
+    if case == "unsignaled":
+        assert timing["active_processes"] == 0 and timing["signaled_processes"] == 0
+        assert elapsed == 500_000_000
 
 
 @pytest.mark.parametrize("emit_fails", [False, True])
@@ -393,6 +527,7 @@ def test_timing_output_occurs_after_cleanup_even_when_wait_failed(monkeypatch, e
     class Target:
         termination_timing = {"wait_result": "timeout"}
         process = SimpleNamespace(exited=lambda: True)
+        job = SimpleNamespace(observe_members=lambda: None)
 
         def __init__(self, *args, **kwargs):
             pass

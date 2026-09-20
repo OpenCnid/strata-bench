@@ -1,173 +1,151 @@
 # Implementation checkpoint and next-session handoff
 
-Reviewed September 19, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.33](../SPEC.md) remains the target;
-[MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
-The user requested a commit/PR/merge stopping point and a review for the next
-session. New feature and live experiment work stops at this checkpoint without
-removing any required scope. Older verification reports describe their dated
-candidates; use this review and the ledger for current state.
+Updated September 20, 2026. Operator-only. [SPEC v0.2.59](../SPEC.md)
+defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
+decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
-Delivery: [PR #1](https://github.com/OpenCnid/strata-bench/pull/1), starting with
-source checkpoint `3aca278`. The PR records the final merge commit and delivery
-state; its initial source snapshot passed the checks below.
+## Start here
 
-## Overall position
+The user requested this documentation/PR/merge checkpoint for a new session.
+The existing long-horizon objective remains:
 
-| Milestone | Status | What exists / what prevents closure |
-|---|---|---|
-| M0 — game/host vertical slice | in_progress | Authentic partial vanilla and Forge interactions; exact E9E Mineflayer handshake failed. Native model/plugin/helper integration, aggregate accounting, isolation and full expert mechanics remain open. G0 fail. |
-| M1 — contracts/controller/settings | in_progress | Typed records, grants, journals, partial controller and settings workflows. Full T05 effects/persistence, production grants and adversarial isolation remain open. G1 not_run. |
-| M2 — durable single-agent operation | in_progress | Budget/clock/checkpoint/recovery components and fault fixtures. Complete game-plus-agent restore, reliable native shutdown and 1/8/24-hour soaks remain open. G2 not_run. |
-| M3 — private evaluation | in_progress | Telemetry import, saved-state readers, synthetic scorers/probes, artifact controls and paired analysis. Authoritative live mechanics/quest/team scoring and matched isolated probes remain open. |
-| M4 — simultaneous teams | in_progress | Atomic team admission and communication components. Actual N=1/2/4 capacity evidence, accounts and N=2 soak/security remain open. G3 not_run. |
-| M5 — research MVP | in_progress | Analysis/reporting source and operations material. Development cost/power pilot, locked protocol and confirmatory execution have not run. G4 not_run. |
-| M6 — graduation/transfer/later packs | deferred | Required later milestone: calibrated graduation, anchors, retention/transfer and separately conformant E6E/E2E. G5 not_run. |
-| M7 — optional scale/UI | deferred | Activate only on measured need or explicit request; not required merely because source work began. |
+> Complete Strata according to SPEC.md and AGENTS.md through every required
+> M0–M6 deliverable and acceptance gate. Preserve M7 and other conditional
+> extensions with their activation conditions. Completion requires authoritative
+> evidence for the full specification, not merely passing local tests.
 
-The codebase is a substantial foundation with narrow real-game evidence. It is
-not yet an integrated long-horizon benchmark. Local test passes do not imply an
-aggregate T01–T17 or G0–G5 pass.
+Resume implementation in dependency order, prioritizing M0/G0. Continue across
+intermediate checkpoints without asking whether to continue. The old session's
+goal was marked blocked before D11 clarified the supposed missing inputs;
+that historical label is not a current request for a VM or billing evidence.
+Verify the new session's goal state instead of declaring completion.
 
-## Authentic evidence retained
+1. Read AGENTS.md, the ledger's current position/G0 checklist, and SPEC sections
+   3, 4.1, 6, 15–19 plus affected contracts. On first implementation review,
+   read the full specification. Do not read the entire old conversation merely
+   to discover the next action.
+2. Fetch origin and inspect local changes/worktrees and
+   [PR #2](https://github.com/OpenCnid/strata-bench/pull/2). PR #1 merged at
+   `579796da40eeb9e6063196462767f60e9c87eac7`; PR #2 carries this continuation.
+   If PR #2 is merged, create a fresh branch/worktree from updated main.
+   If it is not, preserve and inspect its branch before proceeding.
+3. Verify current private process/accounting/profile state using only necessary
+   metadata. No game needs to launch just to inspect this checkpoint. Preserve
+   existing work and raw evidence; never print auth caches or secret-bearing
+   command lines.
+4. State the bounded deliverable and exit evidence below, then implement it.
+   Maintain the ledger alongside source changes. A test result alone cannot
+   close the complete M0 gate.
 
-- Vanilla 1.19.2: authenticated joining, selected look/dig/flat movement,
-  cancellation and player-menu checks. Full action/reference/reliability scope is
-  incomplete. See the [vanilla menu report](verification/2026-09-19-vanilla-menu.md).
-- E9E 1.27.0 / Forge 43.4.23: official dedicated installations, exact server
-  startup and partial expert recipe evidence. Mineflayer's FML handshake failed;
-  D06's Forge extension has its own identity and cannot pass that original case.
-- Forge minor 34: [paired mayapple removal](verification/2026-09-19-outline-target.md),
-  [short level walking](verification/2026-09-19-native-movement.md),
-  [basic quest navigation](verification/2026-09-19-native-quest-cancel.md), and
-  [cancellation before arrival](verification/2026-09-19-native-cancel.md) have
-  narrow scoped-API and independent saved-server evidence. The last cancellation
-  occurred during route centering, not general route traversal. Prior failures
-  remain in the ledger and are not erased by later successes.
-- An authentic client renders on a separate Windows desktop without switching
-  the operator's active desktop. Private game frames have been decoded and
-  inspected. Public capabilities still advertise `screenshots:false`. This
-  desktop separation is neither a security sandbox nor full input parity.
-- The latest guardian wait passed at 451.9577 ms against 500 ms; earlier measured
-  failures at 501.9950, 503.5059 and 507.6092 ms remain unresolved. A single pass
-  does not establish reliable shutdown. CTM startup failure and an earlier frame
-  missing terrain also remain in the retained history.
+## First deliverable and verification
 
-## Checkpoint verification and publication review
+**M0.1c.1c.2: implement D11's versioned API-equivalent estimate basis.**
+Use [validation admission](operations/validation-admission.md) as the precise
+continuation contract. Inspect `src/mcbench/authorization.py`, `budgets.py`,
+`inference_dispatch.py`, `inference_transport.py`, `native.py`, their tests and
+`configs/operator/live-validation.json`.
 
-Executed on the existing Windows environment with Python 3.12.14, Node 24.19.0,
-Temurin 17.0.20.1+1, pinned Forge 1.19.2-43.4.23 and the official external FTB
-Library 1902.4.1-build.236 artifact. Commands and JVM opt-ins are in the
-[README](../README.md). These are local contracts, synthetic fixtures and real
-process/JVM checks, not new authentic game or model runs.
+The durable actual-CLI/local-synthetic-provider dispatch task originally called
+M0.1c.1c.1 already has streaming, retries, compaction, helpers and restart evidence.
+Do not start it from scratch. The remaining source gap is explicit estimate
+semantics and migration of the legacy hard-dollar authorization, followed by
+real native/OAuth ingress and boundary qualification.
 
-| Check | Actual result |
+Exit evidence: pinned price/usage basis; original allowance/store lineage
+preserved; root/helper/retry/summary aggregation without envelope double counting;
+distinct requests charged separately; duplicate receipts deduplicated; unknown
+usage/streams/restart retain holds and never replay; incompatible migration
+rejected; justified finite exposure before dispatch. Run focused affected tests
+and only the affected pinned-CLI fixture. Mark synthetic/source checks
+separately from authentic OAuth/game qualification.
+
+**Then M0.1c.2b.2:** implement/test the smallest enforceable native tool/helper
+boundary on available hardware. The agent needs scoped game access, its own
+notes/skills and allowed docs; evaluator/holdout/admin/credential/sibling access
+must be denied. Inspect host-supported restricted tools and protected brokerage,
+preserving the selected native Dovetail loop and declaring capability changes.
+The existing loopback canary failure remains evidence against the current
+profile. A VM is optional; no user-supplied machine is currently requested.
+If one path is blocked, advance independent authorized M0 work.
+
+## Settled authority and limits
+
+D01–D10 persist; D11 clarifies D04. Use Codex OAuth / `gpt-5.6-luna` under the
+original **$10 total estimated experimental usage allowance**, including helpers,
+retries and summaries. This means labeled API-price-equivalent subscription
+usage, not actual OAuth dollar billing or an exact quota conversion. The user
+confirms no outside Strata model experiments; inspected experimental records are
+synthetic-only. Zero opening experimental usage does not mean the coding
+assistant used no subscription resources.
+
+Recommend at most $1 for the first qualified trial within the same $10 total,
+then measure consumption. No allowance increase/reset occurred. Recheck durable
+accounting before spending; preserve ambiguous holds. The D11 runtime migration
+has **not** been implemented. Do not use legacy JSON or invented qualification
+flags to admit live calls. Finite exposure and actual all-request accounting
+remain required.
+
+Isolation is needed for benchmark validity and private-state protection. It is
+our implementation responsibility and does not block unrelated source work.
+Shared-desktop input stays paused; API control and prepared separate-desktop
+facilities are authorized within documented limits. A separate desktop does not
+isolate files/processes/network. Official acquisition, EULAs and the existing
+account login were already handled; do not ask to repeat them. N=2 still needs
+a second licensed player identity.
+
+## Current evidence and remaining gates
+
+M0 is `in_progress`, G0 is `fail`, G1–G5 are `not_run`. M1–M5 contain partial
+foundation implementations; M6 remains required and M7 remains conditional.
+All F01–F16/N01–N08, T01–T17 and prose/contract coverage remain in the ledger.
+
+| M0 area | Retained result and next gap |
 |---|---|
-| `python -m pytest -q`, client/settings JVM opt-ins enabled | 738 passed, zero skipped, 113.77 s; two Typer/Click deprecation warnings |
-| `npm test`, client JVM and guard Python opt-ins enabled | TypeScript build passed; 166 passed, zero skipped, 117.39 s |
-| Gradle client/telemetry tests and test-classpath generation | Build successful; 440 client + 5 telemetry tests, zero failures/errors/skips |
-| `python -m ruff check src evaluator/src tests tools` | All checks passed |
-| Installed `mcbench --help` | Exit 0; operator command entry point loads |
+| Native accounting/plugin/helpers | Actual pinned CLI with credential-free synthetic providers passes bounded dispatch, plugin load/use, helper lifecycle and no-replay recovery cases. Full child admission/permissions/sub-budgets, nested-depth capability, live ingress and complete resume remain unqualified. |
+| Game mechanics | Selected vanilla mechanics and separately identified Forge modded block, 3-ingot machine processing/collection and expert furnace craft have independent saved-state/resource evidence. Mineflayer/E9E negotiation remains failed; fallback evidence is never a Mineflayer pass. |
+| Cancellation/restart | Forge pair04 passes both public phases, corrected standing-footprint route, immutable authority, full journal staging/verification, receipt deduplication, stale-epoch denial and saved inventory/ender/position continuity. It charges 16 + 4 = 20 primitives without inherited recharge. |
+| Shutdown | Pair04 phase1 passes at 339.9197 ms; phase2 fails at 508.2221 ms against 500 ms. Independent observer sees the root alive beyond 509 ms. Overall fail; no unchanged rerun or threshold relaxation. Pair02's two failures and the failed GC/startup diagnostic remain retained. |
+| Pack provenance | Selected client/server loaded-config roles are evidenced; five original effective-file failures (263/268 passing) remain. Complete role/consumer disposition, provenance and seals are open. |
+| Private scoring | Source/epoch/boot binding and semantic receipt-conflict handling fix a reproduced cross-campaign false completion; 112 focused checks passed. Registration is still an operator assertion; authenticated setup/team/ingress, positive/negative controls and nonleakage remain unqualified. |
+| Complete integration | Join native host/helper usage, game actions/time and private milestone evidence under qualified locks/boundaries. Narrow journal continuity is not a full game+agent checkpoint. |
 
-The Python suite includes the real compiled gameplay package exclusion check.
-The allowlist exports only CLI/error modules, package metadata and the sanitized
-keybinding skill; it does not grant a gameplay agent this repository.
+Linked completed Forge references total 766 primitives / 10233.723 s, plus
+witness setups 266.907 s and interphase gaps 15.760 s and 3.899 s retained
+separately. Other historical scopes remain separate; this is not a complete
+project clock total.
 
-Publication review excludes account caches, installations, raw runs, logs and
-private evaluator instances. Two compressed local Java logs discovered during
-inventory were excluded by adding `logs/` and rotated-log patterns to `.gitignore`;
-SQLite sidecars are excluded too. The sole candidate binary is the pinned Gradle
-wrapper, whose SHA-256 matches `java/build-inputs.json`. A text scan found no
-private keys, recognizable service tokens, JWTs or literal long credential
-values; this heuristic is not a complete secret/security audit. The existing
-build environment is tested; clean-machine reproducibility and CI are not
-qualified. No GitHub Actions workflow is included in this checkpoint.
+After these M0 gaps, continue the specified contracts/keybinding T05, complete
+recovery, 1/8/24-hour soaks, simultaneous capacity, matched probes and scientific
+pilot/confirmation in dependency order. M1 settings expansion is paused while
+M0 is the priority. Later E6E/E2E compatibility and graduation remain mandatory
+M6 work; optional adapters/dashboard/distributed work retain activation conditions.
 
-The staged review covers 462 source/design files and 877 local Markdown links;
-all links resolve and all required F/N/M/T/G ledger IDs remain represented.
-The only credential-shaped URL match was the explicit synthetic
-`user:secret` rejection fixture in `tests/test_provisioning.py`, reviewed as test
-data. Source line endings are pinned to LF, with Windows batch files at CRLF,
-so a later Windows checkout does not silently alter source fingerprint bytes.
+## Local operational map
 
-Raw test logs and publication inventories/hashes stay in the operator's external
-`C:\Users\Darian\.strata\evidence\2026-09-19-merge-checkpoint-01` directory.
-Published reports contain bounded findings, not raw account or run data.
-
-## First task for the next session
-
-Continue **M0.1c.1**, starting with a bounded, zero-inference integration of the
-new durable dispatch accounting boundary into the actual pinned native CLI's
-local synthetic transport. Do not begin another broad menu-feature pass first.
-
-1. Read this handoff, the ledger's current position, SPEC sections 3, 6, 15–19,
-   and the [native budget](verification/2026-09-19-native-budget.md) and
-   [dispatch accounting](verification/2026-09-19-inference-dispatch.md) reports.
-2. Inspect [inference_dispatch.py](../src/mcbench/inference_dispatch.py),
-   [budgets.py](../src/mcbench/budgets.py), [native.py](../src/mcbench/native.py)
-   and [dispatch tests](../tests/test_inference_dispatch.py). The module is
-   implemented but unverified in production and currently has no transport
-   caller. Its trusted evidence flags do not establish real pricing or bounds.
-3. Reuse the credential-free native probe under the private
-   `2026-09-19-native-budget-01` evidence directory as a reference. It already
-   observed one rejected POST and two POSTs for one retry, with identical body
-   hashes. Introduce a public synthetic fixture for repeatable integration;
-   never copy credentials or raw native journals into tests.
-4. Connect each distinct HTTP request/retry to one committed reservation/intent
-   before forwarding. Define how whole-job reservations and per-call reservations
-   compose without duplicate charges or releasing unresolved cost holds. Exercise
-   successful streaming, lost final usage, interrupted streams, compaction,
-   helpers and process restart with deterministic local provider fixtures.
-5. Preserve fail-closed admission until real OAuth USD conversion, finite
-   provider exposure and credential/process/network isolation are qualified.
-   The pinned CLI's inspected turn-start schema has no output-token/money cap;
-   account limits and goal token budgets are not substitutes for this proof.
-
-Exit evidence for that bounded task: actual CLI requests traverse the durable
-boundary, distinct retries charge distinctly, duplicate receipts charge once,
-uncertain requests hold their full reservation and prevent further dispatch,
-restart never resends an ambiguous request, and root/helper totals reconcile.
-Label synthetic evidence explicitly. It advances partial T04/T07/T12 without
-claiming full OAuth/native-host conformance. Any change to a public affordance or
-budget policy must be recorded in SPEC and the ledger.
-
-## Remaining work after that task
-
-| Priority / owner | Gap and next resolving action |
+| Location | Purpose / handling |
 |---|---|
-| Native host — AR/PL/SI | Finish actual Dovetail/plugin/skill/helper invocation, exact model identity, interruption/resume, all-call metering and adversarial isolation. Keep operator/evaluator/account data unreachable. |
-| Native reliability — GI/QA | Diagnose repeated 500 ms shutdown timeouts and CTM startup failure without relaxing the bounds or erasing samples; qualify consistent startup/frame/render/stop behavior. |
-| Exact pack — GI | Resolve five retained overlay checks: BHMenu, No More World Settings, Inventory Sorter, Sophisticated Core and Create. Complete artifact seals and representative altered recipes/machines; a successful join is insufficient. |
-| Affordances/settings — GI/PL | Complete rich/custom JEI content, occupied crafting lifecycle, quest submissions/claims, remaining menus and machine energy/fluid/routing; qualify actual intended/competing physical-key, modifier, polling, pointer-lock and restart/rollback effects for T05. |
-| Recovery/resources — PL/QA | Restore game, player/quest/team/machine, agent, artifact, clock and budget state from one clean checkpoint boundary; preserve costs and uncertainty. Run the authorized 1/8/24-hour soaks only when prerequisites pass. |
-| Capacity — PL/SI | Obtain a second licensed avatar identity before N=2, measure simultaneous N=1/2 and explicit N=4 disposition, enforce whole-team admission and parent budgets. |
-| Scientific qualification — RS | Complete authoritative private scoring and matched probes, cost/power planning, preregistration and confirmation. The present $10 authorization does not establish feasibility for the required study. Keep drift, censoring, retention/transfer and controls. |
-| Later compatibility — GI/RS | M6 remains required: independently qualify E6E/E2E and calibrated graduation; M7 stays conditional. |
+| `C:/Users/Darian/Desktop/codex/minecraft-benchmark` | Main checkout; check for changes before fast-forwarding or branching. |
+| `C:/Users/Darian/.codex/worktrees/581d/minecraft-benchmark` | This session's `codex/strata-native-dispatch` source worktree; preserve it. |
+| `C:/Users/Darian/.strata/evidence/` | Private raw evidence and launch/audit scripts; never copy into public source or gameplay access. |
+| `C:/Users/Darian/.strata/evidence/2026-09-20-budget-clarification-01/operator-statement.json` | D11 user statement; non-executable, no runtime migration/dispatch qualification. |
+| `C:/Users/Darian/.strata/evidence/2026-09-20-forge-reconnect-04` | Terminal failed pair04, staging receipt, independent audits and shutdown crosscheck. |
+| `C:/Users/Darian/.strata/servers/e9e-1.27.0` | Original reference server; retain current saved bytes. |
+| `C:/Users/Darian/.strata/clients/e9e-noninput-01` | Dedicated separate-desktop client; no shared-desktop input. |
 
-## Operational handoff
+Last authentic pair used client minor43, client telemetry 0.3.2 and original
+server telemetry 0.2.0, with client config probing disabled. The 3-GiB resource
+profile failed shutdown; it is not capacity-certified. Resolve exact artifact
+hashes and source/profile pins from the [pair report](verification/2026-09-20-forge-reconnect.md)
+and private manifest before any new launch. Do not restore saved state, renew
+expired authority or launch a game as part of merely resuming the source.
 
-All authentic clients, servers and the two local native probe processes were
-terminal before checkpoint testing. Temporary launch arguments were retired;
-saved outcomes and costs remain. No checkpoint restore or game restart is
-needed merely to inspect the source. The latest dedicated E9E client copy is
-`C:\Users\Darian\.strata\clients\e9e-noninput-01`; private servers, credentials
-and evidence also live under `.strata`, outside the repository. Inspect only the
-specific private metadata needed; do not print auth caches or process command
-lines containing credentials.
+Development toolchains: Python 3.12.14, Node 24.19.0, Windows x64 Temurin
+17.0.20.1+1. Read [README](../README.md) and Forge runbooks for exact build inputs.
+[Session checkpoint verification](verification/2026-09-20-session-handoff.md)
+records actual merge checks, retained failures and publication review. It is
+not clean-machine, production or scientific qualification.
 
-Existing D01–D10 authorizations persist. D04 selects Codex OAuth / `gpt-5.6-luna`
-with **$10 total** across all Strata inference, including helpers/retries; **$0
-has been dispatched**. Official installations, account login and EULAs were
-already handled. Do not ask the user to repeat those completed steps. A second
-Java account remains a separate capacity prerequisite.
-
-Shared-desktop input remains paused; preserve the user's ability to use the
-computer. Ordinary gameplay is API-controlled. Separate-desktop launch and
-private frame diagnostics are available for bounded checks but do not waive
-render/input/security gates. Neither current-user ACLs nor a fresh conversation
-provide adversarial isolation.
-
-Start the next session from updated `main`, inspect its working tree, and read
-applicable instructions before changing code. Do not rerun broad or paid suites
-without a relevant change. Keep all F01–F16/N01–N08, T01–T17, G0–G5 and M0–M7
-coverage visible; update the ledger with the next task's actual evidence.
+For details use the [status index](STATUS.md), dated verification reports and
+append-only milestone history. Earlier “pending VM/billing input,” “no live
+corrected case yet,” and “next run pair04” statements describe superseded states.
+Preserve their historical evidence without executing stale next actions.

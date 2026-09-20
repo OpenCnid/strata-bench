@@ -150,6 +150,7 @@ class AttachedJava:
             self.job = WindowsJob()
             self.job.attach_handle(self.process.handle)
             require(not self.process.exited(), "PROCESS_NOT_RUNNING")
+            self.job.observe_members()
         except BaseException:
             self.close()
             raise
@@ -158,13 +159,22 @@ class AttachedJava:
         # Always terminate the job, even if the root already exited, to reap
         # descendants created *after* attachment. Pre-existing children are not
         # enrolled by AssignProcessToJobObject and require launch integration.
+        tracking_failed = False
+        try:
+            self.job.observe_members()
+        except Exception:
+            # An inventory failure must never postpone the termination request.
+            tracking_failed = True
         started = time.perf_counter_ns()
         timing = self.termination_timing = {
-            "policy": "job-call-wait-qpc/1", "started_qpc_ns": str(started),
+            "policy": "job-call-wait-tree-qpc/2", "started_qpc_ns": str(started),
             "clock_resolution_ns": round(time.get_clock_info("perf_counter").resolution * 1e9),
             "wait_bound_ms": STOP_WAIT_MS, "job_succeeded": False,
             "job_returned_after_ns": None, "wait_started_after_ns": None,
             "wait_returned_after_ns": None, "wait_result": "not_started",
+            "tree_checked_after_ns": None, "active_processes": None,
+            "tree_result": "not_started",
+            "total_processes": None, "held_processes": None, "signaled_processes": None,
         }
         try:
             self.job.terminate()
@@ -181,6 +191,44 @@ class AttachedJava:
         finally:
             timing["wait_returned_after_ns"] = time.perf_counter_ns() - started
         require(signaled, "PROCESS_STOP_UNCONFIRMED")
+        # A signaled root does not establish that its descendants have stopped.
+        # Spend only the remainder of the same 500 ms wait, never a new allowance.
+        timing["tree_result"] = "error"
+        checked = timing["wait_returned_after_ns"]
+        if tracking_failed:
+            timing["tree_checked_after_ns"] = checked
+            raise Fault("PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+        while True:
+            remaining = STOP_WAIT_MS * 1_000_000 - (checked - timing["wait_started_after_ns"])
+            if remaining <= 0:
+                timing["tree_checked_after_ns"] = checked
+                timing["tree_result"] = "timeout"
+                raise Fault("PROCESS_STOP_UNCONFIRMED")
+            timing.update(active_processes=None, total_processes=None,
+                          held_processes=None, signaled_processes=None)
+            try:
+                accounting, members = self.job.accounting(), self.job.member_status()
+                count, total = accounting["active_processes"], accounting["total_processes"]
+                held, signaled = members["held_processes"], members["signaled_processes"]
+                require(all(type(x) is int and x >= 0 for x in (count, total, held, signaled))
+                        and count <= total and signaled <= held <= total, "PROCESS_STATE_UNAVAILABLE")
+                timing["active_processes"] = count
+                timing.update(total_processes=total, held_processes=held, signaled_processes=signaled)
+            finally:
+                checked = timing["tree_checked_after_ns"] = time.perf_counter_ns() - started
+            remaining = STOP_WAIT_MS * 1_000_000 - (checked - timing["wait_started_after_ns"])
+            if remaining < 0:
+                timing["tree_result"] = "timeout"
+                raise Fault("PROCESS_STOP_UNCONFIRMED")
+            if count == 0:
+                if total != held or held == 0:
+                    timing["tree_result"] = "incomplete"
+                    raise Fault("PROCESS_STOP_UNCONFIRMED")
+                if signaled == held:
+                    timing["tree_result"] = "empty"
+                    return
+            time.sleep(min(POLL_SECONDS, remaining / 1_000_000_000))
+            checked = time.perf_counter_ns() - started
 
     def close(self):
         if self.job:
@@ -277,6 +325,7 @@ def guard(grant: ProcessGuardGrant, pipes: GuardPipes, *, ready_extra=None, heal
                     **(ready_extra or {})})
         sequence, nonce, lease_until, next_challenge = 0, None, started, started
         while True:
+            target.job.observe_members()
             now = time.monotonic()
             if target.process.exited():
                 reason = "PROCESS_EXITED"

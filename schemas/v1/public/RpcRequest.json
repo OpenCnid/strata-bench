@@ -1419,7 +1419,10 @@
       "additionalProperties": false,
       "properties": {
         "source": {
-          "const": "jei",
+          "enum": [
+            "jei",
+            "emi"
+          ],
           "title": "Source",
           "type": "string"
         },

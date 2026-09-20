@@ -17,6 +17,8 @@ from .storage import Fault, reject_links, require
 
 
 class WindowsJob:
+    MAX_TRACKED_PROCESSES = 256
+
     def __init__(self):
         import ctypes
         from ctypes import wintypes
@@ -45,10 +47,14 @@ class WindowsJob:
             "AssignProcessToJobObject": ([wintypes.HANDLE, wintypes.HANDLE], wintypes.BOOL),
             "TerminateJobObject": ([wintypes.HANDLE, wintypes.UINT], wintypes.BOOL),
             "CloseHandle": ([wintypes.HANDLE], wintypes.BOOL),
+            "OpenProcess": ([wintypes.DWORD, wintypes.BOOL, wintypes.DWORD], wintypes.HANDLE),
+            "IsProcessInJob": ([wintypes.HANDLE, wintypes.HANDLE, ctypes.POINTER(wintypes.BOOL)], wintypes.BOOL),
+            "WaitForSingleObject": ([wintypes.HANDLE, wintypes.DWORD], wintypes.DWORD),
         }
         for name, (arguments, result) in signatures.items():
             function = getattr(self.kernel, name)
             function.argtypes, function.restype = arguments, result
+        self.members = {}  # Optional observation handles; never used to terminate by PID.
         self.handle = self.kernel.CreateJobObjectW(None, None)
         require(bool(self.handle), "PROCESS_FENCING_UNAVAILABLE")
         limits = Extended()
@@ -70,10 +76,85 @@ class WindowsJob:
         if self.handle:
             require(bool(self.kernel.TerminateJobObject(self.handle, 125)), "PROCESS_STOP_FAILED")
 
+    def accounting(self):
+        """Read the held job's whole-tree process counts without PID rediscovery."""
+        import ctypes
+        from ctypes import wintypes
+
+        class Accounting(ctypes.Structure):
+            _fields_ = [(name, ctypes.c_int64) for name in (
+                "user_time", "kernel_time", "period_user_time", "period_kernel_time")] + [
+                (name, wintypes.DWORD) for name in (
+                    "page_faults", "total_processes", "active_processes", "terminated_processes")]
+
+        require(bool(self.handle), "PROCESS_FENCING_UNAVAILABLE")
+        query = self.kernel.QueryInformationJobObject
+        query.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                          wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+        query.restype = wintypes.BOOL
+        value, returned = Accounting(), wintypes.DWORD()
+        require(bool(query(self.handle, 1, ctypes.byref(value), ctypes.sizeof(value),
+                           ctypes.byref(returned))) and returned.value == ctypes.sizeof(value),
+                "PROCESS_STATE_UNAVAILABLE")
+        return {key: getattr(value, key) for key in (
+            "total_processes", "active_processes", "terminated_processes")}
+
+    def observe_members(self):
+        """Retain handles only to members of this held job, within a fixed quota.
+
+        A missed short-lived member is not guessed dead: final total-process
+        accounting must equal the retained count. Holding handles prevents PID
+        reuse from aliasing an earlier member. Any race/error fails closed.
+        """
+        import ctypes
+        from ctypes import wintypes
+
+        class Members(ctypes.Structure):
+            _fields_ = [("assigned", wintypes.DWORD), ("count", wintypes.DWORD),
+                        ("pids", ctypes.c_size_t * self.MAX_TRACKED_PROCESSES)]
+
+        require(bool(self.handle), "PROCESS_FENCING_UNAVAILABLE")
+        query = self.kernel.QueryInformationJobObject
+        query.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                          wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+        query.restype = wintypes.BOOL
+        value = Members()
+        require(bool(query(self.handle, 3, ctypes.byref(value), ctypes.sizeof(value), None)),
+                "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+        require(value.count == value.assigned <= self.MAX_TRACKED_PROCESSES,
+                "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+        for pid in value.pids[:value.count]:
+            require(0 < pid <= 0xFFFFFFFF, "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+            if pid in self.members:
+                continue
+            require(len(self.members) < self.MAX_TRACKED_PROCESSES, "PROCESS_MEMBER_QUOTA")
+            handle = self.kernel.OpenProcess(0x1000 | 0x100000, False, pid)
+            require(bool(handle), "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+            try:
+                member = wintypes.BOOL()
+                require(bool(self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member)))
+                        and member.value, "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+                self.members[pid] = handle
+            except BaseException:
+                self.kernel.CloseHandle(handle)
+                raise
+
+    def member_status(self):
+        require(bool(self.handle), "PROCESS_FENCING_UNAVAILABLE")
+        signaled = 0
+        for handle in self.members.values():
+            result = self.kernel.WaitForSingleObject(handle, 0)
+            require(result in (0, 258), "PROCESS_STATE_UNAVAILABLE")
+            signaled += result == 0
+        return {"held_processes": len(self.members), "signaled_processes": signaled}
+
     def close(self):
         if self.handle:
             self.kernel.CloseHandle(self.handle)
             self.handle = None
+        for handle in self.members.values():
+            self.kernel.CloseHandle(handle)
+        self.members.clear()
 
 
 class ManagedProcess:

@@ -9,14 +9,15 @@ native Codex loop, with typed `mcgame` commands to a persistent game worker.
 Mineflayer is the first backend; the separately identified Forge extension is
 the authorized development fallback for exact E9E compatibility work.
 
-**Status: implementation checkpoint, not a runnable research MVP.** M0–M5 have
+**Status: implementation in progress, not a runnable research MVP.** M0–M5 have
 partial implementations, M6 remains required later work, and M7 is conditional.
 Narrow authentic vanilla and E9E checks have passed; every aggregate release
 gate remains open. Exact E9E's Mineflayer handshake failed, and Forge fallback
 evidence does not convert it into a Mineflayer pass.
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
-- [Specification v0.2.33](SPEC.md): complete target contract and acceptance gates
+- [Current status](docs/STATUS.md): M0 closure gaps and evidence index
+- [Specification](SPEC.md): complete target contract and acceptance gates
 - [Milestone ledger](MILESTONES.md): coverage, decisions, failures and evidence
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence
@@ -28,15 +29,16 @@ evidence does not convert it into a Mineflayer pass.
 | Python operator services | Strict records, storage/journals, grants, controller state, budgets/clocks, checkpoints, artifacts and communication | Integrated production lifecycle, isolation and complete restoration |
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
-| Native Codex adapter | Pinned process lifecycle, Dovetail installation inspection and usage parsing | Actual model/plugin/helper execution, complete accounting, credential and network isolation |
-| Inference accounting | Atomic reservation plus dispatch intent, receipt deduplication and uncertain-cost holds | Qualified OAuth transport, finite call exposure and real USD conversion |
-| Evaluator source | Private telemetry import, saved-state readers, synthetic scorers/probes and analysis/reporting | Authoritative live scoring, matched experiments, power pilot and confirmation |
+| Native Codex adapter | Actual pinned CLI/plugin/tool/helper lifecycle exercised with a credential-free synthetic provider | Live scoped host/game integration, child admission/isolation, nested-depth and complete resume qualification |
+| Inference accounting | Atomic dispatch intent, nested job envelopes, distinct retry charges, receipt deduplication and uncertain-cost holds; actual CLI synthetic streaming/compaction/restart checks | Versioned D11 API-equivalent estimates, actual OAuth all-request accounting, finite exposure and enforced boundaries |
+| Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
 
-The latest authentic E9E evidence includes paired mayapple removal, a short level
-walk, basic quest navigation and cancellation before route arrival, checked
-against independent saved server state. Separate-desktop rendering keeps the
-operator desktop usable; it does not provide filesystem/process/network
-isolation. See the [handoff](docs/STATUS_AND_HANDOFF.md) for exact limits.
+Authentic evidence includes selected vanilla mechanics and separate Forge modded
+block, machine processing/collection and expert furnace crafting checks. The latest
+Forge cancellation/restart pair preserves full journal, saved-state and cost
+continuity, but fails its second 500-ms shutdown check. M0 remains incomplete;
+G0 is `fail` and G1–G5 are `not_run`. Separate-desktop rendering keeps the operator
+desktop usable; it does not provide filesystem/process/network isolation.
 
 ## Local development
 
@@ -81,9 +83,9 @@ its hash is enforced. No game or modpack binaries are distributed here. See the
 [settings extension runbook](docs/operations/forge-client-settings.md) for build
 inputs and limitations. A clean-machine build has not been qualified.
 
-The September 19 checkpoint passed **738 Python, 166 Node and 445 Java tests**,
-with no skips, plus Ruff. These are local contract, process and fixture checks;
-they do not substitute for the specification's real integration gates.
+See the [session checkpoint verification](docs/verification/2026-09-20-session-handoff.md)
+for current merge checks and the historical baseline. These are local contract,
+process and fixture checks; they do not substitute for real integration gates.
 
 ## Operator boundaries
 
@@ -95,8 +97,14 @@ sanitized keybinding skill; packaging alone is not runtime isolation.
 
 Game installations, account caches, raw runs and private evaluator instances
 stay in separate protected storage. The authorized validation configuration is
-Codex OAuth / `gpt-5.6-luna`, with a **$10 aggregate ceiling**. No Strata inference
-has been dispatched: live monetary bounds and isolation remain unqualified.
+Codex OAuth / `gpt-5.6-luna`, with the original **$10 aggregate API-equivalent
+estimated usage allowance**, including helpers/retries (D04 clarified by D11).
+The user confirms no outside experiments; inspected Strata model trials used
+synthetic providers. The runtime's legacy hard-dollar policy still needs explicit
+migration, finite exposure and all-request accounting. This is not an OAuth bill
+or exact subscription-quota conversion. A VM is optional; an enforceable game,
+evaluator and credential boundary remains required. See the
+[validation admission contract](docs/operations/validation-admission.md).
 
 Operational entry points: [provisioning](docs/operations/provisioning.md),
 [worker](docs/operations/development-worker.md),

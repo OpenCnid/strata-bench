@@ -14,9 +14,12 @@ import java.util.Set;
 
 /** Private operator configuration. Never read from a player packet or game command. */
 record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
-                       long maxBytes, long maxEvents, List<String> recipeIds) {
+                       long maxBytes, long maxEvents, List<String> recipeIds,
+                       List<ConfigQuery> configQueries) {
     private static final Set<String> FIELDS = Set.of("schema", "campaign_id", "epoch",
         "spool_directory", "max_bytes", "max_events", "recipe_ids");
+    private static final Set<String> FIELDS_V2 = Set.of("schema", "campaign_id", "epoch",
+        "spool_directory", "max_bytes", "max_events", "recipe_ids", "config_queries");
 
     static Path safeExisting(Path input) throws IOException {
         Path absolute = input.toAbsolutePath().normalize();
@@ -39,6 +42,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             throw new IOException("TELEMETRY_CONFIG_PRIVATE_ROOT_REQUIRED");
         }
         String schema = null, campaign = null, spool = null;
+        List<ConfigQuery> queries = new ArrayList<>();
         long epoch = -1, maxBytes = -1, maxEvents = -1;
         List<String> recipes = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -47,7 +51,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             reader.beginObject();
             while (reader.hasNext()) {
                 String key = reader.nextName();
-                if (!FIELDS.contains(key) || !seen.add(key)) {
+                if (!FIELDS_V2.contains(key) || !seen.add(key)) {
                     throw new IOException("TELEMETRY_CONFIG_FIELDS");
                 }
                 switch (key) {
@@ -69,13 +73,27 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
                         }
                         reader.endArray();
                     }
+                    case "config_queries" -> {
+                        reader.beginArray();
+                        while (reader.hasNext()) {
+                            if (queries.size() >= 16) throw new IOException("TELEMETRY_CONFIG_QUERY");
+                            ConfigQuery query = ConfigQuery.read(reader);
+                            if (queries.stream().anyMatch(q -> q.fileName().equals(query.fileName()))) {
+                                throw new IOException("TELEMETRY_CONFIG_QUERY");
+                            }
+                            queries.add(query);
+                        }
+                        reader.endArray();
+                    }
                     default -> throw new IOException("TELEMETRY_CONFIG_FIELDS");
                 }
             }
             reader.endObject();
             if (reader.peek() != JsonToken.END_DOCUMENT) throw new IOException("TELEMETRY_CONFIG_TRAILING");
         }
-        if (!seen.equals(FIELDS) || !"strata/ForgeTelemetryConfig/1".equals(schema)
+        boolean validVersion = "strata/ForgeTelemetryConfig/1".equals(schema) && seen.equals(FIELDS)
+            || "strata/ForgeTelemetryConfig/2".equals(schema) && seen.equals(FIELDS_V2);
+        if (!validVersion
                 || campaign == null || !campaign.matches("[A-Za-z0-9_.:-]{1,128}")
                 || epoch < 1 || epoch > 9007199254740991L || maxBytes < 65536
                 || maxBytes > 1073741824L || maxEvents < 1 || maxEvents > 1000000) {
@@ -85,10 +103,11 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
         if (!Files.isDirectory(directory) || directory.startsWith(game) || game.startsWith(directory)) {
             throw new IOException("TELEMETRY_PRIVATE_ROOT_REQUIRED");
         }
-        return new TelemetryConfig(campaign, epoch, directory, maxBytes, maxEvents, List.copyOf(recipes));
+        return new TelemetryConfig(campaign, epoch, directory, maxBytes, maxEvents,
+            List.copyOf(recipes), List.copyOf(queries));
     }
 
-    private static String string(JsonReader reader) throws IOException {
+    static String string(JsonReader reader) throws IOException {
         if (reader.peek() != JsonToken.STRING) throw new IOException("TELEMETRY_CONFIG_TYPE");
         return reader.nextString();
     }

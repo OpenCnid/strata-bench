@@ -110,7 +110,7 @@ class ClickSlot(Strict):
 
 
 class RecipeQuery(Strict):
-    source: Literal["jei"]
+    source: Literal["jei", "emi"]
     category: Literal["minecraft:crafting"]
     item_id: Annotated[str, Field(min_length=1, max_length=256, pattern=r"^[a-z0-9_.-]+:[a-z0-9_./-]+$")]
     role: Literal["input", "output"]

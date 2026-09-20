@@ -55,6 +55,8 @@ class NativeLaunch(Strict):
     model: Annotated[str, Field(min_length=1, max_length=128)]
     provider: str = "openai"
     auth_mode: Literal["chatgpt_oauth", "api_key"] = "chatgpt_oauth"
+    budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
+    session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -68,12 +70,14 @@ class NativeLaunch(Strict):
         return digest({k: getattr(self, k) for k in (
             "binary_digest", "binary_version", "dovetail_commit", "model",
             "config_overrides", "hard_timeout_s", "output_limit_bytes", "helper_limit",
-            "provider", "auth_mode", "purpose")})
+            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")})
 
 
 def _toml_value(value):
-    # JSON scalar/array encodings form the supported TOML subset; objects/null do not.
-    require(value is not None and not isinstance(value, dict), "CONFIG_UNSUPPORTED")
+    require(value is not None, "CONFIG_UNSUPPORTED")
+    if isinstance(value, dict):
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + "=" + _toml_value(v)
+                              for k, v in sorted(value.items())) + "}"
     if isinstance(value, list):
         return "[" + ",".join(_toml_value(v) for v in value) + "]"
     return json.dumps(value, ensure_ascii=False, allow_nan=False)
@@ -81,8 +85,10 @@ def _toml_value(value):
 
 def native_argv(plan: NativeLaunch):
     argv = [plan.executable, "exec", "--json", "--strict-config", "--ignore-user-config",
-            "--ignore-rules", "--skip-git-repo-check", "--ephemeral", "--color", "never",
+            "--ignore-rules", "--skip-git-repo-check", "--color", "never",
             "--sandbox", "workspace-write", "--cd", plan.workspace, "--model", plan.model]
+    if plan.session_storage == "ephemeral":
+        argv.append("--ephemeral")
     for key, value in sorted(plan.config_overrides.items()):
         require(key and "\x00" not in key and "=" not in key and "\n" not in key,
                 "CONFIG_UNSUPPORTED")
@@ -210,6 +216,7 @@ class NativeExec:
                 require(parent_plan.campaign_id == plan.campaign_id and
                         parent_plan.agent_id == plan.agent_id and parent_plan.epoch == plan.epoch and
                         parent_plan.purpose == plan.purpose and
+                        parent_plan.budget_mode == plan.budget_mode and
                         parent_plan.account == plan.account and parent_plan.depth + 1 == plan.depth and
                         reserve.parent_operation_id == parent_plan.operation_id, "HELPER_LINEAGE")
                 count = db.execute("SELECT COUNT(*) FROM native_jobs WHERE campaign=? AND agent=? "
@@ -227,7 +234,7 @@ class NativeExec:
                         plan.parent_job_id, identity, canonical(plan_body).decode(), "PREPARED"))
             self.db.event(db, "runtime.prepared", {"job_id": plan.job_id, "digest": identity})
         try:
-            self.budgets.post(plan.account, reserve)
+            self.budgets.post(plan.account, reserve, envelope=plan.budget_mode == "per_dispatch")
         except BaseException:
             self._state(plan.job_id, "REJECTED", "budget_reservation_failed")
             raise
@@ -425,6 +432,56 @@ class NativeExec:
                                            "AND state NOT IN ('FINALIZED','REJECTED')", (job,)).fetchone()
         require(child is None, "DESCENDANT_UNSETTLED")
         self._state(job, "FINALIZED", row["reason"], row["returncode"])
+        return self.status(job)
+
+    def close_dispatch_budget(self, job, seal_ref):
+        """Release only unused envelope capacity after the gateway and process fence.
+
+        A terminal CLI/turn usage summary is not this proof. The trusted gateway
+        supervisor seals the exact attempt inventory only after removing its
+        ingress grant and fencing all in-flight handlers. Unknown requests keep
+        their reservations and prevent closing this job (and its ancestors).
+        """
+        row = self._row(job)
+        require(row["state"] == "UNSETTLED" and job not in self.live, "RUNTIME_NOT_QUIESCENT")
+        plan = NativeLaunch.model_validate_json(row["plan"])
+        require(plan.budget_mode == "per_dispatch", "ENVELOPE_POSTING")
+        visibility = self.db.connection.execute(
+            "SELECT visibility FROM objects WHERE namespace=? AND ref=?",
+            (self.namespace, seal_ref)).fetchone()
+        require(visibility is not None and visibility[0] == "operator", "DISPATCH_EVIDENCE_PRIVATE")
+        proof = self.cas.json(Principal("operator", "operator"), self.namespace, seal_ref)
+        require(proof.get("schema") == "strata/InferenceIngressSeal/1" and
+                proof.get("is_example") == self.simulation and
+                proof.get("job_id") == job and proof.get("profile_digest") == plan.profile_digest()
+                and proof.get("process_tree_dead") is True and
+                proof.get("ingress_closed") is True and proof.get("handlers_fenced") is True,
+                "DISPATCH_SEAL_UNVERIFIED")
+        with self.db.transaction() as db:
+            children = db.execute("SELECT id FROM native_jobs WHERE parent=? AND "
+                                  "state NOT IN ('FINALIZED','REJECTED')", (job,)).fetchone()
+            require(children is None, "DESCENDANT_UNSETTLED")
+            attempts = list(db.execute("SELECT operation,state FROM inference_attempts WHERE "
+                                      "json_extract(request,'$.runtime_job_id')=?", (job,)))
+            require(sorted(r["operation"] for r in attempts) == proof.get("attempt_ids"),
+                    "DISPATCH_SEAL_UNVERIFIED")
+            require(all(r["state"] == "SETTLED" for r in attempts), "METERING_UNKNOWN")
+            source = db.execute("SELECT body FROM ledger WHERE "
+                "json_extract(body,'$.operation_id')=? AND json_extract(body,'$.posting')='reserve'",
+                (plan.operation_id,)).fetchone()
+            require(source is not None, "OPERATION_LINEAGE")
+            reserve = BudgetLedger.model_validate_json(source[0])
+            closure_id = "envelope-close:" + digest({"job_id": job})
+            receipt = BudgetLedger.model_validate(reserve.model_dump() | {
+                "posting": "settle", "ledger_id": closure_id,
+                "source_event_id": closure_id, "metering": "reported",
+                "raw_usage_ref": seal_ref, "reason": "fenced ingress; usage belongs to descendants",
+                "usage": dict.fromkeys(reserve.usage.model_dump(), 0)})
+            self.budgets.post_in_transaction(db, plan.account, receipt, close_envelope=True)
+            db.execute("UPDATE native_jobs SET state='FINALIZED',ended=? WHERE id=?",
+                       (time.time(), job))
+            self.db.event(db, "runtime.state", {"job_id": job, "state": "FINALIZED",
+                "reason": row["reason"], "returncode": row["returncode"]})
         return self.status(job)
 
     def export_state(self, job, *, workspace_ref: str, skills_ref: str, handoff_ref: str | None,

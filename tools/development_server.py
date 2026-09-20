@@ -16,7 +16,8 @@ from pathlib import Path
 from mcbench.inventory import file_hash
 from mcbench.processes import ManagedProcess
 from mcbench.provisioning import LaunchCommand
-from mcbench.storage import digest, reject_links, require
+from mcbench.server_health import inspect_server_log
+from mcbench.storage import Fault, digest, reject_links, require
 
 
 def outside(path):
@@ -27,10 +28,10 @@ def outside(path):
     return path
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("plan", type=Path)
-    options = parser.parse_args()
+    options = parser.parse_args(argv)
     plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
     require(set(plan) == {"schema", "launch", "evidence", "max_wall_s", "target"},
             "SCHEMA_UNSUPPORTED")
@@ -66,7 +67,8 @@ def main():
     result = {"schema": "strata/DevelopmentServerResult/1", "plan_digest": digest(plan),
               "target": plan["target"], "started_unix": time.time(), "ready": False,
               "stop_sent": False, "forced_stop": False, "exit_code": None,
-              "gate_result": "not_run", "campaign_admission": False}
+              "gate_result": "not_run", "campaign_admission": False,
+              "status": "fail", "clean_save_proven": False}
 
     def copy(source, name):
         try:
@@ -127,10 +129,25 @@ def main():
             thread.join(2)
         proc.close()
         result["elapsed_s"] = time.monotonic() - started
-        result["logs_complete"] = not reader_failed.is_set() and not overflow.is_set()
+        result["logs_complete"] = (not reader_failed.is_set() and not overflow.is_set()
+                                   and not any(thread.is_alive() for thread in threads))
+        try:
+            require(result["logs_complete"], "SERVER_LOG_INCOMPLETE")
+            result["log_health"] = {name: inspect_server_log(evidence / name)
+                                    for name in ("stdout.log", "stderr.log")}
+            if any(value["result"] == "fail" for value in result["log_health"].values()):
+                result["error"] = "SERVER_RUNTIME_FAILURE"
+            elif (result["ready"] and result["stop_sent"] and not result["forced_stop"]
+                  and result["exit_code"] == 0 and "error" not in result):
+                # Controlled launcher lifecycle only; a full save/checkpoint
+                # needs independent server and persisted-state evidence.
+                result["status"] = "stopped_unqualified"
+        except (OSError, Fault) as error:
+            result["error"] = error.code if isinstance(error, Fault) else "SERVER_LOG_UNAVAILABLE"
         (evidence / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(json.dumps({"status": "server_stopped", **result}), flush=True)
+    return 0 if result["status"] == "stopped_unqualified" else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

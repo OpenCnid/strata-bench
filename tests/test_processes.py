@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from mcbench.processes import ManagedProcess
+from mcbench.processes import ManagedProcess, WindowsJob
 from mcbench.storage import Fault
 
 
@@ -110,3 +110,101 @@ def test_native_noninteractive_process_cannot_receive_later_console_input(tmp_pa
     finally:
         proc.stop()
         proc.close()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Job Object query")
+def test_job_accounting_observes_whole_owned_tree_stop(tmp_path):
+    proc = ManagedProcess([sys.executable, "-I", "-c",
+        "import subprocess,sys,time; subprocess.Popen([sys.executable,'-I','-c',"
+        "'import time; time.sleep(30)']); print('ready',flush=True); time.sleep(30)"],
+        tmp_path, {}, "")
+    try:
+        assert proc.process.stdout.readline().strip() == b"ready"
+        live = proc.job.accounting()
+        assert live["total_processes"] >= 3 and live["active_processes"] >= 3
+        proc.job.observe_members()
+        assert proc.job.member_status()["held_processes"] == live["total_processes"]
+        proc.stop()
+        deadline = time.monotonic() + 2
+        while (proc.job.accounting()["active_processes"]
+               or proc.job.member_status()["signaled_processes"] != live["total_processes"]) and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert proc.job.accounting()["active_processes"] == 0
+        assert proc.job.member_status()["signaled_processes"] == live["total_processes"]
+    finally:
+        proc.close()
+    with pytest.raises(Fault, match="PROCESS_FENCING_UNAVAILABLE"):
+        proc.job.accounting()
+
+
+@pytest.fixture
+def synthetic_member_job():
+    """Exercise handle/ownership failure paths without targeting outside processes."""
+    import ctypes
+    from ctypes import wintypes
+    from types import SimpleNamespace
+
+    state = SimpleNamespace(pids=[123], member=True, signaled=False, query_ok=True,
+                            opened=[], closed=[])
+    job = WindowsJob.__new__(WindowsJob)
+    job.handle, job.members = 99, {}
+    job.MAX_TRACKED_PROCESSES = 2
+
+    def query(handle, kind, pointer, size, length):
+        assert (handle, kind, length) == (99, 3, None)
+        class Members(ctypes.Structure):
+            _fields_ = [("assigned", wintypes.DWORD), ("count", wintypes.DWORD),
+                        ("pids", ctypes.c_size_t * 2)]
+        assert size == ctypes.sizeof(Members)
+        value = ctypes.cast(pointer, ctypes.POINTER(Members)).contents
+        value.assigned = len(state.pids)
+        value.count = min(value.assigned, 2)
+        for index, pid in enumerate(state.pids[:2]):
+            value.pids[index] = pid
+        return state.query_ok
+
+    def open_process(rights, inherit, pid):
+        state.opened.append((rights, inherit, pid))
+        return pid + 1000
+
+    def is_member(handle, owner, output):
+        assert owner == 99
+        ctypes.cast(output, ctypes.POINTER(wintypes.BOOL)).contents.value = state.member
+        return True
+
+    job.kernel = SimpleNamespace(QueryInformationJobObject=query, OpenProcess=open_process,
+        IsProcessInJob=is_member, CloseHandle=state.closed.append,
+        WaitForSingleObject=lambda handle, timeout: 0 if state.signaled else 258)
+    return job, state
+
+
+def test_member_observation_holds_read_only_identity_and_closes_handles(synthetic_member_job):
+    job, state = synthetic_member_job
+    job.observe_members()
+    job.observe_members()
+    assert state.opened == [(0x1000 | 0x100000, False, 123)]  # No terminate/attach rights.
+    assert job.member_status() == {"held_processes": 1, "signaled_processes": 0}
+    state.signaled = True
+    assert job.member_status() == {"held_processes": 1, "signaled_processes": 1}
+    job.close()
+    assert state.closed == [99, 1123] and not job.members
+    job.close()
+    assert state.closed == [99, 1123]
+
+
+@pytest.mark.parametrize("failure", ["foreign", "query", "truncated", "quota"])
+def test_member_inventory_failures_cannot_claim_owned_processes(synthetic_member_job, failure):
+    job, state = synthetic_member_job
+    if failure == "foreign":
+        state.member = False
+    elif failure == "query":
+        state.query_ok = False
+    elif failure == "truncated":
+        state.pids = [123, 124, 125]
+    else:
+        job.members = {121: 1121, 122: 1122}
+    with pytest.raises(Fault, match="PROCESS_MEMBER_(INVENTORY_UNAVAILABLE|QUOTA)"):
+        job.observe_members()
+    assert state.opened == ([(0x1000 | 0x100000, False, 123)] if failure == "foreign" else [])
+    assert state.closed == ([1123] if failure == "foreign" else [])
+    assert 123 not in job.members

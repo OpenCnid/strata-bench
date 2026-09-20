@@ -81,7 +81,7 @@ transaction or input-effect conformance. The Controls screen also logged an
 invalid-scancode GL error, retained for diagnosis. Full details and unresolved
 cases are in the [verification record](../verification/2026-09-18-long-horizon.md).
 
-## Development native transaction probe (not live-verified)
+## Development native transaction probe
 
 `SettingsStore` holds a per-profile file lock and writes a bounded, forced,
 hash-chained private journal. A transaction validates the expected runtime/options
@@ -121,12 +121,54 @@ presses F13, invokes Curios, or commits a patch. F13 here is an encoding probe,
 states; exceptions fail the probe and any retained pending journal needs operator
 recovery. Do not reuse a journal directory to retry a forward transaction.
 
-The current extension is installed in the dedicated development profile, but
-this settings probe has not been enabled or exercised in Minecraft. The user
-renewed desktop authorization on September 19; only the game bridge has live
-startup evidence. No scored run may enable these diagnostics.
+The current extension is installed in the dedicated development profile.
+[September 20 authentic evidence](../verification/2026-09-20-native-settings.md)
+passes its first title-screen round trip and an independent discovery-only cold
+restart: all 253 runtime mappings and persisted values match the restored map,
+with unrelated options bytes preserved. A subsequent
+[two-client recovery sample](../verification/2026-09-20-native-settings-recovery.md)
+also passes forced termination after applied-pending, fresh-session status and
+rollback from the retained journal with zero forward replay. Physical F13,
+effect repair, mid-write faults and complete T05 remain unqualified.
+[Authentic disk-conflict negatives](../verification/2026-09-20-native-settings-conflicts.md)
+pass stale revision, unrelated-file and owned-third-value rejection without
+overwriting foreign changes, followed by conservative owned cleanup/rollback.
+In-memory foreign changes and exclusion of other writers remain unqualified. Existing desktop
+authorization covers this separate-desktop/API route; shared input remains
+paused. No scored run may enable these diagnostics.
 
 ## Private native bridge (not qualified for gameplay)
+
+For precise crash conformance, the separate operator-only property
+`-Dstrata.settingsCrashDirectory=<absolute-existing-private-directory>` enables
+one title-screen transaction and abrupt process exit at a predeclared boundary.
+The directory must be fresh except for `fault-plan.json`:
+
+```json
+{"schema":"strata/SettingsCrashPlan/1","boundary":"apply_runtime_written"}
+```
+
+Allowed boundaries are `apply_prepared`, `apply_runtime_written`,
+`apply_options_written`, `rollback_prepared`, `rollback_runtime_written`, and
+`rollback_options_written`. The prepared points follow a forced journal append;
+runtime points follow native setter/readback; options points follow atomic
+replacement/readback. These are specific between-write windows, not arbitrary
+instruction or power-loss injection. The client must have no player/world and
+the exact source-bound Curios key must be unbound. This encoding probe emits no
+physical input. Other settings/game/discovery/frame/collision diagnostics cannot
+be enabled in the same launch; the combination rejects before listener setup.
+
+The probe forces private `armed.json` and options-before before the transaction.
+At the selected point it forces actual state and options-at-fault, then calls
+JVM halt with exit code 86; normal shutdown hooks and automatic rollback do not
+run. Existing report/journal files forbid rearming. Missing reports, unexpected
+exit codes or a surviving process fail the sample. Keep the independent worker
+lifetime guard and confirm terminal identity before recovery. Then launch a new
+client with **only the private bridge below**, using the same exact artifact and
+journal directory. Its first call queries `operator-crash-1` status; it rolls back
+that transaction without apply. Verify every mapping, original option byte,
+journal prefix and terminal process. Do not mix this diagnostic into gameplay
+or claim its synthetic JVM checks as authentic Minecraft evidence.
 
 The alternative JVM property
 `-Dstrata.settingsBridgeDirectory=<absolute-existing-private-broker-directory>`

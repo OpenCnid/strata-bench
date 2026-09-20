@@ -35,6 +35,24 @@ OVERLAY = "config/configswapper/expert"
 MAX_FILE_BYTES = 8 * 1024**2
 
 
+class OverlayMismatch(Fault):
+    """Bounded operator evidence; never expose configuration values."""
+
+    def __init__(self, source, target, *, key_paths=None):
+        super().__init__("MODE_OVERLAY_MISMATCH")
+        self.evidence = {"comparison": "replacement_bytes" if key_paths is None else "toml_key_subset",
+                         "source_sha256": hashlib.sha256(source).hexdigest(),
+                         "target_sha256": hashlib.sha256(target).hexdigest()}
+        if key_paths is not None:
+            shown = []
+            for path in key_paths:
+                if (len(shown) < 32 and len(path) <= 32 and all(len(key) <= 128 for key in path)
+                        and len(json.dumps(path, ensure_ascii=False).encode("utf-8")) <= 4096):
+                    shown.append(path)
+            self.evidence.update(key_paths=shown, difference_count=len(key_paths),
+                                 key_paths_omitted=len(key_paths) - len(shown))
+
+
 def _read(root: Path, relative: str) -> bytes:
     path = root.joinpath(*safe_relative(relative).parts)
     reject_links(path)
@@ -108,6 +126,9 @@ def inspect_e9e_mode(root: Path, role: Literal["client", "server"], *,
         try:
             details = operation()
             checks.append({"check": name, "result": "pass", **details})
+        except OverlayMismatch as error:
+            checks.append({"check": name, "result": "fail", "code": error.code,
+                           "diagnostic": error.evidence})
         except Fault as error:
             checks.append({"check": name, "result": "fail", "code": error.code})
 
@@ -159,10 +180,13 @@ def inspect_e9e_mode(root: Path, role: Literal["client", "server"], *,
                         observed = tomllib.loads(actual.decode("utf-8"))
                     except (ValueError, UnicodeError):
                         raise Fault("MODE_CONFIG_INVALID") from None
-                    require(not _differences(wanted, observed), "MODE_OVERLAY_MISMATCH")
+                    differences = _differences(wanted, observed)
+                    if differences:
+                        raise OverlayMismatch(source, actual, key_paths=differences)
                 else:
                     # ConfigSwapper 3.2 replaces non-TOML files byte-for-byte.
-                    require(source == actual, "MODE_OVERLAY_MISMATCH")
+                    if source != actual:
+                        raise OverlayMismatch(source, actual)
                 return {"path": target, "sha256": hashlib.sha256(actual).hexdigest()}
 
             check(f"effective:{relative}", compare)

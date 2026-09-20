@@ -6,7 +6,8 @@ import java.util.List;
 
 /** One requested recipe. Normal book-fill and slot inputs always await actual menu feedback. */
 final class GameCrafting {
-    static final String POLICY = "known-recipe-book-fill-single-output-remainders/1";
+    static final String POLICY = "known-recipe-server-preview-transition-bound20/6";
+    static final int MAX_PREVIEW_READS = 20;
     interface Port extends GameInventory.Port {
         int gridWidth();
         int inventoryStart();
@@ -23,10 +24,11 @@ final class GameCrafting {
         return new Motor(port, count, emit);
     }
     private static final class Motor implements GameActionLane.Motor {
-        enum Phase { FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
+        enum Phase { BASELINE, FILL, MANUAL_FILL, TAKE, STORE, REMAINDER_PICKUP, REMAINDER_STORE }
         final Port port; final int gridSize; int remaining, remainderIndex;
         Phase phase; long ticket;
-        GameInventory.View before, filled, taken;
+        GameInventory.View before, filled, taken, reacquireBaseline, previewBaseline;
+        int previewReads;
         List<GameInventory.Stack> remainders;
         List<Integer> destinations;
         GameActionLane.Motor step;
@@ -41,10 +43,22 @@ final class GameCrafting {
             return view;
         }
         private void fill(GameActionLane.Emitter emit) throws IOException {
-            before = view();
-            if (!before.cursor().empty()) throw new IOException("PRECONDITION_FAILED");
-            for (int i = 0; i <= gridSize; i++) if (!before.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
-            if (emptyDestinations(before).isEmpty()) throw new IOException("INVENTORY_FULL");
+            reacquireBaseline = null;
+            previewBaseline = null; previewReads = 0;
+            requireClean(view());
+            // Local component materialization is not a resource baseline. Take
+            // the first snapshot from actual server feedback before any fill.
+            phase = Phase.BASELINE;
+            emit.invoke(() -> ticket = port.requestSync());
+        }
+        private void requireClean(GameInventory.View value) throws IOException {
+            if (!value.cursor().empty()) throw new IOException("PRECONDITION_FAILED");
+            for (int i = 0; i <= gridSize; i++) if (!value.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
+            if (emptyDestinations(value).isEmpty()) throw new IOException("INVENTORY_FULL");
+        }
+        private void startFill(GameActionLane.Emitter emit) throws IOException {
+            requireClean(before);
+            reacquireBaseline = null;
             step = port.gridMotor(emit);
             if (step != null) { phase = Phase.MANUAL_FILL; return; }
             phase = Phase.FILL;
@@ -59,21 +73,63 @@ final class GameCrafting {
         private GameInventory.View feedback(GameActionLane.Emitter emit) throws IOException {
             port.validate(); var reply = port.reply(ticket);
             if (reply == null) { emit.invoke(() -> {}); return null; }
-            if (!reply.equals(view())) throw new IOException("REVISION_CONFLICT");
+            // The first actual reply remains the exact authority for a retry.
+            // A new server component, output, grid or remainder cannot replace it.
+            if (reacquireBaseline != null && !reply.equals(reacquireBaseline)
+                    && !(phase == Phase.FILL && previewProgression(reacquireBaseline,reply))) {
+                throw new IOException("REVISION_CONFLICT");
+            }
+            var current = view();
+            if (!reply.equals(current)) {
+                port.mismatch(reply,current);
+                if (phase == Phase.FILL && previewProgression(reply,current)) {
+                    // A later ordinary result-slot update can overtake our full
+                    // reply. It is a reason to read again, never click authority.
+                    awaitPreview(reply,emit); return null;
+                }
+                boolean metadataOnly = reply.slots().size()==current.slots().size()
+                    && reply.resultSlot()==current.resultSlot() && reply.cursor().equals(current.cursor());
+                for (int i=0;metadataOnly && i<reply.slots().size();i++) {
+                    var a=reply.slots().get(i);var b=current.slots().get(i);
+                    metadataOnly = i>=port.inventoryStart() && i<port.inventoryEnd()
+                        ? a.id().equals(b.id()) && a.count()==b.count() : a.equals(b);
+                }
+                if (reacquireBaseline == null && metadataOnly) {
+                    reacquireBaseline = reply;
+                    emit.invoke(() -> ticket = port.requestSync()); return null;
+                }
+                throw new IOException("REVISION_CONFLICT");
+            }
             return reply;
         }
         public boolean tick(GameActionLane.Emitter emit) throws IOException {
             port.validate();
+            if (phase == Phase.BASELINE) {
+                before = feedback(emit); if (before == null) return false;
+                startFill(emit); return false;
+            }
             if (phase == Phase.MANUAL_FILL) {
                 if (!step.tick(emit)) return false;
-                filled = view();
+                // Intermediate slot transfers may see changing derived previews.
+                // Require a fresh full server reply for this completed grid and
+                // its intended output before any result-slot click is admitted.
+                phase = Phase.FILL;
+                emit.invoke(() -> ticket = port.requestSync()); return false;
             }
             if (phase == Phase.FILL) {
                 filled = feedback(emit); if (filled == null) return false;
             }
             if (phase == Phase.FILL || phase == Phase.MANUAL_FILL) {
                 if (!filled.cursor().empty() || !GameInventory.conserved(before, filled)
-                        || !filled.slots().get(0).equals(port.output())) throw new IOException("PRECONDITION_FAILED");
+                        || previewBaseline != null && !sameResources(previewBaseline, filled)
+                        || !filled.slots().get(0).empty() && !filled.slots().get(0).equals(port.output())) {
+                    port.mismatch(before,filled);
+                    System.getLogger(GameCrafting.class.getName()).log(System.Logger.Level.WARNING,
+                        "STRATA_CRAFT_FILL_CHECK cursor_clean="+filled.cursor().empty()
+                        +" conserved="+GameInventory.conserved(before,filled)
+                        +" output_matches="+filled.slots().get(0).equals(port.output()));
+                    throw new IOException("PRECONDITION_FAILED");
+                }
                 boolean ingredient = false;
                 for (int i = 1; i <= gridSize; i++) {
                     int count = filled.slots().get(i).count();
@@ -84,6 +140,13 @@ final class GameCrafting {
                 remainders = List.copyOf(port.remainders(filled));
                 if (remainders.size() != gridSize || remainders.stream().anyMatch(item -> item.count() < 0 || item.count() > 64)) {
                     throw new IOException("GAME_REMAINDER_UNSUPPORTED");
+                }
+                if (filled.slots().get(0).empty()) {
+                    // Pinned FastWorkbench queues result computation at server
+                    // END ticks. A complete ingredient reply can precede it.
+                    // Freeze every real resource and await fresh server contents;
+                    // never repeat the fill, invent output, or click the result.
+                    awaitPreview(filled,emit); return false;
                 }
                 destinations = emptyDestinations(filled);
                 if (destinations.size() < 1 + remainders.stream().filter(item -> !item.empty()).count()) throw new IOException("INVENTORY_FULL");
@@ -96,6 +159,7 @@ final class GameCrafting {
                 if (!port.mayPickup(0)) throw new IOException("PRECONDITION_FAILED");
                 // Output click is allowed only here, after recipe/grid/result and resource validation.
                 phase = Phase.TAKE;
+                reacquireBaseline = null;
                 emit.invoke(() -> port.click(0, 0, false));
                 emit.invoke(() -> ticket = port.requestSync()); return false;
             }
@@ -127,6 +191,22 @@ final class GameCrafting {
             for (int i = 0; i <= gridSize; i++) if (!state.slots().get(i).empty()) throw new IOException("PRECONDITION_FAILED");
             if (--remaining == 0) return true;
             remainderIndex = 0; fill(emit); return false;
+        }
+        private static boolean sameResources(GameInventory.View a, GameInventory.View b) {
+            return a.resultSlot() == b.resultSlot() && a.slots().size() == b.slots().size()
+                && a.cursor().equals(b.cursor())
+                && a.slots().subList(1,a.slots().size()).equals(b.slots().subList(1,b.slots().size()));
+        }
+        private boolean previewProgression(GameInventory.View a, GameInventory.View b) {
+            return a.slots().get(0).empty() && b.slots().get(0).equals(port.output()) && sameResources(a,b);
+        }
+        private void awaitPreview(GameInventory.View baseline, GameActionLane.Emitter emit) throws IOException {
+            if (previewBaseline != null && !sameResources(previewBaseline,baseline)) throw new IOException("REVISION_CONFLICT");
+            if (previewReads == MAX_PREVIEW_READS) throw new IOException("PRECONDITION_FAILED");
+            if (previewBaseline == null) previewBaseline = baseline;
+            previewReads++;
+            reacquireBaseline = null;
+            emit.invoke(() -> ticket = port.requestSync());
         }
     }
 }

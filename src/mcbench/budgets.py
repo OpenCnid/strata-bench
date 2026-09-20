@@ -32,6 +32,8 @@ class Budgets:
                        "reserved TEXT NOT NULL, actual TEXT, uncertain INTEGER NOT NULL DEFAULT 0)")
             db.execute("CREATE TABLE IF NOT EXISTS ledger (campaign TEXT, source TEXT, digest TEXT, "
                        "body TEXT, PRIMARY KEY(campaign,source))")
+            db.execute("CREATE TABLE IF NOT EXISTS budget_envelopes (operation TEXT PRIMARY KEY "
+                       "REFERENCES operations(id))")
 
     def create_account(self, name, limits, campaign, agent=None, parent=None, *, category=None):
         require(set(limits) == set(DIMENSIONS), "BUDGET_DIMENSIONS")
@@ -60,13 +62,16 @@ class Budgets:
 
     @classmethod
     def totals(cls, db, account):
+        amounts = cls.exposures(db)
         totals = {k: 0 for k in DIMENSIONS}
         uncertain = False
         for row in db.execute("SELECT * FROM operations"):
             if account not in [a["id"] for a in cls.ancestors(db, row["account"])]:
                 continue
-            amount = json.loads(row["actual"] or row["reserved"])
             uncertain |= bool(row["uncertain"])
+            if row["parent"] is not None:
+                continue  # Included by its parent's recursive exposure, exactly once.
+            amount = amounts[row["id"]]
             for key in DIMENSIONS:
                 if amount[key] is None or totals[key] is None:
                     totals[key] = None
@@ -74,11 +79,51 @@ class Budgets:
                     totals[key] += amount[key]
         return totals, uncertain
 
-    def post(self, account: str, record: BudgetLedger):
-        with self.database.transaction() as db:
-            return self.post_in_transaction(db, account, record)
+    @staticmethod
+    def exposures(db):
+        """Open envelopes hold max(bound, descendants); closed ones count descendants.
 
-    def post_in_transaction(self, db, account: str, record: BudgetLedger):
+        Ordinary operations still add their own usage to their descendants. An
+        envelope is explicitly registered at reservation, never inferred from a
+        parent ID. Provider overruns remain visible even above an envelope bound.
+        """
+        rows = {r["id"]: r for r in db.execute("SELECT * FROM operations")}
+        envelopes = {r[0] for r in db.execute("SELECT operation FROM budget_envelopes")}
+        children = {op: [] for op in rows}
+        for op, row in rows.items():
+            if row["parent"] is not None:
+                children[row["parent"]].append(op)
+        result = {}
+
+        def visit(op):
+            row = rows[op]
+            own = json.loads(row["actual"] or row["reserved"])
+            nested = [visit(child) for child in children[op]]
+            amount = {}
+            for key in DIMENSIONS:
+                values = [v[key] for v in nested]
+                subtotal = None if None in values else sum(values)
+                if own[key] is None or subtotal is None:
+                    amount[key] = None
+                elif op in envelopes:
+                    amount[key] = max(own[key], subtotal)
+                else:
+                    amount[key] = own[key] + subtotal
+            result[op] = amount
+            return amount
+
+        for op, row in rows.items():
+            if row["parent"] is None:
+                visit(op)
+        require(len(result) == len(rows), "OPERATION_LINEAGE")
+        return result
+
+    def post(self, account: str, record: BudgetLedger, *, envelope=False):
+        with self.database.transaction() as db:
+            return self.post_in_transaction(db, account, record, envelope=envelope)
+
+    def post_in_transaction(self, db, account: str, record: BudgetLedger, *, envelope=False,
+                            close_envelope=False):
         """Compose a posting with its operator dispatch intent in the same commit."""
         require(db is self.database.connection and db.in_transaction, "TRANSACTION_REQUIRED")
         require(not record.is_example, "EXAMPLE_NOT_EXECUTABLE")
@@ -88,6 +133,10 @@ class Budgets:
         if previous:
             require(previous["digest"] == digest({"account": account, "body": body}),
                     "IDEMPOTENCY_CONFLICT")
+            if record.posting == "reserve":
+                registered = db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?",
+                                        (record.operation_id,)).fetchone() is not None
+                require(registered == envelope, "IDEMPOTENCY_CONFLICT")
             return False
         chain = self.ancestors(db, account)
         require(chain[0]["campaign"] == record.campaign_id and
@@ -96,27 +145,71 @@ class Budgets:
         op = db.execute("SELECT * FROM operations WHERE id=?", (record.operation_id,)).fetchone()
         amount = vector(record)
         if record.posting == "reserve":
+            require(not close_envelope, "ENVELOPE_POSTING")
             require(op is None, "OPERATION_EXISTS")
             if record.parent_operation_id:
                 parent = db.execute("SELECT * FROM operations WHERE id=?",
                                     (record.parent_operation_id,)).fetchone()
                 require(parent is not None and parent["account"] == account, "FORBIDDEN")
+                parent_id = record.parent_operation_id
+                while parent_id:
+                    ancestor_op = db.execute("SELECT * FROM operations WHERE id=?",
+                                             (parent_id,)).fetchone()
+                    if db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?",
+                                  (parent_id,)).fetchone():
+                        require(ancestor_op["actual"] is None, "ENVELOPE_CLOSED")
+                    parent_id = ancestor_op["parent"]
             for ancestor in chain:
                 total, uncertain = self.totals(db, ancestor["id"])
                 require(not uncertain, "METERING_UNKNOWN")
+            require(all(amount[k] is not None for k in DIMENSIONS), "METERING_UNKNOWN")
+            db.execute("INSERT INTO operations(id,account,parent,kind,reserved) VALUES (?,?,?,?,?)",
+                       (record.operation_id, account, record.parent_operation_id, record.kind,
+                        canonical(amount).decode()))
+            if envelope:
+                db.execute("INSERT INTO budget_envelopes VALUES(?)", (record.operation_id,))
+                self.database.event(db, "budget.envelope_opened", {
+                    "operation_id": record.operation_id, "policy": "nested-envelope/1"})
+            # Validate the post-insert exposure, including consumption within every
+            # enclosing job. Transaction rollback removes a rejected reservation.
+            exposures = self.exposures(db)
+            parent_id = record.parent_operation_id
+            while parent_id:
+                parent = db.execute("SELECT * FROM operations WHERE id=?", (parent_id,)).fetchone()
+                if db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?",
+                              (parent_id,)).fetchone():
+                    bound = json.loads(parent["reserved"])
+                    require(all(exposures[parent_id][k] is not None and bound[k] is not None and
+                                exposures[parent_id][k] <= bound[k] for k in DIMENSIONS),
+                            "ENVELOPE_EXHAUSTED")
+                parent_id = parent["parent"]
+            for ancestor in chain:
+                total, _ = self.totals(db, ancestor["id"])
                 limits = json.loads(ancestor["limits"])
                 for key in DIMENSIONS:
                     require(total[key] is not None and amount[key] is not None,
                             "METERING_UNKNOWN")
                     if limits[key] is not None:
-                        require(total[key] + amount[key] <= limits[key], "BUDGET_EXHAUSTED")
-            db.execute("INSERT INTO operations(id,account,parent,kind,reserved) VALUES (?,?,?,?,?)",
-                       (record.operation_id, account, record.parent_operation_id, record.kind,
-                        canonical(amount).decode()))
+                        require(total[key] <= limits[key], "BUDGET_EXHAUSTED")
         else:
+            require(not envelope, "ENVELOPE_POSTING")
             require(op is not None and op["account"] == account and
                     op["parent"] == record.parent_operation_id and op["kind"] == record.kind,
                     "OPERATION_LINEAGE")
+            registered = db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?",
+                                    (record.operation_id,)).fetchone() is not None
+            require(registered == close_envelope, "ENVELOPE_POSTING")
+            if close_envelope:
+                require(record.posting == "settle" and record.metering == "reported" and
+                        record.raw_usage_ref is not None and
+                        all(v == 0 for v in amount.values()), "ENVELOPE_POSTING")
+                pending = db.execute("SELECT 1 FROM operations WHERE parent=? AND "
+                                     "(actual IS NULL OR uncertain=1)",
+                                     (record.operation_id,)).fetchone()
+                require(pending is None, "DESCENDANT_UNSETTLED")
+                self.database.event(db, "budget.envelope_closed", {
+                    "operation_id": record.operation_id, "seal_ref": record.raw_usage_ref,
+                    "policy": "nested-envelope/1"})
             if record.posting == "settle":
                 require(op["actual"] is None, "ALREADY_SETTLED")
             else:

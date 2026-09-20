@@ -33,6 +33,9 @@ class GameCraftingLaneTest {
             base.arm(lane, 1); base.deliver(lane);
             request = base.batch(1, "crafting", 1); request.add("action", action());
             lane.accept(request); lane.tick(); base.time.advance(50); lane.tick();
+            // The current motor requires server baseline feedback before filling.
+            assertEquals(0, menu.fills); assertEquals(0, menu.takes);
+            menu.ack(); step();
         }
         void step() throws IOException { base.time.advance(50); lane.tick(); }
         public void close() throws IOException { lane.close(); }

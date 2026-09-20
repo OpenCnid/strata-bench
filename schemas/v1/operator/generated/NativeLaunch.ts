@@ -21,6 +21,8 @@ export type DovetailCommit = string;
 export type Model = string;
 export type Provider = string;
 export type AuthMode = "chatgpt_oauth" | "api_key";
+export type BudgetMode = "whole_job" | "per_dispatch";
+export type SessionStorage = "ephemeral" | "private_profile";
 export type JsonValue = unknown;
 export type Prompt = string;
 export type HardTimeoutS = number;
@@ -49,6 +51,8 @@ export interface NativeLaunch {
   model: Model;
   provider?: Provider;
   auth_mode?: AuthMode;
+  budget_mode?: BudgetMode;
+  session_storage?: SessionStorage;
   config_overrides: ConfigOverrides;
   environment: Environment;
   prompt: Prompt;

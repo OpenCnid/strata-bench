@@ -9,6 +9,8 @@ import { actionSemantics, Fault, mono, requireThat, utc, validate,
 export interface Backend {
   readonly revision: number;
   readonly connected: boolean;
+  /** Sanitized terminal connection failure, including before the first spawn. */
+  readonly connectionFailure?: string | null;
   snapshot(cursor?: string): Snapshot;
   execute(action: Action, signal: AbortSignal, emit: PrimitiveEmitter): Promise<void | 'emitted'>;
   /** Resolve only after local input release is confirmed; reject uncertain release. */
@@ -71,6 +73,9 @@ export class ActionLane {
       fenced: this.fenced, reason: this.fenceReason};
   }
   private checkConnection(): void {
+    if (this.backend.connectionFailure && !this.fenced) {
+      this.background(this.fence(this.backend.connectionFailure));
+    }
     if (this.backend.connected) {
       this.connectedOnce = true;
       if (this.fenced && this.fenceComplete) this.disconnectBackend();

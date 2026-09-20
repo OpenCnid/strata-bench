@@ -20,6 +20,13 @@ final class SettingsStore implements AutoCloseable {
     record Change(String before, String after) {}
     record Receipt(String id, String phase, long revision, boolean committed) {}
 
+    /** Internal conformance seam; normal stores never activate a fault observer. */
+    enum WriteBoundary {
+        APPLY_PREPARED, APPLY_RUNTIME_WRITTEN, APPLY_OPTIONS_WRITTEN,
+        ROLLBACK_PREPARED, ROLLBACK_RUNTIME_WRITTEN, ROLLBACK_OPTIONS_WRITTEN
+    }
+    interface WriteObserver { void reached(WriteBoundary boundary) throws IOException; }
+
     interface RuntimePort {
         void requireClientThread() throws IOException;
         Map<String, Binding> bindings() throws IOException;
@@ -34,6 +41,7 @@ final class SettingsStore implements AutoCloseable {
     private final FileChannel lockChannel;
     private final FileLock profileLock;
     private final SettingsJournal journal;
+    private final WriteObserver observer;
     private final Map<String, JsonObject> prepared = new LinkedHashMap<>();
     private final Map<String, String> phases = new LinkedHashMap<>();
     private String active;
@@ -45,8 +53,14 @@ final class SettingsStore implements AutoCloseable {
     }
 
     SettingsStore(Path profile, Path privateDirectory, String fingerprint, RuntimePort runtime, long quota) throws IOException {
+        this(profile, privateDirectory, fingerprint, runtime, quota, boundary -> {});
+    }
+
+    SettingsStore(Path profile, Path privateDirectory, String fingerprint, RuntimePort runtime,
+                  long quota, WriteObserver observer) throws IOException {
         this.runtime = runtime;
         this.fingerprint = fingerprint;
+        this.observer = java.util.Objects.requireNonNull(observer);
         runtime.requireClientThread();
         if (!fingerprint.matches("[0-9a-f]{64}") || quota < 4096 || quota > 67108864) {
             throw new IOException("SETTINGS_PROFILE_INVALID");
@@ -235,11 +249,14 @@ final class SettingsStore implements AutoCloseable {
             // Keep space for rollback and its failure/terminal receipts before mutation.
             journal.reserve(prepare.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length + 16384L);
             append(prepare);
+            observer.reached(WriteBoundary.APPLY_PREPARED);
             runtime.setKeys(after);
             Map<String, String> desiredRuntime = new TreeMap<>(values(current));
             desiredRuntime.putAll(after);
             assertRuntime(desiredRuntime, metadataDigest(current));
+            observer.reached(WriteBoundary.APPLY_RUNTIME_WRITTEN);
             SettingsFiles.replaceOwned(options, original, replacement);
+            observer.reached(WriteBoundary.APPLY_OPTIONS_WRITTEN);
             runtime.releaseInputs();
             assertRuntime(desiredRuntime, metadataDigest(current));
             phase(id, "applied_pending_verification");
@@ -308,10 +325,13 @@ final class SettingsStore implements AutoCloseable {
             runtime.validateKeys(before);
             journal.reserve(4096);
             phase(id, "rollback_prepared");
+            observer.reached(WriteBoundary.ROLLBACK_PREPARED);
             runtime.setKeys(before);
             assertRuntime(originalRuntime, metadata);
+            observer.reached(WriteBoundary.ROLLBACK_RUNTIME_WRITTEN);
             if (!restored.equals(diskText)) SettingsFiles.replaceOwned(options, diskText, restored);
             if (!SettingsFiles.readOptions(options).equals(restored)) throw new IOException("SETTINGS_ROLLBACK_UNCONFIRMED");
+            observer.reached(WriteBoundary.ROLLBACK_OPTIONS_WRITTEN);
             runtime.releaseInputs();
             assertRuntime(originalRuntime, metadata);
             phase(id, "rolled_back");

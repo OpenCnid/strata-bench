@@ -10,6 +10,69 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent scripted predictions/replies. No Minecraft/server effect claim. */
 class GameInventoryTest {
+    @Test void untouchedClientMetadataDriftRequiresRestorationOfOriginalServerIdentity() throws Exception {
+        var backpack=new GameInventory.Stack("sophisticatedbackpacks:backpack",1,"server-components");
+        var initialized=new GameInventory.Stack(backpack.id(),1,"client-created-contentsUuid");
+        var stone=stack("minecraft:stone",3);
+        var before=view(Map.of(10,stone,45,backpack));
+        var after=view(Map.of(45,backpack),stone,0);
+        var drift=view(Map.of(45,initialized),stone,0);
+        for(int scenario=0;scenario<3;scenario++) {
+            var port=new Port(before,after);var motor=GameInventory.click(port,10,false,false,port::emit);
+            port.ack();port.current=drift;
+            assertFalse(motor.tick(port::emit));assertEquals(2,port.refreshes);
+            assertEquals(List.of(10),port.clicks);
+            if(scenario==0) { // Only restored full server identity can advance.
+                port.current=after;port.ack();assertTrue(motor.tick(port::emit));
+            } else {
+                port.feedback=scenario==1?after:drift;
+                assertThrows(IOException.class,()->motor.tick(port::emit));
+            }
+            assertEquals(2,port.refreshes);assertEquals(List.of(10),port.clicks);
+        }
+    }
+    @Test void exactLatePreClickEchoGetsOneChargedReadAndNeverAnotherClick() throws Exception {
+        var before=view(Map.of(10,stack("minecraft:stone",3)));
+        var after=view(Map.of(),stack("minecraft:stone",3),0);
+        var port=new Port(before,after);var motor=GameInventory.click(port,10,false,false,port::emit);
+        port.ack();port.current=before;
+        assertFalse(motor.tick(port::emit));assertEquals(2,port.refreshes);assertEquals(3,port.charges);
+        assertEquals(List.of(10),port.clicks);
+        assertFalse(motor.tick(port::emit));assertEquals(4,port.charges);
+        port.current=after;port.ack();assertTrue(motor.tick(port::emit));assertEquals(List.of(10),port.clicks);
+    }
+    @Test void repeatedEchoWrongRefreshAndConservedOwnedRearrangementFailWithoutReplay() throws Exception {
+        var stone=stack("minecraft:stone",3);var before=view(Map.of(10,stone,11,stack("minecraft:dirt",1)));
+        var after=view(Map.of(11,stack("minecraft:dirt",1)),stone,0);
+        for(int fault=0;fault<4;fault++) {
+            var port=new Port(before,after);var motor=GameInventory.click(port,10,false,false,port::emit);
+            port.ack();port.current=before;
+            assertFalse(motor.tick(port::emit));
+            if(fault==0) {port.feedback=after;port.current=before;}
+            if(fault==1) port.ack();
+            if(fault==2) {port.current=view(Map.of(12,stack("minecraft:dirt",1)),stone,0);port.ack();}
+            if(fault==3) {port.current=after;port.ack();port.valid=false;}
+            assertThrows(IOException.class,()->motor.tick(port::emit));assertEquals(List.of(10),port.clicks);
+            assertEquals(2,port.refreshes);
+        }
+        var exhausted=new Port(before,after);var motor=GameInventory.click(exhausted,10,false,false,exhausted::emit);
+        exhausted.ack();exhausted.current=before;
+        assertThrows(IOException.class,()->motor.tick(op->{throw new IOException("BUDGET_EXHAUSTED");}));
+        assertEquals(List.of(10),exhausted.clicks);assertEquals(1,exhausted.refreshes);
+    }
+    @Test void derivedPreviewUpdateDoesNotInvalidateConfirmedOwnedTransfer() throws Exception {
+        var before=view(Map.of(1,stack("minecraft:andesite",1),2,stack("minecraft:andesite",1)),stack("minecraft:andesite",3),0);
+        var received=view(Map.of(1,stack("minecraft:andesite",1),2,stack("minecraft:andesite",1),3,stack("minecraft:andesite",1)),stack("minecraft:andesite",2),0);
+        var port=new Port(before,received);
+        var motor=GameInventory.click(port,3,true,false,port::emit);port.ack();
+        var slots=new ArrayList<>(received.slots());slots.set(0,stack("minecraft:andesite_slab",6));
+        port.current=new GameInventory.View(slots,received.cursor(),0);
+        assertTrue(motor.tick(port::emit));assertEquals(List.of(3),port.clicks);assertEquals(2,port.charges);
+        assertThrows(IOException.class,()->GameInventory.click(port,0,false,false,port::emit));
+        slots.set(10,stack("minecraft:diamond",1));
+        assertFalse(GameInventory.sameOwned(received,new GameInventory.View(slots,received.cursor(),0)));
+        assertFalse(GameInventory.sameOwned(received,new GameInventory.View(received.slots(),stack("minecraft:andesite",1),0)));
+    }
     static GameInventory.Stack stack(String id, int count) { return new GameInventory.Stack(id, count, "component-identity"); }
     static GameInventory.View view(Map<Integer, GameInventory.Stack> values, GameInventory.Stack cursor, int preview) {
         var slots = new ArrayList<GameInventory.Stack>();

@@ -25,7 +25,7 @@ export const QUEST_MENU_POLICY='ftb-current-item-choice-clipped-pages32/4';
 export const QUEST_COMPONENTS_POLICY='ftb-visible-own-quest-task-reward-tooltips-pages32/1';
 export const QUEST_TEXT_POLICY='ftb-visible-own-quest-plain-text-pages32/1';
 export const QUEST_POLICY = 'ftb-visible-chapters-quests-own-team-pages32/1';
-export const RECIPE_QUERY_POLICY = 'jei-visible-crafting-thermal-item-fluid-focus-pages32/2';
+export const RECIPE_QUERY_POLICY = 'jei-thermal-emi-crafting-visible-focus-pages32/3';
 const LANE = ['arm','renew','deliver','act','action_status','cancel','stop_all','lane_status','authority'];
 const MUTATIONS = new Set(['arm','renew','deliver','act','cancel','stop_all']);
 type ObjectValue = Record<string, unknown>;
@@ -41,7 +41,7 @@ function queryArgs(value: unknown): asserts value is DiscoveryQuery {
   const target = value && typeof value === 'object' && Object.hasOwn(value,'fluid_id') ? 'fluid_id' : 'item_id';
   fields(value, ['source','category',target,'role','after']);
   const targetId = value[target];
-  requireThat(value.source === 'jei' && ['minecraft:crafting','thermal:furnace','thermal:crucible'].includes(String(value.category))
+  requireThat(['jei','emi'].includes(String(value.source)) && (value.source !== 'emi' || value.category === 'minecraft:crafting') && ['minecraft:crafting','thermal:furnace','thermal:crucible'].includes(String(value.category))
     && (value.category !== 'minecraft:crafting' || target === 'item_id')
     && typeof targetId === 'string' && targetId.length <= 256 && /^[a-z0-9_.-]+:[a-z0-9_./-]+$/.test(targetId)
     && ['input','output'].includes(String(value.role)) && uint(value.after) && value.after <= 512, 'GAME_ARGUMENTS_INVALID');
@@ -181,7 +181,7 @@ export const nativeCapabilities = (mutation: boolean) => ({
   campaign_admission:false, conformance:'unverified', operator_development_only:true,
   operations:[...READ,...(mutation ? LANE : [])], actions:mutation ? [...FORGE_ACTIONS] : [],
   native_action_policy:'durable-intent-client-thread-nineteen-actions/2',block_target_policy:'observed-outline-centers64-local16/1',menu_close_policy:'explicit-close-own-inventory-feedback-conservation/1',
-  recipe_policy:'player-book-exact-shaped-shapeless-pages32/1',crafting_policy:'known-recipe-book-fill-single-output-remainders/1',
+  recipe_policy:'player-book-exact-shaped-shapeless-pages32/1',crafting_policy:'known-recipe-server-preview-transition-bound20/6',
   recipe_query_policy:RECIPE_QUERY_POLICY,
   quest_policy:QUEST_POLICY,
   quest_text_policy:QUEST_TEXT_POLICY,
@@ -191,7 +191,7 @@ export const nativeCapabilities = (mutation: boolean) => ({
   recipe_navigation_policy:RECIPE_NAVIGATION_POLICY,
   manual_crafting_policy:'visible-recipe-manual-grid-feedback-search4096/1',
   machine_observation_policy:'thermal-current-gui-energy-fluid-base-slots/1',
-  machine_inventory_policy:'thermal-visible-slot-owned-transfer-feedback/1',
+  machine_inventory_policy:'thermal-visible-slot-owned-transfer-feedback/2',
   machine_input_policy:'thermal-display-independent-slot-cursor-fence/1',
   navigation_policy:'delivered-shapes-level-bfs512-radius16/1', collision_policy:'delivered-static-vanilla-shapes-age30s/1',
   movement_policy:'level-forward-coast-neutral8-charged-ticks/1', keybindings:false, screenshots:false,

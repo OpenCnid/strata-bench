@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { Ajv2020 } from 'ajv/dist/2020.js';
-import addFormatsModule from 'ajv-formats';
+import * as compiled from './schema_validators.js';
 import type { ActionBatch } from './generated/ActionBatch.js';
 import type { Observation } from './generated/Observation.js';
 import { requireThat } from './errors.js';
@@ -13,13 +12,12 @@ export type { PublicSignal } from './generated/Observation.js';
 export type { RpcRequest } from './generated/RpcRequest.js';
 export type Action = NonNullable<ActionBatch['action']>;
 
-const ajv = new Ajv2020({ strict: false, strictNumbers: true, allErrors: false, coerceTypes: false });
-const addFormats = addFormatsModule as unknown as (a: Ajv2020) => void;
-addFormats(ajv);
-const validators = new Map(['ActionBatch', 'ActionAck', 'Observation', 'RpcRequest'].map(name => {
-  const schema = JSON.parse(readFileSync(new URL(`../../../../schemas/v1/public/${name}.json`, import.meta.url), 'utf8'));
-  return [name, ajv.compile(schema)] as const;
-}));
+const validators = new Map<string, (value: unknown) => boolean>();
+for (const [name, expected] of Object.entries(compiled.schemaHashes)) {
+  const bytes = readFileSync(new URL(`../../../../schemas/v1/public/${name}.json`, import.meta.url));
+  requireThat(createHash('sha256').update(bytes).digest('hex') === expected, 'SCHEMA_BUILD_STALE');
+  validators.set(name, compiled[name as keyof typeof compiled.schemaHashes] as (value: unknown) => boolean);
+}
 
 export function validate<T>(name: string, value: unknown): T {
   requireThat(validators.get(name)?.(value), 'SCHEMA_UNSUPPORTED');

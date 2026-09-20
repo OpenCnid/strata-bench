@@ -21,4 +21,4 @@ for domain, models in (("public", AGENT_RECORDS), ("operator", [*OPERATOR_RECORD
         schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
         target = ROOT / "schemas" / "v1" / domain / f"{model.__name__}.json"
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+        target.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8", newline="\n")

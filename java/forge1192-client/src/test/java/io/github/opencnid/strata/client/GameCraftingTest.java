@@ -8,6 +8,101 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent toy menu: scripted recipe, no native/server correctness claim. */
 class GameCraftingTest {
+    @Test void resultPacketOvertakingFullReplyOnlyAuthorizesAnotherBoundedRead() throws Exception {
+        for(boolean refreshingMetadata:List.of(false,true)) {
+            var p=new Port(1);var original=item("backpack",1);p.slots.set(44,original);
+            var motor=startedFill(p);p.slots.set(0,EMPTY);p.ack();
+            if(refreshingMetadata) {
+                p.slots.set(44,new GameInventory.Stack(original.id(),1,"local-uuid"));
+                assertFalse(motor.tick(p::emit));p.slots.set(44,original);p.ack();
+            }
+            p.slots.set(0,p.output);long ticket=p.ticket;
+            assertFalse(motor.tick(p::emit));assertEquals(ticket+1,p.ticket);assertEquals(0,p.takes);
+            // Read latency remains charged, and predicted output cannot take itself.
+            assertFalse(motor.tick(p::emit));assertEquals(0,p.takes);
+            p.ack();assertFalse(motor.tick(p::emit));assertEquals(1,p.takes);
+            p.complete(motor);assertEquals(1,p.fills);assertEquals(original,p.slots.get(44));
+        }
+    }
+    @Test void previewTransitionCannotHideOtherChangesOrDisappearFromFreshReply() throws Exception {
+        for(int fault=0;fault<4;fault++) {
+            var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);p.ack();p.slots.set(0,p.output);
+            if(fault==0) p.slots.set(12,item("gift",1));
+            if(fault==1) p.cursor=item("held",1);
+            if(fault==2) p.slots.set(0,item("wrong",1));
+            if(fault<3) assertThrows(IOException.class,()->motor.tick(p::emit));
+            else {
+                assertFalse(motor.tick(p::emit));
+                p.slots.set(0,EMPTY);p.ack();assertFalse(motor.tick(p::emit));
+                assertEquals(0,p.takes);p.slots.set(1,item("wrong",1));p.ack();
+                assertThrows(IOException.class,()->motor.tick(p::emit));
+            }
+            assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        }
+    }
+    @Test void delayedServerPreviewRequiresFreshReplyWithoutRepeatingFill() throws Exception {
+        var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+        for(int i=0;i<3;i++) {p.ack();assertFalse(motor.tick(p::emit));}
+        assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        // A local preview is not a new server reply.
+        p.slots.set(0,p.output);assertFalse(motor.tick(p::emit));assertEquals(0,p.takes);
+        p.ack();assertFalse(motor.tick(p::emit));assertEquals(1,p.takes);
+        p.complete(motor);assertEquals(1,p.fills);assertEquals(p.output,p.slots.get(9));
+    }
+    @Test void previewWaitRejectsResourceMetadataAndWrongOutputChanges() throws Exception {
+        for(int fault=0;fault<5;fault++) {
+            var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+            p.ack();assertFalse(motor.tick(p::emit));
+            if(fault==0) {p.slots.set(1,EMPTY);p.slots.set(2,item("ingredient",1));}
+            if(fault==1) p.slots.set(1,new GameInventory.Stack("test:ingredient",1,"changed"));
+            if(fault==2) p.cursor=item("held",1);
+            if(fault==3) p.slots.set(0,item("wrong",4));
+            if(fault==4) p.matched=false;
+            p.ack();assertThrows(IOException.class,()->motor.tick(p::emit));
+            assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        }
+    }
+    @Test void missingPreviewAndExhaustedReadBudgetNeverTakeOrRefill() throws Exception {
+        var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
+        for(int i=0;i<GameCrafting.MAX_PREVIEW_READS;i++) {p.ack();assertFalse(motor.tick(p::emit));}
+        long ticket=p.ticket;p.ack();assertThrows(IOException.class,()->motor.tick(p::emit));
+        assertEquals(ticket,p.ticket);assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        var next=new Port(1);var pending=startedFill(next);next.slots.set(0,EMPTY);next.ack();
+        assertThrows(IOException.class,()->pending.tick(op->{throw new IOException("BUDGET_EXHAUSTED");}));
+        assertEquals(1,next.fills);assertEquals(0,next.clicks);
+    }
+    @Test void fillAndTakeBarriersRequireOriginalExactMetadataAfterOneRead() throws Exception {
+        for(boolean take:List.of(false,true)) for(int outcome=0;outcome<3;outcome++) {
+            var p=new Port(1);var original=item("backpack",1);
+            var changed=new GameInventory.Stack(original.id(),1,"client-generated-uuid");
+            p.slots.set(44,original);var motor=startedFill(p);
+            if(take) {p.ack();assertFalse(motor.tick(p::emit));}
+            p.ack();var authoritative=p.reply;p.slots.set(44,changed);
+            int clicks=p.clicks;long ticket=p.ticket;
+            assertFalse(motor.tick(p::emit));assertEquals(ticket+1,p.ticket);assertEquals(clicks,p.clicks);
+            if(outcome==0) {
+                p.slots.set(44,original);p.ack();assertFalse(motor.tick(p::emit));
+                p.complete(motor);assertEquals(1,p.takes);assertEquals(p.output,p.slots.get(9));
+            } else {
+                if(outcome==1) p.reply=authoritative;else p.ack();
+                assertThrows(IOException.class,()->motor.tick(p::emit));
+                assertEquals(ticket+1,p.ticket);assertEquals(clicks,p.clicks);
+            }
+        }
+    }
+    static GameActionLane.Motor startedFill(Port p) throws IOException {
+        var motor=GameCrafting.start(p,1,p::emit);p.ack();assertFalse(motor.tick(p::emit));return motor;
+    }
+    @Test void initialClientMetadataCannotBecomeTheConservationBaseline() throws Exception {
+        var p=new Port(1);var original=item("backpack",1);
+        p.slots.set(44,new GameInventory.Stack(original.id(),1,"local-uuid"));
+        var motor=GameCrafting.start(p,1,p::emit);
+        assertEquals(0,p.fills);assertEquals(1,p.charges);
+        for(int i=0;i<3;i++) assertFalse(motor.tick(p::emit));
+        assertEquals(0,p.fills); // Prediction cannot cause a fill before the actual reply.
+        p.slots.set(44,original);p.ack();assertFalse(motor.tick(p::emit));
+        p.complete(motor);assertEquals(1,p.takes);assertEquals(original,p.slots.get(44));
+    }
     static final GameInventory.Stack EMPTY = GameInventory.Stack.EMPTY;
     static GameInventory.Stack item(String id, int count) { return new GameInventory.Stack("test:" + id, count, "components"); }
     static final class Port implements GameCrafting.Port {
@@ -51,10 +146,10 @@ class GameCraftingTest {
         }
     }
     @Test void fillAndOutputPredictionNeverAuthorizeContinuationWithoutFeedback() throws Exception {
-        var p = new Port(1); var motor = GameCrafting.start(p, 1, p::emit);
-        assertEquals(2, p.charges); assertEquals(1, p.fills); assertEquals(0, p.clicks);
+        var p = new Port(1); var motor = startedFill(p);
+        assertEquals(3, p.charges); assertEquals(1, p.fills); assertEquals(0, p.clicks);
         for (int i = 0; i < 10; i++) assertFalse(motor.tick(p::emit));
-        assertEquals(12, p.charges); assertEquals(0, p.clicks);
+        assertEquals(13, p.charges); assertEquals(0, p.clicks);
         p.ack(); assertFalse(motor.tick(p::emit)); assertEquals(1, p.takes);
         for (int i = 0; i < 10; i++) assertFalse(motor.tick(p::emit));
         assertEquals(1, p.clicks); p.complete(motor);
@@ -68,13 +163,13 @@ class GameCraftingTest {
     }
     @Test void returnedContainerIsConfirmedAndStoredWithoutDroppingOrQuickMove() throws Exception {
         var p = new Port(1); p.remainder = item("container", 1);
-        var motor = GameCrafting.start(p, 1, p::emit); p.complete(motor);
+        var motor = startedFill(p); p.complete(motor);
         assertEquals(p.output, p.slots.get(9)); assertEquals(p.remainder, p.slots.get(10));
         assertEquals(4, p.clicks); assertTrue(p.cursor.empty());
     }
     @Test void wrongFillGiftsBulkStackAndWrongRecipeCannotTakeOutput() throws Exception {
         for (int fault = 0; fault < 4; fault++) {
-            var p = new Port(1); var motor = GameCrafting.start(p, 1, p::emit);
+            var p = new Port(1); var motor = startedFill(p);
             if (fault == 0) p.slots.set(12, item("gift", 1));
             if (fault == 1) { p.slots.set(1, item("ingredient", 2)); }
             if (fault == 2) p.slots.set(0, item("wrong", 4));
@@ -84,7 +179,7 @@ class GameCraftingTest {
     }
     @Test void outputRejectionWrongConsumptionAndRemainderDriftStopFurtherClicks() throws Exception {
         for (int fault = 0; fault < 3; fault++) {
-            var p = new Port(1); var motor = GameCrafting.start(p, 1, p::emit); p.ack(); motor.tick(p::emit);
+            var p = new Port(1); var motor = startedFill(p); p.ack(); motor.tick(p::emit);
             if (fault == 0) p.cursor = EMPTY;
             if (fault == 1) p.slots.set(1, item("ingredient", 1));
             if (fault == 2) p.slots.set(12, item("changed", 1));
@@ -103,7 +198,7 @@ class GameCraftingTest {
         }
     }
     @Test void missingRecipeResourcesReturnNoOutputAndNeverRetryFill() throws Exception {
-        var p = new Port(1); p.slots.set(9, EMPTY); var motor = GameCrafting.start(p, 1, p::emit);
+        var p = new Port(1); p.slots.set(9, EMPTY); var motor = startedFill(p);
         p.ack(); assertThrows(IOException.class, () -> motor.tick(p::emit)); assertEquals(1, p.fills); assertEquals(0, p.takes);
     }
     @Test void reserveRemainderSpaceCapacityAndPermissionBeforeTakingOutput() throws Exception {
@@ -111,24 +206,25 @@ class GameCraftingTest {
             var p = new Port(2); p.remainder = item("container", 1);
             if (fault == 0) for (int i = 11; i < 45; i++) p.slots.set(i, item("occupied", 64));
             if (fault == 1) p.capacity = 1; if (fault == 2) p.placement = false;
-            var motor = GameCrafting.start(p, 1, p::emit); p.ack();
+            var motor = startedFill(p); p.ack();
             assertThrows(IOException.class, () -> motor.tick(p::emit)); assertEquals(0, p.takes);
         }
     }
     @Test void changedMenuAndInterveningStateInvalidateFeedback() throws Exception {
         for (boolean changedMenu : List.of(false, true)) {
-            var p = new Port(1); var motor = GameCrafting.start(p, 1, p::emit); p.ack();
+            var p = new Port(1); var motor = startedFill(p); p.ack();
             if (changedMenu) p.valid = false; else p.slots.set(15, item("new", 1));
             assertThrows(IOException.class, () -> motor.tick(p::emit)); assertEquals(0, p.clicks);
         }
     }
     @Test void exhaustedRefreshOrCancelledTickDoesNotReplayFillOrTake() throws Exception {
         var p = new Port(1);
-        assertThrows(IOException.class, () -> GameCrafting.start(p, 1, op -> {
-            if (++p.charges == 2) throw new IOException("BUDGET_EXHAUSTED"); op.run();
+        var pending=GameCrafting.start(p,1,p::emit);p.ack();
+        assertThrows(IOException.class, () -> pending.tick(op -> {
+            if (++p.charges == 3) throw new IOException("BUDGET_EXHAUSTED"); op.run();
         }));
-        assertEquals(1, p.fills); assertEquals(0, p.ticket);
-        var next = new Port(1); var motor = GameCrafting.start(next, 1, next::emit); next.ack();
+        assertEquals(1, p.fills); assertEquals(1, p.ticket);
+        var next = new Port(1); var motor = startedFill(next); next.ack();
         assertThrows(IOException.class, () -> motor.tick(op -> { throw new IOException("CANCELLED"); }));
         assertEquals(1, next.fills); assertEquals(0, next.takes);
     }

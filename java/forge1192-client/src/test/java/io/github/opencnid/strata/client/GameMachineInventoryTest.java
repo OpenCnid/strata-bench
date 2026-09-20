@@ -33,6 +33,9 @@ class GameMachineInventoryTest {
         try (var lane = f.open()) {
             f.arm(lane, 1); f.deliver(lane); var request = machineBatch(f);
             lane.accept(request); f.start(lane); p.ack(before); lane.tick();
+            assertEquals("executing", lane.status("machine-action").get("status").getAsString());
+            assertEquals(2, p.refreshes); assertEquals(1, p.clicks);
+            p.ack(before); lane.tick(); // A second unchanged reply remains unknown.
             var status = lane.status("machine-action");
             assertEquals("unknown", status.get("status").getAsString());
             assertEquals("GAME_MACHINE_TRANSFER_UNCONFIRMED", status.get("error_code").getAsString());
@@ -83,9 +86,9 @@ class GameMachineInventoryTest {
         public boolean mayPickup(int slot) { return pickup; }
         public boolean mayPlace(int slot, GameInventory.Stack value) { return place; }
         public void click(int slot, int button, boolean quick) { clicks++; current = predicted; }
-        public long requestSync() { refreshes++; return 1; }
+        public long requestSync() { feedback = null; return ++refreshes; }
         public GameInventory.View reply(long ticket) throws IOException {
-            if (ticket != 1) throw new IOException("REVISION_CONFLICT"); return feedback;
+            if (ticket != refreshes) throw new IOException("REVISION_CONFLICT"); return feedback;
         }
         void ack(GameInventory.View value) { feedback = current = value; }
         void emit(GameActionLane.Operation operation) throws IOException {
@@ -106,6 +109,32 @@ class GameMachineInventoryTest {
         var motor = GameMachineInventory.click(p, CRUCIBLE, 0, false, false, p::emit);
         p.ack(view(CRUCIBLE, Map.of(), EMPTY)); // Input processed; tank/recipe result is deliberately not asserted.
         assertTrue(motor.tick(p::emit)); assertEquals(1, p.clicks);
+    }
+    @Test void exactPreclickEchoGetsOneChargedReadButNeverAnotherClickOrPredictedSuccess() throws Exception {
+        var before = view(FURNACE, Map.of(7, stack("minecraft:andesite", 5)), stack("minecraft:iron_dust", 3));
+        var predicted = view(FURNACE, Map.of(0, stack("minecraft:iron_dust", 3), 7, stack("minecraft:andesite", 5)), EMPTY);
+        var p = new Port(before, predicted);
+        var motor = GameMachineInventory.click(p, FURNACE, 0, false, false, p::emit);
+        p.ack(before); p.current = predicted; // An older full packet won the first ticket.
+        assertFalse(motor.tick(p::emit));
+        assertEquals(2, p.refreshes); assertEquals(1, p.clicks); assertEquals(3, p.charges);
+        assertFalse(motor.tick(p::emit)); // Current prediction is still not evidence.
+        p.ack(view(FURNACE, Map.of(1, stack("minecraft:iron_ingot", 3), 7, stack("minecraft:andesite", 5)), EMPTY));
+        assertTrue(motor.tick(p::emit)); assertEquals(1, p.clicks);
+    }
+    @Test void staleEchoCannotHideAnUnsolicitedOwnedChangeOrAuthorizeCancelledContinuation() throws Exception {
+        var before = view(FURNACE, Map.of(), stack("minecraft:iron_dust", 3));
+        var predicted = view(FURNACE, Map.of(0, stack("minecraft:iron_dust", 3)), EMPTY);
+        var p = new Port(before, predicted);
+        var motor = GameMachineInventory.click(p, FURNACE, 0, false, false, p::emit);
+        p.ack(before); p.current = view(FURNACE, Map.of(7, stack("minecraft:diamond", 1)), EMPTY);
+        assertThrows(IOException.class, () -> motor.tick(p::emit)); assertEquals(1, p.refreshes);
+        var stopped = new Port(before, predicted);
+        var waiting = GameMachineInventory.click(stopped, FURNACE, 0, false, false, stopped::emit);
+        stopped.ack(before); assertFalse(waiting.tick(stopped::emit));
+        stopped.valid = false;
+        assertThrows(IOException.class, () -> waiting.tick(stopped::emit));
+        assertEquals(1, stopped.clicks); assertEquals(2, stopped.refreshes);
     }
     @Test void newMachineOutputAndChargingDoNotInvalidateExactWithdrawnOwnedStack() throws Exception {
         var cell = new GameInventory.Stack("thermal:energy_cell", 1, "charge-before");

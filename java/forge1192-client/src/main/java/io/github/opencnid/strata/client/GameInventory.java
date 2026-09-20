@@ -25,6 +25,7 @@ final class GameInventory {
         void click(int slot, int button, boolean quickMove) throws IOException;
         long requestSync() throws IOException;
         View reply(long ticket) throws IOException; // null until actual full server contents arrive
+        default void mismatch(View reply, View current) {} // operator-only diagnosis, no acceptance authority
     }
     private record Expected(View before, int slot, Stack target, Stack cursor, boolean quickMove) {}
     static GameActionLane.Motor click(Port port, int slot, boolean right, boolean quickMove,
@@ -44,6 +45,7 @@ final class GameInventory {
         final Port port; final List<Integer> slots; final boolean right, quick;
         final int returnSlot; final String equippedId; final int destination;
         int index; long ticket; Expected expected;
+        boolean refreshed;
         Steps(Port port, List<Integer> slots, boolean right, boolean quick, int returnSlot, String equippedId,
               GameActionLane.Emitter emit) throws IOException {
             this.port = port; this.slots = new ArrayList<>(slots); this.right = right; this.quick = quick;
@@ -54,6 +56,7 @@ final class GameInventory {
             port.validate();
             View before = port.view(); int slot = slots.get(index);
             expected = predict(port, before, slot, right, quick);
+            refreshed = false;
             emit.invoke(() -> port.click(slot, right ? 1 : 0, quick));
             emit.invoke(() -> ticket = port.requestSync());
         }
@@ -61,9 +64,37 @@ final class GameInventory {
             port.validate(); View received = port.reply(ticket);
             if (received == null) { emit.invoke(() -> {}); return false; } // Charge the active feedback-wait motor tick.
             verify(expected, received);
-            // The native handler has applied this exact reply; unsolicited changes
-            // between reply and continuation invalidate the rest of the fixed motor.
-            if (!received.equals(port.view())) throw new IOException("REVISION_CONFLICT");
+            // A later result-slot packet may update a derived crafting preview.
+            // This motor never clicks that slot. Every owned slot and the cursor
+            // must still equal the actual reply before the next ordinary input.
+            View current = port.view();
+            if (!sameOwned(received,current)) {
+                port.mismatch(received,current);
+                var predicted = new ArrayList<>(expected.before.slots);
+                predicted.set(expected.slot,expected.target);
+                boolean exactReply = !quick && sameOwned(received,
+                    new View(predicted,expected.cursor,expected.before.resultSlot));
+                boolean exactBefore = sameOwned(current,expected.before);
+                var changed = new ArrayList<Integer>();
+                for (int i=0;i<Math.min(received.slots.size(),current.slots.size()) && changed.size()<16;i++)
+                    if (i!=received.resultSlot && !received.slots.get(i).equals(current.slots.get(i))) changed.add(i);
+                System.getLogger(GameInventory.class.getName()).log(System.Logger.Level.WARNING,
+                    "STRATA_OWNED_FEEDBACK_MISMATCH slot="+expected.slot+" reply_is_prediction="+exactReply
+                    +" current_is_before="+exactBefore+" cursor_changed="+!received.cursor.equals(current.cursor)
+                    +" changed_slots="+changed+" refreshed="+refreshed);
+                // Reacquire a stale pre-state or client-only metadata drift in
+                // an untouched slot. The renewed server reply must still pass
+                // verify(expected), including the ORIGINAL exact components.
+                // Never ignore a field, rewrite a stack, or repeat the click.
+                boolean metadataDrift = onlyUntouchedComponentsDiffer(received,current,expected.slot);
+                if (!quick && !refreshed && exactReply && (exactBefore || metadataDrift)) {
+                    refreshed = true;
+                    emit.invoke(() -> ticket=port.requestSync()); return false;
+                }
+                throw new IOException("REVISION_CONFLICT");
+            }
+            if (!received.equals(current)) System.getLogger(GameInventory.class.getName()).log(
+                System.Logger.Level.INFO,"STRATA_DERIVED_PREVIEW_CHANGED owned_slots_and_cursor_exact=true");
             index++;
             if (returnSlot >= 0 && index == 2 && !received.cursor.empty()) slots.add(returnSlot);
             if (index < slots.size()) { next(emit); return false; }
@@ -72,6 +103,23 @@ final class GameInventory {
             }
             return true;
         }
+    }
+    static boolean sameOwned(View expected, View actual) {
+        if (expected.slots.size()!=actual.slots.size() || expected.resultSlot!=actual.resultSlot
+                || !expected.cursor.equals(actual.cursor)) return false;
+        for(int i=0;i<expected.slots.size();i++)
+            if(i!=expected.resultSlot && !expected.slots.get(i).equals(actual.slots.get(i))) return false;
+        return true;
+    }
+    private static boolean onlyUntouchedComponentsDiffer(View reply, View current, int clicked) {
+        if (reply.slots.size()!=current.slots.size() || reply.resultSlot!=current.resultSlot
+                || !reply.cursor.equals(current.cursor)) return false;
+        for(int i=0;i<reply.slots.size();i++) {
+            if(i==reply.resultSlot) continue;
+            Stack a=reply.slots.get(i),b=current.slots.get(i);
+            if(i==clicked ? !a.equals(b) : !a.id.equals(b.id) || a.count!=b.count) return false;
+        }
+        return true;
     }
     private static Expected predict(Port port, View view, int slot, boolean right, boolean quick) throws IOException {
         if (slot < 0 || slot >= view.slots.size() || slot == view.resultSlot) throw new IOException("MECHANIC_UNSUPPORTED");
@@ -111,6 +159,10 @@ final class GameInventory {
             }
         } else if (!Objects.equals(expected.target, target) || !Objects.equals(expected.cursor, actual.cursor)) {
             throw new IOException("PRECONDITION_FAILED");
+        } else {
+            for (int i=0;i<before.slots.size();i++)
+                if (i!=before.resultSlot && i!=expected.slot && !before.slots.get(i).equals(actual.slots.get(i)))
+                    throw new IOException("PRECONDITION_FAILED");
         }
     }
     static boolean conserved(View before, View after) {

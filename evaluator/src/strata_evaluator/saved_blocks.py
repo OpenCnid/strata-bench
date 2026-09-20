@@ -237,7 +237,8 @@ def read_region(region: Path, chunk_x: int, chunk_z: int):
         "external": external, "compression": flag & 127, "compressed_bytes": len(payload), "nbt_bytes": len(raw)}
 
 
-def read_saved_blocks(world: Path, dimension: str, points: list[tuple[int, int, int]], *, is_example: bool):
+def _read_saved_points(world, dimension, points, *, is_example, decode):
+    """Shared bounded region traversal for private, selected save projections."""
     require(type(is_example) is bool, "INVALID_ARGUMENT")
     require(isinstance(world, Path) and world.is_absolute() and world.is_dir(), "UNSAFE_PATH")
     reject_links(world)
@@ -265,10 +266,16 @@ def read_saved_blocks(world: Path, dimension: str, points: list[tuple[int, int, 
         nbt_bytes += source["nbt_bytes"]
         require(compressed_bytes <= MAX_TOTAL_COMPRESSED and nbt_bytes <= MAX_TOTAL_NBT,
                 "SAVED_REFERENCE_QUOTA")
-        blocks.extend(block_states(raw, cx, cz, selected))
+        blocks.extend(decode(raw, cx, cz, selected))
         sources.append(source)
     by_position = {tuple(row["position"][axis] for axis in ("x", "y", "z")): row for row in blocks}
-    return {"schema": "strata/SavedBlockReference/1", "policy": POLICY, "is_example": is_example,
-        "data_version": DATA_VERSION, "dimension": dimension, "blocks": [by_position[p] for p in points],
+    return {"is_example": is_example,
+        "data_version": DATA_VERSION, "dimension": dimension, "rows": [by_position[p] for p in points],
         "sources": sources, "snapshot_consistency_proven": False, "action_causality_proven": False,
         "registry_membership_verified": False, "scoring_provenance_supported": False}
+
+
+def read_saved_blocks(world: Path, dimension: str, points: list[tuple[int, int, int]], *, is_example: bool):
+    result = _read_saved_points(world, dimension, points, is_example=is_example, decode=block_states)
+    result["blocks"] = result.pop("rows")
+    return {"schema": "strata/SavedBlockReference/1", "policy": POLICY, **result}

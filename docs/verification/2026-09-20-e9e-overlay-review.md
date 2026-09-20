@@ -1,7 +1,7 @@
 # Exact E9E overlay diagnostics and stopped-installation review
 
 Date: 2026-09-20. Scope: M0.3.2a, partial F01/F05/F10/F16,
-N01/N04/N06/N08, C04/C16/C18; T01/T02/T10/T13 and G0 remain incomplete.
+N01/N04/N06/N08, C03/C04/C24; T01/T02/T10/T13 and G0 remain incomplete.
 This is operator-only code/static-artifact evidence, not a live game trial.
 
 `inspect_e9e_mode` now records bounded differing TOML key paths and source/target

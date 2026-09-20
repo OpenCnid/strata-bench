@@ -15,7 +15,7 @@ class EventSpoolTest {
     @TempDir Path root;
 
     @Test void orderedDurableRecordsAndIndependentBoots() throws Exception {
-        TelemetryConfig config = new TelemetryConfig("fixture", 3, root, 1048576, 100, List.of());
+        TelemetryConfig config = new TelemetryConfig("fixture", 3, root, 1048576, 100, List.of(), List.of());
         String first;
         try (EventSpool spool = new EventSpool(config)) {
             first = spool.bootId();
@@ -39,7 +39,7 @@ class EventSpoolTest {
     }
 
     @Test void quotaFailureIsStickyAndDoesNotInventDurableAcknowledgments() throws Exception {
-        TelemetryConfig config = new TelemetryConfig("fixture", 1, root, 65536, 1, List.of());
+        TelemetryConfig config = new TelemetryConfig("fixture", 1, root, 65536, 1, List.of(), List.of());
         EventSpool spool = new EventSpool(config);
         spool.publish(1, "fixture", "strata/Test/1", new JsonObject(), new JsonArray());
         IOException error = assertThrows(IOException.class, () ->
@@ -52,7 +52,7 @@ class EventSpoolTest {
     }
 
     @Test void oversizedEventAndClosedWriterRejectNewData() throws Exception {
-        TelemetryConfig config = new TelemetryConfig("fixture", 1, root, 65536, 10, List.of());
+        TelemetryConfig config = new TelemetryConfig("fixture", 1, root, 65536, 10, List.of(), List.of());
         EventSpool spool = new EventSpool(config);
         JsonObject data = new JsonObject();
         data.addProperty("large", "x".repeat(65536));

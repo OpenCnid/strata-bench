@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.37](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.38](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -154,7 +154,9 @@ admission remains blocked.
 
 ## Exact-pack follow-up
 
-Native helper checkpoint `a1fbb0e` is committed. The [overlay review](verification/2026-09-20-e9e-overlay-review.md) adds bounded private mismatch diagnostics while retaining all five failures (263/268 passing stopped-server checks). Exact installed JARs, declared nested mods and original archives indicate client-specific and legacy overlays; no file exclusions, guessed migration or vendor edits were applied. Fifteen local tests and targeted Ruff pass. M0.3.2b now targets private loaded-config registration/spec/data, then role and cold-restart/reference/mechanics qualification. No new game run or paid inference.
+Overlay checkpoint `ce3e465` is committed. [Loaded-config telemetry 0.2.0](verification/2026-09-20-e9e-loaded-config.md) has 51 Python/11 Java checks and an authentic corrected two-boot comparison: 34/32 clean records, same six selected snapshots, both furnace assertions pass. Original placeholder-selector plan failure is retained. Four files are unregistered and current Create/common values persist; all 268 file outcomes/digests remain unchanged, including five failures. The dedicated server now has the pinned 0.2.0 telemetry JAR; old bytes are preserved privately. All three runs stopped normally; no client or inference ran. Next: exact role/consumer disposition and full expert mechanics/reliability with current pins.
+
+Native helper checkpoint `a1fbb0e` is committed. The [overlay review](verification/2026-09-20-e9e-overlay-review.md) adds bounded private mismatch diagnostics while retaining all five failures (263/268 passing stopped-server checks). Exact installed JARs, declared nested mods and original archives indicate client-specific and legacy overlays; no file exclusions, guessed migration or vendor edits were applied. Fifteen local tests and targeted Ruff pass. M0.3.2b now has selected server loaded-config evidence and retains full role/reference/mechanics qualification. The stopped-artifact review itself made no game run or inference.
 
 ## Original resumed task and retained acceptance criteria
 
@@ -257,7 +259,8 @@ private frame diagnostics are available for bounded checks but do not waive
 render/input/security gates. Neither current-user ACLs nor a fresh conversation
 provide adversarial isolation.
 
-Start the next session from updated `main`, inspect its working tree, and read
-applicable instructions before changing code. Do not rerun broad or paid suites
+Continue the current `codex/strata-native-dispatch` worktree without discarding
+its unmerged commits. Reconcile the actual remote/working tree and read applicable
+instructions before changing code in a later session. Do not rerun broad or paid suites
 without a relevant change. Keep all F01–F16/N01–N08, T01–T17, G0–G5 and M0–M7
 coverage visible; update the ledger with the next task's actual evidence.

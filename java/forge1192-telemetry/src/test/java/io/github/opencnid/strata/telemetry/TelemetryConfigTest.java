@@ -57,4 +57,32 @@ class TelemetryConfigTest {
             assertThrows(IOException.class, () -> TelemetryConfig.read(source, game), invalid);
         }
     }
+
+    @Test void versionedSelectedQueriesRejectDuplicatesPathsAndSchemaMixing() throws Exception {
+        Path spool = Files.createDirectory(root.resolve("spool"));
+        Path game = Files.createDirectory(root.resolve("game"));
+        Path source = root.resolve("config.json");
+        JsonObject value = fixture(spool); value.addProperty("schema", "strata/ForgeTelemetryConfig/2");
+        JsonArray queries = new JsonArray();
+        queries.add(new ConfigQuery("fixture-common.toml", java.util.List.of(java.util.List.of("quoted.key", "items"))).json());
+        value.add("config_queries", queries);
+        Files.writeString(source, value.toString());
+        assertEquals("quoted.key", TelemetryConfig.read(source, game).configQueries().get(0).paths().get(0).get(0));
+        String valid = value.toString();
+        for (String invalid : new String[] {
+            valid.replace("TelemetryConfig/2", "TelemetryConfig/1"),
+            valid.replace("fixture-common.toml", "../fixture-common.toml"),
+            valid.replace("\"quoted.key\",\"items\"", "\"quoted.key\",null"),
+            valid.replace("\"file_name\":", "\"extra\":true,\"file_name\":"),
+            valid.replace("\"paths\":", "\"paths\":[],\"paths\":"),
+            valid.replace("[[\"quoted.key\",\"items\"]]", "[[],[]]")
+        }) {
+            Files.writeString(source, invalid);
+            assertThrows(Exception.class, () -> TelemetryConfig.read(source, game), invalid);
+        }
+        queries.add(queries.get(0).deepCopy()); Files.writeString(source, value.toString());
+        assertThrows(IOException.class, () -> TelemetryConfig.read(source, game));
+        assertThrows(IllegalArgumentException.class, () -> new ConfigQuery("fixture.toml", java.util.List.of(java.util.List.of("k"), java.util.List.of("k"))));
+        assertThrows(IllegalArgumentException.class, () -> new ConfigQuery("fixture.toml", java.util.List.of(java.util.Collections.nCopies(17, "k"))));
+    }
 }

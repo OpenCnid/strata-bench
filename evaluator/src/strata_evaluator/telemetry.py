@@ -18,6 +18,7 @@ from mcbench.records import GameEvent
 from mcbench.storage import reject_links, require
 
 from .cli import write_report
+from .telemetry_configs import ConfigQuery, ConfigSnapshot
 
 KINDS = {
     "server_started": "strata/ServerStarted/1",
@@ -25,6 +26,7 @@ KINDS = {
     "server_health": "strata/ServerHealth/1",
     "craft_callback": "strata/RawCraftCallback/1",
     "server_stopped": "strata/ServerStopped/1",
+    "config_snapshot": "strata/ConfigSnapshot/1",
 }
 
 
@@ -40,6 +42,17 @@ class ServerStarted(Strict):
     forge: Literal["43.4.23"]
     scoring_provenance_supported: Literal[False]
     recipe_count: UInt
+
+
+class ServerStartedV2(ServerStarted):
+    module: Literal["strata-forge1192-telemetry/0.2.0"]
+    config_queries: list[ConfigQuery] = Field(max_length=16)
+
+    @model_validator(mode="after")
+    def unique_queries(self):
+        require(len({q.file_name for q in self.config_queries}) == len(self.config_queries),
+                "TELEMETRY_CONFIG_QUERY")
+        return self
 
 
 class RecipeSnapshot(Strict):
@@ -89,7 +102,7 @@ class RawCraftCallback(Strict):
 
 
 PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
-                          RawCraftCallback, Strict), strict=True))
+                          RawCraftCallback, Strict, ConfigSnapshot), strict=True))
 
 
 def unique_object(pairs):
@@ -107,7 +120,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
     require(path.stat().st_size <= 1024**3, "TELEMETRY_QUOTA_EXHAUSTED")
     hasher = hashlib.sha256()
     boot, previous_tick, count, health_tick = None, 0, 0, 0
-    recipes, avatars, kinds = {}, {}, {}
+    recipes, avatars, kinds, configs, config_queries = {}, {}, {}, {}, {}
     stopped = False
     health_wall_ns, health_ticks = 0, 0
     with path.open("rb") as stream:
@@ -120,7 +133,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
             require(not event.is_example, "EXAMPLE_NOT_EXECUTABLE")
             require(event.campaign_id == campaign_id and event.epoch == epoch,
                     "TELEMETRY_SCOPE_MISMATCH")
-            require(event.kind in KINDS and KINDS[event.kind] == event.payload_schema,
+            version2 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/2"
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -128,7 +142,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 require(event.kind == "server_started" and event.server_tick == 0,
                         "TELEMETRY_START_MISSING")
                 boot = event.server_boot_id
-                require(event.payload.get("module") == "strata-forge1192-telemetry/0.1.0"
+                module = "strata-forge1192-telemetry/0.2.0" if version2 else "strata-forge1192-telemetry/0.1.0"
+                require(event.payload.get("module") == module
                         and event.payload.get("minecraft") == "1.19.2"
                         and event.payload.get("forge") == "43.4.23"
                         and event.payload.get("scoring_provenance_supported") is False,
@@ -137,7 +152,17 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 require(event.server_boot_id == boot, "TELEMETRY_BOOT_MISMATCH")
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
-            PAYLOADS[event.kind].model_validate(data)
+            parsed = (ServerStartedV2 if version2 else PAYLOADS[event.kind]).model_validate(data)
+            if version2:
+                config_queries = {q.file_name: q.paths for q in parsed.config_queries}
+            if event.kind == "config_snapshot":
+                name = parsed.file_name
+                require(name in config_queries and name not in configs, "TELEMETRY_CONFIG_SCOPE")
+                require(event.server_tick == 1 and not any(k in kinds for k in
+                        ("server_health", "craft_callback")), "TELEMETRY_CONFIG_ORDER")
+                if parsed.status == "snapshot":
+                    require([v.path for v in parsed.values] == config_queries[name], "TELEMETRY_CONFIG_SCOPE")
+                configs[name] = data
             if event.kind == "recipe_snapshot":
                 recipe_id = data.get("recipe_id")
                 require(isinstance(recipe_id, str) and recipe_id not in recipes,
@@ -169,12 +194,14 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
             count += 1
             require(count <= 1000000, "TELEMETRY_QUOTA_EXHAUSTED")
     require(stopped, "TELEMETRY_CLEAN_STOP_MISSING")
+    require(set(configs) == set(config_queries), "TELEMETRY_CONFIG_MISSING")
     return {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
             "file_sha256": hasher.hexdigest(), "campaign_id": campaign_id, "epoch": epoch,
             "server_boot_id": boot, "records": count, "kind_counts": kinds,
             "last_server_tick": previous_tick, "sampled_server_ticks": health_ticks,
             "sampled_wall_ns": health_wall_ns, "avatar_ticks_at_last_sample": avatars,
             "recipe_snapshots": recipes, "clean_stop": True, "scoring_eligible": False,
+            "config_queries": config_queries, "config_snapshots": configs,
             "transport_identity_verified": False, "mechanics_parity_verified": False,
             "gate_result": "not_run"}
 

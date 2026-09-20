@@ -49,12 +49,14 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.1.0");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.2.0");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
             boot.addProperty("recipe_count", event.getServer().getRecipeManager().getRecipes().size());
-            emit("server_started", "strata/ServerStarted/1", boot, new JsonArray());
+            JsonArray queries = new JsonArray(); config.configQueries().forEach(q -> queries.add(q.json()));
+            boot.add("config_queries", queries);
+            emit("server_started", "strata/ServerStarted/2", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             lastSample = System.nanoTime();
         } catch (IOException error) { throw failed(error); }
@@ -93,6 +95,13 @@ public final class StrataTelemetry {
             return;
         }
         ticks++;
+        // All ServerStarted listeners have returned. This is still a point observation,
+        // not a transaction across watcher threads or proof of cached consumer effects.
+        if (ticks == 1) {
+            for (ConfigQuery query : config.configQueries()) {
+                emit("config_snapshot", "strata/ConfigSnapshot/1", ConfigSnapshot.capture(query), new JsonArray());
+            }
+        }
         long now = System.nanoTime();
         if (tickStart != 0) workNanos += now - tickStart;
         MinecraftServer server = event.getServer();

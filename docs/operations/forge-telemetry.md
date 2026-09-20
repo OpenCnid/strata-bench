@@ -20,6 +20,46 @@ The strict `strata/ForgeTelemetryConfig/1` fields are `campaign_id`, positive
 (at most 64 unique namespaced identifiers), plus `schema`. There is no target
 URL, console command or arbitrary reflective method in the configuration.
 
+Telemetry 0.2.0 also accepts `strata/ForgeTelemetryConfig/2`, whose required
+additional field is `config_queries`. Each query has `file_name` (a lowercase
+TOML basename, at most 128 characters) and `paths` (1–32 unique arrays, each
+1–16 printable ASCII keys of 1–128 characters). At most 16 distinct files are
+allowed. These are exact public Forge registry selectors, not paths to open or
+methods to invoke. Version 1 remains accepted with no config queries. Use keys
+from the pinned release/config spec; retain erroneous probe plans separately.
+
+`strata/ServerStarted/2` binds the query plan. On the first server tick END,
+`strata/ConfigSnapshot/1` observes registration and selected raw loaded data.
+It distinguishes unregistered, unloaded, unsupported spec/value, unstable,
+read_failed and quota_exceeded outcomes. Successful rows distinguish declared
+spec leaves from present raw keys; missing values have no value field. The reader
+never invokes ConfigValue.get, correction, save, reload or setters. Two matching
+copies plus unchanged object identities/loaded status establish only
+`matching_consecutive_reads`, not atomicity against a file-watcher thread or
+equivalence to a mod's cached consumer state. There is no automatic file exclusion
+or whole-pack loaded-config pass.
+
+Values are limited to booleans, integers within ±(2^53−1), finite doubles,
+valid strings of at most 4096 UTF-8 bytes and lists. The complete copy permits
+at most eight list levels, 4096 value nodes and 64 KiB; overflow discards the
+whole selected snapshot. Unselected values and config comments are not copied.
+The private importer rejects missing/duplicate/unrequested files, mismatched
+path order, late snapshots, malformed/coerced values and incomplete streams.
+The 0.1.0 historical module remains separately accepted with its original schema.
+
+For the retained E9E findings, the exact source-backed selectors are BHMenu
+`["pack_id"]`, No More World Settings `["buttondisabled"]`, Inventory Sorter
+`["blacklists","containerBlacklist"]` / `["blacklists","slotBlacklist"]`,
+legacy Sophisticated Core `["server","enabledItems"]`, and its current common
+config `["common","enabledItems"]`. Create uses
+`["logistics","defaultExtractionLimit"]` / `["logistics","defaultExtractionTimer"]`
+and the four keys under `["schematics","schematicannon"]`:
+`schematicannonGunpowderWorth`, `schematicannonFuelUsage`,
+`schematicannonShotsPerGunpowder`, `schematicannonDelay`. Query both the legacy
+and current paths; an absent or undeclared legacy key stays visible. Check the
+actual startup plan against the privately hashed input config before relying on
+an inspection. These selectors do not assert that a named file is registered.
+
 Each boot creates a new UUID-named JSONL file and emits `mcbench/GameEvent/1`
 records with evaluator visibility. A bounded 256-record queue feeds one writer;
 each record is forced to disk before advancing the durable cursor. Backpressure,

@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.38](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.39](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,7 +16,7 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `4ade4e5`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `ea50836`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
@@ -158,6 +158,14 @@ Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
 ## Native helper lifecycle follow-up
+
+[Settings crash fixture](verification/2026-09-20-settings-crash-fixture.md) now
+builds at SHA256 6332576ea722a9ab49255cb0187851b22e4e9f4fb8e42f70dbbdc19eb723f051.
+Six abrupt JVM/new-process recovery pairs use synthetic bindings; 448 full Java
+and 33 selected Python checks pass. The title-only private probe is inactive by
+default and rejects other diagnostic modes before listeners install. Preserve
+the installed artifact and collect authentic per-boundary native state/recovery
+evidence with a newly pinned fingerprint; do not treat these fixtures as T05.
 
 [Authentic native settings](verification/2026-09-20-native-settings.md) now pass
 the first Curios configuration apply/readback/rollback and a separate discovery

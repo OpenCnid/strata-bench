@@ -20,8 +20,11 @@ final class ClientDiscoveryExport {
     private static final BindingDiscovery DISCOVERY = new BindingDiscovery();
 
     static void install() {
+        // Reject an armed crash/other diagnostic combination before installing any listener.
+        ClientSettingsCrashProbe.validateModes(System.getProperties(), System.getenv());
         MinecraftForge.EVENT_BUS.addListener(ClientDiscoveryExport::tick);
         ClientSettingsProbe.install();
+        ClientSettingsCrashProbe.install();
         ClientSettingsBridge.install();
         ClientGameBridge.install();
         ClientCollisionProbe.install();

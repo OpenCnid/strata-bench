@@ -6,6 +6,7 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.38; maintenance rules: [
 
 ## Current position
 
+- **Native write-boundary fault candidate:** [Six-point fixture](docs/verification/2026-09-20-settings-crash-fixture.md) built at SHA256 6332576ea722a9ab49255cb0187851b22e4e9f4fb8e42f70dbbdc19eb723f051. Inert-by-default/title-only, no bridge or physical input; precise prepare/runtime/options boundaries across apply/rollback. Six abrupt synthetic JVM/recovery pairs, 448 full Java and 33 selected Python checks pass. Next preserve the old artifact, install the candidate in the stopped dedicated profile, and collect authentic per-boundary recovery evidence. No public capability/deadline change.
 - **Authentic foreign settings conflicts:** [Fresh trial](docs/verification/2026-09-20-native-settings-conflicts.md) passes stale-apply rejection, unrelated-file and owned-third-value rollback conflicts, and two new-apply recovery fences. Exactly one prepared transaction, foreign edits preserved, all 253 bindings and exact options bytes restored after removing only known injections. Client terminal/arguments retired; no input/world/inference. Next implement precise native write-boundary faults; writer exclusion and in-memory foreign changes remain open.
 - **Authentic pending settings recovery:** [Two-client sample](docs/verification/2026-09-20-native-settings-recovery.md) passes one pending apply, forced dedicated-client termination, new-session status and rollback without another apply. Six valid journal frames retain the original prefix; all 253 runtime/persisted values and exact options bytes restore. Both clients terminal, arguments retired, desktop unchanged, zero inference. Next: foreign-options/revision conflicts and precise mid-write faults; full T05/G1 remains open.
 
@@ -279,7 +280,9 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1a.2.3b | GI/QA | Fresh client restart reads the rolled-back runtime and persisted keymap; no forward transaction replay | implemented_unverified | [Independent read-only boot](docs/verification/2026-09-20-native-settings.md) passes 253 runtime/persisted matches and unchanged options digest; strict discovery audit passes format only. No forward transaction property/replay. Repaired-key physical-effect persistence, complete restore/isolation and full T05 remain open. |
 | M1.1a.2.3c | GI/QA | Actual interrupted native settings transaction, preserved journal/owned-field recovery and foreign-change conflict negatives | in_progress | Split .2.3c.1 applied-pending process interruption, .2.3c.2 mid-write faults and .2.3c.3 foreign-change conflicts. Existing private bridge, exact identity and bounded conservative recovery; no blind apply replay. Synthetic SettingsStore cases remain supporting evidence only. |
 | M1.1a.2.3c.1 | GI/QA | Authentic process termination after applied_pending_verification, new-session status and owned rollback from the same journal, no second apply | implemented_unverified | [Authentic two-client case](docs/verification/2026-09-20-native-settings-recovery.md) passes one total apply/zero recovery applies, preserved hash-linked journal prefix, 253 restored runtime/persisted bindings and exact original options bytes. Both processes terminal/arguments retired. Full partial-write, ambiguous-response and foreign-change cases remain .2.3c.2/.3; no physical-key/effect or full T05 claim. |
-| M1.1a.2.3c.2 | GI/QA | Actual interruption within prepared/native-write/file-write/rollback phases and retained uncertain outcome recovery | not_started | Requires a precise bounded fault plan and phase evidence on the real runtime. A completed pending apply followed by termination cannot stand in for all partial-write cases. |
+| M1.1a.2.3c.2 | GI/QA | Actual interruption within prepared/native-write/file-write/rollback phases and retained uncertain outcome recovery | in_progress | Split .2.3c.2a precise operator-only boundary fixture and .2.3c.2b authentic exact-artifact qualification. A completed pending apply followed by termination cannot stand in for partial-write cases; power-loss durability remains separate. |
+| M1.1a.2.3c.2a | GI/QA | Inert-by-default fault boundaries and bounded title-only crash probe; abrupt-JVM synthetic recovery checks | implemented_unverified | [Candidate and checks](docs/verification/2026-09-20-settings-crash-fixture.md): six explicit boundaries, real abrupt JVM/synthetic binding recovery, 448 Java/33 Python checks pass; protected fresh plan and exact state captures, no bridge/input/replay. Authentic native qualification remains .2b; no gameplay capability. |
+| M1.1a.2.3c.2b | GI/QA | Exact new-artifact authentic crash at each boundary, new-session status and conservative rollback | not_started | Requires installed candidate/source hashes, six independent preserved failed-state journals and real runtime/disk evidence. Synthetic JVM faults do not pass this child. |
 | M1.1a.2.3c.3 | GI/QA | Actual foreign runtime/options revision conflicts, no overwrite of unrelated changes and explicit owned-intervention cleanup | in_progress | [Authentic disk cases](docs/verification/2026-09-20-native-settings-conflicts.md) pass stale apply plus unrelated/owned-third-value rollback conflicts and two forward fences; one prepared transaction, exact known-injection removal, 253 runtime/persisted mappings and original bytes restored. In-memory foreign changes and OS-writer exclusion remain unrun. Cooperating profile locks/operator byte comparisons do not qualify isolation/CAS. |
 | M1.1a.2.4 | GI/PL | Transaction-aware private native transport and Python adapter; strict schema, session/deadline fencing, uncertain-response recovery | implemented_unverified | [Java bridge](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsHttpBridge.java), [Python client](src/mcbench/native_settings.py): five Java transport tests, 15 Python validation tests and four actual JVM/HTTP cases with synthetic runtime pass, including lost acknowledgement, process restart, duplicate transaction and foreign-edit recovery fencing. Native Minecraft, OS isolation, qualified Controls projection/verified commit, lifecycle/accounting and gameplay CLI integration remain open. Capability stays disabled. |
 | M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | not_started | Required before advertising keybinding support; byte comparisons and source inspection alone are insufficient. |
@@ -4563,3 +4566,32 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   Partial F06/F09/F16, N01/N02/N03/N04/N06/N08, C10/C11/C14/C18 and T05/T07/T13.
   In-memory foreign changes, writer exclusion, physical effects, precise
   mid-write faults and full T05/G1 remain open; no aggregate gate closes.
+
+### 2026-09-20 — Six explicit settings write-boundary crash points
+
+- After `ea50836`, split M1.1a.2.3c.2 into the private fault fixture (.2a) and
+  authentic exact-artifact qualification (.2b). SettingsStore's ordinary
+  constructors keep a no-op observer; the explicit probe halts only at one
+  planned prepare/runtime/options boundary across apply or rollback.
+- Added strict bounded plan/fresh-root checks, source-bound title-only wrapper,
+  exclusive diagnostic-mode preflight, forced armed/boundary state/options
+  captures and abrupt JVM exit 86 without rollback/shutdown hooks. Existing
+  journals/reports reject rearming; no endpoint, gameplay capability or physical
+  event. SPEC v0.2.39 records the private fixture and unchanged real gates.
+- Eight new tests include six actual abruptly terminated synthetic-runtime JVMs
+  and six fresh recovery JVMs. They check precise partial states, bypassed
+  shutdown hooks, status-before-rollback without apply, one prepared transaction,
+  preserved journal prefixes and complete runtime/file restoration. Invalid/
+  repeated plans and incompatible diagnostic modes reject before mutation.
+- Focused Java checks: 33 pass. Full client build/tests/classpath: 448 pass,
+  zero failures/errors/skips, 28 s. Selected native-settings/JVM/discovery/
+  gameplay-packaging Python checks: 33 pass, zero skips, 5.40 s. Full Ruff,
+  changed Markdown links, complete F/N/T/G/M rows and diff checks pass.
+- [Report](docs/verification/2026-09-20-settings-crash-fixture.md); external
+  2026-09-20-settings-crash-implementation-01 retains XML, logs and source/artifact
+  manifest. Candidate SHA256 6332576ea722a9ab49255cb0187851b22e4e9f4fb8e42f70dbbdc19eb723f051.
+  No Minecraft or live inference ran in these checks. Partial F06/F09/F16,
+  N01/N02/N03/N04/N06/N08, C10/C11/C14/C18 and T05/T07/T13 only; original
+  failures/full gates remain. Next preserve/install exact candidate and exercise
+  authentic boundary/recovery pairs; arbitrary setter/power-loss and full
+  effects/isolation/repair-accounting requirements remain unresolved.

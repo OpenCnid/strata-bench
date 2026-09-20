@@ -48,3 +48,7 @@ This strengthens file continuity without granting process or gameplay authority.
 The existing staging CLI also passes its focused compatibility check after the
 argument-routing change (one pass,0.42 s). Final verifier source SHA256:
 `83fd34ed8fb4e58ab7cdb649db2275cdc92163d5afb2e51c51201f8b2084ce3b`.
+
+## Authentic use in pair04
+
+Both phases of [pair04](2026-09-20-forge-reconnect.md) use the reusable staging and independent pre-client verification successfully. Complete source bytes, original authority, receipt, saved state and cost continuity pass (16 inherited plus four new primitives). This verifies the narrow operator-attested staging contract, alongside the retained synthetic failure cases and authentic expired-source rejection. The second guardian still fails 500 ms; complete checkpoint/launch admission and isolation remain unqualified.

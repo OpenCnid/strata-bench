@@ -5,6 +5,7 @@ from mcbench.storage import Fault, digest
 from strata_evaluator.analysis import common_support_area, holm, paired_report, plan_sample
 from strata_evaluator.probes import BASE_FIELDS, identity_decision, matched_pair
 from strata_evaluator.scorer import Predicate, Scorer
+from strata_evaluator.scoring_scope import ScoringSource
 
 
 def result(example, lineage, pair, arm, success):
@@ -79,16 +80,20 @@ def craft(example, seq=1, **patch):
     {"expert_mode": False}, {"team_id": "other"}, {"valid_setup": False},
     {"recipe_id": "minecraft:wrong"}, {"item_id": "minecraft:wrong"}])
 def test_private_scorer_negative_controls(example, database, patch):
-    assert not Scorer(database).score("instance1", predicate(), craft(example, **patch))["complete"]
+    scorer = Scorer(database)
+    register(scorer, "instance1", predicate(), craft(example))
+    assert not scorer.score("instance1", predicate(), craft(example, **patch))["complete"]
 
 
 def test_scorer_alternates_dedup_restore_and_schema_rejection(example, database):
     scorer = Scorer(database)
     p = predicate()
     event = craft(example, recipe_id="minecraft:alternate")
+    register(scorer, "i", p, event)
     assert scorer.score("i", p, event)["complete"]
     assert scorer.score("i", p, event)["output"] == 4
     restored = GameEvent.model_validate(event.model_dump() | {"server_boot_id": "new-boot", "epoch": 2})
+    register(scorer, "i", p, restored)
     assert scorer.score("i", p, restored)["output"] == 4
     with pytest.raises(Fault, match="IDEMPOTENCY_CONFLICT"):
         scorer.score("i", p, craft(example))
@@ -107,6 +112,7 @@ def test_machine_requires_contiguous_operating_window(example, database):
                 "interval_start": start, "interval_end": end, "output_count": 2,
                 "energy_consumed": 10, "fluid_consumed": 1, "source": "machine",
                 "expert_mode": True, "valid_setup": True} | patch})
+    register(scorer, "i", predicate("machine"), event(1, 0, 20))
     assert not scorer.score("i", predicate("machine"), event(1, 0, 20))["complete"]
     assert not scorer.score("i", predicate("machine"), event(2, 20, 40, energy_consumed=0))["complete"]
     assert not scorer.score("i", predicate("machine"), event(3, 40, 60))["complete"]
@@ -130,3 +136,9 @@ def test_matched_clones_probe_taint_and_drift_quarantine():
     unknown = identity_decision("s", "s", None, None, immutable=False,
                                last_verified_cursor=0, current_cursor=20)
     assert not unknown["fixed_model_claim"]
+
+
+def register(scorer, instance, p, event):
+    return scorer.register_source(instance, p, ScoringSource(
+        campaign_id=event.campaign_id, epoch=event.epoch, server_boot_id=event.server_boot_id,
+        evidence_kind="synthetic", evidence_sha256=["a" * 64]))

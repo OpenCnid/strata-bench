@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.56](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.57](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -21,6 +21,10 @@ to `579796d`. Continue this branch and preserve its unmerged commits; publicatio
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
+
+**Current state — pair04 terminal; scorer fix applied:** session67334 finished; zero Java confirmed. Both public phases, corrected footprint cancellation, reusable journal staging/pre-client verification, saved state/receipts and 16 + 4 = 20 costs pass. Phase1 guardian passes339.9197/500 ms, phase2 fails508.2221/500 ms; overall fail. Private root C:/Users/Darian/.strata/evidence/2026-09-20-forge-reconnect-04. Pair824.829 s plus3.899-s gap; linked766 primitives/10233.723 s, previous setups/gaps retained separately. Do not repeat unchanged or renew authority. [Report](verification/2026-09-20-forge-reconnect.md).
+
+M0.2c.2 now implements explicit private scorer campaign/epoch/boot registration and semantic receipt conflict checks. An actual synthetic reproduction first demonstrated cross-campaign false completion. Source fix passes112 focused cases1.70 s plus targeted Ruff; operator registration remains unqualified and raw Forge events remain unscorable. SPEC v0.2.57 and [scorer report](verification/2026-09-20-scorer-scope.md) describe limits. Next source-admission work needs genuine setup/team/ingress and isolation authority, not declared booleans. Original spending/OAuth bounds and worker isolation questions remain pending; no paid dispatch. M0/G0 remains incomplete and M1 settings expansion paused.
 
 **Pair03 is terminal:** session76179 finished; phase2 was not dispatched. The3 GiB client becomes ready251.672 s and passes full guardian root/tree proof490.7032/500 ms for this sample. Public reference selection fails SUPPORTED_START_FOOTPRINT_UNAVAILABLE before any movement because the prior cancellation left the player off-center. Saved resources/position unchanged, normal server stop/arguments retired/zero Java confirmed. Two safety releases528.922 s retained; completed linked746 primitives/9408.894 s plus previous setups/gap. Do not renew its original authority. New src/mcbench/reference_routes.py validates actual public footprint support and the swept rectangle to cell center instead of requiring near-center position. Ten geometry checks/Ruff and retained public-data reconstruction pass (two support cells/four steps/2.541177393 displacement). No live corrected case yet. Next prepare a fresh pair04 from current source bytes, using this exact selector and reusable staging; keep all route/cancel/stop bounds. [Footprint fix](verification/2026-09-20-reference-footprint.md).
 

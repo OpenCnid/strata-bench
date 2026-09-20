@@ -40,3 +40,7 @@ Next: apply this exact selector in a new prepared reference pair with the
 unchanged native motor and 3 GiB resource profile. Preserve all old failures,
 saved resources and costs. Successful live cancellation/staging/restart and
 consistent shutdown remain unverified for this combined candidate.
+
+## Authentic corrected case
+
+[Pair04](2026-09-20-forge-reconnect.md) successfully uses the corrected selector from the actual off-center position. Both observed support cells and the four-step route pass the unchanged policy; movement/cancellation/fence and independent saved-state checks pass. This verifies the limited public reference selector, not general movement or reliable shutdown. Phase2 still fails its 500-ms guardian bound.

@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.56, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (durable stopped-journal staging). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.57, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (private scorer source and receipt binding). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -1347,6 +1347,8 @@ Primary endpoint is `AG(24 h)` under the frozen training resource envelope for a
 Plot Q and AG against observed active wall time, cumulative input/output tokens, actual avatar ticks and total cost, separately. AULC/AUG are calculated only over common observed support; absent later checkpoints are not linearly fabricated. Show the denominator, number at risk and attrition at every checkpoint. Compute family-specific effects as secondary endpoints; report all registered families, not only improvements.
 
 Server predicates validate causally relevant behavior: crafting source and consumption where needed; operating machines with output over a registered tick window; energy/fluid/network function; quest/team transitions; survival or sustainable resource production. Mere possession of a gifted item or quest reward cannot satisfy a functioning-automation predicate. Pack quest completion and evaluator milestones are distinct outputs. Predicate definitions include alternate valid strategies and invalid setup/teleport/admin routes. Primary automated outcomes do not depend on the agent's self-report or a language-model judge.
+
+**Private development scorer binding.** Register an instance's campaign/evidence kind, each complete predicate definition and the permitted epoch-to-server-boot mapping before accepting score events. Received events must not establish their own scope. All predicates share the instance mapping; later sources require increasing epochs and distinct boots. Identical registered receipts may be deduplicated across restart, but changed kind/schema/actor list/payload under a transaction ID must fail, including after predicate completion. Retain unbound historical state and reject automatic relabelling or guessed migration. Operator registration and supporting digest strings are not authenticated ingestion or artifact verification; development score outputs retain evidence kind and `scoring_authority_qualified=false`. Authentic setup/team provenance, parity, isolation and positive/negative controls remain required. Raw callbacks/configuration snapshots/resource witnesses remain unscorable. These private payloads do not change the thirteen top-level record schemas.
 
 For retention, compare fixed earlier-family variants at the registered mastery checkpoint and after a fixed later-training block, e.g. 6 additional active hours; use fresh variants, not the original instances. If no mastery checkpoint exists, report retention as not defined and report absolute earlier-family performance. For transfer, create fresh target-pack worlds and compare source-trained artifacts versus same-model initial artifacts at target exposure zero and matched later target exposure; include source-training cost. No world-save migration.
 

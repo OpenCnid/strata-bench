@@ -24,3 +24,45 @@ The reusable restart cost join passes complete native/public journal prefixes, r
 Both independent audits nevertheless **fail** the unchanged guardian bound: phase 01 waits 529.8644/500 ms; phase 02 waits 505.9196/500 ms. Independent observation still sees each root alive more than 670 ms after termination starts. This is actual delayed process exit, not merely a rounded timer or missing descendant receipt. A terminal, saved-state-consistent source permits the independent restart check; it does not waive the failed shutdown gate. All failures remain in the automatic continuation result. No unchanged repeat is planned.
 
 Audit source hashes: phase 01 `47c46f2f5690c9d4bd44d74651a128d4a0d78abb91a1298741a6b57de6afbc40`; phase 02 `b57457225a9b4922ed9dd1811f19689a330ac1f7d821a20b815bf646e676fafb`. Final native journal `38e3250aa511c3329d4c9b39d561146244de28dc7bddbb40130b2edfcd4b442b`. Native/worker/source pins, logs, failed audit reports and cumulative cost report remain private. This verifies the narrow stopped-journal cost join and selected restart mechanics, not full game/agent checkpoints, reliable shutdown, isolation or G0.
+
+## Reusable staging and corrected footprint: pair04
+
+Pair04 is terminal; overall **fail**. Both phases used the 3 GiB diagnostic
+profile and committed footprint selector from 07e8f4f. This is a new candidate
+relative to pair02, not an erased or repeated passing sample. Pair03's earlier
+off-center reference failure also remains retained.
+
+Phase 1 passes all eleven independent checks: ordinary movement from the actual
+off-center footprint, in-flight cancellation/release/fence, same-epoch denial,
+saved-state consistency, charged inputs and original authority. Full guardian
+root/tree proof returns at 339.9197 ms, inside 500 ms. It consumes 16 primitives
+and 419.954 s.
+
+The reusable staging and verifier then preserve the complete journal/database
+and original authority. The separately retained manifest digest is
+`e640483178b78f8d0a69c02c444627e07839bacd5591d467688b524ff27347c3`.
+Phase 2 rechecks this receipt and actual launch-source bytes before its client
+starts. Known cancelled receipt/deduplication, stale-epoch denial, fresh look,
+saved full inventory/ender/position, journal prefixes and incremental accounting
+all pass. Four new primitives yield **20 total**, with no inherited recharge,
+authority renewal or replay.
+
+Phase 2 nevertheless fails shutdown: root wait returns timeout at **508.2221 ms**
+against the unchanged 500-ms bound, before tree verification starts. Keep the
+worker failure and overall failed result. Normal server stop, retired arguments
+and zero remaining Java processes are independently confirmed. Do not repeat
+this resource profile unchanged to seek a pass.
+
+Paired elapsed time is **824.829 s**, plus **3.899 s** between phases. Completed
+linked references total **766 primitives/10233.723 s**, with witness setups
+266.907 s and prior 15.760-s gap separately retained; other historical scopes
+remain separate. No paid inference or shared-desktop input.
+
+Private root: `C:/Users/Darian/.strata/evidence/2026-09-20-forge-reconnect-04`.
+Phase-2 audit source SHA256:
+`1ecf3751a5d6231e5affcc44fc953979ecdf421057c9dbf327d459231cd3c31d`.
+Final native journal:
+`1f673807955aaf3bbfa97806996dbe46ff4d6229db517ca097d9a8ae0230ac5b`.
+This supplies successful authentic use of staging/verification and the public
+footprint selector. Reliable shutdown, complete checkpoints, isolation and G0
+remain incomplete.

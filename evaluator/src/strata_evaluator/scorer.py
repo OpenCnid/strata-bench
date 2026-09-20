@@ -13,6 +13,8 @@ from mcbench.contracts import Id, Name, Positive, Strict, UInt
 from mcbench.records import GameEvent
 from mcbench.storage import Database, canonical, digest, require
 
+from .scoring_scope import create_tables, record_transaction, register_source, require_source
+
 
 class CraftEvent(Strict):
     transaction_id: Id
@@ -71,6 +73,10 @@ class Scorer:
                        "spec TEXT, body TEXT, PRIMARY KEY(instance,predicate))")
             db.execute("CREATE TABLE IF NOT EXISTS scored_transactions (instance TEXT, predicate TEXT, "
                        "transaction_id TEXT, PRIMARY KEY(instance,predicate,transaction_id))")
+            create_tables(db)
+
+    def register_source(self, instance, predicate, source):
+        return register_source(self.database, instance, predicate, source)
 
     def score(self, instance: str, predicate: Predicate, event: GameEvent):
         require(not event.is_example, "EXAMPLE_NOT_EXECUTABLE")
@@ -82,6 +88,7 @@ class Scorer:
             require(payload.interval_start < payload.interval_end <= event.server_tick,
                     "INVALID_TICK_INTERVAL")
         with self.database.transaction() as db:
+            evidence_kind = require_source(db, instance, predicate, event)
             existing = db.execute("SELECT digest FROM game_events WHERE boot=? AND seq=?",
                                   (event.server_boot_id, event.server_event_seq)).fetchone()
             if existing:
@@ -93,17 +100,14 @@ class Scorer:
             state_row = db.execute("SELECT * FROM predicate_state WHERE instance=? AND predicate=?",
                                    (instance, predicate.predicate_id)).fetchone()
             state = {"complete": False, "boot": None, "machine": None, "end": None,
-                     "ticks": 0, "output": 0}
+                     "ticks": 0, "output": 0, "evidence_kind": evidence_kind,
+                     "scoring_authority_qualified": False}
             if state_row:
                 require(state_row["spec"] == digest(predicate.model_dump()), "PREDICATE_CHANGED")
                 state = json.loads(state_row["body"])
-            duplicate = db.execute("SELECT 1 FROM scored_transactions WHERE instance=? AND predicate=? "
-                                   "AND transaction_id=?", (instance, predicate.predicate_id,
-                                                            payload.transaction_id)).fetchone()
+            duplicate = record_transaction(db, instance, predicate, event, payload.transaction_id)
             if state["complete"] or duplicate:
                 return state
-            db.execute("INSERT INTO scored_transactions VALUES (?,?,?)",
-                       (instance, predicate.predicate_id, payload.transaction_id))
             valid = (predicate.kind == kind and payload.team_id == predicate.team_id
                      and bool(event.actor_ids) and set(event.actor_ids) <= set(predicate.actors)
                      and payload.recipe_id in predicate.recipes and payload.valid_setup

@@ -388,7 +388,9 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
         serialized.remove("id"); serialized.remove("Count");
         String components = serialized.toString(); // Includes Forge capabilities, privately; never exported.
         if (components.length() > 16384) throw new IOException("GAME_ITEM_COMPONENTS_UNSUPPORTED");
-        return new GameInventory.Stack(name(ForgeRegistries.ITEMS.getKey(item.getItem())), item.getCount(), KeyOptions.sha256(components));
+        String hash = KeyOptions.sha256(components);
+        NativeItemDiagnostics.remember(hash,serialized);
+        return new GameInventory.Stack(name(ForgeRegistries.ITEMS.getKey(item.getItem())), item.getCount(), hash);
     }
     static GameInventory.View inventoryView(AbstractContainerMenu menu) throws IOException {
         return inventoryView(menu, i -> menu.slots.get(i).getItem(), menu.getCarried());
@@ -449,6 +451,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
             }
             public long requestSync() throws IOException { validate(); return windowSync.request(menu); }
             public GameInventory.View reply(long ticket) throws IOException { validate(); return windowSync.reply(ticket, menu); }
+            public void mismatch(GameInventory.View reply, GameInventory.View current) { NativeItemDiagnostics.mismatch(reply,current); }
         };
     }
     private GameMenuClose.Port closePort() throws IOException {
@@ -550,6 +553,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
             public void click(int slot, int button, boolean quick) throws IOException { validate(); base.click(slot, button, quick); }
             public long requestSync() throws IOException { validate(); return base.requestSync(); }
             public GameInventory.View reply(long ticket) throws IOException { validate(); return base.reply(ticket); }
+            public void mismatch(GameInventory.View reply, GameInventory.View current) { base.mismatch(reply,current); }
             public void fillRecipe() throws IOException {
                 if (selection != null) throw new IOException("MECHANIC_UNSUPPORTED");
                 validate(); windowSync.markDirty(menu); client.gameMode.handlePlaceRecipe(menu.containerId, recipe, false);

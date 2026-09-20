@@ -25,6 +25,7 @@ final class GameInventory {
         void click(int slot, int button, boolean quickMove) throws IOException;
         long requestSync() throws IOException;
         View reply(long ticket) throws IOException; // null until actual full server contents arrive
+        default void mismatch(View reply, View current) {} // operator-only diagnosis, no acceptance authority
     }
     private record Expected(View before, int slot, Stack target, Stack cursor, boolean quickMove) {}
     static GameActionLane.Motor click(Port port, int slot, boolean right, boolean quickMove,
@@ -68,6 +69,7 @@ final class GameInventory {
             // must still equal the actual reply before the next ordinary input.
             View current = port.view();
             if (!sameOwned(received,current)) {
+                port.mismatch(received,current);
                 var predicted = new ArrayList<>(expected.before.slots);
                 predicted.set(expected.slot,expected.target);
                 boolean exactReply = !quick && sameOwned(received,
@@ -80,10 +82,12 @@ final class GameInventory {
                     "STRATA_OWNED_FEEDBACK_MISMATCH slot="+expected.slot+" reply_is_prediction="+exactReply
                     +" current_is_before="+exactBefore+" cursor_changed="+!received.cursor.equals(current.cursor)
                     +" changed_slots="+changed+" refreshed="+refreshed);
-                // A later applied packet may roll back exactly this click's
-                // pre-state. Reacquire once; never repeat the mutation or accept
-                // prediction as confirmation. Other owned changes still fence.
-                if (!quick && !refreshed && exactReply && exactBefore) {
+                // Reacquire a stale pre-state or client-only metadata drift in
+                // an untouched slot. The renewed server reply must still pass
+                // verify(expected), including the ORIGINAL exact components.
+                // Never ignore a field, rewrite a stack, or repeat the click.
+                boolean metadataDrift = onlyUntouchedComponentsDiffer(received,current,expected.slot);
+                if (!quick && !refreshed && exactReply && (exactBefore || metadataDrift)) {
                     refreshed = true;
                     emit.invoke(() -> ticket=port.requestSync()); return false;
                 }
@@ -105,6 +109,16 @@ final class GameInventory {
                 || !expected.cursor.equals(actual.cursor)) return false;
         for(int i=0;i<expected.slots.size();i++)
             if(i!=expected.resultSlot && !expected.slots.get(i).equals(actual.slots.get(i))) return false;
+        return true;
+    }
+    private static boolean onlyUntouchedComponentsDiffer(View reply, View current, int clicked) {
+        if (reply.slots.size()!=current.slots.size() || reply.resultSlot!=current.resultSlot
+                || !reply.cursor.equals(current.cursor)) return false;
+        for(int i=0;i<reply.slots.size();i++) {
+            if(i==reply.resultSlot) continue;
+            Stack a=reply.slots.get(i),b=current.slots.get(i);
+            if(i==clicked ? !a.equals(b) : !a.id.equals(b.id) || a.count!=b.count) return false;
+        }
         return true;
     }
     private static Expected predict(Port port, View view, int slot, boolean right, boolean quick) throws IOException {

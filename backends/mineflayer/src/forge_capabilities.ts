@@ -10,7 +10,7 @@ export function forgeCapabilities(nativeFingerprint: string) {
   const schemas = Object.fromEntries(['ActionBatch','ActionAck','Observation','RpcRequest']
     .map(name => [name, hashFile(new URL(`../../../../schemas/v1/public/${name}.json`, import.meta.url))]));
   return {
-    schema:'strata/Capabilities/1', contract_minor:38, profile:'forge1192-structured-development/1',
+    schema:'strata/Capabilities/1', contract_minor:39, profile:'forge1192-structured-development/1',
     backend:'forge_client', track:'structured-actions/v1', minecraft:'1.19.2', forge:'43.4.23',
     target_pack:'enigmatica9expert-1.27.0', node:'24.19.0', native_fingerprint:nativeFingerprint,
     implementation_digest:digest(sources), schema_digest:digest(schemas),
@@ -88,7 +88,7 @@ export function forgeCapabilities(nativeFingerprint: string) {
       movement:'level-forward-coast-neutral8-charged-ticks/1',
       movement_limits:{level_only:true,radius:16,expansions:512,cell_reads:4096,waypoints:64,plan_ms:20,map_age_ms:30000},
       movement_settings:{auto_jump:false,toggle_sprint:false,toggle_crouch:false},
-      inventory_feedback:'fixed-full-refresh-owned-slots-one-prestate-reacquire/3',placement:'observed-air-face-blockitem/1'},
+      inventory_feedback:'fixed-full-refresh-owned-slots-one-reacquire/4',placement:'observed-air-face-blockitem/1'},
     machine_inventory:{policy:'thermal-visible-slot-owned-transfer-feedback/2',
       input_policy:'thermal-display-independent-slot-cursor-fence/1',
       prediction:'ordinary-native-click-conserved-visible-resources',confirmation:'server-owned-slots-and-cursor-exact',

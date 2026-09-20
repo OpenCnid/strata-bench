@@ -1,7 +1,7 @@
 # Implementation checkpoint and next-session handoff
 
 Updated September 20, 2026. Operator-only. This is a source checkpoint, not an
-MVP or scientific result. [SPEC v0.2.47](../SPEC.md) remains the target;
+MVP or scientific result. [SPEC v0.2.48](../SPEC.md) remains the target;
 [MILESTONES.md](../MILESTONES.md) owns detailed status, decisions and history.
 The user explicitly resumed implementation beyond the prior commit/merge
 stopping point, with a long-horizon goal for every required M0–M6 deliverable
@@ -16,29 +16,33 @@ as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
 [Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
-`codex/strata-native-dispatch` through `a2a5b2b`. Last fetched origin/main resolves
+`codex/strata-native-dispatch` through `4ca796e`. Last fetched origin/main resolves
 to `579796d`. Continue this branch and preserve its unmerged commits; publication
 is a partial source checkpoint, not completion or a reason to stop.
 
 ## Immediate continuation priority
 
-Latest continuation: all five vanilla mechanics attempts are terminal; the final saved pickaxe audit passes narrowly. Forge operation 05 is also terminal and failed craft `8177553c-c197-4ef2-be49-c65ac4986de5` at `GameInventory.Steps.tick:68`, the owned current/reply comparison. Its exact mismatch shape remains unknown. Preserve all five Forge pairs, 118 primitives/2221.594 s, five andesite plus three polished-andesite drops, owned ingots 3 and machine 8000 RF. Minor 38 now permits one charged refresh only for an exact current pre-state rollback with an exact predicted server reply; other changes still fence. Java 34 focused tests/build and Node capability check pass. Operation 06 is running with candidate ccd0aa4edd54147aa31b3aabea7ab20638a927cbf76390631389a550a7366655. The scope is `machine-craft-feedback-02-06`, epoch 6; it waits for ordinary recovery of both five andesite and three polished-andesite drops. Inspect bounded mismatch diagnostics in the private client stderr stream, then reconcile saved resources and all costs when terminal. Do not replay an unknown request or refill resources.
+Latest continuation: vanilla mechanics and its saved pickaxe audit pass narrowly. Forge operation 07 is terminal: native unknown craft `b0e405b3-9d02-426f-adb0-439be5d6b285` fails REVISION_CONFLICT because current backpack slot 45 adds tag/contentsUuid absent in the confirmed reply; its public report ends LEASE_EXPIRED. Full saved player/drop NBT resources reconcile; 192 primitives/3022.173 s remain across seven corrected-fixture pairs. No replay/refill. Minor 39 permits one charged reacquisition only for untouched component drift with exact resource/position/cursor/clicked-stack state. Both renewed server and current view must return to the ORIGINAL exact components; nothing is normalized or accepted on prediction. Java 35 focused checks/build and named Node capability check pass. Operation 08 is running candidate `5424bfd7d7d75d2149321e4edeb8d2d2d7c9f1345d740c6989bb034975758c18`, scope `machine-craft-resync-02-08`, epoch 8. Inspect its result and bounded component diagnostics, then preserve logs and audit final resources/costs. Do not infer authentic qualification from the unit checks.
 
-The user corrected the work priority: focus on closing SPEC's milestone gates.
-The active settings pair was completed safely; [two native write-boundary
-recoveries](verification/2026-09-20-settings-crash-recovery.md) pass under the
-explicit CTM background-thread diagnostic profile. All clients are terminal,
-options restored and arguments retired. Four remaining M1 cases stay unrun;
-resume them after higher-priority M0 work. No default-profile startup or complete
-T05 pass is claimed.
+The user's priority correction keeps **M0/G0 closure** active. M1 settings work
+is paused after two verified narrow write-boundary recoveries; four boundaries
+remain unrun. Current M0 mechanics evidence is in
+[vanilla mechanics](verification/2026-09-20-vanilla-mechanics.md),
+[machine processing](verification/2026-09-20-machine-crafting.md),
+[machine feedback](verification/2026-09-20-machine-feedback.md), and
+[expert crafting](verification/2026-09-20-emi-crafting.md).
+The old malformed machine fixture remains quarantined; never restart/refill it.
+Retain its unknown deposit, crash/save failure, charges and raw evidence.
+The corrected fixture continues without replenishment. The active background
+thread diagnostic profile does not resolve the original CTM startup failure.
 
-Current priority is **M0/G0 item 3: actual E9E machine processing and expert crafting**, not further M1 settings cases. Operation-05 passed fixed worker startup bounds after build-time schema compilation, but a malformed setup fixture caused a CoFH activation crash and failed tile save. Its partial NBT saved Facing=DOWN against a north-facing block. The deposit is unknown and must never be replayed; 3 intents, 11 primitives and 370.828 s remain charged. All processes are terminal and arguments retired. The original normal-save inference based on zero wrapper exit is superseded by [crash/save evidence](verification/2026-09-20-server-save-integrity.md).
-
-The runner now detects recognized crash/save failures even with zero wrapper exit. Saved-machine reader v2 rejects inconsistent facing and invalid side values. Focused Python 136 pass and full Ruff pass; these are implementation checks, not machine qualification. The old fixture stays quarantined. Prepare a separate native-initialized machine with energy merged into its full native NBT, plus explicit dust/andesite/crafting-table resources; check its actual saved baseline, then perform ordinary scoped API processing/crafting and independent final reconciliation. New private evidence root is `2026-09-20-machine-conformance-02`. The corrected setup now has a passing authoritative saved baseline (199.422 s, no joins). The [machine/crafting operation](verification/2026-09-20-machine-crafting.md) is terminal: the server produced 3 ingots using 12,000 RF, but deposit acknowledgment is unknown. Collection/crafting remain pending. Retain 8 intents, 27 primitives and 521.719 s; guardian fails 500.5117/500 ms. [Machine policy v2/Forge minor 35 and private identity-before-authority bootstrap](verification/2026-09-20-machine-feedback.md) are implemented, focused checks pass, and candidate 32e0fb4 is installed with its predecessor retained. The epoch-2 continuation established actual output collection and identity binding. Explicit pinned EMI discovery now returns the exact expert furnace recipe. Operations 03 and 04 then failed craft confirmation with distinct unknown receipts; all resources reconcile in player inventories plus dropped andesite at the avatar, and no furnace exists. Preserve all four pairs, 80 primitives/1823.891 s, no replay/refill. Derived-preview handling plus a final authoritative output refresh pass focused checks but did not resolve the second native failure. A bounded private fault-location logger is added to GameActionLane and compiles/reobfuscates successfully; install the new candidate before another Forge diagnostic. All Forge clients are terminal and arguments retired. Operation-04 guardian passes narrowly; prior timing failures remain.
-
-Active independent M0 work is vanilla mechanics in external evidence `2026-09-20-vanilla-mechanics-01`. Separate fixture setup is stopped (24.625 s), two logs/chest/table/ground confirmed and original player unchanged. Attempt 01 queried before spawn, accepted zero actions and exposed a private drain-close race; its failure is retained. Attempt 02 failed connection readiness with zero actions: interrupted attempt 01 left an auth lock whose owner was verified exited. The reviewed lock is retained externally and retired; no automatic lock removal. Adapter/ActionLane now fence terminal pre-spawn errors, with four focused checks passing. Cached authentication passes. Epoch 3 joined and mined both logs, then its private checker failed local schema validation (missing movement tolerance) before movement dispatch. It stopped normally; saved player gained exactly both logs. Epoch 4 then established saved-server movement/chest/planks/sticks outcomes, 11 actions/59 primitives/133.719 s. Pickaxe was unlocked but marked unsupported under the blanket NBT restriction. Fresh-tool Damage=0 support is now implemented (minor 9, nine focused recipe checks); epoch 5 table-pickaxe sequence and independent exact saved-NBT audit pass. Final player: seed 1, planks 3, sticks 2, pickaxe 1 with Damage=0; chest empty. All five vanilla attempts are terminal (98 primitives/397.205 s), and [narrow vanilla evidence](verification/2026-09-20-vanilla-mechanics.md) is recorded. Forge fault-location operation 05 is now running with candidate df531cd9d6c4dc2bc30d0e4144f03f81f1bc4652f8a2b82a25833372236708b2; prior client log/JAR retained, all earlier Forge pairs terminal. Inspect the bounded STRATA_MOTOR_FAILURE source locations if this craft fails, implement the identified repair, and retain all unknown actions/resources/costs. Preserve unrelated seed-drop baseline uncertainty and all failed raw reports.
-
-Continue independent M0 work while the existing live-model monetary-conversion and isolated-worker questions remain pending. No paid inference is admitted. Preserve every failed attempt and unchanged acceptance threshold.
+After the expert craft repair, close the remaining G0 checklist in MILESTONES:
+authentic reconnect/resynchronization, private causal scorer controls,
+installation/role locks and joined host/game cost evidence. Existing monetary
+conversion and isolated-worker questions remain pending; no paid inference
+is admitted. Advance independent M0 work while those inputs are unavailable.
+Do not replay unknown actions, relax bounds, erase failed attempts, expand M1
+microcases ahead of M0, or stop at another source checkpoint.
 
 ## Overall position
 

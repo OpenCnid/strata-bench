@@ -10,6 +10,27 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent scripted predictions/replies. No Minecraft/server effect claim. */
 class GameInventoryTest {
+    @Test void untouchedClientMetadataDriftRequiresRestorationOfOriginalServerIdentity() throws Exception {
+        var backpack=new GameInventory.Stack("sophisticatedbackpacks:backpack",1,"server-components");
+        var initialized=new GameInventory.Stack(backpack.id(),1,"client-created-contentsUuid");
+        var stone=stack("minecraft:stone",3);
+        var before=view(Map.of(10,stone,45,backpack));
+        var after=view(Map.of(45,backpack),stone,0);
+        var drift=view(Map.of(45,initialized),stone,0);
+        for(int scenario=0;scenario<3;scenario++) {
+            var port=new Port(before,after);var motor=GameInventory.click(port,10,false,false,port::emit);
+            port.ack();port.current=drift;
+            assertFalse(motor.tick(port::emit));assertEquals(2,port.refreshes);
+            assertEquals(List.of(10),port.clicks);
+            if(scenario==0) { // Only restored full server identity can advance.
+                port.current=after;port.ack();assertTrue(motor.tick(port::emit));
+            } else {
+                port.feedback=scenario==1?after:drift;
+                assertThrows(IOException.class,()->motor.tick(port::emit));
+            }
+            assertEquals(2,port.refreshes);assertEquals(List.of(10),port.clicks);
+        }
+    }
     @Test void exactLatePreClickEchoGetsOneChargedReadAndNeverAnotherClick() throws Exception {
         var before=view(Map.of(10,stack("minecraft:stone",3)));
         var after=view(Map.of(),stack("minecraft:stone",3),0);

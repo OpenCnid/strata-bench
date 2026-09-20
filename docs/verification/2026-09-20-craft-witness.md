@@ -123,3 +123,19 @@ Control 03 fails before taking a result. Private diagnostic guards show a clean 
 Exact installed FastWorkbench bytecode routes slotsChanged through SlotUpdateManager, whose server END handler computes queued results at its configured interval. The loaded config is two ticks. A full grid reply may therefore precede output computation. Minor 42 adds up to 20 charged full-menu reads for an empty result after verifying the selected native recipe and frozen resources. Every non-result slot/cursor remains exact; wrong output or any resource drift rejects. No fill/click replay, deadline extension, budget increase or locally invented result. Focused verification is pending; authentic repair remains unverified.
 
 Minor-42 targeted verification passes: 15 Java checks (0.092 s), pinned build/reobfuscation (20 s), TypeScript build, two Node/JVM checks (1.90 s), two Python/JVM checks (2.78 s). Candidate `59f113e4972fbe0d07e349f9d83f6452ac4e9f5f802d7491c5c863176f4b0da4`. Control 04 is running with the saved dropped ingredients, fresh scope/epoch and unchanged telemetry 0.3.1; no new resources. Real witness and repair outcome pending.
+
+
+## Control 04 and an overtaken full reply
+
+Control 04 fails with REVISION_CONFLICT before output take. The private diagnostic shows an empty result in the full reply and the expected furnace in current state, with every other slot/cursor equal. This is the second packet ordering of the same delayed-result mechanism. Retain unknown `db2d6c9c-b623-463e-b26a-5fe6dbe9f20f`, 57 primitives/401.782 s and all eight ingredients as saved drops. Player 3 furnaces/3 ingots and machine empty/8000 RF remain. No callback/witness. Linked pairs retain 640 primitives/6128.517 s, plus 266.907-s setups. Guardian passes 393.2237/500 ms for this sample. All targets terminal and arguments retired. Independent audit SHA256 `72dc3ff6bf4cb01affa07fd4e936a03ed045ab590c8967e0e6b582db4911557b`.
+
+Minor 43 permits only an empty-to-exact-expected result transition with every non-result slot and cursor identical to cause another full read. It shares the same 20-read maximum, freezes resource identity and still requires exact fresh server/current agreement before taking output. No replay or increased deadline/budget. Focused packet-ordering, metadata-refresh and mutation negatives added; verification pending.
+
+
+## Authentic selected witness passes
+
+Minor 43 passes 17 focused Java checks (0.137 s), pinned build/reobfuscation (19 s), TypeScript build, two Node/JVM checks (1.91 s), and two Python/JVM checks (2.92 s). Candidate `54568cb131ad22dac9bb078ddf3e5f8c2f4f33ba746f3fce4cec60edea0d3ff9`.
+
+Control 05 now passes public craft/close and every independent audit check. The native FastWorkbench callback reports an active bracket; exactly one resource witness binds the expert furnace recipe at server tick 4297. Saved full resources independently confirm five andesite plus three polished andesite become one furnace (3 -> 4), all other full stack NBT unchanged, three ingots/8000 RF retained and no remaining drops. Three actions consume 69 primitives/428.688 s. Linked mechanics pairs retain 709 primitives/6557.205 s plus both witness setups 266.907 s. Guardian passes 373.5694/500 ms for this run; earlier failures remain. All processes are terminal and temporary arguments retired. Audit SHA256 `add85a89446c3be9c18e777f53f57858fe9bfeee4c734411d9b2bdc80c187e44`.
+
+This verifies the selected native resource-witness case only (M0.3.10.1a). The earlier gift control remains on its historical producer version; current preexisting possessions are not counted as new crafts. Full scorer admission still requires setup/team authority, matching positive/negative controls, authenticated ingestion, isolation and instrumentation parity. The witness remains score-ineligible; M0/G0 and full T10 are not complete. No further selected-craft retry is required.

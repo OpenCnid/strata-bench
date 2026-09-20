@@ -8,6 +8,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Independent toy menu: scripted recipe, no native/server correctness claim. */
 class GameCraftingTest {
+    @Test void resultPacketOvertakingFullReplyOnlyAuthorizesAnotherBoundedRead() throws Exception {
+        for(boolean refreshingMetadata:List.of(false,true)) {
+            var p=new Port(1);var original=item("backpack",1);p.slots.set(44,original);
+            var motor=startedFill(p);p.slots.set(0,EMPTY);p.ack();
+            if(refreshingMetadata) {
+                p.slots.set(44,new GameInventory.Stack(original.id(),1,"local-uuid"));
+                assertFalse(motor.tick(p::emit));p.slots.set(44,original);p.ack();
+            }
+            p.slots.set(0,p.output);long ticket=p.ticket;
+            assertFalse(motor.tick(p::emit));assertEquals(ticket+1,p.ticket);assertEquals(0,p.takes);
+            // Read latency remains charged, and predicted output cannot take itself.
+            assertFalse(motor.tick(p::emit));assertEquals(0,p.takes);
+            p.ack();assertFalse(motor.tick(p::emit));assertEquals(1,p.takes);
+            p.complete(motor);assertEquals(1,p.fills);assertEquals(original,p.slots.get(44));
+        }
+    }
+    @Test void previewTransitionCannotHideOtherChangesOrDisappearFromFreshReply() throws Exception {
+        for(int fault=0;fault<4;fault++) {
+            var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);p.ack();p.slots.set(0,p.output);
+            if(fault==0) p.slots.set(12,item("gift",1));
+            if(fault==1) p.cursor=item("held",1);
+            if(fault==2) p.slots.set(0,item("wrong",1));
+            if(fault<3) assertThrows(IOException.class,()->motor.tick(p::emit));
+            else {
+                assertFalse(motor.tick(p::emit));
+                p.slots.set(0,EMPTY);p.ack();assertFalse(motor.tick(p::emit));
+                assertEquals(0,p.takes);p.slots.set(1,item("wrong",1));p.ack();
+                assertThrows(IOException.class,()->motor.tick(p::emit));
+            }
+            assertEquals(1,p.fills);assertEquals(0,p.clicks);
+        }
+    }
     @Test void delayedServerPreviewRequiresFreshReplyWithoutRepeatingFill() throws Exception {
         var p=new Port(1);var motor=startedFill(p);p.slots.set(0,EMPTY);
         for(int i=0;i<3;i++) {p.ack();assertFalse(motor.tick(p::emit));}

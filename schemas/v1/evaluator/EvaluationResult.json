@@ -1,0 +1,168 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/EvaluationResult/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "result_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Result Id",
+      "type": "string"
+    },
+    "protocol_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Protocol Id",
+      "type": "string"
+    },
+    "visibility": {
+      "const": "evaluator",
+      "title": "Visibility",
+      "type": "string"
+    },
+    "lineage_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Lineage Id",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Checkpoint Id",
+      "type": "string"
+    },
+    "pair_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Pair Id",
+      "type": "string"
+    },
+    "instance_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "arm": {
+      "enum": [
+        "experienced",
+        "initial"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "success",
+        "failure",
+        "censored",
+        "invalid"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "success": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Success"
+    },
+    "progress": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Progress"
+    },
+    "active_time_s": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Active Time S",
+      "type": "integer"
+    },
+    "event_observed": {
+      "title": "Event Observed",
+      "type": "boolean"
+    },
+    "censor_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Censor Reason"
+    },
+    "scores": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Scores",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "budget_ledger_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Budget Ledger Ref",
+      "type": "string"
+    },
+    "validity_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Validity Flags",
+      "type": "array"
+    },
+    "scored_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Scored At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "result_id",
+    "protocol_id",
+    "visibility",
+    "lineage_id",
+    "checkpoint_id",
+    "pair_id",
+    "instance_id",
+    "arm",
+    "outcome",
+    "success",
+    "progress",
+    "active_time_s",
+    "event_observed",
+    "censor_reason",
+    "scores",
+    "evidence_refs",
+    "budget_ledger_ref",
+    "validity_flags",
+    "scored_at"
+  ],
+  "title": "EvaluationResult",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

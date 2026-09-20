@@ -1,0 +1,261 @@
+{
+  "$defs": {
+    "AgentSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "workspace": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Workspace",
+          "type": "string"
+        },
+        "skills": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Skills",
+          "type": "string"
+        },
+        "keymap": {
+          "anyOf": [
+            {
+              "pattern": "^cas:sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Keymap"
+        },
+        "backend_state": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Backend State",
+          "type": "string"
+        },
+        "runtime_state": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Runtime State",
+          "type": "string"
+        },
+        "last_action_seq": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Last Action Seq",
+          "type": "integer"
+        },
+        "model_identity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model Identity"
+        }
+      },
+      "required": [
+        "agent_id",
+        "workspace",
+        "skills",
+        "keymap",
+        "backend_state",
+        "runtime_state",
+        "last_action_seq",
+        "model_identity"
+      ],
+      "title": "AgentSnapshot",
+      "type": "object"
+    },
+    "Clocks": {
+      "additionalProperties": false,
+      "properties": {
+        "active_wall_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Active Wall S",
+          "type": "integer"
+        },
+        "elapsed_wall_s": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Elapsed Wall S",
+          "type": "integer"
+        },
+        "avatar_ticks": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Avatar Ticks",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "active_wall_s",
+        "elapsed_wall_s",
+        "avatar_ticks"
+      ],
+      "title": "Clocks",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "schema": {
+      "const": "mcbench/CheckpointManifest/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Checkpoint Id",
+      "type": "string"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "parent_checkpoint_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Checkpoint Id"
+    },
+    "status": {
+      "enum": [
+        "preparing",
+        "committed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "created_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Created At",
+      "type": "string"
+    },
+    "source_epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Source Epoch",
+      "type": "integer"
+    },
+    "scheduled_active_s": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scheduled Active S"
+    },
+    "pack_lock": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Pack Lock",
+      "type": "string"
+    },
+    "system_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "System Digest",
+      "type": "string"
+    },
+    "server_boot_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Server Boot Id",
+      "type": "string"
+    },
+    "server_tick": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Server Tick",
+      "type": "integer"
+    },
+    "world_and_external_state": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "World And External State",
+      "type": "string"
+    },
+    "agents": {
+      "items": {
+        "$ref": "#/$defs/AgentSnapshot"
+      },
+      "title": "Agents",
+      "type": "array"
+    },
+    "event_cursor": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Event Cursor",
+      "type": "integer"
+    },
+    "ledger_cursor": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Ledger Cursor",
+      "type": "integer"
+    },
+    "clean_stop_report": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Clean Stop Report",
+      "type": "string"
+    },
+    "clocks": {
+      "$ref": "#/$defs/Clocks"
+    },
+    "manifest_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Manifest Digest"
+    }
+  },
+  "required": [
+    "is_example",
+    "schema",
+    "checkpoint_id",
+    "campaign_id",
+    "parent_checkpoint_id",
+    "status",
+    "created_at",
+    "source_epoch",
+    "scheduled_active_s",
+    "pack_lock",
+    "system_digest",
+    "server_boot_id",
+    "server_tick",
+    "world_and_external_state",
+    "agents",
+    "event_cursor",
+    "ledger_cursor",
+    "clean_stop_report",
+    "clocks",
+    "manifest_digest"
+  ],
+  "title": "CheckpointManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

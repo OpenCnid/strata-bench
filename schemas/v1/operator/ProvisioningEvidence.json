@@ -1,0 +1,54 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/ProvisioningEvidence/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "inventory_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Inventory Digest",
+      "type": "string"
+    },
+    "receipt_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Receipt Digest",
+      "type": "string"
+    },
+    "launch_profile_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Launch Profile Digest",
+      "type": "string"
+    },
+    "checks": {
+      "additionalProperties": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Checks",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "request_id",
+    "inventory_digest",
+    "receipt_digest",
+    "launch_profile_digest",
+    "checks"
+  ],
+  "title": "ProvisioningEvidence",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

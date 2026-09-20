@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[43,44)"
+license="MIT"
+
+[[mods]]
+modId="strata_telemetry"
+version="0.1.0"
+displayName="Strata private server telemetry"
+description='''Read-only operator evidence. No player messages or admin commands.'''
+displayTest="IGNORE_SERVER_VERSION"
+
+[[dependencies.strata_telemetry]]
+modId="forge"
+mandatory=true
+versionRange="[43.4.23]"
+ordering="NONE"
+side="SERVER"
+
+[[dependencies.strata_telemetry]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.19.2]"
+ordering="NONE"
+side="SERVER"

@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle'
+}
+base { archivesName = 'strata-forge1192-client' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+dependencyLocking { lockAllConfigurations() }
+minecraft { mappings channel: 'official', version: '1.19.2' }
+repositories {
+    maven { url = 'https://maven.blamejared.com/'; content { includeGroup 'mezz.jei' } }
+}
+// Exact official pack artifact; keep proprietary/game installations outside the repository.
+// The upstream Maven endpoint currently denies this exact artifact (403).
+// Public TooltipList and UI wrapper/widget APIs only; signatures use named MC classes.
+def ftbLibraryPath = providers.gradleProperty('strataFtbLibraryJar').orElse(providers.environmentVariable('STRATA_FTB_LIBRARY_JAR'))
+def ftbLibraryJar = ftbLibraryPath.map { file(it) }
+def requireFtbLibrary = {
+    if (!ftbLibraryJar.isPresent() || !ftbLibraryJar.get().isFile())
+        throw new GradleException('FTB_LIBRARY_API_REQUIRED: set STRATA_FTB_LIBRARY_JAR to the official E9E ftb-library-forge-1902.4.1-build.236.jar')
+    def artifact = ftbLibraryJar.get()
+    def digest = java.security.MessageDigest.getInstance('SHA-256').digest(artifact.bytes).encodeHex().toString()
+    if (digest != '1ba0d7fa626ddb2e3c31e77e20b573ca79eb92e7667cca5b9a3e985fc22d1592')
+        throw new GradleException('FTB_LIBRARY_API_HASH_MISMATCH')
+    return artifact
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.19.2-43.4.23'
+    // Compile only against the public API matching E9E 1.27.0's installed JEI.
+    // The pack provides the runtime; never shade a second JEI implementation.
+    compileOnly fg.deobf('mezz.jei:jei-1.19.2-common-api:11.8.1.1034')
+    compileOnly files(providers.provider { requireFtbLibrary() })
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
+}
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    // The pinned Forge union provider uses this opening in the authentic launcher.
+    // Tests load the same library on the classpath, hence ALL-UNNAMED here only.
+    jvmArgs '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('jar', Jar).configure {
+    manifest.attributes('MixinConfigs': 'strata.jei-render.mixins.json,strata.private-frame.mixins.json')
+    finalizedBy 'reobfJar'
+}
+tasks.register('writeTestClasspath') {
+    dependsOn tasks.named('testClasses')
+    doLast {
+        layout.buildDirectory.file('test-classpath.txt').get().asFile.text = sourceSets.test.runtimeClasspath.asPath
+    }
+}

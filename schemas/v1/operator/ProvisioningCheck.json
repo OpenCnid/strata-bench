@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/ProvisioningCheck/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "check_id": {
+      "title": "Check Id",
+      "type": "string"
+    },
+    "result": {
+      "enum": [
+        "pass",
+        "fail",
+        "not_run"
+      ],
+      "title": "Result",
+      "type": "string"
+    },
+    "inventory_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Inventory Digest",
+      "type": "string"
+    },
+    "receipt_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Receipt Digest",
+      "type": "string"
+    },
+    "launch_profile_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Launch Profile Digest",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "request_id",
+    "check_id",
+    "result",
+    "inventory_digest",
+    "receipt_digest",
+    "launch_profile_digest",
+    "evidence_refs"
+  ],
+  "title": "ProvisioningCheck",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,1445 @@
+{
+  "$defs": {
+    "BlockAction": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "dig",
+            "interact_block"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "expected_block_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Expected Block Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "expected_block_id"
+      ],
+      "title": "BlockAction",
+      "type": "object"
+    },
+    "Chat": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "chat",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 256,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Chat",
+      "type": "object"
+    },
+    "ClickSlot": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "click_slot",
+          "title": "Kind",
+          "type": "string"
+        },
+        "window_id": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Window Id",
+          "type": "integer"
+        },
+        "expected_window_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Window Revision",
+          "type": "integer"
+        },
+        "slot": {
+          "maximum": 1023,
+          "minimum": 0,
+          "title": "Slot",
+          "type": "integer"
+        },
+        "button": {
+          "enum": [
+            "left",
+            "right"
+          ],
+          "title": "Button",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "pickup",
+            "quick_move"
+          ],
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "window_id",
+        "expected_window_revision",
+        "slot",
+        "button",
+        "mode"
+      ],
+      "title": "ClickSlot",
+      "type": "object"
+    },
+    "CloseWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "close_window",
+          "title": "Kind",
+          "type": "string"
+        },
+        "window_id": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Window Id",
+          "type": "integer"
+        },
+        "expected_window_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Window Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "window_id",
+        "expected_window_revision"
+      ],
+      "title": "CloseWindow",
+      "type": "object"
+    },
+    "Craft": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "craft",
+          "title": "Kind",
+          "type": "string"
+        },
+        "recipe_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Recipe Id",
+          "type": "string"
+        },
+        "count": {
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "window_id": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Window Id",
+          "type": "integer"
+        },
+        "expected_window_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Window Revision",
+          "type": "integer"
+        },
+        "recipe_selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeSelection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "recipe_id",
+        "count",
+        "window_id",
+        "expected_window_revision"
+      ],
+      "title": "Craft",
+      "type": "object"
+    },
+    "EntityAction": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "interact_entity",
+            "attack"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "entity_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Entity Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "entity_id"
+      ],
+      "title": "EntityAction",
+      "type": "object"
+    },
+    "Equip": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "equip",
+          "title": "Kind",
+          "type": "string"
+        },
+        "inventory_slot": {
+          "maximum": 45,
+          "minimum": 0,
+          "title": "Inventory Slot",
+          "type": "integer"
+        },
+        "expected_item_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Expected Item Id",
+          "type": "string"
+        },
+        "destination": {
+          "enum": [
+            "hand",
+            "off_hand",
+            "head",
+            "torso",
+            "legs",
+            "feet"
+          ],
+          "title": "Destination",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "inventory_slot",
+        "expected_item_id",
+        "destination"
+      ],
+      "title": "Equip",
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "enum": [
+            "glfw",
+            "lwjgl2",
+            "os"
+          ],
+          "title": "Backend",
+          "type": "string"
+        },
+        "representation": {
+          "enum": [
+            "keysym",
+            "scancode",
+            "mouse_button",
+            "unbound"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Code"
+        },
+        "name": {
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        },
+        "modifiers": {
+          "items": {
+            "enum": [
+              "SHIFT",
+              "CONTROL",
+              "ALT"
+            ],
+            "type": "string"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        },
+        "persisted": {
+          "maxLength": 256,
+          "title": "Persisted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backend",
+        "representation",
+        "code",
+        "name",
+        "modifiers",
+        "persisted"
+      ],
+      "title": "Key",
+      "type": "object"
+    },
+    "KeyEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "key_down",
+            "key_up"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "key": {
+          "$ref": "#/$defs/Key"
+        }
+      },
+      "required": [
+        "at_ms",
+        "kind",
+        "key"
+      ],
+      "title": "KeyEvent",
+      "type": "object"
+    },
+    "LookAt": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "look_at",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/Vec3"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "LookAt",
+      "type": "object"
+    },
+    "MoveTo": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "move_to",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "tolerance": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Tolerance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "tolerance"
+      ],
+      "title": "MoveTo",
+      "type": "object"
+    },
+    "Place": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "place",
+          "title": "Kind",
+          "type": "string"
+        },
+        "support": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "face": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "expected_item_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Expected Item Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "support",
+        "face",
+        "expected_item_id"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "PointerAbsolute": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "pointer_absolute",
+          "title": "Kind",
+          "type": "string"
+        },
+        "x": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Y",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "at_ms",
+        "kind",
+        "x",
+        "y"
+      ],
+      "title": "PointerAbsolute",
+      "type": "object"
+    },
+    "PointerDelta": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "pointer_relative",
+            "scroll"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "dx": {
+          "title": "Dx",
+          "type": "number"
+        },
+        "dy": {
+          "title": "Dy",
+          "type": "number"
+        }
+      },
+      "required": [
+        "at_ms",
+        "kind",
+        "dx",
+        "dy"
+      ],
+      "title": "PointerDelta",
+      "type": "object"
+    },
+    "QuestComponentsQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "chapter_id": {
+          "maxLength": 16,
+          "minLength": 16,
+          "pattern": "^[0-9A-F]{16}$",
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "quest_id": {
+          "maxLength": 16,
+          "minLength": 16,
+          "pattern": "^[0-9A-F]{16}$",
+          "title": "Quest Id",
+          "type": "string"
+        },
+        "after": {
+          "maximum": 512,
+          "minimum": 0,
+          "title": "After",
+          "type": "integer"
+        },
+        "part": {
+          "enum": [
+            "tasks",
+            "rewards"
+          ],
+          "title": "Part",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "chapter_id",
+        "quest_id",
+        "after",
+        "part"
+      ],
+      "title": "QuestComponentsQuery",
+      "type": "object"
+    },
+    "QuestMenuAction": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quest_menu",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "back",
+            "scroll"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "up",
+                "down"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Direction"
+        },
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_menu_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Menu Generation",
+          "type": "integer"
+        },
+        "expected_menu_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Menu Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "operation",
+        "direction",
+        "source",
+        "source_generation",
+        "expected_menu_generation",
+        "expected_menu_revision"
+      ],
+      "title": "QuestMenuAction",
+      "type": "object"
+    },
+    "QuestNavigate": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quest_navigate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "chapter",
+            "quest",
+            "back",
+            "close"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_screen_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Generation",
+          "type": "integer"
+        },
+        "expected_screen_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Revision",
+          "type": "integer"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QuestSelection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "operation",
+        "source",
+        "source_generation",
+        "expected_screen_generation",
+        "expected_screen_revision",
+        "selection"
+      ],
+      "title": "QuestNavigate",
+      "type": "object"
+    },
+    "QuestQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "chapter_id": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "minLength": 16,
+              "pattern": "^[0-9A-F]{16}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Chapter Id"
+        },
+        "after": {
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "After",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source",
+        "chapter_id",
+        "after"
+      ],
+      "title": "QuestQuery",
+      "type": "object"
+    },
+    "QuestReward": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quest_reward",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "const": "open",
+          "title": "Operation",
+          "type": "string"
+        },
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_screen_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Generation",
+          "type": "integer"
+        },
+        "expected_screen_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Revision",
+          "type": "integer"
+        },
+        "selection": {
+          "$ref": "#/$defs/QuestRewardSelection"
+        }
+      },
+      "required": [
+        "kind",
+        "operation",
+        "source",
+        "source_generation",
+        "expected_screen_generation",
+        "expected_screen_revision",
+        "selection"
+      ],
+      "title": "QuestReward",
+      "type": "object"
+    },
+    "QuestRewardSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "$ref": "#/$defs/QuestComponentsQuery"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "entry_id": {
+          "maxLength": 16,
+          "minLength": 16,
+          "pattern": "^[0-9A-F]{16}$",
+          "title": "Entry Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "revision",
+        "entry_id"
+      ],
+      "title": "QuestRewardSelection",
+      "type": "object"
+    },
+    "QuestSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "$ref": "#/$defs/QuestQuery"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "entry_id": {
+          "maxLength": 16,
+          "minLength": 16,
+          "pattern": "^[0-9A-F]{16}$",
+          "title": "Entry Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "revision",
+        "entry_id"
+      ],
+      "title": "QuestSelection",
+      "type": "object"
+    },
+    "QuestTask": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quest_task",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "const": "open",
+          "title": "Operation",
+          "type": "string"
+        },
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_screen_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Generation",
+          "type": "integer"
+        },
+        "expected_screen_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Revision",
+          "type": "integer"
+        },
+        "selection": {
+          "$ref": "#/$defs/QuestTaskSelection"
+        }
+      },
+      "required": [
+        "kind",
+        "operation",
+        "source",
+        "source_generation",
+        "expected_screen_generation",
+        "expected_screen_revision",
+        "selection"
+      ],
+      "title": "QuestTask",
+      "type": "object"
+    },
+    "QuestTaskSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "$ref": "#/$defs/QuestComponentsQuery"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "entry_id": {
+          "maxLength": 16,
+          "minLength": 16,
+          "pattern": "^[0-9A-F]{16}$",
+          "title": "Entry Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query",
+        "revision",
+        "entry_id"
+      ],
+      "title": "QuestTaskSelection",
+      "type": "object"
+    },
+    "QuestUi": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quest_ui",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "const": "open",
+          "title": "Operation",
+          "type": "string"
+        },
+        "source": {
+          "const": "ftb_quests",
+          "title": "Source",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_catalog_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Catalog Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "operation",
+        "source",
+        "source_generation",
+        "expected_catalog_revision"
+      ],
+      "title": "QuestUi",
+      "type": "object"
+    },
+    "RecipeNavigate": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "recipe_navigate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "const": "jei",
+          "title": "Source",
+          "type": "string"
+        },
+        "control": {
+          "enum": [
+            "category_next",
+            "category_previous",
+            "page_next",
+            "page_previous",
+            "history_back"
+          ],
+          "title": "Control",
+          "type": "string"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "expected_screen_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Generation",
+          "type": "integer"
+        },
+        "expected_screen_revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Expected Screen Revision",
+          "type": "integer"
+        },
+        "expected_page_revision": {
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Page Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source",
+        "control",
+        "source_generation",
+        "expected_screen_generation",
+        "expected_screen_revision",
+        "expected_page_revision"
+      ],
+      "title": "RecipeNavigate",
+      "type": "object"
+    },
+    "RecipeQuery": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "const": "jei",
+          "title": "Source",
+          "type": "string"
+        },
+        "category": {
+          "const": "minecraft:crafting",
+          "title": "Category",
+          "type": "string"
+        },
+        "item_id": {
+          "maxLength": 256,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Item Id",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "input",
+            "output"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "after": {
+          "maximum": 512,
+          "minimum": 0,
+          "title": "After",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source",
+        "category",
+        "item_id",
+        "role",
+        "after"
+      ],
+      "title": "RecipeQuery",
+      "type": "object"
+    },
+    "RecipeSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "$ref": "#/$defs/RecipeQuery"
+        },
+        "source_generation": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Source Generation",
+          "type": "integer"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query",
+        "source_generation",
+        "revision"
+      ],
+      "title": "RecipeSelection",
+      "type": "object"
+    },
+    "TextEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 256,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at_ms",
+        "kind",
+        "text"
+      ],
+      "title": "TextEvent",
+      "type": "object"
+    },
+    "UseItem": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "use_item",
+          "title": "Kind",
+          "type": "string"
+        },
+        "hand": {
+          "enum": [
+            "main",
+            "off"
+          ],
+          "title": "Hand",
+          "type": "string"
+        },
+        "hold_ms": {
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Hold Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "hand",
+        "hold_ms"
+      ],
+      "title": "UseItem",
+      "type": "object"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "maximum": 30000000,
+          "minimum": -30000000,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 2048,
+          "minimum": -2048,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "maximum": 30000000,
+          "minimum": -30000000,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "Vec3",
+      "type": "object"
+    },
+    "WaitEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "wait",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at_ms",
+        "kind"
+      ],
+      "title": "WaitEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema": {
+      "const": "mcbench/ActionBatch/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "lease_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Lease Id",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "observation_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "structured",
+        "input"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "expected_state_revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Expected State Revision",
+      "type": "integer"
+    },
+    "capability_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Capability Digest",
+      "type": "string"
+    },
+    "control_revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Control Revision",
+      "type": "integer"
+    },
+    "keymap_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Keymap Digest"
+    },
+    "deadline_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Deadline At",
+      "type": "string"
+    },
+    "duration_ms": {
+      "exclusiveMinimum": 0,
+      "maximum": 30000,
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "action": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "attack": "#/$defs/EntityAction",
+              "chat": "#/$defs/Chat",
+              "click_slot": "#/$defs/ClickSlot",
+              "close_window": "#/$defs/CloseWindow",
+              "craft": "#/$defs/Craft",
+              "dig": "#/$defs/BlockAction",
+              "equip": "#/$defs/Equip",
+              "interact_block": "#/$defs/BlockAction",
+              "interact_entity": "#/$defs/EntityAction",
+              "look_at": "#/$defs/LookAt",
+              "move_to": "#/$defs/MoveTo",
+              "place": "#/$defs/Place",
+              "quest_menu": "#/$defs/QuestMenuAction",
+              "quest_navigate": "#/$defs/QuestNavigate",
+              "quest_reward": "#/$defs/QuestReward",
+              "quest_task": "#/$defs/QuestTask",
+              "quest_ui": "#/$defs/QuestUi",
+              "recipe_navigate": "#/$defs/RecipeNavigate",
+              "use_item": "#/$defs/UseItem"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/MoveTo"
+            },
+            {
+              "$ref": "#/$defs/LookAt"
+            },
+            {
+              "$ref": "#/$defs/BlockAction"
+            },
+            {
+              "$ref": "#/$defs/Place"
+            },
+            {
+              "$ref": "#/$defs/EntityAction"
+            },
+            {
+              "$ref": "#/$defs/Equip"
+            },
+            {
+              "$ref": "#/$defs/UseItem"
+            },
+            {
+              "$ref": "#/$defs/ClickSlot"
+            },
+            {
+              "$ref": "#/$defs/CloseWindow"
+            },
+            {
+              "$ref": "#/$defs/Craft"
+            },
+            {
+              "$ref": "#/$defs/QuestUi"
+            },
+            {
+              "$ref": "#/$defs/QuestNavigate"
+            },
+            {
+              "$ref": "#/$defs/RecipeNavigate"
+            },
+            {
+              "$ref": "#/$defs/QuestTask"
+            },
+            {
+              "$ref": "#/$defs/QuestReward"
+            },
+            {
+              "$ref": "#/$defs/QuestMenuAction"
+            },
+            {
+              "$ref": "#/$defs/Chat"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Action"
+    },
+    "events": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "key_down": "#/$defs/KeyEvent",
+            "key_up": "#/$defs/KeyEvent",
+            "pointer_absolute": "#/$defs/PointerAbsolute",
+            "pointer_relative": "#/$defs/PointerDelta",
+            "scroll": "#/$defs/PointerDelta",
+            "text": "#/$defs/TextEvent",
+            "wait": "#/$defs/WaitEvent"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/KeyEvent"
+          },
+          {
+            "$ref": "#/$defs/PointerAbsolute"
+          },
+          {
+            "$ref": "#/$defs/PointerDelta"
+          },
+          {
+            "$ref": "#/$defs/TextEvent"
+          },
+          {
+            "$ref": "#/$defs/WaitEvent"
+          }
+        ]
+      },
+      "maxItems": 64,
+      "title": "Events",
+      "type": "array"
+    },
+    "release_at_end": {
+      "const": true,
+      "title": "Release At End",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "is_example",
+    "campaign_id",
+    "epoch",
+    "seq",
+    "recorded_at",
+    "schema",
+    "agent_id",
+    "lease_id",
+    "request_id",
+    "observation_id",
+    "mode",
+    "expected_state_revision",
+    "capability_digest",
+    "control_revision",
+    "keymap_digest",
+    "deadline_at",
+    "duration_ms",
+    "action",
+    "events",
+    "release_at_end"
+  ],
+  "title": "ActionBatch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

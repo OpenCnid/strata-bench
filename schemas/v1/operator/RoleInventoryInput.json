@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "FileEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "bytes": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "role": {
+          "enum": [
+            "client",
+            "server",
+            "both"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Project Id"
+        },
+        "file_id": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "File Id"
+        },
+        "license_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "License Ref"
+        },
+        "layer": {
+          "enum": [
+            "distribution",
+            "resolved",
+            "harness"
+          ],
+          "title": "Layer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "digest",
+        "bytes",
+        "role",
+        "origin",
+        "project_id",
+        "file_id",
+        "license_ref",
+        "layer"
+      ],
+      "title": "FileEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "role": {
+      "enum": [
+        "client",
+        "server"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "root": {
+      "title": "Root",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FileEntry"
+      },
+      "maxItems": 200000,
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "provenance_evidence": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Provenance Evidence",
+      "type": "string"
+    },
+    "exclusions_evidence": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Exclusions Evidence",
+      "type": "string"
+    }
+  },
+  "required": [
+    "role",
+    "root",
+    "files",
+    "provenance_evidence",
+    "exclusions_evidence"
+  ],
+  "title": "RoleInventoryInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

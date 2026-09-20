@@ -31,6 +31,10 @@ credentials.json
 *.sqlite
 *.sqlite3
 *.log
+*.log.*
+logs/
+*.sqlite-shm
+*.sqlite-wal
 
 # Dependencies and generated artifacts
 node_modules/

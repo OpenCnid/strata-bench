@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+    id 'net.minecraftforge.gradle'
+}
+base { archivesName = 'strata-forge1192-telemetry' }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+dependencyLocking { lockAllConfigurations() }
+minecraft { mappings channel: 'official', version: '1.19.2' }
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.19.2-43.4.23'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
+}
+tasks.named('test', Test).configure { useJUnitPlatform() }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('jar', Jar).configure { finalizedBy 'reobfJar' }

@@ -1,0 +1,46 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '6.0.42' apply false
+}
+allprojects {
+    group = 'io.github.opencnid.strata'
+    version = '0.1.0'
+}
+def inputSha256 = { File input ->
+    if (!input.isFile()) throw new GradleException('STRATA_BUILD_INPUT_MISSING: ' + input.name)
+    def digest = java.security.MessageDigest.getInstance('SHA-256')
+    input.withInputStream { stream ->
+        byte[] buffer = new byte[65536]
+        int count
+        while ((count = stream.read(buffer)) != -1) digest.update(buffer, 0, count)
+    }
+    digest.digest().encodeHex().toString()
+}
+tasks.register('verifyBuildInputs') {
+    // Deliberately has no up-to-date outputs: cached compilation must not bypass
+    // verification of Forge-managed inputs that skip Gradle's normal verifier.
+    doLast {
+        def locks = new groovy.json.JsonSlurper().parse(file('build-inputs.json'))
+        if (inputSha256(file('gradle/wrapper/gradle-wrapper.jar')) != locks.wrapper_sha256) {
+            throw new GradleException('STRATA_WRAPPER_MISMATCH')
+        }
+        locks.forge_cache_sha256.each { relative, expected ->
+            def input = new File(gradle.gradleUserHomeDir, 'caches/forge_gradle/' + relative)
+            if (inputSha256(input) != expected) throw new GradleException('STRATA_BUILD_INPUT_MISMATCH: ' + relative)
+        }
+    }
+}
+subprojects {
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+    tasks.withType(Jar).configureEach { dependsOn rootProject.tasks.named('verifyBuildInputs') }
+    tasks.withType(JavaCompile).configureEach {
+        dependsOn rootProject.tasks.named('verifyBuildInputs')
+        doFirst {
+            def locks = new groovy.json.JsonSlurper().parse(rootProject.file('build-inputs.json'))
+            def compiler = javaCompiler.get().metadata.installationPath.file('bin/javac.exe').asFile
+            if (inputSha256(compiler) != locks.compiler.javac_sha256) throw new GradleException('STRATA_COMPILER_MISMATCH')
+        }
+    }
+}

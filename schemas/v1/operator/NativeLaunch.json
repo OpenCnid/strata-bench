@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/NativeLaunch/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "job_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Job Id",
+      "type": "string"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "role": {
+      "enum": [
+        "executor",
+        "helper"
+      ],
+      "title": "Role",
+      "type": "string"
+    },
+    "purpose": {
+      "default": "campaign",
+      "enum": [
+        "campaign",
+        "conformance"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "parent_job_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Job Id"
+    },
+    "depth": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Depth",
+      "type": "integer"
+    },
+    "helper_limit": {
+      "default": 2,
+      "maximum": 32,
+      "minimum": 0,
+      "title": "Helper Limit",
+      "type": "integer"
+    },
+    "account": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Account",
+      "type": "string"
+    },
+    "operation_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Operation Id",
+      "type": "string"
+    },
+    "workspace": {
+      "title": "Workspace",
+      "type": "string"
+    },
+    "profile_directory": {
+      "title": "Profile Directory",
+      "type": "string"
+    },
+    "executable": {
+      "title": "Executable",
+      "type": "string"
+    },
+    "binary_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Binary Digest",
+      "type": "string"
+    },
+    "binary_version": {
+      "title": "Binary Version",
+      "type": "string"
+    },
+    "dovetail_commit": {
+      "title": "Dovetail Commit",
+      "type": "string"
+    },
+    "model": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "provider": {
+      "default": "openai",
+      "title": "Provider",
+      "type": "string"
+    },
+    "auth_mode": {
+      "default": "chatgpt_oauth",
+      "enum": [
+        "chatgpt_oauth",
+        "api_key"
+      ],
+      "title": "Auth Mode",
+      "type": "string"
+    },
+    "config_overrides": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Config Overrides",
+      "type": "object"
+    },
+    "environment": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Environment",
+      "type": "object"
+    },
+    "prompt": {
+      "maxLength": 32000,
+      "title": "Prompt",
+      "type": "string"
+    },
+    "hard_timeout_s": {
+      "maximum": 300,
+      "minimum": 1,
+      "title": "Hard Timeout S",
+      "type": "integer"
+    },
+    "output_limit_bytes": {
+      "maximum": 67108864,
+      "minimum": 1024,
+      "title": "Output Limit Bytes",
+      "type": "integer"
+    },
+    "qualification_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Qualification Ref"
+    }
+  },
+  "required": [
+    "schema",
+    "job_id",
+    "campaign_id",
+    "agent_id",
+    "epoch",
+    "role",
+    "parent_job_id",
+    "depth",
+    "account",
+    "operation_id",
+    "workspace",
+    "profile_directory",
+    "executable",
+    "binary_digest",
+    "binary_version",
+    "dovetail_commit",
+    "model",
+    "config_overrides",
+    "environment",
+    "prompt",
+    "hard_timeout_s",
+    "output_limit_bytes",
+    "qualification_ref"
+  ],
+  "title": "NativeLaunch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

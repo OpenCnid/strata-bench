@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema": {
+      "const": "mcbench/GameEvent/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "server_boot_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Server Boot Id",
+      "type": "string"
+    },
+    "server_event_seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Server Event Seq",
+      "type": "integer"
+    },
+    "server_tick": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Server Tick",
+      "type": "integer"
+    },
+    "kind": {
+      "title": "Kind",
+      "type": "string"
+    },
+    "payload_schema": {
+      "title": "Payload Schema",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Payload",
+      "type": "object"
+    },
+    "actor_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+        "type": "string"
+      },
+      "title": "Actor Ids",
+      "type": "array"
+    },
+    "evidence_refs": {
+      "items": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "visibility": {
+      "const": "evaluator",
+      "title": "Visibility",
+      "type": "string"
+    }
+  },
+  "required": [
+    "is_example",
+    "campaign_id",
+    "epoch",
+    "seq",
+    "recorded_at",
+    "schema",
+    "server_boot_id",
+    "server_event_seq",
+    "server_tick",
+    "kind",
+    "payload_schema",
+    "payload",
+    "actor_ids",
+    "evidence_refs",
+    "visibility"
+  ],
+  "title": "GameEvent",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

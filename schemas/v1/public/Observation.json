@@ -1,0 +1,795 @@
+{
+  "$defs": {
+    "CursorItem": {
+      "additionalProperties": false,
+      "properties": {
+        "item_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Item Id",
+          "type": "string"
+        },
+        "count": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "component_summary": {
+          "$ref": "#/$defs/Strict"
+        }
+      },
+      "required": [
+        "item_id",
+        "count",
+        "component_summary"
+      ],
+      "title": "CursorItem",
+      "type": "object"
+    },
+    "ItemSlot": {
+      "additionalProperties": false,
+      "properties": {
+        "slot": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Slot",
+          "type": "integer"
+        },
+        "item_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Item Id"
+        },
+        "count": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "component_summary": {
+          "$ref": "#/$defs/Strict"
+        }
+      },
+      "required": [
+        "slot",
+        "item_id",
+        "count",
+        "component_summary"
+      ],
+      "title": "ItemSlot",
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "enum": [
+            "glfw",
+            "lwjgl2",
+            "os"
+          ],
+          "title": "Backend",
+          "type": "string"
+        },
+        "representation": {
+          "enum": [
+            "keysym",
+            "scancode",
+            "mouse_button",
+            "unbound"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Code"
+        },
+        "name": {
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        },
+        "modifiers": {
+          "items": {
+            "enum": [
+              "SHIFT",
+              "CONTROL",
+              "ALT"
+            ],
+            "type": "string"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        },
+        "persisted": {
+          "maxLength": 256,
+          "title": "Persisted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backend",
+        "representation",
+        "code",
+        "name",
+        "modifiers",
+        "persisted"
+      ],
+      "title": "Key",
+      "type": "object"
+    },
+    "MachineDisplay": {
+      "additionalProperties": false,
+      "properties": {
+        "policy": {
+          "const": "thermal-current-gui-energy-fluid-base-slots/1",
+          "title": "Policy",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "thermal:machine_furnace",
+            "thermal:machine_crucible"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "energy": {
+          "$ref": "#/$defs/MachineEnergy"
+        },
+        "tanks": {
+          "items": {
+            "$ref": "#/$defs/MachineTank"
+          },
+          "maxItems": 1,
+          "title": "Tanks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy",
+        "kind",
+        "energy",
+        "tanks"
+      ],
+      "title": "MachineDisplay",
+      "type": "object"
+    },
+    "MachineEnergy": {
+      "additionalProperties": false,
+      "properties": {
+        "stored": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Stored",
+          "type": "integer"
+        },
+        "capacity": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stored",
+        "capacity"
+      ],
+      "title": "MachineEnergy",
+      "type": "object"
+    },
+    "MachineFluid": {
+      "additionalProperties": false,
+      "properties": {
+        "fluid_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Fluid Id",
+          "type": "string"
+        },
+        "amount_mb": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Amount Mb",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "fluid_id",
+        "amount_mb"
+      ],
+      "title": "MachineFluid",
+      "type": "object"
+    },
+    "MachineTank": {
+      "additionalProperties": false,
+      "properties": {
+        "capacity_mb": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Capacity Mb",
+          "type": "integer"
+        },
+        "contents": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MachineFluid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "capacity_mb",
+        "contents"
+      ],
+      "title": "MachineTank",
+      "type": "object"
+    },
+    "PublicSignal": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Cursor",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "action",
+            "health",
+            "inventory",
+            "window",
+            "chat",
+            "connection"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "recorded_at": {
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "summary": {
+          "maxLength": 256,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cursor",
+        "kind",
+        "recorded_at",
+        "summary"
+      ],
+      "title": "PublicSignal",
+      "type": "object"
+    },
+    "SeenBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "block_id": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+          "title": "Observed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "position",
+        "block_id",
+        "observed_at"
+      ],
+      "title": "SeenBlock",
+      "type": "object"
+    },
+    "SeenEntity": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "maxLength": 256,
+          "title": "Type",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "observed_at": {
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+          "title": "Observed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "position",
+        "observed_at"
+      ],
+      "title": "SeenEntity",
+      "type": "object"
+    },
+    "Strict": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Strict",
+      "type": "object"
+    },
+    "StructuredState": {
+      "additionalProperties": false,
+      "properties": {
+        "dimension": {
+          "maxLength": 256,
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "title": "Dimension",
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "yaw": {
+          "title": "Yaw",
+          "type": "number"
+        },
+        "pitch": {
+          "title": "Pitch",
+          "type": "number"
+        },
+        "health": {
+          "title": "Health",
+          "type": "number"
+        },
+        "food": {
+          "title": "Food",
+          "type": "number"
+        },
+        "inventory": {
+          "items": {
+            "$ref": "#/$defs/ItemSlot"
+          },
+          "maxItems": 46,
+          "title": "Inventory",
+          "type": "array"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Window"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "nearby_blocks": {
+          "items": {
+            "$ref": "#/$defs/SeenBlock"
+          },
+          "maxItems": 128,
+          "title": "Nearby Blocks",
+          "type": "array"
+        },
+        "nearby_entities": {
+          "items": {
+            "$ref": "#/$defs/SeenEntity"
+          },
+          "maxItems": 128,
+          "title": "Nearby Entities",
+          "type": "array"
+        },
+        "active_request_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Active Request Id"
+        },
+        "connected": {
+          "title": "Connected",
+          "type": "boolean"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Cursor"
+        }
+      },
+      "required": [
+        "dimension",
+        "position",
+        "yaw",
+        "pitch",
+        "health",
+        "food",
+        "inventory",
+        "window",
+        "nearby_blocks",
+        "nearby_entities",
+        "active_request_id",
+        "connected",
+        "truncated",
+        "next_cursor"
+      ],
+      "title": "StructuredState",
+      "type": "object"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "maximum": 30000000,
+          "minimum": -30000000,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 2048,
+          "minimum": -2048,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "maximum": 30000000,
+          "minimum": -30000000,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "Vec3",
+      "type": "object"
+    },
+    "Window": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Id",
+          "type": "integer"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "type": {
+          "maxLength": 256,
+          "title": "Type",
+          "type": "string"
+        },
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/ItemSlot"
+          },
+          "maxItems": 1024,
+          "title": "Slots",
+          "type": "array"
+        },
+        "cursor_item": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CursorItem"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "machine": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MachineDisplay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "type",
+        "slots"
+      ],
+      "title": "Window",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema": {
+      "const": "mcbench/Observation/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "observation_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "structured",
+        "pixels"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "captured_mono_ms": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Captured Mono Ms",
+      "type": "integer"
+    },
+    "gateway_sent_mono_ms": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Gateway Sent Mono Ms",
+      "type": "integer"
+    },
+    "age_at_send_ms": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Age At Send Ms",
+      "type": "integer"
+    },
+    "state_revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "State Revision",
+      "type": "integer"
+    },
+    "capability_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Capability Digest",
+      "type": "string"
+    },
+    "state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StructuredState"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "signals": {
+      "items": {
+        "$ref": "#/$defs/PublicSignal"
+      },
+      "maxItems": 32,
+      "title": "Signals",
+      "type": "array"
+    },
+    "event_gap": {
+      "title": "Event Gap",
+      "type": "boolean"
+    },
+    "frame": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Frame"
+    },
+    "width": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Width"
+    },
+    "height": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Height"
+    },
+    "media_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "image/png",
+            "image/jpeg"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Media Type"
+    },
+    "control_revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Control Revision",
+      "type": "integer"
+    },
+    "keymap_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Keymap Digest"
+    },
+    "pointer_locked": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Pointer Locked"
+    },
+    "held_keys": {
+      "items": {
+        "$ref": "#/$defs/Key"
+      },
+      "title": "Held Keys",
+      "type": "array"
+    },
+    "last_action_seq": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Action Seq"
+    }
+  },
+  "required": [
+    "is_example",
+    "campaign_id",
+    "epoch",
+    "seq",
+    "recorded_at",
+    "schema",
+    "agent_id",
+    "observation_id",
+    "mode",
+    "captured_mono_ms",
+    "gateway_sent_mono_ms",
+    "age_at_send_ms",
+    "state_revision",
+    "capability_digest",
+    "state",
+    "signals",
+    "event_gap",
+    "frame",
+    "width",
+    "height",
+    "media_type",
+    "control_revision",
+    "keymap_digest",
+    "pointer_locked",
+    "held_keys",
+    "last_action_seq"
+  ],
+  "title": "Observation",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

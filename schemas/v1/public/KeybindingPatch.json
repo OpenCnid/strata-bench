@@ -1,0 +1,339 @@
+{
+  "$defs": {
+    "BindingChange": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "owner_mod": {
+          "title": "Owner Mod",
+          "type": "string"
+        },
+        "owner_evidence": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Owner Evidence",
+          "type": "string"
+        },
+        "contexts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Contexts",
+          "type": "array"
+        },
+        "context_confidence": {
+          "enum": [
+            "known",
+            "unknown"
+          ],
+          "title": "Context Confidence",
+          "type": "string"
+        },
+        "before": {
+          "$ref": "#/$defs/Key"
+        },
+        "after": {
+          "$ref": "#/$defs/Key"
+        },
+        "protected": {
+          "title": "Protected",
+          "type": "boolean"
+        },
+        "competing_binding_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+            "type": "string"
+          },
+          "title": "Competing Binding Ids",
+          "type": "array"
+        },
+        "candidate_evidence": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Candidate Evidence",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Checks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "binding_id",
+        "owner_mod",
+        "owner_evidence",
+        "contexts",
+        "context_confidence",
+        "before",
+        "after",
+        "protected",
+        "competing_binding_ids",
+        "candidate_evidence",
+        "checks"
+      ],
+      "title": "BindingChange",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "test_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Test Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "not_run",
+            "pass",
+            "fail"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "refs": {
+          "items": {
+            "pattern": "^cas:sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "test_id",
+        "status",
+        "refs"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Key": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "enum": [
+            "glfw",
+            "lwjgl2",
+            "os"
+          ],
+          "title": "Backend",
+          "type": "string"
+        },
+        "representation": {
+          "enum": [
+            "keysym",
+            "scancode",
+            "mouse_button",
+            "unbound"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Code"
+        },
+        "name": {
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        },
+        "modifiers": {
+          "items": {
+            "enum": [
+              "SHIFT",
+              "CONTROL",
+              "ALT"
+            ],
+            "type": "string"
+          },
+          "title": "Modifiers",
+          "type": "array"
+        },
+        "persisted": {
+          "maxLength": 256,
+          "title": "Persisted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "backend",
+        "representation",
+        "code",
+        "name",
+        "modifiers",
+        "persisted"
+      ],
+      "title": "Key",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema": {
+      "const": "mcbench/KeybindingPatch/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "transaction_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Transaction Id",
+      "type": "string"
+    },
+    "expected_revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "expected_keymap_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Expected Keymap Digest",
+      "type": "string"
+    },
+    "backend_fingerprint": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Backend Fingerprint",
+      "type": "string"
+    },
+    "changes": {
+      "items": {
+        "$ref": "#/$defs/BindingChange"
+      },
+      "title": "Changes",
+      "type": "array"
+    },
+    "backup_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Backup Ref"
+    },
+    "phase": {
+      "enum": [
+        "planned",
+        "applying",
+        "verifying",
+        "committed",
+        "rolled_back",
+        "failed"
+      ],
+      "title": "Phase",
+      "type": "string"
+    },
+    "resulting_revision": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resulting Revision"
+    },
+    "resulting_keymap_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resulting Keymap Digest"
+    },
+    "restart_check": {
+      "$ref": "#/$defs/Evidence"
+    },
+    "failure_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Failure Code"
+    }
+  },
+  "required": [
+    "is_example",
+    "campaign_id",
+    "epoch",
+    "seq",
+    "recorded_at",
+    "schema",
+    "agent_id",
+    "transaction_id",
+    "expected_revision",
+    "expected_keymap_digest",
+    "backend_fingerprint",
+    "changes",
+    "backup_ref",
+    "phase",
+    "resulting_revision",
+    "resulting_keymap_digest",
+    "restart_check",
+    "failure_code"
+  ],
+  "title": "KeybindingPatch",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

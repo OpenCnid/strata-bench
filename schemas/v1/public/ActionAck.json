@@ -1,0 +1,145 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "epoch": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seq",
+      "type": "integer"
+    },
+    "recorded_at": {
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema": {
+      "const": "mcbench/ActionAck/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "action_seq": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Action Seq",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "accepted",
+        "executing",
+        "completed",
+        "failed",
+        "cancelled",
+        "emitted",
+        "rejected",
+        "unknown"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "emitted_events": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Emitted Events"
+    },
+    "completed_mono_ms": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completed Mono Ms"
+    },
+    "release_confirmed": {
+      "title": "Release Confirmed",
+      "type": "boolean"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error Code"
+    },
+    "requires_resync": {
+      "title": "Requires Resync",
+      "type": "boolean"
+    },
+    "result_observation_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Result Observation Id"
+    }
+  },
+  "required": [
+    "is_example",
+    "campaign_id",
+    "epoch",
+    "seq",
+    "recorded_at",
+    "schema",
+    "agent_id",
+    "request_id",
+    "action_seq",
+    "status",
+    "emitted_events",
+    "completed_mono_ms",
+    "release_confirmed",
+    "error_code",
+    "requires_resync",
+    "result_observation_id"
+  ],
+  "title": "ActionAck",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

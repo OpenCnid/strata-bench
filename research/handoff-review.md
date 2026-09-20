@@ -1,5 +1,7 @@
 # Independent handoff review
 
+This is a historical design review, not the session restart document. Use the current [status and handoff](../docs/STATUS_AND_HANDOFF.md) and [milestone ledger](../MILESTONES.md) for implementation progress and next actions.
+
 > Architecture update, 2026-09-18 (D01): the user selected Mineflayer as the first control backend, with structured observations/actions. Direct Codex CLI/local commands are the default (D02); MCP and app-server are optional. Full-client-first proposals and prior review conclusions below are historical. Use [SPEC.md](../SPEC.md), [MILESTONES.md](../MILESTONES.md), and the [Mineflayer decision](mineflayer-backend.md) for current contracts and gates; source findings remain supporting evidence.
 
 Reviewed only `SPEC_PROMPT.md` and `BUILD_PLAN.md`, in a fresh delegated context. No research reports, source-code verification, paid model calls, generated `SPEC.md`, or gameplay tests were used. Shared filesystem access means this was not physical isolation or evidence of generator quality. Line references below identify the reviewed versions.

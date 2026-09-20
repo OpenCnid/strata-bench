@@ -2,11 +2,11 @@
 
 Project name: **Strata**. Public repository: **[OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench)** (user decision D03).
 
-Research baseline: 2026-09-17; architecture updated 2026-09-18 by user decision D01. Status: research-backed proposal; no Minecraft installations, playthroughs, compatibility tests, or benchmark scores were produced in this task.
+Research baseline: 2026-09-17; architecture updated 2026-09-18 by user decision D01. This is a historical supporting plan, not current implementation status. Implementation and selected authentic integration evidence now exist; M0 and all aggregate release gates remain open. Read [current status](docs/STATUS.md), [the session handoff](docs/STATUS_AND_HANDOFF.md) and [MILESTONES.md](MILESTONES.md) before resuming. D04's original allowance is interpreted through D11; current budget and isolation work is described in the [admission contract](docs/operations/validation-admission.md).
 
 ## 1. Recommendation
 
-Build a **meta-harness around authentic Minecraft Java servers, with Mineflayer as the first character-control backend**, one Dovetail-equipped runtime per embodied agent and a private evaluator. Use structured observations and bounded actions through a small local CLI called by Codex, with fixed local motor/pathfinding execution. Start with vanilla 1.19.2, then immediately test the selected Forge expert pack before expanding duration or teams. Screenshots are optional, not the primary control loop. The authoritative implementation contract is [SPEC.md](SPEC.md) v0.2.0; [MILESTONES.md](MILESTONES.md) records unpassed work.
+Build a **meta-harness around authentic Minecraft Java servers, with Mineflayer as the first character-control backend**, one Dovetail-equipped runtime per embodied agent and a private evaluator. Use structured observations and bounded actions through a small local CLI called by Codex, with fixed local motor/pathfinding execution. Start with vanilla 1.19.2, then immediately test the selected Forge expert pack before expanding duration or teams. Screenshots are optional, not the primary control loop. The authoritative implementation contract is the current [SPEC.md](SPEC.md); [MILESTONES.md](MILESTONES.md) records unpassed work.
 
 The scientific target is **improvement attributable to experience**, measured separately from how far agents get in a world. Long playthroughs provide authentic experience; controlled, held-out probes determine whether an experienced agent performs better when equipment, starting conditions, and inference budgets are matched.
 

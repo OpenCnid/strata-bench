@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.58, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (D11 estimated validation-budget clarification). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.59, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (D11 continuation contract and session handoff). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -186,6 +186,8 @@ Roles may share physical hardware at N=1, but they do not share privileges. Use 
 The operator controller alone has scheduler and account-secret references. Evaluator telemetry endpoints require a separate identity unavailable to clients/agents; server telemetry is not broadcast as custom payloads to players. The evaluator's fixture administration is permitted only before probe start or during registered infrastructure stops. Server console/admin credentials never enter runtime processes. Authentication remains enabled for real player identities; agent avatars receive no operator permissions.
 
 Codex's own sandbox is defense in depth, not the whole boundary. Provider authentication needs a host-supported broker or a service identity protected from model-executed code and child processes. If the pinned host cannot separate provider credentials from arbitrary code tools, restrict those tools or use an external execution service; this changes the declared capability manifest and requires conformance. Never claim isolation merely because paths are absent from a prompt.
+
+The purpose is benchmark validity and protection of private state, not a requirement to obtain a VM. Engineer the smallest enforceable boundary on available hardware and qualify it against these access rules, including native helpers. A separate desktop addresses input routing only. Failed boundary qualification prevents affected agent runs and integrity claims; it does not prohibit independent implementation or explicitly labeled operator-controlled development diagnostics. D11 clarifies the initial budget in Section 15; the [continuation contract](docs/operations/validation-admission.md) identifies the unimplemented policy migration without waiving these gates.
 
 | Data | Agent visibility | Private ownership and rule |
 |---|---|---|

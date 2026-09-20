@@ -11,14 +11,22 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameRecipeGridTest {
     @Test void completedManualGridNeedsFreshServerOutputBeforeTakingAnyResult() throws Exception {
         var port=new Port(1);var motor=GameCrafting.start(port,1,port::emit);
+        // A fresh authoritative baseline precedes the first manual grid click.
+        assertTrue(port.clicks.isEmpty());
+        port.ack();assertFalse(motor.tick(port::emit));
         // Pick, place, then the separate final refresh. No output click yet.
         port.ack();assertFalse(motor.tick(port::emit));
         port.ack();assertFalse(motor.tick(port::emit));
-        assertEquals(0,port.takes);assertEquals(3,port.ticket);
+        assertEquals(0,port.takes);assertEquals(4,port.ticket);
         for(int i=0;i<5;i++)assertFalse(motor.tick(port::emit));
         assertEquals(0,port.takes);
         // A stale/wrong authoritative output cannot be replaced by prediction.
         var slots=new ArrayList<>(port.slots);slots.set(0,EMPTY);
+        port.reply=new GameInventory.View(slots,port.cursor,0);
+        assertFalse(motor.tick(port::emit));assertEquals(0,port.takes);
+        // A delayed empty preview permits only a charged read, never a take.
+        assertEquals(5,port.ticket);
+        slots.set(0,item("wrong",2));
         port.reply=new GameInventory.View(slots,port.cursor,0);
         assertThrows(IOException.class,()->motor.tick(port::emit));assertEquals(0,port.takes);
         var good=new Port(1);var valid=GameCrafting.start(good,1,good::emit);good.finish(valid);

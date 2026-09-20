@@ -6,6 +6,10 @@ Updated: 2026-09-20. Authority: [SPEC.md](SPEC.md) v0.2.38; maintenance rules: [
 
 ## Current position
 
+- **Native helper topology:** [Actual overlap/limit probes](docs/verification/2026-09-20-native-helper-topology.md) pass two active children and exact over-limit rejection with eight/seven all-call settlements. Nested native capability fails: child catalogs omit collaboration even with max depth two; the pinned bundled Luna catalog reports v1. Initial unsupported-call/unknown sample is retained with full 12-call hold and zero recovery replay. Final failed capability checks settle all four calls. 113 Python checks/full Ruff pass. M0.1c.2c.2b is implemented_unverified; .2c is blocked for this pinned nested profile. Continue independent authentic guardian and mechanics while qualifying a supported nested seam; no live dispatch.
+
+- **Published source checkpoint:** branch `codex/strata-native-dispatch` through `b8675a7` is pushed as [draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2). Fresh `origin/main` remains the PR #1 merge `579796d`. Continue the current branch; the draft is a reviewable partial checkpoint, not a release or stopping condition. Raw evidence and installations remain external.
+
 - **Native helper lifecycle:** loaded-config checkpoint `8479e97` is committed. [Actual lifecycle/interruption fixtures](docs/verification/2026-09-20-native-helper-lifecycle.md) pass final idle messaging/follow-up (12 metered calls) and active child cancellation (four settled/one unknown) with fresh-supervisor no-replay and full retained reservation. Initial empty-ack parser failure remains. Ninety-six Python checks/full Ruff and original helper/restart regressions pass. Trusted child admission/permissions/sub-budgets, depth/grandchild and complete resume remain open.
 
 - **Loaded-config evidence:** overlay checkpoint `ce3e465` is committed. [Telemetry 0.2.0](docs/verification/2026-09-20-e9e-loaded-config.md) has 51 Python/11 Java passes and an authentic two-boot selected-config persistence check (34/32 records, normal stops). Four files are unregistered; current Sophisticated Core/Create snapshots match across restart. Initial placeholder-plan failure is retained. All 268 stopped-file outcomes/digests are unchanged, including five failures. Server 0.2.0 is installed and stopped; no client or inference ran. Next: exact role/consumer disposition, full expert mechanics and authentic guardian recovery with current pins.
@@ -233,6 +237,8 @@ Native collaboration continuation children:
 | M0.1c.2c.1 | AR/QA | Observed pinned v2 tool schemas, native spawn/wait/result, clean/full context and declared session storage; F03/F07/F09/F11/F16, N01/N03/N04/N06/N08, C06/C14/C18/C20, partial T01/T04/T07/T12 | implemented_unverified | [Actual CLI/synthetic provider evidence](docs/verification/2026-09-20-native-helpers.md): two final invocation cases pass, four all-call receipts each, unchanged plugin bytes; 77 relevant Python checks pass. Preserve absent legacy surface, ephemeral-fork and parser failures. No production helper/isolation qualification. |
 | M0.1c.2c.2 | AR/PL/SI | Trusted native child admission/lineage, child permission principals, nested/grandchild sub-budgets, full messaging/follow-up/interruption/restart and complete admitted session state | in_progress | Aggregate inclusion and observed metadata do not supply these controls. Depends on enforceable M0.1c.2b.2 boundary for live admission; independent lifecycle/accounting fixtures may proceed. Session files are not complete checkpoint/restore evidence. |
 | M0.1c.2c.2a | AR/QA | Actual native idle messaging, follow-up, idle/active interruption/list lifecycle and unknown child usage through restart | implemented_unverified | [Evidence](docs/verification/2026-09-20-native-helper-lifecycle.md): final lifecycle 12 settled calls, active interruption four settled/one ambiguous with full held envelope and zero fresh-process replay. Exact native result shapes, dedup, unchanged plugin and original helper/restart regressions pass; 96 Python checks/full Ruff pass. Empty-ack parser failure retained. Fixture cap 16 applies only to declared idle case; old cap eight/live $10 unchanged. No trusted child budgets/permissions qualification. |
+| M0.1c.2c.2b | AR/QA | Actual native concurrent helper admission and over-limit rejection, overlapping streaming and complete gateway charges | implemented_unverified | [Topology evidence](docs/verification/2026-09-20-native-helper-topology.md): two/one slot cases pass eight/seven calls, exact running/final agent sets, denial, dedup and settled envelopes; 113 local Python checks/full Ruff pass. Initial denial-shape discovery fail retained. This is not production child admission, per-child permission/sub-budget enforcement or N-body capacity. |
+| M0.1c.2c.2c | AR/PL/SI | Actual child/grandchild capability, recursive registered lineage/charges and enforced depth-two bound | blocked | [Pinned nested failure](docs/verification/2026-09-20-native-helper-topology.md): native child omits collaboration tools even with max depth two. Final four-call capability-failure samples are settled; initial unsupported-call sample retains four settled/one unknown and full hold, with zero recovery replay. Pinned bundled Luna metadata is v1; forced root v2 is not a verified nested profile. Qualify a supported configuration or separate validated native-job helper seam; do not change model or treat an absent tool as the required positive pass. |
 
 Guardian continuation child:
 
@@ -4406,3 +4412,36 @@ partial T01/T03/T06/T07/T12/T13). Progress; no aggregate gate closure.
   Next: enforceable native child admission/permissions/budgets/depth and complete
   state; continue independent game/guardian conformance while external live
   monetary and isolation inputs remain pending. No milestone or gate closure.
+
+### 2026-09-20 — Partial source checkpoint published; implementation continues
+
+- Fresh fetch confirms main at 579796d; existing changes preserved. Pushed
+  codex/strata-native-dispatch through b8675a7 and opened [draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2)
+  under carried D03 publication authorization. No merge or release claim.
+- The draft describes actual verification and unresolved gates; no raw evidence,
+  credentials or game installations are published. Continue native helper
+  concurrency/depth qualification and independent game/reliability work.
+
+### 2026-09-20 — Native helper overlap passes; nested capability remains blocked
+
+- M0.1c.2c.2b adds exact actual-CLI overlap and one-slot rejection through
+  tools/native_helper_topology.py and the existing wire-accounted helper probe.
+  Final pair/limit samples settle eight/seven calls (112/98 synthetic microUSD),
+  each receipt deduplicated, with complete expected running/final agent sets.
+  Root JSONL omits child calls. Twelve-request/45-second fixture bounds keep the
+  same 80,000 synthetic microUSD envelope; no live ceiling or profile changes.
+- M0.1c.2c.2c is blocked for the tested native nested profile. Actual children
+  lack collaboration tools; explicit max depth two does not supply them. The
+  pinned bundled Luna metadata says v1. Supporting current upstream source is
+  separately pinned and does not prove this binary's implementation. Final
+  nested capability failures settle all four calls without provider errors.
+- Retain initial exact-denial discovery failure and initial nested unsupported
+  calls/result-delivery failure: the latter holds four settled/one unknown,
+  rejects a sixth ingress and retains all 12 reserved calls/80,000 synthetic
+  microUSD. Fresh recovery reports zero replay and the unchanged hold. All raw
+  artifacts and source pins remain external; [report](docs/verification/2026-09-20-native-helper-topology.md).
+- 113 relevant Python checks pass with zero skips in 8.22 s; full Ruff and diff
+  check pass. No game, shared-desktop input or live model dispatch. A required
+  grandchild/depth/child-principal contract remains open, not converted into a
+  negative-test pass. Next: independent authentic guardian/mechanic evidence,
+  and a qualified nested seam when its concrete compatibility blocker is resolved.

@@ -22,6 +22,7 @@ from mcbench.storage import CAS, Database, Fault, canonical, require
 from native_dispatch_probe import (
     BINARY_SHA256, MODEL, LocalProvider, close_budget, ledger, plan_for, put, sse, wait_job,
 )
+from native_helper_topology import MODES as TOPOLOGY_MODES, NestedTopology, Topology
 
 PARENT_CANARY = "STRATA_PARENT_CONTEXT_4c57dca8"
 CHILD_RESULT = "STRATA_CHILD_RESULT_88ab269e"
@@ -39,6 +40,9 @@ class HelperProvider(LocalProvider):
         self.child_calls = 0
         self.native_tool_calls, self.tool_outputs = {}, {}
         self.stream_operation = None
+        self.agent_tool_names = {}
+        self.topology = (NestedTopology() if mode == "grandchild" else
+                         Topology(mode) if mode in TOPOLOGY_MODES else None)
 
     @staticmethod
     def delivered(body, result):
@@ -118,9 +122,14 @@ class HelperProvider(LocalProvider):
         require("spawn_agent" in json.dumps(self.catalog), "NATIVE_HELPER_TOOL_MISSING")
         metadata = json.loads(body["client_metadata"]["x-codex-turn-metadata"])
         agent = metadata["agent_name"]
-        require(agent in {"/root", "/root/synthetic_child"}, "UNEXPECTED_NATIVE_AGENT")
+        self.agent_tool_names.setdefault(agent, {n.get("name"): [t.get("name") for t in n.get("tools", [])]
+            for catalog in catalogs for n in catalog})
+        if not self.topology:
+            require(agent in {"/root", "/root/synthetic_child"}, "UNEXPECTED_NATIVE_AGENT")
         text = "Synthetic native parent complete."
         call = None
+        if self.topology:
+            self.topology.before_request(agent)
         if self.mode == "active_interrupt" and agent == "/root" and self.root_step == 1:
             # Outside the lock: the child handler must be able to record/flush its stream.
             require(self.streaming.wait(5), "CHILD_STREAM_NOT_STARTED")
@@ -129,7 +138,9 @@ class HelperProvider(LocalProvider):
                 "thread_id": metadata["thread_id"], "turn_id": metadata["turn_id"],
                 "root_turn_id": metadata["root_turn_id"],
                 "parent_canary_present": PARENT_CANARY in json.dumps(body), "model": body["model"]})
-            if self.mode == "lifecycle":
+            if self.topology:
+                text, call = self.topology.choose(body, agent, self.native_tool_calls, PARENT_CANARY)
+            elif self.mode == "lifecycle":
                 text, call = self.lifecycle(body, agent)
             elif self.mode == "active_interrupt":
                 text, call = self.active_interrupt(body, agent)
@@ -188,12 +199,22 @@ class HelperProvider(LocalProvider):
         handler.send_header("Content-Type", "text/event-stream")
         handler.end_headers()
         handler.wfile.write(sse("response.created", response={**response, "status": "in_progress", "output": []}))
+        if self.topology and agent != "/root":
+            handler.wfile.write(sse("response.output_text.delta", item_id="message-" + operation,
+                output_index=0, content_index=0, delta="Synthetic overlap stream prefix."))
+            handler.wfile.flush()
+            self.topology.hold_stream(agent)
         handler.wfile.write(sse("response.output_item.done", output_index=0, item=item))
         handler.wfile.write(sse("response.completed", response=response))
         handler.wfile.flush()
         if self.mode == "active_interrupt" and agent == "/root" and self.root_step == 4:
             self.release.set()
         return {}, event
+
+    def close(self):
+        if self.topology:
+            self.topology.release.set()
+        super().close()
 
 
 def validate_lifecycle_outputs(outputs):
@@ -240,9 +261,9 @@ def run(binary, output, variant, mode, persistent):
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
                                 category="development")
-    scenario = "helper_parent" if mode == "active_interrupt" else "success"
+    scenario = "helper_parent" if mode == "active_interrupt" or mode in TOPOLOGY_MODES else "success"
     provider = HelperProvider(db.path, cas.root, scenario, wire=True, mode=mode,
-                              max_requests=16 if mode == "lifecycle" else 8)
+                              max_requests=16 if mode == "lifecycle" else 12 if mode in TOPOLOGY_MODES else 8)
     result = {"is_example": True, "real_usd": 0, "production_qualified": False,
               "verdict": "fail", "mode": mode, "variant": variant, "ephemeral": not persistent}
     installed = None
@@ -254,13 +275,17 @@ def run(binary, output, variant, mode, persistent):
         result["plugin_tree_before"] = installation["inventory"]["installed_tree_digest"]
         overrides = {"features.multi_agent": True, "windows.sandbox": "unelevated"}
         if variant in {"agents", "v2"}:
-            overrides.update({"agents.enabled": True, "agents.max_concurrent_threads_per_session": 1,
+            overrides.update({"agents.enabled": True,
+                              "agents.max_concurrent_threads_per_session":
+                                  2 if mode in {"concurrency_pair", "grandchild"} else 1,
                               "agents.default_subagent_model": MODEL})
         if variant == "v2":
             overrides["features.multi_agent_v2"] = True
+        if mode == "grandchild":
+            overrides["agents.max_depth"] = 2
         plan = NativeLaunch.model_validate(plan.model_dump() | {
             "session_storage": "private_profile" if persistent else "ephemeral",
-            "hard_timeout_s": 45 if mode in {"lifecycle", "active_interrupt"} else plan.hard_timeout_s,
+            "hard_timeout_s": 45 if mode in {"lifecycle", "active_interrupt"} | TOPOLOGY_MODES else plan.hard_timeout_s,
             "config_overrides": plan.config_overrides | installation["required_config_overrides"] |
                 overrides,
             "prompt": ("Synthetic native helper conformance. Delegate only the fixed child task and "
@@ -287,9 +312,14 @@ def run(binary, output, variant, mode, persistent):
     result["helper_qualification"] = "not_run" if result["helper_tools_advertised"] else "blocked"
     result["requests"], result["provider_errors"] = provider.requests, provider.errors
     result["lineage"] = provider.lineage
-    result["tool_outputs"] = list(provider.tool_outputs.values())
+    result["agent_tool_names"] = provider.agent_tool_names
+    result["tool_outputs"] = (provider.topology.tool_outputs if provider.topology else
+                              list(provider.tool_outputs.values()))
     result["request_limit"] = provider.max_requests
     result["stream_operation"] = provider.stream_operation
+    result["upstream_request_count"] = len(provider.upstream_requests)
+    if mode == "grandchild":
+        result["missing_child_tools"] = provider.topology.missing_tools
     if installed:
         result["plugin_tree_after"] = inspect_plugin_tree(installed)["installed_tree_digest"]
     try:
@@ -305,7 +335,9 @@ def run(binary, output, variant, mode, persistent):
                 raise
         result["budget"] = gate.budgets.status("project")
         result["turn_usage"] = runtime.usage_report("root")
-        if mode != "discovery":
+        if provider.topology:
+            provider.topology.validate(result)
+        elif mode != "discovery":
             roots = [item for item in provider.lineage if item["agent_name"] == "/root"]
             children = [item for item in provider.lineage if item["agent_name"] != "/root"]
             require(len(roots) == (10 if mode == "lifecycle" else 4 if mode == "active_interrupt" else 3) and
@@ -344,7 +376,8 @@ def run(binary, output, variant, mode, persistent):
         require(not result.get("failure") and (mode == "active_interrupt" or not provider.errors) and
                 result["runtime"]["returncode"] == 0 and
                 (mode == "active_interrupt" or result["budget"]["committed_and_reserved"]["model_calls"] ==
-                    (1 if mode == "discovery" else 12 if mode == "lifecycle" else 4)) and
+                    (len(provider.lineage) if provider.topology else
+                     1 if mode == "discovery" else 12 if mode == "lifecycle" else 4)) and
                 (mode == "active_interrupt" or all(item.get("receipt_deduplicated") for item in provider.requests)) and
                 result["plugin_tree_after"] == result["plugin_tree_before"], "NATIVE_HELPER_PROBE_FAILED")
         result["verdict"] = "pass"
@@ -361,14 +394,15 @@ def main():
     parser.add_argument("--codex", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--variant", choices=["feature", "agents", "v2"], default="feature")
-    parser.add_argument("--mode", choices=["discovery", "fork_none", "fork_all", "lifecycle", "active_interrupt"], default="discovery")
+    parser.add_argument("--mode", choices=["discovery", "fork_none", "fork_all", "lifecycle", "active_interrupt",
+                                         *sorted(TOPOLOGY_MODES)], default="discovery")
     parser.add_argument("--persistent", action="store_true", help="Keep fixture session in its private disposable profile")
     args = parser.parse_args()
     root, output = Path(__file__).resolve().parents[1], args.output.resolve()
     require(os.name == "nt" and file_hash(args.codex) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
     require(not output.is_relative_to(root) and not output.exists(), "PRIVATE_FRESH_OUTPUT_REQUIRED")
     output.mkdir(parents=True)
-    sources = [Path(__file__).resolve(), root / "tools/native_dispatch_probe.py",
+    sources = [Path(__file__).resolve(), root / "tools/native_dispatch_probe.py", root / "tools/native_helper_topology.py",
                *[root / "src/mcbench" / name for name in ("plugins.py", "native.py", "budgets.py",
                     "inference_dispatch.py", "inference_transport.py", "processes.py")]]
     manifest = {"schema": "strata/SyntheticNativeHelperProbe/1", "is_example": True,

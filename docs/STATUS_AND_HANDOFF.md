@@ -15,6 +15,11 @@ and fetched `origin/main`. The clean current worktree branched from that revisio
 as `codex/strata-native-dispatch`. The initial source checkpoint checks below
 remain historical evidence; the resumed accounting change is described here.
 
+[Draft PR #2](https://github.com/OpenCnid/strata-bench/pull/2) now publishes
+`codex/strata-native-dispatch` through `b8675a7`. Fresh origin/main still resolves
+to `579796d`. Continue this branch and preserve its unmerged commits; publication
+is a partial source checkpoint, not completion or a reason to stop.
+
 ## Overall position
 
 | Milestone | Status | What exists / what prevents closure |
@@ -153,6 +158,17 @@ Advance independent credential-free host/plugin/skill/helper work while live
 admission remains blocked.
 
 ## Native helper lifecycle follow-up
+
+[Native overlap/limit fixtures](verification/2026-09-20-native-helper-topology.md)
+now pass two concurrent children and exact second-child rejection at one slot,
+with eight/seven fully settled gateway calls. The required nested profile is
+blocked: children omit collaboration even with max depth two; the pinned
+bundled Luna catalog reports v1. The first failed nested sample retains its
+full 12-call reservation and zero recovery replay. Corrected catalog-first
+checks fail cleanly with four settled calls. 113 Python checks/full Ruff pass;
+no live inference, game or desktop input in this change. Continue authentic
+guardian/mechanic qualification while resolving the explicit nested seam,
+production child boundaries and the existing monetary/isolation blockers.
 
 Loaded-config checkpoint `8479e97` is committed. [Native lifecycle/interruption](verification/2026-09-20-native-helper-lifecycle.md) now has a 12-call idle messaging/follow-up case and active child interruption with four settled/one ambiguous request. Fresh recovery replays nothing and retains the full envelope. Exact native results, original helper/restart regressions, 96 Python checks and full Ruff pass. Empty-ack parser failure remains in its original store. Full child admission/permissions/sub-budgets, nested depth/grandchildren, isolation and complete resume remain open; do not treat native cancellation as provider usage settlement. No live inference or game run in this work.
 

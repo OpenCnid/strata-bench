@@ -67,12 +67,14 @@ without the opt-in environment they may skip. The checkpoint ran them enabled:
 $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot'
 $env:STRATA_FTB_LIBRARY_JAR = 'C:\path\to\official-E9E\mods\ftb-library-forge-1902.4.1-build.236.jar'
 Push-Location java
-.\gradlew.bat :forge1192-client:test :forge1192-telemetry:test :forge1192-client:writeTestClasspath --no-daemon --console plain
+.\gradlew.bat :forge1192-client:test :forge1192-telemetry:test :forge1192-client:writeTestClasspath :forge1192-telemetry:writeTestClasspath --no-daemon --console plain
 Pop-Location
 $env:STRATA_CLIENT_TEST_JAVA = Join-Path $env:JAVA_HOME 'bin\java.exe'
 $env:STRATA_CLIENT_TEST_CLASSPATH = (Resolve-Path java\forge1192-client\build\test-classpath.txt).Path
 $env:STRATA_SETTINGS_TEST_JAVA = $env:STRATA_CLIENT_TEST_JAVA
 $env:STRATA_SETTINGS_TEST_CLASSPATH = $env:STRATA_CLIENT_TEST_CLASSPATH
+$env:STRATA_TELEMETRY_TEST_JAVA = $env:STRATA_CLIENT_TEST_JAVA
+$env:STRATA_TELEMETRY_TEST_CLASSPATH = (Resolve-Path java\forge1192-telemetry\build\test-classpath.txt).Path
 $env:STRATA_GUARD_TEST_PYTHON = (Resolve-Path .venv\Scripts\python.exe).Path
 uv run --frozen python -m pytest -q
 npm test --prefix backends/mineflayer

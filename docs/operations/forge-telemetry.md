@@ -20,6 +20,47 @@ The strict `strata/ForgeTelemetryConfig/1` fields are `campaign_id`, positive
 (at most 64 unique namespaced identifiers), plus `schema`. There is no target
 URL, console command or arbitrary reflective method in the configuration.
 
+Telemetry 0.3.3 adds opt-in `strata/ForgeTelemetryConfig/3`: all version-2
+fields plus `authentication`, containing exactly `challenge`, `key_file`,
+`key_sha256` and `authority_digest`. Use the private issuer to create this
+block; it binds a fresh per-boot key to the intended instance/campaign/epoch.
+The key file must stay outside the game installation and agent access. Keep
+configuration versions 1/2 labeled unauthenticated when replaying old evidence.
+
+```powershell
+python -m strata_evaluator.telemetry_auth issue `
+  --directory <fresh-absolute-private-directory> --game-directory <absolute-game-root> `
+  --instance <private-instance-id> --campaign <campaign-id> --epoch <epoch>
+```
+
+The command writes `authority.json`, a 32-byte `producer.key` and the
+`producer-authentication.json` block. Insert that block in the version-3
+configuration; no secret key bytes enter its JSON. Before its first event,
+the producer exclusively creates/forces `producer.key.claimed`, binding the
+grant to its boot. A consumed grant cannot start another boot. Retain failed
+claims; do not delete them to retry. A new boot needs a fresh operator grant,
+and a registered scorer restart still needs the existing increasing-epoch and
+new-boot checks. Issuing a grant alone does not register or qualify a score.
+
+Signed spools use `<boot>.authenticated.jsonl`. Each private wrapper authenticates
+the exact original event bytes and its place in the per-boot chain. Encoded
+bytes consume the configured quota, so reserve their actual storage overhead.
+Inspect only against the separately issued authority:
+
+```powershell
+python -m strata_evaluator.telemetry_auth inspect `
+  --spool <absolute-signed-spool> --authority <absolute-private-authority.json> `
+  --output <absolute-private-report.json>
+```
+
+Successful stream authentication is distinct from authenticated process
+identity, setup/team provenance and scorer eligibility. Existing raw readers
+do not silently accept the signed format; use the explicit importer. Keep keys,
+claims and spool/report files private through retention and recovery. The module
+preserves explicit null payload fields as required by the importer.
+[Implementation, Java/Python verification and limits](../verification/2026-09-20-authenticated-telemetry.md)
+do not constitute authentic game or full T06/T10 qualification.
+
 Telemetry 0.2.0 also accepts `strata/ForgeTelemetryConfig/2`, whose required
 additional field is `config_queries`. Each query has `file_name` (a lowercase
 TOML basename, at most 128 characters) and `paths` (1–32 unique arrays, each

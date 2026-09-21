@@ -18,10 +18,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /** Single writer, bounded queue and explicit failures. Only the durable cursor is an acknowledgment. */
 final class EventSpool implements AutoCloseable {
-    private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().create();
+    private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
     private final TelemetryConfig config;
     private final String bootId = UUID.randomUUID().toString();
     private final FileChannel channel;
+    private final SpoolAuthentication.Signer signer;
     private final ArrayBlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(256);
     private final AtomicReference<IOException> failure = new AtomicReference<>();
     private final Thread writer;
@@ -32,7 +33,8 @@ final class EventSpool implements AutoCloseable {
     EventSpool(TelemetryConfig config) throws IOException {
         this.config = config;
         TelemetryConfig.safeExisting(config.spoolDirectory());
-        Path file = config.spoolDirectory().resolve(bootId + ".jsonl");
+        signer = config.authentication() == null ? null : config.authentication().signer(bootId);
+        Path file = config.spoolDirectory().resolve(bootId + (signer == null ? ".jsonl" : ".authenticated.jsonl"));
         channel = FileChannel.open(file, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         writer = new Thread(this::writeLoop, "strata-private-telemetry");
         writer.setDaemon(true);
@@ -63,7 +65,15 @@ final class EventSpool implements AutoCloseable {
         event.add("evidence_refs", new JsonArray());
         event.addProperty("visibility", "evaluator");
         byte[] bytes = (JSON.toJson(event) + "\n").getBytes(StandardCharsets.UTF_8);
-        if (tick < 0 || bytes.length > 1048576 || seq >= config.maxEvents()
+        if (tick < 0 || bytes.length > 1048576) {
+            fail(new IOException("TELEMETRY_QUOTA_EXHAUSTED"));
+            healthy();
+        }
+        if (signer != null) {
+            try { bytes = signer.wrap(bytes, seq + 1); }
+            catch (IOException error) { fail(error); healthy(); }
+        }
+        if (seq >= config.maxEvents()
                 || reservedBytes + bytes.length > config.maxBytes()) {
             fail(new IOException("TELEMETRY_QUOTA_EXHAUSTED"));
             healthy();

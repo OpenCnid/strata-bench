@@ -15,11 +15,17 @@ import java.util.Set;
 /** Private operator configuration. Never read from a player packet or game command. */
 record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
                        long maxBytes, long maxEvents, List<String> recipeIds,
-                       List<ConfigQuery> configQueries) {
+                       List<ConfigQuery> configQueries, SpoolAuthentication authentication) {
+    TelemetryConfig(String campaign, long epoch, Path spool, long bytes, long events,
+                    List<String> recipes, List<ConfigQuery> queries) {
+        this(campaign, epoch, spool, bytes, events, recipes, queries, null);
+    }
     private static final Set<String> FIELDS = Set.of("schema", "campaign_id", "epoch",
         "spool_directory", "max_bytes", "max_events", "recipe_ids");
     private static final Set<String> FIELDS_V2 = Set.of("schema", "campaign_id", "epoch",
         "spool_directory", "max_bytes", "max_events", "recipe_ids", "config_queries");
+    private static final Set<String> FIELDS_V3 = Set.of("schema", "campaign_id", "epoch",
+        "spool_directory", "max_bytes", "max_events", "recipe_ids", "config_queries", "authentication");
 
     static Path safeExisting(Path input) throws IOException {
         Path absolute = input.toAbsolutePath().normalize();
@@ -42,6 +48,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             throw new IOException("TELEMETRY_CONFIG_PRIVATE_ROOT_REQUIRED");
         }
         String schema = null, campaign = null, spool = null;
+        SpoolAuthentication authentication = null;
         List<ConfigQuery> queries = new ArrayList<>();
         long epoch = -1, maxBytes = -1, maxEvents = -1;
         List<String> recipes = new ArrayList<>();
@@ -51,7 +58,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             reader.beginObject();
             while (reader.hasNext()) {
                 String key = reader.nextName();
-                if (!FIELDS_V2.contains(key) || !seen.add(key)) {
+                if (!FIELDS_V3.contains(key) || !seen.add(key)) {
                     throw new IOException("TELEMETRY_CONFIG_FIELDS");
                 }
                 switch (key) {
@@ -61,6 +68,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
                     case "epoch" -> epoch = integer(reader);
                     case "max_bytes" -> maxBytes = integer(reader);
                     case "max_events" -> maxEvents = integer(reader);
+                    case "authentication" -> authentication = SpoolAuthentication.read(reader, game);
                     case "recipe_ids" -> {
                         reader.beginArray();
                         while (reader.hasNext()) {
@@ -92,7 +100,8 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             if (reader.peek() != JsonToken.END_DOCUMENT) throw new IOException("TELEMETRY_CONFIG_TRAILING");
         }
         boolean validVersion = "strata/ForgeTelemetryConfig/1".equals(schema) && seen.equals(FIELDS)
-            || "strata/ForgeTelemetryConfig/2".equals(schema) && seen.equals(FIELDS_V2);
+            || "strata/ForgeTelemetryConfig/2".equals(schema) && seen.equals(FIELDS_V2)
+            || "strata/ForgeTelemetryConfig/3".equals(schema) && seen.equals(FIELDS_V3);
         if (!validVersion
                 || campaign == null || !campaign.matches("[A-Za-z0-9_.:-]{1,128}")
                 || epoch < 1 || epoch > 9007199254740991L || maxBytes < 65536
@@ -104,7 +113,7 @@ record TelemetryConfig(String campaignId, long epoch, Path spoolDirectory,
             throw new IOException("TELEMETRY_PRIVATE_ROOT_REQUIRED");
         }
         return new TelemetryConfig(campaign, epoch, directory, maxBytes, maxEvents,
-            List.copyOf(recipes), List.copyOf(queries));
+            List.copyOf(recipes), List.copyOf(queries), authentication);
     }
 
     static String string(JsonReader reader) throws IOException {

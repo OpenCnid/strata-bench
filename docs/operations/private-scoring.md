@@ -12,6 +12,12 @@ Resolve these from the operator's run plan, not from the event being admitted.
 The registration API records assertions; it does not validate the referenced
 artifacts or authenticate their producer.
 
+The [authenticated telemetry spool](forge-telemetry.md) now verifies a private
+per-boot key/challenge, scope and exact event chain before inspection. It does
+not change this registration API or make raw callbacks/resource witnesses
+scorable. Preserve its authority/spool digests as separate private provenance;
+process/key isolation, setup/team facts and authentic controls remain required.
+
 An instance keeps one campaign and evidence kind. Its predicates keep their
 complete definitions. All predicates share one immutable epoch-to-boot mapping;
 a new source requires a larger epoch and a distinct boot. Repeating the exact

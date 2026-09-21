@@ -22,6 +22,7 @@ class EventSpoolTest {
             for (int i = 0; i < 20; i++) {
                 JsonObject value = new JsonObject();
                 value.addProperty("marker", "synthetic");
+                value.add("nullable_contract_field", com.google.gson.JsonNull.INSTANCE);
                 spool.publish(i, "fixture", "strata/Test/1", value, new JsonArray());
             }
         }
@@ -33,6 +34,7 @@ class EventSpoolTest {
             assertEquals(i + 1, value.get("server_event_seq").getAsInt());
             assertEquals(i, value.get("server_tick").getAsInt());
             assertEquals("evaluator", value.get("visibility").getAsString());
+            assertTrue(value.getAsJsonObject("payload").get("nullable_contract_field").isJsonNull());
         }
         try (EventSpool second = new EventSpool(config)) { assertNotEquals(first, second.bootId()); }
         assertEquals(2, Files.list(root).count());

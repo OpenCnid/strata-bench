@@ -52,7 +52,7 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.2");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.3");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);

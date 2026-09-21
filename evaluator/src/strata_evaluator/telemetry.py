@@ -31,6 +31,7 @@ KINDS = {
     "craft_begin": "strata/CraftBegin/1",
     "craft_end": "strata/CraftEnd/1",
 }
+MAX_SPOOL_BYTES = 1024**3
 
 
 class StackSnapshot(Strict):
@@ -69,7 +70,8 @@ class CraftCaptureSupport(Strict):
 
 
 class ServerStartedV4(ServerStartedV3):
-    module: Literal["strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2"]
+    module: Literal["strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                    "strata-forge1192-telemetry/0.3.3"]
     craft_capture_policy: Literal["server-result-pickup-fastbench-bound/2"]
     craft_capture_support: CraftCaptureSupport
 
@@ -132,11 +134,15 @@ def unique_object(pairs):
     return value
 
 
-def inspect_spool(path: Path, campaign_id: str, epoch: int):
+def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=None):
     """Require a complete single-boot stream and return private inspection evidence."""
     reject_links(path.absolute())
     require(path.is_file() and path.stat().st_nlink == 1, "UNSAFE_PATH")
-    require(path.stat().st_size <= 1024**3, "TELEMETRY_QUOTA_EXHAUSTED")
+    require(path.stat().st_size <= MAX_SPOOL_BYTES, "TELEMETRY_QUOTA_EXHAUSTED")
+    if authentication is not None:
+        authentication.require_scope(campaign_id, epoch)
+    from .telemetry_auth import MAX_WIRE_RECORD
+    limit = 1048576 if authentication is None else MAX_WIRE_RECORD
     hasher = hashlib.sha256()
     boot, previous_tick, count, health_tick = None, 0, 0, 0
     recipes, avatars, kinds, configs, config_queries = {}, {}, {}, {}, {}
@@ -144,14 +150,20 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
     startup_model = ServerStarted
     craft_policy = None
     craft_stack, witnesses, craft_ids = [], [], set()
-    health_wall_ns, health_ticks = 0, 0
+    health_wall_ns, health_ticks, wire_bytes = 0, 0, 0
     with path.open("rb") as stream:
-        while line := stream.readline(1048577):
-            require(len(line) <= 1048576 and line.endswith(b"\n"), "TELEMETRY_PARTIAL_RECORD")
+        while line := stream.readline(limit + 1):
+            require(len(line) <= limit and line.endswith(b"\n"), "TELEMETRY_PARTIAL_RECORD")
             require(not stopped, "TELEMETRY_AFTER_STOP")
+            wire_bytes += len(line)
+            require(wire_bytes <= MAX_SPOOL_BYTES, "TELEMETRY_QUOTA_EXHAUSTED")
             hasher.update(line)
+            if authentication is not None:
+                line = authentication.verify(line)
             raw = json.loads(line, object_pairs_hook=unique_object)
             event = GameEvent.model_validate(raw)
+            if authentication is not None:
+                require(event.server_boot_id == authentication.boot, "TELEMETRY_AUTH_BOOT")
             require(not event.is_example, "EXAMPLE_NOT_EXECUTABLE")
             require(event.campaign_id == campaign_id and event.epoch == epoch,
                     "TELEMETRY_SCOPE_MISMATCH")
@@ -166,8 +178,12 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
                 require(event.kind == "server_started" and event.server_tick == 0,
                         "TELEMETRY_START_MISSING")
                 boot = event.server_boot_id
+                if authentication is not None:
+                    require(version4 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.3",
+                            "TELEMETRY_AUTH_MODULE")
                 startup_model = ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = (("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2") if version4 else
+                module = (("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                           "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
                           "strata-forge1192-telemetry/0.1.0")
@@ -248,7 +264,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
     require(stopped, "TELEMETRY_CLEAN_STOP_MISSING")
     require(not craft_stack, "TELEMETRY_CRAFT_INCOMPLETE")
     require(set(configs) == set(config_queries), "TELEMETRY_CONFIG_MISSING")
-    return {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
+    report = {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
             "file_sha256": hasher.hexdigest(), "campaign_id": campaign_id, "epoch": epoch,
             "server_boot_id": boot, "records": count, "kind_counts": kinds,
             "last_server_tick": previous_tick, "sampled_server_ticks": health_ticks,
@@ -258,6 +274,9 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int):
             "craft_witnesses": witnesses,
             "transport_identity_verified": False, "mechanics_parity_verified": False,
             "gate_result": "not_run"}
+    if authentication is not None:
+        report["authentication"] = authentication.receipt(boot, count)
+    return report
 
 
 def assert_e9e_furnace(report):

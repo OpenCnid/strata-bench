@@ -3,7 +3,7 @@ plugins {
     id 'net.minecraftforge.gradle'
 }
 base { archivesName = 'strata-forge1192-telemetry' }
-version = '0.3.2'
+version = '0.3.3'
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 dependencyLocking { lockAllConfigurations() }
 minecraft { mappings channel: 'official', version: '1.19.2' }
@@ -12,6 +12,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
 }
 tasks.named('test', Test).configure { useJUnitPlatform() }
+tasks.register('writeTestClasspath') {
+    dependsOn tasks.named('testClasses')
+    doLast { layout.buildDirectory.file('test-classpath.txt').get().asFile.text = sourceSets.test.runtimeClasspath.asPath }
+}
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('jar', Jar).configure {
     manifest.attributes('MixinConfigs': 'strata.craft-evidence.mixins.json')

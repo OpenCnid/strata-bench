@@ -54,4 +54,19 @@ class ClientConfigPlanTest {
             assertThrows(IOException.class, () -> ClientConfigPlan.read(source, game));
         }
     }
+
+    @Test void serverAuthenticationPlanCannotBecomeClientProbe() throws Exception {
+        Path game = Files.createDirectory(root.resolve("game"));
+        Path out = Files.createDirectory(root.resolve("out"));
+        Path key = root.resolve("producer.key"); Files.write(key, new byte[32]);
+        JsonObject plan = value(out); plan.addProperty("schema", "strata/ForgeTelemetryConfig/3");
+        JsonObject auth = new JsonObject();
+        auth.addProperty("challenge", "a".repeat(64)); auth.addProperty("key_file", key.toString());
+        auth.addProperty("key_sha256", "b".repeat(64)); auth.addProperty("authority_digest", "c".repeat(64));
+        plan.add("authentication", auth);
+        Path source = root.resolve("plan.json"); Files.writeString(source, plan.toString());
+        IOException error = assertThrows(IOException.class, () -> ClientConfigPlan.read(source, game));
+        assertEquals("CLIENT_CONFIG_PLAN_SCOPE", error.getMessage());
+        assertFalse(Files.exists(root.resolve("producer.key.claimed")));
+    }
 }

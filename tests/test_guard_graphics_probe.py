@@ -22,7 +22,8 @@ def probe(monkeypatch):
 
 
 def report():
-    return {"schema": "strata/GuardianRenderFixture/2", "scope": "a" * 32, "audio": False,
+    return {"schema": "strata/GuardianRenderFixture/3", "scope": "a" * 32, "audio": False,
+            "file_mode": "none",
             "pid": 123, "minecraft": False, "visible": False, "heap_mib": 3072,
             "texture_mib": 256, "status": "ready", "resources_held": True,
             "frames": 20, "red_samples": [64, 191] * 10, "gl_version": "fixture",
@@ -31,7 +32,10 @@ def report():
 
 
 def test_only_explicit_distinct_bounded_profiles_can_dispatch(probe):
-    assert probe.selected_profiles(["combined-large"]) == [("combined-large", 3072, 1024, False)]
+    assert probe.selected_profiles(["combined-large"]) == [("combined-large", 3072, 1024, False, "none")]
+    assert probe.selected_profiles(["combined-file-handles", "combined-file-mappings"]) == [
+        ("combined-file-handles", 3072, 1024, True, "channels-2048"),
+        ("combined-file-mappings", 3072, 1024, True, "maps-2048")]
     for names in [[], ["context", "context"], ["unbounded"], list(probe.PROFILES)]:
         with pytest.raises(Fault, match="GRAPHICS_PROFILE_INVALID"):
             probe.selected_profiles(names)
@@ -52,7 +56,7 @@ def test_rejects_unbound_or_incomplete_graphics_fixture(probe, field, value):
 
 def test_boot_record_never_substitutes_for_live_resource_evidence(probe):
     boot = {k: v for k, v in report().items() if k in (
-        "schema", "scope", "pid", "minecraft", "visible", "heap_mib", "texture_mib", "audio")}
+        "schema", "scope", "pid", "minecraft", "visible", "heap_mib", "texture_mib", "audio", "file_mode")}
     probe.validate(boot, scope="a" * 32, pid=123, heap=3072, texture=256, ready=False)
     with pytest.raises(Fault, match="GRAPHICS_FIXTURE_NOT_READY"):
         probe.validate(boot, scope="a" * 32, pid=123, heap=3072, texture=256, ready=True)
@@ -102,3 +106,26 @@ def test_silent_audio_requires_live_bound_evidence(probe, field, value):
     current[field] = value
     with pytest.raises(Fault):
         probe.validate(current, scope="a" * 32, pid=123, heap=3072, texture=256, audio=True, ready=True)
+
+
+@pytest.mark.parametrize("mode", ["channels-2048", "maps-2048"])
+@pytest.mark.parametrize("field,value", [("file_mode", "none"),
+    ("file_resources_checked", 2047), ("file_resources_checked", True),
+    ("fixture_file_bytes", 0), ("mapped_view_bytes", False), ("mapped_view_bytes", -1),
+    ("file_access", "read-write"), ("file_access", None), ("schema", "strata/GuardianRenderFixture/2")])
+def test_rejects_unbound_missing_or_incomplete_file_resources(probe, mode, field, value):
+    current = {**report(), "file_mode": mode, "file_resources_checked": 2048,
+               "fixture_file_bytes": 65536, "mapped_view_bytes": 2048 * 65536 if mode == "maps-2048" else 0,
+               "file_access": "read-only"}
+    probe.validate(current, scope="a" * 32, pid=123, heap=3072, texture=256, file_mode=mode, ready=True)
+    current[field] = value
+    with pytest.raises(Fault):
+        probe.validate(current, scope="a" * 32, pid=123, heap=3072, texture=256, file_mode=mode, ready=True)
+
+
+def test_file_profile_mismatch_rejects_before_output_or_process(probe, tmp_path):
+    root = tmp_path / "never-created"
+    with pytest.raises(Fault, match="GRAPHICS_PROFILE_INVALID"):
+        probe.sample(tmp_path / "java.exe", "fixture", root, "combined-file-handles", 3072, 1024,
+                     True, "maps-2048")
+    assert not root.exists()

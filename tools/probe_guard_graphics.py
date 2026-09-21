@@ -19,9 +19,11 @@ from mcbench.process_guard import AttachedJava, inspect_process
 from mcbench.storage import Fault, reject_links, require
 import probe_guard_memory as memory
 
-PROFILES = {"context": (0, 0, False), "textures": (0, 256, False),
-            "combined": (3072, 256, False), "combined-large": (3072, 1024, False),
-            "context-audio": (0, 0, True), "combined-large-audio": (3072, 1024, True)}
+PROFILES = {"context": (0, 0, False, "none"), "textures": (0, 256, False, "none"),
+            "combined": (3072, 256, False, "none"), "combined-large": (3072, 1024, False, "none"),
+            "context-audio": (0, 0, True, "none"), "combined-large-audio": (3072, 1024, True, "none"),
+            "combined-file-handles": (3072, 1024, True, "channels-2048"),
+            "combined-file-mappings": (3072, 1024, True, "maps-2048")}
 
 
 def selected_profiles(names):
@@ -30,13 +32,15 @@ def selected_profiles(names):
     return [(name, *PROFILES[name]) for name in names]
 
 
-def validate(value, *, scope, pid, heap, texture, ready, audio=False):
-    require(type(value) is dict and value.get("schema") == "strata/GuardianRenderFixture/2"
+def validate(value, *, scope, pid, heap, texture, ready, audio=False, file_mode="none"):
+    require(type(value) is dict and value.get("schema") == "strata/GuardianRenderFixture/3"
             and value.get("scope") == scope and type(value.get("pid")) is int
             and value["pid"] == pid and value.get("minecraft") is False
             and value.get("visible") is False and type(value.get("heap_mib")) is int
             and value["heap_mib"] == heap and type(value.get("texture_mib")) is int
-            and value["texture_mib"] == texture and value.get("audio") is audio,
+            and value["texture_mib"] == texture and value.get("audio") is audio
+            and file_mode in ("none", "channels-2048", "maps-2048")
+            and value.get("file_mode") == file_mode,
             "GRAPHICS_FIXTURE_BINDING")
     if ready:
         require(value.get("status") == "ready" and value.get("resources_held") is True
@@ -57,6 +61,12 @@ def validate(value, *, scope, pid, heap, texture, ready, audio=False):
                     and all(type(value.get(key)) is str and 0 < len(value[key]) < 512
                             for key in ("al_version", "al_renderer", "al_device")),
                     "SILENT_AUDIO_NOT_READY")
+        if file_mode != "none":
+            expected = {"file_resources_checked": 2048, "fixture_file_bytes": 65536,
+                        "mapped_view_bytes": 2048 * 65536 if file_mode == "maps-2048" else 0}
+            require(all(type(value.get(key)) is int and value[key] == count
+                        for key, count in expected.items()) and value.get("file_access") == "read-only",
+                    "FILE_RESOURCES_NOT_READY")
 
 
 def wait_report(path, child, deadline):
@@ -72,20 +82,24 @@ def wait_report(path, child, deadline):
     raise Fault("GRAPHICS_FIXTURE_DEADLINE")
 
 
-def sample(java, classpath, root, name, heap, texture, audio=False, *, resource_observer=False, hold_seconds=0):
+def sample(java, classpath, root, name, heap, texture, audio=False, file_mode="none", *,
+           resource_observer=False, hold_seconds=0):
     started, parent_cpu = time.perf_counter_ns(), time.process_time_ns()
     require(type(hold_seconds) is int and hold_seconds in (0, 5), "FIXTURE_HOLD_INVALID")
+    require(PROFILES.get(name) == (heap, texture, audio, file_mode), "GRAPHICS_PROFILE_INVALID")
     memory.admit([max(16, heap)], memory.memory_status())
     root.mkdir()
     scope = secrets.token_hex(16)
     arguments = ["-Xms64m", f"-Xmx{heap + 512}m", "-XX:+UseG1GC", "-cp", classpath,
-                 "GuardianRenderFixture", str(root), str(heap), str(texture), scope, str(audio).lower()]
+                 "GuardianRenderFixture", str(root), str(heap), str(texture), scope,
+                 str(audio).lower(), file_mode]
     argfile = root / "arguments.txt"
     argfile.write_text("\n".join('"' + x.replace("\\", "\\\\").replace('"', '\\"') + '"'
                                  for x in arguments), encoding="utf-8")
     result = {"profile": name, "heap_mib": heap, "texture_mib": texture,
               "status": "incomplete", "stop_result": "not_run", "cleanup_confirmed": False,
-              "scope": scope, "audio": audio, "max_wall_ms": 45000, "guardian_wait_bound_ms": 500,
+              "scope": scope, "audio": audio, "file_mode": file_mode,
+              "max_wall_ms": 45000, "guardian_wait_bound_ms": 500,
               "resource_observer": resource_observer, "hold_seconds": hold_seconds}
     memory.publish(root / "intent.json", result)
     before = DesktopApi().input_name()
@@ -100,7 +114,8 @@ def sample(java, classpath, root, name, heap, texture, audio=False, *, resource_
     try:
         child = DesktopProcess([str(java), "@" + str(argfile)], root, environment, max_wall_ms=45000)
         boot = wait_report(root / "boot.json", child, child.deadline)
-        validate(boot, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio, ready=False)
+        validate(boot, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio,
+                 file_mode=file_mode, ready=False)
         guard = AttachedJava(inspect_process(child.pid), deadline=child.deadline)
         armed = root / "armed.pending"
         with armed.open("xb") as stream:
@@ -109,7 +124,8 @@ def sample(java, classpath, root, name, heap, texture, audio=False, *, resource_
             os.fsync(stream.fileno())
         armed.rename(root / "armed")
         ready = wait_report(root / "ready.json", child, child.deadline)
-        validate(ready, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio, ready=True)
+        validate(ready, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio,
+                 file_mode=file_mode, ready=True)
         result["fixture"] = ready
         if resource_observer:
             observer = process_observer.ExitObserver(child.pid, root / "absent-supervisor.jsonl",
@@ -215,7 +231,7 @@ def run(java, classpath_file, output, names, *, resource_observer=False, hold_se
              Path(process_observer.__file__), Path(process_resources.__file__),
              Path(desktop_process.__file__), repository / "tests/fixtures/GuardianRenderFixture.java"]
     pins = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
-    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-native-resources-census/5",
+    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-native-file-resources/6",
             "classification": "synthetic-workload-native-process", "minecraft": False,
             "model_calls": 0, "physical_input": False, "scoring_eligible": False,
             "source_sha256": pins, "profiles": profiles, "resource_observer": resource_observer,
@@ -223,8 +239,8 @@ def run(java, classpath_file, output, names, *, resource_observer=False, hold_se
     output.mkdir()
     memory.publish(output / "plan.json", plan)
     results = []
-    for name, heap, texture, audio in profiles:
-        result = sample(java, classpath, output / name, name, heap, texture, audio,
+    for name, heap, texture, audio, file_mode in profiles:
+        result = sample(java, classpath, output / name, name, heap, texture, audio, file_mode,
                         resource_observer=resource_observer, hold_seconds=hold_seconds)
         results.append(result)
         if result["status"] != "measured":

@@ -32,10 +32,14 @@ final class EventSpool implements AutoCloseable {
 
     EventSpool(TelemetryConfig config) throws IOException {
         this.config = config;
-        TelemetryConfig.safeExisting(config.spoolDirectory());
-        signer = config.authentication() == null ? null : config.authentication().signer(bootId);
-        Path file = config.spoolDirectory().resolve(bootId + (signer == null ? ".jsonl" : ".authenticated.jsonl"));
-        channel = FileChannel.open(file, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        if (config.broker() != null) {
+            signer = null; channel = null;
+        } else {
+            TelemetryConfig.safeExisting(config.spoolDirectory());
+            signer = config.authentication() == null ? null : config.authentication().signer(bootId);
+            Path file = config.spoolDirectory().resolve(bootId + (signer == null ? ".jsonl" : ".authenticated.jsonl"));
+            channel = FileChannel.open(file, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+        }
         writer = new Thread(this::writeLoop, "strata-private-telemetry");
         writer.setDaemon(true);
         writer.start();
@@ -98,18 +102,23 @@ final class EventSpool implements AutoCloseable {
             while (!closing || !queue.isEmpty()) {
                 byte[] entry = queue.poll(100, java.util.concurrent.TimeUnit.MILLISECONDS);
                 if (entry == null) continue;
-                ByteBuffer bytes = ByteBuffer.wrap(entry);
-                while (bytes.hasRemaining()) channel.write(bytes);
-                channel.force(true);
+                if (config.broker() != null) config.broker().append(entry, durableSeq + 1);
+                else {
+                    ByteBuffer bytes = ByteBuffer.wrap(entry);
+                    while (bytes.hasRemaining()) channel.write(bytes);
+                    channel.force(true);
+                }
                 durableSeq++;
             }
+            if (config.broker() != null) config.broker().finish(durableSeq);
         } catch (IOException error) {
             fail(error);
         } catch (InterruptedException error) {
             fail(new IOException("TELEMETRY_WRITER_INTERRUPTED", error));
             Thread.currentThread().interrupt();
         } finally {
-            try { channel.close(); } catch (IOException error) { fail(error); }
+            if (channel != null) try { channel.close(); } catch (IOException error) { fail(error); }
+            if (config.broker() != null) config.broker().close();
         }
     }
 

@@ -3,7 +3,7 @@ plugins {
     id 'net.minecraftforge.gradle'
 }
 base { archivesName = 'strata-forge1192-telemetry' }
-version = '0.3.5'
+version = '0.3.6'
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 dependencyLocking { lockAllConfigurations() }
 minecraft { mappings channel: 'official', version: '1.19.2' }

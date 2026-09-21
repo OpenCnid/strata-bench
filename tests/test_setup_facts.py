@@ -106,6 +106,40 @@ def renumber(events):
         event.update(seq=index, server_event_seq=index)
 
 
+@pytest.mark.parametrize("transport", ["private-file/1", "windows-owned-pipe/1"])
+def test_version7_declares_transport_and_preserves_all_setup_requirements(native, transport):
+    store, _, events, _, spool = native
+    events[0]["payload_schema"] = "strata/ServerStarted/7"
+    events[0]["payload"].update(module="strata-forge1192-telemetry/0.3.6", telemetry_transport=transport)
+    seal(native)
+    result = store.inspect("i", spool)
+    assert result["candidate_complete"] and not result["scoring_eligible"]
+    from strata_evaluator.telemetry_auth import inspect_authenticated_spool
+    report = inspect_authenticated_spool(spool, native[3] / "authority.json")
+    assert report["telemetry_transport"] == transport and report["setup_startup"] == point("startup")
+    assert not report["transport_identity_verified"]  # A signed declaration is not an OS peer proof.
+
+
+@pytest.mark.parametrize("change", ["mixed_version", "missing_transport", "unknown_transport", "missing_setup"])
+def test_version7_does_not_waive_identity_or_native_setup(native, change):
+    store, _, events, _, spool = native
+    events[0]["payload_schema"] = "strata/ServerStarted/7"
+    events[0]["payload"].update(module="strata-forge1192-telemetry/0.3.6", telemetry_transport="windows-owned-pipe/1")
+    if change == "mixed_version":
+        events[0]["payload_schema"] = "strata/ServerStarted/6"
+    elif change == "missing_transport":
+        del events[0]["payload"]["telemetry_transport"]
+    elif change == "unknown_transport":
+        events[0]["payload"]["telemetry_transport"] = "caller-asserted"
+    else:
+        events[:] = [event for event in events if not (event["kind"] == "setup_snapshot"
+                    and event["payload"]["phase"] == "startup")]
+        renumber(events)
+    seal(native)
+    with pytest.raises((Fault, ValidationError)):
+        store.inspect("i", spool)
+
+
 def test_native_mode_admin_and_registered_pack_team_points_join_but_never_score(native):
     store, _, _, _, spool = native
     seal(native)

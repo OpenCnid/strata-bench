@@ -23,7 +23,7 @@ from mcbench.storage import Database, Fault, canonical, digest, require
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path, write_new
 from .reference_participant import ParticipantPlan, ParticipantWindow, validate_paths
 from .reference_abort import AbortSignal
-from .telemetry import ServerStartedV5, ServerStartedV6
+from .telemetry import LAUNCH_STARTUP_MODELS
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 
 # Only this inspected official E9E 1.27.0 bootstrap profile is admitted. Its
@@ -125,12 +125,12 @@ def first_start(spool_directory, authority):
     with SpoolVerifier(authority) as verifier:
         event = GameEvent.model_validate(strict_json(verifier.verify(line)))
         require(not event.is_example and event.visibility == "evaluator"
-                and event.kind == "server_started" and event.payload_schema in {"strata/ServerStarted/5", "strata/ServerStarted/6"}
+                and event.kind == "server_started" and event.payload_schema in LAUNCH_STARTUP_MODELS
                 and event.seq == event.server_event_seq == 1 and event.server_tick == 0
                 and event.server_boot_id == verifier.boot
                 and (event.campaign_id, event.epoch) == (authority.campaign_id, authority.epoch),
                 "REFERENCE_START_INVALID")
-        model = ServerStartedV6 if event.payload_schema == "strata/ServerStarted/6" else ServerStartedV5
+        model = LAUNCH_STARTUP_MODELS[event.payload_schema]
         return files[0], event, model.model_validate(event.payload)
 
 

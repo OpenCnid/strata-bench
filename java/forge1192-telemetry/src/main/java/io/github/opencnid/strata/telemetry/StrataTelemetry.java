@@ -61,7 +61,7 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.5");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.6");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
@@ -76,7 +76,8 @@ public final class StrataTelemetry {
                 event.getServer().usesAuthentication(), event.getServer().getPort()));
             boot.addProperty("setup_capture_policy",SetupCapture.POLICY);
             boot.add("setup_capture_support",SetupCapture.support());
-            emit("server_started", "strata/ServerStarted/6", boot, new JsonArray());
+            boot.addProperty("telemetry_transport", config.broker() == null ? "private-file/1" : "windows-owned-pipe/1");
+            emit("server_started", "strata/ServerStarted/7", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();

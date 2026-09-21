@@ -102,6 +102,16 @@ class ServerStartedV6(ServerStartedV5):
     setup_capture_support: SetupSupport
 
 
+class ServerStartedV7(ServerStartedV6):
+    module: Literal["strata-forge1192-telemetry/0.3.6"]
+    telemetry_transport: Literal["private-file/1", "windows-owned-pipe/1"]
+
+
+LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
+                        "strata/ServerStarted/6": ServerStartedV6,
+                        "strata/ServerStarted/7": ServerStartedV7}
+
+
 class RecipeSnapshot(Strict):
     recipe_id: Name
     present: bool
@@ -202,7 +212,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version4 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/4"
             version5 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/5"
             version6 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/6"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6),
+            version7 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/7"
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -213,10 +224,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 if authentication is not None:
                     require((version4 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.3")
                             or (version5 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.4")
-                            or (version6 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.5"),
+                            or (version6 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.5")
+                            or (version7 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.6"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -231,13 +243,15 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
             parsed = (startup_model if event.kind == "server_started" else PAYLOADS[event.kind]).model_validate(data)
-            if version5 or version6:
+            if version5 or version6 or version7:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version6:
+            if version7:
+                startup_transport = parsed.telemetry_transport
+            if version6 or version7:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version2 or version3 or version4 or version5 or version6:
+            if version2 or version3 or version4 or version5 or version6 or version7:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6:
+            if version3 or version4 or version5 or version6 or version7:
                 craft_policy = parsed.craft_capture_policy
             if pending_setup is not None:
                 observed_event, point = pending_setup
@@ -245,10 +259,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                         and event.server_tick == observed_event.server_tick
                         and event.actor_ids == observed_event.actor_ids, "SETUP_POINT_NOT_ADJACENT")
                 pending_setup = None
-            elif startup_model is ServerStartedV6 and event.kind in {"craft_begin", "craft_end"}:
+            elif issubclass(startup_model, ServerStartedV6) and event.kind in {"craft_begin", "craft_end"}:
                 require(False, "SETUP_POINT_MISSING")
             if event.kind == "setup_snapshot":
-                require(startup_model is ServerStartedV6, "SETUP_MODULE_UNSUPPORTED")
+                require(issubclass(startup_model, ServerStartedV6), "SETUP_MODULE_UNSUPPORTED")
                 require(parsed.server.command_events_seen >= last_command_count, "SETUP_COMMAND_COUNTER_ROLLBACK")
                 last_command_count = parsed.server.command_events_seen
                 if parsed.phase == "startup":
@@ -321,7 +335,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 except Fault as error:
                     witness = {"transaction_id": parsed.transaction_id, "resource_witness": "fail",
                                "error_code": error.code, "score_eligible": False}
-                if startup_model is ServerStartedV6:
+                if issubclass(startup_model, ServerStartedV6):
                     points = craft_setups.pop(parsed.transaction_id)
                     end_observations.pop(parsed.transaction_id)
                     require(set(points) == {"before", "after"}, "SETUP_POINT_MISSING")
@@ -335,7 +349,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     require(stopped, "TELEMETRY_CLEAN_STOP_MISSING")
     require(not craft_stack, "TELEMETRY_CRAFT_INCOMPLETE")
     require(pending_setup is None and not craft_setups and not end_observations, "SETUP_POINT_UNPAIRED")
-    require(startup_model is not ServerStartedV6 or startup_setup is not None, "SETUP_START_MISSING")
+    require(not issubclass(startup_model, ServerStartedV6) or startup_setup is not None, "SETUP_START_MISSING")
     require(set(configs) == set(config_queries), "TELEMETRY_CONFIG_MISSING")
     report = {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
             "file_sha256": hasher.hexdigest(), "campaign_id": campaign_id, "epoch": epoch,
@@ -351,8 +365,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
         report["authentication"] = authentication.receipt(boot, count)
     if issubclass(startup_model, ServerStartedV5):
         report["launch_identity"] = startup_identity
-    if startup_model is ServerStartedV6:
+    if issubclass(startup_model, ServerStartedV6):
         report.update(setup_startup=startup_setup, setup_capture_support=setup_support)
+    if issubclass(startup_model, ServerStartedV7):
+        report["telemetry_transport"] = startup_transport
     return report
 
 

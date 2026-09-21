@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.78](../SPEC.md)
+Updated September 21, 2026. Operator-only. [SPEC v0.2.79](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -108,7 +108,9 @@ M0.2c.3b.2b/.1 now has a [scoped mutable-writer candidate](verification/2026-09-
 
 **Current M0 action:** [owned Java preparation](verification/2026-09-21-writer-preparation.md) implements M0.2c.3b.2b.2 with durable one-use intent, complete runtime/source leases, protected workspace and actual held-Job/token binding before copy. The final positive actual-CLI/JVM synthetic fixture copies two files/53 bytes and stops 10/10 normally. Changed wrong-token and post-copy interruption controls stop 10/10 after recording uncertainty; inputs stay locked through cleanup. Restart preserves exact records and rejects replay. All 53 selected checks pass. Earlier Java canonicalization, 9/10 enrollment and premature 4/10 signaling failures remain retained.
 
-**Next M0 action:** implement **M0.2c.3b.2b.3**, retaining preparation/token/namespace custody continuously into ReferenceLauncher and brokering private configuration/telemetry. Current preparation is synthetic-only and closes its namespace handles; never adopt that stopped output as launch/setup/recovery authority. Preserve the actual sibling-read failure and close its route through enforced native tool/broker admission. No authentic setup/scoring qualification or game/model run occurred. Original $10/one migration and $0.7554 uncertain hold remain at 07:34:04 UTC. Do not replay the request, reset/refund the budget, repeat the completed craft trajectory or ask for a VM. M0 in_progress, G0 fail, G1–G5 not_run.
+**Current M0 integration prerequisite:** [private telemetry pipe](verification/2026-09-21-telemetry-pipe.md) implements .3.1 with actual retained-Job/token and bidirectional OS PID/start checks, operator-only signing/spool writes, durable ACKs and one-use authority. Final actual-native synthetic positive: three records/4,327 bytes, normal 10/10 termination. Final foreign-Job rejection: no settings/events, native 10/10 and helper 5/5 termination. Wrong-controller/missing-stop controls reject; retain initial I/O, helper 0/5 and native 9/10 history failures. 52 selected Python checks and 13 Java checks pass. Module 0.3.6/configuration v4/startup v7 are built but not installed; version-7 setup behavior has synthetic evidence only.
+
+**Next M0 action:** implement **M0.2c.3b.2b.3.2**, maintaining live preparation/token/namespace custody through the actual ReferenceLauncher/participant lifecycle and binding a native pre-start gate before mutation. Use the new private configuration/telemetry channel. Existing native probes use a private hook, not integrated launcher authority; do not adopt stopped fixture paths. Sibling reads/shared-account process isolation and original loopback failures remain unresolved. Then qualify changed authentic setup/history and joint scorer controls. Preserve all previous failures and the original $10/one migration/$0.7554 uncertain hold (08:17:22 UTC). No model/game trial or replay/refund occurred. M0 in_progress, G0 fail, G1–G5 not_run.
 
 ## Settled authority and limits
 

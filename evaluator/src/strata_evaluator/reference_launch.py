@@ -22,7 +22,7 @@ from mcbench.storage import Database, Fault, canonical, digest, require
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path, write_new
 from .reference_participant import ParticipantPlan, ParticipantWindow, validate_paths
-from .reference_abort import AbortSignal
+from .reference_abort import AbortSignal, request_abort
 from .telemetry import LAUNCH_STARTUP_MODELS
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 
@@ -69,8 +69,15 @@ class ReferenceLaunchPlanV3(ReferenceLaunchPlanV2):
     abort_cleanup_ms: int = Field(ge=500, le=15000)
 
 
+class ReferenceLaunchPlanV4(ReferenceLaunchPlanV3):
+    schema_: Literal["strata/PrivateReferenceLaunch/4"] = Field(alias="schema")
+    custody_id: Id
+    gate_helper: PrivateFile
+
+
 def parse_launch_plan(value):
-    return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3).validate_python(value)
+    return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3 |
+                       ReferenceLaunchPlanV4).validate_python(value)
 
 
 def same_path(a, b):
@@ -148,15 +155,25 @@ class ReferenceLauncher:
                        (state, canonical(body).decode(), instance))
             self.database.event(db, "private.reference_dispatch", {"instance": instance, "state": state, **body})
 
-    def run(self, value, *, client_binding=None):
+    def run(self, value, *, client_binding=None, custody=None):
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
         plan = parse_launch_plan(value)
+        protected = isinstance(plan, ReferenceLaunchPlanV4)
+        require(protected == (custody is not None), "REFERENCE_CUSTODY_REQUIRED")
+        if protected:
+            custody.check()
+            require(plan.mode == "synthetic-fixture" and plan.max_wall_s + plan.graceful_stop_s + 2 <= 30,
+                    "REFERENCE_PROTECTED_PROFILE_UNQUALIFIED")
+            require(plan.custody_id == custody.plan.id and not custody.launched
+                    and same_path(plan.executable.path, custody.plan.java.path), "REFERENCE_CUSTODY_SCOPE")
         row, setup, authority, authority_path = self.store._load(plan.instance_id)
         require(row["digest"] == plan.setup_digest, "REFERENCE_SETUP_CHANGED")
         require(plan.mode != "synthetic-fixture" or setup.evidence_kind == "synthetic", "REFERENCE_MODE")
         require(plan.mode != "e9e-serverstarter" or not plan.fixture_arguments, "REFERENCE_ARGUMENTS")
         evidence = private_path(plan.evidence_directory)
         game = private_path(setup.game_directory)
+        if protected:
+            require(same_path(game, custody.tree.path), "REFERENCE_CUSTODY_SCOPE")
         require(not evidence.exists() and not evidence.is_relative_to(game)
                 and not game.is_relative_to(evidence) and not evidence.is_relative_to(authority_path.parent),
                 "REFERENCE_EVIDENCE_PATH")
@@ -217,6 +234,8 @@ class ReferenceLauncher:
                        (plan.instance_id, canonical(plan.model_dump(by_alias=True)).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.reference_dispatch", {"instance": plan.instance_id, **body})
         proc, lease, participant, abort = None, None, None, None
+        native, broker = None, None
+        logs = {name: evidence / name for name in ("stdout.log", "stderr.log")}
         readers, reader_errors = [], []
         ready = threading.Event()
         overflow = threading.Event()
@@ -229,11 +248,25 @@ class ReferenceLauncher:
             if isinstance(plan, ReferenceLaunchPlanV3):
                 abort = AbortSignal(plan, evidence)
             spool = evidence / "telemetry"
-            spool.mkdir()
-            config_path = evidence / "telemetry-config.json"
-            config = {"schema": "strata/ForgeTelemetryConfig/3", "campaign_id": setup.campaign_id,
-                "epoch": setup.epoch, "spool_directory": str(spool), "max_bytes": 8388608, "max_events": 2000,
-                "recipe_ids": list(setup.recipe_digests), "config_queries": [], "authentication": authority.producer_config()}
+            if protected:
+                from .telemetry_pipe import TelemetryPipeBroker
+                custody.check()
+                broker = TelemetryPipeBroker(self.database, authority, spool, plan, setup,
+                    writer_sid=custody.plan.writer_sid, group_sid=custody.tree.group_sid,
+                    scope_sid=custody.tree.scope_sid, deadline=custody.deadline,
+                    settings={"schema": "strata/ForgeTelemetryBrokerSettings/1", "campaign_id": setup.campaign_id,
+                        "epoch": setup.epoch, "max_bytes": 8388608, "max_events": 2000,
+                        "recipe_ids": list(setup.recipe_digests), "config_queries": []})
+                config_path = custody.workspace.path / "control/reference-telemetry.json"
+                config = broker.descriptor
+                body["telemetry_transport"] = "windows-owned-pipe/1"
+                body["custody_id"] = custody.plan.id
+            else:
+                spool.mkdir()
+                config_path = evidence / "telemetry-config.json"
+                config = {"schema": "strata/ForgeTelemetryConfig/3", "campaign_id": setup.campaign_id,
+                    "epoch": setup.epoch, "spool_directory": str(spool), "max_bytes": 8388608, "max_events": 2000,
+                    "recipe_ids": list(setup.recipe_digests), "config_queries": [], "authentication": authority.producer_config()}
             write_new(config_path, config)
             write_new(evidence / "launch-plan.json", plan.model_dump(by_alias=True))
             binding_files = []
@@ -257,8 +290,22 @@ class ReferenceLauncher:
             lease.recheck()
             require(abort is None or not abort.poll(), "REFERENCE_OUTER_ABORTED")
             self._record(plan.instance_id, "DISPATCHING", body | {"status": "dispatching"})
-            proc = ManagedProcess([plan.executable.path, *arguments], game, environment, "", interactive=True,
-                                  bootstrap_python=sys.executable, bootstrap_script=bootstrap)
+            if protected:
+                import hashlib
+                pin = {"path": str(config_path), "bytes": config_path.stat().st_size,
+                       "sha256": hashlib.sha256(config_path.read_bytes()).hexdigest()}
+                native = custody.launch({"schema": "strata/PrivateWriterLaunch/1", "mode": "synthetic-fixture",
+                    "helper_class": plan.gate_helper.model_dump(),
+                    "immutable_files": [*[item.model_dump() for item in plan.immutable_files], pin],
+                    "immutable_trees": plan.immutable_trees, "arguments": arguments,
+                    "max_wall_s": max(15, plan.max_wall_s + plan.graceful_stop_s + 2)}, broker,
+                    ready=ready, evidence_directory=evidence / "native")
+                proc = native.process
+                logs = {name: native.evidence / ("server." + name) for name in logs}
+                body["log_paths"] = {name: str(path) for name, path in logs.items()}
+            else:
+                proc = ManagedProcess([plan.executable.path, *arguments], game, environment, "", interactive=True,
+                                      bootstrap_python=sys.executable, bootstrap_script=bootstrap)
             body.update(status="running", supervisor_pid=proc.process.pid)
             self._record(plan.instance_id, "RUNNING", body)
 
@@ -279,7 +326,8 @@ class ReferenceLauncher:
                 except (OSError, ValueError) as error:
                     reader_errors.append(type(error).__name__)
 
-            for source, name in ((proc.process.stdout, "stdout.log"), (proc.process.stderr, "stderr.log")):
+            for source, name in ([] if protected else
+                                 [(proc.process.stdout, "stdout.log"), (proc.process.stderr, "stderr.log")]):
                 thread = threading.Thread(target=copy, args=(source, name), daemon=True)
                 thread.start()
                 readers.append(thread)
@@ -288,7 +336,12 @@ class ReferenceLauncher:
                     aborted_at = time.monotonic()
                     body["outer_abort"] = abort.result
                     self._record(plan.instance_id, "ABORT_REQUESTED", body)
-                proc.job.observe_members()
+                if protected:
+                    native.observe()
+                    custody.check()
+                    require(broker.body["status"] != "uncertain", "REFERENCE_TELEMETRY_UNCERTAIN")
+                else:
+                    proc.job.observe_members()
                 lease.recheck()
                 require(not overflow.is_set() and not reader_errors, "REFERENCE_LOG_UNAVAILABLE")
                 if bound_at is None:
@@ -331,20 +384,26 @@ class ReferenceLauncher:
                     body["forced_stop"] = True
                     proc.stop()
                     break
-                time.sleep(0.1)
+                time.sleep(0.025 if protected else 0.1)
             body["exit_code"] = proc.process.wait(timeout=2)
             for thread in readers:
                 thread.join(2)
             require(not any(thread.is_alive() for thread in readers) and not reader_errors
                     and not overflow.is_set(), "REFERENCE_LOG_UNAVAILABLE")
-            body["job_accounting"] = proc.job.accounting()
-            body["held_members"] = proc.job.member_status()
+            if protected:
+                body["custody"] = custody.finish()
+                terminal = body["custody"]["terminal"]
+                body["job_accounting"], body["held_members"] = terminal["job"], terminal["held"]
+                body["forced_stop"] = body["forced_stop"] or terminal["forced"]
+            else:
+                body["job_accounting"] = proc.job.accounting()
+                body["held_members"] = proc.job.member_status()
             require(body["launch_binding_verified"] and ready.is_set() and body["stop_sent"]
                     and not body["forced_stop"] and body["exit_code"] == 0, "REFERENCE_LIFECYCLE_FAILED")
             require(body["job_accounting"]["active_processes"] == 0, "REFERENCE_PROCESS_STILL_ACTIVE")
             require(body["held_members"]["signaled_processes"] == body["held_members"]["held_processes"]
                     == body["job_accounting"]["total_processes"], "REFERENCE_PROCESS_HISTORY_INCOMPLETE")
-            body["log_health"] = {name: inspect_server_log(evidence / name) for name in ("stdout.log", "stderr.log")}
+            body["log_health"] = {name: inspect_server_log(path) for name, path in logs.items()}
             require(all(check["result"] == "pass" for check in body["log_health"].values()), "SERVER_RUNTIME_FAILURE")
             files = list(spool.glob("*.authenticated.jsonl"))
             require(len(files) == 1, "REFERENCE_SPOOL_MULTIPLE")
@@ -366,8 +425,28 @@ class ReferenceLauncher:
             if isinstance(error, ProcessInventoryFault):
                 body["process_observation"] = error.observation()
                 self._record(plan.instance_id, "ABORT_REQUESTED", body)
+            elif protected:
+                self._record(plan.instance_id, "UNCERTAIN", body)
+            if protected and abort is not None and not abort.poll():
+                try:
+                    # The first failure is already durable. Revoke the bound
+                    # participant before cleanup; never replace an existing abort.
+                    request_abort(evidence, plan, "server_monitor", error)
+                except BaseException as signal_error:
+                    body["abort_publish_error"] = getattr(signal_error, "code", type(signal_error).__name__)
         finally:
-            if proc:
+            if protected:
+                try:
+                    try:
+                        if body["status"] != "stopped_reference":
+                            custody.close()
+                    finally:
+                        body["custody"] = dict(custody.result)
+                        if broker is not None:
+                            body["broker"] = broker.close()
+                except BaseException as error:
+                    body.update(status="uncertain", cleanup_error=getattr(error, "code", type(error).__name__))
+            elif proc:
                 try:
                     if proc.poll() is None:
                         body["forced_stop"] = True

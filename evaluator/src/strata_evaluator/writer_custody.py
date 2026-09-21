@@ -16,7 +16,7 @@ from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease, snapshot
 from mcbench.processes import ManagedProcess
 from mcbench.storage import digest, require
-from .craft_reference import PrivateFile, check_file, write_new
+from .craft_reference import PrivateFile, check_file, private_path, write_new
 from .reference_pair import OwnedCli
 from .telemetry_auth import private_read
 from .writer_preparation import grant, java_identity, native_argv
@@ -65,7 +65,7 @@ class WriterCustody:
         self.body["status"] = "custody_" + state.lower()
         self.record(self.plan.id, "CUSTODY_" + state, self.body)
 
-    def launch(self, value, broker):
+    def launch(self, value, broker, *, ready=None, evidence_directory=None):
         self.check()
         require(not self.launched, "WRITER_CUSTODY_ALREADY_LAUNCHED")
         # Take responsibility for closing the endpoint even if validation fails.
@@ -108,7 +108,10 @@ class WriterCustody:
             check_file(Path(pin.path), pin)
         self._record("INTENT", launch_plan_digest=digest(plan.model_dump(by_alias=True)),
                      input_inventory_digest=digest(inventory))
-        evidence = Path(self.plan.evidence_directory) / "launch"
+        evidence = (Path(self.plan.evidence_directory) / "launch" if evidence_directory is None
+                    else private_path(evidence_directory))
+        require(not evidence.is_relative_to(self.workspace.path)
+                and not self.workspace.path.is_relative_to(evidence), "WRITER_LAUNCH_EVIDENCE_SCOPE")
         evidence.mkdir()
         write_new(evidence / "plan.json", plan.model_dump(by_alias=True))
         write_new(evidence / "inventory.json", inventory)
@@ -140,7 +143,7 @@ class WriterCustody:
                                  environment, "", interactive=True)
         try:
             self.native = OwnedCli(process, "server", evidence,
-                                   min(self.deadline, time.monotonic() + plan.max_wall_s))
+                                   min(self.deadline, time.monotonic() + plan.max_wall_s), ready=ready)
         except BaseException:
             process.close()  # Retained Job backstop if monitor installation itself fails.
             raise

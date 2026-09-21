@@ -258,6 +258,12 @@ class CraftReferenceStore:
 
     def inspect(self, instance, spool):
         row, plan, _, path = self._load(instance)
+        protected = None
+        if self.database.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                                            "AND name='protected_references'").fetchone():
+            protected = self.database.connection.execute(
+                "SELECT * FROM protected_references WHERE instance=?", (instance,)).fetchone()
+            require(protected is None or protected["state"] == "STOPPED", "CRAFT_PROTECTED_REFERENCE_UNQUALIFIED")
         if self.database.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
                                             "AND name='reference_pairs'").fetchone():
             pair = self.database.connection.execute("SELECT state FROM reference_pairs WHERE instance=?",
@@ -272,6 +278,18 @@ class CraftReferenceStore:
         require(launch_body["setup_digest"] == row["digest"] and launch_body["authority_digest"] == row["authority"],
                 "CRAFT_LAUNCH_CHANGED")
         report = inspect_authenticated_spool(Path(spool), path)
+        if protected is not None:
+            protected_plan, protected_body = strict_json(protected["plan"]), strict_json(protected["body"])
+            preparation = protected_body.get("preparation", {})
+            launched = protected_body.get("launch", {})
+            require(protected_body.get("plan_digest") == digest(protected_plan)
+                    and digest(protected_plan.get("setup", {})) == row["digest"]
+                    and preparation.get("status") == "stopped_reference"
+                    and preparation.get("custody", {}).get("live") is False
+                    and preparation.get("custody", {}).get("status") == "stopped"
+                    and launched.get("status") == "stopped_reference"
+                    and launched.get("spool_sha256") == report["file_sha256"],
+                    "CRAFT_PROTECTED_REFERENCE_UNQUALIFIED")
         native_checks = {}
         if isinstance(plan, CraftReferencePlanV2):
             require(report.get("setup_capture_support", {}).get("status") == "supported"

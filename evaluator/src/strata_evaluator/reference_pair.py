@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import threading
 import time
@@ -54,8 +55,9 @@ class ReferencePairPlan(Strict):
 class OwnedCli:
     """An independent finite watchdog, retained Job and bounded private logs."""
 
-    def __init__(self, process, role, evidence, deadline):
+    def __init__(self, process, role, evidence, deadline, *, ready=None):
         self.process, self.role, self.evidence = process, role, evidence
+        self.ready = ready
         self.deadline = deadline
         self.lock = threading.Lock()
         self.done = threading.Event()
@@ -77,11 +79,13 @@ class OwnedCli:
         try:
             with (self.evidence / f"{self.role}.{suffix}.log").open("xb") as out:
                 count = 0
-                while block := stream.read(4096):
+                while block := (stream.readline(65536) if self.ready is not None else stream.read(4096)):
                     count += len(block)
                     require(count <= LOG_LIMIT, "REFERENCE_PAIR_LOG_QUOTA")
                     out.write(block)
                     out.flush()
+                    if self.ready is not None and re.search(rb'Done \([0-9.,]+s\)! For help, type "help"', block):
+                        self.ready.set()
                 os.fsync(out.fileno())
         except Exception as error:
             self.errors.append(failure_record("outer_cleanup", error).model_dump())
@@ -225,7 +229,9 @@ class ReferencePair:
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
         plan = ReferencePairPlan.model_validate(value)
         launch = parse_launch_plan(read_pinned(plan.launch_file, 8 * 1024**2))
-        require(isinstance(launch, ReferenceLaunchPlanV3), "REFERENCE_PAIR_PROFILE")
+        # A protected launch needs live preparation custody in its owning
+        # process. The legacy pair entrypoint cannot reconstruct that from JSON.
+        require(type(launch) is ReferenceLaunchPlanV3, "REFERENCE_PAIR_PROFILE")
         row, setup, _, authority = self.store._load(launch.instance_id)
         require(row["digest"] == launch.setup_digest, "REFERENCE_SETUP_CHANGED")
         evidence = private_path(plan.evidence_directory)

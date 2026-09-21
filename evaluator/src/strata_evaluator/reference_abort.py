@@ -61,7 +61,8 @@ class AbortRequest(AbortScope):
 
 def abort_scope(launch):
     value = launch.model_dump(by_alias=True) if hasattr(launch, "model_dump") else launch
-    require(value.get("schema") == "strata/PrivateReferenceLaunch/3", "REFERENCE_ABORT_PROFILE")
+    require(value.get("schema") in {"strata/PrivateReferenceLaunch/3", "strata/PrivateReferenceLaunch/4"},
+            "REFERENCE_ABORT_PROFILE")
     return AbortScope(
         instance_id=value["instance_id"],
         participant_id=value["participant"]["participant_id"],

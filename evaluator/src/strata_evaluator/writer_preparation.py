@@ -6,6 +6,7 @@ the protected root. It never grants scoring, full isolation or crash recovery.
 
 import base64
 import argparse
+from contextlib import ExitStack
 import json
 import os
 from pathlib import Path
@@ -124,7 +125,13 @@ class WriterPreparations:
                        (state, canonical(body).decode(), id))
             self.database.event(db, "private.writer_preparation", {"id": id, "state": state, **body})
 
-    def run(self, value):
+    def run(self, value, *, continuation=None):
+        """Prepare once; optionally run an operator continuation while custody holds.
+
+        The borrowed custody object is invalidated before releasing any original
+        handle. A serialized result or previous workspace can never resume it.
+        """
+        require(continuation is None or callable(continuation), "WRITER_CONTINUATION")
         plan = WriterPreparationPlan.model_validate(value)
         value = plan.model_dump(by_alias=True)
         require(os.name == "nt", "WRITER_PLATFORM_UNSUPPORTED")
@@ -149,6 +156,7 @@ class WriterPreparations:
                        (plan.id, str(evidence), canonical(value).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.writer_preparation", {"id": plan.id, **body})
         lease, tree, active, workspace_lease = None, None, None, None
+        custody = None
         staged_leases = []
         until = time.monotonic() + plan.max_wall_s
         try:
@@ -252,26 +260,52 @@ class WriterPreparations:
             workspace_lease.verify_enrolled(group, scope)
             tree.verify()
             lease.recheck()
+            if continuation is not None:
+                from .writer_custody import WriterCustody
+                custody = WriterCustody(plan, tree, workspace_lease, [lease, *staged_leases], until,
+                                        body, self.record)
+                self.record(plan.id, "HELD", body | {"status": "held"})
+                continuation(custody)
+                # Returning with a live/unfinished process is a fault, not a
+                # successful preparation followed by an untracked launch.
+                require(custody.completed and custody.result["status"] == "stopped",
+                        "WRITER_CUSTODY_UNFINISHED")
+                custody.check()
             body["status"] = "prepared_reference"
+            if custody is not None:
+                body["status"] = "stopped_reference"
             self.record(plan.id, "STOPPED", body)
         except BaseException as error:
             body.update(status="uncertain", error=getattr(error, "code", type(error).__name__))
             if isinstance(error, ProcessInventoryFault):
                 body["process_observation"] = error.observation()
             self.record(plan.id, "UNCERTAIN", body)  # First failure precedes cleanup.
-            if active is not None:
-                active.shorten(time.monotonic())
-                body["cleanup"] = active.finish()
-                self.record(plan.id, "UNCERTAIN", body)
         finally:
-            for staged_lease in reversed(staged_leases):
-                staged_lease.close()
-            if tree is not None:
-                tree.close()
-            if lease is not None:
-                lease.close()
-            if workspace_lease is not None:
-                workspace_lease.close()
+            try:
+                if active is not None:
+                    active.shorten(time.monotonic())
+                    body["cleanup"] = active.finish()
+                if custody is not None:
+                    custody.close()
+            except BaseException as error:
+                body.update(status="uncertain", cleanup_error=getattr(error, "code", type(error).__name__))
+            finally:
+                # Journal/disk errors must not skip termination or release other
+                # handles. All process/broker cleanup precedes namespace release.
+                try:
+                    with ExitStack() as cleanup:
+                        if workspace_lease is not None:
+                            cleanup.callback(workspace_lease.close)
+                        if lease is not None:
+                            cleanup.callback(lease.close)
+                        if tree is not None:
+                            cleanup.callback(tree.close)
+                        for staged_lease in staged_leases:
+                            cleanup.callback(staged_lease.close)
+                except BaseException as error:
+                    body.update(status="uncertain", release_error=getattr(error, "code", type(error).__name__))
+            state = "STOPPED" if body["status"] in ("stopped_reference", "prepared_reference") else "UNCERTAIN"
+            self.record(plan.id, state, body)
             if evidence.exists():
                 write_new(evidence / "result.json", body)
         return body

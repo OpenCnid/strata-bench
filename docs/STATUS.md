@@ -56,3 +56,6 @@ Primary evidence entry points:
 PR #2 merged at `542a77ac760fb305b26941085e33447f392f8ba8`; fetched main was verified.
 Current implementation branch: `codex/strata-estimated-usage`. Publication
 does not change the implementation or gate statuses above.
+
+
+The [continuous writer custody candidate](verification/2026-09-21-writer-custody.md) advances M0.2c.3b.2b.3.2: production preparation holds its original tree/workspace/input guards through a gated native child and private broker. Actual synthetic normal and interrupted launches retain 12/12 process history; wrong expected token rejects before child launch with 10/10 cleanup and no settings/events. All three reopened IDs reject replay without changing evidence. 31 selected Python checks pass. Full ReferenceLauncher/participant wiring and authentic setup/scoring remain open; module 0.3.6 is uninstalled, no game/model trial or budget change. M0 incomplete; G0 fail; G1–G5 not_run.

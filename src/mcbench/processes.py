@@ -121,12 +121,14 @@ class WindowsJob:
         return {key: getattr(value, key) for key in (
             "total_processes", "active_processes", "terminated_processes")}
 
-    def observe_members(self):
+    def observe_members(self, *, reconcile_history=False):
         """Retain handles only to members of this held job, within a fixed quota.
 
         A missed short-lived member is not guessed dead: final total-process
         accounting must equal the retained count. Holding handles prevents PID
-        reuse from aliasing an earlier member. Any race/error fails closed.
+        reuse from aliasing an earlier member. The optional private-reference
+        policy can reconcile an incomplete list only against independently
+        complete retained history; it never opens an unlisted process or retries.
         """
         import ctypes
         from ctypes import wintypes
@@ -153,11 +155,31 @@ class WindowsJob:
 
         if not query(self.handle, 3, ctypes.byref(value), ctypes.sizeof(value), None):
             failed("query", api_error=True)
-        if not value.count == value.assigned <= self.MAX_TRACKED_PROCESSES:
+        if not 0 <= value.count <= value.assigned <= self.MAX_TRACKED_PROCESSES:
             failed("incomplete_list")
-        for pid in value.pids[:value.count]:
-            if not 0 < pid <= 0xFFFFFFFF:
-                failed("invalid_pid")
+        pids = list(value.pids[:value.count])
+        if len(set(pids)) != len(pids) or any(not 0 < pid <= 0xFFFFFFFF for pid in pids):
+            failed("invalid_pid")
+        if value.count != value.assigned:
+            if reconcile_history and set(pids) <= self.members.keys():
+                # TotalProcesses includes every association during this Job's
+                # lifetime, including exited/failed-limit processes. Equality
+                # with our distinct, already membership-validated held handles
+                # proves no missing history at this independent observation.
+                # A fresh list, a PID guess or active-count equality cannot.
+                accounting = self.accounting()
+                held = self.member_status()  # Invalid handles still fail closed.
+                if (accounting["total_processes"] == len(self.members)
+                        <= self.MAX_TRACKED_PROCESSES
+                        and value.assigned <= len(self.members)
+                        and 0 <= accounting["active_processes"] <= len(self.members)
+                        and accounting["terminated_processes"] == 0):
+                    return {"schema": "strata/ProcessInventoryReconciliation/1",
+                        "policy": "complete-retained-job-history/1",
+                        "assigned_processes": value.assigned, "listed_processes": value.count,
+                        "retained_processes": len(self.members), "job": accounting, "held": held}
+            failed("incomplete_list")
+        for pid in pids:
             if pid in self.members:
                 continue
             if len(self.members) >= self.MAX_TRACKED_PROCESSES:

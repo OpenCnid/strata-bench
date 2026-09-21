@@ -146,7 +146,7 @@ def synthetic_member_job():
 
     state = SimpleNamespace(pids=[123], member=True, member_query_ok=True, open_ok=True,
                             signaled=False, query_ok=True, api_error=5, queries=0,
-                            membership_queries=0, opened=[], closed=[])
+                            membership_queries=0, opened=[], closed=[], assigned=None, listed=None)
     job = WindowsJob.__new__(WindowsJob)
     job.handle, job.members = 99, {}
     job.MAX_TRACKED_PROCESSES = 2
@@ -161,8 +161,8 @@ def synthetic_member_job():
                         ("pids", ctypes.c_size_t * 2)]
         assert size == ctypes.sizeof(Members)
         value = ctypes.cast(pointer, ctypes.POINTER(Members)).contents
-        value.assigned = len(state.pids)
-        value.count = min(value.assigned, 2)
+        value.assigned = len(state.pids) if state.assigned is None else state.assigned
+        value.count = min(value.assigned, 2) if state.listed is None else state.listed
         for index, pid in enumerate(state.pids[:2]):
             value.pids[index] = pid
         return state.query_ok

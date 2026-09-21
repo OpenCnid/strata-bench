@@ -30,6 +30,7 @@ def test_unconfirmed_watcher_cannot_bypass_job_close_or_claim_terminal_proof(tmp
                                    close=lambda: events.append("process-close"))
     owned.deadline = time.monotonic() + 2
     owned.fired, owned.errors, owned.readers = False, [], []
+    owned.inventory_reconciliations = []
     owned.done = SimpleNamespace(set=lambda: events.append("watcher-stop"))
     owned.watcher = SimpleNamespace(join=lambda _: None, is_alive=lambda: True)
     result = owned.finish()
@@ -57,6 +58,7 @@ def test_forced_cleanup_waits_for_signaling_without_forgiving_missing_history(re
         stop=lambda: state.update(stopped=True), close=lambda: None)
     owned.deadline = time.monotonic() - 1
     owned.fired, owned.errors, owned.readers = False, [], []
+    owned.inventory_reconciliations = []
     owned.done = SimpleNamespace(set=lambda: None)
     owned.watcher = SimpleNamespace(join=lambda _: None, is_alive=lambda: False)
     result = owned.finish()

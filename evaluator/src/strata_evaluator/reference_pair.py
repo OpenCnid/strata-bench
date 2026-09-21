@@ -89,6 +89,7 @@ class OwnedCli:
         self.fired = False
         self.errors = []
         self.readers = []
+        self.inventory_reconciliations = []
         # Install the deadline before process observation or log reads can fail.
         self.watcher = threading.Thread(target=self._watch, daemon=True)
         self.watcher.start()
@@ -149,11 +150,25 @@ class OwnedCli:
     def observe(self):
         require(not self.fired, "REFERENCE_PAIR_HARD_DEADLINE")
         require(not self.errors, "REFERENCE_PAIR_LOG_UNAVAILABLE")
-        self.process.job.observe_members()
+        reconciliation = self.process.job.observe_members(reconcile_history=True)
+        if reconciliation is not None:
+            # Preserve the anomaly and independent proof before continuing.
+            # A failed publication or exhausted journal blocks admission.
+            try:
+                require(len(self.inventory_reconciliations) < 64, "REFERENCE_PROCESS_OBSERVATION_QUOTA")
+                record = {**reconciliation, "observed_mono_ns": time.monotonic_ns()}
+                publish(self.evidence / f"{self.role}-inventory-{len(self.inventory_reconciliations) + 1}.json",
+                        record)
+                self.inventory_reconciliations.append(record)
+            except BaseException as error:
+                self.errors.append(failure_record("outer_cleanup", error).model_dump())
+                raise
         return self.process.poll()
 
     def finish(self):
-        result = {"forced": self.fired, "errors": []}
+        result = {"forced": self.fired, "errors": [],
+                  "inventory_policy": "complete-retained-job-history/1",
+                  "inventory_reconciliations": list(self.inventory_reconciliations)}
         try:
             # A root exit can precede its descendants' kernel signaling. Reconcile
             # within the original deadline; never turn incomplete history into proof.

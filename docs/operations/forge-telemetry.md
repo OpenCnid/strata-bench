@@ -312,6 +312,8 @@ does not change the 500-ms guardian. Source/Windows/JVM component checks pass,
 and the durable outer coordinator has actual CLI/owned-process fixture evidence.
 The guarded private Forge-driver candidate and authentic pair remain unqualified. See [evidence](../verification/2026-09-20-reference-abort.md).
 
+New E9E production pairs require `PrivateReferencePair/3` with a pinned `PrivateReferenceClientPreparation/1`. Complete cached-session preparation before calling the pair entrypoint; bind its nonsecret receipt, argument bytes, exact driver and client registration. Include `reference_preparation.py` in the source pins. The controller checks full remaining session exposure before starting the server and rechecks before the client. Missing/expired preparation must not trigger a server launch or automatic refresh. Keep argument files private and let the driver retire them after use. [Contract, source checks and retained scope05 failure](../verification/2026-09-21-client-preparation-admission.md).
+
 For the implemented outer monitor, prepare a strict `PrivateReferencePair/1`
 plan and run:
 

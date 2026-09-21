@@ -57,8 +57,13 @@ class ReferencePairPlanV2(ReferencePairPlan):
     protected_file: PrivateFile
 
 
+class ReferencePairPlanV3(ReferencePairPlanV2):
+    schema_: Literal["strata/PrivateReferencePair/3"] = Field(alias="schema")
+    client_preparation: PrivateFile
+
+
 def parse_pair_plan(value):
-    return TypeAdapter(ReferencePairPlan | ReferencePairPlanV2).validate_python(value)
+    return TypeAdapter(ReferencePairPlan | ReferencePairPlanV2 | ReferencePairPlanV3).validate_python(value)
 
 
 def protected_result_matches(database, instance, protected, result, server_result):
@@ -269,8 +274,12 @@ class ReferencePair:
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
         plan = parse_pair_plan(value)
         launch = parse_launch_plan(read_pinned(plan.launch_file, 8 * 1024**2))
+        require(launch.mode != "e9e-serverstarter" or isinstance(plan, ReferencePairPlanV3),
+                "REFERENCE_CLIENT_PREPARATION_REQUIRED")
+        require(not isinstance(plan, ReferencePairPlanV3) or launch.mode == "e9e-serverstarter",
+                "REFERENCE_CLIENT_PREPARATION_PROFILE")
         protected = None
-        if plan.schema_ == "strata/PrivateReferencePair/2":
+        if isinstance(plan, ReferencePairPlanV2):
             from .protected_reference import parse_protected_plan
             protected = parse_protected_plan(read_pinned(plan.protected_file, 32 * 1024**2))
             require(protected.schema_ == "strata/ProtectedReferencePlan/2"
@@ -342,6 +351,11 @@ class ReferencePair:
             pins.append(plan.client_binding)
         else:
             require(plan.client_binding is None, "REFERENCE_CLIENT_PROFILE")
+        preparation = None
+        if isinstance(plan, ReferencePairPlanV3):
+            from .reference_preparation import read_preparation, validate_preparation
+            preparation = read_preparation(plan.client_preparation)
+            pins.extend([plan.client_preparation, preparation.session_receipt])
         require(
             plan.client_window_ms <= launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
         )
@@ -365,6 +379,8 @@ class ReferencePair:
             required_sources += ["protected_reference.py", "writer_preparation.py", "writer_custody.py",
                 "windows_writer.py", "telemetry_pipe.py", "private_pipe.py", "craft_reference.py",
                 "telemetry_auth.py", "reference_client.py"]
+        if preparation is not None:
+            required_sources.append("reference_preparation.py")
         for name in required_sources:
             require(
                 str(Path(__file__).with_name(name).resolve()) in inventory,
@@ -401,6 +417,11 @@ class ReferencePair:
         claimed = False
         signal = AbortSignal(launch, server_evidence)
         try:
+            server_limit_ms = ((protected.preparation.max_wall_s if protected else
+                               launch.max_wall_s + launch.graceful_stop_s) * 1000 + plan.finalize_ms)
+            if preparation is not None:
+                body["client_preparation"] = validate_preparation(preparation,
+                    digest(binding.model_dump(by_alias=True)), plan.client_driver.sha256, server_limit_ms)
             with self.database.transaction() as db:
                 require(
                     db.execute(
@@ -436,6 +457,10 @@ class ReferencePair:
             def start(role, arguments, deadline):
                 require(aborted_at is None and not signal.poll(), "REFERENCE_OUTER_ABORT_REQUESTED")
                 lease.recheck()
+                if preparation is not None:
+                    body["client_preparation"] = validate_preparation(preparation,
+                        digest(binding.model_dump(by_alias=True)), plan.client_driver.sha256,
+                        server_limit_ms if role == "server" else plan.client_window_ms + 30000)
                 self._record(launch.instance_id, role.upper() + "_DISPATCHING", body)
                 process = ManagedProcess(
                     [plan.python.path, "-X", "utf8", *arguments],

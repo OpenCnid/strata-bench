@@ -6,7 +6,7 @@ in scope. [MILESTONES.md](../MILESTONES.md) owns progress and retained failures;
 [SPEC.md](../SPEC.md) defines acceptance.
 
 The implementation checkpoint is merged in [PR #3](https://github.com/OpenCnid/strata-bench/pull/3)
-at `f305b32005a61a9d72c430436127134ea64c1a3a`. Read the
+followed by merged [PR #4](https://github.com/OpenCnid/strata-bench/pull/4) at `c2161a6e79cea0c668ab993df149ab1ed5af119b`. Read the
 [current handoff](STATUS_AND_HANDOFF.md) before resuming on fetched main.
 The [checkpoint report](verification/2026-09-21-session-handoff.md) records
 merge verification. Publication does not qualify a release gate.
@@ -26,13 +26,11 @@ valuation; the first unknown request remains held once. No replay, refund,
 reset or further D12 dispatch. Read the original private store before spending;
 this summary is not executable authority. [Admission contract](operations/validation-admission.md).
 
-**Next implementation: M0.1d.1.** Build a reusable, read-only verifier for the
-existing connected native/game bundle: join exact model/helper usage, game
-receipts, scope, source pins, stop and clock evidence; reject incomplete or
-cross-scope records. Start with sealed case 02 and tampered copies, without
-launching Minecraft or making another model request. This verifier is not yet
-implemented. Then continue the connected path's scorer/setup, shutdown and
-joint recovery dependencies. Keep the work focused on M0.
+**M0.1d.1 is verified for read-only reconstruction.** The [reusable verifier](verification/2026-09-21-native-game-verifier.md) joins the existing six scripted calls, 84 fixture units, one primitive and stopped state. 52 focused tests and 16 derived-copy negatives pass. Flat manifest omission of 105 deep files is retained; their already sealed bootstrap hashes verify the complete inventory. No original bytes changed and no new game/model run occurred.
+
+**M0.1d.2 is verified narrowly for request/charge attribution.** [Changed connected trial](verification/2026-09-21-native-game-traces.md) passes 28 native checks, exact six-request/one-primitive reconciliation and six derived-copy negatives. Source checks: 139 distinct Python and 35 Node cases. A single changed-profile vanilla run used scripted inference; original source/accounting remain unchanged and cleanup leaves no Java.
+
+**Next implementation: M0.2c.3b.3 setup-history/scorer authority.** Continue native setup observations and the signed craft importer with explicit rejection of intervening privilege/mode/team changes. Matching points remain insufficient. Keep scoring unqualified until the full history, protected custody, controls/parity and isolation contracts pass; continue remaining shutdown and joint recovery dependencies. The active goal covers M0/G0 only; preserve unrelated later work.
 
 Evidence entry points:
 

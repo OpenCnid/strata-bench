@@ -80,6 +80,185 @@ def _inventory(db, cas, participant, grant):
         "role": grant.role, "namespace": grant.namespace, "files": files, "activates_skills": False}
 
 
+def inspect_native_source(db, cas, job, *, simulation, live_jobs=()):
+    """Read-only stopped native validation shared by export and evidence replay.
+
+    Callers own a consistent database read and a hash-checked private CAS.
+    This creates no tables, reservations, exports, or runtime capabilities.
+    """
+    from .native import NativeLaunch
+    row = db.execute("SELECT * FROM native_jobs WHERE id=?", (job,)).fetchone()
+    require(row is not None and row["state"] == "FINALIZED" and job not in live_jobs and
+            type(row["returncode"]) is int, "RUNTIME_NOT_QUIESCENT")
+    plan = NativeLaunch.model_validate_json(row["plan"])
+    require(plan.role == "executor" and plan.parent_job_id is None and plan.broker_policy is not None and
+            plan.budget_mode == "per_dispatch", "NATIVE_EXPORT_PROFILE")
+    require(db.execute("SELECT 1 FROM native_jobs WHERE parent=?", (job,)).fetchone() is None,
+            "NATIVE_EXPORT_EXTERNAL_HELPERS")
+    mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
+    require(mode is not None and mode[0] == int(simulation), "NATIVE_EXPORT_PROFILE")
+    participants = [dict(r) for r in db.execute("SELECT * FROM native_participants WHERE job=? "
+                                               "ORDER BY depth,thread", (job,))]
+    require(participants and sum(p["depth"] == 0 for p in participants) == 1 and
+            all(p["state"] == "CLOSED" for p in participants), "NATIVE_EXPORT_PARTICIPANTS")
+    from .inference_dispatch import require_admission_outcomes
+    rejected = require_admission_outcomes(db, plan, simulation)
+    admissions = [dict(r) for r in db.execute("SELECT a.operation,a.thread,a.request_digest,a.envelope,"
+        "i.state,i.receipt_digest FROM native_request_admissions a LEFT JOIN inference_attempts i "
+        "ON a.operation=i.operation WHERE a.job=? ORDER BY a.operation", (job,))]
+    attempts = [a for a in admissions if a["operation"] not in rejected]
+    all_attempts = [r[0] for r in db.execute("SELECT operation FROM inference_attempts WHERE "
+        "json_extract(request,'$.runtime_job_id')=? ORDER BY operation", (job,))]
+    require(attempts and all(a["state"] == "SETTLED" and a["receipt_digest"] for a in attempts) and
+            [a["operation"] for a in attempts] == all_attempts, "METERING_UNKNOWN")
+    p_by_thread = {p["thread"]: p for p in participants}
+    require({r[0] for r in db.execute("SELECT thread FROM broker_grants WHERE runtime=?", (job,))}
+            == set(p_by_thread), "NATIVE_EXPORT_PARTICIPANTS")
+    require(all(a["thread"] in p_by_thread and a["envelope"] == p_by_thread[a["thread"]]["envelope"]
+                for a in admissions), "NATIVE_EXPORT_PARTICIPANTS")
+    envelopes = {p["envelope"] for p in participants}
+    require(plan.operation_id in envelopes and len(envelopes) == len(participants), "OPERATION_LINEAGE")
+    root = next(p for p in participants if p["depth"] == 0)
+    require(root["parent"] is None and root["envelope"] == plan.operation_id and all(
+        p["parent"] in p_by_thread and p_by_thread[p["parent"]]["depth"] == p["depth"] - 1
+        for p in participants if p["depth"] > 0), "OPERATION_LINEAGE")
+    parents = {p["envelope"]: p_by_thread[p["parent"]]["envelope"] if p["parent"] else None
+               for p in participants}
+    require(not envelopes & {a["operation"] for a in attempts}, "OPERATION_LINEAGE")
+    parents.update({a["operation"]: a["envelope"] for a in attempts})
+    operation_ids = envelopes | {a["operation"] for a in attempts}
+    operations = []
+    ledgers = []
+    for op in sorted(operation_ids):
+        operation = db.execute("SELECT * FROM operations WHERE id=?", (op,)).fetchone()
+        require(operation is not None and operation["account"] == plan.account and
+                operation["actual"] is not None and not operation["uncertain"], "METERING_UNKNOWN")
+        require(operation["parent"] == parents[op], "OPERATION_LINEAGE")
+        registered = db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?", (op,)).fetchone()
+        require(bool(registered) == (op in envelopes), "OPERATION_LINEAGE")
+        operations.append(dict(operation))
+        entries = db.execute("SELECT rowid cursor,body,digest FROM ledger WHERE "
+            "json_extract(body,'$.operation_id')=? ORDER BY rowid", (op,)).fetchall()
+        records = [BudgetLedger.model_validate_json(e["body"]) for e in entries]
+        require(sum(r.posting == "reserve" for r in records) == 1 and
+                sum(r.posting == "settle" for r in records) == 1 and
+                all(r.posting in {"reserve", "settle"} for r in records), "NATIVE_EXPORT_LEDGER")
+        for entry, record in zip(entries, records):
+            require(entry["digest"] == digest({"account": plan.account, "body": record.model_dump()}) and
+                    record.operation_id == op and record.parent_operation_id == parents[op] and
+                    record.kind == operation["kind"] and record.campaign_id == plan.campaign_id and
+                    record.agent_id == plan.agent_id and record.epoch == plan.epoch and
+                    json.loads(operation["reserved" if record.posting == "reserve" else "actual"]) == vector(record),
+                    "NATIVE_EXPORT_LEDGER")
+            if record.raw_usage_ref:
+                private_json_or_bytes = db.execute("SELECT visibility FROM objects WHERE namespace='operator' "
+                    "AND ref=?", (record.raw_usage_ref,)).fetchone()
+                require(private_json_or_bytes is not None and private_json_or_bytes[0] == "operator",
+                        "NATIVE_EXPORT_PRIVATE")
+                cas.verify(OPERATOR, "operator", record.raw_usage_ref)
+            ledgers.append({"cursor": entry["cursor"], "digest": entry["digest"], "record": record.model_dump()})
+        if op in envelopes:
+            settled = next(r for r in records if r.posting == "settle")
+            require(all(v == 0 for v in vector(settled).values()) and settled.raw_usage_ref is not None,
+                    "NATIVE_EXPORT_LEDGER")
+        else:
+            attempt = dict(db.execute("SELECT * FROM inference_attempts WHERE operation=?", (op,)).fetchone())
+            reservation = next(r.model_dump() for r in records if r.posting == "reserve")
+            request = json.loads(attempt["request"])
+            admission = next(a for a in attempts if a["operation"] == op)
+            require(attempt["account"] == plan.account and json.loads(attempt["reservation"]) == reservation and
+                attempt["fingerprint"] == digest({"account": plan.account, "attempt": request, "reserve": reservation})
+                and request["profile_digest"] == plan.profile_digest() and
+                request["request_digest"] == admission["request_digest"], "NATIVE_EXPORT_LEDGER")
+            events = db.execute("SELECT body FROM outbox WHERE kind='inference.settled' AND "
+                "json_extract(body,'$.operation_id')=?", (op,)).fetchall()
+            require(len(events) == 1 and json.loads(events[0][0]) == {
+                "operation_id": op, "provider_event_digest": attempt["provider_event"],
+                "receipt_digest": attempt["receipt_digest"]}, "NATIVE_EXPORT_LEDGER")
+            valuation = db.execute("SELECT body FROM inference_valuations WHERE operation=?", (op,)).fetchone()
+            require(simulation or valuation is not None, "VERSIONED_ESTIMATE_REQUIRED")
+            admission.update(dispatch=attempt, valuation=json.loads(valuation[0]) if valuation else None)
+    # A late reservation or accounting descendant cannot disappear from the
+    # declared native request/envelope set simply because its response is absent.
+    extra = db.execute("WITH RECURSIVE tree(id) AS (SELECT ? UNION SELECT o.id FROM operations o "
+        "JOIN tree t ON o.parent=t.id) SELECT id FROM tree", (plan.operation_id,)).fetchall()
+    require({r[0] for r in extra} == operation_ids, "NATIVE_EXPORT_LEDGER")
+    closure = next(r["record"] for r in ledgers if r["record"]["operation_id"] == plan.operation_id and
+                   r["record"]["posting"] == "settle")
+    seal = private_json(db, cas, closure["raw_usage_ref"])
+    require(seal.get("schema") == "strata/InferenceIngressSeal/1" and seal.get("is_example") is simulation
+        and seal.get("job_id") == job and seal.get("profile_digest") == plan.profile_digest() and
+        seal.get("attempt_ids") == all_attempts and seal.get("participant_threads") == sorted(p_by_thread) and
+        all(seal.get(k) is True for k in ("process_tree_dead", "ingress_closed", "handlers_fenced")),
+        "DISPATCH_SEAL_UNVERIFIED")
+    if plan.ingress_policy is not None:
+        ingress = db.execute("SELECT revoked FROM native_ingress WHERE job=?", (job,)).fetchone()
+        require(ingress is not None and ingress[0] == 1, "INGRESS_NOT_FENCED")
+    game_calls = [dict(r) for r in db.execute("SELECT * FROM broker_game_calls WHERE runtime=? "
+                                            "ORDER BY thread,request", (job,))]
+    require(all(c["state"] == "SETTLED" for c in game_calls), "NATIVE_EXPORT_GAME_UNKNOWN")
+    require(all(c["thread"] in p_by_thread for c in game_calls), "NATIVE_EXPORT_PARTICIPANTS")
+    from .broker import inspect_game_requests
+    requests = inspect_game_requests(db, job)
+    for call in game_calls:
+        request = requests.get((call["thread"], call["request"]))
+        if request is not None:
+            require((request["campaign_id"], request["agent_id"], request["epoch"])
+                    == (plan.campaign_id, plan.agent_id, plan.epoch), "NATIVE_EXPORT_GAME_SCOPE")
+            # Absent fields remain absent for legacy source/export fingerprints.
+            call["request_body"] = request
+    inventories, summaries = {}, []
+    for participant in participants:
+        grant_row = db.execute("SELECT * FROM broker_grants WHERE runtime=? AND thread=?",
+                               (job, participant["thread"])).fetchone()
+        require(grant_row is not None, "NATIVE_EXPORT_PARTICIPANTS")
+        grant = BrokerGrant.model_validate_json(grant_row["body"])
+        require(grant.runtime_id == job and grant.thread_id == participant["thread"] and
+            grant_row["namespace"] == grant.namespace and grant_row["parent"] == participant["parent"] and
+            grant_row["fingerprint"] == digest(grant.model_dump()) and
+            grant.profile_digest == plan.profile_digest() and grant.epoch == plan.epoch and
+            grant.campaign_id == plan.campaign_id and grant.agent_id == plan.agent_id and
+            grant.parent_thread_id == participant["parent"] and grant.depth == participant["depth"] and
+            grant.role == ("executor" if participant["depth"] == 0 else "helper"), "NATIVE_EXPORT_PARTICIPANTS")
+        require_drained(db, job, participant["thread"])
+        cells = require_native_cells_drained(db, cas, plan, participant["thread"])
+        inventory = _inventory(db, cas, participant, grant)
+        from .native_skill_activation import active_files, read_set, require_scope
+        active_ref = plan.skill_activation_ref if grant.role == "executor" else plan.helper_skill_activation_ref
+        expected_active = {}
+        if active_ref:
+            active = read_set(db, cas, active_ref)
+            require_scope(active, plan)
+            require(active["is_example"] is simulation, "NATIVE_SKILL_SCOPE")
+            expected_active = active_files(active)
+        require({f["path"]: f["ref"] for f in inventory["files"] if f["path"].startswith("active/")}
+                == expected_active, "NATIVE_SKILL_SCOPE")
+        inventories[participant["thread"]] = inventory
+        summaries.append({"participant": participant, "grant": dict(grant_row),
+                          "inventory_digest": digest(inventory), "cells": cells})
+    calls = [dict(r) for r in db.execute("SELECT o.cursor,o.body,l.state,l.ended_unix_ms,l.elapsed_ns,"
+        "l.result_digest,l.fault FROM outbox o JOIN broker_call_lifecycle l ON o.cursor=l.event WHERE "
+        "o.kind='broker.call' AND json_extract(o.body,'$.runtime')=? ORDER BY o.cursor", (job,))]
+    require(all(json.loads(c["body"])["thread"] in p_by_thread for c in calls), "NATIVE_EXPORT_PARTICIPANTS")
+    source = {"schema": "strata/NativeExportSource/1", "job": job, "plan_digest": digest(plan.model_dump()),
+        "returncode": row["returncode"], "reason": row["reason"], "closure_ref": closure["raw_usage_ref"],
+        "participants": summaries, "attempts": attempts, "operations": operations,
+        "ledger": ledgers, "broker_calls": calls, "game_calls": game_calls,
+        "account_identities": [dict(a) for a in Budgets.ancestors(db, plan.account)]}
+    if rejected:
+        # Preserve legacy source hashes when there are no proved denials.
+        source["pre_dispatch_rejections"] = [{"admission": a, "rejection": rejected[a["operation"]].model_dump()}
+            for a in admissions if a["operation"] in rejected]
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_artifact_writes'").fetchone():
+        writes = [dict(r) for r in db.execute("SELECT * FROM broker_artifact_writes WHERE runtime=? ORDER BY event", (job,))]
+        # Legacy exports had no write provenance. Preserve their identity;
+        # missing journals cannot later be invented to publish a revision.
+        if writes:
+            source["artifact_writes"] = writes
+    return plan, source, inventories
+
+
+
 class NativeExports:
     def __init__(self, runtime):
         self.runtime, self.db, self.cas = runtime, runtime.db, runtime.cas
@@ -88,167 +267,8 @@ class NativeExports:
             db.execute("CREATE TABLE IF NOT EXISTS native_exports (job TEXT PRIMARY KEY, source_digest TEXT, ref TEXT)")
 
     def _capture(self, db, job):
-        from .native import NativeLaunch
-        row = db.execute("SELECT * FROM native_jobs WHERE id=?", (job,)).fetchone()
-        require(row is not None and row["state"] == "FINALIZED" and job not in self.runtime.live and
-                type(row["returncode"]) is int, "RUNTIME_NOT_QUIESCENT")
-        plan = NativeLaunch.model_validate_json(row["plan"])
-        require(plan.role == "executor" and plan.parent_job_id is None and plan.broker_policy is not None and
-                plan.budget_mode == "per_dispatch", "NATIVE_EXPORT_PROFILE")
-        require(db.execute("SELECT 1 FROM native_jobs WHERE parent=?", (job,)).fetchone() is None,
-                "NATIVE_EXPORT_EXTERNAL_HELPERS")
-        mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
-        require(mode is not None and mode[0] == int(self.runtime.simulation), "NATIVE_EXPORT_PROFILE")
-        participants = [dict(r) for r in db.execute("SELECT * FROM native_participants WHERE job=? "
-                                                   "ORDER BY depth,thread", (job,))]
-        require(participants and sum(p["depth"] == 0 for p in participants) == 1 and
-                all(p["state"] == "CLOSED" for p in participants), "NATIVE_EXPORT_PARTICIPANTS")
-        from .inference_dispatch import require_admission_outcomes
-        rejected = require_admission_outcomes(db, plan, self.runtime.simulation)
-        admissions = [dict(r) for r in db.execute("SELECT a.operation,a.thread,a.request_digest,a.envelope,"
-            "i.state,i.receipt_digest FROM native_request_admissions a LEFT JOIN inference_attempts i "
-            "ON a.operation=i.operation WHERE a.job=? ORDER BY a.operation", (job,))]
-        attempts = [a for a in admissions if a["operation"] not in rejected]
-        all_attempts = [r[0] for r in db.execute("SELECT operation FROM inference_attempts WHERE "
-            "json_extract(request,'$.runtime_job_id')=? ORDER BY operation", (job,))]
-        require(attempts and all(a["state"] == "SETTLED" and a["receipt_digest"] for a in attempts) and
-                [a["operation"] for a in attempts] == all_attempts, "METERING_UNKNOWN")
-        p_by_thread = {p["thread"]: p for p in participants}
-        require({r[0] for r in db.execute("SELECT thread FROM broker_grants WHERE runtime=?", (job,))}
-                == set(p_by_thread), "NATIVE_EXPORT_PARTICIPANTS")
-        require(all(a["thread"] in p_by_thread and a["envelope"] == p_by_thread[a["thread"]]["envelope"]
-                    for a in admissions), "NATIVE_EXPORT_PARTICIPANTS")
-        envelopes = {p["envelope"] for p in participants}
-        require(plan.operation_id in envelopes and len(envelopes) == len(participants), "OPERATION_LINEAGE")
-        root = next(p for p in participants if p["depth"] == 0)
-        require(root["parent"] is None and root["envelope"] == plan.operation_id and all(
-            p["parent"] in p_by_thread and p_by_thread[p["parent"]]["depth"] == p["depth"] - 1
-            for p in participants if p["depth"] > 0), "OPERATION_LINEAGE")
-        parents = {p["envelope"]: p_by_thread[p["parent"]]["envelope"] if p["parent"] else None
-                   for p in participants}
-        require(not envelopes & {a["operation"] for a in attempts}, "OPERATION_LINEAGE")
-        parents.update({a["operation"]: a["envelope"] for a in attempts})
-        operation_ids = envelopes | {a["operation"] for a in attempts}
-        operations = []
-        ledgers = []
-        for op in sorted(operation_ids):
-            operation = db.execute("SELECT * FROM operations WHERE id=?", (op,)).fetchone()
-            require(operation is not None and operation["account"] == plan.account and
-                    operation["actual"] is not None and not operation["uncertain"], "METERING_UNKNOWN")
-            require(operation["parent"] == parents[op], "OPERATION_LINEAGE")
-            registered = db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?", (op,)).fetchone()
-            require(bool(registered) == (op in envelopes), "OPERATION_LINEAGE")
-            operations.append(dict(operation))
-            entries = db.execute("SELECT rowid cursor,body,digest FROM ledger WHERE "
-                "json_extract(body,'$.operation_id')=? ORDER BY rowid", (op,)).fetchall()
-            records = [BudgetLedger.model_validate_json(e["body"]) for e in entries]
-            require(sum(r.posting == "reserve" for r in records) == 1 and
-                    sum(r.posting == "settle" for r in records) == 1 and
-                    all(r.posting in {"reserve", "settle"} for r in records), "NATIVE_EXPORT_LEDGER")
-            for entry, record in zip(entries, records):
-                require(entry["digest"] == digest({"account": plan.account, "body": record.model_dump()}) and
-                        record.operation_id == op and record.parent_operation_id == parents[op] and
-                        record.kind == operation["kind"] and record.campaign_id == plan.campaign_id and
-                        record.agent_id == plan.agent_id and record.epoch == plan.epoch and
-                        json.loads(operation["reserved" if record.posting == "reserve" else "actual"]) == vector(record),
-                        "NATIVE_EXPORT_LEDGER")
-                if record.raw_usage_ref:
-                    private_json_or_bytes = db.execute("SELECT visibility FROM objects WHERE namespace='operator' "
-                        "AND ref=?", (record.raw_usage_ref,)).fetchone()
-                    require(private_json_or_bytes is not None and private_json_or_bytes[0] == "operator",
-                            "NATIVE_EXPORT_PRIVATE")
-                    self.cas.verify(OPERATOR, "operator", record.raw_usage_ref)
-                ledgers.append({"cursor": entry["cursor"], "digest": entry["digest"], "record": record.model_dump()})
-            if op in envelopes:
-                settled = next(r for r in records if r.posting == "settle")
-                require(all(v == 0 for v in vector(settled).values()) and settled.raw_usage_ref is not None,
-                        "NATIVE_EXPORT_LEDGER")
-            else:
-                attempt = dict(db.execute("SELECT * FROM inference_attempts WHERE operation=?", (op,)).fetchone())
-                reservation = next(r.model_dump() for r in records if r.posting == "reserve")
-                request = json.loads(attempt["request"])
-                admission = next(a for a in attempts if a["operation"] == op)
-                require(attempt["account"] == plan.account and json.loads(attempt["reservation"]) == reservation and
-                    attempt["fingerprint"] == digest({"account": plan.account, "attempt": request, "reserve": reservation})
-                    and request["profile_digest"] == plan.profile_digest() and
-                    request["request_digest"] == admission["request_digest"], "NATIVE_EXPORT_LEDGER")
-                events = db.execute("SELECT body FROM outbox WHERE kind='inference.settled' AND "
-                    "json_extract(body,'$.operation_id')=?", (op,)).fetchall()
-                require(len(events) == 1 and json.loads(events[0][0]) == {
-                    "operation_id": op, "provider_event_digest": attempt["provider_event"],
-                    "receipt_digest": attempt["receipt_digest"]}, "NATIVE_EXPORT_LEDGER")
-                valuation = db.execute("SELECT body FROM inference_valuations WHERE operation=?", (op,)).fetchone()
-                require(self.runtime.simulation or valuation is not None, "VERSIONED_ESTIMATE_REQUIRED")
-                admission.update(dispatch=attempt, valuation=json.loads(valuation[0]) if valuation else None)
-        # A late reservation or accounting descendant cannot disappear from the
-        # declared native request/envelope set simply because its response is absent.
-        extra = db.execute("WITH RECURSIVE tree(id) AS (SELECT ? UNION SELECT o.id FROM operations o "
-            "JOIN tree t ON o.parent=t.id) SELECT id FROM tree", (plan.operation_id,)).fetchall()
-        require({r[0] for r in extra} == operation_ids, "NATIVE_EXPORT_LEDGER")
-        closure = next(r["record"] for r in ledgers if r["record"]["operation_id"] == plan.operation_id and
-                       r["record"]["posting"] == "settle")
-        seal = private_json(db, self.cas, closure["raw_usage_ref"])
-        require(seal.get("schema") == "strata/InferenceIngressSeal/1" and seal.get("is_example") is self.runtime.simulation
-            and seal.get("job_id") == job and seal.get("profile_digest") == plan.profile_digest() and
-            seal.get("attempt_ids") == all_attempts and seal.get("participant_threads") == sorted(p_by_thread) and
-            all(seal.get(k) is True for k in ("process_tree_dead", "ingress_closed", "handlers_fenced")),
-            "DISPATCH_SEAL_UNVERIFIED")
-        if plan.ingress_policy is not None:
-            ingress = db.execute("SELECT revoked FROM native_ingress WHERE job=?", (job,)).fetchone()
-            require(ingress is not None and ingress[0] == 1, "INGRESS_NOT_FENCED")
-        game_calls = [dict(r) for r in db.execute("SELECT * FROM broker_game_calls WHERE runtime=? "
-                                                "ORDER BY thread,request", (job,))]
-        require(all(c["state"] == "SETTLED" for c in game_calls), "NATIVE_EXPORT_GAME_UNKNOWN")
-        require(all(c["thread"] in p_by_thread for c in game_calls), "NATIVE_EXPORT_PARTICIPANTS")
-        inventories, summaries = {}, []
-        for participant in participants:
-            grant_row = db.execute("SELECT * FROM broker_grants WHERE runtime=? AND thread=?",
-                                   (job, participant["thread"])).fetchone()
-            require(grant_row is not None, "NATIVE_EXPORT_PARTICIPANTS")
-            grant = BrokerGrant.model_validate_json(grant_row["body"])
-            require(grant.runtime_id == job and grant.thread_id == participant["thread"] and
-                grant_row["namespace"] == grant.namespace and grant_row["parent"] == participant["parent"] and
-                grant_row["fingerprint"] == digest(grant.model_dump()) and
-                grant.profile_digest == plan.profile_digest() and grant.epoch == plan.epoch and
-                grant.campaign_id == plan.campaign_id and grant.agent_id == plan.agent_id and
-                grant.parent_thread_id == participant["parent"] and grant.depth == participant["depth"] and
-                grant.role == ("executor" if participant["depth"] == 0 else "helper"), "NATIVE_EXPORT_PARTICIPANTS")
-            require_drained(db, job, participant["thread"])
-            cells = require_native_cells_drained(db, self.cas, plan, participant["thread"])
-            inventory = _inventory(db, self.cas, participant, grant)
-            from .native_skill_activation import active_files, read_set, require_scope
-            active_ref = plan.skill_activation_ref if grant.role == "executor" else plan.helper_skill_activation_ref
-            expected_active = {}
-            if active_ref:
-                active = read_set(db, self.cas, active_ref)
-                require_scope(active, plan)
-                require(active["is_example"] is self.runtime.simulation, "NATIVE_SKILL_SCOPE")
-                expected_active = active_files(active)
-            require({f["path"]: f["ref"] for f in inventory["files"] if f["path"].startswith("active/")}
-                    == expected_active, "NATIVE_SKILL_SCOPE")
-            inventories[participant["thread"]] = inventory
-            summaries.append({"participant": participant, "grant": dict(grant_row),
-                              "inventory_digest": digest(inventory), "cells": cells})
-        calls = [dict(r) for r in db.execute("SELECT o.cursor,o.body,l.state,l.ended_unix_ms,l.elapsed_ns,"
-            "l.result_digest,l.fault FROM outbox o JOIN broker_call_lifecycle l ON o.cursor=l.event WHERE "
-            "o.kind='broker.call' AND json_extract(o.body,'$.runtime')=? ORDER BY o.cursor", (job,))]
-        require(all(json.loads(c["body"])["thread"] in p_by_thread for c in calls), "NATIVE_EXPORT_PARTICIPANTS")
-        source = {"schema": "strata/NativeExportSource/1", "job": job, "plan_digest": digest(plan.model_dump()),
-            "returncode": row["returncode"], "reason": row["reason"], "closure_ref": closure["raw_usage_ref"],
-            "participants": summaries, "attempts": attempts, "operations": operations,
-            "ledger": ledgers, "broker_calls": calls, "game_calls": game_calls,
-            "account_identities": [dict(a) for a in Budgets.ancestors(db, plan.account)]}
-        if rejected:
-            # Preserve legacy source hashes when there are no proved denials.
-            source["pre_dispatch_rejections"] = [{"admission": a, "rejection": rejected[a["operation"]].model_dump()}
-                for a in admissions if a["operation"] in rejected]
-        if db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_artifact_writes'").fetchone():
-            writes = [dict(r) for r in db.execute("SELECT * FROM broker_artifact_writes WHERE runtime=? ORDER BY event", (job,))]
-            # Legacy exports had no write provenance. Preserve their identity;
-            # missing journals cannot later be invented to publish a revision.
-            if writes:
-                source["artifact_writes"] = writes
-        return plan, source, inventories
+        return inspect_native_source(db, self.cas, job, simulation=self.runtime.simulation,
+                                     live_jobs=self.runtime.live)
 
     def export(self, job):
         with self.db.transaction() as db:

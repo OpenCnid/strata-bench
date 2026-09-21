@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.99](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.100](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -9,22 +9,11 @@ acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [Implementation PR #3](https://github.com/OpenCnid/strata-bench/pull/3) merged at
 `f305b32005a61a9d72c430436127134ea64c1a3a`, including source head
 `f55a00f993bfe72c0887a567cc9387de2d57d759`. It follows merged PR #2 at
-`542a77ac760fb305b26941085e33447f392f8ba8`. This handoff is the separate
-documentation change requested after the implementation merge. Verify its PR
-and fetched main rather than assuming the implementation merge is the latest
-commit. [Merge checks](verification/2026-09-21-session-handoff.md).
+`542a77ac760fb305b26941085e33447f392f8ba8`. The separate documentation PR #4 then merged at c2161a6e79cea0c668ab993df149ab1ed5af119b. This handoff now tracks resumed M0-only implementation; preserve the current branch and changes until its checkpoint is merged. [Merge checks](verification/2026-09-21-session-handoff.md).
 
-The full objective remains:
+The current user request and active long-horizon goal are **M0 and its complete G0 only**. Preserve all required later milestones and conditional extensions; do not advance unrelated M1–M7 work. This is the current task boundary, not removal of product requirements.
 
-> Complete Strata according to SPEC.md and AGENTS.md through every required
-> M0–M6 deliverable and acceptance gate. Preserve M7 and other conditional
-> extensions with their activation conditions. Completion requires authoritative
-> evidence for the full specification, not merely passing local tests.
-
-**M0 remains incomplete; G0 fails; G1–G5 are not run.** The user requested this
-stopping checkpoint to move sessions, not a scope reduction or permission
-question at each later checkpoint. Verify the long-horizon goal and create it
-only if absent. Do not mark it complete because these PRs merged.
+**M0 remains incomplete; G0 fails; G1–G5 are not run.** PRs #3/#4 are merged; fetched main matches `c2161a6e79cea0c668ab993df149ab1ed5af119b`. Implementation resumed on fresh `codex/strata-m0-g0`. Do not recreate the already active M0/G0 goal or mark it complete because a checkpoint is finished.
 
 1. Read AGENTS.md, SPEC.md, MILESTONES.md, this handoff, STATUS.md,
    [validation admission](operations/validation-admission.md) and the
@@ -41,33 +30,13 @@ only if absent. Do not mark it complete because these PRs merged.
    implement it. Do not restart the completed native accounting matrix,
    repeat unchanged live trials or expand unrelated M1 settings work.
 
-## First implementation deliverable: M0.1d.1
+## Current implementation and next action
 
-The runnable `tools/m0_native_game.py PRIVATE_PLAN.json` already owns a real
-vanilla server/worker and the selected native Dovetail root/helper/broker path.
-Case 02 performs one real bounded look action, joins its receipt to the worker
-journal, checks saved orientation and stops normally. **Its six model replies
-are scripted (84 fixture units), not authentic model reasoning.** Case 01's
-startup failure is retained. [Command, plan and evidence](verification/2026-09-21-m0-native-game.md).
+M0.1d.1 is verified for its bounded read-only evidence-reconstruction contract. [Implementation, command and exact evidence](verification/2026-09-21-native-game-verifier.md): existing case 02 independently reconciles six scripted calls, 84 fixture units, one real primitive, root/helper closure and stopped state; 52 focused checks and 16 synthetic derived-copy negatives pass. The original flat manifest omitted 105 deep plugin files; their preexisting sealed bootstrap hash chain verifies them. Preserve the flat-inventory failure and original bytes. No game or model run was repeated. Missing authoritative clocks/scorer/isolation/shutdown/recovery evidence remains explicit; parent M0.1d remains implemented_unverified.
 
-Implement a reusable read-only evidence verifier around this existing path.
-This work has **not started**. Join durable native attempts/receipts and
-root/helper budget envelopes to executor/job/epoch-bound worker actions,
-primitive charges, source/profile pins, stop receipts and available clock
-evidence. Reuse `native_worker.py`, existing dispatch/accounting records and
-the private run-cost verifier where applicable; do not rebuild the runner.
-Keep synthetic fixture units, API-equivalent estimates and actual charges
-distinct. Report unavailable clocks or scorer evidence as gaps, never zeros
-or invented proof.
+M0.1d.2 is verified narrowly for durable request/charge attribution. [Changed-profile integration](verification/2026-09-21-native-game-traces.md) adds exact original/forwarded broker requests, atomic per-primitive charges and complete request/event/receipt joins. 139 distinct Python/35 Node checks, 28 actual native/game checks and six new synthetic derived-copy negatives pass. One new real vanilla run used scripted inference, six calls/84 fixture units, one primitive and normal cleanup. Its flat 4,244-file seal is complete; all 69 original source files and the $0.756858 held/settled accounting remain unchanged. No Java remains. Old case-02 gaps/failures are preserved. No full scorer, isolation, clock, shutdown or recovery qualification.
 
-Exit evidence: the sealed case-02 bundle produces an independently reconstructed
-report agreeing with its recorded six calls, 84 fixture units, one primitive
-and terminal state. Tampered copies with missing, duplicate, foreign-scope or
-conflicting receipts, altered sources and ambiguous stop evidence must reject
-or retain explicit incompleteness; originals remain byte-identical. This is
-verification of an existing authentic game run with scripted inference, not
-a new run or full G0 closure. Keep M0.1d implemented_unverified until its
-remaining live/model, clock, scorer, isolation and recovery contracts qualify.
+Next bounded work is **M0.2c.3b.3 setup-history/scorer authority**: inspect the pinned native mode/admin/team mutation routes and implement history evidence that rejects intervening changes in the existing signed craft importer. Matching startup/before/after points cannot prove continuous setup validity. Keep all protected-custody, authentic-control, parity and nonleakage gates; do not promote the failed protected craft references to scorable outcomes. Model admission remains blocked, but this source work is independent.
 
 Continue next through actual M0 dependencies: protected setup/writer authority
 and scorer controls/nonleakage, bounded shutdown/resource behavior, and complete

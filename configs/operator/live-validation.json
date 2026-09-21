@@ -1,13 +1,57 @@
 {
-  "schema": "strata/ExecutionAuthorization/1",
+  "schema": "strata/ExecutionAuthorization/2",
   "authorization_id": "validation-2026-09-18",
-  "decision_id": "D04",
+  "decision_id": "D11",
   "provider": "openai",
   "auth_mode": "chatgpt_oauth",
-  "models": ["gpt-5.6-luna"],
+  "models": [
+    "gpt-5.6-luna"
+  ],
   "total_spend_microusd": 10000000,
   "currency": "USD",
   "scope": "live_validation",
-  "includes": ["development", "training", "evaluation"],
-  "unknown_metering": "block"
+  "includes": [
+    "development",
+    "training",
+    "evaluation"
+  ],
+  "unknown_metering": "block",
+  "original_decision_id": "D04",
+  "legacy_authorization_digest": "40daabc17448c77a637fa1e605f76296b4c5be9b25074611f444f5c55366db78",
+  "accounting_basis": {
+    "schema": "strata/ApiEquivalentEstimateBasis/1",
+    "kind": "api_equivalent_estimate",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "currency": "USD",
+    "price_sources": [
+      "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+      "https://developers.openai.com/api/docs/pricing"
+    ],
+    "price_date": "2026-09-20",
+    "reference_tier": "standard",
+    "tier_policy": "fixed_api_equivalent_not_subscription_tier",
+    "regional_processing": "none",
+    "short_context": {
+      "input": 200000,
+      "cached_input": 20000,
+      "cache_write": 250000,
+      "output": 1200000
+    },
+    "long_context": {
+      "input": 400000,
+      "cached_input": 40000,
+      "cache_write": 500000,
+      "output": 1800000
+    },
+    "long_context_above_input_tokens": 272000,
+    "context_window_tokens": 1050000,
+    "max_output_tokens": 128000,
+    "cache_write_policy": "explicit_subset_or_all_uncached_upper_bound",
+    "reasoning_policy": "included_in_output",
+    "unknown_categories": "block",
+    "tool_charges": "unsupported_block",
+    "rounding": "ceil_per_request_microusd"
+  },
+  "first_trial_max_microusd": 1000000
 }

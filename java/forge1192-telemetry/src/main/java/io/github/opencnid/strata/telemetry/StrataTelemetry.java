@@ -20,11 +20,14 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.ModList;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /** No channels, commands, packets, world setters, or fixture definitions. */
@@ -41,6 +44,12 @@ public final class StrataTelemetry {
         MinecraftForge.EVENT_BUS.addListener(this::tick);
         MinecraftForge.EVENT_BUS.addListener(this::crafted);
         MinecraftForge.EVENT_BUS.addListener(this::stopped);
+        MinecraftForge.EVENT_BUS.addListener(this::command);
+    }
+
+    private void command(CommandEvent event) {
+        if(event.getParseResults().getContext().getSource().getServer().isDedicatedServer())
+            SetupCapture.COMMAND_EVENTS.incrementAndGet();
     }
 
     private void started(ServerStartedEvent event) {
@@ -52,7 +61,7 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.2");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.6");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
@@ -61,7 +70,14 @@ public final class StrataTelemetry {
             boot.add("config_queries", queries);
             boot.addProperty("craft_capture_policy",CraftCapture.POLICY);
             boot.add("craft_capture_support",CraftCapture.support());
-            emit("server_started", "strata/ServerStarted/4", boot, new JsonArray());
+            boot.add("launch_identity", LaunchIdentity.observe(FMLPaths.GAMEDIR.get(),
+                event.getServer().getWorldPath(LevelResource.ROOT),
+                ModList.get().getModFileById("strata_telemetry").getFile().getFilePath(),
+                event.getServer().usesAuthentication(), event.getServer().getPort()));
+            boot.addProperty("setup_capture_policy",SetupCapture.POLICY);
+            boot.add("setup_capture_support",SetupCapture.support());
+            boot.addProperty("telemetry_transport", config.broker() == null ? "private-file/1" : "windows-owned-pipe/1");
+            emit("server_started", "strata/ServerStarted/7", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();
@@ -104,6 +120,8 @@ public final class StrataTelemetry {
         // All ServerStarted listeners have returned. This is still a point observation,
         // not a transaction across watcher threads or proof of cached consumer effects.
         if (ticks == 1) {
+            emit("setup_snapshot", "strata/NativeSetupSnapshot/1",
+                SetupCapture.capture(event.getServer(),null,null,"startup"),new JsonArray());
             for (ConfigQuery query : config.configQueries()) {
                 emit("config_snapshot", "strata/ConfigSnapshot/1", ConfigSnapshot.capture(query), new JsonArray());
             }

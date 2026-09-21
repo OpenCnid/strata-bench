@@ -1,6 +1,6 @@
 """Trusted suspended-dispatch equivalent for managed process trees.
 
-Launched with Python -I. Wait for the parent to attach the Windows job BEFORE
+Launched with Python -I -S -B. Wait for the parent to attach the Windows job BEFORE
 receiving the child command. This file is operator-owned, never an agent tool.
 Only standard-library imports: no workspace or user site initialization.
 """

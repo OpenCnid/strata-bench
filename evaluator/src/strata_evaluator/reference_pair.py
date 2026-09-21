@@ -1,0 +1,737 @@
+"""One-use private reference pair; owned deadlines do not certify a game result."""
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import threading
+import time
+from typing import Literal
+
+from pydantic import Field, TypeAdapter
+
+from mcbench.contracts import Strict
+from mcbench.inference_transport import strict_json
+from mcbench.launch_integrity import FileLease
+from mcbench.processes import ManagedProcess, ProcessInventoryFault
+from mcbench.storage import Database, Fault, canonical, digest, reject_links, require
+
+from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path
+from .reference_abort import AbortSignal, failure_record, request_abort
+from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, parse_launch_plan
+from .reference_participant import ParticipantReady, publish, REPORT_LIMIT
+from .telemetry_auth import private_read
+
+LOG_LIMIT = 16 * 1024**2
+
+
+def read_pinned(pin, limit):
+    raw = private_read(pin.path, limit)
+    require(
+        len(raw) == pin.bytes and hashlib.sha256(raw).hexdigest() == pin.sha256,
+        "CRAFT_FILE_CHANGED",
+    )
+    return strict_json(raw)
+
+
+class ReferencePairPlan(Strict):
+    schema_: Literal["strata/PrivateReferencePair/1"] = Field(alias="schema")
+    launch_file: PrivateFile
+    client_binding: PrivateFile | None = None
+    client_driver: PrivateFile
+    python: PrivateFile
+    bootstrap: PrivateFile
+    source_root: str
+    # Explicit source/config/helper inputs, held through the complete pair.
+    inputs: list[PrivateFile] = Field(min_length=1, max_length=2000)
+    evidence_directory: str
+    client_window_ms: int = Field(ge=1000, le=420000)
+    finalize_ms: int = Field(ge=1000, le=15000)
+
+
+class ReferencePairPlanV2(ReferencePairPlan):
+    schema_: Literal["strata/PrivateReferencePair/2"] = Field(alias="schema")
+    protected_file: PrivateFile
+
+
+class ReferencePairPlanV3(ReferencePairPlanV2):
+    schema_: Literal["strata/PrivateReferencePair/3"] = Field(alias="schema")
+    client_preparation: PrivateFile
+
+
+def parse_pair_plan(value):
+    return TypeAdapter(ReferencePairPlan | ReferencePairPlanV2 | ReferencePairPlanV3).validate_python(value)
+
+
+def protected_result_matches(database, instance, protected, result, server_result):
+    """A child exit/report cannot substitute for the durable closed lifetime."""
+    row = database.connection.execute(
+        "SELECT state,plan,body FROM protected_references WHERE instance=?", (instance,)
+    ).fetchone()
+    preparation = result.get("preparation", {})
+    custody = preparation.get("custody", {})
+    return (row is not None and row["state"] == "STOPPED"
+        and strict_json(row["plan"]) == protected.model_dump(by_alias=True)
+        and strict_json(row["body"]) == result and result.get("status") == "stopped"
+        and result.get("plan_digest") == digest(protected.model_dump(by_alias=True))
+        and result.get("launch") == server_result
+        and preparation.get("status") == "stopped_reference"
+        and custody.get("live") is False and custody.get("status") == "stopped")
+
+
+class OwnedCli:
+    """An independent finite watchdog, retained Job and bounded private logs."""
+
+    def __init__(self, process, role, evidence, deadline, *, ready=None):
+        self.process, self.role, self.evidence = process, role, evidence
+        self.ready = ready
+        self.deadline = deadline
+        self.lock = threading.Lock()
+        self.done = threading.Event()
+        self.fired = False
+        self.errors = []
+        self.readers = []
+        self.inventory_reconciliations = []
+        # Install the deadline before process observation or log reads can fail.
+        self.watcher = threading.Thread(target=self._watch, daemon=True)
+        self.watcher.start()
+        for stream, suffix in (
+            (process.process.stdout, "stdout"),
+            (process.process.stderr, "stderr"),
+        ):
+            reader = threading.Thread(target=self._drain, args=(stream, suffix), daemon=True)
+            reader.start()
+            self.readers.append(reader)
+
+    def _drain(self, stream, suffix):
+        try:
+            with (self.evidence / f"{self.role}.{suffix}.log").open("xb") as out:
+                count = 0
+                while block := (stream.readline(65536) if self.ready is not None else stream.read(4096)):
+                    count += len(block)
+                    require(count <= LOG_LIMIT, "REFERENCE_PAIR_LOG_QUOTA")
+                    out.write(block)
+                    out.flush()
+                    if self.ready is not None and re.search(rb'Done \([0-9.,]+s\)! For help, type "help"', block):
+                        self.ready.set()
+                os.fsync(out.fileno())
+        except Exception as error:
+            self.errors.append(failure_record("outer_cleanup", error).model_dump())
+
+    def shorten(self, deadline):
+        with self.lock:
+            self.deadline = min(self.deadline, deadline)
+
+    def _watch(self):
+        while not self.done.wait(0.025):
+            with self.lock:
+                due = time.monotonic() >= self.deadline
+            if not due:
+                continue
+            try:
+                if (
+                    self.process.poll() is not None
+                    and self.process.job.accounting()["active_processes"] == 0
+                ):
+                    return  # The owned tree is already empty; retained history is checked separately.
+            except Exception as error:
+                self.errors.append(failure_record("outer_cleanup", error).model_dump())
+            self.fired = True
+            fault = failure_record(self.role + "_deadline", Fault("REFERENCE_PAIR_HARD_DEADLINE"))
+            try:
+                publish(self.evidence / f"{self.role}-watchdog.json", fault.model_dump())
+            except Exception as error:
+                self.errors.append(failure_record("outer_cleanup", error).model_dump())
+            try:
+                # No PID discovery; this terminates the retained complete outer Job.
+                self.process.job.terminate()
+            except Exception as error:
+                self.errors.append(failure_record("outer_cleanup", error).model_dump())
+            return
+
+    def observe(self):
+        require(not self.fired, "REFERENCE_PAIR_HARD_DEADLINE")
+        require(not self.errors, "REFERENCE_PAIR_LOG_UNAVAILABLE")
+        reconciliation = self.process.job.observe_members(reconcile_history=True)
+        if reconciliation is not None:
+            # Preserve the anomaly and independent proof before continuing.
+            # A failed publication or exhausted journal blocks admission.
+            try:
+                require(len(self.inventory_reconciliations) < 64, "REFERENCE_PROCESS_OBSERVATION_QUOTA")
+                record = {**reconciliation, "observed_mono_ns": time.monotonic_ns()}
+                publish(self.evidence / f"{self.role}-inventory-{len(self.inventory_reconciliations) + 1}.json",
+                        record)
+                self.inventory_reconciliations.append(record)
+            except BaseException as error:
+                self.errors.append(failure_record("outer_cleanup", error).model_dump())
+                raise
+        return self.process.poll()
+
+    def finish(self):
+        result = {"forced": self.fired, "errors": [],
+                  "inventory_policy": "complete-retained-job-history/1",
+                  "inventory_reconciliations": list(self.inventory_reconciliations)}
+        try:
+            # A root exit can precede its descendants' kernel signaling. Reconcile
+            # within the original deadline; never turn incomplete history into proof.
+            until = min(self.deadline, time.monotonic() + 2)
+            while True:
+                accounting = self.process.job.accounting()
+                held = self.process.job.member_status()
+                if (
+                    self.process.poll() is not None
+                    and accounting["active_processes"] == 0
+                    and held["signaled_processes"] == held["held_processes"]
+                ):
+                    break
+                if time.monotonic() >= until:
+                    break
+                time.sleep(0.01)
+            if self.process.poll() is None or self.process.job.accounting()["active_processes"]:
+                result["forced"] = True
+                self.process.stop()
+                # TerminateJobObject/root wait can precede signaling of other
+                # retained handles even after active_processes reaches zero.
+                # Bound cleanup reconciliation; incomplete history still fails.
+                stopped_until = time.monotonic() + 2
+                while True:
+                    accounting = self.process.job.accounting()
+                    held = self.process.job.member_status()
+                    if (accounting["active_processes"] == 0
+                            and held["held_processes"] == held["signaled_processes"]):
+                        break
+                    if time.monotonic() >= stopped_until:
+                        break
+                    time.sleep(0.01)
+            result["exit_code"] = self.process.poll()
+            result["job"] = self.process.job.accounting()
+            result["held"] = self.process.job.member_status()
+            result["terminal_verified"] = (
+                result["exit_code"] is not None
+                and result["job"]["active_processes"] == 0
+                and result["held"]["held_processes"]
+                == result["held"]["signaled_processes"]
+                == result["job"]["total_processes"]
+            )
+        except Exception as error:
+            result["errors"].append(failure_record("outer_cleanup", error).model_dump())
+            result["terminal_verified"] = False
+            result["forced"] = True
+            try:
+                self.process.stop()
+            except Exception as stop_error:
+                result["errors"].append(failure_record("outer_cleanup", stop_error).model_dump())
+        finally:
+            self.done.set()
+            self.watcher.join(2)
+            if self.watcher.is_alive():
+                # Never let missing watcher confirmation bypass the retained
+                # Job's kill-on-close backstop or release an apparently clean
+                # reference. Preserve uncertainty without escaping cleanup.
+                result["terminal_verified"] = False
+                result["forced"] = True
+                result["errors"].append(failure_record("outer_cleanup",
+                    Fault("REFERENCE_PAIR_WATCHDOG_UNCONFIRMED")).model_dump())
+            result["forced"] = result["forced"] or self.fired
+            for reader in self.readers:
+                reader.join(2)
+            result["logs_complete"] = (
+                not any(t.is_alive() for t in self.readers) and not self.errors
+            )
+            result["errors"].extend(self.errors)
+            # Never close a buffered pipe underneath an in-flight read. The Job
+            # close is still a kernel backstop; missing drains remain unconfirmed.
+            self.process.job.close()
+            if not any(t.is_alive() for t in self.readers):
+                self.process.close()
+        return result
+
+
+class ReferencePair:
+    def __init__(self, database):
+        self.database = database
+        self.store = CraftReferenceStore(database)
+        with database.transaction() as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS reference_pairs (instance TEXT PRIMARY KEY, "
+                "plan TEXT NOT NULL, state TEXT NOT NULL, body TEXT NOT NULL)"
+            )
+
+    def _record(self, instance, state, body):
+        with self.database.transaction() as db:
+            db.execute(
+                "UPDATE reference_pairs SET state=?,body=? WHERE instance=?",
+                (state, canonical(body).decode(), instance),
+            )
+            self.database.event(
+                db, "private.reference_pair", {"instance": instance, "state": state, **body}
+            )
+
+    def run(self, value):
+        require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
+        plan = parse_pair_plan(value)
+        launch = parse_launch_plan(read_pinned(plan.launch_file, 8 * 1024**2))
+        require(launch.mode != "e9e-serverstarter" or isinstance(plan, ReferencePairPlanV3),
+                "REFERENCE_CLIENT_PREPARATION_REQUIRED")
+        require(not isinstance(plan, ReferencePairPlanV3) or launch.mode == "e9e-serverstarter",
+                "REFERENCE_CLIENT_PREPARATION_PROFILE")
+        protected = None
+        if isinstance(plan, ReferencePairPlanV2):
+            from .protected_reference import parse_protected_plan
+            protected = parse_protected_plan(read_pinned(plan.protected_file, 32 * 1024**2))
+            require(protected.schema_ == "strata/ProtectedReferencePlan/2"
+                    and type(launch) is ReferenceLaunchPlanV5, "REFERENCE_PAIR_PROFILE")
+            require(protected.launch.model_dump(by_alias=True) == launch.model_dump(by_alias=True),
+                    "REFERENCE_PAIR_PROTECTED_BINDING")
+            setup = protected.setup
+        else:
+            # A legacy pair cannot reconstruct live custody from a launch JSON.
+            require(type(launch) is ReferenceLaunchPlanV3, "REFERENCE_PAIR_PROFILE")
+            row, setup, _, authority = self.store._load(launch.instance_id)
+            require(row["digest"] == launch.setup_digest, "REFERENCE_SETUP_CHANGED")
+        evidence = private_path(plan.evidence_directory)
+        server_evidence = private_path(launch.evidence_directory)
+        report = private_path(launch.participant.report_path)
+        require(
+            not evidence.exists()
+            and evidence.parent.is_dir()
+            and not server_evidence.exists()
+            and not report.exists(),
+            "REFERENCE_PAIR_PATH",
+        )
+        if protected:
+            protected_evidence = private_path(protected.evidence_directory)
+            workspace = private_path(protected.preparation.workspace_directory)
+            require(not protected_evidence.exists() and not workspace.exists(), "REFERENCE_PAIR_PATH")
+            roots = [evidence, protected_evidence, workspace]
+        else:
+            roots = [evidence, server_evidence, private_path(setup.game_directory), authority.parent]
+        require(
+            all(
+                not a.is_relative_to(b) and not b.is_relative_to(a)
+                for i, a in enumerate(roots)
+                for b in roots[i + 1 :]
+            ),
+            "REFERENCE_PAIR_PATH",
+        )
+        require(not any(report.is_relative_to(root) for root in roots), "REFERENCE_PAIR_PATH")
+        source = Path(plan.source_root).resolve()
+        reject_links(source)
+        require(source == Path(__file__).resolve().parents[3], "REFERENCE_PAIR_SOURCE")
+        require(
+            Path(plan.python.path).resolve() == Path(sys.executable).resolve()
+            and Path(plan.bootstrap.path).resolve() == source / "src/mcbench/process_bootstrap.py",
+            "REFERENCE_PAIR_BOOTSTRAP",
+        )
+        private_path(plan.client_driver.path)
+        pins = [plan.launch_file, plan.client_driver, plan.python, plan.bootstrap, *plan.inputs]
+        if protected:
+            prep = protected.preparation
+            pins.extend([plan.protected_file, prep.codex, prep.java, prep.helper_class,
+                         protected.launch.gate_helper, *prep.sources.values()])
+        binding = None
+        if launch.mode == "e9e-serverstarter":
+            from .reference_client import ClientReferenceBinding, validate_client_binding, validate_client_scope
+
+            require(plan.client_binding is not None, "REFERENCE_CLIENT_BINDING_REQUIRED")
+            binding = ClientReferenceBinding.model_validate(
+                read_pinned(plan.client_binding, 1024**2)
+            )
+            # Future prepared module bytes do not exist yet. The child validates
+            # them under custody before server dispatch; we repeat before client dispatch.
+            validate = validate_client_scope if protected else validate_client_binding
+            validate(binding, setup, launch.model_dump(by_alias=True))
+            require(
+                plan.client_window_ms == binding.client_wall_ms + binding.terminal_reserve_ms,
+                "REFERENCE_PAIR_EXPOSURE",
+            )
+            pins.append(plan.client_binding)
+        else:
+            require(plan.client_binding is None, "REFERENCE_CLIENT_PROFILE")
+        preparation = None
+        if isinstance(plan, ReferencePairPlanV3):
+            from .reference_preparation import read_preparation, validate_preparation
+            preparation = read_preparation(plan.client_preparation)
+            pins.extend([plan.client_preparation, preparation.session_receipt])
+        require(
+            plan.client_window_ms <= launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
+        )
+        inventory = {}
+        for pin in pins:
+            check_file(Path(pin.path), pin)
+            key = str(Path(pin.path).resolve())
+            require(
+                key not in inventory or inventory[key] == pin.model_dump(),
+                "REFERENCE_PAIR_PIN_CONFLICT",
+            )
+            inventory[key] = pin.model_dump()
+        # At least the code providing pair/abort/launch behavior must be declared.
+        required_sources = [
+            "reference_pair.py",
+            "reference_abort.py",
+            "reference_launch.py",
+            "reference_participant.py",
+        ]
+        if protected:
+            required_sources += ["protected_reference.py", "writer_preparation.py", "writer_custody.py",
+                "windows_writer.py", "telemetry_pipe.py", "private_pipe.py", "craft_reference.py",
+                "telemetry_auth.py", "reference_client.py"]
+        if preparation is not None:
+            required_sources.append("reference_preparation.py")
+        for name in required_sources:
+            require(
+                str(Path(__file__).with_name(name).resolve()) in inventory,
+                "REFERENCE_PAIR_SOURCE_UNPINNED",
+            )
+        body = {
+            "schema": "strata/PrivateReferencePairResult/1",
+            "status": "uncertain",
+            "launch_plan_digest": digest(launch.model_dump(by_alias=True)),
+            "pair_plan_digest": digest(plan.model_dump(by_alias=True)),
+            "failures": [],
+            "process_observations": [],
+            "scoring_eligible": False,
+            "participant_execution_verified": False,
+            "guardian_qualified": False,
+            "gameplay_or_inference_admission": False,
+            "shared_desktop_input_verified": False,
+        }
+        if protected:
+            body["protected_plan_digest"] = digest(protected.model_dump(by_alias=True))
+            body["network_policy"] = protected.launch.network_policy
+        lease = FileLease(
+            {
+                "schema": "strata/LaunchFileInventory/1",
+                "trees": [],
+                "files": list(inventory.values()),
+            }
+        )
+        processes = {}
+        started = time.monotonic()
+        ready = None
+        aborted_at = None
+        published = False
+        claimed = False
+        signal = AbortSignal(launch, server_evidence)
+        try:
+            server_limit_ms = ((protected.preparation.max_wall_s if protected else
+                               launch.max_wall_s + launch.graceful_stop_s) * 1000 + plan.finalize_ms)
+            if preparation is not None:
+                body["client_preparation"] = validate_preparation(preparation,
+                    digest(binding.model_dump(by_alias=True)), plan.client_driver.sha256, server_limit_ms)
+            with self.database.transaction() as db:
+                require(
+                    db.execute(
+                        "SELECT 1 FROM reference_pairs WHERE instance=?", (launch.instance_id,)
+                    ).fetchone()
+                    is None,
+                    "REFERENCE_PAIR_ALREADY_DISPATCHED",
+                )
+                db.execute(
+                    "INSERT INTO reference_pairs VALUES (?,?,?,?)",
+                    (
+                        launch.instance_id,
+                        canonical(plan.model_dump(by_alias=True)).decode(),
+                        "INTENT",
+                        canonical(body).decode(),
+                    ),
+                )
+                self.database.event(
+                    db,
+                    "private.reference_pair",
+                    {"instance": launch.instance_id, "state": "INTENT", **body},
+                )
+            claimed = True
+            evidence.mkdir()
+            publish(evidence / "intent.json", body)
+            environment = {
+                k: os.environ[k] for k in ("SystemRoot", "WINDIR", "TEMP", "TMP") if k in os.environ
+            }
+            environment["PYTHONPATH"] = os.pathsep.join(
+                [str(source / "src"), str(source / "evaluator/src")]
+            )
+
+            def start(role, arguments, deadline):
+                require(aborted_at is None and not signal.poll(), "REFERENCE_OUTER_ABORT_REQUESTED")
+                lease.recheck()
+                if preparation is not None:
+                    body["client_preparation"] = validate_preparation(preparation,
+                        digest(binding.model_dump(by_alias=True)), plan.client_driver.sha256,
+                        server_limit_ms if role == "server" else plan.client_window_ms + 30000)
+                self._record(launch.instance_id, role.upper() + "_DISPATCHING", body)
+                process = ManagedProcess(
+                    [plan.python.path, "-X", "utf8", *arguments],
+                    source,
+                    environment,
+                    "",
+                    bootstrap_python=plan.python.path,
+                    bootstrap_script=plan.bootstrap.path,
+                )
+                try:
+                    owned = OwnedCli(process, role, evidence, deadline)
+                except BaseException:
+                    process.stop()
+                    process.close()
+                    raise
+                processes[role] = owned  # Retained before observation/recording can fail.
+                owned.process.job.observe_members()
+                publish(
+                    evidence / f"{role}-process.json",
+                    {"pid": process.process.pid, "elapsed_s": time.monotonic() - started},
+                )
+                return owned
+
+            arguments = [
+                "-m",
+                "strata_evaluator.protected_reference" if protected else "strata_evaluator.reference_launch",
+                "--database",
+                str(self.database.path),
+                "--plan",
+                plan.protected_file.path if protected else plan.launch_file.path,
+            ]
+            if plan.client_binding:
+                arguments += ["--client-binding", plan.client_binding.path]
+            phase = "server_monitor"
+            server = start(
+                "server",
+                arguments,
+                started + (protected.preparation.max_wall_s if protected else
+                           launch.max_wall_s + launch.graceful_stop_s) + plan.finalize_ms / 1000,
+            )
+            while True:
+                try:
+                    for role, owned in processes.items():
+                        phase = role + ("_deadline" if owned.fired else "_monitor")
+                        owned.observe()
+                    if signal.poll():
+                        raise Fault("REFERENCE_OUTER_ABORT_REQUESTED")
+                    if aborted_at is None and "client" not in processes:
+                        phase = "client_monitor"
+                        path = server_evidence / "participant-ready.json"
+                        if os.path.lexists(path):
+                            ready = ParticipantReady.model_validate(
+                                strict_json(private_read(path, 8192))
+                            )
+                            require(
+                                (
+                                    ready.instance_id,
+                                    ready.setup_digest,
+                                    ready.launch_plan_digest,
+                                    ready.participant_id,
+                                    ready.window_ms,
+                                )
+                                == (
+                                    launch.instance_id,
+                                    launch.setup_digest,
+                                    body["launch_plan_digest"],
+                                    launch.participant.participant_id,
+                                    launch.participant.window_s * 1000,
+                                ),
+                                "REFERENCE_PAIR_READINESS",
+                            )
+                            dispatch = self.database.connection.execute(
+                                "SELECT state,body FROM reference_dispatches WHERE instance=?",
+                                (launch.instance_id,),
+                            ).fetchone()
+                            recorded = strict_json(dispatch["body"]) if dispatch else {}
+                            require(
+                                dispatch is not None
+                                and dispatch["state"] == "PARTICIPANT_READY"
+                                and recorded.get("launch_binding_verified") is True
+                                and recorded.get("participant_readiness")
+                                == ready.model_dump(by_alias=True),
+                                "REFERENCE_PAIR_READINESS_UNRECORDED",
+                            )
+                            require(
+                                ready.expires_unix_ms - time.time_ns() // 1000000
+                                > plan.client_window_ms,
+                                "REFERENCE_PAIR_EXPOSURE",
+                            )
+                            require(
+                                server.process.poll() is None
+                                and not (server_evidence / "result.json").exists(),
+                                "REFERENCE_PAIR_SERVER_TERMINAL",
+                            )
+                            if binding is not None:
+                                validate_client_binding(binding, setup, launch.model_dump(by_alias=True))
+                            body["readiness_digest"] = digest(ready.model_dump(by_alias=True))
+                            publish(
+                                evidence / "client-intent.json",
+                                {"readiness_digest": body["readiness_digest"]},
+                            )
+                            start(
+                                "client",
+                                [plan.client_driver.path],
+                                time.monotonic() + plan.client_window_ms / 1000,
+                            )
+                    if "client" in processes and processes["client"].process.poll() is not None:
+                        phase = "client_monitor"
+                        require(
+                            processes["client"].process.poll() == 0, "REFERENCE_PAIR_CLIENT_FAILED"
+                        )
+                        require(
+                            report.exists()
+                            and (server_evidence / "participant-completion.json").exists(),
+                            "REFERENCE_PAIR_CLIENT_REPORT_MISSING",
+                        )
+                    if server.process.poll() is not None:
+                        require(
+                            "client" in processes
+                            and processes["client"].process.poll() is not None,
+                            "REFERENCE_PAIR_SERVER_EARLY_EXIT",
+                        )
+                        break
+                except Exception as error:
+                    failure = failure_record(phase, error).model_dump()
+                    changed = False
+                    if isinstance(error, ProcessInventoryFault):
+                        observation = {"phase": phase, **error.observation()}
+                        if observation not in body["process_observations"]:
+                            require(len(body["process_observations"]) < 64,
+                                    "REFERENCE_PAIR_FAILURE_QUOTA")
+                            body["process_observations"].append(observation)
+                            changed = True
+                    if failure not in body["failures"]:
+                        require(len(body["failures"]) < 64, "REFERENCE_PAIR_FAILURE_QUOTA")
+                        body["failures"].append(failure)
+                        changed = True
+                    if changed:
+                        self._record(launch.instance_id, "ABORT_REQUESTED", body)
+                    if aborted_at is None:
+                        aborted_at = time.monotonic()
+                        for role, owned in processes.items():
+                            cleanup = launch.abort_cleanup_ms / 1000
+                            if role == "server":
+                                cleanup += launch.graceful_stop_s + plan.finalize_ms / 1000
+                            owned.shorten(aborted_at + cleanup)
+                    # The server owns creation of its evidence directory. An early
+                    # failure remains durable while waiting for it; no client starts.
+                    if not published and server_evidence.is_dir() and not signal.poll():
+                        request_abort(server_evidence, launch, phase, error)
+                        published = True
+                    if all(owned.process.poll() is not None for owned in processes.values()):
+                        break
+                time.sleep(0.025)
+            if not body["failures"]:
+                body["status"] = "stopped_pair"
+        except BaseException as error:
+            if not claimed:
+                raise
+            failure = failure_record(locals().get("phase", "outer_cleanup"), error).model_dump()
+            body["failures"].append(failure)
+            if isinstance(error, ProcessInventoryFault):
+                body["process_observations"].append(
+                    {"phase": failure["phase"], **error.observation()})
+            self._record(launch.instance_id, "ABORT_REQUESTED", body)
+        finally:
+            if not claimed:
+                lease.close()
+            else:
+                for role, owned in reversed(list(processes.items())):
+                    try:
+                        body[role + "_process"] = owned.finish()
+                    except Exception as error:
+                        body[role + "_process"] = {
+                            "terminal_verified": False,
+                            "failure": failure_record("outer_cleanup", error).model_dump(),
+                        }
+                    state = body[role + "_process"]
+                    if (
+                        not state.get("terminal_verified")
+                        or state.get("forced")
+                        or not state.get("logs_complete")
+                        or state.get("errors")
+                        or state.get("exit_code") != 0
+                    ):
+                        body["status"] = "uncertain"
+                reports = [
+                    ("server_result", server_evidence / "result.json"),
+                    ("client_result", report),
+                ]
+                if protected:
+                    reports.append(("protected_result", protected_evidence / "result.json"))
+                for name, path in reports:
+                    try:
+                        raw = private_read(path, REPORT_LIMIT)
+                        value = strict_json(raw)
+                        require(isinstance(value, dict), "REFERENCE_PAIR_REPORT_INVALID")
+                        with (evidence / (name + ".json")).open("xb") as preserved:
+                            preserved.write(raw)
+                            preserved.flush()
+                            os.fsync(preserved.fileno())
+                        body[name] = {
+                            "sha256": hashlib.sha256(raw).hexdigest(),
+                            "bytes": len(raw),
+                            "value": value,
+                        }
+                    except Exception as error:
+                        body[name] = {
+                            "missing_or_invalid": True,
+                            "failure": failure_record("outer_cleanup", error).model_dump(),
+                        }
+                        body["status"] = "uncertain"
+                if (
+                    body["failures"]
+                    or signal.poll()
+                    or body["server_result"].get("value", {}).get("status") != "stopped_reference"
+                    or body["client_result"].get("value", {}).get("status") != "pass"
+                ):
+                    body["status"] = "uncertain"
+                if body["status"] == "stopped_pair":
+                    dispatch = self.database.connection.execute(
+                        "SELECT state,body FROM reference_dispatches WHERE instance=?",
+                        (launch.instance_id,),
+                    ).fetchone()
+                    if (
+                        dispatch is None
+                        or dispatch["state"] != "STOPPED"
+                        or strict_json(dispatch["body"]) != body["server_result"]["value"]
+                    ):
+                        body["status"] = "uncertain"
+                        body["failures"].append(
+                            failure_record(
+                                "server_monitor", Fault("REFERENCE_PAIR_RESULT_UNRECORDED")
+                            ).model_dump()
+                        )
+                if protected and body["status"] == "stopped_pair":
+                    try:
+                        require(protected_result_matches(self.database, launch.instance_id, protected,
+                            body["protected_result"].get("value", {}), body["server_result"]["value"]),
+                            "REFERENCE_PAIR_PROTECTED_UNCLOSED")
+                    except Exception as error:
+                        body["status"] = "uncertain"
+                        body["failures"].append(failure_record("server_monitor", error).model_dump())
+                body["outer_abort"] = signal.result
+                body["elapsed_s"] = time.monotonic() - started
+                lease.close()
+                # Never repair/restart the child dispatch or fabricate a terminal receipt.
+                self._record(
+                    launch.instance_id,
+                    "STOPPED" if body["status"] == "stopped_pair" else "UNCERTAIN",
+                    body,
+                )
+                if evidence.is_dir():
+                    publish(evidence / "result.json", body)
+        return body
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--database", required=True, type=Path)
+    parser.add_argument("--plan", required=True, type=Path)
+    args = parser.parse_args()
+    value = strict_json(private_read(args.plan, 8 * 1024**2))
+    database = Database(private_path(args.database))
+    try:
+        result = ReferencePair(database).run(value)
+        print(json.dumps({k: result[k] for k in ("status", "elapsed_s", "scoring_eligible")}))
+        return 0 if result["status"] == "stopped_pair" else 1
+    finally:
+        database.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from mcbench.processes import ManagedProcess, WindowsJob
+from mcbench.processes import ManagedProcess, ProcessInventoryFault, WindowsJob
 from mcbench.storage import Fault
 
 
@@ -144,36 +144,50 @@ def synthetic_member_job():
     from ctypes import wintypes
     from types import SimpleNamespace
 
-    state = SimpleNamespace(pids=[123], member=True, signaled=False, query_ok=True,
-                            opened=[], closed=[])
+    state = SimpleNamespace(pids=[123], member=True, member_query_ok=True, open_ok=True,
+                            signaled=False, query_ok=True, api_error=5, queries=0,
+                            membership_queries=0, opened=[], closed=[], assigned=None, listed=None)
     job = WindowsJob.__new__(WindowsJob)
     job.handle, job.members = 99, {}
     job.MAX_TRACKED_PROCESSES = 2
 
     def query(handle, kind, pointer, size, length):
+        state.queries += 1
+        if os.name == "nt":
+            ctypes.set_last_error(state.api_error)
         assert (handle, kind, length) == (99, 3, None)
         class Members(ctypes.Structure):
             _fields_ = [("assigned", wintypes.DWORD), ("count", wintypes.DWORD),
                         ("pids", ctypes.c_size_t * 2)]
         assert size == ctypes.sizeof(Members)
         value = ctypes.cast(pointer, ctypes.POINTER(Members)).contents
-        value.assigned = len(state.pids)
-        value.count = min(value.assigned, 2)
+        value.assigned = len(state.pids) if state.assigned is None else state.assigned
+        value.count = min(value.assigned, 2) if state.listed is None else state.listed
         for index, pid in enumerate(state.pids[:2]):
             value.pids[index] = pid
         return state.query_ok
 
     def open_process(rights, inherit, pid):
         state.opened.append((rights, inherit, pid))
-        return pid + 1000
+        if os.name == "nt":
+            ctypes.set_last_error(state.api_error)
+        return pid + 1000 if state.open_ok else None
 
     def is_member(handle, owner, output):
         assert owner == 99
+        state.membership_queries += 1
+        if os.name == "nt":
+            ctypes.set_last_error(state.api_error)
         ctypes.cast(output, ctypes.POINTER(wintypes.BOOL)).contents.value = state.member
-        return True
+        return state.member_query_ok
+
+    def close(handle):
+        state.closed.append(handle)
+        if os.name == "nt":
+            ctypes.set_last_error(999)  # Must not overwrite the recorded failing API error.
 
     job.kernel = SimpleNamespace(QueryInformationJobObject=query, OpenProcess=open_process,
-        IsProcessInJob=is_member, CloseHandle=state.closed.append,
+        IsProcessInJob=is_member, CloseHandle=close,
         WaitForSingleObject=lambda handle, timeout: 0 if state.signaled else 258)
     return job, state
 
@@ -208,3 +222,55 @@ def test_member_inventory_failures_cannot_claim_owned_processes(synthetic_member
     assert state.opened == ([(0x1000 | 0x100000, False, 123)] if failure == "foreign" else [])
     assert state.closed == ([1123] if failure == "foreign" else [])
     assert 123 not in job.members
+
+
+@pytest.mark.parametrize("stage", sorted(ProcessInventoryFault.STAGES))
+def test_inventory_diagnostic_classifies_without_retry_or_partial_ownership(
+    synthetic_member_job, stage
+):
+    job, state = synthetic_member_job
+    if stage == "query":
+        state.query_ok = False
+    elif stage == "incomplete_list":
+        state.pids = [123, 124, 125]
+    elif stage == "invalid_pid":
+        state.pids = [0]
+    elif stage == "retained_quota":
+        job.members = {121: 1121, 122: 1122}
+    elif stage == "open_process":
+        state.open_ok = False
+    elif stage == "membership_query":
+        state.member_query_ok = False
+    elif stage == "foreign_member":
+        state.member = False
+    before = dict(job.members)
+    with pytest.raises(ProcessInventoryFault) as caught:
+        job.observe_members()
+    error = caught.value
+    expected_api_error = 5 if os.name == "nt" and stage in {
+        "query", "open_process", "membership_query"} else None
+    assert error.observation() == {
+        "schema": "strata/ProcessInventoryObservation/1", "stage": stage,
+        "assigned_processes": None if stage == "query" else len(state.pids),
+        "listed_processes": None if stage == "query" else min(len(state.pids), 2),
+        "retained_processes": len(before), "win32_error": expected_api_error,
+    }
+    assert error.code == ("PROCESS_MEMBER_QUOTA" if stage == "retained_quota"
+                          else "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+    assert str(error) == error.code  # Diagnostics are operator-only structured data.
+    assert state.queries == 1 and job.members == before
+    assert len(state.opened) == int(stage in {"open_process", "membership_query", "foreign_member"})
+    assert len(state.closed) == state.membership_queries == int(
+        stage in {"membership_query", "foreign_member"})
+    modified = error.observation()
+    modified["stage"] = "private value"
+    assert error.observation()["stage"] == stage
+
+
+@pytest.mark.parametrize("arguments", [
+    {"stage": "private path"}, {"assigned": "secret"}, {"listed": -1},
+    {"retained": 257}, {"win32_error": 2**32}, {"retained": True},
+])
+def test_inventory_diagnostics_reject_unbounded_or_unstructured_fields(arguments):
+    with pytest.raises(Fault, match="INVALID_ARGUMENT"):
+        ProcessInventoryFault(**({"stage": "query", "retained": 0} | arguments))

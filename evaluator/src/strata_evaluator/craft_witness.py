@@ -66,7 +66,8 @@ class CraftEnd(CraftBoundary):
     callback: CraftCallback | None
 
 
-def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe: dict):
+def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe: dict,
+                  *, end_observation: GameEvent | None = None):
     """Fail closed on changed resources, partial/foreign boundaries or fake callbacks."""
     require(
         begin.kind == "craft_begin"
@@ -85,7 +86,7 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
         (begin.campaign_id, begin.epoch, begin.server_boot_id, begin.server_tick, begin.actor_ids)
         == (end.campaign_id, end.epoch, end.server_boot_id, end.server_tick, end.actor_ids)
         and len(begin.actor_ids) == 1
-        and end.server_event_seq == begin.server_event_seq + 2,
+        and end.server_event_seq == begin.server_event_seq + (3 if end_observation is not None else 2),
         "CRAFT_BOUNDARY_SCOPE",
     )
     require(
@@ -108,6 +109,18 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
         "CRAFT_CALLBACK_SCOPE",
     )
     a, b = CraftBegin.model_validate(begin.payload), CraftEnd.model_validate(end.payload)
+    if end_observation is not None:
+        from .setup_facts import SetupSnapshot
+        point = SetupSnapshot.model_validate(end_observation.payload)
+        require(not end_observation.is_example and end_observation.visibility == "evaluator"
+                and end_observation.kind == "setup_snapshot"
+                and end_observation.payload_schema == "strata/NativeSetupSnapshot/1"
+                and point.phase == "craft_end" and point.transaction_id == a.transaction_id
+                and point.actor.uuid == begin.actor_ids[0]
+                and (end_observation.campaign_id, end_observation.epoch, end_observation.server_boot_id,
+                     end_observation.server_tick, end_observation.actor_ids, end_observation.server_event_seq)
+                == (begin.campaign_id, begin.epoch, begin.server_boot_id, begin.server_tick,
+                    begin.actor_ids, begin.server_event_seq + 2), "CRAFT_SETUP_POINT_SCOPE")
     require(
         a.transaction_id == b.transaction_id
         and a.container_id == b.container_id

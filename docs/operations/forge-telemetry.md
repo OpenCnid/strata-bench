@@ -20,6 +20,54 @@ The strict `strata/ForgeTelemetryConfig/1` fields are `campaign_id`, positive
 (at most 64 unique namespaced identifiers), plus `schema`. There is no target
 URL, console command or arbitrary reflective method in the configuration.
 
+Telemetry 0.3.3 adds opt-in `strata/ForgeTelemetryConfig/3`: all version-2
+fields plus `authentication`, containing exactly `challenge`, `key_file`,
+`key_sha256` and `authority_digest`. Use the private issuer to create this
+block; it binds a fresh per-boot key to the intended instance/campaign/epoch.
+The key file must stay outside the game installation and agent access. Keep
+configuration versions 1/2 labeled unauthenticated when replaying old evidence.
+
+The private [craft reference seal](private-scoring.md#sealed-craft-reference-inputs)
+issues authority schema 2, binding its preserved setup digest into the same
+opaque authority fingerprint. That seal was introduced with module 0.3.3 and
+configuration 3; module 0.3.4 retains configuration 3 and adds native launch identity.
+Plain authority schema 1 remains valid for historical stream inspection but
+cannot be attached retroactively to a sealed craft reference.
+
+```powershell
+python -m strata_evaluator.telemetry_auth issue `
+  --directory <fresh-absolute-private-directory> --game-directory <absolute-game-root> `
+  --instance <private-instance-id> --campaign <campaign-id> --epoch <epoch>
+```
+
+The command writes `authority.json`, a 32-byte `producer.key` and the
+`producer-authentication.json` block. Insert that block in the version-3
+configuration; no secret key bytes enter its JSON. Before its first event,
+the producer exclusively creates/forces `producer.key.claimed`, binding the
+grant to its boot. A consumed grant cannot start another boot. Retain failed
+claims; do not delete them to retry. A new boot needs a fresh operator grant,
+and a registered scorer restart still needs the existing increasing-epoch and
+new-boot checks. Issuing a grant alone does not register or qualify a score.
+
+Signed spools use `<boot>.authenticated.jsonl`. Each private wrapper authenticates
+the exact original event bytes and its place in the per-boot chain. Encoded
+bytes consume the configured quota, so reserve their actual storage overhead.
+Inspect only against the separately issued authority:
+
+```powershell
+python -m strata_evaluator.telemetry_auth inspect `
+  --spool <absolute-signed-spool> --authority <absolute-private-authority.json> `
+  --output <absolute-private-report.json>
+```
+
+Successful stream authentication is distinct from authenticated process
+identity, setup/team provenance and scorer eligibility. Existing raw readers
+do not silently accept the signed format; use the explicit importer. Keep keys,
+claims and spool/report files private through retention and recovery. The module
+preserves explicit null payload fields as required by the importer.
+[Implementation, Java/Python verification and limits](../verification/2026-09-20-authenticated-telemetry.md)
+do not constitute authentic game or full T06/T10 qualification.
+
 Telemetry 0.2.0 also accepts `strata/ForgeTelemetryConfig/2`, whose required
 additional field is `config_queries`. Each query has `file_name` (a lowercase
 TOML basename, at most 128 characters) and `paths` (1–32 unique arrays, each
@@ -174,3 +222,152 @@ selectors and preserves absent/failed observations, but its result does not
 authenticate same-user files, qualify a pack lock, prove cached consumer effects
 or admit scores. Dedicated server 0.3.2 retains `ServerStarted/4`; the importer
 continues accepting 0.3.1 with its original payload and witness requirements.
+
+## Owned sealed reference launch
+
+Telemetry 0.3.4 adds `ServerStarted/5` and native process/world/module identity.
+Use a fresh private `PrivateCraftReferencePlan/1` seal and a
+`PrivateReferenceLaunch/1` plan. The launcher performs preflight itself: do not
+consume the one-use reservation in a separate preflight command first.
+
+```powershell
+$env:PYTHONPATH='src;evaluator/src'
+.\.venv\Scripts\python.exe -m strata_evaluator.reference_launch `
+  --database <absolute-private-database.sqlite> --plan <absolute-private-launch-plan.json>
+```
+
+The Windows production mode is `e9e-serverstarter`. It admits only the reviewed
+bootstrap/configuration hashes in `reference_launch.py`, existing EULA acceptance,
+loopback online-mode properties, pinned executable/module and complete immutable
+JRE/mod/library/server-script/startup-script trees. Include the running Python
+executable and `src/mcbench/process_bootstrap.py` in the pins. The evidence
+directory must be fresh and outside game/authority roots. Private plans,
+databases, archives, keys and spools must stay outside public source and gameplay
+access. `synthetic-fixture` mode is restricted to a synthetic setup and is not
+an alternate production launch command.
+
+The bounded run binds the signed native identity to retained Job Object handles,
+sends `stop` once, and retains complete logs and terminal/uncertain dispatch
+state. Never retry a consumed or uncertain instance. Inspect a stopped run with
+the existing craft-reference importer; tracked failed launches cannot bypass
+their dispatch state. `launch_binding_verified` does not imply scoring,
+mutable-world/config writer exclusion, full process isolation or recovery.
+See [verification and limitations](../verification/2026-09-20-reference-launch.md).
+
+For a bounded external operator client, use `PrivateReferenceLaunch/2`, omit
+`ready_run_s` and provide `participant` with `participant_id`, `window_s` (1–420)
+and an absolute fresh `report_path`. Its existing parent must be outside source,
+game, authority and launcher evidence directories. The complete participant
+window must fit within `max_wall_s` (still at most 600) after boot; otherwise the
+one-use run fails without publishing readiness. Version 1 is unchanged.
+
+Production E9E version-2/3 launches also require `--client-binding PRIVATE.json`.
+Build a strict `PrivateReferenceClientBinding/1` from the sealed setup and
+registered launch, not by copying a historical loose client manifest. Register
+instance/campaign/epoch, agent/actor/native team, participant, numeric loopback
+port, independent endpoint-plus-actor body digest, module/fixture pins, declared
+supplied inputs, client/worker/terminal limits and primitive cap. Its endpoint
+policy is `installed-cli-resolved-loopback/1`; other launch/address policies
+need separate conformance. The driver must consume those values and still
+compare actual native identity before actions. Preflight consistency is not
+proof that a client ran or stopped correctly.
+
+Run the read-only check before dispatch:
+
+```powershell
+python -m strata_evaluator.reference_client --binding PRIVATE.json --setup SETUP.json --launch LAUNCH.json --output NEW-CHECK.json
+```
+
+All paths are private and the output must be fresh. The launcher requires the
+binding before consuming its one-use reservation, retains its digest/bytes and
+rechecks declared hashes under held file leases. Synthetic v2 and headless v1
+reject this argument. Preserve historical failures without updating their seals.
+The [first actual client reference](../verification/2026-09-20-reference-client-binding.md)
+failed before actions because of stale endpoint identity; its consumed grant
+cannot be reused. A new reference must have fresh identity/lineage and a clean
+registration, preserving current inventory and declared setup interventions.
+The [corrected-body trial](../verification/2026-09-20-native-craft-reference.md)
+also remains uncertain: startup left insufficient full worker exposure and an
+outer abort interrupted cleanup reports. Do not use that unclean world as a
+checkpoint or rerun its grant. Use the implemented typed abort component and durable outer pair monitor;
+seal the changed driver/source profile before another game. Keep the hard server,
+client and guardian limits and record missing reports as missing.
+
+`PrivateReferenceLaunch/3` adds `outer_challenge` (a fresh 64-character hex
+digest) and `abort_cleanup_ms` (500–15000), retaining all v2 registration and
+exposure rules. `reference_abort.request_abort` publishes one private,
+non-replacing scope-bound request after the outer failure has been durably
+recorded. Pass the original exception so its typed fault code survives without
+secret-bearing messages. Use `ParticipantAbortGuard.start` for the trusted
+driver's owned client/worker objects, `check` before commands, and `close`
+before its terminal report. The independent watcher also stops retained
+children when the driver is blocked. A stalled close remains unconfirmed;
+the outer hard watchdog is still required. No process is killed by PID lookup.
+
+The server stops new readiness on abort, allows bounded participant cleanup,
+and then uses ordinary server stop within existing deadlines. Invalid controls
+also abort; failed/missing reports remain failures. Even successful cleanup or
+a completed receipt cannot make an aborted run scoreable. This cleanup window
+does not change the 500-ms guardian. Source/Windows/JVM component checks pass,
+and the durable outer coordinator has actual CLI/owned-process fixture evidence.
+The guarded private Forge-driver candidate and authentic pair remain unqualified. See [evidence](../verification/2026-09-20-reference-abort.md).
+
+New E9E production pairs require `PrivateReferencePair/3` with a pinned `PrivateReferenceClientPreparation/1`. Complete cached-session preparation before calling the pair entrypoint; bind its nonsecret receipt, argument bytes, exact driver and client registration. Include `reference_preparation.py` in the source pins. The controller checks full remaining session exposure before starting the server and rechecks before the client. Missing/expired preparation must not trigger a server launch or automatic refresh. Keep argument files private and let the driver retire them after use. [Contract, source checks and retained scope05 failure](../verification/2026-09-21-client-preparation-admission.md).
+
+For the implemented outer monitor, prepare a strict `PrivateReferencePair/1`
+plan and run:
+
+```powershell
+python -m strata_evaluator.reference_pair --database PRIVATE.sqlite --plan PRIVATE-PAIR.json
+```
+
+Pin the launch JSON, production binding, private driver, current interpreter,
+trusted bootstrap and all declared source/helper/configuration inputs. The
+source root must match this checkout. Declare a separate fresh private pair
+evidence directory. `client_window_ms` must equal production client wall plus
+terminal reserve and fit completely at admission; `finalize_ms` is bounded
+1000–15000 ms for outer terminal/log handling. These do not extend any inner
+client, participant, server or guardian limit. The source checks scope and
+challenge against the inner durable readiness record before dispatch.
+
+The coordinator records one pair intent, owns both outer Jobs, captures bounded
+logs and enforces independent deadlines. It preserves typed failures before
+cooperative abort, exact terminal reports and uncertain/missing results.
+Interrupted intents cannot be replayed by changing output paths. A terminal
+inner server cannot bypass an incomplete outer pair during craft import.
+See [source/owned-process evidence](../verification/2026-09-20-reference-pair.md).
+The private driver candidate is prepared, not authentic qualification; reseal
+all changed files and register sufficient complete exposure before dispatch.
+
+Wait for the atomically published `participant-ready.json` in the private launch
+evidence directory. Before dispatching the client, validate
+`ReferenceParticipantReady/1` and compare instance, setup, complete launch-plan
+digest and participant with the registered plan; reject an expired receipt or
+terminal server. Independently own the client/worker, retain their bounded wall
+watchdogs and existing guardian acceptance criteria, and keep shared input paused.
+The launcher does not spawn or terminate the external participant.
+
+After the client/worker have terminated, durably close the registered JSON report
+(at most 8 MiB), then call `reference_participant.submit_completion(evidence,
+ready, report_path, outcome)` exactly once. `outcome` is `completed` or `failed`;
+do not relabel a failed client/guardian as completed. The helper publishes a
+complete, non-replacing `participant-completion.json` with readiness digest and
+report hash/length. The launcher verifies and preserves the report, holds its
+bytes through server stop and journals the receipt before sending `stop`.
+Missing/invalid/failed completion retains uncertainty; no automatic replay or
+import bypass is allowed. Final server results are separate from the participant
+report, so the driver must not wait for server termination before submitting its
+own terminal report. A receipt is coordination evidence only, never authenticated
+client execution, scoring or process isolation. See the
+[focused evidence](../verification/2026-09-20-reference-participant.md).
+
+Telemetry 0.3.5 uses `ServerStarted/6`, retaining configuration 3 and the launch
+identity while declaring `native-e9e-setup-observation/1`. It emits private
+`NativeSetupSnapshot/1` records at tick 1 and before each craft begin/end.
+These observe server modes/admin exposure, command-attempt count, loaded KubeJS
+mode/error state and an acting player's existing FTB team/rank/members. Missing
+or changed dependency support is explicit; no JS or arbitrary method is exposed.
+The operator importer checks exact record adjacency and scope. Version-2 sealed
+reference plans register expected native teams separately. The Gradle resource
+task now stamps `mods.toml` from the project version; keep historical artifacts
+and their previous metadata mismatch unchanged. [Evidence and open qualification](../verification/2026-09-20-native-setup.md).

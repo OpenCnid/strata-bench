@@ -20,6 +20,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from mcbench.accounting import EstimateBasis, FiniteExposure
 from mcbench.budgets import DIMENSIONS
 from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
 from mcbench.inference_transport import ResponsesUsage, SyntheticResponsesTransport
@@ -69,18 +70,36 @@ class LocalProvider:
     HTTP status alone is deliberately insufficient to infer zero-cost usage.
     """
 
-    def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS):
+    def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
+                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False, helper_requests=4,
+                 fixture_input_reserve=100000):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
+        require(type(helper_requests) is int and 1 <= helper_requests <= max_requests,
+                "HELPER_REQUEST_LIMIT")
         self.max_requests = max_requests
+        self.helper_requests = helper_requests
+        require(type(fixture_input_reserve) is int and 10 <= fixture_input_reserve <= 100000 and
+                (fixture_input_reserve == 100000 or scenario == "identity" and estimate_basis is None),
+                "FIXTURE_INPUT_BOUND")
+        # A fixed local fixture emits ten input tokens. This configurable hold
+        # is not a bound for a real model or a change to a restored allowance.
+        self.fixture_input_reserve = fixture_input_reserve
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
         self.plan = None
         self.requests, self.errors = [], []
+        self.ingress_denials = []
         self.lock = threading.Lock()
         self.release = threading.Event()
         self.entered = threading.Event()
         self.streaming = threading.Event()
         self.receipts = []
         self.wire = wire
+        self.estimate_basis = estimate_basis
+        self.oauth_fixture = oauth_fixture
+        self.gateway_fixture = gateway_fixture
+        self.native_oauth_headers = {}
+        require(not oauth_fixture or wire, "OAUTH_WIRE_REQUIRED")
+        require(estimate_basis is None or wire and scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
         self.upstream_requests = []
         provider = self
 
@@ -94,8 +113,14 @@ class LocalProvider:
                 observer = None
                 try:
                     size = int(self.headers.get("Content-Length", "0"))
-                    require(0 < size <= MAX_REQUEST and self.headers.get("Authorization") is None,
-                            "UPSTREAM_REQUEST_REJECTED")
+                    require(0 < size <= MAX_REQUEST, "UPSTREAM_REQUEST_REJECTED")
+                    if provider.oauth_fixture:
+                        require(self.headers.get("Authorization") == "Bearer STRATA_SYNTHETIC_OAUTH_ACCESS"
+                            and self.headers.get("ChatGPT-Account-ID") == "strata-fixture-account"
+                            and self.headers.get("X-Strata-Ingress") is None
+                            and self.headers.get("Cookie") is None, "UPSTREAM_CREDENTIAL_REJECTED")
+                    else:
+                        require(self.headers.get("Authorization") is None, "UPSTREAM_REQUEST_REJECTED")
                     raw = self.rfile.read(size)
                     request_digest = hashlib.sha256(raw).hexdigest()
                     observer = Database(provider.database_path)
@@ -106,11 +131,31 @@ class LocalProvider:
                         (provider.plan.job_id, request_digest)))
                     require(len(active) == 1, "UPSTREAM_INTENT_NOT_DURABLE")
                     operation = active[0]["operation"]
+                    if provider.oauth_fixture and not provider.gateway_fixture:
+                        expected = provider.native_oauth_headers[operation]
+                        require(all(self.headers.get_all(k, []) == [v] for k, v in expected.items()),
+                                "UPSTREAM_NATIVE_HEADERS_CHANGED")
                     with provider.lock:
+                        if provider.gateway_fixture:
+                            body = json.loads(raw)
+                            provider.requests.append({"operation_id": operation, "path": self.path,
+                                "request_digest": request_digest, "bytes": len(raw), "body_keys": sorted(body),
+                                "tool_catalog": [{"type": t.get("type"), "name": t.get("name"),
+                                    "tools": [v.get("name") for v in t.get("tools", [])]}
+                                    for t in body.get("tools", [])],
+                                "authorization_present": True, "ingress_authenticated": bool(
+                                    observer.connection.execute("SELECT 1 FROM native_ingress_requests "
+                                        "WHERE operation=?", (operation,)).fetchone()),
+                                "header_names": sorted(k.lower() for k in self.headers.keys()),
+                                "state": "DISPATCHING"})
+                            (provider.database_path.parent / (operation + "-request.json")).write_bytes(raw)
                         index = len(provider.upstream_requests)
                         require(index < provider.max_requests, "REQUEST_COUNT")
                         provider.upstream_requests.append({"operation_id": operation,
-                            "request_digest": request_digest, "authorization_present": False})
+                            "request_digest": request_digest,
+                            "authorization_present": self.headers.get("Authorization") is not None,
+                            "native_headers_preserved": provider.oauth_fixture and not provider.gateway_fixture,
+                            "native_headers_received": sorted(k.lower() for k in self.headers.keys())})
                         next(r for r in provider.requests if r["operation_id"] == operation)["forwarded"] = True
                     provider.entered.set()
                     provider.respond(self, json.loads(raw), index, operation)
@@ -137,10 +182,26 @@ class LocalProvider:
                 self.response_started = False
                 db = None
                 try:
+                    plan = provider.plan
+                    require(plan is not None, "RUNTIME_MISSING")
+                    ingress = None
+                    if plan.ingress_policy is not None:
+                        from mcbench.native_ingress import NativeIngress
+                        db = Database(provider.database_path)
+                        ingress = NativeIngress(db)
+                        try:
+                            ingress.authenticate(plan.job_id, self.headers, self.path)
+                        except Fault as error:
+                            with provider.lock:
+                                provider.ingress_denials.append(error.code)
+                            self.send_error(403, "Ingress denied")
+                            self.close_connection = True
+                            return
+                    require(len(self.headers.get_all("Content-Length", [])) == 1, "REQUEST_SIZE")
                     length = int(self.headers.get("Content-Length", "0"))
                     require(0 < length <= MAX_REQUEST, "REQUEST_SIZE")
                     require(self.path in {"/v1/responses", "/v1/responses/compact"}, "ROUTE")
-                    require(self.headers.get("Authorization") is None and
+                    require((ingress is not None or self.headers.get("Authorization") is None) and
                             self.headers.get("Transfer-Encoding") is None and
                             self.headers.get("Content-Encoding") is None, "CREDENTIAL_OR_ENCODING")
                     raw = self.rfile.read(length)
@@ -157,10 +218,22 @@ class LocalProvider:
                             "tool_catalog": [{"type": t.get("type"), "name": t.get("name"),
                                 "tools": [v.get("name") for v in t.get("tools", [])]}
                                 for t in body.get("tools", [])],
-                            "authorization_present": False, "state": "RECEIVED"}
+                            "authorization_present": self.headers.get("Authorization") is not None,
+                            "ingress_authenticated": ingress is not None, "state": "RECEIVED"}
                         provider.requests.append(item)
                     (provider.database_path.parent / (operation + "-request.json")).write_bytes(raw)
-                    db = Database(provider.database_path)
+                    db = db or Database(provider.database_path)
+                    if ingress is not None:
+                        ingress.bind_request(plan.job_id, operation, item["request_digest"],
+                                             self.headers, self.path)
+                    oauth_credentials = None
+                    if provider.oauth_fixture:
+                        from mcbench.native_oauth import NATIVE_HEADERS, NativeOAuthRequest
+                        oauth_credentials = NativeOAuthRequest(ingress, plan.job_id, operation,
+                            item["request_digest"], self.headers, self.path)
+                        item["header_names"] = sorted(k.lower() for k in self.headers.keys())
+                        provider.native_oauth_headers[operation] = {
+                            k: self.headers[k] for k in NATIVE_HEADERS if k in self.headers}
                     cas = CAS(db, provider.objects)
                     gate = InferenceDispatches(db, cas, simulation=True)
                     plan = provider.plan
@@ -172,17 +245,65 @@ class LocalProvider:
                         "currency": "USD", "input_microusd_per_token": 1,
                         "cached_microusd_per_token": 1, "output_microusd_per_token": 1, "real_usd": 0})
                     reserve = ledger(plan, operation, parent=plan.operation_id, calls=1,
-                                     spend=10000, pricing=price)
+                                     spend=10000, pricing=price, inputs=provider.fixture_input_reserve)
+                    category = db.connection.execute("SELECT category FROM accounts WHERE id=?", (plan.account,)).fetchone()[0]
+                    reserve = reserve.model_copy(update={"campaign_account": category})
                     scope = {"runtime_job_id": plan.job_id, "profile_digest": plan.profile_digest(),
-                        "provider": "strata_local_fixture", "auth_mode": "api_key",
+                        "provider": plan.provider, "auth_mode": plan.auth_mode,
                         "request_digest": item["request_digest"]}
+                    extra = {}
+                    if provider.estimate_basis:
+                        basis = provider.estimate_basis
+                        price = put(cas, basis.model_dump(by_alias=True))
+                        proof = {"schema": "strata/InferenceExposureEvidence/1", "is_example": True,
+                            "profile_digest": plan.profile_digest(), "basis_digest": basis.fingerprint(),
+                            "input_bound_method": "provider_context_limit",
+                            "output_bound_method": "provider_model_limit",
+                            "max_input_tokens": basis.context_window_tokens,
+                            "max_output_tokens": basis.max_output_tokens, "result": "pass",
+                            "scope": "fixed local provider emits only 10 input and 4 output tokens"}
+                        exposure = FiniteExposure.model_validate({
+                            "schema": "strata/FiniteInferenceExposure/1",
+                            **{k: proof[k] for k in ("basis_digest", "input_bound_method",
+                                "output_bound_method", "max_input_tokens", "max_output_tokens")},
+                            "max_requests": 1, "enforcement_ref": put(cas, proof)})
+                        reserve = ledger(plan, operation, parent=plan.operation_id, calls=1,
+                            spend=exposure.amount(basis), pricing=price,
+                            inputs=exposure.max_input_tokens, outputs=exposure.max_output_tokens)
+                        extra = {"schema": "strata/InferenceDispatchBound/2",
+                                 "exposure": exposure.model_dump()}
+                    if plan.broker_policy is not None:
+                        from mcbench.native_admission import NativeAdmission, context_metadata
+                        metadata = context_metadata(body)
+                        participant_admission = NativeAdmission(db, cas)
+                        participant_admission.wait_for_root(plan.job_id)
+                        thread = metadata["thread_id"]
+                        participant = db.connection.execute("SELECT * FROM native_participants "
+                            "WHERE job=? AND thread=?", (plan.job_id, thread)).fetchone()
+                        helper = metadata["agent_name"] != "/root"
+                        parent = (participant_admission.child_envelope_id(plan.job_id, thread)
+                                  if helper else plan.operation_id)
+                        reserve = reserve.model_copy(update={"parent_operation_id": parent,
+                                                             "kind": "helper" if helper else "model"})
+                        child_envelope = None
+                        if helper and participant is None:
+                            parent_participant = db.connection.execute("SELECT envelope FROM native_participants "
+                                "WHERE job=? AND thread=?", (plan.job_id, metadata.get("parent_thread_id"))).fetchone()
+                            require(parent_participant is not None, "NATIVE_LINEAGE")
+                            n = provider.helper_requests
+                            child_envelope = ledger(plan, parent, parent=parent_participant[0], calls=n,
+                                spend=n*10000, inputs=n*provider.fixture_input_reserve, outputs=n*10000, pricing=price).model_copy(
+                                    update={"kind": "helper", "campaign_account": reserve.campaign_account})
                     bound = put(cas, {"schema": "strata/InferenceDispatchBound/1",
                         "is_example": True, **scope, "reservation_digest": digest(reserve.model_dump()),
                         "pricing_ref": price, "currency": "USD", "finite_dispatch_bound_verified": True,
                         "pricing_semantics_verified": True,
-                        "expires_unix_ms": time.time_ns() // 1000000 + 30000})
+                        "expires_unix_ms": time.time_ns() // 1000000 + 30000, **extra})
                     attempt = InferenceAttempt.model_validate({"schema": "strata/InferenceAttempt/1",
                                                                **scope, "bound_ref": bound})
+                    if plan.broker_policy is not None:
+                        participant_admission.prepare(plan.account, attempt, reserve, raw,
+                                                      child_envelope=child_envelope)
 
                     def forward():
                         started = time.monotonic()
@@ -219,8 +340,13 @@ class LocalProvider:
                             self.wfile.flush()
 
                         endpoint = f"http://127.0.0.1:{provider.upstream.server_port}" + self.path
-                        transport = SyntheticResponsesTransport(gate, endpoint,
-                            deadline_s=20 if provider.scenario == "helper_parent" else 3)
+                        if provider.oauth_fixture:
+                            from mcbench.native_oauth import SyntheticOAuthTransport
+                            transport = SyntheticOAuthTransport(gate, oauth_credentials, endpoint,
+                                deadline_s=20 if provider.scenario == "helper_parent" else 3)
+                        else:
+                            transport = SyntheticResponsesTransport(gate, endpoint,
+                                deadline_s=20 if provider.scenario == "helper_parent" else 3)
                         result = transport.execute(plan.account, attempt, reserve, raw,
                                                    on_headers=headers, on_chunk=chunk)
                         saved = db.connection.execute("SELECT body FROM ledger WHERE "
@@ -239,7 +365,10 @@ class LocalProvider:
                     # Reingest the very same authoritative receipt through the public
                     # accounting method, verifying it does not charge again.
                     op, event, receipt = next(r for r in provider.receipts if r[0] == operation)
-                    require(not gate.settle(op, event, receipt), "DUPLICATE_CHARGE")
+                    valuation = db.connection.execute(
+                        "SELECT body FROM inference_valuations WHERE operation=?", (op,)).fetchone()
+                    require(not gate.settle(op, event, receipt,
+                        valuation=json.loads(valuation[0]) if valuation else None), "DUPLICATE_CHARGE")
                     item["receipt_deduplicated"] = True
                 except (Exception, BrokenPipeError) as error:
                     code = error.code if isinstance(error, Fault) else type(error).__name__
@@ -381,10 +510,14 @@ def wait_job(runtime, plan):
 
 
 def close_budget(runtime, plan, provider):
+    extra = {}
+    if plan.broker_policy is not None:
+        extra["participant_threads"] = sorted(r[0] for r in runtime.db.connection.execute(
+            "SELECT thread FROM native_participants WHERE job=?", (plan.job_id,)))
     seal = put(runtime.cas, {"schema": "strata/InferenceIngressSeal/1", "is_example": True,
         "job_id": plan.job_id, "profile_digest": plan.profile_digest(),
         "process_tree_dead": plan.job_id not in runtime.live, "ingress_closed": True,
-        "handlers_fenced": True,
+        "handlers_fenced": True, **extra,
         "attempt_ids": sorted(r[0] for r in runtime.db.connection.execute(
             "SELECT operation FROM inference_attempts WHERE json_extract(request,'$.runtime_job_id')=?",
             (plan.job_id,)))})
@@ -452,6 +585,9 @@ def validate_result(result):
     if scenario in {"success", "retry", "compaction", "helpers"}:
         count, spend = {"success": (1, 14), "retry": (2, 24),
                         "compaction": (3, 9032), "helpers": (2, 28)}[scenario]
+        if result.get("estimate_basis"):
+            require(scenario == "success", "ESTIMATE_FIXTURE_SCOPE")
+            spend = 7  # ceil(8*.25 + 2*.02 + 4*1.2) microUSD; synthetic usage only.
         require(len(attempts) == count and all(a["state"] == "SETTLED" for a in attempts)
                 and all(r.get("receipt_deduplicated") for r in forwarded), "RECEIPT_COUNTS")
         require(result["closure"]["state"] == "FINALIZED" and
@@ -479,25 +615,35 @@ def validate_result(result):
     return "pass"
 
 
-def run_case(binary, directory, scenario, *, wire=False):
+def run_case(binary, directory, scenario, *, wire=False, estimate_basis=None):
     directory.mkdir()
     db = Database(directory / "synthetic.sqlite")
     cas = CAS(db, directory / "objects")
     runtime = NativeExec(db, cas, simulation=True)
     gate = InferenceDispatches(db, cas, simulation=True)
     limits = dict.fromkeys(DIMENSIONS, 1000000) | {"spend_microusd": 80000}
+    if estimate_basis:
+        limits = dict.fromkeys(DIMENSIONS, 100000000) | {"spend_microusd": 1000000}
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
                                 category="development")
     root_scenario = "helper_parent" if scenario == "helpers" else scenario
-    provider = LocalProvider(db.path, cas.root, root_scenario, wire=wire)
+    provider = LocalProvider(db.path, cas.root, root_scenario, wire=wire, estimate_basis=estimate_basis)
     plan = plan_for(binary, directory, provider, "root", scenario=root_scenario)
     price = put(cas, {"is_example": True, "real_usd": 0})
     reserve = ledger(plan, plan.operation_id, parent=None, calls=8, spend=80000,
                      pricing=price, inputs=800000, outputs=80000)
+    if estimate_basis:
+        price = put(cas, estimate_basis.model_dump(by_alias=True))
+        reserve = ledger(plan, plan.operation_id, parent=None, calls=8, spend=1000000,
+                         pricing=price, inputs=100000000, outputs=100000000)
     result = {"scenario": scenario, "is_example": True, "real_usd": 0,
               "binary_sha256": BINARY_SHA256, "production_qualified": False,
               "receipt_source": "upstream_wire" if wire else "direct_synthetic_provider"}
+    if estimate_basis:
+        result["estimate_basis"] = estimate_basis.model_dump(by_alias=True)
+        result["accounting_kind"] = "synthetic_fixture_units"
+        result["valuation_kind"] = "api_equivalent_estimate_on_synthetic_tokens"
     child_provider = None
     try:
         runtime.start(plan, reserve)
@@ -688,6 +834,8 @@ def main():
     parser.add_argument("--codex", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--wire", action="store_true", help="Use a separate upstream HTTP fixture")
+    parser.add_argument("--estimate-authorization", type=Path,
+                        help="Exercise the versioned basis using synthetic success tokens only")
     parser.add_argument("--cases", nargs="+", default=["success", "retry", "missing_usage",
         "stream_loss", "interrupt", "compaction", "helpers", "restart"])
     args = parser.parse_args()
@@ -699,6 +847,11 @@ def main():
         run_case(args.codex.resolve(), args.crash_child, "crash", wire=args.wire)
         raise AssertionError("CRASH_CHILD_RETURNED")
     require(args.codex is not None and args.output is not None, "PROBE_ARGUMENTS_REQUIRED")
+    estimate_basis = None
+    if args.estimate_authorization:
+        require(args.wire and args.cases == ["success"], "ESTIMATE_FIXTURE_SCOPE")
+        estimate_basis = EstimateBasis.model_validate(json.loads(
+            args.estimate_authorization.read_bytes())["accounting_basis"])
     require(os.name == "nt", "WINDOWS_PIN_REQUIRED")
     require(file_hash(args.codex) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
     root = Path(__file__).resolve().parents[1]
@@ -708,6 +861,9 @@ def main():
     source_paths = [Path(__file__).resolve(), root / "src/mcbench/budgets.py",
                     root / "src/mcbench/native.py", root / "src/mcbench/inference_dispatch.py",
                     root / "src/mcbench/inference_transport.py", root / "src/mcbench/processes.py"]
+    if estimate_basis:
+        source_paths.extend([root / "src/mcbench/accounting.py",
+                             root / "configs/operator/live-validation.json"])
     manifest = {"schema": "strata/SyntheticNativeDispatchProbe/1", "is_example": True,
                 "binary_sha256": BINARY_SHA256, "binary_version": CODEX_VERSION,
                 "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in source_paths},
@@ -721,7 +877,8 @@ def main():
                 "UNKNOWN_CASE")
         result = (run_crash_case(args.codex.resolve(), output / scenario, wire=args.wire)
                   if scenario == "crash" else
-                  run_case(args.codex.resolve(), output / scenario, scenario, wire=args.wire))
+                  run_case(args.codex.resolve(), output / scenario, scenario, wire=args.wire,
+                           estimate_basis=estimate_basis))
         results.append(result)
         print(json.dumps({k: result.get(k) for k in (
             "scenario", "verdict", "validation_error", "runtime", "attempts",

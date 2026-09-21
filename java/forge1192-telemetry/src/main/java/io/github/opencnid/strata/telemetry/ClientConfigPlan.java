@@ -16,7 +16,8 @@ record ClientConfigPlan(Path source, String sha256, TelemetryConfig config) {
         byte[] before = Files.readAllBytes(source);
         TelemetryConfig config = TelemetryConfig.read(source, game);
         if (config.maxEvents() != 1 || config.maxBytes() > 1048576
-                || !config.recipeIds().isEmpty() || config.configQueries().isEmpty()) {
+                || !config.recipeIds().isEmpty() || config.configQueries().isEmpty()
+                || config.authentication() != null) {
             throw new IOException("CLIENT_CONFIG_PLAN_SCOPE");
         }
         if (!Arrays.equals(before, Files.readAllBytes(source))) throw new IOException("CLIENT_CONFIG_PLAN_CHANGED");

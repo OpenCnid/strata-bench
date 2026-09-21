@@ -50,6 +50,15 @@ def safe_relative(path: str) -> PurePosixPath:
     return PurePosixPath(path)
 
 
+def extended_path(path: Path) -> Path:
+    """Use Windows long-path I/O; callers still enforce ownership/link policy."""
+    path = path.absolute()
+    value = str(path)
+    if os.name == "nt" and not value.startswith("\\\\?\\"):
+        value = "\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value
+    return Path(value)
+
+
 def reject_links(path: Path):
     """Includes Windows junctions/reparse points, not just Python symlinks."""
     for part in (path, *path.parents):

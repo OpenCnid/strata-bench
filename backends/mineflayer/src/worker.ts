@@ -63,6 +63,15 @@ async function main(): Promise<void> {
     const capabilities = forgeCapabilities(process.argv[3]!);
     console.log(JSON.stringify({...capabilities,digest:digest(capabilities)})); return;
   }
+  if (process.argv[2] === '--check-vanilla-runtime') {
+    requireThat(process.argv.length === 3, 'SCHEMA_UNSUPPORTED');
+    // Load/compile dependencies before admitting a game process. No backend,
+    // authentication callback, socket, journal or avatar is constructed here.
+    await Promise.all([import('./actions.js'),import('./adapter.js')]);
+    const {capabilityDigest}=await import('./capabilities.js');
+    console.log(JSON.stringify({status:'vanilla_runtime_loaded',capability_digest:capabilityDigest,
+      avatar_created:false,campaign_admission:false}));return;
+  }
   requireThat(process.argv.length === 3, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
   const fs = statfsSync(c.state_directory);
@@ -89,6 +98,7 @@ async function main(): Promise<void> {
   const fail = (reason:string) => {
     if (forced) return;
     forced = true; stop();
+    console.error(JSON.stringify(errorBody(new Fault(reason),null,c.epoch)));
     try {evidence?.event('supervisor_fault',{reason});} catch { /* Guardian stops when renewals end. */ }
     forcedKill ??= setTimeout(() => worker?.kill('SIGKILL'),250);
   };

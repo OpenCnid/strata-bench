@@ -16,6 +16,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue
 
+from .accounting import EstimateBasis
 from .budgets import Budgets
 from .authorization import Authorizations
 from .contracts import Digest, Id, Positive, Ref, Strict, UInt
@@ -57,6 +58,17 @@ class NativeLaunch(Strict):
     auth_mode: Literal["chatgpt_oauth", "api_key"] = "chatgpt_oauth"
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
+    accounting_basis_digest: Digest | None = None
+    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
+    bootstrap_manifest: str | None = None
+    bootstrap_digest: Digest | None = None
+    ingress_policy: Literal["native-job-http-header/1"] | None = None
+    gateway_config_digest: Digest | None = None
+    tool_projection_ref: Ref | None = None
+    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1"] | None = None
+    # Exclude absent extension fields so historical plan/source hashes survive.
+    skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -67,10 +79,29 @@ class NativeLaunch(Strict):
 
     def profile_digest(self):
         # Episode text, identities and locations vary; execution affordances do not.
-        return digest({k: getattr(self, k) for k in (
+        body = {k: getattr(self, k) for k in (
             "binary_digest", "binary_version", "dovetail_commit", "model",
             "config_overrides", "hard_timeout_s", "output_limit_bytes", "helper_limit",
-            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")})
+            "provider", "auth_mode", "purpose", "budget_mode", "session_storage")}
+        # Preserve historical profile hashes; new estimate profiles bind the basis.
+        if self.accounting_basis_digest is not None:
+            body["accounting_basis_digest"] = self.accounting_basis_digest
+        if self.broker_policy is not None:
+            body["broker_policy"] = self.broker_policy
+        if self.bootstrap_digest is not None:
+            body["bootstrap_digest"] = self.bootstrap_digest
+        if self.ingress_policy is not None:
+            body["ingress_policy"] = self.ingress_policy
+        if self.gateway_config_digest is not None:
+            body["gateway_config_digest"] = self.gateway_config_digest
+        if self.tool_projection_ref is not None:
+            body["tool_projection_ref"] = self.tool_projection_ref
+        if self.tool_catalog_policy is not None:
+            body["tool_catalog_policy"] = self.tool_catalog_policy
+        if self.skill_activation_ref is not None or self.helper_skill_activation_ref is not None:
+            body["skill_activation"] = {"policy": "native-checkpoint-learned-overlay/1",
+                "root": self.skill_activation_ref, "helpers": self.helper_skill_activation_ref}
+        return digest(body)
 
 
 def _toml_value(value):
@@ -86,7 +117,8 @@ def _toml_value(value):
 def native_argv(plan: NativeLaunch):
     argv = [plan.executable, "exec", "--json", "--strict-config", "--ignore-user-config",
             "--ignore-rules", "--skip-git-repo-check", "--color", "never",
-            "--sandbox", "workspace-write", "--cd", plan.workspace, "--model", plan.model]
+            "--sandbox", "read-only" if plan.bootstrap_digest else "workspace-write",
+            "--cd", plan.workspace, "--model", plan.model]
     if plan.session_storage == "ephemeral":
         argv.append("--ephemeral")
     for key, value in sorted(plan.config_overrides.items()):
@@ -106,7 +138,9 @@ class NativeExec:
         self.authorization_id = authorization_id
         self.authorizations = Authorizations(database)
         self.live = {}
+        self.integrity_holds = {}
         with self.db.transaction() as db:
+            self.authorizations.require_store_mode(simulation)
             if db.execute("SELECT name FROM sqlite_master "
                           "WHERE name='inference_dispatch_profile'").fetchone():
                 dispatch = db.execute("SELECT simulation FROM inference_dispatch_profile").fetchone()
@@ -156,8 +190,15 @@ class NativeExec:
                         item.get("pricing_semantics_verified") is True and
                         item.get("finite_dispatch_bound_verified") is True,
                         "BILLING_BOUND_UNVERIFIED")
+                require(plan.accounting_basis_digest is not None and
+                        item.get("accounting_basis_digest") == plan.accounting_basis_digest,
+                        "ACCOUNTING_BASIS_MISMATCH")
 
     def _validate(self, plan, reserve, fixture_argv):
+        db = self.db.connection
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='inference_exposure_faults'").fetchone():
+            require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
+                    "INFERENCE_EXPOSURE_QUARANTINED")
         require(reserve.posting == "reserve" and reserve.campaign_id == plan.campaign_id and
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
@@ -181,14 +222,57 @@ class NativeExec:
         require(set(plan.environment) <= {"PATH", "LANG", "TZ", "TMP", "TEMP",
                                          "STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"},
                 "FORBIDDEN_ENVIRONMENT")
+        if plan.broker_policy is not None:
+            from .native_broker_policy import validate_broker_settings
+            validate_broker_settings(plan.config_overrides)
+            require(not {"STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"} & set(plan.environment),
+                    "BROKER_CREDENTIAL_ENVIRONMENT")
+        require((plan.bootstrap_manifest is None) == (plan.bootstrap_digest is None), "BOOTSTRAP_REQUIRED")
+        if plan.bootstrap_digest is not None:
+            require(plan.broker_policy is not None, "BOOTSTRAP_BROKER_REQUIRED")
+        require(plan.helper_skill_activation_ref is None or plan.helper_skill_activation_ref == plan.skill_activation_ref,
+                "NATIVE_SKILL_SCOPE")
+        if plan.skill_activation_ref is not None:
+            from .native_skill_activation import NativeSkillSets
+            NativeSkillSets(self).validate_launch(plan)
+        if not self.simulation and plan.broker_policy is not None:
+            require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
+            require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")
+            require(plan.gateway_config_digest is not None, "GATEWAY_REQUIRED")
+            require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
+            require(plan.tool_catalog_policy is not None, "NATIVE_TOOL_CATALOG_REQUIRED")
+        if plan.tool_projection_ref is not None:
+            from .native_tool_projection import read_tool_projection
+            read_tool_projection(self.cas, plan)
+        if plan.tool_catalog_policy is not None:
+            from .native_catalog import require_no_patch_catalog
+            require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
+            require_no_patch_catalog(plan)
+        if plan.gateway_config_digest is not None:
+            from .native_gateway import require_gateway
+            require_gateway(db, plan, "OPEN")
+        if plan.ingress_policy is not None:
+            from .native_ingress import provider_binding
+            provider_binding(plan)
         if not self.simulation:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
                     "RUNTIME_PIN_MISMATCH")
             require(callable(self.revoke_game), "REVOCATION_REQUIRED")
             self._proof(plan)
-            self.authorizations.check(self.authorization_id, plan.account, plan.provider,
-                                      plan.auth_mode, plan.model)
+            policy = self.authorizations.check(self.authorization_id, plan.account, plan.provider,
+                                              plan.auth_mode, plan.model)
+            require(plan.budget_mode == "per_dispatch", "VERSIONED_ESTIMATE_REQUIRED")
+            require(reserve.pricing_ref is not None, "ACCOUNTING_BASIS_MISMATCH")
+            basis = EstimateBasis.model_validate(self.cas.json(
+                Principal("operator", "operator"), self.namespace, reserve.pricing_ref))
+            require(basis == policy.accounting_basis and
+                    plan.accounting_basis_digest == basis.fingerprint(),
+                    "ACCOUNTING_BASIS_MISMATCH")
+            # Keep the initial live-validation stage bounded to at most $1/job.
+            # Every job still consumes the original shared $10 authority.
+            require(reserve.usage.spend_microusd <= policy.first_trial_max_microusd,
+                    "INITIAL_TRIAL_LIMIT")
             # A different home alone is not isolation. Qualification must separately
             # prove that this workspace cannot access operator docs or provider auth.
         return workspace, profile
@@ -196,6 +280,14 @@ class NativeExec:
     def start(self, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
         workspace, profile = self._validate(plan, reserve, fixture_argv)
         plan_body = plan.model_dump()
+        if plan.accounting_basis_digest is None:
+            plan_body.pop("accounting_basis_digest")
+        if plan.broker_policy is None:
+            plan_body.pop("broker_policy")
+        for key in ("bootstrap_manifest", "bootstrap_digest", "ingress_policy", "gateway_config_digest",
+                    "tool_projection_ref", "tool_catalog_policy"):
+            if plan_body[key] is None:
+                plan_body.pop(key)
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),
                            "fixture_argv": fixture_argv})
         with self.db.transaction() as db:
@@ -233,10 +325,18 @@ class NativeExec:
                        (plan.job_id, plan.campaign_id, plan.agent_id, plan.epoch, plan.role,
                         plan.parent_job_id, identity, canonical(plan_body).decode(), "PREPARED"))
             self.db.event(db, "runtime.prepared", {"job_id": plan.job_id, "digest": identity})
+        integrity = None
         try:
+            if plan.bootstrap_digest is not None:
+                from .native_bootstrap import acquire_native_bootstrap
+                integrity = acquire_native_bootstrap(plan)
             self.budgets.post(plan.account, reserve, envelope=plan.budget_mode == "per_dispatch")
         except BaseException:
-            self._state(plan.job_id, "REJECTED", "budget_reservation_failed")
+            if integrity:
+                integrity.close()
+            reason = ("bootstrap_integrity_failed" if plan.bootstrap_digest and integrity is None
+                      else "budget_reservation_failed")
+            self._state(plan.job_id, "REJECTED", reason)
             raise
         environment = plan.environment | {"CODEX_HOME": str(profile), "HOME": str(profile),
             "USERPROFILE": str(profile), "APPDATA": str(profile / "appdata"),
@@ -248,7 +348,7 @@ class NativeExec:
         process = None
         try:
             process = ManagedProcess(fixture_argv or native_argv(plan), workspace, environment,
-                                     plan.prompt)
+                                     plan.prompt, **(integrity.managed_bootstrap if integrity else {}))
             events = queue.Queue(maxsize=128)
             overflow = threading.Event()
             threads = []
@@ -260,7 +360,8 @@ class NativeExec:
                 threads.append(thread)
             self.live[plan.job_id] = {"plan": plan, "process": process, "queue": events,
                 "overflow": overflow, "threads": threads, "reader": ExecUsageReader(),
-                "source_cursor": 0, "bytes": 0, "eof": set(), "start": time.monotonic()}
+                "source_cursor": 0, "bytes": 0, "eof": set(), "start": time.monotonic(),
+                "integrity": integrity, "integrity_checked": time.monotonic()}
             self._state(plan.job_id, "RUNNING", None)
         except BaseException:
             # STARTING was durable before dispatch; even a failed start is treated as
@@ -268,6 +369,8 @@ class NativeExec:
             if process:
                 process.stop()
                 process.close()
+            if integrity:
+                integrity.close()
             self.live.pop(plan.job_id, None)
             self.budgets.hold_uncertain(plan.account, plan.operation_id, "runtime_start_uncertain")
             self._state(plan.job_id, "UNSETTLED", "runtime_start_uncertain")
@@ -318,6 +421,12 @@ class NativeExec:
         if not live:
             return self.status(job)
         plan = live["plan"]
+        if live.get("integrity") and time.monotonic() - live["integrity_checked"] >= 1:
+            try:
+                live["integrity"].recheck()
+                live["integrity_checked"] = time.monotonic()
+            except Exception:
+                return self.interrupt(job, "bootstrap_integrity_changed")
         if live["overflow"].is_set():
             return self.interrupt(job, "runtime_output_quota")
         if time.monotonic() - live["start"] > plan.hard_timeout_s:
@@ -400,7 +509,11 @@ class NativeExec:
             for thread in live["threads"]:
                 thread.join(timeout=1)
             live["process"].close()
+            if live.get("integrity"):
+                live["integrity"].close()
         except BaseException as error:
+            if live.get("integrity"):
+                self.integrity_holds[job] = live["integrity"]
             cleanup_error = error
             reason = "process_stop_failed"
         try:
@@ -457,6 +570,9 @@ class NativeExec:
                 and proof.get("process_tree_dead") is True and
                 proof.get("ingress_closed") is True and proof.get("handlers_fenced") is True,
                 "DISPATCH_SEAL_UNVERIFIED")
+        if plan.gateway_config_digest is not None:
+            from .native_gateway import require_gateway_seal
+            require_gateway_seal(self.db, self.cas, plan, proof, self.simulation)
         with self.db.transaction() as db:
             children = db.execute("SELECT id FROM native_jobs WHERE parent=? AND "
                                   "state NOT IN ('FINALIZED','REJECTED')", (job,)).fetchone()
@@ -466,6 +582,11 @@ class NativeExec:
             require(sorted(r["operation"] for r in attempts) == proof.get("attempt_ids"),
                     "DISPATCH_SEAL_UNVERIFIED")
             require(all(r["state"] == "SETTLED" for r in attempts), "METERING_UNKNOWN")
+            if plan.broker_policy is not None:
+                from .inference_dispatch import require_admission_outcomes
+                require_admission_outcomes(db, plan, self.simulation)
+                from .native_admission import close_participant_envelopes
+                close_participant_envelopes(self.db, self.budgets, db, plan, proof, seal_ref)
             source = db.execute("SELECT body FROM ledger WHERE "
                 "json_extract(body,'$.operation_id')=? AND json_extract(body,'$.posting')='reserve'",
                 (plan.operation_id,)).fetchone()
@@ -478,6 +599,12 @@ class NativeExec:
                 "raw_usage_ref": seal_ref, "reason": "fenced ingress; usage belongs to descendants",
                 "usage": dict.fromkeys(reserve.usage.model_dump(), 0)})
             self.budgets.post_in_transaction(db, plan.account, receipt, close_envelope=True)
+            if plan.ingress_policy is not None:
+                ingress = db.execute("SELECT revoked FROM native_ingress WHERE job=?", (job,)).fetchone()
+                require(ingress is not None, "INGRESS_NOT_REGISTERED")
+                if not ingress[0]:
+                    db.execute("UPDATE native_ingress SET revoked=1 WHERE job=?", (job,))
+                    self.db.event(db, "native.ingress_revoked", {"job": job})
             db.execute("UPDATE native_jobs SET state='FINALIZED',ended=? WHERE id=?",
                        (time.time(), job))
             self.db.event(db, "runtime.state", {"job_id": job, "state": "FINALIZED",
@@ -495,6 +622,7 @@ class NativeExec:
         row = self._row(job)
         require(row["state"] == "FINALIZED" and job not in self.live, "RUNTIME_NOT_QUIESCENT")
         plan = NativeLaunch.model_validate_json(row["plan"])
+        require(plan.broker_policy is None, "NATIVE_EXPORT_BROKER_INVENTORY_REQUIRED")
         require(artifact_namespace == f"campaign:{plan.campaign_id}:agent:{plan.agent_id}", "FORBIDDEN")
         principal = Principal(artifact_namespace, "executor")
         for ref in (workspace_ref, skills_ref):
@@ -514,6 +642,11 @@ class NativeExec:
         return self.cas.put(Principal("operator", "operator"), self.namespace, "operator",
                             canonical(state))
 
+    def export_broker_state(self, job):
+        """Export the stopped broker component from source, without authorizing restore."""
+        from .native_export import NativeExports
+        return NativeExports(self).export(job)
+
     def resume(self, state_ref: str, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
         """Start a fresh native process only after checkpoint artifacts are restored.
 
@@ -522,6 +655,9 @@ class NativeExec:
         files are present; production qualification includes the restored workspace.
         """
         state = self.cas.json(Principal("operator", "operator"), self.namespace, state_ref)
+        require(state.get("schema") not in {"strata/NativeState/2", "strata/NativeCheckpointState/1"},
+                "NATIVE_COMPLETE_RESTORE_REQUIRED")
+        require(plan.broker_policy is None, "NATIVE_STATE_LEGACY")
         require(state.get("schema") == "strata/NativeState/1" and
                 state.get("is_example") == self.simulation and state.get("resume_mode") ==
                 "fresh_handoff" and state.get("session") is None and

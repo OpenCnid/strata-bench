@@ -85,4 +85,32 @@ class TelemetryConfigTest {
         assertThrows(IllegalArgumentException.class, () -> new ConfigQuery("fixture.toml", java.util.List.of(java.util.List.of("k"), java.util.List.of("k"))));
         assertThrows(IllegalArgumentException.class, () -> new ConfigQuery("fixture.toml", java.util.List.of(java.util.Collections.nCopies(17, "k"))));
     }
+
+    @Test void signedVersionRequiresCompletePrivateKeyBinding() throws Exception {
+        Path spool = Files.createDirectory(root.resolve("spool"));
+        Path game = Files.createDirectory(root.resolve("game"));
+        Path source = root.resolve("config.json"), key = root.resolve("key.bin");
+        Files.write(key, new byte[32]);
+        JsonObject value = fixture(spool); value.addProperty("schema", "strata/ForgeTelemetryConfig/3");
+        value.add("config_queries", new JsonArray());
+        JsonObject auth = new JsonObject();
+        auth.addProperty("challenge", "a".repeat(64)); auth.addProperty("key_file", key.toString());
+        auth.addProperty("key_sha256", "b".repeat(64)); auth.addProperty("authority_digest", "c".repeat(64));
+        value.add("authentication", auth); Files.writeString(source, value.toString());
+        assertEquals(key, TelemetryConfig.read(source, game).authentication().keyFile());
+        String valid = value.toString();
+        for (String invalid : new String[] {
+            valid.replace("TelemetryConfig/3", "TelemetryConfig/2"),
+            valid.replace("\"authentication\":", "\"extra\":true,\"authentication\":"),
+            valid.replace("\"challenge\":", "\"challenge\":null,\"challenge\":"),
+            valid.replace("a".repeat(64), "a".repeat(63)),
+            valid.replace("\"authority_digest\":", "\"unknown\":")
+        }) {
+            Files.writeString(source, invalid);
+            assertThrows(Exception.class, () -> TelemetryConfig.read(source, game));
+        }
+        Path gameKey = game.resolve("secret.bin"); Files.write(gameKey, new byte[32]);
+        auth.addProperty("key_file", gameKey.toString()); Files.writeString(source, value.toString());
+        assertThrows(IOException.class, () -> TelemetryConfig.read(source, game));
+    }
 }

@@ -1,0 +1,401 @@
+"""One-use private Java preparation through the pinned native Windows sandbox.
+
+This candidate must prove held process ownership before copying any bytes into
+the protected root. It never grants scoring, full isolation or crash recovery.
+"""
+
+import base64
+import argparse
+from contextlib import ExitStack
+import json
+import hashlib
+import os
+from pathlib import Path
+import secrets
+import sys
+import time
+from typing import Literal
+
+from pydantic import Field, TypeAdapter, model_validator
+
+from mcbench.contracts import Id, Strict
+from mcbench.inference_transport import strict_json
+from mcbench.launch_integrity import FileLease, safe, snapshot
+from mcbench.native import _toml_value
+from mcbench.processes import ManagedProcess, ProcessInventoryFault
+from mcbench.storage import canonical, digest, require, safe_relative
+
+from .craft_reference import PrivateFile, check_file, check_tree, private_path, write_new
+from .reference_pair import OwnedCli
+from .telemetry_auth import private_read
+from .windows_writer import OperatorWorkspace, WindowsSecurity, WriterTree
+
+CODEX_SHA256 = "960c111d47afd61669954b9df9e56083e302edbfa3ef6962d81dcc14a30051dc"
+
+
+class WriterPreparationPlan(Strict):
+    schema_: Literal["strata/PrivateWriterPreparationPlan/1"] = Field(alias="schema")
+    id: Id
+    evidence_kind: Literal["synthetic", "authentic_operator_reference"]
+    codex: PrivateFile
+    java: PrivateFile
+    helper_class: PrivateFile
+    sandbox_home: str
+    writer_sid: str
+    source_root: str
+    workspace_directory: str
+    sources: dict[str, PrivateFile] = Field(min_length=1, max_length=12000)
+    evidence_directory: str
+    max_wall_s: int = Field(ge=25, le=60)
+
+    @model_validator(mode="after")
+    def scope(self):
+        require(self.codex.sha256 == CODEX_SHA256, "WRITER_RUNTIME_PIN")
+        require(Path(self.java.path).name.lower() == "java.exe"
+                and Path(self.helper_class.path).name == "StrataWriterPreparation.class",
+                "WRITER_HELPER_PROFILE")
+        source = private_path(self.source_root)
+        evidence = private_path(self.evidence_directory)
+        workspace = private_path(self.workspace_directory)
+        require(not source.is_relative_to(evidence) and not evidence.is_relative_to(source),
+                "WRITER_SOURCE_SCOPE")
+        require(all(not workspace.is_relative_to(other) and not other.is_relative_to(workspace)
+                    for other in (source, evidence)), "WRITER_WORKSPACE_SCOPE")
+        seen, total = set(), 0
+        for relative, pin in self.sources.items():
+            safe_relative(relative)
+            require(relative.casefold() not in seen
+                    and private_path(pin.path).is_relative_to(source)
+                    and pin.bytes <= 512 * 1024**2, "WRITER_SOURCE_SCOPE")
+            seen.add(relative.casefold())
+            total += pin.bytes
+        require(total <= 1024**3, "WRITER_BYTE_QUOTA")
+        return self
+
+
+class WriterPreparationPlanV2(WriterPreparationPlan):
+    schema_: Literal["strata/PrivateWriterPreparationPlan/2"] = Field(alias="schema")
+    network_policy: Literal["native-online-private-server/1"]
+    max_wall_s: int = Field(ge=25, le=900)
+
+
+def parse_preparation_plan(value):
+    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2).validate_python(value)
+
+
+def pinned_inventory(pins, runtime_trees=()):
+    """Known inputs are hashed by FileLease on their retained handles.
+
+    Discover only the runtime trees whose complete inventory is not supplied.
+    Never replace an expected source digest with a fresh pre-lock snapshot.
+    """
+    inventory = snapshot([], runtime_trees) if runtime_trees else {
+        "schema": "strata/LaunchFileInventory/1", "files": [], "trees": []}
+    entries = {entry["path"]: entry for entry in inventory["files"]}
+    for pin in pins:
+        value = pin.model_dump() if isinstance(pin, PrivateFile) else dict(pin)
+        value["path"] = str(safe(value["path"]))
+        require(value["path"] not in entries or entries[value["path"]] == value,
+                "WRITER_PIN_CONFLICT")
+        entries[value["path"]] = value
+    require(0 < len(entries) <= 12000
+            and all(type(entry["bytes"]) is int and 0 <= entry["bytes"] <= 512 * 1024**2
+                    for entry in entries.values())
+            and sum(entry["bytes"] for entry in entries.values()) <= 1024**3, "WRITER_BYTE_QUOTA")
+    inventory["files"] = sorted(entries.values(), key=lambda entry: entry["path"])
+    return inventory
+
+
+def native_argv(plan, workspace, command):
+    online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+    profile = "strata-private-server" if online else "strata-writer-preparation"
+    settings = {"windows.sandbox": "elevated", "default_permissions": profile,
+        f"permissions.{profile}.filesystem": {":root": "deny", ":minimal": "read",
+            ":workspace_roots": {".": "write"}, str(Path(plan.java.path).parent.parent): "read"},
+        f"permissions.{profile}.network.enabled": online}
+    if online:
+        # Server authentication needs outbound networking. No domain filtering
+        # claim: this explicit private-server capability uses direct networking.
+        settings["features.network_proxy"] = False
+    argv = [plan.codex.path, "sandbox", "--include-managed-config", "--permission-profile",
+            profile, "--cd", str(workspace)]
+    for key, value in sorted(settings.items()):
+        argv.extend(["-c", key + "=" + _toml_value(value)])
+    return [*argv, "--", *command]
+
+
+def grant(path, challenge):
+    pending = path.with_name(path.name + ".pending")
+    with pending.open("xb") as file:
+        file.write(challenge.encode("ascii"))
+        file.flush()
+        os.fsync(file.fileno())
+    pending.rename(path)  # Windows: complete publication, no replacement.
+
+
+def java_identity(value, challenge, root, java, job):
+    require(type(value) is dict and set(value) == {"schema", "challenge", "pid",
+            "process_started_unix_ms", "executable", "requested_root"}
+            and value["schema"] == "strata/WriterJavaIdentity/2"
+            and value["challenge"] == challenge and type(value["pid"]) is int
+            and value["pid"] > 0 and type(value["process_started_unix_ms"]) is int,
+            "WRITER_JAVA_IDENTITY")
+    # A Java receipt is not authority. The PID must already be retained as a
+    # member of the exact held Job; never search arbitrary processes by name.
+    actual = job.member_identity(value["pid"])
+    require(actual["pid"] == value["pid"]
+            and actual["process_started_unix_ms"] == value["process_started_unix_ms"]
+            and Path(actual["executable"]).resolve() == Path(value["executable"]).resolve()
+            and Path(actual["executable"]).resolve() == Path(java).resolve()
+            and Path(value["requested_root"]).resolve() == root.resolve(), "WRITER_JAVA_IDENTITY")
+    return actual
+
+
+class WriterPreparations:
+    def __init__(self, database):
+        private_path(database.path)
+        self.database = database
+        with database.transaction() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS writer_preparations (id TEXT PRIMARY KEY, "
+                       "evidence TEXT UNIQUE NOT NULL, plan TEXT NOT NULL, state TEXT NOT NULL, body TEXT NOT NULL)")
+
+    def record(self, id, state, body):
+        with self.database.transaction() as db:
+            db.execute("UPDATE writer_preparations SET state=?,body=? WHERE id=?",
+                       (state, canonical(body).decode(), id))
+            self.database.event(db, "private.writer_preparation", {"id": id, "state": state, **body})
+
+    def run(self, value, *, continuation=None):
+        """Prepare once; optionally run an operator continuation while custody holds.
+
+        The borrowed custody object is invalidated before releasing any original
+        handle. A serialized result or previous workspace can never resume it.
+        """
+        admission_started = time.monotonic()
+        require(continuation is None or callable(continuation), "WRITER_CONTINUATION")
+        plan = parse_preparation_plan(value)
+        value = plan.model_dump(by_alias=True)
+        require(os.name == "nt", "WRITER_PLATFORM_UNSUPPORTED")
+        online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+        require(plan.evidence_kind == "synthetic" or online, "WRITER_PROFILE_UNQUALIFIED")
+        evidence = private_path(plan.evidence_directory)
+        workspace = private_path(plan.workspace_directory)
+        require(not evidence.exists() and not workspace.exists(), "WRITER_OUTPUT_EXISTS")
+        marker = json.loads(private_read(Path(plan.sandbox_home) / ".sandbox/setup_marker.json", 65536))
+        require(marker.get("version") == 5, "SANDBOX_ENROLLMENT_REQUIRED")
+        pins = [plan.codex, plan.java, plan.helper_class, *plan.sources.values()]
+        for pin in pins:
+            check_file(Path(pin.path), pin)
+        body = {"schema": "strata/PrivateWriterPreparationResult/1", "plan_digest": digest(value),
+                "evidence_kind": plan.evidence_kind,
+                "capability": "native-private-java-preparation/2" if online else "native-private-java-preparation/1",
+                "network_policy": "native-online-private-server/1" if online else "native-offline-writer/1",
+                "status": "intent", "setup_authority_qualified": False, "scoring_eligible": False,
+                "model_calls": 0, "game_launched": False, "stages": {}}
+        with self.database.transaction() as db:
+            require(db.execute("SELECT 1 FROM writer_preparations WHERE id=? OR evidence=?",
+                    (plan.id, str(evidence))).fetchone() is None, "WRITER_ALREADY_RESERVED")
+            db.execute("INSERT INTO writer_preparations VALUES(?,?,?,?,?)",
+                       (plan.id, str(evidence), canonical(value).decode(), "INTENT", canonical(body).decode()))
+            self.database.event(db, "private.writer_preparation", {"id": plan.id, **body})
+        lease, tree, active, workspace_lease = None, None, None, None
+        custody = None
+        staged_leases = []
+        started = time.monotonic()
+        until = started + plan.max_wall_s
+        body.update(started_unix=time.time(), pre_admission_elapsed_s=started - admission_started,
+                    phase_elapsed_s={})
+        def phase(name):
+            body["phase_elapsed_s"][name] = time.monotonic() - started
+        try:
+            evidence.mkdir()
+            workspace_lease = OperatorWorkspace(workspace)
+            write_new(evidence / "plan.json", value)
+            # Pin every input plus the actual Java runtime and bootstrap.
+            bootstrap = Path(__file__).resolve().parents[3] / "src/mcbench/process_bootstrap.py"
+            launch_support = snapshot([sys.executable, bootstrap], [])
+            lease = FileLease(pinned_inventory([*pins, *launch_support["files"]],
+                                              [str(Path(plan.java.path).parent.parent)]))
+            # FileLease hashes against the declared pins on the same handles
+            # that deny writes/replacement. No second by-name hash is authority.
+            write_new(evidence / "input-inventory.json", lease.inventory)
+            body["input_inventory_digest"] = digest(lease.inventory)
+            phase("inputs_locked")
+            control, classes, staging = (workspace / name for name in ("control", "classes", "staging"))
+            for directory in (control, classes, staging):
+                directory.mkdir()
+            (workspace / "tmp").mkdir()
+            (classes / "StrataWriterPreparation.class").write_bytes(Path(plan.helper_class.path).read_bytes())
+            staged_pins = [plan.helper_class.model_dump() | {
+                "path": str(classes / "StrataWriterPreparation.class")}]
+            lines = []
+            for number, (relative, pin) in enumerate(sorted(plan.sources.items())):
+                staged = staging / str(number)
+                # Copy while original file handles deny writes/replacement.
+                with Path(pin.path).open("rb") as source, staged.open("xb") as target:
+                    while chunk := source.read(65536):
+                        require(time.monotonic() < until, "WRITER_STAGING_TIMEOUT")
+                        target.write(chunk)
+                    target.flush()
+                    os.fsync(target.fileno())
+                staged_pins.append(pin.model_dump() | {"path": str(staged)})
+                lines.append("\t".join([base64.b64encode(relative.encode()).decode(),
+                    base64.b64encode(str(staged).encode()).decode(), pin.sha256, str(pin.bytes)]))
+            manifest = "\n".join(lines).encode("utf-8")
+            require(len(manifest) <= 8 * 1024**2, "WRITER_MANIFEST_QUOTA")
+            (control / "files.tsv").write_bytes(manifest)
+            phase("staged")
+            environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
+            environment["CODEX_HOME"] = plan.sandbox_home
+            def start(stage, command, deadline):
+                logs = evidence / stage
+                logs.mkdir()
+                self.record(plan.id, stage.upper(), body | {"status": stage})
+                process = ManagedProcess(native_argv(plan, workspace, command), workspace, environment, "")
+                return OwnedCli(process, "server", logs, deadline)
+
+            # Lease staged helper/manifest/input bytes before native enrollment.
+            # Never let the writer replace its own preparation program.
+            staged_inventory = pinned_inventory(staged_pins)
+            staged_inventory["trees"] = [{"path": str(root),
+                "files": sorted(entry["path"] for entry in staged_inventory["files"]
+                    if Path(entry["path"]).is_relative_to(root))} for root in (safe(classes), safe(staging))]
+            staged_leases.append(FileLease(staged_inventory))
+            staged_leases.append(FileLease(pinned_inventory([{"path": str(control / "files.tsv"),
+                "bytes": len(manifest), "sha256": hashlib.sha256(manifest).hexdigest()}])))
+            phase("staging_locked")
+            require(until - time.monotonic() >= 22, "WRITER_EXPOSURE_INSUFFICIENT")
+            challenge = secrets.token_hex(32)
+            body["challenge"] = challenge
+            command = [plan.java.path, "-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
+                "-Djava.io.tmpdir=" + str(workspace / "tmp"), "-cp", str(classes),
+                "StrataWriterPreparation", str(workspace / "guarded"), str(control), challenge]
+            active = start("preparation", command, min(until, time.monotonic() + 22))
+            while not (control / "identity.json").exists():
+                require(active.observe() is None, "WRITER_JAVA_EARLY_EXIT")
+                time.sleep(0.025)
+            active.observe()
+            security = WindowsSecurity()
+            group, scope = security.workspace_scope(workspace)
+            workspace_lease.verify_enrolled(group, scope)
+            body["java_identity"] = java_identity(strict_json(private_read(control / "identity.json", 8192)),
+                challenge, workspace / "guarded", plan.java.path, active.process.job)
+            body["writer_token"] = security.bind_process(
+                active.process.job.members[body["java_identity"]["pid"]], plan.writer_sid, group, scope)
+            tree = WriterTree(workspace / "guarded", plan.writer_sid, group, scope)
+            body.update(writer_sid=plan.writer_sid, group_sid=group, scope_sid=scope, root=str(tree.path))
+            self.record(plan.id, "BOUND", body | {"status": "bound"})
+            for held_lease in staged_leases:
+                held_lease.recheck()
+            lease.recheck()
+            grant(control / "prepare.grant", challenge)
+            while not (control / "copied.json").exists():
+                require(active.observe() is None, "WRITER_JAVA_EARLY_EXIT")
+                time.sleep(0.025)
+            copied = strict_json(private_read(control / "copied.json", 8192))
+            require(copied == {"schema": "strata/WriterJavaCopied/2", "challenge": challenge,
+                "files": len(plan.sources), "bytes": sum(pin.bytes for pin in plan.sources.values()),
+                "root": str(tree.path)},
+                "WRITER_COPY_RECEIPT")
+            def finish_preparation():
+                nonlocal active
+                grant(control / "finish.grant", challenge)
+                while active.observe() is None:
+                    time.sleep(0.025)
+                body["stages"]["preparation"] = active.finish()
+                active = None
+                phase("copier_returned")
+                final = body["stages"]["preparation"]
+                require(final["terminal_verified"] and final["logs_complete"]
+                        and final["exit_code"] == 0 and not final["forced"], "WRITER_TERMINAL_UNCERTAIN")
+            if online:
+                # The bound copier has finished writing. Stop it within its
+                # original short deadline before the full large-tree audit.
+                # Namespace/input handles stay held; no server/custody grant
+                # exists until all content and ACL checks below succeed.
+                finish_preparation()
+            tree.verify()
+            check_tree(tree.path, plan.sources)
+            for path in tree.path.rglob("*"):
+                tree.security.verify(path, plan.writer_sid, group, scope, directory=path.is_dir())
+            phase("tree_verified")
+            for held_lease in staged_leases:
+                held_lease.recheck()
+            body["copied"] = copied
+            self.record(plan.id, "COPIED", body | {"status": "copied"})
+            if not online:
+                finish_preparation()
+            workspace_lease.verify_enrolled(group, scope)
+            tree.verify()
+            lease.recheck()
+            if continuation is not None:
+                from .writer_custody import WriterCustody
+                custody = WriterCustody(plan, tree, workspace_lease, [lease, *staged_leases], until,
+                                        body, self.record)
+                self.record(plan.id, "HELD", body | {"status": "held"})
+                continuation(custody)
+                # Returning with a live/unfinished process is a fault, not a
+                # successful preparation followed by an untracked launch.
+                require(custody.completed and custody.result["status"] == "stopped",
+                        "WRITER_CUSTODY_UNFINISHED")
+                custody.check()
+            body["status"] = "prepared_reference"
+            if custody is not None:
+                body["status"] = "stopped_reference"
+            self.record(plan.id, "STOPPED", body)
+        except BaseException as error:
+            body.update(status="uncertain", error=getattr(error, "code", type(error).__name__))
+            if isinstance(error, ProcessInventoryFault):
+                body["process_observation"] = error.observation()
+            self.record(plan.id, "UNCERTAIN", body)  # First failure precedes cleanup.
+        finally:
+            try:
+                if active is not None:
+                    active.shorten(time.monotonic())
+                    body["cleanup"] = active.finish()
+                if custody is not None:
+                    custody.close()
+            except BaseException as error:
+                body.update(status="uncertain", cleanup_error=getattr(error, "code", type(error).__name__))
+            finally:
+                # Journal/disk errors must not skip termination or release other
+                # handles. All process/broker cleanup precedes namespace release.
+                try:
+                    with ExitStack() as cleanup:
+                        if workspace_lease is not None:
+                            cleanup.callback(workspace_lease.close)
+                        if lease is not None:
+                            cleanup.callback(lease.close)
+                        if tree is not None:
+                            cleanup.callback(tree.close)
+                        for staged_lease in staged_leases:
+                            cleanup.callback(staged_lease.close)
+                except BaseException as error:
+                    body.update(status="uncertain", release_error=getattr(error, "code", type(error).__name__))
+            state = "STOPPED" if body["status"] in ("stopped_reference", "prepared_reference") else "UNCERTAIN"
+            body["elapsed_s"] = time.monotonic() - started
+            self.record(plan.id, state, body)
+            if evidence.exists():
+                write_new(evidence / "result.json", body)
+        return body
+
+
+def main():
+    from mcbench.storage import Database
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--database", type=Path, required=True)
+    parser.add_argument("--plan", type=Path, required=True)
+    args = parser.parse_args()
+    value = strict_json(private_read(private_path(args.plan), 32 * 1024**2))
+    database = Database(private_path(args.database))
+    try:
+        result = WriterPreparations(database).run(value)
+        print(json.dumps({"status": result["status"], "error": result.get("error"),
+                          "setup_authority_qualified": False, "scoring_eligible": False}))
+        return 0 if result["status"] == "prepared_reference" else 1
+    finally:
+        database.connection.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

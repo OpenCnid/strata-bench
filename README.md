@@ -22,6 +22,8 @@ evidence does not convert it into a Mineflayer pass.
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence
 
+The [native/game smoke command](docs/verification/2026-09-21-m0-native-game.md) now runs the actual native Dovetail/helper/broker path against real vanilla Minecraft, with a bounded action, joined receipts and clean shutdown. Its model responses are scripted; it does not establish a live-model M0 pass.
+
 ## What is implemented
 
 | Component | Current scope | Qualification still required |
@@ -30,7 +32,8 @@ evidence does not convert it into a Mineflayer pass.
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
 | Native Codex adapter | Actual pinned CLI/plugin/tool/helper lifecycle exercised with a credential-free synthetic provider | Live scoped host/game integration, child admission/isolation, nested-depth and complete resume qualification |
-| Inference accounting | Atomic dispatch intent, nested job envelopes, distinct retry charges, receipt deduplication and uncertain-cost holds; actual CLI synthetic streaming/compaction/restart checks | Versioned D11 API-equivalent estimates, actual OAuth all-request accounting, finite exposure and enforced boundaries |
+| Inference accounting | Versioned D11 API-equivalent estimates, explicit original-authority migration, nested envelopes, distinct requests, deduplicated receipts and uncertain holds; pinned CLI synthetic integration | Actual OAuth all-request accounting, qualified finite exposure and enforced boundaries |
+| Restricted native broker candidate | Explicit caller projections, helper-only result writes and executor-only scoped worker forwarding; actual CLI/helper/synthetic HTTP checks | Full file/process/network negatives, live child admission, immutable skill loading and actual game/OAuth integration |
 | Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded
@@ -66,12 +69,14 @@ without the opt-in environment they may skip. The checkpoint ran them enabled:
 $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot'
 $env:STRATA_FTB_LIBRARY_JAR = 'C:\path\to\official-E9E\mods\ftb-library-forge-1902.4.1-build.236.jar'
 Push-Location java
-.\gradlew.bat :forge1192-client:test :forge1192-telemetry:test :forge1192-client:writeTestClasspath --no-daemon --console plain
+.\gradlew.bat :forge1192-client:test :forge1192-telemetry:test :forge1192-client:writeTestClasspath :forge1192-telemetry:writeTestClasspath --no-daemon --console plain
 Pop-Location
 $env:STRATA_CLIENT_TEST_JAVA = Join-Path $env:JAVA_HOME 'bin\java.exe'
 $env:STRATA_CLIENT_TEST_CLASSPATH = (Resolve-Path java\forge1192-client\build\test-classpath.txt).Path
 $env:STRATA_SETTINGS_TEST_JAVA = $env:STRATA_CLIENT_TEST_JAVA
 $env:STRATA_SETTINGS_TEST_CLASSPATH = $env:STRATA_CLIENT_TEST_CLASSPATH
+$env:STRATA_TELEMETRY_TEST_JAVA = $env:STRATA_CLIENT_TEST_JAVA
+$env:STRATA_TELEMETRY_TEST_CLASSPATH = (Resolve-Path java\forge1192-telemetry\build\test-classpath.txt).Path
 $env:STRATA_GUARD_TEST_PYTHON = (Resolve-Path .venv\Scripts\python.exe).Path
 uv run --frozen python -m pytest -q
 npm test --prefix backends/mineflayer

@@ -2,10 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from mcbench.authorization import Authorizations, ExecutionAuthorization
+from mcbench.authorization import Authorizations, ExecutionAuthorization, LegacyExecutionAuthorization
 from mcbench.budgets import DIMENSIONS
 from mcbench.records import BudgetLedger
-from mcbench.storage import Fault
+from mcbench.storage import CAS, Fault, Principal, canonical, digest
 
 
 def policy():
@@ -13,10 +13,27 @@ def policy():
     return ExecutionAuthorization.model_validate_json(source.read_text(encoding="utf-8"))
 
 
+def install(service, approved):
+    source = Path(__file__).resolve().parents[1] / "configs/operator/legacy/live-validation-v1.json"
+    legacy = LegacyExecutionAuthorization.model_validate_json(source.read_text(encoding="utf-8"))
+    service.install(legacy)
+    cas = CAS(service.db, service.db.path.parent / "objects")
+    ref = cas.put(Principal("operator", "operator"), "operator", "operator", b'synthetic audit')
+    audit = {"schema":"strata/AuthorizationMigrationAudit/1",
+        "authorization_id":approved.authorization_id,"decision_id":"D11",
+        "source_authorization_digest":approved.legacy_authorization_digest,
+        "snapshot_digest":service.snapshot(),"store_path_digest":digest(str(service.db.path)),
+        "legacy_amount_semantics":"unknown_conservative","external_inventory_ref":ref,
+        "decision_ref":ref,"policy":"preserve_all_accounts_operations_receipts_and_holds/1"}
+    ref = cas.put(Principal("operator","operator"), "operator", "operator", canonical(audit))
+    return service.migrate(approved, snapshot_digest=service.snapshot(), evidence_ref=ref,
+                           legacy_amount_semantics="unknown_conservative", cas=cas)
+
+
 def test_user_authorization_exact_oauth_luna_ten_dollars_no_reset(database, example):
     service = Authorizations(database)
     approved = policy()
-    root = service.install(approved)
+    root = install(service, approved)
     assert approved.auth_mode == "chatgpt_oauth" and approved.models == ["gpt-5.6-luna"]
     assert approved.total_spend_microusd == 10_000_000
     assert service.install(approved) == root
@@ -49,7 +66,7 @@ def test_user_authorization_exact_oauth_luna_ten_dollars_no_reset(database, exam
 def test_unparented_account_cannot_bypass_global_ceiling(database):
     service = Authorizations(database)
     approved = policy()
-    service.install(approved)
+    install(service, approved)
     service.budgets.create_account("unparented", dict.fromkeys(DIMENSIONS, 100_000_000),
                                    "c1", "a1", category="training")
     with pytest.raises(Fault, match="UNAUTHORIZED_BUDGET_ACCOUNT"):

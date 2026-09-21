@@ -97,6 +97,59 @@ def test_identical_retry_bodies_reserve_and_charge_distinct_attempts(gateway, ma
     assert gateway.db.connection.execute("SELECT COUNT(*) FROM inference_attempts").fetchone()[0] == 2
 
 
+def test_budget_denial_is_durable_nonreplayable_and_not_a_receipt(gateway, make_attempt):
+    first, hold, settlement = make_attempt("in-flight")
+    gateway._begin("a1", first, hold)
+    attempt, reserve, _ = make_attempt("denied")
+    before = gateway.budgets.status("root")
+    with pytest.raises(Fault, match="BUDGET_EXHAUSTED"):
+        gateway.execute("a1", attempt, reserve, lambda: pytest.fail("denied request forwarded"))
+    status = gateway.status("denied")
+    assert status["state"] == "REJECTED_BEFORE_DISPATCH" and not status["usage_receipt"]
+    assert gateway.budgets.status("root") == before
+    gateway.settle("in-flight", "first-receipt", settlement(20))  # Room now exists, but this ID is terminal.
+    second = Database(gateway.db.path)
+    try:
+        restored = InferenceDispatches(second, CAS(second, gateway.cas.root), simulation=True)
+        assert restored.status("denied") == status
+        with pytest.raises(Fault, match="BUDGET_EXHAUSTED"):
+            restored.execute("a1", attempt, reserve, lambda: pytest.fail("restart replayed denial"))
+        with pytest.raises(Fault, match="IDEMPOTENCY_CONFLICT"):
+            restored._begin("a1", attempt.model_copy(update={"request_digest": "f" * 64}), reserve)
+        from mcbench.inference_dispatch import verified_rejections
+        assert set(verified_rejections(second.connection, "job1", True)) == {"denied"}
+    finally:
+        second.close()
+    new_attempt, new_reserve, new_settlement = make_attempt("distinct")
+    gateway.execute("a1", new_attempt, new_reserve, lambda: ("second-receipt", new_settlement(20)))
+    assert gateway.budgets.status("root")["committed_and_reserved"]["spend_microusd"] == 40
+    assert gateway.db.connection.execute("SELECT count(*) FROM inference_rejections").fetchone()[0] == 1
+
+
+def test_failed_denial_commit_never_becomes_a_rejection_or_dispatch(gateway, make_attempt):
+    attempt, reserve, _ = make_attempt("denied", spend=101)
+    gateway.db.connection.execute("CREATE TRIGGER fail_rejection BEFORE INSERT ON inference_rejections "
+        "BEGIN SELECT RAISE(ABORT,'synthetic rejection write failure'); END")
+    with pytest.raises(Exception, match="synthetic rejection write failure"):
+        gateway.execute("a1", attempt, reserve, lambda: pytest.fail("failed commit forwarded"))
+    for table in ("inference_attempts", "inference_rejections", "operations", "ledger"):
+        assert gateway.db.connection.execute("SELECT count(*) FROM " + table).fetchone()[0] == 0
+    assert gateway.db.connection.execute("SELECT count(*) FROM outbox WHERE kind LIKE 'inference.%'").fetchone()[0] == 0
+
+
+def test_denial_due_to_unknown_usage_does_not_clear_the_unknown_hold(gateway, make_attempt):
+    attempt, reserve, _ = make_attempt("ambiguous")
+    gateway._begin("a1", attempt, reserve)
+    gateway.mark_uncertain("ambiguous", "transport_or_receipt_uncertain")
+    before = gateway.budgets.status("root")
+    attempt, reserve, _ = make_attempt("denied", spend=1)
+    with pytest.raises(Fault, match="METERING_UNKNOWN"):
+        gateway._begin("a1", attempt, reserve)
+    assert gateway.status("ambiguous")["state"] == "UNSETTLED"
+    assert gateway.budgets.status("root") == before and before["uncertain"]
+    assert gateway.status("denied")["state"] == "REJECTED_BEFORE_DISPATCH"
+
+
 @pytest.mark.parametrize("updates", [
     {"expires_unix_ms": 1}, {"is_example": False}, {"request_digest": "f" * 64},
     {"reservation_digest": "f" * 64}, {"pricing_semantics_verified": False},

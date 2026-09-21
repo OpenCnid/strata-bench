@@ -22,6 +22,8 @@ evidence does not convert it into a Mineflayer pass.
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence
 
+The [native/game smoke command](docs/verification/2026-09-21-m0-native-game.md) now runs the actual native Dovetail/helper/broker path against real vanilla Minecraft, with a bounded action, joined receipts and clean shutdown. Its model responses are scripted; it does not establish a live-model M0 pass.
+
 ## What is implemented
 
 | Component | Current scope | Qualification still required |

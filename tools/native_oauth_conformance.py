@@ -42,6 +42,10 @@ def normalized_config(plan):
     lease = acquire_native_bootstrap(plan)
     lease.close()
     config = json.loads(json.dumps(plan.config_overrides))
+    if "model_catalog_json" in config:
+        # Relocate only identical, sealed catalog bytes; never normalize away a
+        # model/tool metadata change.
+        config["model_catalog_json"] = {"sealed_sha256": file_hash(Path(config["model_catalog_json"]))}
     prefix = "model_providers." + config["model_provider"] + "."
     config[prefix + "base_url"] = "<owned-literal-loopback>/v1"
     config[prefix + "http_headers"] = {HEADER: "<per-job-capability>"}
@@ -63,7 +67,7 @@ def normalized_config(plan):
     return normalize(config)
 
 
-def inspect_preflight(directory, plan):
+def inspect_preflight(directory, plan, cas):
     directory = directory.resolve()
     result = json.loads((directory / "result.json").read_bytes())
     manifest = json.loads((directory / "manifest.json").read_bytes())
@@ -87,11 +91,16 @@ def inspect_preflight(directory, plan):
                 "PREFLIGHT_STORE_MISMATCH")
     finally:
         db.close()
+    from mcbench.native_tool_projection import read_tool_projection
+    require(result.get("tool_projection", {}).get("expected") == {
+        role: digest(blocks) for role, blocks in read_tool_projection(cas, plan).items()},
+        "PREFLIGHT_TOOL_PROJECTION_MISMATCH")
     require(source.profile_digest() == result["profile_digest"] and
             normalized_config(source) == normalized_config(plan) and
             all(getattr(source, k) == getattr(plan, k) for k in (
                 "binary_digest", "binary_version", "dovetail_commit", "model", "budget_mode", "auth_mode",
-                "session_storage", "broker_policy", "ingress_policy", "hard_timeout_s", "output_limit_bytes"))
+                "session_storage", "broker_policy", "ingress_policy", "hard_timeout_s", "output_limit_bytes",
+                "tool_catalog_policy"))
             and source.environment["PATH"] == plan.environment["PATH"] and
             set(source.environment) == set(plan.environment) == {"PATH", "TEMP", "TMP"},
             "PREFLIGHT_PROFILE_MISMATCH")
@@ -112,7 +121,10 @@ def run(args):
     require(not output.exists() and not output.is_relative_to(ROOT), "PRIVATE_FRESH_OUTPUT_REQUIRED")
     require(args.database.is_file() and args.objects.is_dir(), "ORIGINAL_ACCOUNTING_REQUIRED")
     require(os.name == "nt" and file_hash(args.codex) == CODEX_BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
-    for path in (args.database, args.objects, args.credentials, args.preflight):
+    require(args.catalog is not None and args.tool_projections is not None,
+            "REVIEWED_NATIVE_CATALOG_REQUIRED")
+    for path in (args.database, args.objects, args.credentials, args.preflight,
+                 args.catalog, args.tool_projections):
         reject_links(path)
         require(not path.resolve().is_relative_to(ROOT), "PRIVATE_PATH_REQUIRED")
     output.mkdir(parents=True)
@@ -127,7 +139,8 @@ def run(args):
     (output / "accounting-before.json").write_bytes(canonical(before))
     # One durable first-receipt job in this authority. A stopped or uncertain job
     # is inspected/reconciled explicitly; rerunning this script cannot replay it.
-    job = args.authorization + ":oauth-first-receipt"
+    trial = getattr(args, "metering_trial", None)
+    job = args.authorization + (":oauth-receipt-d12" if trial == "D12" else ":oauth-first-receipt")
     if db.connection.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
         require(db.connection.execute("SELECT 1 FROM native_jobs WHERE id=?", (job,)).fetchone() is None,
                 "FIRST_RECEIPT_ALREADY_ATTEMPTED")
@@ -156,11 +169,19 @@ def run(args):
         config[prefix + "requires_openai_auth"] = True
         config["developer_instructions"] = INSTRUCTIONS
         config["cli_auth_credentials_store"] = "file"
+        require(args.catalog is not None and args.tool_projections is not None,
+                "REVIEWED_NATIVE_CATALOG_REQUIRED")
+        from mcbench.native_catalog import install_no_patch_catalog, NO_PATCH_POLICY
+        from mcbench.native_tool_projection import pin_tool_projection
+        catalog = install_no_patch_catalog(args.catalog, profile / "model-catalog.json",
+            expected_sha256=file_hash(args.catalog), model=previous.model)
+        config.update(catalog["config_overrides"])
         (output / "broker.json").write_bytes(canonical({"schema": "strata/SealedBrokerConfig/1",
             "database": str(db.path), "objects": str(cas.root), "runtime_id": job, "worker_grant": None}))
         sealed = prepare_bundle(output / "broker-runtime", native_executable=args.codex,
             plugin_root=installed_root, broker_config=output / "broker.json", static_files=[
-                profile / "config.toml", profile / "pinned-marketplace/.agents/plugins/marketplace.json"])
+                profile / "config.toml", profile / "pinned-marketplace/.agents/plugins/marketplace.json",
+                *map(Path, catalog["static_files"])])
         config["mcp_servers.strata_broker"] = sealed["server"]
         corpus_ref = prepare_skill_corpus(cas, installed_root)
         basis = EstimateBasis.model_validate(before["authorization"]["accounting_basis"])
@@ -171,14 +192,15 @@ def run(args):
             "input_bound_method": "provider_context_limit", "output_bound_method": "provider_model_limit",
             "enforcement_ref": "cas:sha256:" + "a" * 64})
         amount = exposure.amount(basis)
-        require(before["budget"]["dispatch_allowed"] and amount <= before["authorization"]["first_trial_max_microusd"]
+        require((before["budget"]["dispatch_allowed"] or trial == "D12") and
+                amount <= before["authorization"]["first_trial_max_microusd"]
                 and before["budget"]["committed_and_reserved"]["spend_microusd"] + amount
                     <= before["authorization"]["total_spend_microusd"], "ALLOWANCE_UNAVAILABLE")
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": job, "profile_digest": "a" * 64, "pricing_ref": pricing, "exposure": exposure,
             "transport_qualification_ref": None, "authorization_id": args.authorization,
             "max_requests": 1, "max_handlers": 1, "skill_corpus_ref": corpus_ref})
-        account, campaign = job + ":account", "oauth-first-receipt"
+        account, campaign = job + ":account", "oauth-receipt-d12" if trial else "oauth-first-receipt"
         plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": job,
             "campaign_id": campaign, "agent_id": "a1", "epoch": 1, "role": "executor",
             "purpose": "conformance", "parent_job_id": None, "depth": 0, "helper_limit": 0,
@@ -189,13 +211,16 @@ def run(args):
             "auth_mode": "chatgpt_oauth", "budget_mode": "per_dispatch",
             "accounting_basis_digest": basis.fingerprint(), "broker_policy": previous.broker_policy,
             "bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"],
+            "tool_catalog_policy": NO_PATCH_POLICY,
             "ingress_policy": INGRESS_POLICY, "gateway_config_digest": gateway_config.profile_fingerprint(),
             "config_overrides": config, "environment": {"PATH": previous.environment["PATH"],
                 "TMP": str(temporary), "TEMP": str(temporary)}, "prompt": PROMPT,
             "hard_timeout_s": 90, "output_limit_bytes": previous.output_limit_bytes, "qualification_ref": None})
+        plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
+            cas, plan, json.loads(args.tool_projections.read_bytes()))})
         gateway_config.profile_digest = plan.profile_digest()
         require_receipt_profile(plan, gateway_config)
-        transfer = inspect_preflight(args.preflight, plan)
+        transfer = inspect_preflight(args.preflight, plan, cas)
         transfer_ref = put(cas, transfer)
         tls = tls_probe()
         tls_ref = put(cas, tls)
@@ -259,7 +284,20 @@ def run(args):
         gateway.bind(plan, gateway_config)
         reserve = ledger(plan, plan.operation_id, parent=None, calls=1, spend=amount, pricing=pricing,
             inputs=exposure.max_input_tokens, outputs=exposure.max_output_tokens).model_copy(
-                update={"reason": "D11 first native OAuth receipt conformance; API-equivalent estimate"})
+                update={"reason": "D12 distinct receipt trial; retained prior hold; API-equivalent estimate" if trial
+                        else "D11 first native OAuth receipt conformance; API-equivalent estimate"})
+        if trial == "D12":
+            from mcbench.metering_trial import MeteringTrials, MAXIMUM, POLICY as TRIAL_POLICY
+            require(amount == MAXIMUM, "METERING_TRIAL_SCOPE")
+            decision_ref = put(cas, {"schema": "strata/MeteringTrialDecision/1", "decision_id": "D12",
+                "policy": TRIAL_POLICY, "authorization_id": args.authorization,
+                "authorization_digest": digest(auth.check(args.authorization, account, "openai", "chatgpt_oauth",
+                                                         basis.model).model_dump()),
+                "maximum_microusd": MAXIMUM, "max_requests": 1, "retained_hold_microusd": MAXIMUM,
+                "combined_exposure_microusd": 2 * MAXIMUM, "user_authorized": True})
+            record = MeteringTrials(db).install(args.authorization, plan, reserve, decision_ref=decision_ref,
+                                               cas=cas, snapshot_digest=auth.snapshot())
+            (output / "metering-trial.json").write_bytes(canonical(record))
         (output / "admission.json").write_bytes(canonical({"profile_digest": plan.profile_digest(),
             "maximum_microusd": amount, "transfer_ref": transfer_ref, "permit_ref": gateway_config.transport_qualification_ref,
             "no_game_grant": True, "helper_limit": 0, "max_requests": 1, "production_qualified": False}))
@@ -295,6 +333,9 @@ def main():
     parser.add_argument("--credentials", type=Path, required=True)
     parser.add_argument("--preflight", type=Path, required=True)
     parser.add_argument("--authorization", default="validation-2026-09-18")
+    parser.add_argument("--metering-trial", choices=["D12"])
+    parser.add_argument("--catalog", type=Path)
+    parser.add_argument("--tool-projections", type=Path)
     args = parser.parse_args()
     try:
         result = run(args)

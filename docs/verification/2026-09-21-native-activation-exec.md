@@ -180,3 +180,30 @@ Retain prior native sibling/loopback and patch-read failures, failed 500-ms
 shutdown samples, all five effective-file failures, Mineflayer/E9E incompatibility
 and remaining scorer/control/parity/provenance/recovery requirements. Required
 M0–M6 work and conditional M7/extensions are unchanged.
+
+## Retained supporting work after the full-arm checkpoint
+
+The preregistered frozen-persistence source and two actual native/local-provider
+runs now verify recovery retention followed by episode reset. Recovery reads the
+two active revisions (32 checks); the subsequent fresh root/helper sees the
+initial empty active set and no old learned bodies (34 checks). Constructed and
+scripted usage progresses 56→140→224 fixture units without refunds. World
+checkpoint components remain synthetic. The seed and both execution bundles
+are private and sealed; execution seals are
+`3a91a7eb4618dfc62151a249415148e9f28b8677202eb3df661901728513480d` and
+`7539314710149d49bc7eed41c5939be2c35f6675f2ef8f99fe2fc64600530e1c`.
+
+Source enforcement also keeps frozen-skills candidate publications private and
+inactive across recovery/episode boundaries. Four policy cases pass. Four
+owned-process interruption fixtures pass at pre-commit, mid-copy, post-rename
+and pre-view-commit boundaries: no partial launchable view, unchanged costs,
+and retained occupied orphan output. The initial four PID-targeting fixture
+failures remain in test history; the corrected runner launches the actual base
+interpreter so the owned PID matches. These are source/process fixtures, not
+authentic game restore. The combined affected native/worker/broker/activation
+suite passed 118 tests in 172.82 s.
+
+Actual native frozen-skills, restricted script/macro capability and complete
+game/agent restoration remain open. The user redirected immediate work to the
+[connected M0 path](2026-09-21-m0-native-game.md); do not expand this supporting
+workstream before its concrete dependencies are needed.

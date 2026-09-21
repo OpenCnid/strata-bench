@@ -2,7 +2,8 @@
 
 The default stdio server only echoes fixture metadata. Optional broker mode
 uses scoped artifacts and an owned synthetic worker; admission mode exercises
-durable participant/request budgets. All providers and game outcomes are fake.
+durable participant/request budgets. The explicit game_probe mode binds an
+operator-supplied real worker. Providers remain synthetic in every mode.
 """
 
 import argparse
@@ -67,7 +68,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
-        activation_source=None, job_id="root", activation_parent_calls=9):
+        activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -109,7 +110,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, inherited_helper,
                                                       gateway_mode, retirement_mode)),
             "INTERRUPT_PINNED_BOOTSTRAP_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source,
+    require(game_probe is None or bootstrap_mode and ingress_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
+                                                     gateway_mode, activation_source, inherited_helper)),
+            "GAME_PINNED_BOOTSTRAP_REQUIRED")
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
@@ -121,7 +126,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     activation = ActivationProbe(activation_source, output) if activation_source else None
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
-    patch_test = no_patch_catalog is not None and activation is None
+    patch_test = no_patch_catalog is not None and activation is None and game_probe is None
     request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
@@ -205,9 +210,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ("game", {"request": game_request})]
                     if activation:
                         if agent == "/root":
-                            calls[0] = ("artifact_read", {"path": "notes/root.md"})
-                            calls[1][1]["expected_ref"] = activation.body["workspace"]["notes/root.md"]
-                        calls.extend(activation.calls(agent))
+                            calls[0] = ("artifact_read", {"path": "notes/seed.md" if activation.reset else "notes/root.md"})
+                            calls[1][1]["expected_ref"] = activation.body["workspace"].get("notes/root.md")
+                            if activation.reset:
+                                calls[1][1]["text"] = "STRATA_AFTER_FROZEN_BOUNDARY"
+                        if activation.reset:
+                            calls = activation.calls(agent) + calls
+                        else:
+                            calls.extend(activation.calls(agent))
                     if skills_mode:
                         calls.append(("artifact_read", {"path":
                             "initial/dovetail/skills/prompt-engineering/SKILL.md"}))
@@ -229,6 +239,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         code += "\n" + canaries.code(agent=agent)
                     if activation and agent == "/root":
                         code += "\n" + activation.publish_code()
+                    if game_probe and agent == "/root":
+                        code += "\n" + game_probe.code()
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
@@ -299,13 +311,20 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     db = Database(output / "synthetic.sqlite")
     cas = CAS(db, output / "objects")
     runtime = NativeExec(db, cas, simulation=True)
+    native_worker = None
+    if game_probe:
+        from mcbench.native_worker import NativeWorker
+        native_worker = NativeWorker(db, game_probe.descriptor)
+        runtime.revoke_game = native_worker.revoke
     gate = InferenceDispatches(db, cas, simulation=True)
     limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     if activation is None:
         gate.budgets.create_account("project", limits, "*")
-        gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
+        gate.budgets.create_account("a1", limits,
+            game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
+            game_probe.scope["agent_id"] if game_probe else "a1", "project",
             category="development")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
@@ -331,7 +350,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "max_requests": 12})
     worker_calls = []
     worker = None
-    if broker_mode:
+    if broker_mode and game_probe is None:
         class Worker(BaseHTTPRequestHandler):
             def log_message(self, *_):
                 pass
@@ -353,6 +372,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
+        if game_probe:
+            plan = plan.model_copy(update=game_probe.scope)
         if activation:
             plan = activation.prepare(runtime, plan)
         installed = install_dovetail(binary, Path(plan.profile_directory))
@@ -419,7 +440,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
                 "database": str(db.path), "objects": str(cas.root), "runtime_id": plan.job_id,
                 "worker_grant": str(output / "worker.json")}), encoding="utf-8")
-            (output / "worker.json").write_text(json.dumps({
+            (output / "worker.json").write_text(json.dumps(game_probe.descriptor if game_probe else {
                 "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
                 "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": plan.campaign_id,
                 "agent_id": plan.agent_id, "epoch": plan.epoch}), encoding="utf-8")
@@ -440,8 +461,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
-            "prompt": ("$learned-crafting " if activation else "") + "Synthetic MCP identity test. Use only the fixed "
-            "synthetic broker and one clean-context native helper."})
+            "prompt": ("Exercise one bounded look action through your scoped game tool and one clean-context helper. "
+                       "The game is real; model responses are scripted for integration verification."
+                       if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
+                       "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
@@ -481,6 +504,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             reserve = ledger(plan, plan.operation_id, parent=None, calls=12,
                 spend=exposure.amount(basis) * 12, pricing=price,
                 inputs=exposure.max_input_tokens * 12, outputs=exposure.max_output_tokens * 12)
+        if native_worker:
+            native_worker.bind(plan)
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
@@ -522,6 +547,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             worker_thread.join(3)
         if canaries:
             canaries.close()
+        if native_worker and native_worker.job:
+            native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
     calls = [json.loads(line) for path in sorted(output.glob("mcp-*.jsonl"))
              for line in path.read_text(encoding="utf-8").splitlines()]
     result = {"schema": "strata/NativeMcpIdentityProbe/1", "is_example": True,
@@ -555,6 +582,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         }
         if bootstrap_mode:
             result["checks"]["provider_clean"] = not provider.errors and 6 <= len(provider.requests) <= 12
+        if game_probe:
+            result["game_integration"] = game_probe.report(db, plan, provider)
+            result["checks"].pop("executor_worker_once")
+            result["checks"].pop("positive_game_return")
+            result["checks"].update(result["game_integration"]["checks"])
         if canaries:
             result["canaries"] = canaries.report(provider.direct_calls,
                 patch_direct_calls=provider.patch_direct_calls, patch_function_calls=provider.patch_function_calls)
@@ -759,6 +791,7 @@ def main():
         root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py",
         root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py",
         root / "src/mcbench/native_admission.py", root / "src/mcbench/native_tool_projection.py",
+        root / "src/mcbench/budgets.py", root / "src/mcbench/authorization.py", root / "src/mcbench/metering_trial.py",
         root / "src/mcbench/inference_dispatch.py",
         root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
         root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",

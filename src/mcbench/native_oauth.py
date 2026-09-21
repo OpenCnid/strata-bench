@@ -13,11 +13,11 @@ import ssl
 import time
 from urllib.parse import urlsplit
 
-from .inference_transport import _ResponsesTransport, strict_json
+from .inference_transport import BUFFERED_SSE_POLICY, _ResponsesTransport, strict_json
 from .native_ingress import NativeIngress, active_binding
 from .storage import require
 
-POLICY = "native-chatgpt-fixed-https-responses/1"
+POLICY = "native-chatgpt-fixed-https-responses/2"
 HOST = "chatgpt.com"
 PATHS = {"/v1/responses": "/backend-api/codex/responses",
          "/v1/responses/compact": "/backend-api/codex/responses/compact"}
@@ -106,6 +106,8 @@ class _SecretFilter:
 
 class NativeOAuthTransport(_ResponsesTransport):
     """Production HTTPS adapter, closed until private exact-profile evidence exists."""
+
+    buffered_sse_policy = BUFFERED_SSE_POLICY
 
     def __init__(self, dispatches, credentials, qualification_ref, *, deadline_s=30):
         require(not dispatches.simulation, "OAUTH_LIVE_STORE_REQUIRED")

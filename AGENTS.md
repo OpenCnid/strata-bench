@@ -20,6 +20,8 @@ D01–D10 carry forward, with D11 clarifying D04: Codex OAuth / `gpt-5.6-luna`, 
 
 Isolation protects benchmark validity: gameplay tools/helpers must not reach hidden criteria, raw server/world state, admin interfaces, credentials or sibling/probe artifacts. Implement and qualify the smallest enforceable boundary on available hardware; a user-supplied VM or exact OAuth-dollar billing proof is not a prerequisite by itself. Tool restrictions or a broker require explicit capability identity and conformance. Separate folders, conversations and non-input desktops do not establish this boundary. Failed isolation blocks affected model runs and release claims, not independent source development. Keep shared-desktop input paused and use prepared separate-desktop facilities only within their documented limits.
 
+D12 authorizes one distinct receipt-only OAuth request capped at $0.7554 while retaining the earlier $0.7554 hold unchanged. It is a one-use exception inside the original $10, not general admission past unknown usage. Check its durable state before dispatch; no replay or rearming. SPEC §15 and the current handoff bind its exact scope and outcome.
+
 ## Start each task with coverage
 
 1. Read MILESTONES.md and the relevant SPEC.md sections before changing implementation. On first implementation work, review the full specification; on subsequent tasks, revisit requirements (section 3), tests/gates (16), roadmap (17), risks (18), traceability (19), and every impacted contract. Inspect applicable instructions in any subtree being edited.

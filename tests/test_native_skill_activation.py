@@ -68,6 +68,29 @@ def test_uncommitted_component_is_not_activation_authority(stopped):
     assert service.db.connection.execute("SELECT count(*) FROM native_skill_sets").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("admitted", ["frozen-persistence", "frozen-skills"], indirect=True)
+@pytest.mark.parametrize("boundary", ["episode", "recovery"])
+def test_frozen_arms_distinguish_episode_reset_from_no_learned_activation(stopped, boundary, tmp_path):
+    runtime, _, _ = stopped
+    publication(stopped)
+    _, state, checkpoint, manifest = stage(stopped, boundary=boundary)
+    fixture = runtime.db.checkpoint_fixture
+    Checkpoints(runtime.db, runtime.cas).commit(fixture["config"], manifest, "operator")
+    before = runtime.budgets.status("a1")
+    service = NativeSkillSets(runtime)
+    body = service.load(service.create(checkpoint))
+    allows_learning = fixture["arm"] == "frozen-persistence" and boundary == "recovery"
+    assert bool(body["skills"]) is allows_learning
+    if boundary == "recovery":
+        retained = runtime.cas.json(OPERATOR, "operator", state.skills)
+        assert "publication_ref" in retained  # Private provenance survives without activation authority.
+    if fixture["arm"] == "frozen-persistence" and boundary == "episode":
+        assert body["workspace"] == fixture["initial"]
+    view = Path(service.materialize(service.create(checkpoint), tmp_path / "view")["path"])
+    assert bool(list(view.glob(".agents/skills/*/SKILL.md"))) is allows_learning
+    assert runtime.budgets.status("a1") == before
+
+
 def test_activation_crash_before_commit_and_view_crash_after_rename(stopped, tmp_path, monkeypatch):
     service, checkpoint = activate(stopped)
     original = service.db.event

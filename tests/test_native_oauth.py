@@ -46,6 +46,36 @@ def wire(**updates):
     return test_inference_transport.stream(test_inference_transport.response(model="gpt-5.6-luna", **updates))
 
 
+@pytest.mark.parametrize("case", ["valid", "truncated", "missing", "wrong_model", "html", "error_status"])
+def test_native_unknown_media_is_withheld_until_complete_receipt(oauth, provider, case):
+    gate, (attempt, reserve, raw, _), c, _, _ = oauth
+    data = wire()
+    if case == "truncated":
+        data = data[:-1]
+    elif case == "missing":
+        data = wire(usage=None)
+    elif case == "wrong_model":
+        data = test_inference_transport.stream(test_inference_transport.response(model="other"))
+    elif case == "html":
+        data = b"<html>upstream error</html>\n"
+    endpoint, requests = provider(data, media="application/octet-stream", status=503 if case == "error_status" else 200)
+    delivered, headers = [], []
+    t = SyntheticOAuthTransport(gate, c, endpoint)
+    def execute():
+        return t.execute("a1", attempt, reserve, raw, on_headers=lambda *v: headers.append(v),
+                         on_chunk=delivered.append)
+    if case == "valid":
+        assert execute()["state"] == "SETTLED"
+        assert headers == [(200, "text/event-stream")] and delivered == [data]
+        assert gate.db.connection.execute("SELECT count(*) FROM outbox WHERE kind='inference.media_normalized'").fetchone()[0] == 1
+    else:
+        with pytest.raises(Fault):
+            execute()
+        assert headers == delivered == []
+        assert gate.status("one")["state"] == "UNSETTLED"
+    assert len(requests) == 1
+
+
 def test_native_header_capture_fixed_forward_and_no_replay(oauth, provider):
     gate, (attempt, reserve, raw, _), c, credential, headers = oauth
     endpoint, requests = provider(wire())

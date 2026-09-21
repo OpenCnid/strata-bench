@@ -159,9 +159,9 @@ class Budgets:
                                   (parent_id,)).fetchone():
                         require(ancestor_op["actual"] is None, "ENVELOPE_CLOSED")
                     parent_id = ancestor_op["parent"]
-            for ancestor in chain:
-                total, uncertain = self.totals(db, ancestor["id"])
-                require(not uncertain, "METERING_UNKNOWN")
+            if any(self.totals(db, ancestor["id"])[1] for ancestor in chain):
+                from .metering_trial import admit_retained_unknowns
+                admit_retained_unknowns(db, account, record, envelope=envelope)
             require(all(amount[k] is not None for k in DIMENSIONS), "METERING_UNKNOWN")
             db.execute("INSERT INTO operations(id,account,parent,kind,reserved) VALUES (?,?,?,?,?)",
                        (record.operation_id, account, record.parent_operation_id, record.kind,

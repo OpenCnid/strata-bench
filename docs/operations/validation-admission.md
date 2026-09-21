@@ -119,6 +119,18 @@ The [closed native settings and writer-file canary](../verification/2026-09-21-n
 
 `validation-2026-09-18:oauth-first-receipt` attempted one real request and is UNSETTLED. Gateway closure is fenced, but `METERING_UNKNOWN` prevents budget closure. The source fix now retains bounded private HTTP rejection diagnostics; it cannot reconstruct the first response. Authenticated model-catalog metadata is not usage and does not authorize releasing the hold. Do not replay, lower the bound from native context defaults, or weaken unknown-metering admission. The original $10 and <=$1 first-trial ceiling persist.
 
+## D12 one-use receipt exception
+
+On September 21 the user approved “Retain the hold and allow one bounded trial” for one distinct receipt request capped at $0.7554, retaining the existing $0.7554 unknown hold. SPEC §15 now names the exact exception to the default halt above. `metering_trial.py` binds the original authority/snapshot/retained rows, current profile and one finite envelope/request; ordinary aggregate checks still apply. Combined maximum exposure is $1.5108 within the original $10. No helper/game grant, old-request replay, refund, general waiver or second request. The runner consumes the private exception durably; inspect its outcome before any later work. Failed boundary and production qualification requirements remain.
+
+D12 is now consumed. One authentic completed Luna receipt was recovered offline
+from its private request-bound capture after native delivery failed. New usage:
+$0.001458 API-equivalent; prior $0.7554 hold unchanged; combined $0.756858.
+No second request, replay, refund or new allowance. The new envelope is finalized,
+but the original hold still blocks general model admission. The changed `/2`
+buffered transport is implemented with focused local tests and remains
+unqualified for another live dispatch. [Outcome and recovery evidence](../verification/2026-09-21-native-oauth-d12.md).
+
 ## Live gameplay trial admission
 
 After both deliverables and applicable game/runtime prerequisites are qualified,

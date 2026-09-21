@@ -152,6 +152,12 @@ class NativeSkillSets:
             require(previous is not None and {p: r for p, r in workspace.items() if p.startswith("active/")}
                     == active_files(previous), "NATIVE_SKILL_SCOPE")
         publication = self.publications.load(retained["publication_ref"]) if retained.get("publication_ref") else None
+        policy = private_json(self.db.connection, self.cas, state.retention_policy)
+        if policy["arm"] == "frozen-skills":
+            # Recovery preserves candidate evidence, not permission to activate
+            # it. This arm forbids learned procedures within an episode too.
+            require(not carried, "NATIVE_FROZEN_SKILLS_ACTIVE")
+            publication = None
         return state, workspace, carried, publication, prior
 
     def create(self, checkpoint_ref):

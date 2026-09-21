@@ -45,6 +45,20 @@ class ActivationProbe:
         require(self.body["is_example"] is True and self.body["campaign_id"] == "c1" and
                 self.body["agent_id"] == "a1" and self.body["source_epoch"] >= 1,
                 "ACTIVATION_FIXTURE_SCOPE")
+        self.reset = not self.body["skills"]
+        self.discarded = {}
+        if self.reset:
+            from mcbench.native_export import OPERATOR
+            state, _ = service.components.load(self.body["checkpoint_ref"])
+            policy = runtime.cas.json(OPERATOR, "operator", state.retention_policy)
+            require(policy["arm"] == "frozen-persistence" and state.boundary == "episode",
+                    "ACTIVATION_FIXTURE_RESET")
+            initial = runtime.cas.json(OPERATOR, "operator", policy["initial_artifacts"])["files"]
+            require(self.body["workspace"] == initial, "ACTIVATION_FIXTURE_RESET")
+            exported = service.publications.exports.load(state.source_export)
+            inventory = runtime.cas.json(OPERATOR, "operator", exported.root_artifacts)
+            self.discarded = {f["path"]: f["ref"] for f in inventory["files"]
+                              if initial.get(f["path"]) != f["ref"]}
         self.before = runtime.budgets.status("a1")
         require(not self.before["uncertain"], "METERING_UNKNOWN")
         self.limits = runtime.db.connection.execute("SELECT limits FROM accounts WHERE id='a1'").fetchone()[0]
@@ -71,9 +85,14 @@ class ActivationProbe:
         else:
             calls += [("artifact_read", {"path": p}) for p in (
                 "notes/root.md", "notes/development.md", "skills/publish.json", "handoff/next.md")]
+        if self.reset and agent == "/root":
+            calls += [("artifact_read", {"path": p}) for p in sorted(self.discarded)
+                      if not p.startswith("active/")]
         return calls
 
     def publish_code(self):
+        if self.reset:
+            return ""  # A fresh frozen episode begins with only its initial tree.
         previous = self.body["skills"]["learned-crafting"]["revision"]["revision_id"]
         require(previous.startswith("learned-crafting:") and previous.rsplit(":", 1)[1].isdigit(),
                 "ACTIVATION_FIXTURE_REVISION")
@@ -124,19 +143,36 @@ text({native_publication:await artifact("artifact_write",{path:"skills/publish.j
                     if parsed != value:
                         yield from values(parsed)
         per_agent = {}
+        returned = []
         for path in self.output.glob("dispatch-*-request.json"):
             body = json.loads(path.read_bytes())
             name = json.loads(body["client_metadata"]["x-codex-turn-metadata"])["agent_name"]
             outputs = [i for i in body.get("input", []) if i.get("type") in {"custom_tool_call_output", "function_call_output"}]
-            per_agent.setdefault(name, {}).update({v["path"]: v for v in values(outputs)})
+            items = list(values(outputs))
+            returned.extend((name, v) for v in items)
+            per_agent.setdefault(name, {}).update({v["path"]: v for v in items})
         wanted = {p: r for p, r in active_files(self.body).items() if "learned-crafting/" in p or p == "active/revisions.json"}
         checks = {}
         from native_plugin_probe import text_content
         initial = db.connection.execute("SELECT a.raw_ref FROM native_request_admissions a JOIN native_participants p "
             "ON p.job=a.job AND p.thread=a.thread WHERE a.job=? AND p.depth=0 ORDER BY a.rowid LIMIT 1", (plan.job_id,)).fetchone()
-        expected = self.runtime.cas.read(OPERATOR, "operator", self.body["skills"]["learned-crafting"]["files"]["SKILL.md"]).decode()
-        checks["native_explicit_body_injection"] = bool(initial) and expected.strip() in text_content(json.loads(
-            self.runtime.cas.read(OPERATOR, "operator", initial[0], max_bytes=1024*1024))).replace("\r\n", "\n")
+        if self.reset:
+            starts = list(db.connection.execute("SELECT a.raw_ref FROM native_request_admissions a "
+                "WHERE a.job=? AND a.rowid=(SELECT min(b.rowid) FROM native_request_admissions b "
+                "WHERE b.job=a.job AND b.thread=a.thread)", (plan.job_id,)))
+            # Compare actual first native contexts, before newly permitted writes.
+            forbidden = [self.runtime.cas.read(OPERATOR, "operator", ref).decode().strip()
+                         for path, ref in self.discarded.items() if path.endswith("SKILL.md")]
+            checks["frozen_initial_contexts_no_learned_bodies"] = len(starts) == 2 and bool(forbidden) and all(
+                all(value not in text_content(json.loads(self.runtime.cas.read(OPERATOR, "operator", row[0],
+                    max_bytes=1024*1024))).replace("\r\n", "\n") for value in forbidden) for row in starts)
+            checks["frozen_discarded_values_not_returned"] = bool(self.discarded) and not any(
+                self.discarded.get(value["path"]) == value["ref"] for _, value in returned)
+            checks["frozen_initial_tree_restored"] = self.reset and "notes/seed.md" in per_agent.get("/root", {})
+        else:
+            expected = self.runtime.cas.read(OPERATOR, "operator", self.body["skills"]["learned-crafting"]["files"]["SKILL.md"]).decode()
+            checks["native_explicit_body_injection"] = bool(initial) and expected.strip() in text_content(json.loads(
+                self.runtime.cas.read(OPERATOR, "operator", initial[0], max_bytes=1024*1024))).replace("\r\n", "\n")
         for name in ("/root", "/root/identity_child"):
             reads = per_agent.get(name, {})
             checks[name + "_unchanged_active_reads"] = all(p in reads and reads[p]["ref"] == ref and
@@ -147,15 +183,16 @@ text({native_publication:await artifact("artifact_write",{path:"skills/publish.j
             "JOIN broker_files f ON json_extract(g.body,'$.namespace')=f.namespace WHERE g.runtime=?", (plan.job_id,)))
         checks["active_bytes_still_immutable"] = all(r["immutable"] == 1 and
             active_files(self.body).get(r["path"]) == r["ref"] for r in rows if r["path"].startswith("active/"))
-        checks["native_candidate_written"] = any(r["path"] == "skills/publish.json" and
+        checks["frozen_no_candidate_written" if self.reset else "native_candidate_written"] = (not any(
+            r["path"] == "skills/publish.json" for r in rows) if self.reset else any(r["path"] == "skills/publish.json" and
             self.runtime.cas.read(OPERATOR, json.loads(r["body"])["namespace"], r["ref"]).find(
-                getattr(self, "next_revision", "MISSING_REVISION").encode()) >= 0 for r in rows)
+                getattr(self, "next_revision", "MISSING_REVISION").encode()) >= 0 for r in rows))
         checks["original_allowance_preserved"] = db.connection.execute("SELECT limits FROM accounts WHERE id='a1'").fetchone()[0] == self.limits
         settled = db.connection.execute("SELECT count(*) FROM inference_attempts "
             "WHERE json_extract(request,'$.runtime_job_id')=? AND state='SETTLED'", (plan.job_id,)).fetchone()[0]
         checks["prior_usage_preserved_once"] = self.runtime.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == (
             self.before["committed_and_reserved"]["spend_microusd"] + 14 * settled)
-        return {"source": self.source, "skill_set_ref": self.ref, "before": self.before,
+        return {"source": self.source, "skill_set_ref": self.ref, "before": self.before, "frozen_reset": self.reset,
                 "settled_native_calls": settled,
                 "returned_paths": {k: sorted(v) for k, v in per_agent.items()}, "checks": checks,
                 "production_qualified": False}

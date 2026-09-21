@@ -19,6 +19,7 @@ from .records import BudgetLedger
 from .storage import Principal, require
 
 MAX_RESPONSE_BYTES = 256 * 1024
+BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
 
 
 def strict_json(raw):
@@ -102,18 +103,30 @@ class ResponsesUsage:
         usage = response.get("usage")
         require(isinstance(usage, dict) and set(usage) <= {
             "input_tokens", "output_tokens", "total_tokens", "input_tokens_details",
-            "output_tokens_details"}, "AUTHORITATIVE_USAGE_REQUIRED")
+            "output_tokens_details", "attribution"}, "AUTHORITATIVE_USAGE_REQUIRED")
         inputs, outputs = count(usage.get("input_tokens")), count(usage.get("output_tokens"))
         details = usage.get("input_tokens_details")
         out_details = usage.get("output_tokens_details")
-        require(isinstance(details, dict) and set(details) == {"cached_tokens"} and
+        require(isinstance(details, dict) and set(details) in (
+                    {"cached_tokens"}, {"cached_tokens", "cache_write_tokens"}) and
                 isinstance(out_details, dict) and set(out_details) == {"reasoning_tokens"},
                 "USAGE_SEMANTICS_UNSUPPORTED")
         cached, reasoning = count(details["cached_tokens"]), count(out_details["reasoning_tokens"])
+        writes = count(details["cache_write_tokens"]) if "cache_write_tokens" in details else None
+        from .native_usage import validate_no_hosted_usage
+        validate_no_hosted_usage(response.get("tool_usage"))
+        require(cached + (writes or 0) <= inputs, "USAGE_TOTAL_MISMATCH")
+        if "attribution" in usage:
+            from .native_usage import validate_attribution
+            require(writes is not None, "USAGE_ATTRIBUTION_UNSUPPORTED")
+            validate_attribution(usage["attribution"], {"input_tokens": inputs, "output_tokens": outputs,
+                "cached_tokens": cached, "cache_write_tokens": writes})
         require(cached <= inputs and reasoning <= outputs and
                 count(usage.get("total_tokens")) == inputs + outputs, "USAGE_TOTAL_MISMATCH")
         receipt = {"event": event, "input_tokens": inputs, "cached_input_tokens": cached,
                    "output_tokens": outputs, "reasoning_tokens": reasoning, "model_calls": 1}
+        if writes is not None:
+            receipt["cache_write_tokens"] = writes
         require(self.receipt is None or self.receipt == receipt, "CONFLICTING_USAGE_RECEIPT")
         self.receipt = receipt
 
@@ -230,7 +243,10 @@ class _ResponsesTransport:
                 require(response.getheader("Content-Encoding", "identity") == "identity",
                         "RESPONSE_ENCODING")
                 supported = media in {"application/json", "text/event-stream"}
-                capture = ResponsesUsage(reserve.model_identity, media) if supported else RejectedResponseCapture()
+                buffered_sse = (not supported and response.status == 200 and
+                                getattr(self, "buffered_sse_policy", None) == BUFFERED_SSE_POLICY)
+                capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream") if (
+                    supported or buffered_sse) else RejectedResponseCapture()
                 if supported:
                     on_headers(response.status, media)
                 while not response.isclosed():
@@ -251,12 +267,24 @@ class _ResponsesTransport:
                     if supported:
                         on_chunk(safe)
                 observed = capture.finish()
+                if buffered_sse:
+                    # Only the fixed native adapter opts in. Withhold the entire
+                    # bounded body until strict framing, scope and usage pass;
+                    # errors/HTML/partial output never reach the native runtime.
+                    with self.gate.db.transaction() as db:
+                        self.gate.db.event(db, "inference.media_normalized", {
+                            "operation_id": reserve.operation_id, "policy": BUFFERED_SSE_POLICY,
+                            "raw_sha256": hashlib.sha256(capture.raw).hexdigest(),
+                            "simulation": self.gate.simulation})
+                    on_headers(200, "text/event-stream")
+                    on_chunk(bytes(capture.raw))
                 event = observed.pop("event")
+                writes = observed.pop("cache_write_tokens", None)
                 # Cached input and reasoning output are subsets, never added twice.
                 if basis:
                     tokens = TokenUsage.model_validate({k: observed[k] for k in (
                         "input_tokens", "cached_input_tokens", "output_tokens", "reasoning_tokens")}
-                        | {"model": reserve.model_identity, "cache_write_tokens": None})
+                        | {"model": reserve.model_identity, "cache_write_tokens": writes})
                     spend = basis.estimate(tokens)
                 else:
                     spend = ((observed["input_tokens"] - observed["cached_input_tokens"]) *

@@ -150,6 +150,8 @@ class NativeCheckpointStates:
         initial = InitialArtifacts.model_validate(private_json(db, self.cas, policy.initial_artifacts)).files
         inventory = private_json(db, self.cas, state.root_artifacts)
         current = {x["path"]: x["ref"] for x in inventory["files"]}
+        require(policy.arm != "frozen-skills" or not any(p.startswith("active/") and p != "active/revisions.json"
+            for p in current), "NATIVE_FROZEN_SKILLS_ACTIVE")
         check_files(self.cas, initial)
         check_files(self.cas, current, inventory["namespace"], "executor")
         def immutable(path):

@@ -286,6 +286,20 @@ class CraftReferenceStore:
             "telemetry_authentication_verified": True, "scoring_eligible": False,
             "scoring_authority_qualified": False, "setup_mechanics_qualified": False,
             "launch_ownership_qualified": False, "gate_result": "not_run"}
+        # Legacy source-only references retain their original report shape.
+        # A tracked dispatch may not be replaced by that weaker path after an
+        # uncertain launch, failed identity binding or incomplete stop.
+        if self.database.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                                            "AND name='reference_dispatches'").fetchone():
+            dispatch = self.database.connection.execute("SELECT * FROM reference_dispatches WHERE instance=?",
+                                                         (instance,)).fetchone()
+            if dispatch:
+                body = strict_json(dispatch["body"])
+                require(dispatch["state"] == "STOPPED" and body.get("launch_binding_verified") is True
+                        and body.get("spool_sha256") == report["file_sha256"]
+                        and body.get("binding", {}).get("native_observation") == report.get("launch_identity"),
+                        "CRAFT_LAUNCH_UNQUALIFIED")
+                result.update(launch_binding_verified=True, launch_plan_digest=body["plan_digest"])
         with self.database.transaction() as db:
             old = db.execute("SELECT * FROM craft_reference_imports WHERE instance=?", (instance,)).fetchone()
             if old:

@@ -148,6 +148,28 @@ class WindowsJob:
             signaled += result == 0
         return {"held_processes": len(self.members), "signaled_processes": signaled}
 
+    def member_identity(self, pid):
+        """Describe a retained job-member handle, never trust a reused PID alone."""
+        import ctypes
+        from ctypes import wintypes
+        require(pid in self.members, "PROCESS_MEMBER_UNOBSERVED")
+        handle = self.members[pid]
+        query = self.kernel.QueryFullProcessImageNameW
+        query.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+        query.restype = wintypes.BOOL
+        size = wintypes.DWORD(32768)
+        name = ctypes.create_unicode_buffer(size.value)
+        require(bool(query(handle, 0, name, ctypes.byref(size))), "PROCESS_IDENTITY_UNAVAILABLE")
+        times = self.kernel.GetProcessTimes
+        times.argtypes = [wintypes.HANDLE, *([ctypes.POINTER(wintypes.FILETIME)] * 4)]
+        times.restype = wintypes.BOOL
+        created, exited, kernel, user = (wintypes.FILETIME() for _ in range(4))
+        require(bool(times(handle, ctypes.byref(created), ctypes.byref(exited),
+                           ctypes.byref(kernel), ctypes.byref(user))), "PROCESS_IDENTITY_UNAVAILABLE")
+        ticks = created.dwHighDateTime << 32 | created.dwLowDateTime
+        return {"pid": pid, "executable": str(Path(name.value).resolve()),
+                "process_started_unix_ms": ticks // 10000 - 11644473600000}
+
     def close(self):
         if self.handle:
             self.kernel.CloseHandle(self.handle)

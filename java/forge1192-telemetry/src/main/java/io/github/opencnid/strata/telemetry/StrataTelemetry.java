@@ -25,6 +25,8 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.fml.ModList;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /** No channels, commands, packets, world setters, or fixture definitions. */
@@ -52,7 +54,7 @@ public final class StrataTelemetry {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.3");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.4");
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
@@ -61,7 +63,11 @@ public final class StrataTelemetry {
             boot.add("config_queries", queries);
             boot.addProperty("craft_capture_policy",CraftCapture.POLICY);
             boot.add("craft_capture_support",CraftCapture.support());
-            emit("server_started", "strata/ServerStarted/4", boot, new JsonArray());
+            boot.add("launch_identity", LaunchIdentity.observe(FMLPaths.GAMEDIR.get(),
+                event.getServer().getWorldPath(LevelResource.ROOT),
+                ModList.get().getModFileById("strata_telemetry").getFile().getFilePath(),
+                event.getServer().usesAuthentication(), event.getServer().getPort()));
+            emit("server_started", "strata/ServerStarted/5", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();

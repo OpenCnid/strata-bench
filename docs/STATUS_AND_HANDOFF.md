@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 20, 2026. Operator-only. [SPEC v0.2.69](../SPEC.md)
+Updated September 20, 2026. Operator-only. [SPEC v0.2.70](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -78,7 +78,9 @@ M0.2c.3a now passes the narrow authentic dedicated reference: distinct protected
 
 M0.2c.3b.1 now implements [private fixture seals and the authenticated craft reference join](verification/2026-09-20-craft-reference-seal.md). `craft_reference.py` verifies/preserves complete fixture/supporting bytes, binds the plan into authority v2, reserves one launch and imports a signed complete stream against roster/recipe/tick-window checks. Identical imports are idempotent; changed/missing evidence and reused grants reject. 133 affected Python checks, final 35 reference checks, 20 Java tests, package exclusion and the actual synthetic CLI/JVM flow pass. No protected score, Minecraft/model dispatch or new allowance.
 
-Next M0.2c.3b.2 must bind this one-use reservation to an owned server launcher, exact game directory/configuration/artifacts and actual process. Preflight alone does not prove which world starts or exclude concurrent writers; keep uncertain intents without replay. Then .3b.3 needs native setup/admin/mode/pack-team facts and authentic joint controls/parity. The registered benchmark roster is not FTB Teams evidence; verified supporting bytes are not an automatic setup-validity assertion. Raw/candidate witnesses remain unscorable. The online telemetry API and full recovery remain open. Preserve all original failures and the $0.7554 unknown-usage hold; no model replay/refund or unchanged accounting/stream trial.
+M0.2c.3b.2 now implements the [owned reference launcher](verification/2026-09-20-reference-launch.md). Source/JVM faults pass 104 affected Python + 3 admission checks and 22 Java tests. The actual Forge CLI reference binds native process/world/module identity to retained OS handles, terminates all six members normally and preserves 13 signed records / 207 sampled ticks. All 18,226 original source files remain unchanged; the independent 19-check audit passes. Only .3b.2a's named launch reference is verified, with no scoring or guardian qualification. Preserve the separate private bundle `2026-09-20-reference-launch-live-01`, telemetry 0.3.4 and fresh stopped clone `e9e-owned-reference-01` on loopback 25570; do not reuse its grant or restore it over an earlier instance.
+
+Next .3b.3 needs native setup/admin/mode/pack-team facts and authentic joint controls/parity; .3b.2b must exclude concurrent mutable-world/config writers. Immutable software leases and native world paths alone do not prove that ownership. The registered benchmark roster is not FTB Teams evidence; verified supporting bytes are not an automatic setup-validity assertion. Raw/candidate witnesses remain unscorable. The online telemetry API and full recovery remain open. Preserve all original failures and the $0.7554 unknown-usage hold; no model replay/refund or unchanged accounting/stream/launch trial.
 
 ## Settled authority and limits
 

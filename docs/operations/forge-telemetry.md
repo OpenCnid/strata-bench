@@ -29,7 +29,8 @@ configuration versions 1/2 labeled unauthenticated when replaying old evidence.
 
 The private [craft reference seal](private-scoring.md#sealed-craft-reference-inputs)
 issues authority schema 2, binding its preserved setup digest into the same
-opaque authority fingerprint. The Java module/configuration stays at 0.3.3/3.
+opaque authority fingerprint. That seal was introduced with module 0.3.3 and
+configuration 3; module 0.3.4 retains configuration 3 and adds native launch identity.
 Plain authority schema 1 remains valid for historical stream inspection but
 cannot be attached retroactively to a sealed craft reference.
 
@@ -221,3 +222,34 @@ selectors and preserves absent/failed observations, but its result does not
 authenticate same-user files, qualify a pack lock, prove cached consumer effects
 or admit scores. Dedicated server 0.3.2 retains `ServerStarted/4`; the importer
 continues accepting 0.3.1 with its original payload and witness requirements.
+
+## Owned sealed reference launch
+
+Telemetry 0.3.4 adds `ServerStarted/5` and native process/world/module identity.
+Use a fresh private `PrivateCraftReferencePlan/1` seal and a
+`PrivateReferenceLaunch/1` plan. The launcher performs preflight itself: do not
+consume the one-use reservation in a separate preflight command first.
+
+```powershell
+$env:PYTHONPATH='src;evaluator/src'
+.\.venv\Scripts\python.exe -m strata_evaluator.reference_launch `
+  --database <absolute-private-database.sqlite> --plan <absolute-private-launch-plan.json>
+```
+
+The Windows production mode is `e9e-serverstarter`. It admits only the reviewed
+bootstrap/configuration hashes in `reference_launch.py`, existing EULA acceptance,
+loopback online-mode properties, pinned executable/module and complete immutable
+JRE/mod/library/server-script/startup-script trees. Include the running Python
+executable and `src/mcbench/process_bootstrap.py` in the pins. The evidence
+directory must be fresh and outside game/authority roots. Private plans,
+databases, archives, keys and spools must stay outside public source and gameplay
+access. `synthetic-fixture` mode is restricted to a synthetic setup and is not
+an alternate production launch command.
+
+The bounded run binds the signed native identity to retained Job Object handles,
+sends `stop` once, and retains complete logs and terminal/uncertain dispatch
+state. Never retry a consumed or uncertain instance. Inspect a stopped run with
+the existing craft-reference importer; tracked failed launches cannot bypass
+their dispatch state. `launch_binding_verified` does not imply scoring,
+mutable-world/config writer exclusion, full process isolation or recovery.
+See [verification and limitations](../verification/2026-09-20-reference-launch.md).

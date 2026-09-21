@@ -13,7 +13,7 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
-from mcbench.contracts import Id, Name, Strict, UInt
+from mcbench.contracts import Digest, Id, Name, Strict, UInt
 from mcbench.records import GameEvent
 from mcbench.storage import Fault, reject_links, require
 
@@ -74,6 +74,24 @@ class ServerStartedV4(ServerStartedV3):
                     "strata-forge1192-telemetry/0.3.3"]
     craft_capture_policy: Literal["server-result-pickup-fastbench-bound/2"]
     craft_capture_support: CraftCaptureSupport
+
+
+class LaunchIdentity(Strict):
+    policy: Literal["native-server-launch-observation/1"]
+    pid: int = Field(ge=1, le=4294967295)
+    process_started_unix_ms: int = Field(gt=0, le=9007199254740991)
+    executable: str = Field(min_length=1, max_length=32768)
+    game_directory: str = Field(min_length=1, max_length=32768)
+    world_directory: str = Field(min_length=1, max_length=32768)
+    module_file: str = Field(min_length=1, max_length=32768)
+    module_sha256: Digest
+    online_mode: bool
+    server_port: int = Field(ge=1, le=65535)
+
+
+class ServerStartedV5(ServerStartedV4):
+    module: Literal["strata-forge1192-telemetry/0.3.4"]
+    launch_identity: LaunchIdentity
 
 
 class RecipeSnapshot(Strict):
@@ -170,7 +188,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version2 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/2"
             version3 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/3"
             version4 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/4"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4),
+            version5 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/5"
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -179,10 +198,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                         "TELEMETRY_START_MISSING")
                 boot = event.server_boot_id
                 if authentication is not None:
-                    require(version4 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.3",
+                    require((version4 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.3")
+                            or (version5 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.4"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = (("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -197,9 +217,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
             parsed = (startup_model if event.kind == "server_started" else PAYLOADS[event.kind]).model_validate(data)
-            if version2 or version3 or version4:
+            if version5:
+                startup_identity = parsed.launch_identity.model_dump()
+            if version2 or version3 or version4 or version5:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4:
+            if version3 or version4 or version5:
                 craft_policy = parsed.craft_capture_policy
             if event.kind == "config_snapshot":
                 name = parsed.file_name
@@ -276,6 +298,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             "gate_result": "not_run"}
     if authentication is not None:
         report["authentication"] = authentication.receipt(boot, count)
+    if startup_model is ServerStartedV5:
+        report["launch_identity"] = startup_identity
     return report
 
 

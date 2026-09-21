@@ -261,6 +261,32 @@ game, authority and launcher evidence directories. The complete participant
 window must fit within `max_wall_s` (still at most 600) after boot; otherwise the
 one-use run fails without publishing readiness. Version 1 is unchanged.
 
+Production E9E version-2 launches also require `--client-binding PRIVATE.json`.
+Build a strict `PrivateReferenceClientBinding/1` from the sealed setup and
+registered launch, not by copying a historical loose client manifest. Register
+instance/campaign/epoch, agent/actor/native team, participant, numeric loopback
+port, independent endpoint-plus-actor body digest, module/fixture pins, declared
+supplied inputs, client/worker/terminal limits and primitive cap. Its endpoint
+policy is `installed-cli-resolved-loopback/1`; other launch/address policies
+need separate conformance. The driver must consume those values and still
+compare actual native identity before actions. Preflight consistency is not
+proof that a client ran or stopped correctly.
+
+Run the read-only check before dispatch:
+
+```powershell
+python -m strata_evaluator.reference_client --binding PRIVATE.json --setup SETUP.json --launch LAUNCH.json --output NEW-CHECK.json
+```
+
+All paths are private and the output must be fresh. The launcher requires the
+binding before consuming its one-use reservation, retains its digest/bytes and
+rechecks declared hashes under held file leases. Synthetic v2 and headless v1
+reject this argument. Preserve historical failures without updating their seals.
+The [first actual client reference](../verification/2026-09-20-reference-client-binding.md)
+failed before actions because of stale endpoint identity; its consumed grant
+cannot be reused. A new reference must have fresh identity/lineage and a clean
+registration, preserving current inventory and declared setup interventions.
+
 Wait for the atomically published `participant-ready.json` in the private launch
 evidence directory. Before dispatching the client, validate
 `ReferenceParticipantReady/1` and compare instance, setup, complete launch-plan

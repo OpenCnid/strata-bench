@@ -141,7 +141,7 @@ class ReferenceLauncher:
                        (state, canonical(body).decode(), instance))
             self.database.event(db, "private.reference_dispatch", {"instance": instance, "state": state, **body})
 
-    def run(self, value):
+    def run(self, value, *, client_binding=None):
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
         plan = parse_launch_plan(value)
         row, setup, authority, authority_path = self.store._load(plan.instance_id)
@@ -154,11 +154,20 @@ class ReferenceLauncher:
                 and not game.is_relative_to(evidence) and not evidence.is_relative_to(authority_path.parent),
                 "REFERENCE_EVIDENCE_PATH")
         coordinated = isinstance(plan, ReferenceLaunchPlanV2)
+        binding = None
         if coordinated:
             require(plan.participant.window_s <= plan.max_wall_s, "REFERENCE_DEADLINE")
             validate_paths(plan.participant, evidence, game, authority_path.parent)
+            if plan.mode == "e9e-serverstarter":
+                require(client_binding is not None, "REFERENCE_CLIENT_BINDING_REQUIRED")
+                from .reference_client import ClientReferenceBinding, validate_client_binding
+                binding = ClientReferenceBinding.model_validate(client_binding)
+                validate_client_binding(binding, setup, plan)
+            else:
+                require(client_binding is None, "REFERENCE_CLIENT_PROFILE")
         else:
             require(plan.ready_run_s <= plan.max_wall_s, "REFERENCE_DEADLINE")
+            require(client_binding is None, "REFERENCE_CLIENT_PROFILE")
         pinned = {str(Path(pin.path).resolve()).casefold() for pin in plan.immutable_files}
         bootstrap = Path(__file__).resolve().parents[3] / "src/mcbench/process_bootstrap.py"
         require(all(str(path.resolve()).casefold() in pinned for path in
@@ -193,6 +202,8 @@ class ReferenceLauncher:
             body = {"schema": "strata/PrivateReferenceDispatch/1", "plan_digest": digest(plan.model_dump(by_alias=True)),
                     "evidence_kind": setup.evidence_kind, "status": "intent", "launch_binding_verified": False,
                     "scoring_eligible": False, "started_unix": time.time()}
+            if binding is not None:
+                body["client_binding_digest"] = digest(binding.model_dump(by_alias=True))
             db.execute("INSERT INTO reference_dispatches VALUES (?,?,?,?)",
                        (plan.instance_id, canonical(plan.model_dump(by_alias=True)).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.reference_dispatch", {"instance": plan.instance_id, **body})
@@ -214,8 +225,17 @@ class ReferenceLauncher:
                 "recipe_ids": list(setup.recipe_digests), "config_queries": [], "authentication": authority.producer_config()}
             write_new(config_path, config)
             write_new(evidence / "launch-plan.json", plan.model_dump(by_alias=True))
+            binding_files = []
+            if binding is not None:
+                write_new(evidence / "client-binding.json", binding.model_dump(by_alias=True))
+                binding_files = [evidence / "client-binding.json", Path(binding.fixture_declaration.path)]
             lease = FileLease(inventory_for(plan, [config_path, authority_path,
-                authority_path.with_name("setup.json"), Path(authority.key_file), evidence / "launch-plan.json"]))
+                authority_path.with_name("setup.json"), Path(authority.key_file), evidence / "launch-plan.json",
+                *binding_files]))
+            if binding is not None:
+                # Revalidate the declared hashes while the exact module/declaration
+                # handles deny writes; a preflight-to-lease change is not accepted.
+                validate_client_binding(binding, setup, plan)
             environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "TEMP", "TMP") if key in os.environ}
             environment.update(JAVA_HOME=str(Path(plan.executable.path).parent.parent),
                 PATH=str(Path(plan.executable.path).parent) + os.pathsep + str(Path(os.environ["SystemRoot"]) / "System32"),
@@ -348,11 +368,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", required=True, type=Path)
     parser.add_argument("--plan", required=True, type=Path)
+    parser.add_argument("--client-binding", type=Path)
     args = parser.parse_args()
     plan = strict_json(private_read(args.plan, 8 * 1024**2))
+    binding = strict_json(private_read(args.client_binding, 1024**2)) if args.client_binding else None
     database = Database(private_path(args.database))
     try:
-        result = ReferenceLauncher(CraftReferenceStore(database)).run(plan)
+        result = ReferenceLauncher(CraftReferenceStore(database)).run(plan, client_binding=binding)
         print(json.dumps(result))
         return 0 if result["status"] == "stopped_reference" else 1
     finally:

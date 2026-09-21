@@ -215,3 +215,20 @@ def test_boot_cannot_silently_shorten_registered_participant_window(launch, tmp_
     assert not (Path(plan["evidence_directory"]) / "participant-ready.json").exists()
     with pytest.raises(Fault):
         launcher.run(plan)
+
+
+def test_actual_pack_participant_requires_explicit_client_registration_before_reservation(launch, tmp_path):  # noqa: F811
+    launcher, original, _ = launch
+    plan = coordinated(original, tmp_path)
+    plan.update(mode="e9e-serverstarter", fixture_arguments=[])
+    with pytest.raises(Fault, match="REFERENCE_CLIENT_BINDING_REQUIRED"):
+        launcher.run(plan)
+    assert launcher.database.connection.execute("SELECT COUNT(*) FROM craft_reference_launches").fetchone()[0] == 0
+
+
+def test_synthetic_or_legacy_profile_cannot_silently_accept_real_client_binding(launch, tmp_path):  # noqa: F811
+    launcher, original, _ = launch
+    for plan in (original, coordinated(original, tmp_path)):
+        with pytest.raises(Fault, match="REFERENCE_CLIENT_PROFILE"):
+            launcher.run(plan, client_binding={})
+    assert launcher.database.connection.execute("SELECT COUNT(*) FROM craft_reference_launches").fetchone()[0] == 0

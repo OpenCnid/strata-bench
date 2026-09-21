@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import tempfile
+from contextlib import nullcontext
 from pathlib import Path
 
 from .records import CampaignConfig, CheckpointManifest, PackLock
@@ -130,7 +131,7 @@ class Checkpoints:
             self.database.event(db, "checkpoint.committed", body)
         return committed
 
-    def load(self, checkpoint_id):
+    def load(self, checkpoint_id, *, _native=None):
         row = self.database.connection.execute("SELECT * FROM checkpoints WHERE id=?",
                                                (checkpoint_id,)).fetchone()
         require(row is not None, "CHECKPOINT_MISSING")
@@ -138,9 +139,9 @@ class Checkpoints:
         require(digest({k: v for k, v in body.items() if k != "manifest_digest"}) == row["digest"] ==
                 body["manifest_digest"], "CORRUPT_EVIDENCE")
         manifest = CheckpointManifest.model_validate(body)
-        native = self._native_components(manifest, row["namespace"])
+        native = _native or self._native_components(manifest, row["namespace"])
         if native:
-            with self.database.transaction():
+            with (nullcontext(self.database.connection) if self.database.connection.in_transaction else self.database.transaction()):
                 for agent in manifest.agents:
                     native.validate_snapshot(manifest, agent, row["namespace"])
         return manifest, row["namespace"]
@@ -223,6 +224,11 @@ class Checkpoints:
                         self.cas.copy_to(OPERATOR, namespace, ref, private / (field + ".json"))
                         copied[directory + "/private/" + field + ".json"] = ref
                 skill_part = self.cas.json(OPERATOR, "operator", state.skills)
+                if activation_ref := skill_part.get("activation_ref"):
+                    from .native_skill_activation import read_set
+                    read_set(self.database.connection, self.cas, activation_ref)
+                    self.cas.copy_to(OPERATOR, "operator", activation_ref, private / "active_skills.json")
+                    copied[directory + "/private/active_skills.json"] = activation_ref
                 if publication_ref := skill_part.get("publication_ref"):
                     publication = native.publications.load(publication_ref)
                     self.cas.copy_to(OPERATOR, "operator", publication_ref, private / "skill_candidates.json")

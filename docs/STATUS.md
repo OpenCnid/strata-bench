@@ -1,6 +1,6 @@
 # Strata current status
 
-Latest M0 implementation: [Pinned skill support and learned candidate capture](verification/2026-09-21-native-skills.md) now projects 90 unchanged supporting files from the installed Dovetail pin, records root write provenance, atomically publishes complete private candidate bundles and preserves them through exact checkpoint retention/materialization. 161 affected tests passed before final review; final 69 revision/checkpoint and 20 storage tests pass, plus 9 fresh-process synthetic checks. A real Windows long-path failure was fixed and retained. No new native/model/game run. Active lineage, native skill activation and fresh scoped restoration remain open. Original $0.7554 hold and all M0/G0 failures remain; G1–G5 not_run.
+Latest M0 implementation: [Checkpoint-bound learned skill activation](verification/2026-09-21-native-activation.md) now implements private atomic active sets, held native loader views, explicit helper supply, pre-reservation catalog guards and versioned parent lineage. Source tests pass; the pinned CLI passes 16 metadata checks on the final view with zero provider requests. Actual native invocation, second-generation lineage/retention and scoped runtime restoration remain unqualified. Original $0.7554 hold and every prior M0/G0 failure remain; G1–G5 not_run.
 
 Updated September 21, 2026. Operator-only. This is a navigation summary;
 [MILESTONES.md](../MILESTONES.md) is the authoritative progress ledger and

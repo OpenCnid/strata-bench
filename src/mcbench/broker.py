@@ -207,7 +207,7 @@ class NativeBroker:
         """Copy explicitly admitted public/agent bytes; never resolve a caller path."""
         path = self._path(path)
         g, _ = self._grant(self.db.connection, thread)
-        require(path.split("/", 1)[0] in {"initial", "docs", "supplied"}, "BROKER_PROJECTION")
+        require(path.split("/", 1)[0] in {"initial", "docs", "supplied", "active"}, "BROKER_PROJECTION")
         require(isinstance(text, str), "BROKER_PROJECTION")
         ref = self.cas.put(Principal(g.namespace, "executor"), g.namespace, "agent",
                            text.encode("utf-8"), media_type="text/plain")

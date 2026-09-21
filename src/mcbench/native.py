@@ -66,6 +66,9 @@ class NativeLaunch(Strict):
     gateway_config_digest: Digest | None = None
     tool_projection_ref: Ref | None = None
     tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1"] | None = None
+    # Exclude absent extension fields so historical plan/source hashes survive.
+    skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -95,6 +98,9 @@ class NativeLaunch(Strict):
             body["tool_projection_ref"] = self.tool_projection_ref
         if self.tool_catalog_policy is not None:
             body["tool_catalog_policy"] = self.tool_catalog_policy
+        if self.skill_activation_ref is not None or self.helper_skill_activation_ref is not None:
+            body["skill_activation"] = {"policy": "native-checkpoint-learned-overlay/1",
+                "root": self.skill_activation_ref, "helpers": self.helper_skill_activation_ref}
         return digest(body)
 
 
@@ -224,6 +230,11 @@ class NativeExec:
         require((plan.bootstrap_manifest is None) == (plan.bootstrap_digest is None), "BOOTSTRAP_REQUIRED")
         if plan.bootstrap_digest is not None:
             require(plan.broker_policy is not None, "BOOTSTRAP_BROKER_REQUIRED")
+        require(plan.helper_skill_activation_ref is None or plan.helper_skill_activation_ref == plan.skill_activation_ref,
+                "NATIVE_SKILL_SCOPE")
+        if plan.skill_activation_ref is not None:
+            from .native_skill_activation import NativeSkillSets
+            NativeSkillSets(self).validate_launch(plan)
         if not self.simulation and plan.broker_policy is not None:
             require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
             require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")

@@ -180,7 +180,11 @@ class NativeGateway:
             NativeAdmission(db, cas)
             if config.skill_corpus_ref:
                 from .native_skills import instructions_for_corpus, validate_skill_bootstrap
-                require(plan.config_overrides.get("developer_instructions") == instructions_for_corpus(cas, config.skill_corpus_ref),
+                from .native_skill_activation import INSTRUCTIONS
+                expected = instructions_for_corpus(cas, config.skill_corpus_ref)
+                if plan.skill_activation_ref:
+                    expected += INSTRUCTIONS
+                require(plan.config_overrides.get("developer_instructions") == expected,
                         "SKILL_INSTRUCTIONS_MISMATCH")
                 validate_skill_bootstrap(cas, config.skill_corpus_ref, plan)
             basis = EstimateBasis.model_validate_json(gate._private_ref(config.pricing_ref, 65536))

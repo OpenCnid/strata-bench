@@ -36,7 +36,7 @@ def copy_software(source, target):
         shutil.copyfile(path, dest)
 
 
-def prepare_bundle(root, *, native_executable, plugin_root, broker_config, static_files=()):
+def prepare_bundle(root, *, native_executable, plugin_root, broker_config, static_files=(), static_trees=()):
     root = safe(root)
     require(not root.exists(), "BOOTSTRAP_TARGET_EXISTS")
     root.mkdir(parents=True)
@@ -60,7 +60,7 @@ def prepare_bundle(root, *, native_executable, plugin_root, broker_config, stati
     if config["worker_grant"] is not None:
         files.append(Path(config["worker_grant"]))
     # Mutable DB/CAS, native session state and credentials are never inventoried/copied.
-    inventory = snapshot(files, [root, Path(plugin_root)])
+    inventory = snapshot(files, [root, Path(plugin_root), *map(Path, static_trees)])
     manifest = {"schema": "strata/NativeBootstrap/1", "policy": "windows-held-files-isolated-imports/1",
         "python": str(python), "python_paths": [str(source), str(dependencies),
             str(root / "python/Lib"), str(root / "python/DLLs"), str(root / "python")],

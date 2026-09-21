@@ -9,7 +9,7 @@ import re
 from contextlib import nullcontext
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from .broker import MAX_TEXT
 from .contracts import Id, Ref, Strict
@@ -19,6 +19,7 @@ from .records import SkillRevision
 from .storage import Principal, canonical, digest, require, safe_relative
 
 POLICY = "native-root-written-skill-bundles/1"
+LINEAGE_POLICY = "native-root-written-skill-bundles/2"
 MANIFEST = "skills/publish.json"
 
 
@@ -26,18 +27,35 @@ class Candidate(Strict):
     revision_id: Id
     name: str = Field(pattern=r"^[a-z][a-z0-9-]{0,63}$")
     kind: Literal["procedure", "executable"]
-    # Parent activation must be bound by a future qualified fresh-handoff profile.
-    # An arbitrary claimed parent cannot confer lineage today.
-    parent_revision_id: None
+    parent_revision_id: Id | None
     files: dict[str, Ref]
     inputs: dict[str, Ref]
     development_evidence: dict[str, Ref]
 
 
 class PublicationRequest(Strict):
-    schema_: Literal["strata/NativeSkillPublicationRequest/1"] = Field(alias="schema")
-    policy: Literal["native-root-written-skill-bundles/1"]
+    schema_: Literal["strata/NativeSkillPublicationRequest/1", "strata/NativeSkillPublicationRequest/2"] = Field(alias="schema")
+    policy: Literal["native-root-written-skill-bundles/1", "native-root-written-skill-bundles/2"]
     candidates: list[Candidate] = Field(min_length=1, max_length=32)
+
+    @model_validator(mode="after")
+    def versioned_parents(self):
+        if self.schema_.endswith("/1"):
+            if self.policy != POLICY or any(c.parent_revision_id is not None for c in self.candidates):
+                raise ValueError("initial publication requires null parents")
+        elif self.policy != LINEAGE_POLICY:
+            raise ValueError("publication policy/schema mismatch")
+        return self
+
+
+def parent_for(previous, candidate):
+    """A replacement names its own exact active predecessor and a fresh ID."""
+    parent = previous.get(candidate.name)
+    require(candidate.parent_revision_id == (parent["revision"]["revision_id"] if parent else None),
+            "REVISION_CONFLICT")
+    require(all(candidate.revision_id != s["revision"]["revision_id"] for s in previous.values()),
+            "REVISION_CONFLICT")
+    return parent
 
 
 def _private_put(cas, body):
@@ -89,12 +107,21 @@ class NativeSkillPublications:
         bundles = []
         initial_names = {p.split("/")[1] for p in CORE_SKILLS} | {"minecraft-keybindings"} | {
             p.split("/")[-2] for p in files if p.startswith("initial/") and p.endswith("/SKILL.md")}
+        plan = json.loads(db.execute("SELECT plan FROM native_jobs WHERE id=?", (state.job_id,)).fetchone()[0])
+        previous = {}
+        if prior := plan.get("skill_activation_ref"):
+            from .native import NativeLaunch
+            from .native_skill_activation import read_set, require_scope
+            active = read_set(db, self.cas, prior)
+            require_scope(active, NativeLaunch.model_validate(plan))
+            previous = active["skills"]
         for candidate in request.candidates:
             require(candidate.name not in initial_names, "INITIAL_IMMUTABLE")
             require(0 < len(candidate.files) <= 128 and 0 < len(candidate.inputs) <= 128 and
                     0 < len(candidate.development_evidence) <= 128 and "SKILL.md" in candidate.files,
                     "NATIVE_REVISION_FILES")
             prefix = "skills/" + candidate.name + "/"
+            parent = parent_for(previous, candidate)
             expected = {p.removeprefix(prefix): r for p, r in files.items() if p.startswith(prefix)}
             require(candidate.files == expected, "NATIVE_REVISION_FILES")
             selected = {prefix + p: r for p, r in candidate.files.items()}
@@ -108,12 +135,17 @@ class NativeSkillPublications:
             require(all(p.startswith(("notes/", "docs/", "supplied/")) and files.get(p) == r
                 for group in (candidate.inputs, candidate.development_evidence) for p, r in group.items()),
                 "NATIVE_REVISION_PROVENANCE")
-            require(all((p, r) in writes for p, r in selected.items()), "NATIVE_REVISION_PROVENANCE")
+            inherited = {prefix + p: r for p, r in parent["files"].items()} if parent else {}
+            require(all((p, r) in writes or inherited.get(p) == r for p, r in selected.items()),
+                    "NATIVE_REVISION_PROVENANCE")
+            generating = {"broker:" + str(writes[(MANIFEST, files[MANIFEST])])}
+            generating.update("broker:" + str(writes[(p, r)]) for p, r in selected.items() if (p, r) in writes)
+            if any((p, r) not in writes for p, r in selected.items()):
+                generating.update(parent["revision"]["generating_call_ids"])
             # Preserve provenance bytes, not operator/source/helper directory names.
             selected |= provenance
             bundles.append({"candidate": candidate.model_dump(), "files": selected,
-                "generating_call_ids": sorted({"broker:" + str(writes[(p, r)]) for p, r in
-                    ({MANIFEST: files[MANIFEST]} | {prefix + p: r for p, r in candidate.files.items()}).items()})})
+                "generating_call_ids": sorted(generating)})
         return state, request, principal, bundles
 
     def publish(self, export_ref):
@@ -138,18 +170,19 @@ class NativeSkillPublications:
                 raw = self.cas.read(principal, principal.namespace, ref, max_bytes=MAX_TEXT)
                 require(self.cas.put(OPERATOR, "operator", "operator", raw, media_type="text/plain") == ref,
                         "CORRUPT_EVIDENCE")
-            bundle = {"schema": "strata/NativeSkillBundle/1", "policy": POLICY, "name": candidate["name"],
+            version = request.schema_.rsplit("/", 1)[1]
+            bundle = {"schema": "strata/NativeSkillBundle/" + version, "policy": request.policy, "name": candidate["name"],
                 "files": candidate["files"], "inputs": candidate["inputs"],
                 "development_evidence": candidate["development_evidence"], "executes_scripts": False}
             record = SkillRevision.model_validate({"schema": "mcbench/SkillRevision/1",
                 "is_example": self.runtime.simulation, "revision_id": candidate["revision_id"],
-                "agent_id": state.agent_id, "parent_revision_id": None, "kind": candidate["kind"],
+                "agent_id": state.agent_id, "parent_revision_id": candidate["parent_revision_id"], "kind": candidate["kind"],
                 "content": _private_put(self.cas, bundle), "provenance_refs": sorted(set(
                     (candidate["inputs"] | candidate["development_evidence"]).values())),
                 "generating_call_ids": entry["generating_call_ids"], "origin": "campaign", "status": "candidate",
                 "activated_at": None})
             records.append(record.model_dump())
-        publication = {"schema": "strata/NativeSkillPublication/1", "policy": POLICY,
+        publication = {"schema": "strata/NativeSkillPublication/" + version, "policy": request.policy,
             "is_example": self.runtime.simulation, "source_export": export_ref, "source_digest": state.source_digest,
             "campaign_id": state.campaign_id, "agent_id": state.agent_id, "job_id": state.job_id,
             "request": request.model_dump(), "records": records, "native_activation_verified": False,
@@ -175,22 +208,25 @@ class NativeSkillPublications:
         body = private_json(self.db.connection, self.cas, ref)
         require(set(body) == {"schema", "policy", "is_example", "source_export", "source_digest", "campaign_id",
             "agent_id", "job_id", "request", "records", "native_activation_verified", "activates_skills", "executes_scripts"}
-            and body["schema"] == "strata/NativeSkillPublication/1" and body["policy"] == POLICY and
+            and (body["schema"], body["policy"]) in {("strata/NativeSkillPublication/1", POLICY),
+                ("strata/NativeSkillPublication/2", LINEAGE_POLICY)} and
             body["is_example"] is self.runtime.simulation and all(body[k] is False for k in
                 ("native_activation_verified", "activates_skills", "executes_scripts")), "NATIVE_REVISION_INVALID")
         state, request, _, bundles = self._source(body["source_export"])
-        require(body["request"] == request.model_dump() and body["source_digest"] == state.source_digest and
+        version = request.schema_.rsplit("/", 1)[1]
+        require(body["schema"] == "strata/NativeSkillPublication/" + version and body["policy"] == request.policy and
+            body["request"] == request.model_dump() and body["source_digest"] == state.source_digest and
             body["campaign_id"] == state.campaign_id and body["agent_id"] == state.agent_id and body["job_id"] == state.job_id
             and len(body["records"]) == len(bundles), "NATIVE_REVISION_INVALID")
         for value, entry in zip(body["records"], bundles, strict=True):
             record = SkillRevision.model_validate(value)
             candidate = entry["candidate"]
-            expected_bundle = {"schema": "strata/NativeSkillBundle/1", "policy": POLICY, "name": candidate["name"],
+            expected_bundle = {"schema": "strata/NativeSkillBundle/" + version, "policy": request.policy, "name": candidate["name"],
                 "files": candidate["files"], "inputs": candidate["inputs"],
                 "development_evidence": candidate["development_evidence"], "executes_scripts": False}
             require(private_json(self.db.connection, self.cas, record.content) == expected_bundle and
                 record.model_dump() == {"schema": "mcbench/SkillRevision/1", "is_example": self.runtime.simulation,
-                    "revision_id": candidate["revision_id"], "agent_id": state.agent_id, "parent_revision_id": None,
+                    "revision_id": candidate["revision_id"], "agent_id": state.agent_id, "parent_revision_id": candidate["parent_revision_id"],
                     "kind": candidate["kind"], "content": record.content,
                     "provenance_refs": sorted(set((candidate["inputs"] | candidate["development_evidence"]).values())),
                     "generating_call_ids": entry["generating_call_ids"], "origin": "campaign", "status": "candidate",

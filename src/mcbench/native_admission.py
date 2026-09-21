@@ -195,6 +195,9 @@ class NativeAdmission:
             root = self._root_thread(db, plan.job_id)
             require(meta["session_id"] == root, "NATIVE_LINEAGE")
             thread, name = meta["thread_id"], meta["agent_name"]
+            if plan.skill_activation_ref is not None:
+                from .native_skill_activation import require_catalog
+                require_catalog(db, self.cas, plan, body, "executor" if name == "/root" else "helper")
             # No helper envelope or participant is created until the complete
             # request tool projection matches the pre-existing operator pin.
             # Lineage checks below independently authenticate the claimed role.
@@ -284,7 +287,9 @@ class NativeAdmission:
                 "SELECT 1 FROM sqlite_master WHERE name='broker_grants'").fetchone() else None
         if existing:
             broker = NativeBroker(self.db, self.cas, plan.job_id, plan.profile_digest(), clock=self.clock)
-            return broker._grant(db, row["thread"])[0]
+            grant = broker._grant(db, row["thread"])[0]
+            self._project_skills(plan, grant, broker)
+            return grant
         root = self._root_thread(db, row["job"])
         evidence = self.cas.put(Principal("operator", "operator"), "operator", "operator", canonical({
             "schema": "strata/NativeBrokerAdmission/1", "operation_id": operation, "job": row["job"],
@@ -307,8 +312,17 @@ class NativeAdmission:
             require(parent is not None, "BROKER_LINEAGE")
             grant = grant.model_copy(update={"expires_unix_ms": min(grant.expires_unix_ms,
                 BrokerGrant.model_validate_json(parent[0]).expires_unix_ms)})
-        NativeBroker(self.db, self.cas, plan.job_id, plan.profile_digest(), clock=self.clock).admit(grant)
+        broker = NativeBroker(self.db, self.cas, plan.job_id, plan.profile_digest(), clock=self.clock)
+        broker.admit(grant)
+        self._project_skills(plan, grant, broker)
         return grant
+
+    def _project_skills(self, plan, grant, broker):
+        if plan.skill_activation_ref is not None:
+            from .native import NativeExec
+            from .native_skill_activation import NativeSkillSets
+            mode = self.db.connection.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()[0]
+            NativeSkillSets(NativeExec(self.db, self.cas, simulation=bool(mode))).project(plan, grant, broker)
 
     def revoke(self, job, thread):
         """Fence a subtree immediately; retain its slots and every usage hold."""

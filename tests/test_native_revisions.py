@@ -36,12 +36,16 @@ def admitted(database, cas, tmp_path, example, configs, request):
                 for path in paths:
                     value = original("artifact_write", {"path": f"skills/{skill}/{path}",
                         "text": ("x" * 262144 if change == "aggregate_quota" and path == "SKILL.md"
+                            else (f"---\nname: {skill}\ndescription: Synthetic learned procedure\n---\n"
+                                  "Synthetic learned body.\n") if path == "SKILL.md"
                             else "Synthetic learned content: " + path), "expected_ref": None}, broker_meta())
                     files[path] = value["ref"]
                 candidates.append({"revision_id": skill + ":1", "name": skill, "kind": "procedure",
                     "parent_revision_id": None, "files": files, "inputs": {"notes/root.md": result["ref"]},
                     "development_evidence": {"notes/development.md": evidence["ref"]}})
             body = {"schema": "strata/NativeSkillPublicationRequest/1", "policy": POLICY, "candidates": candidates}
+            if change == "lineage":
+                body |= {"schema": "strata/NativeSkillPublicationRequest/2", "policy": "native-root-written-skill-bundles/2"}
             if change == "initial_name":
                 candidates[0]["name"] = "better-skill-creator"
             elif change == "initial_local_skill":

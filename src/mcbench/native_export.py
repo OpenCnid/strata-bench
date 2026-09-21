@@ -60,9 +60,9 @@ def _inventory(db, cas, participant, grant):
         require(path.isascii() and len(path) <= 256 and len(relative.parts) > 1 and
                 not any(str(p).casefold() in folded for p in relative.parents if str(p) != "."), "AMBIGUOUS_PATHS")
         prefix = relative.parts[0]
-        immutable = prefix in {"initial", "docs", "supplied"}
-        allowed = {"initial", "docs", "supplied", "notes", "skills", "handoff"} if grant.role == "executor" else {
-            "initial", "docs", "supplied", "results"}
+        immutable = prefix in {"initial", "docs", "supplied", "active"}
+        allowed = {"initial", "docs", "supplied", "notes", "skills", "handoff", "active"} if grant.role == "executor" else {
+            "initial", "docs", "supplied", "results", "active"}
         require(prefix in allowed and item["immutable"] in (0, 1) and bool(item["immutable"]) == immutable,
                 "NATIVE_EXPORT_ARTIFACT_POLICY")
         require(not {p.casefold() for p in relative.parts} & {
@@ -73,7 +73,8 @@ def _inventory(db, cas, participant, grant):
         data.decode("utf-8", errors="strict")
         require(prefix != "handoff" or len(data) <= 8000, "ARTIFACT_QUOTA")
         item.update(bytes=len(data), immutable=immutable, category={
-            "notes": "note", "skills": "skill_draft", "handoff": "handoff", "results": "helper_result"
+            "notes": "note", "skills": "skill_draft", "active": "active_skill",
+            "handoff": "handoff", "results": "helper_result"
         }.get(prefix, "immutable_projection"))
     return {"schema": "strata/NativeArtifactInventory/1", "thread_id": participant["thread"],
         "role": grant.role, "namespace": grant.namespace, "files": files, "activates_skills": False}
@@ -212,6 +213,16 @@ class NativeExports:
             require_drained(db, job, participant["thread"])
             cells = require_native_cells_drained(db, self.cas, plan, participant["thread"])
             inventory = _inventory(db, self.cas, participant, grant)
+            from .native_skill_activation import active_files, read_set, require_scope
+            active_ref = plan.skill_activation_ref if grant.role == "executor" else plan.helper_skill_activation_ref
+            expected_active = {}
+            if active_ref:
+                active = read_set(db, self.cas, active_ref)
+                require_scope(active, plan)
+                require(active["is_example"] is self.runtime.simulation, "NATIVE_SKILL_SCOPE")
+                expected_active = active_files(active)
+            require({f["path"]: f["ref"] for f in inventory["files"] if f["path"].startswith("active/")}
+                    == expected_active, "NATIVE_SKILL_SCOPE")
             inventories[participant["thread"]] = inventory
             summaries.append({"participant": participant, "grant": dict(grant_row),
                               "inventory_digest": digest(inventory), "cells": cells})

@@ -69,7 +69,7 @@ def check_files(cas, files, namespace="operator", role="operator"):
     for path, ref in files.items():
         relative = safe_relative(path)
         require(path.isascii() and len(path) <= 256 and len(relative.parts) > 1 and
-            relative.parts[0] in {"initial", "docs", "supplied", "notes", "skills", "handoff"} and
+            relative.parts[0] in {"initial", "docs", "supplied", "notes", "skills", "handoff", "active"} and
             not any(str(p).casefold() in folded for p in relative.parents if str(p) != "."), "AMBIGUOUS_PATHS")
         require(not {p.casefold() for p in relative.parts} & {
             ".git", ".codex", ".ssh", ".aws", "auth.json", "credentials.json", "keys.json",
@@ -176,7 +176,7 @@ class NativeCheckpointStates:
 
     def _skill_part(self, state, files, policy, boundary):
         part = {"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts",
-            "files": {k: v for k, v in files.items() if k.startswith("skills/")}, "activates_skills": False}
+            "files": {k: v for k, v in files.items() if k.startswith(("skills/", "active/"))}, "activates_skills": False}
         publication = self.db.connection.execute("SELECT ref FROM native_skill_publications WHERE job=?",
                                                  (state.job_id,)).fetchone()
         if publication:
@@ -184,6 +184,17 @@ class NativeCheckpointStates:
             if boundary != "episode" or policy.arm not in {"frozen-persistence", "frozen-skills"}:
                 part |= {"schema": "strata/NativeRetainedArtifacts/2", "kind": "skill_candidates",
                          "publication_ref": publication[0]}
+        if any(p.startswith("active/") for p in part["files"]):
+            launch = json.loads(self.db.connection.execute("SELECT plan FROM native_jobs WHERE id=?",
+                                                           (state.job_id,)).fetchone()[0])
+            from .native_skill_activation import active_files, read_set
+            ref = launch.get("skill_activation_ref")
+            require(ref is not None, "NATIVE_SKILL_SCOPE")
+            active = read_set(self.db.connection, self.cas, ref)
+            require({p: r for p, r in part["files"].items() if p.startswith("active/")} == active_files(active),
+                    "NATIVE_SKILL_SCOPE")
+            part |= {"schema": "strata/NativeRetainedArtifacts/3", "kind": "skills",
+                     "activation_ref": ref}
         return part
 
     def _latest_source(self, state):
@@ -209,7 +220,7 @@ class NativeCheckpointStates:
             if skill:
                 return self._put(self._skill_part(state, files, policy, boundary))
             return self._put({"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts" if skill else "workspace",
-                "files": {k: v for k, v in files.items() if k.startswith("skills/") == skill},
+                "files": {k: v for k, v in files.items() if k.startswith(("skills/", "active/")) == skill},
                 "activates_skills": False})
         launch = json.loads(self.db.connection.execute("SELECT plan FROM native_jobs WHERE id=?", (state.job_id,)).fetchone()[0])
         require(launch["model"] == agent.requested_model, "NATIVE_RETENTION_SCOPE")
@@ -249,7 +260,7 @@ class NativeCheckpointStates:
         for skill, part_ref in ((False, state.workspace), (True, state.skills)):
             part = private_json(self.db.connection, self.cas, part_ref)
             expected = {"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts" if skill else "workspace",
-                "files": {k: v for k, v in files.items() if k.startswith("skills/") == skill}, "activates_skills": False}
+                "files": {k: v for k, v in files.items() if k.startswith(("skills/", "active/")) == skill}, "activates_skills": False}
             if skill:
                 expected = self._skill_part(export, files, policy, state.boundary)
             require(part == expected, "NATIVE_RETENTION_CHANGED")

@@ -138,6 +138,36 @@ def test_actual_owned_pair_completes_only_coordination_and_preserves_exact_repor
     ]
 
 
+def test_owned_pair_observes_dynamic_desktop_guardian_jobs_through_close(pair):
+    """The real nested lifecycle used by the client, with a disposable JVM body."""
+    java = os.environ.get("STRATA_CLIENT_TEST_JAVA")
+    classpath = os.environ.get("STRATA_CLIENT_TEST_CLASSPATH")
+    if not java or not classpath:
+        pytest.skip("Explicit pinned client JVM fixture required")
+    runner, plan, _, _ = pair
+    driver = Path(plan["client_driver"]["path"])
+    driver.write_bytes((Path(__file__).parent / "fixtures/reference_desktop_guardian.py").read_bytes())
+    plan["client_driver"] = {"path": str(driver), **pin(driver)}
+    config = driver.with_name("desktop-config.json")
+    config.write_bytes(canonical({"java": java, "classpath": Path(classpath).read_text().strip()}))
+    plan["inputs"].append({"path": str(config), **pin(config)})
+    result = runner.run(plan)
+    assert result["status"] == "stopped_pair", result
+    assert not result["failures"] and not result["process_observations"]
+    assert not result["scoring_eligible"] and not result["guardian_qualified"]
+    for role in ("client", "server"):
+        owned = result[role + "_process"]
+        assert owned["terminal_verified"] and not owned["forced"] and owned["logs_complete"]
+    child = result["client_result"]["value"]
+    assert child["status"] == "pass" and child["input_desktop_unchanged"]
+    assert child["inner_job"]["total_processes"] >= 1
+    assert (child["inner_job"]["total_processes"] == child["inner_members"]["held_processes"]
+            == child["inner_members"]["signaled_processes"])
+    timing = child["guardian_timing"]
+    assert timing["tree_result"] == "empty" and timing["wait_bound_ms"] == 500
+    assert timing["tree_checked_after_ns"] - timing["wait_started_after_ns"] <= 500_000_000
+
+
 @pytest.mark.parametrize("diagnostic", [False, True])
 def test_monitor_fault_is_durable_before_cooperative_abort_and_never_becomes_pass(
     pair, monkeypatch, diagnostic

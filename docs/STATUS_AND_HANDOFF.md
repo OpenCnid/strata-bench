@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.100](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.101](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -36,7 +36,7 @@ M0.1d.1 is verified for its bounded read-only evidence-reconstruction contract. 
 
 M0.1d.2 is verified narrowly for durable request/charge attribution. [Changed-profile integration](verification/2026-09-21-native-game-traces.md) adds exact original/forwarded broker requests, atomic per-primitive charges and complete request/event/receipt joins. 139 distinct Python/35 Node checks, 28 actual native/game checks and six new synthetic derived-copy negatives pass. One new real vanilla run used scripted inference, six calls/84 fixture units, one primitive and normal cleanup. Its flat 4,244-file seal is complete; all 69 original source files and the $0.756858 held/settled accounting remain unchanged. No Java remains. Old case-02 gaps/failures are preserved. No full scorer, isolation, clock, shutdown or recovery qualification.
 
-Next bounded work is **M0.2c.3b.3 setup-history/scorer authority**: inspect the pinned native mode/admin/team mutation routes and implement history evidence that rejects intervening changes in the existing signed craft importer. Matching startup/before/after points cannot prove continuous setup validity. Keep all protected-custody, authentic-control, parity and nonleakage gates; do not promote the failed protected craft references to scorable outcomes. Model admission remains blocked, but this source work is independent.
+Current **M0.2c.3b.3c setup mutation history** has partial authentic evidence. [Implementation/evidence](verification/2026-09-21-setup-history.md): telemetry 0.3.7/startup 8, eight required mixins/25 verified native selectors, sticky counters, exact signed point/stop joins and rejection of reversed mutations. Native shutdown requires a single exact parsed command matched to its actual native handler/source/thread. Source/JVM controls pass. One changed headless E9E reference passes 33/33 independent checks: hooks applied, clear startup/history, one correlated native stop, six processes exited, all 18,225 source files unchanged. It performs no authentic mutation or craft. Next implement and exercise preregistered private mutation controls, retaining all unmediated FTB/KubeJS/write routes, custody, parity/nonleakage and scoring gaps. Do not promote failed protected references or repeat the unchanged startup. Model admission remains blocked; the original authority rechecked at 23:26:31 UTC still totals $0.756858 with uncertainty and D12 consumed.
 
 Continue next through actual M0 dependencies: protected setup/writer authority
 and scorer controls/nonleakage, bounded shutdown/resource behavior, and complete

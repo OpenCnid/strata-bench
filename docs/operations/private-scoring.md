@@ -87,3 +87,15 @@ cover observed Forge command attempts, not every possible mutation route;
 matching snapshots do not prove continuous history or fixture validity. Preserve
 unavailable observations and prior failed profiles. See the [native setup
 implementation and evidence](../verification/2026-09-20-native-setup.md).
+
+Telemetry 0.3.7 / startup 8 adds private sticky mutation counters immediately
+before each setup snapshot and final stop. The importer rejects the entire
+reference's candidates for any observed mode/operator/team mutation, including
+a reversed change or an attempt after the craft. Counters cannot roll back;
+missing/reordered/foreign history or incomplete termination rejects the stream.
+One exact terminal native stop command is distinguished through its actual
+handler, source and thread; its counters remain visible. It cannot excuse an
+extra command or establish the 500-ms shutdown gate. Legacy streams remain
+readable without retroactive history credit. Public mutable FTB fields/maps,
+KubeJS globals and other direct writes remain uncovered, so clear observed
+history still earns no score. [Implementation and exact limits](../verification/2026-09-21-setup-history.md).

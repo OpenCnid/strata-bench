@@ -69,6 +69,31 @@ def test_operator_signs_exact_event_and_acknowledges_only_durable_sequence(sink)
     assert broker.count == 1 and broker.bytes == len(wire)
 
 
+@pytest.mark.parametrize("transport", ["windows-owned-pipe/1", "private-file/1"])
+def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport):
+    from strata_evaluator.setup_facts import PINS, POLICY as POINT_POLICY
+    from strata_evaluator.setup_history import POLICY, ROUTES
+    broker, first, identity, key, receipts, _ = sink
+    first["payload_schema"] = "strata/ServerStarted/8"
+    first["payload"].update(module="strata-forge1192-telemetry/0.3.7", telemetry_transport=transport,
+        setup_capture_policy=POINT_POLICY, setup_capture_support={"status": "supported", "artifacts": PINS},
+        setup_history_support={"policy": POLICY, "vanilla_hooks_verified": True,
+            "team_hooks_verified": True, "all_mutation_routes_covered": False})
+    if transport == "private-file/1":
+        with pytest.raises(Fault, match="TELEMETRY_PIPE_TRANSPORT"):
+            broker._event(canonical(first) + b"\n", identity, key)
+        assert not receipts and not Path(broker.authority.key_file + ".claimed").exists()
+    else:
+        broker._event(canonical(first) + b"\n", identity, key)
+        history = first | {"kind": "setup_history", "payload_schema": "strata/NativeSetupHistory/1",
+            "seq": 2, "server_event_seq": 2, "server_tick": 1,
+            "payload": {"policy": POLICY, "phase": "startup", "transaction_id": None,
+                        "attempts": dict.fromkeys(sorted(ROUTES), 0), "off_thread_attempts": 0,
+                        "overflowed": False}}
+        broker._event(canonical(history) + b"\n", identity, key)
+        assert broker.count == 2 and len(receipts) == 2
+
+
 @pytest.mark.parametrize("change", ["pid", "world", "module", "port", "campaign", "sequence", "visibility",
                                    "framing", "boot_path"])
 def test_mismatched_first_event_never_claims_or_signs(sink, change):

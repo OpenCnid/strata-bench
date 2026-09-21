@@ -30,7 +30,7 @@ this summary is not executable authority. [Admission contract](operations/valida
 
 **M0.1d.2 is verified narrowly for request/charge attribution.** [Changed connected trial](verification/2026-09-21-native-game-traces.md) passes 28 native checks, exact six-request/one-primitive reconciliation and six derived-copy negatives. Source checks: 139 distinct Python and 35 Node cases. A single changed-profile vanilla run used scripted inference; original source/accounting remain unchanged and cleanup leaves no Java.
 
-**Next implementation: M0.2c.3b.3 setup-history/scorer authority.** Continue native setup observations and the signed craft importer with explicit rejection of intervening privilege/mode/team changes. Matching points remain insufficient. Keep scoring unqualified until the full history, protected custody, controls/parity and isolation contracts pass; continue remaining shutdown and joint recovery dependencies. The active goal covers M0/G0 only; preserve unrelated later work.
+**M0.2c.3b.3c mutation history has partial authentic evidence.** [Implementation and verification](verification/2026-09-21-setup-history.md) adds sticky native mutation counters, exact signed setup/terminal joins and rejection of reversed changes. One changed headless E9E reference passes 33/33 hook/startup/terminal checks; six owned processes exit and all 18,225 source files remain unchanged. Authentic mutation trajectories and mutable FTB/KubeJS routes remain open. Next preregistered private mutation controls, then protected custody, parity/isolation, shutdown and joint recovery. Complete setup history/scoring remains unqualified; the goal stays M0/G0 only.
 
 Evidence entry points:
 

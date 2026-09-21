@@ -324,6 +324,8 @@ class CraftReferenceStore:
                 native_checks[witness["transaction_id"]] = check
                 if not check["native_points_match"]:
                     reason = "CRAFT_NATIVE_POINTS_UNPROVEN"
+            if reason is None and "setup_history" in report and not report["setup_history"]["observed_history_clear"]:
+                reason = "CRAFT_NATIVE_HISTORY_TAINTED"
             if reason:
                 rejected.append({"transaction_id": witness["transaction_id"], "reason": reason})
             else:
@@ -345,6 +347,8 @@ class CraftReferenceStore:
         if isinstance(plan, CraftReferencePlanV2):
             result.update(schema="strata/PrivateCraftReferenceInspection/2", native_point_checks=native_checks,
                 native_startup=report["setup_startup"], native_setup_continuity_qualified=False)
+        if "setup_history" in report:
+            result["native_mutation_history"] = report["setup_history"]
         # Legacy source-only references retain their original report shape.
         # A tracked dispatch may not be replaced by that weaker path after an
         # uncertain launch, failed identity binding or incomplete stop.

@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.95, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-21 (native retention and complete-set materialization). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.96, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-21 (pinned skill support and learned candidate capture). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -346,6 +346,10 @@ credentials, and evaluator state still require the enforced private boundary.
 Initial plugin bytes remain immutable and separate from learned overlays.
 
 ### 6.2 Initial skills, learning and invocation
+
+The versioned `dovetail-eight-immutable-text-support/1` projection extends the earlier body-only capability with reviewed supporting text from the pinned installed plugin. Include root skill/license/requirements files and the references/scripts/assets/agents/eval-viewer surfaces; exclude nested tests, fixtures, VCS and credential paths. Bind complete projected names and bytes to a private source inventory and the sealed bootstrap inventory. Only the eight original top-level skills are indexed. Readable script source grants no execution. The selected corpus and instructions change the runtime profile identity; retain the original body-only profile and its evidence. Installed-source inspection is not native invocation or isolation qualification.
+
+The operator-only `native-root-written-skill-bundles/1` boundary captures an executor's explicit `skills/publish.json` request from a committed stopped export. Each candidate names its complete skill directory, required SKILL.md, separate input and development-evidence references, revision ID and null initial parent. Require successful root write receipts for both manifest and all skill files, checked against recorded argument/result digests; repeated native call labels do not merge distinct broker events. Reject helper/private/probe imports, incomplete bundles, duplicate identities, initial-skill name collisions and unbound parent claims. Each learned bundle, including supporting text, is at most 256 KiB. Commit the complete private candidate set atomically after copying and revalidating its source; forbid publication after a checkpoint has sealed that source. A candidate remains a SkillRevision with no activation time. Preserve its private metadata and bytes through applicable checkpoint retention/materialization, including Windows long paths; frozen episode arms discard the learned set. This prerequisite does not implement active parent lineage, native indexing/atomic activation, restricted script execution or fresh runtime restoration. Existing active revisions still require complete validated export and cannot be downgraded to candidates. [Source, installed-source metadata and synthetic evidence](docs/verification/2026-09-21-native-skills.md) leave those requirements open.
 
 Install the exact remote plugin commit `15c306ccfef28eb5f616fadcd5fd8eac0663e361` (manifest 0.4.1) into each isolated worker profile through the pinned host's supported plugin mechanism; retain original source and attribution. This is the initial candidate pin, not a claim that it is the newest commit. No global user skill directory or older sibling checkout is inherited.
 

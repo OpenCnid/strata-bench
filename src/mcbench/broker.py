@@ -78,6 +78,8 @@ class NativeBroker:
             db.execute("CREATE TABLE IF NOT EXISTS broker_game_calls (runtime TEXT, thread TEXT, "
                 "request TEXT, fingerprint TEXT, state TEXT, result TEXT, "
                 "PRIMARY KEY(runtime,thread,request))")
+            db.execute("CREATE TABLE IF NOT EXISTS broker_artifact_writes (event INTEGER PRIMARY KEY, "
+                "runtime TEXT, thread TEXT, namespace TEXT, path TEXT, ref TEXT, expected_ref TEXT)")
             broker_lifecycle.install(db)
 
     def admit(self, grant: BrokerGrant):
@@ -236,7 +238,7 @@ class NativeBroker:
                 "lifecycle_policy": broker_lifecycle.POLICY})
             broker_lifecycle.started(db, event)
         try:
-            result = self._execute(name, value, g, game_transport)
+            result = self._execute(name, value, g, game_transport, event)
         except Exception as error:
             # Transport ambiguity remains unknown even if its caller has returned.
             known = isinstance(error, Fault) and error.code != "BROKER_GAME_OUTCOME_UNKNOWN"
@@ -258,7 +260,7 @@ class NativeBroker:
             raise denied
         return result
 
-    def _execute(self, name, value, g, game_transport):
+    def _execute(self, name, value, g, game_transport, event):
         if name == "artifact_list":
             return {"files": [dict(r) for r in self.db.connection.execute(
                 "SELECT path,ref,immutable FROM broker_files WHERE namespace=? ORDER BY path LIMIT 1024",
@@ -285,13 +287,14 @@ class NativeBroker:
                 self._grant(db, g.thread_id)
                 old = db.execute("SELECT ref FROM broker_files WHERE namespace=? AND path=?",
                     (g.namespace, path)).fetchone()
-                if old is not None and old[0] == ref:
-                    return {"path": path, "ref": ref}
-                require(value.expected_ref == (old[0] if old else None), "REVISION_CONFLICT")
-                require(old is not None or db.execute("SELECT count(*) FROM broker_files "
-                    "WHERE namespace=?", (g.namespace,)).fetchone()[0] < 1024, "ARTIFACT_QUOTA")
-                db.execute("INSERT INTO broker_files VALUES(?,?,?,0) ON CONFLICT(namespace,path) "
-                    "DO UPDATE SET ref=excluded.ref", (g.namespace, path, ref))
+                if old is None or old[0] != ref:
+                    require(value.expected_ref == (old[0] if old else None), "REVISION_CONFLICT")
+                    require(old is not None or db.execute("SELECT count(*) FROM broker_files "
+                        "WHERE namespace=?", (g.namespace,)).fetchone()[0] < 1024, "ARTIFACT_QUOTA")
+                    db.execute("INSERT INTO broker_files VALUES(?,?,?,0) ON CONFLICT(namespace,path) "
+                        "DO UPDATE SET ref=excluded.ref", (g.namespace, path, ref))
+                db.execute("INSERT INTO broker_artifact_writes VALUES(?,?,?,?,?,?,?)",
+                    (event, self.runtime_id, g.thread_id, g.namespace, path, ref, value.expected_ref))
             return {"path": path, "ref": ref}
         require(g.role == "executor" and game_transport is not None, "BROKER_GAME_FORBIDDEN")
         r = value.request

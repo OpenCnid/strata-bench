@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 from .records import CampaignConfig, CheckpointManifest, PackLock
-from .storage import CAS, Database, Principal, canonical, digest, reject_links, require, safe_relative
+from .storage import CAS, Database, Principal, canonical, digest, extended_path, reject_links, require, safe_relative
 
 OPERATOR = Principal("operator", "operator")
 
@@ -147,7 +147,7 @@ class Checkpoints:
 
     def materialize_world(self, checkpoint_id, target: Path):
         manifest, namespace = self.load(checkpoint_id)
-        target = target.absolute()
+        target = extended_path(target)
         reject_links(target)
         require(not target.exists(), "TARGET_EXISTS")
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -190,7 +190,7 @@ class Checkpoints:
         require(all(native.load(a.runtime_state)[1] == config for a in manifest.agents), "CHECKPOINT_IDENTITY")
         campaign = self.database.connection.execute("SELECT epoch FROM campaigns WHERE id=?", (config.campaign_id,)).fetchone()
         require(campaign is not None and current_epoch >= campaign[0], "STALE_EPOCH")
-        target = target.absolute()
+        target = extended_path(target)
         reject_links(target)
         require(not target.exists(), "TARGET_EXISTS")
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -222,6 +222,17 @@ class Checkpoints:
                     if ref := getattr(agent, field):
                         self.cas.copy_to(OPERATOR, namespace, ref, private / (field + ".json"))
                         copied[directory + "/private/" + field + ".json"] = ref
+                skill_part = self.cas.json(OPERATOR, "operator", state.skills)
+                if publication_ref := skill_part.get("publication_ref"):
+                    publication = native.publications.load(publication_ref)
+                    self.cas.copy_to(OPERATOR, "operator", publication_ref, private / "skill_candidates.json")
+                    copied[directory + "/private/skill_candidates.json"] = publication_ref
+                    bundles = private / "skill-bundles"
+                    bundles.mkdir()
+                    for record in publication["records"]:
+                        name = record["content"][11:] + ".json"
+                        self.cas.copy_to(OPERATOR, "operator", record["content"], bundles / name)
+                        copied[directory + "/private/skill-bundles/" + name] = record["content"]
                 members[agent.agent_id] = {"directory": directory,
                                           "files_digest": digest(files), "runtime_state": agent.runtime_state,
                                           "helper_state_imported": False, "skills_activated": False}

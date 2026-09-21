@@ -224,6 +224,12 @@ class NativeExports:
             "participants": summaries, "attempts": attempts, "operations": operations,
             "ledger": ledgers, "broker_calls": calls, "game_calls": game_calls,
             "account_identities": [dict(a) for a in Budgets.ancestors(db, plan.account)]}
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_artifact_writes'").fetchone():
+            writes = [dict(r) for r in db.execute("SELECT * FROM broker_artifact_writes WHERE runtime=? ORDER BY event", (job,))]
+            # Legacy exports had no write provenance. Preserve their identity;
+            # missing journals cannot later be invented to publish a revision.
+            if writes:
+                source["artifact_writes"] = writes
         return plan, source, inventories
 
     def export(self, job):

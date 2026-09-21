@@ -91,6 +91,8 @@ class NativeCheckpointStates:
     def __init__(self, runtime):
         self.runtime, self.db, self.cas = runtime, runtime.db, runtime.cas
         self.exports = NativeExports(runtime)
+        from .native_revisions import NativeSkillPublications
+        self.publications = NativeSkillPublications(runtime)
         with self.db.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS native_retention_policies (campaign TEXT, agent TEXT, "
                 "ref TEXT, config TEXT, agent_config TEXT, PRIMARY KEY(campaign,agent))")
@@ -172,6 +174,18 @@ class NativeCheckpointStates:
     def _put(self, body):
         return self.cas.put(OPERATOR, "operator", "operator", canonical(body), max_object_bytes=MAX_METADATA)
 
+    def _skill_part(self, state, files, policy, boundary):
+        part = {"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts",
+            "files": {k: v for k, v in files.items() if k.startswith("skills/")}, "activates_skills": False}
+        publication = self.db.connection.execute("SELECT ref FROM native_skill_publications WHERE job=?",
+                                                 (state.job_id,)).fetchone()
+        if publication:
+            self.publications.load(publication[0])
+            if boundary != "episode" or policy.arm not in {"frozen-persistence", "frozen-skills"}:
+                part |= {"schema": "strata/NativeRetainedArtifacts/2", "kind": "skill_candidates",
+                         "publication_ref": publication[0]}
+        return part
+
     def _latest_source(self, state):
         latest = self.db.connection.execute("SELECT id FROM native_jobs WHERE campaign=? AND agent=? "
             "AND role='executor' ORDER BY rowid DESC LIMIT 1", (state.campaign_id, state.agent_id)).fetchone()
@@ -192,6 +206,8 @@ class NativeCheckpointStates:
                 require(self.cas.put(OPERATOR, "operator", "operator", raw, media_type="text/plain") == ref,
                         "CORRUPT_EVIDENCE")
         def part(skill):
+            if skill:
+                return self._put(self._skill_part(state, files, policy, boundary))
             return self._put({"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts" if skill else "workspace",
                 "files": {k: v for k, v in files.items() if k.startswith("skills/") == skill},
                 "activates_skills": False})
@@ -223,7 +239,7 @@ class NativeCheckpointStates:
         require(body.get("schema") == "strata/NativeCheckpointState/1", "NATIVE_CHECKPOINT_REQUIRED")
         state = NativeCheckpointState.model_validate(body)
         export = self.exports.load(state.source_export)
-        registered, _, config, agent, _, files = self._derive(export, state.boundary)
+        registered, policy, config, agent, _, files = self._derive(export, state.boundary)
         require(state.is_example is self.runtime.simulation and state.campaign_id == export.campaign_id and
             state.agent_id == export.agent_id and state.source_epoch == export.source_epoch and
             state.profile_digest == export.profile_digest and state.system_digest == config.system_digest and
@@ -234,6 +250,8 @@ class NativeCheckpointStates:
             part = private_json(self.db.connection, self.cas, part_ref)
             expected = {"schema": "strata/NativeRetainedArtifacts/1", "kind": "skill_drafts" if skill else "workspace",
                 "files": {k: v for k, v in files.items() if k.startswith("skills/") == skill}, "activates_skills": False}
+            if skill:
+                expected = self._skill_part(export, files, policy, state.boundary)
             require(part == expected, "NATIVE_RETENTION_CHANGED")
             merged |= part["files"]
         check_files(self.cas, merged)

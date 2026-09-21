@@ -126,6 +126,7 @@ class NativeAdmission:
             # upgraded; live startup/dispatch checks alone are too late for its
             # first new helper envelope.
             require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
+            require(plan.tool_catalog_policy is not None, "NATIVE_TOOL_CATALOG_REQUIRED")
         require(row["started"] + plan.hard_timeout_s > self.clock(), "RUNTIME_EXPIRED")
         require(plan.broker_policy == POLICY and plan.binary_version == CODEX_VERSION and
                 plan.dovetail_commit == DOVETAIL_COMMIT and plan.role == "executor" and
@@ -134,6 +135,9 @@ class NativeAdmission:
         if plan.bootstrap_digest is not None:
             from .native_bootstrap import verify_native_inventory
             verify_native_inventory(plan)
+        if plan.tool_catalog_policy is not None:
+            from .native_catalog import require_no_patch_catalog
+            require_no_patch_catalog(plan)
         return plan
 
     @staticmethod
@@ -325,6 +329,9 @@ def require_request_admission(db, plan, attempt, reserve, account, *, cas, simul
     if plan.bootstrap_digest is not None:
         from .native_bootstrap import verify_native_inventory
         verify_native_inventory(plan)
+    if plan.tool_catalog_policy is not None:
+        from .native_catalog import require_no_patch_catalog
+        require_no_patch_catalog(plan)
     require(db.execute("SELECT 1 FROM sqlite_master WHERE name='native_request_admissions'").fetchone(),
             "NATIVE_REQUEST_NOT_ADMITTED")
     row = db.execute("SELECT a.*,p.state FROM native_request_admissions a JOIN native_participants p "
@@ -336,6 +343,7 @@ def require_request_admission(db, plan, attempt, reserve, account, *, cas, simul
     require_active_participant(db, plan.job_id, row["thread"])
     if not simulation:
         require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
+        require(plan.tool_catalog_policy is not None, "NATIVE_TOOL_CATALOG_REQUIRED")
     if plan.tool_projection_ref is not None:
         from .native_tool_projection import require_tool_projection
         # Re-read immutable private raw bytes at the durable dispatch boundary;

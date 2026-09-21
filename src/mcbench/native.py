@@ -65,6 +65,7 @@ class NativeLaunch(Strict):
     ingress_policy: Literal["native-job-http-header/1"] | None = None
     gateway_config_digest: Digest | None = None
     tool_projection_ref: Ref | None = None
+    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1"] | None = None
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -92,6 +93,8 @@ class NativeLaunch(Strict):
             body["gateway_config_digest"] = self.gateway_config_digest
         if self.tool_projection_ref is not None:
             body["tool_projection_ref"] = self.tool_projection_ref
+        if self.tool_catalog_policy is not None:
+            body["tool_catalog_policy"] = self.tool_catalog_policy
         return digest(body)
 
 
@@ -226,9 +229,14 @@ class NativeExec:
             require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")
             require(plan.gateway_config_digest is not None, "GATEWAY_REQUIRED")
             require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
+            require(plan.tool_catalog_policy is not None, "NATIVE_TOOL_CATALOG_REQUIRED")
         if plan.tool_projection_ref is not None:
             from .native_tool_projection import read_tool_projection
             read_tool_projection(self.cas, plan)
+        if plan.tool_catalog_policy is not None:
+            from .native_catalog import require_no_patch_catalog
+            require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
+            require_no_patch_catalog(plan)
         if plan.gateway_config_digest is not None:
             from .native_gateway import require_gateway
             require_gateway(db, plan, "OPEN")
@@ -266,7 +274,7 @@ class NativeExec:
         if plan.broker_policy is None:
             plan_body.pop("broker_policy")
         for key in ("bootstrap_manifest", "bootstrap_digest", "ingress_policy", "gateway_config_digest",
-                    "tool_projection_ref"):
+                    "tool_projection_ref", "tool_catalog_policy"):
             if plan_body[key] is None:
                 plan_body.pop(key)
         identity = digest({"plan": plan_body, "reserve": reserve.model_dump(),

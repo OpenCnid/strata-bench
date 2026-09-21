@@ -54,7 +54,8 @@ def serve(log):
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
-        gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None):
+        gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
+        deferred_tools=False, no_patch_catalog=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -81,13 +82,19 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
     require(writer_target is None or canary_mode and bootstrap_mode, "WRITER_CANARY_BOOTSTRAP_REQUIRED")
     require(tool_projections is None or bootstrap_mode, "PROJECTION_BOOTSTRAP_REQUIRED")
-    canaries = Canaries(output, writer_target=writer_target) if canary_mode else None
+    require(not deferred_tools or canary_mode and bootstrap_mode and tool_projections is not None,
+            "DEFERRED_CANARY_PROJECTION_REQUIRED")
+    require(no_patch_catalog is None or deferred_tools, "CATALOG_DEFERRED_CANARY_REQUIRED")
+    canaries = Canaries(output, writer_target=writer_target,
+        deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
             self.direct_calls = []
             self.direct_agents = set()
+            self.patch_direct_calls, self.patch_agents = [], set()
+            self.patch_function_calls = []
             super().__init__(*args, **kwargs)
 
         def respond(self, handler, body, index, operation):
@@ -98,6 +105,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
+            extra_items = []
             self.steps[agent] = step + 1
             root_id = next(i["thread_id"] for i in self.identities if i["agent"] == "/root")
             item = {"id": "message-" + operation, "type": "message", "role": "assistant",
@@ -169,12 +177,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ' if (!t) throw new Error("MCP_TOOL_MISSING:"+name); '
                         ' text({name,result:await tools[t.name](args)}); }')
                     if canaries:
-                        code += "\n" + canaries.code()
+                        code += "\n" + canaries.code(agent=agent)
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
-                    not inherited_helper and self.steps.get("/root/identity_child", 0) < 2 + int(canary_mode)):
+                    not inherited_helper and self.steps.get("/root/identity_child", 0) <
+                    2 + int(canary_mode) + int(no_patch_catalog is not None)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
                     "message": "Exercise only the synthetic inspect_identity tool. "
                                "Do not read files or call any other tool."}) if step == 1 else (
@@ -191,11 +200,25 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "namespace": "functions", "name": "exec_command",
                     "arguments": json.dumps({"cmd": canaries.command(), "login": False,
                                               "max_output_tokens": 1000})}
+            elif no_patch_catalog is not None and agent not in self.patch_agents:
+                call_id = "direct-patch-" + operation
+                self.patch_direct_calls.append(call_id)
+                self.patch_agents.add(agent)
+                item = {"id": "tool-" + operation, "type": "custom_tool_call", "call_id": call_id,
+                    "namespace": "functions", "name": "apply_patch", "input":
+                    "*** Begin Patch\n*** Update File: " + canaries.protected.as_posix() +
+                    "\n@@\n-absent context\n+changed\n*** End Patch"}
+                function_id = "function-patch-" + operation
+                self.patch_function_calls.append(function_id)
+                extra_items.append({"id": "function-tool-" + operation, "type": "function_call",
+                    "call_id": function_id, "namespace": "functions", "name": "apply_patch",
+                    "arguments": json.dumps({"input": item["input"]})})
             else:
-                require(step == (3 if agent == "/root" else 1) + int(canary_mode) or
+                require(step == (3 if agent == "/root" else 1) + int(canary_mode) +
+                        int(no_patch_catalog is not None) or
                         bootstrap_mode and agent == "/root" and step >= 3, "UNEXPECTED_RETRY")
             response = {"id": "response-" + operation, "object": "response", "created_at": 1,
-                "status": "completed", "model": body["model"], "output": [item], "usage": {
+                "status": "completed", "model": body["model"], "output": [item, *extra_items], "usage": {
                     "input_tokens": 10, "output_tokens": 4, "total_tokens": 14,
                     "input_tokens_details": {"cached_tokens": 2},
                     "output_tokens_details": {"reasoning_tokens": 0}}}
@@ -206,6 +229,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             handler.wfile.write(sse("response.created", response={
                 **response, "status": "in_progress", "output": []}))
             handler.wfile.write(sse("response.output_item.done", output_index=0, item=item))
+            for index, extra in enumerate(extra_items, 1):
+                handler.wfile.write(sse("response.output_item.done", output_index=index, item=extra))
             handler.wfile.write(sse("response.completed", response=response))
             handler.wfile.flush()
             return {}, response["id"]
@@ -312,6 +337,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if skills_mode:
             config["developer_instructions"] = INSTRUCTIONS
         bootstrap = {}
+        catalog = None
+        if no_patch_catalog is not None:
+            from mcbench.native_catalog import install_no_patch_catalog, NO_PATCH_POLICY
+            from mcbench.inventory import file_hash
+            catalog = install_no_patch_catalog(no_patch_catalog, output / "restricted-model-catalog.json",
+                expected_sha256=file_hash(no_patch_catalog), model=plan.model)
+            (output / "catalog-restriction.json").write_text(json.dumps(catalog, indent=2), encoding="utf-8")
+            config.update(catalog["config_overrides"])
+            bootstrap["tool_catalog_policy"] = NO_PATCH_POLICY
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
             (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
@@ -326,9 +360,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             sealed = prepare_bundle(output / "broker-runtime", native_executable=binary,
                 plugin_root=plugin_root, broker_config=output / "broker.json", static_files=[
                     Path(plan.profile_directory) / "config.toml",
-                    Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json"])
+                    Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json",
+                    *([] if catalog is None else catalog["static_files"])])
             config["mcp_servers.strata_broker"] = sealed["server"]
-            bootstrap = {"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]}
+            bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
@@ -442,7 +477,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if bootstrap_mode:
             result["checks"]["provider_clean"] = not provider.errors and 6 <= len(provider.requests) <= 12
         if canaries:
-            result["canaries"] = canaries.report(provider.direct_calls)
+            result["canaries"] = canaries.report(provider.direct_calls,
+                patch_direct_calls=provider.patch_direct_calls, patch_function_calls=provider.patch_function_calls)
             result["checks"].update(result["canaries"]["checks"])
         if admission_mode:
             result["participants"] = [dict(r) for r in db.connection.execute(

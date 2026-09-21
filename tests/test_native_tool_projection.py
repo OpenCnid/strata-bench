@@ -231,3 +231,29 @@ def test_legacy_running_live_job_cannot_reserve_without_projection(admitted, hel
     assert gate.budgets.status("a1") == before
     assert counts == tuple(gate.db.connection.execute("SELECT count(*) FROM " + table).fetchone()[0]
         for table in ("operations", "native_participants", "native_request_admissions"))
+
+
+@pytest.mark.parametrize("helper", [False, True])
+def test_live_job_with_pinned_but_patch_capable_tools_cannot_admit(pinned, helper):
+    context, request, _ = pinned
+    _, gate, _, _, _, prepare, _ = context
+    if helper:
+        begin(context, request("one"))
+    value = request("two", "child", "/root/child", "root") if helper else request("one")
+    gate.db.connection.execute("UPDATE native_profile SET simulation=0")
+    before = gate.budgets.status("a1")
+    with pytest.raises(Fault, match="NATIVE_TOOL_CATALOG_REQUIRED"):
+        prepare(value)
+    assert gate.budgets.status("a1") == before
+
+
+def test_live_dispatch_requires_catalog_restriction_even_after_old_admission(pinned):
+    context, request, _ = pinned
+    _, gate, _, plan, _, prepare, _ = context
+    value = request("one")
+    prepare(value)
+    before = gate.budgets.status("a1")
+    with pytest.raises(Fault, match="NATIVE_TOOL_CATALOG_REQUIRED"):
+        require_request_admission(gate.db.connection, plan, value[0], value[1], "a1",
+                                  cas=gate.cas, simulation=False)
+    assert gate.budgets.status("a1") == before

@@ -129,7 +129,8 @@ def run_config(path,**kwargs):
 
 
 @pytest.mark.parametrize("mutation", ["arguments", "environment", "native_executable", "omitted_file",
-                                      "workspace_overlap", "job_scope", "valid"])
+                                      "workspace_overlap", "job_scope", "catalog_unpinned",
+                                      "catalog_pinned", "valid"])
 def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path, mutation):
     from types import SimpleNamespace
     from mcbench.native_bootstrap import acquire_native_bootstrap
@@ -168,11 +169,13 @@ def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path,
         plan.workspace = str(tmp_path)
     elif mutation == "job_scope":
         plan.job_id = "other"
-    if mutation == "valid":
+    elif mutation in {"catalog_unpinned", "catalog_pinned"}:
+        plan.config_overrides["model_catalog_json"] = files["python"] if mutation == "catalog_pinned" else str(tmp_path / "unlisted.json")
+    if mutation in {"valid", "catalog_pinned"}:
         with acquire_native_bootstrap(plan):
             with pytest.raises(OSError):
                 Path(files["broker_config"]).write_bytes(b"changed")
         return
     with pytest.raises(Fault, match="BOOTSTRAP_LAUNCH_MISMATCH|BOOTSTRAP_FILE_UNPINNED|"
-                       "BOOTSTRAP_WORKSPACE_OVERLAP|BOOTSTRAP_BROKER_CONFIG"):
+                       "BOOTSTRAP_WORKSPACE_OVERLAP|BOOTSTRAP_BROKER_CONFIG|BOOTSTRAP_CATALOG_UNPINNED"):
         acquire_native_bootstrap(plan)

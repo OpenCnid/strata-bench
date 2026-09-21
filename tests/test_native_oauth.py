@@ -10,7 +10,7 @@ import test_inference_transport
 import test_native_ingress
 
 from mcbench.native_oauth import NativeOAuthRequest, NativeOAuthTransport, SyntheticOAuthTransport
-from mcbench.storage import Fault, digest
+from mcbench.storage import Fault, Principal, digest
 
 admitted = test_native_ingress.admitted
 ingress = test_native_ingress.ingress
@@ -125,6 +125,43 @@ def test_split_reflection_never_reaches_output():
     with pytest.raises(Fault, match="OAUTH_CREDENTIAL_REFLECTION"):
         output += guard.feed(b"token remaining bytes")
     assert b"private" not in output
+
+
+@pytest.mark.parametrize("media,body,code", [
+    ("text/html", b"<html>Owned rejection fixture</html>", "RESPONSE_CONTENT_TYPE"),
+    ("application/x-ndjson", wire(), "RESPONSE_CONTENT_TYPE"),
+    ("secret-header-value", b"Unsupported media fixture", "RESPONSE_CONTENT_TYPE"),
+    ("text/plain", b"STRATA_SYNTHETIC_OAUTH_ACCESS", "OAUTH_CREDENTIAL_REFLECTION"),
+])
+def test_rejected_wire_is_private_bounded_and_does_not_release_hold(oauth, provider, media, body, code):
+    gate, (attempt, reserve, raw, _), credentials, fresh_credentials, _ = oauth
+    endpoint, requests = provider(body, status=403, media=media)
+    delivered, delivered_headers = [], []
+    adapter = SyntheticOAuthTransport(gate, credentials, endpoint)
+    with pytest.raises(Fault, match=code):
+        adapter.execute("a1", attempt, reserve, raw,
+            on_headers=lambda *args: delivered_headers.append(args), on_chunk=delivered.append)
+    assert not delivered and not delivered_headers and credentials._closed
+    assert len(requests) == 1 and gate.status("one")["state"] == "UNSETTLED"
+    assert gate.db.connection.execute("SELECT actual FROM operations WHERE id='one'").fetchone()[0] is None
+    events = [(r["kind"], json.loads(r["body"])) for r in gate.db.connection.execute("SELECT * FROM outbox")]
+    response = [event for kind, event in events if kind == "inference.http_response"]
+    assert response == [{"operation_id": "one", "status": 403,
+        "media_class": media if media != "secret-header-value" else "other",
+        "identity_encoding": True, "simulation": True}]
+    capture = [event for kind, event in events if kind == "inference.wire_capture"]
+    assert len(capture) == 1
+    raw_capture = gate.cas.read(Principal("operator", "operator"), "operator", capture[0]["raw_usage_ref"])
+    assert raw_capture == (b"" if code == "OAUTH_CREDENTIAL_REFLECTION" else body)
+    assert "secret-header-value" not in json.dumps(events)
+    for path in gate.cas.root.rglob("*"):
+        if path.is_file():
+            assert b"STRATA_SYNTHETIC_OAUTH_ACCESS" not in path.read_bytes()
+    # Same durable operation cannot be forwarded again, even with a new adapter.
+    previous = SyntheticOAuthTransport(gate, fresh_credentials(), endpoint).execute(
+        "a1", attempt, reserve, raw, on_headers=lambda *args: None, on_chunk=delivered.append)
+    assert previous["state"] == "UNSETTLED"
+    assert len(requests) == 1
 
 
 def test_live_transport_requires_exact_private_proof_before_any_connection(oauth, monkeypatch):

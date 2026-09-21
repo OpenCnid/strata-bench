@@ -136,6 +136,10 @@ class NativeOAuthTransport(_ResponsesTransport):
         require(attempt.provider == "openai" and reserve.model_identity == "gpt-5.6-luna",
                 "OAUTH_PROVIDER_SCOPE")
         proof = strict_json(self.gate._private_ref(self.qualification_ref, 65536))
+        if proof.get("schema") == "strata/NativeOAuthConformancePermit/1":
+            from .native_conformance import require_permit_for_request
+            require_permit_for_request(self.gate, proof, self.credentials, attempt, reserve)
+            return
         require(proof.get("schema") == "strata/NativeOAuthTransportQualification/1" and
                 proof.get("is_example") is False and proof.get("policy") == POLICY and
                 proof.get("profile_digest") == attempt.profile_digest and

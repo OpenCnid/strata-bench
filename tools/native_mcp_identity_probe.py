@@ -305,6 +305,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "last_refresh": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")}), encoding="utf-8")
         if gateway_mode:
             config["model_providers.strata_local_fixture.base_url"] = gateway.base_url
+            config["model_providers.strata_local_fixture.name"] = "Strata budget gateway"
+            config["model_providers.strata_local_fixture.stream_idle_timeout_ms"] = 30000
         if skills_mode:
             config["developer_instructions"] = INSTRUCTIONS
         bootstrap = {}
@@ -599,7 +601,8 @@ def main():
         root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",
         root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",
         root / "src/mcbench/inference_transport.py", root / "src/mcbench/native_gateway.py",
-        root / "src/mcbench/native_skills.py"]
+        root / "src/mcbench/native_skills.py", root / "src/mcbench/native_conformance.py",
+        root / "tools/native_oauth_conformance.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")

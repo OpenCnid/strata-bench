@@ -30,8 +30,7 @@ wire transport and native supervisor now enforce versioned estimate bounds and
 valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
 records the actual private migration and focused source/synthetic evidence.
 The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
-read it before dispatch and do not install another allowance. Actual OAuth ingress,
-finite exposure enforcement and isolation still need qualification.
+read it before dispatch and do not install another allowance. The first actual OAuth receipt trial now has unknown usage: one request and envelope hold $0.7554 once, zero valuations, admission blocked. Actual receipt/exposure and full isolation qualification remain incomplete; no reset or replay.
 
 The implemented source contract requires an explicit versioned accounting basis that distinguishes actual
 charges, API-equivalent estimates and synthetic fixture units. Pin model, price
@@ -56,8 +55,10 @@ Exit evidence for this source deliverable:
    aggregate estimate can exceed the allowance. A timer/kill signal alone is
    not proof that an already accepted provider request has stopped consuming.
 5. Focused synthetic tests and the affected pinned-CLI fixture establish only
-   their stated scope. Actual OAuth all-request ingress and the native
-   root/helper boundary require separate real evidence before a live trial.
+   their stated scope. A receipt-only conformance permit binds actual native
+   pre-dispatch safeguards without assuming a first receipt exists. It admits
+   one fixed request with no helper/game grant under the original authority.
+   Its outcome cannot grant campaign qualification; unknown usage blocks admission.
 
 Published standard short-context Luna rates inspected September 20 were
 $0.20/M input, $0.02/M cached input and $1.20/M output. These are now pinned in the runtime estimate record; that installation is not
@@ -100,7 +101,7 @@ private interpreter/broker/plugin/configuration, holds Windows file leases and
 restricts imports to pinned source/native modules with site initialization off.
 Changed-profile native root/helper canaries pass narrowly. File integrity does
 not authenticate ingress or protect credentials from arbitrary same-user code.
-[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. [Native OAuth transport](../verification/2026-09-20-native-oauth-transport.md) now implements native header capture, fixed HTTPS/qualification guards and shared receipt accounting, with actual-CLI fabricated-cache/header-preservation evidence. [Gateway and skill-body integration](../verification/2026-09-20-native-gateway.md) now has source and actual native synthetic-provider evidence. Next implement bounded live conformance admission without circular or fabricated first-call receipt qualification, then the measured initial OAuth trial and native/game/private evidence join. Skill supporting files, learned activation/export, complete helper lifecycle and real OAuth/account/TLS/receipt/exposure evidence remain required. No live qualification was issued. Both synthetic adapters remain prohibited from live use.
+[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. [Native OAuth transport](../verification/2026-09-20-native-oauth-transport.md) now implements native header capture, fixed HTTPS/qualification guards and shared receipt accounting, with actual-CLI fabricated-cache/header-preservation evidence. [Gateway and skill-body integration](../verification/2026-09-20-native-gateway.md) now has source and actual native synthetic-provider evidence. The [first bounded OAuth receipt trial](../verification/2026-09-20-native-oauth-conformance.md) now failed without usable usage. The implemented conformance entrypoint preserves original authority and a $0.7554 hold; its fixed job ID cannot be replayed. Rejected-response diagnostics and sealed startup catalog pinning have focused source/native metadata evidence only. Model admission is blocked by uncertainty; advance independent M0 scorer authority, shutdown/provenance and recovery work. Skill supporting files, learned activation/export, complete helper lifecycle and real OAuth/account/TLS/receipt/exposure evidence remain required. No live qualification was issued. Both synthetic adapters remain prohibited from live use.
 
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.
@@ -110,7 +111,11 @@ controls (permitted game/workspace access) and negative file/process/network/
 tool/helper/immutable-skill controls. Keep canaries synthetic and operator-owned;
 never expose real secrets merely to demonstrate a leak.
 
-## Live trial admission
+## Current unresolved receipt
+
+`validation-2026-09-18:oauth-first-receipt` attempted one real request and is UNSETTLED. Gateway closure is fenced, but `METERING_UNKNOWN` prevents budget closure. The source fix now retains bounded private HTTP rejection diagnostics; it cannot reconstruct the first response. Authenticated model-catalog metadata is not usage and does not authorize releasing the hold. Do not replay, lower the bound from native context defaults, or weaken unknown-metering admission. The original $10 and <=$1 first-trial ceiling persist.
+
+## Live gameplay trial admission
 
 After both deliverables and applicable game/runtime prerequisites are qualified,
 prepare one bounded native Dovetail → scoped game action → private evidence join

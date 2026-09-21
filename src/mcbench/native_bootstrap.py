@@ -96,6 +96,10 @@ def acquire_native_bootstrap(plan):
         manifest["native_executable"] == plan.executable, "BOOTSTRAP_LAUNCH_MISMATCH")
     workspace = safe(plan.workspace)
     private = [safe(manifest[key]) for key in required] + [safe(plan.bootstrap_manifest)]
+    catalog = plan.config_overrides.get("model_catalog_json")
+    if catalog is not None:
+        require(str(safe(catalog)).casefold() in pinned, "BOOTSTRAP_CATALOG_UNPINNED")
+        private.append(safe(catalog))
     private.extend(safe(path) for path in manifest["python_paths"])
     require(all(not path.is_relative_to(workspace) for path in private), "BOOTSTRAP_WORKSPACE_OVERLAP")
     config = json.loads(safe(manifest["broker_config"]).read_bytes())

@@ -129,6 +129,22 @@ class ResponsesUsage:
         return self.receipt.copy()
 
 
+class RejectedResponseCapture:
+    """Private bounded diagnostics; never a usage receipt or agent response."""
+
+    content_type = "application/octet-stream"
+
+    def __init__(self):
+        self.raw = bytearray()
+
+    def feed(self, chunk):
+        require(len(self.raw) + len(chunk) <= MAX_RESPONSE_BYTES, "RESPONSE_SIZE")
+        self.raw.extend(chunk)
+
+    def finish(self):
+        require(False, "RESPONSE_CONTENT_TYPE")
+
+
 class _ResponsesTransport:
     """Shared bounded receipt transport. Concrete adapters enforce admission.
 
@@ -200,12 +216,23 @@ class _ResponsesTransport:
                 require(remaining > 0, "TRANSPORT_DEADLINE")
                 sock.settimeout(remaining)
                 response = connection.getresponse()
-                require(response.status not in range(300, 400), "REDIRECT_REJECTED")
                 media = response.getheader("Content-Type", "").split(";", 1)[0].strip().lower()
+                # Preserve safe diagnostic metadata even when the wire format is
+                # unsupported. Do not retain arbitrary header values or infer cost.
+                with self.gate.db.transaction() as db:
+                    self.gate.db.event(db, "inference.http_response", {
+                        "operation_id": reserve.operation_id, "status": response.status,
+                        "media_class": media if media in {"application/json", "text/event-stream",
+                            "text/html", "text/plain", "application/x-ndjson", "application/jsonl"} else "other",
+                        "identity_encoding": response.getheader("Content-Encoding", "identity") == "identity",
+                        "simulation": self.gate.simulation})
+                require(response.status not in range(300, 400), "REDIRECT_REJECTED")
                 require(response.getheader("Content-Encoding", "identity") == "identity",
                         "RESPONSE_ENCODING")
-                capture = ResponsesUsage(reserve.model_identity, media)
-                on_headers(response.status, media)
+                supported = media in {"application/json", "text/event-stream"}
+                capture = ResponsesUsage(reserve.model_identity, media) if supported else RejectedResponseCapture()
+                if supported:
+                    on_headers(response.status, media)
                 while not response.isclosed():
                     remaining = deadline - time.monotonic()
                     require(remaining > 0, "TRANSPORT_DEADLINE")
@@ -216,11 +243,13 @@ class _ResponsesTransport:
                     safe = self._filter(chunk)
                     if safe:
                         capture.feed(safe)
-                        on_chunk(safe)
+                        if supported:
+                            on_chunk(safe)
                 safe = self._filter(b"", final=True)
                 if safe:
                     capture.feed(safe)
-                    on_chunk(safe)
+                    if supported:
+                        on_chunk(safe)
                 observed = capture.finish()
                 event = observed.pop("event")
                 # Cached input and reasoning output are subsets, never added twice.

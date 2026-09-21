@@ -1,8 +1,8 @@
 # Initial validation: budget and native boundary
 
-September 20, 2026. Operator-only. This is the continuation contract for
+Updated September 21, 2026. Operator-only. This is the continuation contract for
 M0.1c.1c.2 and M0.1c.2b.2, not an executable authorization or qualification.
-Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11 in MILESTONES.md.
+Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12 in MILESTONES.md.
 Coverage: F03/F04/F07/F11/F16, N01/N02/N04/N06, C06/C12/C20,
 partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 
@@ -15,9 +15,10 @@ partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 - The user confirms no outside Strata model experiments. Inspected experiment
   stores used synthetic providers; this establishes zero opening experimental
   usage, not zero subscription use by the coding assistant.
-- Recommend a first trial allocation of at most $1 estimated usage within that
-  $10 total, then measure tokens/cost per useful action. This is a staged plan,
-  not a promise that $10 funds all later soaks or the confirmatory study.
+- The first-trial ceiling was at most $1 within that $10. The first request
+  remains unknown; D12's separately authorized bounded receipt request is now
+  consumed. Neither permits another trial or implies that $10 funds later
+  soaks or the confirmatory study.
 - No user-supplied VM is required. Engineer the smallest enforceable boundary
   on available hardware; keep the user's ordinary desktop usable.
 
@@ -30,7 +31,7 @@ wire transport and native supervisor now enforce versioned estimate bounds and
 valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
 records the actual private migration and focused source/synthetic evidence.
 The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
-read it before dispatch and do not install another allowance. The first actual OAuth receipt trial now has unknown usage: one request and envelope hold $0.7554 once, zero valuations, admission blocked. Actual receipt/exposure and full isolation qualification remain incomplete; no reset or replay.
+read it before dispatch and do not install another allowance. The first actual OAuth request still holds $0.7554 once. D12's distinct request settled offline at $0.001458 from a completed captured receipt, preserving the original native delivery failure. Current total is $0.756858, two actual requests, one valuation, uncertainty true. D12 is consumed; general admission remains blocked. Full reply/exposure and isolation qualification remain incomplete; no reset or replay.
 
 The [durable pre-dispatch denial extension](../verification/2026-09-21-native-activation-exec.md) now records known budget refusals without a receipt or charge. A rejected operation cannot replay; missing legacy proof blocks closure/export. This never clears the original ambiguous OAuth request or authorizes another trial.
 
@@ -42,7 +43,7 @@ holds through any migration; reject incompatible or incomplete migration.
 Recheck the original project ledger before any future dispatch. Do not turn
 this documented opening baseline into a reset during a later session.
 
-Exit evidence for this source deliverable:
+Implemented source invariants (their focused evidence is in the D11 report):
 
 1. Deterministic estimates distinguish ordinary/cached input, output and any
    applicable cache-write, long-context or tier rates; unknown categories fail
@@ -65,12 +66,12 @@ Exit evidence for this source deliverable:
 Published standard short-context Luna rates inspected September 20 were
 $0.20/M input, $0.02/M cached input and $1.20/M output. These are now pinned in the runtime estimate record; that installation is not
 OAuth ingress or boundary qualification.
-Separate cache-write, long-context and service-tier rules apply. Revalidate
-the chosen schedule when implementing it: [model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna),
+Separate cache-write, long-context and service-tier rules apply. Keep historical valuations pinned; a future schedule change needs explicit
+versioned treatment, not repricing old usage. Historical sources: [model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna),
 [API pricing](https://developers.openai.com/api/docs/pricing),
 [subscription credit semantics](https://learn.chatgpt.com/docs/pricing).
 
-## Next deliverable: enforce the minimum native boundary
+## Native boundary: implemented candidate and remaining qualification
 
 The gameplay agent needs its scoped game CLI, its own notes/learned skills and
 the allowed corpus. It must not read evaluator criteria/holdouts, raw server
@@ -91,8 +92,8 @@ executor-only fixed-worker forwarding and durable no-replay. Native root/helper
 metadata and actual local synthetic-worker positive/negative cases were exercised.
 This activates the optional MCP facade for a demonstrated enforcement need;
 the native loop/plugin and game contracts are preserved. It remains unqualified
-until the remaining protected-bootstrap, live ingress, skill and adversarial
-boundary cases pass. [Native participant admission](../verification/2026-09-20-native-admission.md)
+until the complete declared boundary and authentic live ingress/reply cases pass;
+later bootstrap, skill and game evidence below do not close the full gate. [Native participant admission](../verification/2026-09-20-native-admission.md)
 now implements stdout-bound root identity, clean child requests, nested budgets
 and sealed closure, exercised through actual native CLI/synthetic-provider
 fixtures. This does not qualify protected live ingress, credential separation
@@ -103,7 +104,7 @@ private interpreter/broker/plugin/configuration, holds Windows file leases and
 restricts imports to pinned source/native modules with site initialization off.
 Changed-profile native root/helper canaries pass narrowly. File integrity does
 not authenticate ingress or protect credentials from arbitrary same-user code.
-[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. [Native OAuth transport](../verification/2026-09-20-native-oauth-transport.md) now implements native header capture, fixed HTTPS/qualification guards and shared receipt accounting, with actual-CLI fabricated-cache/header-preservation evidence. [Gateway and skill-body integration](../verification/2026-09-20-native-gateway.md) now has source and actual native synthetic-provider evidence. The [first bounded OAuth receipt trial](../verification/2026-09-20-native-oauth-conformance.md) now failed without usable usage. The implemented conformance entrypoint preserves original authority and a $0.7554 hold; its fixed job ID cannot be replayed. Rejected-response diagnostics and sealed startup catalog pinning have focused source/native metadata evidence only. Model admission is blocked by uncertainty; advance independent M0 scorer authority, shutdown/provenance and recovery work. Skill supporting files, learned activation/export, complete helper lifecycle and real OAuth/account/TLS/receipt/exposure evidence remain required. No live qualification was issued. Both synthetic adapters remain prohibited from live use.
+[Authenticated native ingress](../verification/2026-09-20-native-ingress.md) now binds the native transport capability and exact request body to the running job/profile, with source and actual CLI/synthetic-provider header/denial evidence. [Native OAuth transport](../verification/2026-09-20-native-oauth-transport.md) now implements native header capture, fixed HTTPS/qualification guards and shared receipt accounting, with actual-CLI fabricated-cache/header-preservation evidence. [Gateway and skill-body integration](../verification/2026-09-20-native-gateway.md) now has source and actual native synthetic-provider evidence. The [first bounded OAuth receipt trial](../verification/2026-09-20-native-oauth-conformance.md) now failed without usable usage. The implemented conformance entrypoint preserves original authority and a $0.7554 hold; its fixed job ID cannot be replayed. Rejected-response diagnostics and sealed startup catalog pinning have focused source/native metadata evidence only. Model admission is blocked by uncertainty; advance independent M0 scorer authority, shutdown/provenance and recovery work. Supporting-file reads and learned activation/export now have [native synthetic evidence](../verification/2026-09-21-native-activation-exec.md), and the [connected vanilla path](../verification/2026-09-21-m0-native-game.md) has real game evidence with scripted replies. Complete helper/isolation, authentic reply/exposure and game/agent recovery qualification remain required. No live qualification was issued. Both synthetic adapters remain prohibited from live use.
 
 The [existing canaries](../verification/2026-09-20-native-boundary.md) found
 actual unauthorized loopback access even under `CodexSandboxOffline`.
@@ -113,15 +114,15 @@ controls (permitted game/workspace access) and negative file/process/network/
 tool/helper/immutable-skill controls. Keep canaries synthetic and operator-owned;
 never expose real secrets merely to demonstrate a leak.
 
-The [closed native settings and writer-file canary](../verification/2026-09-21-native-reader-boundary.md) adds pre-intent rejection of unreviewed feature/stdio fields and distinct native caller evidence. A fresh sealed root/helper run denies raw synthetic writer-file reads through the restricted tool/broker surface while preserving allowed controls. This is partial native/synthetic integration; it does not close underlying sibling-read/loopback failures, live usage or complete RuntimeQualification. Next enforce declared tool projections at request admission before provider forwarding.
+The [closed native settings and writer-file canary](../verification/2026-09-21-native-reader-boundary.md) adds pre-intent rejection of unreviewed feature/stdio fields and distinct native caller evidence. A fresh sealed root/helper run denies raw synthetic writer-file reads through the restricted tool/broker surface while preserving allowed controls. This is partial native/synthetic integration; it does not close underlying sibling-read/loopback failures, live usage or complete RuntimeQualification. [Declared tool projection enforcement](../verification/2026-09-21-native-no-patch.md) now rejects unreviewed catalogs before forwarding and disables unscoped apply_patch reads in the selected profile. Full qualification remains open.
 
-## Current unresolved receipt
+## Original unresolved receipt
 
 `validation-2026-09-18:oauth-first-receipt` attempted one real request and is UNSETTLED. Gateway closure is fenced, but `METERING_UNKNOWN` prevents budget closure. The source fix now retains bounded private HTTP rejection diagnostics; it cannot reconstruct the first response. Authenticated model-catalog metadata is not usage and does not authorize releasing the hold. Do not replay, lower the bound from native context defaults, or weaken unknown-metering admission. The original $10 and <=$1 first-trial ceiling persist.
 
 ## D12 one-use receipt exception
 
-On September 21 the user approved “Retain the hold and allow one bounded trial” for one distinct receipt request capped at $0.7554, retaining the existing $0.7554 unknown hold. SPEC §15 now names the exact exception to the default halt above. `metering_trial.py` binds the original authority/snapshot/retained rows, current profile and one finite envelope/request; ordinary aggregate checks still apply. Combined maximum exposure is $1.5108 within the original $10. No helper/game grant, old-request replay, refund, general waiver or second request. The runner consumes the private exception durably; inspect its outcome before any later work. Failed boundary and production qualification requirements remain.
+On September 21 the user approved “Retain the hold and allow one bounded trial” for one distinct receipt request capped at $0.7554, retaining the existing $0.7554 unknown hold. SPEC §15 now names the exact exception to the default halt above. `metering_trial.py` binds the original authority/snapshot/retained rows, current profile and one finite envelope/request; ordinary aggregate checks still apply. Combined maximum exposure is $1.5108 within the original $10. No helper/game grant, old-request replay, refund, general waiver or second request. The runner consumed the private exception durably; its completed outcome is recorded below and cannot authorize another request. Failed boundary and production qualification requirements remain.
 
 D12 is now consumed. One authentic completed Luna receipt was recovered offline
 from its private request-bound capture after native delivery failed. New usage:
@@ -133,7 +134,10 @@ unqualified for another live dispatch. [Outcome and recovery evidence](../verifi
 
 ## Live gameplay trial admission
 
-After both deliverables and applicable game/runtime prerequisites are qualified,
+General admission is currently blocked by the original unresolved hold, and
+D12 cannot be reused. Independent M0.1d.1 source/evidence verification needs no
+model dispatch. If admission later becomes valid and all applicable game/runtime
+prerequisites are qualified,
 prepare one bounded native Dovetail → scoped game action → private evidence join
 with a helper case. Record all costs/time, exact source/profile pins and failed
 samples. Read the durable allowance first. No additional user permission is

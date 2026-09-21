@@ -31,9 +31,9 @@ The [native/game smoke command](docs/verification/2026-09-21-m0-native-game.md) 
 | Python operator services | Strict records, storage/journals, grants, controller state, budgets/clocks, checkpoints, artifacts and communication | Integrated production lifecycle, isolation and complete restoration |
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
-| Native Codex adapter | Actual pinned CLI/plugin/tool/helper lifecycle exercised with a credential-free synthetic provider | Live scoped host/game integration, child admission/isolation, nested-depth and complete resume qualification |
-| Inference accounting | Versioned D11 API-equivalent estimates, explicit original-authority migration, nested envelopes, distinct requests, deduplicated receipts and uncertain holds; pinned CLI synthetic integration | Actual OAuth all-request accounting, qualified finite exposure and enforced boundaries |
-| Restricted native broker candidate | Explicit caller projections, helper-only result writes and executor-only scoped worker forwarding; actual CLI/helper/synthetic HTTP checks | Full file/process/network negatives, live child admission, immutable skill loading and actual game/OAuth integration |
+| Native Codex adapter | Actual pinned CLI/plugin/root/helper, skill/supporting-file reads, learned activation/export and connected vanilla smoke with scripted replies | Live-model game integration, full helper/isolation and authentic joint recovery qualification |
+| Inference accounting | D11 estimates/migration, nested envelopes, distinct requests, deduplicated receipts and uncertain holds; one authentic D12 receipt reconciled offline | Original unknown hold blocks general admission; native reply delivery failed and changed transport remains live-unqualified |
+| Restricted native broker candidate | Pinned caller/tool projections, scoped artifact writes, executor-only real worker forwarding and clean helper admission | Full runtime/file/process/network conformance and live-model game qualification; raw canary failures remain |
 | Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded
@@ -78,9 +78,14 @@ $env:STRATA_SETTINGS_TEST_CLASSPATH = $env:STRATA_CLIENT_TEST_CLASSPATH
 $env:STRATA_TELEMETRY_TEST_JAVA = $env:STRATA_CLIENT_TEST_JAVA
 $env:STRATA_TELEMETRY_TEST_CLASSPATH = (Resolve-Path java\forge1192-telemetry\build\test-classpath.txt).Path
 $env:STRATA_GUARD_TEST_PYTHON = (Resolve-Path .venv\Scripts\python.exe).Path
+$env:STRATA_WRITER_TEST_SID = (Get-LocalUser -Name CodexSandboxOffline).SID.Value
+$env:STRATA_WRITER_TEST_GROUP = (Get-LocalGroup -Name CodexSandboxUsers).SID.Value
 uv run --frozen python -m pytest -q
 npm test --prefix backends/mineflayer
 ```
+
+The Windows writer tests also require the existing local sandbox identity/group
+named above; those commands resolve them and do not create accounts.
 
 Obtain the FTB Library artifact from the official exact pack outside this repo;
 its hash is enforced. No game or modpack binaries are distributed here. See the
@@ -88,7 +93,7 @@ its hash is enforced. No game or modpack binaries are distributed here. See the
 [settings extension runbook](docs/operations/forge-client-settings.md) for build
 inputs and limitations. A clean-machine build has not been qualified.
 
-See the [session checkpoint verification](docs/verification/2026-09-20-session-handoff.md)
+See the [session checkpoint verification](docs/verification/2026-09-21-session-handoff.md)
 for current merge checks and the historical baseline. These are local contract,
 process and fixture checks; they do not substitute for real integration gates.
 
@@ -104,10 +109,11 @@ Game installations, account caches, raw runs and private evaluator instances
 stay in separate protected storage. The authorized validation configuration is
 Codex OAuth / `gpt-5.6-luna`, with the original **$10 aggregate API-equivalent
 estimated usage allowance**, including helpers/retries (D04 clarified by D11).
-The user confirms no outside experiments; inspected Strata model trials used
-synthetic providers. The runtime's legacy hard-dollar policy still needs explicit
-migration, finite exposure and all-request accounting. This is not an OAuth bill
-or exact subscription-quota conversion. A VM is optional; an enforceable game,
+The user confirms no outside experiments. D11 migration preserves the original
+authority. Two actual requests now account for $0.7554 held plus $0.001458
+settled ($0.756858 combined); D12 is consumed and general admission remains
+blocked. Native reply delivery failed despite successful offline receipt recovery.
+This is not an OAuth bill or exact subscription-quota conversion. A VM is optional; an enforceable game,
 evaluator and credential boundary remains required. See the
 [validation admission contract](docs/operations/validation-admission.md).
 

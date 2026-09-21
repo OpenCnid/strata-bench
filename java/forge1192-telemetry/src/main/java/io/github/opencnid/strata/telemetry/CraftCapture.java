@@ -133,7 +133,10 @@ public final class CraftCapture {
         value.addProperty("score_eligible",false); return value;
     }
     private static void emit(Frame frame,String kind,String schema,JsonObject value) {
-        var actors=new JsonArray(); actors.add(frame.player.getUUID().toString()); sink.emit(kind,schema,value,actors);
+        var actors=new JsonArray(); actors.add(frame.player.getUUID().toString());
+        sink.emit("setup_snapshot","strata/NativeSetupSnapshot/1",
+            SetupCapture.capture(frame.player.getServer(),frame.player,frame.id,kind),actors);
+        sink.emit(kind,schema,value,actors);
     }
     private static JsonObject state(AbstractContainerMenu menu) {
         if (menu.slots.size()!=46) throw new IllegalStateException("CRAFT_CAPTURE_SLOTS");

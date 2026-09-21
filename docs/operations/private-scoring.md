@@ -72,3 +72,18 @@ create-exclusive; they do not write scorer state or grant credit. The benchmark
 roster does not assert FTB Teams membership, and checked supporting bytes do not
 automatically prove setup semantics. See [verification and remaining launch/
 setup gates](../verification/2026-09-20-craft-reference-seal.md).
+
+`PrivateCraftReferencePlan/2` additionally requires `native_team_ids`: a mapping
+from every registered agent ID to its expected FTB team UUID, fixed before
+sealing. It must have exactly the roster's keys. Do not infer this mapping from
+arriving telemetry or amend a consumed version-1 seal. A version-2 import needs
+telemetry 0.3.5 / `ServerStarted/6`, supported pinned native observation artifacts,
+the first-tick setup point and the correctly adjacent before/after points for
+each craft. The resulting `PrivateCraftReferenceInspection/2` records named
+native-point failures and excludes those candidates.
+
+Native mode/admin/team point agreement remains unscorable. Command counters
+cover observed Forge command attempts, not every possible mutation route;
+matching snapshots do not prove continuous history or fixture validity. Preserve
+unavailable observations and prior failed profiles. See the [native setup
+implementation and evidence](../verification/2026-09-20-native-setup.md).

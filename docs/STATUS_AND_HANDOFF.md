@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 20, 2026. Operator-only. [SPEC v0.2.70](../SPEC.md)
+Updated September 20, 2026. Operator-only. [SPEC v0.2.71](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -80,7 +80,9 @@ M0.2c.3b.1 now implements [private fixture seals and the authenticated craft ref
 
 M0.2c.3b.2 now implements the [owned reference launcher](verification/2026-09-20-reference-launch.md). Source/JVM faults pass 104 affected Python + 3 admission checks and 22 Java tests. The actual Forge CLI reference binds native process/world/module identity to retained OS handles, terminates all six members normally and preserves 13 signed records / 207 sampled ticks. All 18,226 original source files remain unchanged; the independent 19-check audit passes. Only .3b.2a's named launch reference is verified, with no scoring or guardian qualification. Preserve the separate private bundle `2026-09-20-reference-launch-live-01`, telemetry 0.3.4 and fresh stopped clone `e9e-owned-reference-01` on loopback 25570; do not reuse its grant or restore it over an earlier instance.
 
-Next .3b.3 needs native setup/admin/mode/pack-team facts and authentic joint controls/parity; .3b.2b must exclude concurrent mutable-world/config writers. Immutable software leases and native world paths alone do not prove that ownership. The registered benchmark roster is not FTB Teams evidence; verified supporting bytes are not an automatic setup-validity assertion. Raw/candidate witnesses remain unscorable. The online telemetry API and full recovery remain open. Preserve all original failures and the $0.7554 unknown-usage hold; no model replay/refund or unchanged accounting/stream/launch trial.
+M0.2c.3b.3 now implements [native setup observations](verification/2026-09-20-native-setup.md) and explicit expected FTB teams in `PrivateCraftReferencePlan/2`. Final native Python checks pass 29 cases; Java passes 25. The retained affected run has 156 passes and one rejected-roster test-expectation failure, subsequently fixed. Actual telemetry 0.3.5 startup observes expert flags with zero script errors, survival mode, disabled world commands/command blocks/RCON, no operators and the server-bound FTB manager. The 27-check independent audit compares sealed NBT/properties/ops, verifies all six owned members stopped and preserves 14 records / 206 sampled ticks. All 18,225 original source files remain unchanged. Preserve private bundle `2026-09-20-native-setup-live-01`, fresh stopped clone `e9e-native-setup-01`, loopback 25572 and its consumed grant. This is a server-only startup reference, not actor/team/craft qualification; client diagnostics remain on their earlier pinned 0.3.2 profile.
+
+Next .3b.3b needs an owned sealed version-2 authentic client craft and registered native-team positive/negative controls, using the existing ordinary craft worker and separate-desktop/API facilities. Do not repeat the unchanged startup trial. .3b.2b must exclude concurrent mutable-world/config writers; complete setup/mutation history, instrumentation parity and isolation remain required before scoring. Immutable software leases and native world paths alone do not prove that ownership. The registered benchmark roster is not FTB Teams evidence; supporting bytes are not an automatic setup-validity assertion. Raw/candidate witnesses remain unscorable. The online telemetry API and full recovery remain open. Preserve all original failures and the $0.7554 unknown-usage hold; no model replay/refund or unchanged accounting trial.
 
 ## Settled authority and limits
 

@@ -68,6 +68,19 @@ def seal(reference, *, preflight=True):
     return receipt, authority, key
 
 
+def test_authenticated_version5_stream_preserves_craft_resource_contract(reference):
+    store, _, events, _, spool = reference
+    events[0]["payload_schema"] = "strata/ServerStarted/5"
+    events[0]["payload"].update(module="strata-forge1192-telemetry/0.3.4", launch_identity={
+        "policy": "native-server-launch-observation/1", "pid": 1, "process_started_unix_ms": 1,
+        "executable": "synthetic-exe", "game_directory": "synthetic-game", "world_directory": "synthetic-world",
+        "module_file": "synthetic-module", "module_sha256": "a"*64, "online_mode": True, "server_port": 25569})
+    seal(reference)
+    result = store.inspect("i", spool)
+    assert result["candidate_complete"] and result["candidate_output"] == 1
+    assert not result["scoring_eligible"] and not result["launch_ownership_qualified"]
+
+
 def test_seal_native_resource_join_and_replay_never_award_a_score(reference, database):
     store, plan, _, directory, spool = reference
     receipt, authority, key = seal(reference)

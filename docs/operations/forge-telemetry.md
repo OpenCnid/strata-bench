@@ -253,3 +253,14 @@ the existing craft-reference importer; tracked failed launches cannot bypass
 their dispatch state. `launch_binding_verified` does not imply scoring,
 mutable-world/config writer exclusion, full process isolation or recovery.
 See [verification and limitations](../verification/2026-09-20-reference-launch.md).
+
+Telemetry 0.3.5 uses `ServerStarted/6`, retaining configuration 3 and the launch
+identity while declaring `native-e9e-setup-observation/1`. It emits private
+`NativeSetupSnapshot/1` records at tick 1 and before each craft begin/end.
+These observe server modes/admin exposure, command-attempt count, loaded KubeJS
+mode/error state and an acting player's existing FTB team/rank/members. Missing
+or changed dependency support is explicit; no JS or arbitrary method is exposed.
+The operator importer checks exact record adjacency and scope. Version-2 sealed
+reference plans register expected native teams separately. The Gradle resource
+task now stamps `mods.toml` from the project version; keep historical artifacts
+and their previous metadata mismatch unchanged. [Evidence and open qualification](../verification/2026-09-20-native-setup.md).

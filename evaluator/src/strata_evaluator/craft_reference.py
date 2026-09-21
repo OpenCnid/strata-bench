@@ -21,6 +21,7 @@ from mcbench.inference_transport import strict_json
 from mcbench.storage import Database, canonical, digest, reject_links, require, safe_relative
 
 from .scorer import Predicate
+from .setup_facts import SetupSnapshot, qualify_points
 from .telemetry_auth import (
     BoundSpoolAuthority, inspect_authenticated_spool, issue_authority, parse_authority, private_read,
 )
@@ -71,6 +72,23 @@ class CraftReferencePlan(Strict):
         game, fixture = private_path(self.game_directory), private_path(self.fixture_directory)
         require(fixture != game and fixture.is_relative_to(game), "CRAFT_FIXTURE_SCOPE")
         return self
+
+
+class CraftReferencePlanV2(CraftReferencePlan):
+    schema_: Literal["strata/PrivateCraftReferencePlan/2"] = Field(alias="schema")
+    native_team_ids: dict[Id, Actor]
+
+    @model_validator(mode="after")
+    def native_roster(self):
+        require(set(self.native_team_ids) == set(self.roster), "CRAFT_NATIVE_ROSTER_SCOPE")
+        return self
+
+
+def parse_plan(value):
+    if isinstance(value, CraftReferencePlan):
+        return value
+    model = CraftReferencePlanV2 if value.get("schema") == "strata/PrivateCraftReferencePlan/2" else CraftReferencePlan
+    return model.model_validate(value)
 
 
 def private_path(value):
@@ -163,7 +181,7 @@ class CraftReferenceStore:
                        "body TEXT NOT NULL)")
 
     def seal(self, plan, directory):
-        plan = CraftReferencePlan.model_validate(plan)
+        plan = parse_plan(plan)
         body = plan.model_dump(by_alias=True)
         require(len(canonical(body)) <= MAX_PLAN_BYTES, "ARTIFACT_QUOTA")
         directory = private_path(directory)
@@ -204,7 +222,7 @@ class CraftReferenceStore:
         row = self.database.connection.execute("SELECT * FROM craft_reference_seals WHERE instance=?",
                                                (instance,)).fetchone()
         require(row is not None, "CRAFT_SEAL_MISSING")
-        plan = CraftReferencePlan.model_validate(strict_json(row["body"]))
+        plan = parse_plan(strict_json(row["body"]))
         require(plan.instance_id == instance and not self.database.path.is_relative_to(
             private_path(plan.game_directory)), "CRAFT_SETUP_SCOPE")
         require(digest(plan.model_dump(by_alias=True)) == row["digest"], "CRAFT_SEAL_CHANGED")
@@ -249,6 +267,12 @@ class CraftReferenceStore:
         require(launch_body["setup_digest"] == row["digest"] and launch_body["authority_digest"] == row["authority"],
                 "CRAFT_LAUNCH_CHANGED")
         report = inspect_authenticated_spool(Path(spool), path)
+        native_checks = {}
+        if isinstance(plan, CraftReferencePlanV2):
+            require(report.get("setup_capture_support", {}).get("status") == "supported"
+                    and report.get("setup_startup") is not None, "CRAFT_NATIVE_SETUP_MISSING")
+            startup = SetupSnapshot.model_validate(report["setup_startup"])
+            native_teams = {actor: plan.native_team_ids[agent] for agent, actor in plan.roster.items()}
         accepted, rejected, output = [], [], 0
         recipe_checks = {name: name in report["recipe_snapshots"] and digest(report["recipe_snapshots"][name]) == expected
                          for name, expected in plan.recipe_digests.items()}
@@ -268,6 +292,15 @@ class CraftReferenceStore:
             elif witness["item_id"] != plan.predicate.item_id or not all(
                     witness["consumed"].get(k, 0) >= v for k, v in plan.predicate.ingredients.items()):
                 reason = "CRAFT_PREDICATE_MISMATCH"
+            if reason is None and isinstance(plan, CraftReferencePlanV2):
+                points = witness.get("setup_points")
+                require(points is not None, "CRAFT_NATIVE_SETUP_MISSING")
+                check = qualify_points(startup, SetupSnapshot.model_validate(points["before"]),
+                    SetupSnapshot.model_validate(points["after"]), actor=witness["actor_id"],
+                    expected_team=native_teams[witness["actor_id"]], expert=plan.predicate.expert_mode)
+                native_checks[witness["transaction_id"]] = check
+                if not check["native_points_match"]:
+                    reason = "CRAFT_NATIVE_POINTS_UNPROVEN"
             if reason:
                 rejected.append({"transaction_id": witness["transaction_id"], "reason": reason})
             else:
@@ -286,6 +319,9 @@ class CraftReferenceStore:
             "telemetry_authentication_verified": True, "scoring_eligible": False,
             "scoring_authority_qualified": False, "setup_mechanics_qualified": False,
             "launch_ownership_qualified": False, "gate_result": "not_run"}
+        if isinstance(plan, CraftReferencePlanV2):
+            result.update(schema="strata/PrivateCraftReferenceInspection/2", native_point_checks=native_checks,
+                native_startup=report["setup_startup"], native_setup_continuity_qualified=False)
         # Legacy source-only references retain their original report shape.
         # A tracked dispatch may not be replaced by that weaker path after an
         # uncertain launch, failed identity binding or incomplete stop.
@@ -327,7 +363,7 @@ def main():
             command.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     if args.command == "seal":
-        plan = CraftReferencePlan.model_validate(strict_json(private_read(args.plan, MAX_PLAN_BYTES)))
+        plan = parse_plan(strict_json(private_read(args.plan, MAX_PLAN_BYTES)))
         require(not private_path(args.database).is_relative_to(private_path(plan.game_directory))
                 and not private_path(args.plan).is_relative_to(private_path(plan.game_directory)),
                 "CRAFT_PRIVATE_PATH")

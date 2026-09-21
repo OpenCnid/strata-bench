@@ -71,9 +71,12 @@ class LocalProvider:
     """
 
     def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
-                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False):
+                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False, helper_requests=4):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
+        require(type(helper_requests) is int and 1 <= helper_requests <= max_requests,
+                "HELPER_REQUEST_LIMIT")
         self.max_requests = max_requests
+        self.helper_requests = helper_requests
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
         self.plan = None
         self.requests, self.errors = [], []
@@ -278,8 +281,9 @@ class LocalProvider:
                             parent_participant = db.connection.execute("SELECT envelope FROM native_participants "
                                 "WHERE job=? AND thread=?", (plan.job_id, metadata.get("parent_thread_id"))).fetchone()
                             require(parent_participant is not None, "NATIVE_LINEAGE")
-                            child_envelope = ledger(plan, parent, parent=parent_participant[0], calls=4,
-                                spend=40000, inputs=400000, outputs=40000, pricing=price).model_copy(
+                            n = provider.helper_requests
+                            child_envelope = ledger(plan, parent, parent=parent_participant[0], calls=n,
+                                spend=n*10000, inputs=n*100000, outputs=n*10000, pricing=price).model_copy(
                                     update={"kind": "helper"})
                     bound = put(cas, {"schema": "strata/InferenceDispatchBound/1",
                         "is_example": True, **scope, "reservation_digest": digest(reserve.model_dump()),

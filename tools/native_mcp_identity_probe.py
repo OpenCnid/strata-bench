@@ -52,10 +52,21 @@ def serve(log):
         print(json.dumps({"jsonrpc": "2.0", "id": request["id"], "result": result}), flush=True)
 
 
+def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
+    """Retain a report on uncertainty; never fabricate a receipt or release a hold."""
+    from mcbench.storage import Fault
+    from native_dispatch_probe import close_budget
+    try:
+        return runtime.close_dispatch_budget(plan.job_id, gateway_seal) if gateway_seal else (
+            close_budget(runtime, plan, provider))
+    except Fault as exc:
+        return {"state": runtime.status(plan.job_id)["state"], "closure_error": exc.code}
+
+
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
-        deferred_tools=False, no_patch_catalog=None):
+        deferred_tools=False, no_patch_catalog=None, state_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -68,7 +79,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from mcbench.native_broker_policy import validate_broker_settings
     from mcbench.plugins import install_dovetail
     from mcbench.storage import CAS, Database, Principal, require
-    from native_dispatch_probe import LocalProvider, close_budget, ledger, plan_for, put, sse, wait_job
+    from native_dispatch_probe import LocalProvider, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
     from native_broker_canaries import Canaries
 
@@ -84,7 +95,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(tool_projections is None or bootstrap_mode, "PROJECTION_BOOTSTRAP_REQUIRED")
     require(not deferred_tools or canary_mode and bootstrap_mode and tool_projections is not None,
             "DEFERRED_CANARY_PROJECTION_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools, "CATALOG_DEFERRED_CANARY_REQUIRED")
+    require(not state_mode or bootstrap_mode and tool_projections is not None and
+            no_patch_catalog is not None and not canary_mode, "STATE_PINNED_BOOTSTRAP_REQUIRED")
+    require(no_patch_catalog is None or deferred_tools or state_mode, "CATALOG_DEFERRED_CANARY_REQUIRED")
+    from native_state_canaries import StateCanaries
+    state_probe = StateCanaries() if state_mode else None
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
@@ -102,6 +117,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             agent = metadata["agent_name"]
             require(agent in {"/root", "/root/identity_child"}, "UNEXPECTED_AGENT")
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
+            if state_probe:
+                state_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
@@ -181,6 +198,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
+                if state_probe:
+                    item = state_probe.start(agent, operation, code)
+                    if agent == "/root":
+                        extra_items.append(state_probe.reserve_root_handle(operation))
+            elif state_probe:
+                item, *extra_items = state_probe.next(agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
                     2 + int(canary_mode) + int(no_patch_catalog is not None)):
@@ -246,7 +269,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
         category="development")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12,
-                        oauth_fixture=oauth_mode, gateway_fixture=gateway_mode)
+                        oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
+                        helper_requests=5 if state_mode else 4)
     gateway = None
     if gateway_mode:
         from mcbench.accounting import EstimateBasis, FiniteExposure
@@ -454,8 +478,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "identities": provider.identities, "broker_calls": calls,
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
-        "closure": runtime.close_dispatch_budget(plan.job_id, gateway_seal) if gateway else
-            close_budget(runtime, plan, provider), "budget": gate.budgets.status("project")}
+        "closure": close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
+        "budget": gate.budgets.status("project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
         result["worker_calls"] = worker_calls
@@ -463,6 +487,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "SELECT namespace,path,immutable FROM broker_files ORDER BY namespace,path")]
         outputs = json.dumps(provider.outputs)
         result["checks"] = {
+            "budget_closure_finalized": result["closure"].get("state") == "FINALIZED" and
+                "closure_error" not in result["closure"],
             "executor_worker_once": len(worker_calls) == 1 and worker_calls[0]["request_id"] == "game-root",
             "positive_game_return": "STRATA_SCOPED_GAME_CONTROL" in outputs,
             "helper_result_written": any(
@@ -619,6 +645,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     r["namespace"], r["ref"])).hexdigest() == expected_hashes[r["path"]] for r in rows),
             "root_and_helper_exact_skill_read": matched == {"/root", "/root/identity_child"},
         })
+    if state_probe:
+        result["state_canaries"] = state_probe.report()
+        result["checks"].update(result["state_canaries"]["checks"])
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}

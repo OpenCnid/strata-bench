@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.90, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-21 (native patch read-channel removal). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.91, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-21 (native code-mode state and cell ownership). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -352,6 +352,8 @@ Explicit-only workflows remain explicit: schedule an ordinary handoff request at
 Default episodes last 3,600 active campaign seconds. Within an episode, the native loop manages turns and model thinking while the game runs. At the boundary, stop issuing new turns, settle/intercept tool work, request a bounded ordinary handoff if permitted, and begin a fresh conversation. Full-arm state is only its admitted notes/skills/handoff; initial-state controls receive initial artifacts only. No hidden conversation carryover. Both retain equal within-episode context policy. Default handoff limit is 8,000 UTF-8 bytes; learned-artifact quota is 20 MiB per agent and maximum single skill 256 KiB. Limits are [D], frozen before a cohort.
 
 Record native compactions and summaries when exposed; otherwise record that their internals are unavailable and keep host/version/context limits identical. A harness handoff is not a claim to restore a hidden model state. Recovery can either resume an exact exported episode session or start a fresh one with the checkpoint handoff; select one tested mode per cohort. Probe arms always start fresh sessions.
+
+Native code-mode storage, yielded execution cells and their read/cancellation handles remain scoped to their participant. Conformance must include both denied cross-participant attempts with known owned handles and successful owner access; an absent value alone is insufficient. Distinguish storage written by a completed call from uncommitted writes in a still-running cell. No implicit transfer of code-mode caches into a clean helper or fresh episode is allowed; restart/export and concurrent-write semantics require their own evidence.
 
 Default helper concurrency is two per embodied agent, configurable before admission. A helper gets a read-only copy of the explicitly supplied plan/artifact/evidence plus the same initial skill bundle. No parent conversation, private expected results, sibling directories, original author's hidden notes, or avatar input token. It writes only its result namespace. A clean conversation alone is insufficient when independent filesystem review is claimed. Helper outputs are untrusted advice; the designated executor decides actions and commits revisions. A helper cannot spawn unregistered billable descendants. Recursive work requires a parent-linked reservation within the same aggregate limits and maximum depth two in MVP.
 

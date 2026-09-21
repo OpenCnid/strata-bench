@@ -586,6 +586,12 @@ class NativeExec:
                 "raw_usage_ref": seal_ref, "reason": "fenced ingress; usage belongs to descendants",
                 "usage": dict.fromkeys(reserve.usage.model_dump(), 0)})
             self.budgets.post_in_transaction(db, plan.account, receipt, close_envelope=True)
+            if plan.ingress_policy is not None:
+                ingress = db.execute("SELECT revoked FROM native_ingress WHERE job=?", (job,)).fetchone()
+                require(ingress is not None, "INGRESS_NOT_REGISTERED")
+                if not ingress[0]:
+                    db.execute("UPDATE native_ingress SET revoked=1 WHERE job=?", (job,))
+                    self.db.event(db, "native.ingress_revoked", {"job": job})
             db.execute("UPDATE native_jobs SET state='FINALIZED',ended=? WHERE id=?",
                        (time.time(), job))
             self.db.event(db, "runtime.state", {"job_id": job, "state": "FINALIZED",
@@ -603,6 +609,7 @@ class NativeExec:
         row = self._row(job)
         require(row["state"] == "FINALIZED" and job not in self.live, "RUNTIME_NOT_QUIESCENT")
         plan = NativeLaunch.model_validate_json(row["plan"])
+        require(plan.broker_policy is None, "NATIVE_EXPORT_BROKER_INVENTORY_REQUIRED")
         require(artifact_namespace == f"campaign:{plan.campaign_id}:agent:{plan.agent_id}", "FORBIDDEN")
         principal = Principal(artifact_namespace, "executor")
         for ref in (workspace_ref, skills_ref):
@@ -622,6 +629,11 @@ class NativeExec:
         return self.cas.put(Principal("operator", "operator"), self.namespace, "operator",
                             canonical(state))
 
+    def export_broker_state(self, job):
+        """Export the stopped broker component from source, without authorizing restore."""
+        from .native_export import NativeExports
+        return NativeExports(self).export(job)
+
     def resume(self, state_ref: str, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
         """Start a fresh native process only after checkpoint artifacts are restored.
 
@@ -630,6 +642,8 @@ class NativeExec:
         files are present; production qualification includes the restored workspace.
         """
         state = self.cas.json(Principal("operator", "operator"), self.namespace, state_ref)
+        require(state.get("schema") != "strata/NativeState/2", "NATIVE_COMPLETE_RESTORE_REQUIRED")
+        require(plan.broker_policy is None, "NATIVE_STATE_LEGACY")
         require(state.get("schema") == "strata/NativeState/1" and
                 state.get("is_example") == self.simulation and state.get("resume_mode") ==
                 "fresh_handoff" and state.get("session") is None and

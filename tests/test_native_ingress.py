@@ -36,6 +36,35 @@ def bind(ingress, value):
     service.bind_request("job", value[1].operation_id, value[0].request_digest, headers, "/v1/responses")
 
 
+@pytest.mark.parametrize("missing", [False, True])
+def test_finalization_atomically_revokes_ingress_or_retains_envelope(admitted, ingress, missing):
+    from mcbench.native import NativeExec
+    from test_native_retirement import settle
+    _, gate, _, plan, request, prepare, put = admitted
+    value = request("one")
+    bind(ingress, value)
+    prepare(value)
+    gate._begin("a1", value[0], value[1])
+    settle(admitted, value)
+    gate.db.connection.execute("UPDATE native_jobs SET state='UNSETTLED',returncode=0")
+    seal = put({"schema": "strata/InferenceIngressSeal/1", "is_example": True, "job_id": "job",
+        "profile_digest": plan.profile_digest(), "process_tree_dead": True, "ingress_closed": True,
+        "handlers_fenced": True, "participant_threads": ["root"], "attempt_ids": ["one"]})
+    runtime = NativeExec(gate.db, gate.cas, simulation=True)
+    if missing:
+        gate.db.connection.execute("DELETE FROM native_ingress")
+        with pytest.raises(Fault, match="INGRESS_NOT_REGISTERED"):
+            runtime.close_dispatch_budget("job", seal)
+        assert gate.db.connection.execute("SELECT actual FROM operations WHERE id='job-envelope'").fetchone()[0] is None
+        assert gate.db.connection.execute("SELECT state FROM native_jobs").fetchone()[0] == "UNSETTLED"
+    else:
+        runtime.close_dispatch_budget("job", seal)
+        assert gate.db.connection.execute("SELECT revoked FROM native_ingress").fetchone()[0] == 1
+        assert gate.db.connection.execute("SELECT count(*) FROM outbox WHERE kind='native.ingress_revoked'").fetchone()[0] == 1
+        with pytest.raises(Fault, match="INGRESS_REVOKED"):
+            ingress[0].authenticate("job", ingress[1], "/v1/responses")
+
+
 def test_historical_capture_check_never_reopens_revoked_admission(admitted, ingress):
     from mcbench.native_ingress import require_ingress_capture, require_ingress_request
     _, gate, _, plan, request, prepare, _ = admitted

@@ -30,6 +30,23 @@ def test_native_override_inline_tables_round_trip_and_reject_null(make_plan):
             native_argv(invalid)
 
 
+@pytest.mark.parametrize("extra", [{"features.unified_exec": True},
+                                  {"features": {"unreviewed": True}}])
+def test_unreviewed_broker_feature_rejects_before_intent_budget_or_process(runtime, make_plan, extra):
+    from mcbench.broker import POLICY
+    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+    config = restricted_settings() | {"mcp_servers.strata_broker": {
+        "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
+            "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}} | extra
+    plan, reserve = make_plan(config_overrides=config, broker_policy=POLICY)
+    before = runtime.budgets.status("a1")
+    with pytest.raises(Fault, match="BROKER_TOOL_POLICY"):
+        runtime.start(plan, reserve, fixture_argv=command("raise SystemExit('must not start')"))
+    assert runtime.budgets.status("a1") == before
+    assert not runtime.live
+    assert runtime.db.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
+
+
 def test_changed_bootstrap_rejects_before_budget_or_process(runtime, make_plan, tmp_path):
     from mcbench.broker import POLICY
     from mcbench.launch_integrity import IntegrityError

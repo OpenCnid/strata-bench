@@ -199,9 +199,23 @@ def test_native_broker_policy_rejects_tool_and_ancestor_instruction_expansion():
         "tools": {"artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
     validate_broker_settings(config)
     for change in ({"features.shell_tool": True}, {"project_doc_max_bytes": 32768},
-                   {"mcp_servers.unapproved": {}}, {"features.hooks": True}):
+                   {"mcp_servers.unapproved": {}}, {"features.hooks": True},
+                   {"features.unified_exec": True}, {"features.unreviewed": False},
+                   {"features": {"shell_tool": True}}, {"features.multi_agent": True},
+                   {"features.plugins": False}, {"features.remote_models": True}):
         with pytest.raises(Fault, match="BROKER_TOOL_POLICY|BROKER_SERVER_POLICY"):
             validate_broker_settings(config | change)
     config["mcp_servers.strata_broker"]["enabled_tools"].append("admin")
     with pytest.raises(Fault, match="BROKER_SERVER_POLICY"):
         validate_broker_settings(config)
+
+
+@pytest.mark.parametrize("extra", ["url", "env_vars", "bearer_token_env_var", "http_headers",
+                                  "enabled", "oauth", "default_tools_approval_mode"])
+def test_stdio_policy_rejects_unreviewed_transport_and_auth_fields(extra):
+    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings, validate_broker_settings
+    server = {"enabled_tools": list(BROKER_TOOLS), "required": True,
+              "tools": {"artifact_write": {"approval_mode": "approve"},
+                        "game": {"approval_mode": "approve"}}}
+    with pytest.raises(Fault, match="BROKER_SERVER_POLICY"):
+        validate_broker_settings(restricted_settings() | {"mcp_servers.strata_broker": server | {extra: "fixture"}})

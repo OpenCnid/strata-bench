@@ -111,6 +111,8 @@ controls (permitted game/workspace access) and negative file/process/network/
 tool/helper/immutable-skill controls. Keep canaries synthetic and operator-owned;
 never expose real secrets merely to demonstrate a leak.
 
+The [closed native settings and writer-file canary](../verification/2026-09-21-native-reader-boundary.md) adds pre-intent rejection of unreviewed feature/stdio fields and distinct native caller evidence. A fresh sealed root/helper run denies raw synthetic writer-file reads through the restricted tool/broker surface while preserving allowed controls. This is partial native/synthetic integration; it does not close underlying sibling-read/loopback failures, live usage or complete RuntimeQualification. Next enforce declared tool projections at request admission before provider forwarding.
+
 ## Current unresolved receipt
 
 `validation-2026-09-18:oauth-first-receipt` attempted one real request and is UNSETTLED. Gateway closure is fenced, but `METERING_UNKNOWN` prevents budget closure. The source fix now retains bounded private HTTP rejection diagnostics; it cannot reconstruct the first response. Authenticated model-catalog metadata is not usage and does not authorize releasing the hold. Do not replay, lower the bound from native context defaults, or weaken unknown-metering admission. The original $10 and <=$1 first-trial ceiling persist.

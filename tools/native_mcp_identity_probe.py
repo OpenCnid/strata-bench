@@ -54,7 +54,7 @@ def serve(log):
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
-        gateway_mode=False, skills_mode=False):
+        gateway_mode=False, skills_mode=False, *, writer_target=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -79,7 +79,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
-    canaries = Canaries(output) if canary_mode else None
+    require(writer_target is None or canary_mode and bootstrap_mode, "WRITER_CANARY_BOOTSTRAP_REQUIRED")
+    canaries = Canaries(output, writer_target=writer_target) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):

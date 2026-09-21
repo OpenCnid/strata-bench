@@ -116,3 +116,29 @@ def test_synthetic_preparation_cannot_admit_an_authentic_game_profile(plan, tmp_
         assert not Path(plan["workspace_directory"]).exists()
     finally:
         database.connection.close()
+
+
+def test_expected_source_pin_cannot_be_replaced_by_current_bytes(tmp_path):
+    import hashlib
+    from mcbench.launch_integrity import FileLease, IntegrityError
+    from strata_evaluator.writer_preparation import pinned_inventory
+    path = tmp_path / "source"
+    path.write_bytes(b"changed!")
+    expected = pin(path, hashlib.sha256(b"original").hexdigest())
+    inventory = pinned_inventory([expected])
+    assert inventory["files"][0]["sha256"] == expected["sha256"]
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_FILE_CHANGED"):
+        FileLease(inventory)
+    path.write_bytes(b"released")
+
+
+def test_runtime_discovery_cannot_override_a_declared_pin_or_exceed_byte_quota(tmp_path):
+    from strata_evaluator.writer_preparation import pinned_inventory
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    path = runtime / "java"
+    path.write_bytes(b"original")
+    with pytest.raises(Fault, match="WRITER_PIN_CONFLICT"):
+        pinned_inventory([pin(path)], [runtime])
+    with pytest.raises(Fault, match="WRITER_BYTE_QUOTA"):
+        pinned_inventory([pin(path) | {"bytes": 512 * 1024**2 + 1}])

@@ -8,6 +8,7 @@ import base64
 import argparse
 from contextlib import ExitStack
 import json
+import hashlib
 import os
 from pathlib import Path
 import secrets
@@ -19,7 +20,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from mcbench.contracts import Id, Strict
 from mcbench.inference_transport import strict_json
-from mcbench.launch_integrity import FileLease, snapshot
+from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.native import _toml_value
 from mcbench.processes import ManagedProcess, ProcessInventoryFault
 from mcbench.storage import canonical, digest, require, safe_relative
@@ -80,6 +81,29 @@ class WriterPreparationPlanV2(WriterPreparationPlan):
 
 def parse_preparation_plan(value):
     return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2).validate_python(value)
+
+
+def pinned_inventory(pins, runtime_trees=()):
+    """Known inputs are hashed by FileLease on their retained handles.
+
+    Discover only the runtime trees whose complete inventory is not supplied.
+    Never replace an expected source digest with a fresh pre-lock snapshot.
+    """
+    inventory = snapshot([], runtime_trees) if runtime_trees else {
+        "schema": "strata/LaunchFileInventory/1", "files": [], "trees": []}
+    entries = {entry["path"]: entry for entry in inventory["files"]}
+    for pin in pins:
+        value = pin.model_dump() if isinstance(pin, PrivateFile) else dict(pin)
+        value["path"] = str(safe(value["path"]))
+        require(value["path"] not in entries or entries[value["path"]] == value,
+                "WRITER_PIN_CONFLICT")
+        entries[value["path"]] = value
+    require(0 < len(entries) <= 12000
+            and all(type(entry["bytes"]) is int and 0 <= entry["bytes"] <= 512 * 1024**2
+                    for entry in entries.values())
+            and sum(entry["bytes"] for entry in entries.values()) <= 1024**3, "WRITER_BYTE_QUOTA")
+    inventory["files"] = sorted(entries.values(), key=lambda entry: entry["path"])
+    return inventory
 
 
 def native_argv(plan, workspace, command):
@@ -147,6 +171,7 @@ class WriterPreparations:
         The borrowed custody object is invalidated before releasing any original
         handle. A serialized result or previous workspace can never resume it.
         """
+        admission_started = time.monotonic()
         require(continuation is None or callable(continuation), "WRITER_CONTINUATION")
         plan = parse_preparation_plan(value)
         value = plan.model_dump(by_alias=True)
@@ -176,27 +201,33 @@ class WriterPreparations:
         lease, tree, active, workspace_lease = None, None, None, None
         custody = None
         staged_leases = []
-        until = time.monotonic() + plan.max_wall_s
+        started = time.monotonic()
+        until = started + plan.max_wall_s
+        body.update(started_unix=time.time(), pre_admission_elapsed_s=started - admission_started,
+                    phase_elapsed_s={})
+        def phase(name):
+            body["phase_elapsed_s"][name] = time.monotonic() - started
         try:
             evidence.mkdir()
             workspace_lease = OperatorWorkspace(workspace)
             write_new(evidence / "plan.json", value)
             # Pin every input plus the actual Java runtime and bootstrap.
             bootstrap = Path(__file__).resolve().parents[3] / "src/mcbench/process_bootstrap.py"
-            lease = FileLease(snapshot([*(pin.path for pin in pins), sys.executable, bootstrap],
-                                       [str(Path(plan.java.path).parent.parent)]))
-            # Close the interval between initial pin validation and acquisition
-            # of the deny-write handles; persist the whole runtime inventory.
-            for pin in pins:
-                check_file(Path(pin.path), pin)
+            launch_support = snapshot([sys.executable, bootstrap], [])
+            lease = FileLease(pinned_inventory([*pins, *launch_support["files"]],
+                                              [str(Path(plan.java.path).parent.parent)]))
+            # FileLease hashes against the declared pins on the same handles
+            # that deny writes/replacement. No second by-name hash is authority.
             write_new(evidence / "input-inventory.json", lease.inventory)
             body["input_inventory_digest"] = digest(lease.inventory)
+            phase("inputs_locked")
             control, classes, staging = (workspace / name for name in ("control", "classes", "staging"))
             for directory in (control, classes, staging):
                 directory.mkdir()
             (workspace / "tmp").mkdir()
             (classes / "StrataWriterPreparation.class").write_bytes(Path(plan.helper_class.path).read_bytes())
-            check_file(classes / "StrataWriterPreparation.class", plan.helper_class)
+            staged_pins = [plan.helper_class.model_dump() | {
+                "path": str(classes / "StrataWriterPreparation.class")}]
             lines = []
             for number, (relative, pin) in enumerate(sorted(plan.sources.items())):
                 staged = staging / str(number)
@@ -207,12 +238,13 @@ class WriterPreparations:
                         target.write(chunk)
                     target.flush()
                     os.fsync(target.fileno())
-                check_file(staged, pin)
+                staged_pins.append(pin.model_dump() | {"path": str(staged)})
                 lines.append("\t".join([base64.b64encode(relative.encode()).decode(),
                     base64.b64encode(str(staged).encode()).decode(), pin.sha256, str(pin.bytes)]))
             manifest = "\n".join(lines).encode("utf-8")
             require(len(manifest) <= 8 * 1024**2, "WRITER_MANIFEST_QUOTA")
             (control / "files.tsv").write_bytes(manifest)
+            phase("staged")
             environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
             environment["CODEX_HOME"] = plan.sandbox_home
             def start(stage, command, deadline):
@@ -224,8 +256,14 @@ class WriterPreparations:
 
             # Lease staged helper/manifest/input bytes before native enrollment.
             # Never let the writer replace its own preparation program.
-            staged_leases.append(FileLease(snapshot([], [str(classes), str(staging)])))
-            staged_leases.append(FileLease(snapshot([str(control / "files.tsv")], [])))
+            staged_inventory = pinned_inventory(staged_pins)
+            staged_inventory["trees"] = [{"path": str(root),
+                "files": sorted(entry["path"] for entry in staged_inventory["files"]
+                    if Path(entry["path"]).is_relative_to(root))} for root in (safe(classes), safe(staging))]
+            staged_leases.append(FileLease(staged_inventory))
+            staged_leases.append(FileLease(pinned_inventory([{"path": str(control / "files.tsv"),
+                "bytes": len(manifest), "sha256": hashlib.sha256(manifest).hexdigest()}])))
+            phase("staging_locked")
             require(until - time.monotonic() >= 22, "WRITER_EXPOSURE_INSUFFICIENT")
             challenge = secrets.token_hex(32)
             body["challenge"] = challenge
@@ -259,22 +297,34 @@ class WriterPreparations:
                 "files": len(plan.sources), "bytes": sum(pin.bytes for pin in plan.sources.values()),
                 "root": str(tree.path)},
                 "WRITER_COPY_RECEIPT")
+            def finish_preparation():
+                nonlocal active
+                grant(control / "finish.grant", challenge)
+                while active.observe() is None:
+                    time.sleep(0.025)
+                body["stages"]["preparation"] = active.finish()
+                active = None
+                phase("copier_returned")
+                final = body["stages"]["preparation"]
+                require(final["terminal_verified"] and final["logs_complete"]
+                        and final["exit_code"] == 0 and not final["forced"], "WRITER_TERMINAL_UNCERTAIN")
+            if online:
+                # The bound copier has finished writing. Stop it within its
+                # original short deadline before the full large-tree audit.
+                # Namespace/input handles stay held; no server/custody grant
+                # exists until all content and ACL checks below succeed.
+                finish_preparation()
             tree.verify()
             check_tree(tree.path, plan.sources)
             for path in tree.path.rglob("*"):
                 tree.security.verify(path, plan.writer_sid, group, scope, directory=path.is_dir())
+            phase("tree_verified")
             for held_lease in staged_leases:
                 held_lease.recheck()
             body["copied"] = copied
             self.record(plan.id, "COPIED", body | {"status": "copied"})
-            grant(control / "finish.grant", challenge)
-            while active.observe() is None:
-                time.sleep(0.025)
-            body["stages"]["preparation"] = active.finish()
-            active = None
-            final = body["stages"]["preparation"]
-            require(final["terminal_verified"] and final["logs_complete"]
-                    and final["exit_code"] == 0 and not final["forced"], "WRITER_TERMINAL_UNCERTAIN")
+            if not online:
+                finish_preparation()
             workspace_lease.verify_enrolled(group, scope)
             tree.verify()
             lease.recheck()
@@ -323,6 +373,7 @@ class WriterPreparations:
                 except BaseException as error:
                     body.update(status="uncertain", release_error=getattr(error, "code", type(error).__name__))
             state = "STOPPED" if body["status"] in ("stopped_reference", "prepared_reference") else "UNCERTAIN"
+            body["elapsed_s"] = time.monotonic() - started
             self.record(plan.id, state, body)
             if evidence.exists():
                 write_new(evidence / "result.json", body)

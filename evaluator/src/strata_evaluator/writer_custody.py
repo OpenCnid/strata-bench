@@ -165,6 +165,7 @@ class WriterCustody:
             environment.update(JAVA_HOME=str(Path(self.plan.java.path).parent.parent),
                 PATH=str(Path(self.plan.java.path).parent) + os.pathsep +
                      str(Path(os.environ["SystemRoot"]) / "System32"),
+                TEMP=str(self.workspace.path / "tmp"), TMP=str(self.workspace.path / "tmp"),
                 STRATA_TELEMETRY_CONFIG=str(descriptor))
         gate = [self.plan.java.path, "-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
             "-Djava.io.tmpdir=" + str(self.workspace.path / "tmp"), "-cp", str(classes),

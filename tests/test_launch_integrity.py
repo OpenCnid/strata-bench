@@ -42,6 +42,39 @@ def test_changed_bytes_and_partial_acquisition_release_prior_handles(tmp_path):
     a.write_bytes(b"not left locked")
 
 
+def test_native_lease_exceeds_crt_capacity_and_releases_after_late_hash_failure(tmp_path):
+    """The authentic pack needs more than the CRT's 8,192 file descriptors."""
+    tree = tmp_path / "large"
+    tree.mkdir()
+    entries = []
+    for number in range(8300):
+        path = tree / f"{number:05}.bin"
+        raw = bytes(range(256)) * 517 if number == 8299 else str(number).encode()
+        path.write_bytes(raw)
+        entries.append({"path": str(path), "bytes": len(raw),
+                        "sha256": hashlib.sha256(raw).hexdigest()})
+    inventory = {"schema": "strata/LaunchFileInventory/1", "files": entries, "trees": []}
+    first, last = tree / "00000.bin", tree / "08299.bin"
+    with FileLease(inventory) as lease:
+        for path in (first, last):
+            with pytest.raises(OSError):
+                path.write_bytes(b"blocked")
+            with pytest.raises(OSError):
+                path.unlink()
+        # Real stdio still works while all 8,300 native file handles are held.
+        with (tmp_path / "stdio.txt").open("w") as stream:
+            stream.write("available")
+        lease.recheck()
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_LEASE_CLOSED"):
+        lease.recheck()
+    entries[-1]["sha256"] = "0" * 64
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_FILE_CHANGED"):
+        FileLease(inventory)
+    # Both earliest and failing handles must have been released.
+    first.write_bytes(b"released")
+    last.write_bytes(b"released")
+
+
 def test_long_paths_are_inventoried_and_locked_without_missing_file_bypass(tmp_path):
     tree = safe(tmp_path / ("long" * 20) / ("nested" * 20))
     tree.mkdir(parents=True)

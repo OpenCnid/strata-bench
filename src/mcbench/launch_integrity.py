@@ -95,7 +95,8 @@ class FileLease:
     """Open and hash the same held handles; Windows denies writes and replacement."""
 
     def __init__(self, inventory):
-        self.inventory, self.streams, self.directories = inventory, [], []
+        self.inventory, self.handles, self.directories = inventory, [], []
+        self.closed = False
         check(os.name == "nt", "BOOTSTRAP_PLATFORM_UNQUALIFIED")
         check(inventory.get("schema") == "strata/LaunchFileInventory/1" and
               0 < len(inventory.get("files", [])) <= 12000, "BOOTSTRAP_INVENTORY")
@@ -104,7 +105,6 @@ class FileLease:
         try:
             import ctypes
             from ctypes import wintypes
-            import msvcrt
             kernel = ctypes.WinDLL("kernel32", use_last_error=True)
             create = kernel.CreateFileW
             create.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
@@ -114,6 +114,14 @@ class FileLease:
             close.argtypes = [wintypes.HANDLE]
             close.restype = wintypes.BOOL
             self.close_handle = close
+            size_of = kernel.GetFileSizeEx
+            size_of.argtypes = [wintypes.HANDLE, ctypes.POINTER(ctypes.c_longlong)]
+            size_of.restype = wintypes.BOOL
+            read = kernel.ReadFile
+            read.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                             ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+            read.restype = wintypes.BOOL
+            buffer = ctypes.create_string_buffer(65536)
             def native_path(path):
                 text = str(path)
                 return text if text.startswith("\\\\?\\") else "\\\\?\\" + text
@@ -127,15 +135,24 @@ class FileLease:
                 path = safe(entry["path"])
                 handle = create(native_path(path), 0x80000000, 1, None, 3, 0x80, None)
                 check(handle not in (None, ctypes.c_void_p(-1).value), "BOOTSTRAP_LOCK_FAILED")
-                try:
-                    fd = msvcrt.open_osfhandle(handle, os.O_RDONLY | os.O_BINARY)
-                except BaseException:
-                    close(handle)
-                    raise
-                stream = os.fdopen(fd, "rb")
-                self.streams.append(stream)
-                check(os.fstat(fd).st_size == entry["bytes"] and
-                      hashlib.file_digest(stream, "sha256").hexdigest() == entry["sha256"],
+                self.handles.append(handle)  # Retained before any hash/size failure.
+                # Large authentic inventories exceed the CRT descriptor table.
+                # Hash the retained native handle directly; never reopen by name
+                # or exchange the deny-write/delete handle for a transient read.
+                size = ctypes.c_longlong()
+                check(size_of(handle, ctypes.byref(size)), "BOOTSTRAP_SIZE_UNAVAILABLE")
+                check(size.value == entry["bytes"], "BOOTSTRAP_FILE_CHANGED")
+                sha, count = hashlib.sha256(), 0
+                while True:
+                    received = wintypes.DWORD()
+                    check(read(handle, buffer, len(buffer), ctypes.byref(received), None),
+                          "BOOTSTRAP_READ_FAILED")
+                    if received.value == 0:
+                        break
+                    count += received.value
+                    check(count <= entry["bytes"], "BOOTSTRAP_FILE_CHANGED")
+                    sha.update(buffer.raw[:received.value])
+                check(count == entry["bytes"] and sha.hexdigest() == entry["sha256"],
                       "BOOTSTRAP_FILE_CHANGED")
             self.recheck()
         except BaseException:
@@ -143,15 +160,18 @@ class FileLease:
             raise
 
     def recheck(self):
+        check(not self.closed and len(self.handles) == len(self.inventory["files"]),
+              "BOOTSTRAP_LEASE_CLOSED")
         for tree in self.inventory["trees"]:
             check(tree_files(tree["path"]) == tree["files"], "BOOTSTRAP_TREE_CHANGED")
         # Held file and ancestor-directory handles already deny replacement.
         # Only additions need re-enumeration; do not rescan every ancestor per file.
 
     def close(self):
-        for stream in self.streams:
-            stream.close()
-        self.streams.clear()
+        self.closed = True
+        for handle in self.handles:
+            self.close_handle(handle)
+        self.handles.clear()
         for handle in self.directories:
             self.close_handle(handle)
         self.directories.clear()

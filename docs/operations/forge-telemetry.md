@@ -261,7 +261,7 @@ game, authority and launcher evidence directories. The complete participant
 window must fit within `max_wall_s` (still at most 600) after boot; otherwise the
 one-use run fails without publishing readiness. Version 1 is unchanged.
 
-Production E9E version-2 launches also require `--client-binding PRIVATE.json`.
+Production E9E version-2/3 launches also require `--client-binding PRIVATE.json`.
 Build a strict `PrivateReferenceClientBinding/1` from the sealed setup and
 registered launch, not by copying a historical loose client manifest. Register
 instance/campaign/epoch, agent/actor/native team, participant, numeric loopback
@@ -289,9 +289,28 @@ registration, preserving current inventory and declared setup interventions.
 The [corrected-body trial](../verification/2026-09-20-native-craft-reference.md)
 also remains uncertain: startup left insufficient full worker exposure and an
 outer abort interrupted cleanup reports. Do not use that unclean world as a
-checkpoint or rerun its grant. Implement typed outer failure/abort coordination
-and verify the bounded cleanup path before another game. Keep the hard server,
+checkpoint or rerun its grant. Integrate the implemented typed abort component
+with the outer pair monitor and verify bounded cleanup before another game. Keep the hard server,
 client and guardian limits and record missing reports as missing.
+
+`PrivateReferenceLaunch/3` adds `outer_challenge` (a fresh 64-character hex
+digest) and `abort_cleanup_ms` (500–15000), retaining all v2 registration and
+exposure rules. `reference_abort.request_abort` publishes one private,
+non-replacing scope-bound request after the outer failure has been durably
+recorded. Pass the original exception so its typed fault code survives without
+secret-bearing messages. Use `ParticipantAbortGuard.start` for the trusted
+driver's owned client/worker objects, `check` before commands, and `close`
+before its terminal report. The independent watcher also stops retained
+children when the driver is blocked. A stalled close remains unconfirmed;
+the outer hard watchdog is still required. No process is killed by PID lookup.
+
+The server stops new readiness on abort, allows bounded participant cleanup,
+and then uses ordinary server stop within existing deadlines. Invalid controls
+also abort; failed/missing reports remain failures. Even successful cleanup or
+a completed receipt cannot make an aborted run scoreable. This cleanup window
+does not change the 500-ms guardian. Source/Windows/JVM component checks pass,
+but the complete outer monitor/client-driver integration and authentic abort
+qualification remain open. See [evidence](../verification/2026-09-20-reference-abort.md).
 
 Wait for the atomically published `participant-ready.json` in the private launch
 evidence directory. Before dispatching the client, validate

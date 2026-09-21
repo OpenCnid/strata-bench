@@ -22,6 +22,7 @@ from mcbench.storage import Database, Fault, canonical, digest, require
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path, write_new
 from .reference_participant import ParticipantPlan, ParticipantWindow, validate_paths
+from .reference_abort import AbortSignal
 from .telemetry import ServerStartedV5, ServerStartedV6
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 
@@ -62,8 +63,14 @@ class ReferenceLaunchPlanV2(ReferenceLaunchBase):
     participant: ParticipantPlan
 
 
+class ReferenceLaunchPlanV3(ReferenceLaunchPlanV2):
+    schema_: Literal["strata/PrivateReferenceLaunch/3"] = Field(alias="schema")
+    outer_challenge: Digest
+    abort_cleanup_ms: int = Field(ge=500, le=15000)
+
+
 def parse_launch_plan(value):
-    return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2).validate_python(value)
+    return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3).validate_python(value)
 
 
 def same_path(a, b):
@@ -209,16 +216,18 @@ class ReferenceLauncher:
             db.execute("INSERT INTO reference_dispatches VALUES (?,?,?,?)",
                        (plan.instance_id, canonical(plan.model_dump(by_alias=True)).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.reference_dispatch", {"instance": plan.instance_id, **body})
-        proc, lease, participant = None, None, None
+        proc, lease, participant, abort = None, None, None, None
         readers, reader_errors = [], []
         ready = threading.Event()
         overflow = threading.Event()
-        started, stopped_at, bound_at = time.monotonic(), None, None
+        started, stopped_at, bound_at, aborted_at = time.monotonic(), None, None, None
         body.update(stop_sent=False, forced_stop=False)
         if coordinated:
             body["participant"] = {"status": "not_ready", "participant_execution_verified": False}
         try:
             evidence.mkdir()
+            if isinstance(plan, ReferenceLaunchPlanV3):
+                abort = AbortSignal(plan, evidence)
             spool = evidence / "telemetry"
             spool.mkdir()
             config_path = evidence / "telemetry-config.json"
@@ -246,6 +255,7 @@ class ReferenceLauncher:
                 arg.replace("{config}", str(config_path)).replace("{game}", str(game))
                 .replace("{module}", plan.module_file.path) for arg in plan.fixture_arguments]
             lease.recheck()
+            require(abort is None or not abort.poll(), "REFERENCE_OUTER_ABORTED")
             self._record(plan.instance_id, "DISPATCHING", body | {"status": "dispatching"})
             proc = ManagedProcess([plan.executable.path, *arguments], game, environment, "", interactive=True,
                                   bootstrap_python=sys.executable, bootstrap_script=bootstrap)
@@ -274,6 +284,10 @@ class ReferenceLauncher:
                 thread.start()
                 readers.append(thread)
             while proc.poll() is None:
+                if abort is not None and abort.poll() and aborted_at is None:
+                    aborted_at = time.monotonic()
+                    body["outer_abort"] = abort.result
+                    self._record(plan.instance_id, "ABORT_REQUESTED", body)
                 proc.job.observe_members()
                 lease.recheck()
                 require(not overflow.is_set() and not reader_errors, "REFERENCE_LOG_UNAVAILABLE")
@@ -288,7 +302,12 @@ class ReferenceLauncher:
                         bound_at = time.monotonic()
                         self._record(plan.instance_id, "BOUND", body)
                 now = time.monotonic()
-                if coordinated and stopped_at is None:
+                if aborted_at is not None:
+                    # No new readiness after abort. A live participant gets only
+                    # its declared remaining cleanup time, then normal server stop.
+                    stop = (participant is None or participant.poll(now)
+                            or now >= aborted_at + plan.abort_cleanup_ms / 1000)
+                elif coordinated and stopped_at is None:
                     if participant is None:
                         require(not (evidence / "participant-completion.json").exists(),
                                 "REFERENCE_PARTICIPANT_PREMATURE")
@@ -336,6 +355,7 @@ class ReferenceLauncher:
             body["records"] = inspection["records"]
             body["sampled_server_ticks"] = inspection["sampled_server_ticks"]
             if coordinated:
+                require(abort is None or not abort.poll(), "REFERENCE_OUTER_ABORTED")
                 require(participant is not None, "REFERENCE_PARTICIPANT_MISSING")
                 participant.finish()
             body["status"] = "stopped_reference"
@@ -358,6 +378,9 @@ class ReferenceLauncher:
                 lease.close()
             if participant:
                 participant.close()
+            if abort is not None and abort.poll():
+                body.update(status="uncertain", outer_abort=abort.result)
+                body.setdefault("error", "REFERENCE_OUTER_ABORTED")
             body["elapsed_s"] = time.monotonic() - started
             state = "STOPPED" if body["status"] == "stopped_reference" else "UNCERTAIN"
             self._record(plan.instance_id, state, body)

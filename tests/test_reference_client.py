@@ -234,10 +234,17 @@ def test_registration_rechecks_declared_bytes_under_held_handles(
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows reference launcher")
+@pytest.mark.parametrize("launch_version", [2, 3])
 def test_module_cli_validates_binding_before_missing_bootstrap_without_dispatch(
-    registration, tmp_path
+    registration, tmp_path, launch_version
 ):
     store, binding, setup, launch = registration
+    if launch_version == 3:
+        launch.update(
+            schema="strata/PrivateReferenceLaunch/3",
+            outer_challenge="a" * 64,
+            abort_cleanup_ms=2000,
+        )
     store.seal(setup, tmp_path / "sealed-cli")
     arguments = []
     for name, value in (("plan", launch), ("client-binding", binding)):

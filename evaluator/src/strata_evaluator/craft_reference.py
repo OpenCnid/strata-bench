@@ -258,6 +258,11 @@ class CraftReferenceStore:
 
     def inspect(self, instance, spool):
         row, plan, _, path = self._load(instance)
+        if self.database.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                                            "AND name='reference_pairs'").fetchone():
+            pair = self.database.connection.execute("SELECT state FROM reference_pairs WHERE instance=?",
+                                                    (instance,)).fetchone()
+            require(pair is None or pair["state"] == "STOPPED", "CRAFT_PAIR_UNQUALIFIED")
         require(not private_path(spool).is_relative_to(private_path(plan.game_directory)),
                 "CRAFT_PRIVATE_PATH")
         launch = self.database.connection.execute("SELECT body FROM craft_reference_launches WHERE instance=?",

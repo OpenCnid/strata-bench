@@ -289,8 +289,8 @@ registration, preserving current inventory and declared setup interventions.
 The [corrected-body trial](../verification/2026-09-20-native-craft-reference.md)
 also remains uncertain: startup left insufficient full worker exposure and an
 outer abort interrupted cleanup reports. Do not use that unclean world as a
-checkpoint or rerun its grant. Integrate the implemented typed abort component
-with the outer pair monitor and verify bounded cleanup before another game. Keep the hard server,
+checkpoint or rerun its grant. Use the implemented typed abort component and durable outer pair monitor;
+seal the changed driver/source profile before another game. Keep the hard server,
 client and guardian limits and record missing reports as missing.
 
 `PrivateReferenceLaunch/3` adds `outer_challenge` (a fresh 64-character hex
@@ -309,8 +309,33 @@ and then uses ordinary server stop within existing deadlines. Invalid controls
 also abort; failed/missing reports remain failures. Even successful cleanup or
 a completed receipt cannot make an aborted run scoreable. This cleanup window
 does not change the 500-ms guardian. Source/Windows/JVM component checks pass,
-but the complete outer monitor/client-driver integration and authentic abort
-qualification remain open. See [evidence](../verification/2026-09-20-reference-abort.md).
+and the durable outer coordinator has actual CLI/owned-process fixture evidence.
+The guarded private Forge-driver candidate and authentic pair remain unqualified. See [evidence](../verification/2026-09-20-reference-abort.md).
+
+For the implemented outer monitor, prepare a strict `PrivateReferencePair/1`
+plan and run:
+
+```powershell
+python -m strata_evaluator.reference_pair --database PRIVATE.sqlite --plan PRIVATE-PAIR.json
+```
+
+Pin the launch JSON, production binding, private driver, current interpreter,
+trusted bootstrap and all declared source/helper/configuration inputs. The
+source root must match this checkout. Declare a separate fresh private pair
+evidence directory. `client_window_ms` must equal production client wall plus
+terminal reserve and fit completely at admission; `finalize_ms` is bounded
+1000–15000 ms for outer terminal/log handling. These do not extend any inner
+client, participant, server or guardian limit. The source checks scope and
+challenge against the inner durable readiness record before dispatch.
+
+The coordinator records one pair intent, owns both outer Jobs, captures bounded
+logs and enforces independent deadlines. It preserves typed failures before
+cooperative abort, exact terminal reports and uncertain/missing results.
+Interrupted intents cannot be replayed by changing output paths. A terminal
+inner server cannot bypass an incomplete outer pair during craft import.
+See [source/owned-process evidence](../verification/2026-09-20-reference-pair.md).
+The private driver candidate is prepared, not authentic qualification; reseal
+all changed files and register sufficient complete exposure before dispatch.
 
 Wait for the atomically published `participant-ready.json` in the private launch
 evidence directory. Before dispatching the client, validate

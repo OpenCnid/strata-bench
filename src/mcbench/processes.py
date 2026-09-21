@@ -16,6 +16,28 @@ from pathlib import Path
 from .storage import Fault, reject_links, require
 
 
+class ProcessInventoryFault(Fault):
+    """Bounded operator diagnostics; no process names, paths, arguments or PIDs."""
+
+    STAGES = {"query", "incomplete_list", "invalid_pid", "retained_quota",
+              "open_process", "membership_query", "foreign_member"}
+
+    def __init__(self, stage, *, assigned=None, listed=None, retained, win32_error=None):
+        require(stage in self.STAGES, "INVALID_ARGUMENT")
+        require(all(value is None or type(value) is int and 0 <= value <= 0xFFFFFFFF
+                    for value in (assigned, listed, win32_error)), "INVALID_ARGUMENT")
+        require(type(retained) is int and 0 <= retained <= 256, "INVALID_ARGUMENT")
+        self._observation = (stage, assigned, listed, retained, win32_error)
+        super().__init__("PROCESS_MEMBER_QUOTA" if stage == "retained_quota"
+                         else "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+
+    def observation(self):
+        stage, assigned, listed, retained, win32_error = self._observation
+        return {"schema": "strata/ProcessInventoryObservation/1", "stage": stage,
+                "assigned_processes": assigned, "listed_processes": listed,
+                "retained_processes": retained, "win32_error": win32_error}
+
+
 class WindowsJob:
     MAX_TRACKED_PROCESSES = 256
 
@@ -119,21 +141,36 @@ class WindowsJob:
                           wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
         query.restype = wintypes.BOOL
         value = Members()
-        require(bool(query(self.handle, 3, ctypes.byref(value), ctypes.sizeof(value), None)),
-                "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
-        require(value.count == value.assigned <= self.MAX_TRACKED_PROCESSES,
-                "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+
+        def failed(stage, api_error=False):
+            # Read the calling thread's last-error slot before another Win32 call.
+            # A successful API/failed predicate must not attach a stale API error.
+            last_error = ctypes.get_last_error() if api_error and os.name == "nt" else None
+            raise ProcessInventoryFault(
+                stage, assigned=None if stage == "query" else value.assigned,
+                listed=None if stage == "query" else value.count,
+                retained=len(self.members), win32_error=last_error)
+
+        if not query(self.handle, 3, ctypes.byref(value), ctypes.sizeof(value), None):
+            failed("query", api_error=True)
+        if not value.count == value.assigned <= self.MAX_TRACKED_PROCESSES:
+            failed("incomplete_list")
         for pid in value.pids[:value.count]:
-            require(0 < pid <= 0xFFFFFFFF, "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+            if not 0 < pid <= 0xFFFFFFFF:
+                failed("invalid_pid")
             if pid in self.members:
                 continue
-            require(len(self.members) < self.MAX_TRACKED_PROCESSES, "PROCESS_MEMBER_QUOTA")
+            if len(self.members) >= self.MAX_TRACKED_PROCESSES:
+                failed("retained_quota")
             handle = self.kernel.OpenProcess(0x1000 | 0x100000, False, pid)
-            require(bool(handle), "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+            if not handle:
+                failed("open_process", api_error=True)
             try:
                 member = wintypes.BOOL()
-                require(bool(self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member)))
-                        and member.value, "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
+                if not self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member)):
+                    failed("membership_query", api_error=True)
+                if not member.value:
+                    failed("foreign_member")
                 self.members[pid] = handle
             except BaseException:
                 self.kernel.CloseHandle(handle)

@@ -15,7 +15,7 @@ from pydantic import Field
 from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease
-from mcbench.processes import ManagedProcess
+from mcbench.processes import ManagedProcess, ProcessInventoryFault
 from mcbench.storage import Database, Fault, canonical, digest, reject_links, require
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path
@@ -282,6 +282,7 @@ class ReferencePair:
             "launch_plan_digest": digest(launch.model_dump(by_alias=True)),
             "pair_plan_digest": digest(plan.model_dump(by_alias=True)),
             "failures": [],
+            "process_observations": [],
             "scoring_eligible": False,
             "participant_execution_verified": False,
             "guardian_qualified": False,
@@ -460,9 +461,19 @@ class ReferencePair:
                         break
                 except Exception as error:
                     failure = failure_record(phase, error).model_dump()
+                    changed = False
+                    if isinstance(error, ProcessInventoryFault):
+                        observation = {"phase": phase, **error.observation()}
+                        if observation not in body["process_observations"]:
+                            require(len(body["process_observations"]) < 64,
+                                    "REFERENCE_PAIR_FAILURE_QUOTA")
+                            body["process_observations"].append(observation)
+                            changed = True
                     if failure not in body["failures"]:
                         require(len(body["failures"]) < 64, "REFERENCE_PAIR_FAILURE_QUOTA")
                         body["failures"].append(failure)
+                        changed = True
+                    if changed:
                         self._record(launch.instance_id, "ABORT_REQUESTED", body)
                     if aborted_at is None:
                         aborted_at = time.monotonic()
@@ -486,6 +497,9 @@ class ReferencePair:
                 raise
             failure = failure_record(locals().get("phase", "outer_cleanup"), error).model_dump()
             body["failures"].append(failure)
+            if isinstance(error, ProcessInventoryFault):
+                body["process_observations"].append(
+                    {"phase": failure["phase"], **error.observation()})
             self._record(launch.instance_id, "ABORT_REQUESTED", body)
         finally:
             if not claimed:

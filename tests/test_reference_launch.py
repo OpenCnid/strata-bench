@@ -1,6 +1,7 @@
 """Owned Windows/JVM fixtures; no Minecraft or inference, no scoring claim."""
 
 import copy
+import json
 import os
 from pathlib import Path
 import sys
@@ -8,6 +9,7 @@ import sys
 import pytest
 
 from mcbench.storage import Fault
+from mcbench.processes import ProcessInventoryFault, WindowsJob
 from strata_evaluator.craft_reference import CraftReferencePlan
 from strata_evaluator.reference_launch import ReferenceLaunchPlan, ReferenceLauncher, bind_identity
 from strata_evaluator.telemetry import LaunchIdentity
@@ -54,6 +56,34 @@ def test_actual_jvm_signed_identity_binds_to_retained_job_handle_and_private_wor
         db.execute("UPDATE reference_dispatches SET state='UNCERTAIN' WHERE instance='i'")
     with pytest.raises(Fault, match="CRAFT_LAUNCH_UNQUALIFIED"):
         launcher.store.inspect("i", spool)
+
+
+def test_inventory_failure_is_recorded_before_owned_server_cleanup(launch, monkeypatch):
+    launcher, plan, _ = launch
+    original = WindowsJob.close
+    checked = []
+
+    def observe(self):
+        raise ProcessInventoryFault("query", retained=0, win32_error=234)
+
+    def close(self):
+        row = launcher.database.connection.execute(
+            "SELECT state,body FROM reference_dispatches WHERE instance='i'").fetchone()
+        assert row["state"] == "ABORT_REQUESTED"
+        body = json.loads(row["body"])
+        assert body["error"] == "PROCESS_MEMBER_INVENTORY_UNAVAILABLE"
+        assert body["process_observation"]["stage"] == "query"
+        assert body["process_observation"]["win32_error"] == 234
+        checked.append(True)
+        original(self)
+
+    monkeypatch.setattr(WindowsJob, "observe_members", observe)
+    monkeypatch.setattr(WindowsJob, "close", close)
+    result = launcher.run(plan)
+    assert result["status"] == "uncertain" and result["forced_stop"] and checked
+    assert result["process_observation"]["assigned_processes"] is None
+    with pytest.raises(Fault, match="CRAFT_LAUNCH_ALREADY_RESERVED"):
+        launcher.store.preflight("i")
 
 
 @pytest.mark.parametrize("mode,error", [("wrong-world", "REFERENCE_WORLD_MISMATCH"),

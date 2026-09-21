@@ -11,6 +11,7 @@ import time
 import pytest
 
 from mcbench.storage import Fault, canonical
+from mcbench.processes import ProcessInventoryFault
 from strata_evaluator import reference_pair as module
 from strata_evaluator.reference_pair import ReferencePair
 from test_reference_launch import launch  # noqa: F401
@@ -137,8 +138,9 @@ def test_actual_owned_pair_completes_only_coordination_and_preserves_exact_repor
     ]
 
 
+@pytest.mark.parametrize("diagnostic", [False, True])
 def test_monitor_fault_is_durable_before_cooperative_abort_and_never_becomes_pass(
-    pair, monkeypatch
+    pair, monkeypatch, diagnostic
 ):
     runner, plan, launch_plan, setup = pair
     mode(plan, "cooperative")
@@ -152,6 +154,9 @@ def test_monitor_fault_is_durable_before_cooperative_abort_and_never_becomes_pas
             and Path(plan["client_driver"]["path"]).with_name("driver-ready.json").exists()
         ):
             once.append(True)
+            if diagnostic:
+                raise ProcessInventoryFault("membership_query", assigned=8, listed=8,
+                                            retained=7, win32_error=5)
             raise Fault("PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
         return original(self)
 
@@ -166,6 +171,14 @@ def test_monitor_fault_is_durable_before_cooperative_abort_and_never_becomes_pas
         assert (
             json.loads(row["body"])["failures"][0]["code"] == "PROCESS_MEMBER_INVENTORY_UNAVAILABLE"
         )
+        observations = json.loads(row["body"])["process_observations"]
+        assert len(observations) == int(diagnostic)
+        if diagnostic:
+            assert observations[0] == {
+                "phase": "client_monitor", "schema": "strata/ProcessInventoryObservation/1",
+                "stage": "membership_query", "assigned_processes": 8, "listed_processes": 8,
+                "retained_processes": 7, "win32_error": 5,
+            }
         return request(*args)
 
     monkeypatch.setattr(module, "request_abort", abort)
@@ -173,7 +186,7 @@ def test_monitor_fault_is_durable_before_cooperative_abort_and_never_becomes_pas
     assert result["status"] == "uncertain" and once
     assert result["failures"][0] == {
         "phase": "client_monitor",
-        "error_type": "Fault",
+        "error_type": "ProcessInventoryFault" if diagnostic else "Fault",
         "code": "PROCESS_MEMBER_INVENTORY_UNAVAILABLE",
     }
     assert result["client_result"]["value"]["status"] == "fail", result

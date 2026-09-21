@@ -15,7 +15,7 @@ from pydantic import Field, TypeAdapter
 from mcbench.contracts import Digest, Id, Strict
 from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease, safe, snapshot
-from mcbench.processes import ManagedProcess
+from mcbench.processes import ManagedProcess, ProcessInventoryFault
 from mcbench.records import GameEvent
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Database, Fault, canonical, digest, require
@@ -363,6 +363,9 @@ class ReferenceLauncher:
         except BaseException as error:
             body["status"] = "uncertain"
             body["error"] = error.code if isinstance(error, Fault) else type(error).__name__
+            if isinstance(error, ProcessInventoryFault):
+                body["process_observation"] = error.observation()
+                self._record(plan.instance_id, "ABORT_REQUESTED", body)
         finally:
             if proc:
                 try:

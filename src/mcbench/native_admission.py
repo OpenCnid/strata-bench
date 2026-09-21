@@ -119,6 +119,13 @@ class NativeAdmission:
         row = db.execute("SELECT plan,state,started FROM native_jobs WHERE id=?", (job,)).fetchone()
         require(row is not None and row["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")
         plan = NativeLaunch.model_validate_json(row["plan"])
+        mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
+        require(mode is not None and mode[0] in (0, 1), "NATIVE_ADMISSION_PROFILE")
+        if mode[0] == 0:
+            # Also fence a legacy job already running when the controller was
+            # upgraded; live startup/dispatch checks alone are too late for its
+            # first new helper envelope.
+            require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
         require(row["started"] + plan.hard_timeout_s > self.clock(), "RUNTIME_EXPIRED")
         require(plan.broker_policy == POLICY and plan.binary_version == CODEX_VERSION and
                 plan.dovetail_commit == DOVETAIL_COMMIT and plan.role == "executor" and
@@ -179,6 +186,14 @@ class NativeAdmission:
             root = self._root_thread(db, plan.job_id)
             require(meta["session_id"] == root, "NATIVE_LINEAGE")
             thread, name = meta["thread_id"], meta["agent_name"]
+            # No helper envelope or participant is created until the complete
+            # request tool projection matches the pre-existing operator pin.
+            # Lineage checks below independently authenticate the claimed role.
+            projection_digest = None
+            if plan.tool_projection_ref is not None:
+                from .native_tool_projection import require_tool_projection
+                projection_digest = require_tool_projection(self.cas, plan, body,
+                    "executor" if name == "/root" else "helper")
             participant = db.execute("SELECT * FROM native_participants WHERE job=? AND thread=?",
                 (plan.job_id, thread)).fetchone()
             if participant is None:
@@ -231,7 +246,9 @@ class NativeAdmission:
             db.execute("INSERT OR IGNORE INTO native_request_admissions VALUES(?,?,?,?,?,?,?,?)", values)
             self.db.event(db, "native.request_admitted", {"operation": reserve.operation_id,
                 "job": plan.job_id, "thread": thread, "depth": participant["depth"],
-                "initial_context_digest": participant["initial_context"], "raw_ref": raw_ref})
+                "initial_context_digest": participant["initial_context"], "raw_ref": raw_ref,
+                "tool_projection_ref": plan.tool_projection_ref,
+                "tool_projection_digest": projection_digest})
         return dict(participant)
 
     def enroll(self, operation, *, tool_calls=100):
@@ -304,7 +321,7 @@ def require_active_participant(db, job, thread):
         require_active_participant(db, job, row["parent"])
 
 
-def require_request_admission(db, plan, attempt, reserve, account):
+def require_request_admission(db, plan, attempt, reserve, account, *, cas, simulation):
     if plan.bootstrap_digest is not None:
         from .native_bootstrap import verify_native_inventory
         verify_native_inventory(plan)
@@ -317,6 +334,20 @@ def require_request_admission(db, plan, attempt, reserve, account):
             row["envelope"] == reserve.parent_operation_id and
             row["reservation_digest"] == digest(reserve.model_dump()), "NATIVE_REQUEST_NOT_ADMITTED")
     require_active_participant(db, plan.job_id, row["thread"])
+    if not simulation:
+        require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
+    if plan.tool_projection_ref is not None:
+        from .native_tool_projection import require_tool_projection
+        # Re-read immutable private raw bytes at the durable dispatch boundary;
+        # an old admission row is not a substitute for the current capability pin.
+        raw = cas.read(Principal("operator", "operator"), "operator", row["raw_ref"],
+                       max_bytes=1024 * 1024)
+        require(row["raw_ref"] == "cas:sha256:" + attempt.request_digest,
+                "REQUEST_DIGEST_MISMATCH")
+        participant = db.execute("SELECT depth FROM native_participants WHERE job=? AND thread=?",
+                                (plan.job_id, row["thread"])).fetchone()
+        require_tool_projection(cas, plan, strict_json(raw),
+                                "executor" if participant[0] == 0 else "helper")
 
 
 def close_participant_envelopes(database, budgets, db, plan, proof, seal_ref):

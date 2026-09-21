@@ -66,6 +66,24 @@ def test_changed_bootstrap_rejects_before_budget_or_process(runtime, make_plan, 
     assert runtime.db.connection.execute("SELECT count(*) FROM operations").fetchone()[0] == 0
 
 
+def test_live_broker_requires_prior_projection_before_native_intent(runtime, make_plan):
+    from mcbench.broker import POLICY
+    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+    config = restricted_settings() | {"mcp_servers.strata_broker": {
+        "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
+            "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
+    plan, reserve = make_plan(config_overrides=config, broker_policy=POLICY,
+        bootstrap_manifest="not-opened.json", bootstrap_digest="f" * 64,
+        ingress_policy="native-job-http-header/1", gateway_config_digest="e" * 64)
+    runtime.simulation = False
+    before = runtime.budgets.status("a1")
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_REQUIRED"):
+        runtime.start(plan, reserve)
+    assert runtime.budgets.status("a1") == before
+    assert not runtime.live
+    assert runtime.db.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
+
+
 @pytest.fixture
 def runtime(database, cas):
     adapter = NativeExec(database, cas, simulation=True)

@@ -160,7 +160,8 @@ class InferenceDispatches:
             if plan.broker_policy is not None:
                 require(job["started"] + plan.hard_timeout_s > time.time(), "RUNTIME_EXPIRED")
                 from .native_admission import require_request_admission
-                require_request_admission(self.db.connection, plan, attempt, reserve, account)
+                require_request_admission(self.db.connection, plan, attempt, reserve, account,
+                                          cas=self.cas, simulation=self.simulation)
             else:
                 require(plan.operation_id == reserve.parent_operation_id, "DISPATCH_SCOPE_MISMATCH")
             if plan.ingress_policy is not None:

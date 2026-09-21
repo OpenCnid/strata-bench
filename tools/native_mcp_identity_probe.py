@@ -54,7 +54,7 @@ def serve(log):
 
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
-        gateway_mode=False, skills_mode=False, *, writer_target=None):
+        gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -80,6 +80,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
     require(writer_target is None or canary_mode and bootstrap_mode, "WRITER_CANARY_BOOTSTRAP_REQUIRED")
+    require(tool_projections is None or bootstrap_mode, "PROJECTION_BOOTSTRAP_REQUIRED")
     canaries = Canaries(output, writer_target=writer_target) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -336,6 +337,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
             "prompt": "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
+        if tool_projections is not None:
+            from mcbench.native_tool_projection import pin_tool_projection
+            plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
+                cas, plan, tool_projections)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -454,6 +459,22 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"]
                     == (7 if gateway_mode else 14) * len(provider.requests),
             })
+            if plan.tool_projection_ref is not None:
+                from mcbench.native_tool_projection import read_tool_projection
+                from mcbench.storage import digest
+                expected = {role: digest(blocks) for role, blocks in
+                            read_tool_projection(cas, plan).items()}
+                events = [json.loads(row[0]) for row in db.connection.execute(
+                    "SELECT body FROM outbox WHERE kind='native.request_admitted'")]
+                result["tool_projection"] = {"ref": plan.tool_projection_ref,
+                    "expected": expected, "admissions": events}
+                result["checks"].update({
+                    "every_request_projection_checked": len(events) == len(provider.requests) and
+                        all(e.get("tool_projection_ref") == plan.tool_projection_ref and
+                            e.get("tool_projection_digest") == expected[
+                                "executor" if e["depth"] == 0 else "helper"] for e in events),
+                    "both_projection_roles_checked": {e["depth"] for e in events} == {0, 1},
+                })
             if inherited_helper:
                 for key in ("helper_result_written", "helper_game_denied", "spoof_arguments_denied",
                             "distinct_root_helper_envelopes", "every_request_admitted", "provider_clean"):
@@ -597,7 +618,8 @@ def main():
         root / "tools/native_dispatch_probe.py", root / "src/mcbench/native.py",
         root / "src/mcbench/plugins.py", root / "src/mcbench/broker.py", root / "src/mcbench/broker_stdio.py",
         root / "src/mcbench/native_broker_policy.py", root / "tools/native_broker_canaries.py",
-        root / "src/mcbench/native_admission.py", root / "src/mcbench/inference_dispatch.py",
+        root / "src/mcbench/native_admission.py", root / "src/mcbench/native_tool_projection.py",
+        root / "src/mcbench/inference_dispatch.py",
         root / "src/mcbench/native_bootstrap.py", root / "src/mcbench/launch_integrity.py",
         root / "src/mcbench/sealed_broker.py", root / "src/mcbench/processes.py",
         root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",

@@ -71,12 +71,19 @@ class LocalProvider:
     """
 
     def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
-                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False, helper_requests=4):
+                 estimate_basis=None, oauth_fixture=False, gateway_fixture=False, helper_requests=4,
+                 fixture_input_reserve=100000):
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
         require(type(helper_requests) is int and 1 <= helper_requests <= max_requests,
                 "HELPER_REQUEST_LIMIT")
         self.max_requests = max_requests
         self.helper_requests = helper_requests
+        require(type(fixture_input_reserve) is int and 10 <= fixture_input_reserve <= 100000 and
+                (fixture_input_reserve == 100000 or scenario == "identity" and estimate_basis is None),
+                "FIXTURE_INPUT_BOUND")
+        # A fixed local fixture emits ten input tokens. This configurable hold
+        # is not a bound for a real model or a change to a restored allowance.
+        self.fixture_input_reserve = fixture_input_reserve
         self.database_path, self.objects, self.scenario = database_path, objects, scenario
         self.plan = None
         self.requests, self.errors = [], []
@@ -238,7 +245,9 @@ class LocalProvider:
                         "currency": "USD", "input_microusd_per_token": 1,
                         "cached_microusd_per_token": 1, "output_microusd_per_token": 1, "real_usd": 0})
                     reserve = ledger(plan, operation, parent=plan.operation_id, calls=1,
-                                     spend=10000, pricing=price)
+                                     spend=10000, pricing=price, inputs=provider.fixture_input_reserve)
+                    category = db.connection.execute("SELECT category FROM accounts WHERE id=?", (plan.account,)).fetchone()[0]
+                    reserve = reserve.model_copy(update={"campaign_account": category})
                     scope = {"runtime_job_id": plan.job_id, "profile_digest": plan.profile_digest(),
                         "provider": plan.provider, "auth_mode": plan.auth_mode,
                         "request_digest": item["request_digest"]}
@@ -283,8 +292,8 @@ class LocalProvider:
                             require(parent_participant is not None, "NATIVE_LINEAGE")
                             n = provider.helper_requests
                             child_envelope = ledger(plan, parent, parent=parent_participant[0], calls=n,
-                                spend=n*10000, inputs=n*100000, outputs=n*10000, pricing=price).model_copy(
-                                    update={"kind": "helper"})
+                                spend=n*10000, inputs=n*provider.fixture_input_reserve, outputs=n*10000, pricing=price).model_copy(
+                                    update={"kind": "helper", "campaign_account": reserve.campaign_account})
                     bound = put(cas, {"schema": "strata/InferenceDispatchBound/1",
                         "is_example": True, **scope, "reservation_digest": digest(reserve.model_dump()),
                         "pricing_ref": price, "currency": "USD", "finite_dispatch_bound_verified": True,

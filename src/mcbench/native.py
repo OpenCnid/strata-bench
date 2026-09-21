@@ -583,6 +583,8 @@ class NativeExec:
                     "DISPATCH_SEAL_UNVERIFIED")
             require(all(r["state"] == "SETTLED" for r in attempts), "METERING_UNKNOWN")
             if plan.broker_policy is not None:
+                from .inference_dispatch import require_admission_outcomes
+                require_admission_outcomes(db, plan, self.simulation)
                 from .native_admission import close_participant_envelopes
                 close_participant_envelopes(self.db, self.budgets, db, plan, proof, seal_ref)
             source = db.execute("SELECT body FROM ledger WHERE "

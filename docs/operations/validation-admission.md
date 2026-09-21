@@ -32,6 +32,8 @@ records the actual private migration and focused source/synthetic evidence.
 The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
 read it before dispatch and do not install another allowance. The first actual OAuth receipt trial now has unknown usage: one request and envelope hold $0.7554 once, zero valuations, admission blocked. Actual receipt/exposure and full isolation qualification remain incomplete; no reset or replay.
 
+The [durable pre-dispatch denial extension](../verification/2026-09-21-native-activation-exec.md) now records known budget refusals without a receipt or charge. A rejected operation cannot replay; missing legacy proof blocks closure/export. This never clears the original ambiguous OAuth request or authorizes another trial.
+
 The implemented source contract requires an explicit versioned accounting basis that distinguishes actual
 charges, API-equivalent estimates and synthetic fixture units. Pin model, price
 source/date, currency, service tier and applicable context/cache rules. Preserve

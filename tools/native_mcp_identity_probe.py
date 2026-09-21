@@ -66,7 +66,8 @@ def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
-        deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False):
+        deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
+        activation_source=None, job_id="root", activation_parent_calls=9):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -91,6 +92,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
+    require(activation_source is None or bootstrap_mode and ingress_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
+                                                     gateway_mode, skills_mode, inherited_helper)),
+            "ACTIVATION_PINNED_BOOTSTRAP_REQUIRED")
     require(writer_target is None or canary_mode and bootstrap_mode, "WRITER_CANARY_BOOTSTRAP_REQUIRED")
     require(tool_projections is None or bootstrap_mode, "PROJECTION_BOOTSTRAP_REQUIRED")
     require(not deferred_tools or canary_mode and bootstrap_mode and tool_projections is not None,
@@ -104,7 +109,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, inherited_helper,
                                                       gateway_mode, retirement_mode)),
             "INTERRUPT_PINNED_BOOTSTRAP_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
@@ -112,7 +117,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     state_probe = StateCanaries() if state_mode else None
     retirement_probe = RetirementProbe() if retirement_mode else None
     interrupt_probe = InterruptProbe() if interrupt_mode else None
-    request_limit = 20 if retirement_mode or interrupt_mode else 12
+    from native_activation_probe import ActivationProbe
+    activation = ActivationProbe(activation_source, output) if activation_source else None
+    require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
+            (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
+    patch_test = no_patch_catalog is not None and activation is None
+    request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
@@ -158,11 +168,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     connection = Database(self.database_path)
                     try:
                         objects = CAS(connection, self.objects)
-                        broker = NativeBroker(connection, objects, "root", self.plan.profile_digest())
+                        broker = NativeBroker(connection, objects, self.plan.job_id, self.plan.profile_digest())
                         admission = put(objects, {"is_example": True, "operation_id": operation,
                             "scope": "already admitted synthetic provider request only"})
                         grant = BrokerGrant.model_validate({"schema": "strata/NativeBrokerGrant/1",
-                            "runtime_id": "root", "session_id": root_id,
+                            "runtime_id": self.plan.job_id, "session_id": root_id,
                             "thread_id": metadata["thread_id"],
                             "parent_thread_id": None if agent == "/root" else root_id,
                             "profile_digest": self.plan.profile_digest(), "model": body["model"],
@@ -176,15 +186,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             grant = NativeAdmission(connection, objects).enroll(operation, tool_calls=20)
                         else:
                             broker.admit(grant)
-                        broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
-                        if agent == "/root":
+                        if activation is None or agent != "/root":
+                            broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
+                        if agent == "/root" and activation is None:
                             broker.project(grant.thread_id, "initial/skill.md", "STRATA_IMMUTABLE_SKILL")
                             broker.project(grant.thread_id, "docs/root-only.md", "STRATA_ROOT_ONLY_CANARY")
                     finally:
                         connection.close()
                     game_request = {"schema": "strata/GameRequest/1",
                         "request_id": "game-root" if agent == "/root" else "game-child",
-                        "campaign_id": "synthetic-campaign", "agent_id": "a1", "epoch": 1,
+                        "campaign_id": self.plan.campaign_id, "agent_id": self.plan.agent_id, "epoch": self.plan.epoch,
                         "deadline_at": datetime.fromtimestamp(time.time()+5, timezone.utc).isoformat(
                             timespec="milliseconds").replace("+00:00", "Z"),
                         "method": "observe", "action": None, "target_request_id": None, "after": None}
@@ -192,6 +203,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ("artifact_write", {"path": "notes/root.md" if agent == "/root" else
                             "results/advice.md", "text": "STRATA_OWN_ARTIFACT", "expected_ref": None}),
                         ("game", {"request": game_request})]
+                    if activation:
+                        if agent == "/root":
+                            calls[0] = ("artifact_read", {"path": "notes/root.md"})
+                            calls[1][1]["expected_ref"] = activation.body["workspace"]["notes/root.md"]
+                        calls.extend(activation.calls(agent))
                     if skills_mode:
                         calls.append(("artifact_read", {"path":
                             "initial/dovetail/skills/prompt-engineering/SKILL.md"}))
@@ -202,7 +218,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         calls.extend([("artifact_read", {"path": "docs/root-only.md"}),
                             ("artifact_write", {"path": "notes/root.md", "text": "spoof", "expected_ref": None}),
                             ("artifact_read", {"path": "docs/root-only.md", "_meta": {"threadId": root_id}})])
-                    else:
+                    elif activation is None:
                         calls.append(("artifact_write", {"path": "initial/skill.md",
                             "text": "spoof", "expected_ref": None}))
                     code = 'const calls=' + json.dumps(calls) + '; for (const [name,args] of calls) {' + (
@@ -211,6 +227,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ' text({name,result:await tools[t.name](args)}); }')
                     if canaries:
                         code += "\n" + canaries.code(agent=agent)
+                    if activation and agent == "/root":
+                        code += "\n" + activation.publish_code()
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
@@ -226,11 +244,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = interrupt_probe.next(self, agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
-                    2 + int(canary_mode) + int(no_patch_catalog is not None)):
+                    2 + int(canary_mode) + int(patch_test)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
                     "message": "Exercise only the synthetic inspect_identity tool. "
                                "Do not read files or call any other tool."}) if step == 1 else (
-                    "wait_agent", {"timeout_ms": 10000})
+                    "wait_agent", {"timeout_ms": 30000 if activation else 10000})
                 item = {"id": "tool-" + operation, "type": "function_call",
                     "call_id": "call-" + operation, "namespace": "collaboration",
                     "name": call[0], "arguments": json.dumps(call[1])}
@@ -243,7 +261,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "namespace": "functions", "name": "exec_command",
                     "arguments": json.dumps({"cmd": canaries.command(), "login": False,
                                               "max_output_tokens": 1000})}
-            elif no_patch_catalog is not None and agent not in self.patch_agents:
+            elif patch_test and agent not in self.patch_agents:
                 call_id = "direct-patch-" + operation
                 self.patch_direct_calls.append(call_id)
                 self.patch_agents.add(agent)
@@ -258,7 +276,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "arguments": json.dumps({"input": item["input"]})})
             else:
                 require(step == (3 if agent == "/root" else 1) + int(canary_mode) +
-                        int(no_patch_catalog is not None) or
+                        int(patch_test) or
                         bootstrap_mode and agent == "/root" and step >= 3, "UNEXPECTED_RETRY")
             response = {"id": "response-" + operation, "object": "response", "created_at": 1,
                 "status": "completed", "model": body["model"], "output": [item, *extra_items], "usage": {
@@ -285,12 +303,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
-    gate.budgets.create_account("project", limits, "*")
-    gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
-        category="development")
+    if activation is None:
+        gate.budgets.create_account("project", limits, "*")
+        gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
+            category="development")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
-                        helper_requests=8 if interrupt_mode else 5 if state_mode else 4)
+                        helper_requests=8 if interrupt_mode else 5 if state_mode else 4,
+                        fixture_input_reserve=10000 if activation else 100000)
     gateway = None
     if gateway_mode:
         from mcbench.accounting import EstimateBasis, FiniteExposure
@@ -332,7 +352,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread = threading.Thread(target=worker.serve_forever, daemon=True)
         worker_thread.start()
     try:
-        plan = plan_for(binary, output, provider, "root")
+        plan = plan_for(binary, output, provider, job_id)
+        if activation:
+            plan = activation.prepare(runtime, plan)
         installed = install_dovetail(binary, Path(plan.profile_directory))
         if skills_mode:
             from mcbench.native_skills import INSTRUCTIONS, prepare_skill_corpus, read_skill_corpus
@@ -380,6 +402,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["model_providers.strata_local_fixture.stream_idle_timeout_ms"] = 30000
         if skills_mode:
             config["developer_instructions"] = INSTRUCTIONS
+        if activation:
+            config["developer_instructions"] = activation.instructions
         bootstrap = {}
         catalog = None
         if no_patch_catalog is not None:
@@ -393,19 +417,20 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
             (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
-                "database": str(db.path), "objects": str(cas.root), "runtime_id": "root",
+                "database": str(db.path), "objects": str(cas.root), "runtime_id": plan.job_id,
                 "worker_grant": str(output / "worker.json")}), encoding="utf-8")
             (output / "worker.json").write_text(json.dumps({
                 "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
-                "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": "synthetic-campaign",
-                "agent_id": "a1", "epoch": 1}), encoding="utf-8")
+                "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": plan.campaign_id,
+                "agent_id": plan.agent_id, "epoch": plan.epoch}), encoding="utf-8")
             commands = json.loads((Path(plan.profile_directory) / "installation-commands.json").read_bytes())
             plugin_root = Path(json.loads(commands[-1]["stdout"])["installedPath"])
             sealed = prepare_bundle(output / "broker-runtime", native_executable=binary,
                 plugin_root=plugin_root, broker_config=output / "broker.json", static_files=[
                     Path(plan.profile_directory) / "config.toml",
                     Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json",
-                    *([] if catalog is None else catalog["static_files"])])
+                    *([] if catalog is None else catalog["static_files"])],
+                static_trees=[Path(plan.workspace)] if activation else [])
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
@@ -415,7 +440,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
-            "prompt": "Synthetic MCP identity test. Use only the fixed "
+            "prompt": ("$learned-crafting " if activation else "") + "Synthetic MCP identity test. Use only the fixed "
             "synthetic broker and one clean-context native helper."})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
@@ -439,15 +464,19 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             provider.grant_expiry = int((time.time() + 50) * 1000)
             if not bootstrap_mode:
                 (output / "broker.json").write_text(json.dumps({"database": str(db.path),
-                    "objects": str(cas.root), "runtime_id": "root", "profile_digest": plan.profile_digest(),
+                    "objects": str(cas.root), "runtime_id": plan.job_id, "profile_digest": plan.profile_digest(),
                     "worker_grant": str(output / "worker.json")}), encoding="utf-8")
                 (output / "worker.json").write_text(json.dumps({
                     "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
                     "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": "synthetic-campaign",
                     "agent_id": "a1", "epoch": 1}), encoding="utf-8")
-        reserve = ledger(plan, plan.operation_id, parent=None, calls=request_limit, spend=request_limit*10000,
+        parent_calls = activation_parent_calls if activation else request_limit
+        reserve = ledger(plan, plan.operation_id, parent=None, calls=parent_calls, spend=parent_calls*10000,
             pricing=put(cas, {"is_example": True, "real_usd": 0}),
-            inputs=request_limit*100000, outputs=request_limit*10000)
+            inputs=parent_calls*provider.fixture_input_reserve, outputs=parent_calls*10000)
+        if activation:
+            reserve = reserve.model_copy(update={"campaign_account": db.connection.execute(
+                "SELECT category FROM accounts WHERE id=?", (plan.account,)).fetchone()[0]})
         if gateway_mode:
             reserve = ledger(plan, plan.operation_id, parent=None, calls=12,
                 spend=exposure.amount(basis) * 12, pricing=price,
@@ -501,12 +530,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
         "closure": close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
-        "budget": gate.budgets.status("project")}
+        "budget": gate.budgets.status("a1" if activation else "project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
         result["worker_calls"] = worker_calls
         result["files"] = [dict(r) for r in db.connection.execute(
-            "SELECT namespace,path,immutable FROM broker_files ORDER BY namespace,path")]
+            "SELECT f.namespace,f.path,f.immutable FROM broker_files f JOIN broker_grants g "
+            "ON f.namespace=json_extract(g.body,'$.namespace') WHERE g.runtime=? "
+            "ORDER BY f.namespace,f.path", (plan.job_id,))]
         outputs = json.dumps(provider.outputs)
         result["checks"] = {
             "budget_closure_finalized": result["closure"].get("state") == "FINALIZED" and
@@ -530,9 +561,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             result["checks"].update(result["canaries"]["checks"])
         if admission_mode:
             result["participants"] = [dict(r) for r in db.connection.execute(
-                "SELECT thread,name,parent,depth,envelope,state FROM native_participants ORDER BY depth")]
+                "SELECT thread,name,parent,depth,envelope,state FROM native_participants WHERE job=? ORDER BY depth", (plan.job_id,))]
             result["admissions"] = [dict(r) for r in db.connection.execute(
-                "SELECT operation,thread,envelope FROM native_request_admissions ORDER BY rowid")]
+                "SELECT operation,thread,envelope FROM native_request_admissions WHERE job=? ORDER BY rowid", (plan.job_id,))]
             result["checks"].update({
                 "every_request_admitted": len(result["admissions"]) == len(provider.requests),
                 "distinct_root_helper_envelopes": len(result["participants"]) == 2 and len({
@@ -549,7 +580,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 expected = {role: digest(blocks) for role, blocks in
                             read_tool_projection(cas, plan).items()}
                 events = [json.loads(row[0]) for row in db.connection.execute(
-                    "SELECT body FROM outbox WHERE kind='native.request_admitted'")]
+                    "SELECT body FROM outbox WHERE kind='native.request_admitted' AND json_extract(body,'$.job')=?", (plan.job_id,))]
                 result["tool_projection"] = {"ref": plan.tool_projection_ref,
                     "expected": expected, "admissions": events}
                 result["checks"].update({
@@ -588,13 +619,18 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         e.get("tool_projection_digest") == expected["executor" if e["depth"] == 0 else "helper"]
                         and e.get("tool_projection_ref") == plan.tool_projection_ref for e in events),
                 })
+    if activation:
+        result["activation"] = activation.report(provider, db, plan)
+        result["checks"].update(result["activation"]["checks"])
+        result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
     db.export_journal(output / "journal.jsonl")
     if ingress_mode:
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])
             for r in db.connection.execute("SELECT body FROM native_events WHERE channel IN ('stdout','stderr')"))
         visible = native_raw + json.dumps(provider.outputs).encode() + (output / "journal.jsonl").read_bytes()
         requests = list(output.glob("*-request.json"))
-        bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests").fetchone()[0]
+        bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests WHERE job=?",
+                                        (plan.job_id,)).fetchone()[0]
         result["ingress"] = {"negative_clients": ingress_checks, "denials": provider.ingress_denials,
                              "authenticated_bindings": bindings}
         result["checks"].update({

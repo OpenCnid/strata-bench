@@ -103,9 +103,12 @@ class NativeExports:
                                                    "ORDER BY depth,thread", (job,))]
         require(participants and sum(p["depth"] == 0 for p in participants) == 1 and
                 all(p["state"] == "CLOSED" for p in participants), "NATIVE_EXPORT_PARTICIPANTS")
-        attempts = [dict(r) for r in db.execute("SELECT a.operation,a.thread,a.request_digest,a.envelope,"
+        from .inference_dispatch import require_admission_outcomes
+        rejected = require_admission_outcomes(db, plan, self.runtime.simulation)
+        admissions = [dict(r) for r in db.execute("SELECT a.operation,a.thread,a.request_digest,a.envelope,"
             "i.state,i.receipt_digest FROM native_request_admissions a LEFT JOIN inference_attempts i "
             "ON a.operation=i.operation WHERE a.job=? ORDER BY a.operation", (job,))]
+        attempts = [a for a in admissions if a["operation"] not in rejected]
         all_attempts = [r[0] for r in db.execute("SELECT operation FROM inference_attempts WHERE "
             "json_extract(request,'$.runtime_job_id')=? ORDER BY operation", (job,))]
         require(attempts and all(a["state"] == "SETTLED" and a["receipt_digest"] for a in attempts) and
@@ -114,7 +117,7 @@ class NativeExports:
         require({r[0] for r in db.execute("SELECT thread FROM broker_grants WHERE runtime=?", (job,))}
                 == set(p_by_thread), "NATIVE_EXPORT_PARTICIPANTS")
         require(all(a["thread"] in p_by_thread and a["envelope"] == p_by_thread[a["thread"]]["envelope"]
-                    for a in attempts), "NATIVE_EXPORT_PARTICIPANTS")
+                    for a in admissions), "NATIVE_EXPORT_PARTICIPANTS")
         envelopes = {p["envelope"] for p in participants}
         require(plan.operation_id in envelopes and len(envelopes) == len(participants), "OPERATION_LINEAGE")
         root = next(p for p in participants if p["depth"] == 0)
@@ -235,6 +238,10 @@ class NativeExports:
             "participants": summaries, "attempts": attempts, "operations": operations,
             "ledger": ledgers, "broker_calls": calls, "game_calls": game_calls,
             "account_identities": [dict(a) for a in Budgets.ancestors(db, plan.account)]}
+        if rejected:
+            # Preserve legacy source hashes when there are no proved denials.
+            source["pre_dispatch_rejections"] = [{"admission": a, "rejection": rejected[a["operation"]].model_dump()}
+                for a in admissions if a["operation"] in rejected]
         if db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_artifact_writes'").fetchone():
             writes = [dict(r) for r in db.execute("SELECT * FROM broker_artifact_writes WHERE runtime=? ORDER BY event", (job,))]
             # Legacy exports had no write provenance. Preserve their identity;

@@ -17,9 +17,11 @@ from .authorization import Authorizations
 from .budgets import Budgets
 from .contracts import Digest, Id, Positive, Ref, Strict
 from .records import BudgetLedger
-from .storage import Principal, canonical, digest, require
+from .storage import Fault, Principal, canonical, digest, require
 
 POLICY = "reserve-intent-before-distinct-dispatch/1"
+REJECTION_POLICY = "durable-budget-denial-before-dispatch/1"
+BUDGET_DENIALS = {"BUDGET_EXHAUSTED", "ENVELOPE_EXHAUSTED", "METERING_UNKNOWN"}
 
 
 class InferenceAttempt(Strict):
@@ -51,6 +53,64 @@ class DispatchBound(Strict):
 class EstimateDispatchBound(DispatchBound):
     schema_: Literal["strata/InferenceDispatchBound/2"] = Field(alias="schema")
     exposure: FiniteExposure
+
+
+class PreDispatchRejection(Strict):
+    schema_: Literal["strata/InferencePreDispatchRejection/1"] = Field(alias="schema")
+    policy: Literal["durable-budget-denial-before-dispatch/1"]
+    simulation: bool
+    account: Id
+    attempt: InferenceAttempt
+    reservation: BudgetLedger
+    reason: Literal["BUDGET_EXHAUSTED", "ENVELOPE_EXHAUSTED", "METERING_UNKNOWN"]
+
+
+def rejection_event(body):
+    return {"operation_id": body.reservation.operation_id, "runtime_job_id": body.attempt.runtime_job_id,
+            "request_digest": body.attempt.request_digest, "reason": body.reason,
+            "record_digest": digest(body.model_dump()), "policy": REJECTION_POLICY}
+
+
+def verified_rejections(db, job, simulation):
+    """Only explicit trusted pre-forward records prove rejection; absence does not."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE name='inference_rejections'").fetchone():
+        return {}
+    result = {}
+    for row in db.execute("SELECT * FROM inference_rejections WHERE "
+                          "json_extract(body,'$.attempt.runtime_job_id')=? ORDER BY operation", (job,)):
+        body = PreDispatchRejection.model_validate_json(row["body"])
+        op = body.reservation.operation_id
+        require(body.simulation is simulation and row["operation"] == op and row["fingerprint"] == digest({
+            "account": body.account, "attempt": body.attempt.model_dump(), "reserve": body.reservation.model_dump()})
+            and body.reservation.posting == "reserve", "DISPATCH_REJECTION_INVALID")
+        require(db.execute("SELECT 1 FROM inference_attempts WHERE operation=?", (op,)).fetchone() is None and
+            db.execute("SELECT 1 FROM operations WHERE id=?", (op,)).fetchone() is None and
+            db.execute("SELECT 1 FROM ledger WHERE json_extract(body,'$.operation_id')=?", (op,)).fetchone() is None,
+            "DISPATCH_REJECTION_INVALID")
+        events = db.execute("SELECT body FROM outbox WHERE kind='inference.rejected_before_dispatch' "
+                           "AND json_extract(body,'$.operation_id')=?", (op,)).fetchall()
+        require(len(events) == 1 and json.loads(events[0][0]) == rejection_event(body), "DISPATCH_REJECTION_INVALID")
+        result[op] = body
+    return result
+
+
+def require_admission_outcomes(db, plan, simulation):
+    """Every native admission must have dispatch history or a proved denial."""
+    rejected = verified_rejections(db, plan.job_id, simulation)
+    admissions = {r["operation"]: r for r in db.execute(
+        "SELECT * FROM native_request_admissions WHERE job=?", (plan.job_id,))}
+    attempts = {r[0] for r in db.execute("SELECT operation FROM inference_attempts WHERE "
+        "json_extract(request,'$.runtime_job_id')=?", (plan.job_id,))}
+    require(set(admissions) == attempts | set(rejected) and not attempts & set(rejected), "METERING_UNKNOWN")
+    for op, body in rejected.items():
+        admission, request, reserve = admissions[op], body.attempt, body.reservation
+        require(body.account == plan.account and request.profile_digest == plan.profile_digest() and
+            request.provider == plan.provider and request.auth_mode == plan.auth_mode and
+            request.request_digest == admission["request_digest"] and
+            reserve.parent_operation_id == admission["envelope"] and reserve.campaign_id == plan.campaign_id and
+            reserve.agent_id == plan.agent_id and reserve.epoch == plan.epoch and reserve.model_identity == plan.model,
+            "DISPATCH_REJECTION_INVALID")
+    return rejected
 
 
 class InferenceDispatches:
@@ -91,6 +151,9 @@ class InferenceDispatches:
             db.execute("CREATE TABLE IF NOT EXISTS inference_exposure_faults "
                        "(operation TEXT PRIMARY KEY REFERENCES inference_attempts(operation), "
                        "profile_digest TEXT NOT NULL)")
+            # Additive migration. Never backfill legacy missing attempts as zero usage.
+            db.execute("CREATE TABLE IF NOT EXISTS inference_rejections "
+                       "(operation TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, body TEXT NOT NULL)")
 
     def _private_ref(self, ref, max_bytes):
         row = self.db.connection.execute(
@@ -180,25 +243,50 @@ class InferenceDispatches:
     def _begin(self, account, attempt, reserve):
         fingerprint = digest({"account": account, "attempt": attempt.model_dump(),
                               "reserve": reserve.model_dump()})
+        rejected = None
         with self.db.transaction() as db:
             old = db.execute("SELECT fingerprint FROM inference_attempts WHERE operation=?",
                              (reserve.operation_id,)).fetchone()
             if old:
                 require(old[0] == fingerprint, "IDEMPOTENCY_CONFLICT")
                 return False
+            old = db.execute("SELECT fingerprint,body FROM inference_rejections WHERE operation=?",
+                             (reserve.operation_id,)).fetchone()
+            if old:
+                require(old[0] == fingerprint, "IDEMPOTENCY_CONFLICT")
+                raise Fault(PreDispatchRejection.model_validate_json(old[1]).reason)
             require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
                     "INFERENCE_EXPOSURE_QUARANTINED")
             self._validate_bound(account, attempt, reserve)
-            require(self.budgets.post_in_transaction(db, account, reserve),
-                    "DISPATCH_RESERVATION_REUSED")
-            db.execute("INSERT INTO inference_attempts VALUES(?,?,?,?,?,'DISPATCHING',NULL,NULL,NULL)",
+            db.execute("SAVEPOINT dispatch_reservation")
+            try:
+                require(self.budgets.post_in_transaction(db, account, reserve),
+                        "DISPATCH_RESERVATION_REUSED")
+            except Fault as exc:
+                if exc.code not in BUDGET_DENIALS:
+                    raise
+                db.execute("ROLLBACK TO dispatch_reservation")
+                require(db.execute("SELECT 1 FROM operations WHERE id=?", (reserve.operation_id,)).fetchone() is None,
+                        "DISPATCH_REJECTION_INVALID")
+                rejected = PreDispatchRejection.model_validate({"schema": "strata/InferencePreDispatchRejection/1",
+                    "policy": REJECTION_POLICY, "simulation": self.simulation, "account": account,
+                    "attempt": attempt, "reservation": reserve, "reason": exc.code})
+                db.execute("INSERT INTO inference_rejections VALUES(?,?,?)", (
+                    reserve.operation_id, fingerprint, canonical(rejected.model_dump()).decode()))
+                self.db.event(db, "inference.rejected_before_dispatch", rejection_event(rejected))
+            finally:
+                db.execute("RELEASE dispatch_reservation")
+            if rejected is None:
+                db.execute("INSERT INTO inference_attempts VALUES(?,?,?,?,?,'DISPATCHING',NULL,NULL,NULL)",
                        (reserve.operation_id, account, fingerprint,
                         canonical(attempt.model_dump()).decode(),
                         canonical(reserve.model_dump()).decode()))
-            self.db.event(db, "inference.dispatch_intent", {
-                "operation_id": reserve.operation_id, "runtime_job_id": attempt.runtime_job_id,
-                "request_digest": attempt.request_digest, "bound_ref": attempt.bound_ref,
-                "policy": POLICY, "simulation": self.simulation})
+                self.db.event(db, "inference.dispatch_intent", {
+                    "operation_id": reserve.operation_id, "runtime_job_id": attempt.runtime_job_id,
+                    "request_digest": attempt.request_digest, "bound_ref": attempt.bound_ref,
+                    "policy": POLICY, "simulation": self.simulation})
+        if rejected is not None:
+            raise Fault(rejected.reason)  # Committed denial; this operation can never forward.
         return True  # Only this first caller may forward, after the durable commit.
 
     def execute(self, account, attempt: InferenceAttempt, reserve: BudgetLedger, forward):
@@ -318,7 +406,14 @@ class InferenceDispatches:
     def status(self, operation):
         row = self.db.connection.execute("SELECT * FROM inference_attempts WHERE operation=?",
                                          (operation,)).fetchone()
-        require(row is not None, "DISPATCH_NOT_FOUND")
+        if row is None:
+            row = self.db.connection.execute("SELECT body FROM inference_rejections WHERE operation=?",
+                                             (operation,)).fetchone()
+            require(row is not None, "DISPATCH_NOT_FOUND")
+            rejected = PreDispatchRejection.model_validate_json(row[0])
+            return {"operation_id": operation, "state": "REJECTED_BEFORE_DISPATCH", "reason": rejected.reason,
+                    "simulation": self.simulation, "policy": REJECTION_POLICY,
+                    "request_digest": rejected.attempt.request_digest, "usage_receipt": False}
         return {"operation_id": operation, "state": row["state"], "reason": row["reason"],
                 "simulation": self.simulation, "policy": POLICY,
                 "accounting_kind": ("synthetic_fixture_units" if self.simulation else

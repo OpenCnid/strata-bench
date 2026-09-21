@@ -1,13 +1,14 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.97](../SPEC.md)
+Updated September 21, 2026. Operator-only. [SPEC v0.2.98](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
 ## Start here
 
-**Current bounded M0 work:** [Checkpoint-bound learned skill activation](verification/2026-09-21-native-activation.md) now implements private atomic active sets, held native loader views, explicit helper supply, pre-reservation catalog guards and versioned parent lineage. Source tests pass; the pinned CLI passes 16 metadata checks on the final view with zero provider requests. Actual native invocation, second-generation lineage/retention and scoped runtime restoration remain unqualified. Original $0.7554 hold and every prior M0/G0 failure remain; G1–G5 not_run.
-Continue M0.1c.2b.2c.6 from native_skill_activation.py. The atomic source route and native metadata discovery are implemented; do not repeat the old accounting matrix or metadata-only probes. Next run the changed actual CLI/local-synthetic-provider profile through the real activation/admission/enrollment path, prove root and explicitly supplied helper reads/immutability, then a second generation of active parent lineage, typed retention and fresh scoped restoration. Keep scripts non-executable pending their required restricted capability. Preserve private native-loader-01/02/03 failures and native-activation-01/02 results and source generations; no RuntimeQualification or OAuth replay.
+**Current bounded M0 work:** [Native activation and recovery evidence](verification/2026-09-21-native-activation-exec.md) now proves actual root/helper body and supporting-file reads, immutable scope, source-bound replacement lineage and fresh native handoff over a complete synthetic checkpoint. Two positive native runs pass 32 checks each; costs progress from 56 constructed fixture units to 140, then 224 without resetting the allowance. Durable pre-dispatch budget-denial records now preserve rejection history through closure/export without invented receipts or replay. An actual native exhaustion fixture passes 13 targeted recovery checks. Full frozen-arm native controls, interrupted activation, script/macro capability and authentic game restoration remain unqualified. Original $0.7554 hold and all prior M0/G0 failures remain; G1–G5 not_run.
+Continue M0.1c.2b.2c.6 from native_skill_activation.py and the existing activation probe. Full-arm actual native invocation and a second native generation are now evidenced; do not repeat them unchanged. Next preregister the required frozen-arm/native-retention control before creating its source history, exercise interrupted activation without partial visibility, then implement the restricted script/macro capability. Preserve all private native-activation-exec-01 through 06 stores, source generations and their distinct failures. Case 03 retains its missing durable denial and export refusal; never backfill that absence as zero usage. Case 06 verifies the new denial route. Keep all real game/backend restoration and private evidence requirements. No RuntimeQualification, OAuth replay or new allowance.
+
 
 Prior candidate checkpoint: native-skills-01 remains sealed with the real long-path failure and successful supporting-file/candidate capture. Its source and evidence remain valid for that narrower scope.
 

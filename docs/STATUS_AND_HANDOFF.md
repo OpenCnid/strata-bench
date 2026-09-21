@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.76](../SPEC.md)
+Updated September 21, 2026. Operator-only. [SPEC v0.2.77](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -103,6 +103,10 @@ The pair is nevertheless UNCERTAIN: `client_monitor / Fault / PROCESS_MEMBER_INV
 The [new completed reference](verification/2026-09-21-completed-craft-reference.md) advances that investigation from source 32f8ff2. Two bounded nested-Job cases did not reproduce the failure. One fresh diagnostic reference then completed STOPPED: private 2026-09-21-craft-reference-live-02, instance craft-reference-live-06, game e9e-craft-reference-04/25580. Audit 30/30 passes; authentic craft/native actor-team-mode/saved resources, 78 primitives, 286 complete records/5,659 ticks. Guardian 467.4081/500 ms passes this sample. Outer client/server 116/11 and inner server 6 handles signal, normal server stop, no force, credentials retired and desktop unchanged. Candidate import is idempotent and unscorable. .3b.3b.1/.2 are verified only for participant coordination/registration; protected setup/history and parent scoring remain incomplete.
 
 The historical inventory failure remains unexplained and UNCERTAIN. Do not repeat the newly completed positive trajectory just to seek another sample. The repository nested desktop/guardian regression and package exclusion pass 2/3.49 s after retaining/correcting an overly specific one-process fixture assertion. Next implement **M0.2c.3b.2b: protected mutable-world/config writer ownership and full setup authority on available hardware**, followed by authentic joint scorer controls, parity/nonleakage and the native host/game/evidence join. The normally stopped world is not a complete game/agent checkpoint. No model dispatch/reset/refund; original $10 cap and $0.7554 uncertain hold persist. Prior failures and remaining gates stay open.
+
+M0.2c.3b.2b/.1 now has a [scoped mutable-writer candidate](verification/2026-09-21-writer-boundary.md) in `windows_writer.py` with `writer_boundary_probe.py` and a native file fixture. Fresh roots receive their final protected DACL atomically; OWNER RIGHTS removes implicit permission resets; local sandbox group plus workspace restricting SID admits scoped writes. List-access directory handles fix the observed root-rename bypass. The account-only candidate failed sibling writes; retain it. Final private `2026-09-21-writer-boundary-12` passes intended read/update/rename and ordinary-user/sibling write denials, but **sibling read-open succeeds**, leaving the overall canary fail (12/13). Twenty-nine focused tests pass; source and binaries/evidence stay private where required. These are actual OS/CLI synthetic-file tests, with no game/model/desktop input or account/firewall change.
+
+**Next M0 action:** integrate protected preparation and the exact writer token/workspace with the owned server lifecycle, first using a finite Java file fixture. The primitive is not connected to ReferenceLauncher, does not validate full setup/history and cannot issue scoring or recovery authority. Closing preserves the DACL but not a lost namespace handle; never adopt a path on that basis. Close the demonstrated sibling read path through the enforced native tool/broker boundary, retaining the original loopback failures. Do not rerun the finished positive craft trajectory or ask for a VM. Accounting at 06:50:27 UTC remains original $10, one migration and $0.7554 uncertain hold; no replay/refund. M0 in_progress, G0 fail and G1–G5 not_run.
 
 ## Settled authority and limits
 

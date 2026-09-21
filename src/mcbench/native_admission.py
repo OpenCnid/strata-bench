@@ -18,7 +18,6 @@ from .inference_transport import strict_json
 from .native import NativeLaunch
 from .native_broker_policy import validate_broker_settings
 from .runtime import CODEX_VERSION, DOVETAIL_COMMIT
-from .records import BudgetLedger
 from .storage import Fault, Principal, canonical, digest, require
 
 
@@ -110,6 +109,12 @@ class NativeAdmission:
             db.execute("CREATE TABLE IF NOT EXISTS native_request_admissions (operation TEXT PRIMARY KEY, "
                 "job TEXT, thread TEXT, request_digest TEXT, raw_ref TEXT, envelope TEXT, account TEXT, "
                 "reservation_digest TEXT)")
+            db.execute("CREATE TABLE IF NOT EXISTS native_participant_retirements (job TEXT, thread TEXT, "
+                "fence_ordinal INTEGER NOT NULL, proof_ref TEXT, PRIMARY KEY(job,thread))")
+            db.execute("CREATE TABLE IF NOT EXISTS native_tool_call_ids (job TEXT, thread TEXT, call_id TEXT, "
+                "first_ordinal INTEGER NOT NULL, PRIMARY KEY(job,thread,call_id))")
+            db.execute("CREATE TABLE IF NOT EXISTS native_tool_call_indexed_requests "
+                "(operation TEXT PRIMARY KEY,raw_ref TEXT NOT NULL)")
 
     @staticmethod
     def child_envelope_id(job, thread):
@@ -207,6 +212,8 @@ class NativeAdmission:
                             "NATIVE_LINEAGE")
                     parent, depth, envelope = None, 0, plan.operation_id
                 else:
+                    require(db.execute("SELECT 1 FROM native_participants WHERE job=? AND name=?",
+                                       (plan.job_id, name)).fetchone() is None, "NATIVE_PARTICIPANT_NAME_REUSED")
                     parent = meta.get("parent_thread_id")
                     p = db.execute("SELECT * FROM native_participants WHERE job=? AND thread=?",
                         (plan.job_id, parent)).fetchone()
@@ -217,7 +224,7 @@ class NativeAdmission:
                     require(depth <= 2, "HELPER_DEPTH")
                     require_clean_child(body, meta, plan.workspace, p["name"])
                     count = db.execute("SELECT count(*) FROM native_participants WHERE job=? "
-                        "AND depth>0 AND state='ACTIVE'", (plan.job_id,)).fetchone()[0]
+                        "AND depth>0 AND state IS NOT 'CLOSED'", (plan.job_id,)).fetchone()[0]
                     require(count < plan.helper_limit, "HELPER_CAPACITY")
                     envelope = self.child_envelope_id(plan.job_id, thread)
                     require(child_envelope is not None and child_envelope.posting == "reserve" and
@@ -248,6 +255,10 @@ class NativeAdmission:
                       participant["envelope"], account, digest(reserve.model_dump()))
             require(old is None or tuple(old) == values, "IDEMPOTENCY_CONFLICT")
             db.execute("INSERT OR IGNORE INTO native_request_admissions VALUES(?,?,?,?,?,?,?,?)", values)
+            from .native_retirement import index_native_tool_calls
+            indexed = db.execute("SELECT rowid ordinal,* FROM native_request_admissions WHERE operation=?",
+                                 (reserve.operation_id,)).fetchone()
+            index_native_tool_calls(db, self.cas, indexed, body=body)
             self.db.event(db, "native.request_admitted", {"operation": reserve.operation_id,
                 "job": plan.job_id, "thread": thread, "depth": participant["depth"],
                 "initial_context_digest": participant["initial_context"], "raw_ref": raw_ref,
@@ -300,18 +311,27 @@ class NativeAdmission:
         return grant
 
     def revoke(self, job, thread):
-        """Revoke a participant and descendants without releasing any usage hold."""
+        """Fence a subtree immediately; retain its slots and every usage hold."""
         with self.db.transaction() as db:
             require(db.execute("SELECT 1 FROM native_participants WHERE job=? AND thread=?",
                                (job, thread)).fetchone(), "NATIVE_PARTICIPANT_UNKNOWN")
             pending = [thread]
+            ordinal = db.execute("SELECT coalesce(max(rowid),0) FROM native_request_admissions WHERE job=?",
+                                 (job,)).fetchone()[0]
             while pending:
                 current = pending.pop()
                 pending.extend(r[0] for r in db.execute("SELECT thread FROM native_participants "
                     "WHERE job=? AND parent=?", (job, current)))
-                db.execute("UPDATE native_participants SET state='REVOKED' WHERE job=? AND thread=?",
+                db.execute("UPDATE native_participants SET state='REVOKED' WHERE job=? AND thread=? "
+                           "AND state IS NOT 'CLOSED'",
                            (job, current))
+                db.execute("INSERT OR IGNORE INTO native_participant_retirements VALUES(?,?,?,NULL)",
+                           (job, current, ordinal))
             self.db.event(db, "native.participant_revoked", {"job": job, "thread": thread})
+
+    def retire(self, job, thread, proof_ref):
+        from .native_retirement import retire_participant
+        return retire_participant(self, job, thread, proof_ref)
 
 
 def require_active_participant(db, job, thread):
@@ -369,17 +389,13 @@ def close_participant_envelopes(database, budgets, db, plan, proof, seal_ref):
     for row in rows:
         if row["depth"] == 0:
             continue  # NativeExec closes the root after all descendant envelopes.
-        source = db.execute("SELECT body FROM ledger WHERE json_extract(body,'$.operation_id')=? "
-                            "AND json_extract(body,'$.posting')='reserve'", (row["envelope"],)).fetchone()
-        require(source is not None, "OPERATION_LINEAGE")
-        reserve = BudgetLedger.model_validate_json(source[0])
-        closure_id = "envelope-close:" + digest({"job": plan.job_id, "thread": row["thread"]})
-        receipt = BudgetLedger.model_validate(reserve.model_dump() | {
-            "posting": "settle", "ledger_id": closure_id, "source_event_id": closure_id,
-            "metering": "reported", "raw_usage_ref": seal_ref,
-            "reason": "fenced native helper ingress; usage belongs to descendants",
-            "usage": dict.fromkeys(reserve.usage.model_dump(), 0)})
-        budgets.post_in_transaction(db, plan.account, receipt, close_envelope=True)
+        if row["state"] == "CLOSED":
+            operation = db.execute("SELECT actual,uncertain FROM operations WHERE id=?", (row["envelope"],)).fetchone()
+            require(operation is not None and operation["actual"] is not None and not operation["uncertain"],
+                    "DESCENDANT_UNSETTLED")
+            continue
+        from .native_retirement import close_helper_envelope
+        close_helper_envelope(budgets, db, plan, row, seal_ref)
     db.execute("UPDATE native_participants SET state='CLOSED' WHERE job=?", (plan.job_id,))
     database.event(db, "native.participants_closed", {"job": plan.job_id,
                    "threads": sorted(r["thread"] for r in rows), "seal_ref": seal_ref})

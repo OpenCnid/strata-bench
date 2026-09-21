@@ -66,7 +66,7 @@ def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
-        deferred_tools=False, no_patch_catalog=None, state_mode=False):
+        deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -97,9 +97,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "DEFERRED_CANARY_PROJECTION_REQUIRED")
     require(not state_mode or bootstrap_mode and tool_projections is not None and
             no_patch_catalog is not None and not canary_mode, "STATE_PINNED_BOOTSTRAP_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode, "CATALOG_DEFERRED_CANARY_REQUIRED")
+    require(not retirement_mode or bootstrap_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, inherited_helper, gateway_mode)),
+            "RETIREMENT_PINNED_BOOTSTRAP_REQUIRED")
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode,
+            "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
+    from native_retirement_probe import RetirementProbe
     state_probe = StateCanaries() if state_mode else None
+    retirement_probe = RetirementProbe() if retirement_mode else None
+    request_limit = 20 if retirement_mode else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
@@ -115,7 +122,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         def respond(self, handler, body, index, operation):
             metadata = json.loads(body["client_metadata"]["x-codex-turn-metadata"])
             agent = metadata["agent_name"]
-            require(agent in {"/root", "/root/identity_child"}, "UNEXPECTED_AGENT")
+            require(agent in ({"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
+                {"/root", "/root/identity_child"}), "UNEXPECTED_AGENT")
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
             if state_probe:
                 state_probe.observe(agent, body)
@@ -204,6 +212,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         extra_items.append(state_probe.reserve_root_handle(operation))
             elif state_probe:
                 item, *extra_items = state_probe.next(agent, step, operation)
+            elif retirement_probe:
+                item = retirement_probe.next(self, agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
                     2 + int(canary_mode) + int(no_patch_catalog is not None)):
@@ -262,13 +272,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     cas = CAS(db, output / "objects")
     runtime = NativeExec(db, cas, simulation=True)
     gate = InferenceDispatches(db, cas, simulation=True)
-    limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": 120000}
+    limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     gate.budgets.create_account("project", limits, "*")
     gate.budgets.create_account("a1", limits, "synthetic-campaign", "a1", "project",
         category="development")
-    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=12,
+    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
                         helper_requests=5 if state_mode else 4)
     gateway = None
@@ -389,6 +399,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
+            "helper_limit": 1 if retirement_mode else plan.helper_limit,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
@@ -424,8 +435,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "url": f"http://127.0.0.1:{worker.server_port}/v1/game",
                     "token": "STRATA_SYNTHETIC_WORKER_SECRET", "campaign_id": "synthetic-campaign",
                     "agent_id": "a1", "epoch": 1}), encoding="utf-8")
-        reserve = ledger(plan, plan.operation_id, parent=None, calls=12, spend=120000,
-            pricing=put(cas, {"is_example": True, "real_usd": 0}), inputs=1200000, outputs=120000)
+        reserve = ledger(plan, plan.operation_id, parent=None, calls=request_limit, spend=request_limit*10000,
+            pricing=put(cas, {"is_example": True, "real_usd": 0}),
+            inputs=request_limit*100000, outputs=request_limit*10000)
         if gateway_mode:
             reserve = ledger(plan, plan.operation_id, parent=None, calls=12,
                 spend=exposure.amount(basis) * 12, pricing=price,
@@ -552,6 +564,19 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "inherited_helper_not_forwarded": all(i["agent"] == "/root" for i in provider.identities),
                     "no_child_reservation_created": db.connection.execute("SELECT count(*) FROM operations "
                         "WHERE kind='helper'").fetchone()[0] == 0,
+                })
+            if retirement_probe:
+                result["retirement"] = retirement_probe.report(provider, db)
+                result["checks"].update(result["retirement"]["checks"])
+                result["checks"].update({
+                    "provider_clean": provider.errors == ["NATIVE_ADMISSION_SCOPE"],
+                    "every_request_admitted": len(result["admissions"]) == 15 and len(provider.requests) == 16,
+                    "distinct_root_helper_envelopes": len(result["participants"]) == 3 and len({
+                        p["envelope"] for p in result["participants"]}) == 3,
+                    "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"] == 210,
+                    "every_request_projection_checked": len(events) == 15 and all(
+                        e.get("tool_projection_digest") == expected["executor" if e["depth"] == 0 else "helper"]
+                        and e.get("tool_projection_ref") == plan.tool_projection_ref for e in events),
                 })
     db.export_journal(output / "journal.jsonl")
     if ingress_mode:

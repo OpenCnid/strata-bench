@@ -1,6 +1,8 @@
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.NVXGPUMemoryInfo.*;
+import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.ALC10.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -12,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALC;
 import org.lwjgl.system.MemoryUtil;
 
 /** Operator fixture based on DesktopRenderFixture; remains alive for forced guardian stop. */
@@ -35,17 +39,20 @@ public final class GuardianRenderFixture {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 4) throw new IllegalArgumentException("FIXTURE_ARGUMENTS");
+        if (args.length != 5 || !(args[4].equals("true") || args[4].equals("false")))
+            throw new IllegalArgumentException("FIXTURE_ARGUMENTS");
         Path root = Path.of(args[0]);
         int heap = Integer.parseInt(args[1]), texture = Integer.parseInt(args[2]);
         String scope = args[3];
+        boolean audio = Boolean.parseBoolean(args[4]);
         if (!root.isAbsolute() || !Files.isDirectory(root) || !scope.matches("[0-9a-f]{32}")
                 || !(heap == 0 || heap == 3072) || !(texture == 0 || texture == 256 || texture == 1024))
             throw new IllegalArgumentException("FIXTURE_ARGUMENTS");
-        var result = new JsonObject(); result.addProperty("schema", "strata/GuardianRenderFixture/1");
+        var result = new JsonObject(); result.addProperty("schema", "strata/GuardianRenderFixture/2");
         result.addProperty("scope", scope); result.addProperty("pid", ProcessHandle.current().pid());
         result.addProperty("minecraft", false); result.addProperty("visible", false);
         result.addProperty("heap_mib", heap); result.addProperty("texture_mib", texture);
+        result.addProperty("audio", audio);
         publish(root.resolve("boot.json"), result);
         long armDeadline = System.nanoTime() + 10_000_000_000L;
         while (!Files.exists(root.resolve("armed"))) {
@@ -58,6 +65,8 @@ public final class GuardianRenderFixture {
         final int[] error = {0};
         var callback = GLFWErrorCallback.create((code, message) -> error[0] = code);
         long window = 0; boolean initialized = false; ByteBuffer pixel = null, upload = null;
+        long audioDevice = 0, audioContext = 0;
+        int audioBuffer = 0, audioSource = 0;
         int[] textures = new int[texture / 16];
         try {
             glfwSetErrorCallback(callback);
@@ -74,6 +83,29 @@ public final class GuardianRenderFixture {
             result.addProperty("gl_version", glGetString(GL_VERSION));
             result.addProperty("gl_vendor", glGetString(GL_VENDOR));
             result.addProperty("gl_renderer", glGetString(GL_RENDERER));
+            if (audio) {
+                audioDevice = alcOpenDevice((ByteBuffer) null);
+                if (audioDevice == 0) throw new IllegalStateException("AUDIO_DEVICE_UNAVAILABLE");
+                var capabilities = ALC.createCapabilities(audioDevice);
+                audioContext = alcCreateContext(audioDevice, (java.nio.IntBuffer) null);
+                if (audioContext == 0 || !alcMakeContextCurrent(audioContext))
+                    throw new IllegalStateException("AUDIO_CONTEXT_UNAVAILABLE");
+                AL.createCapabilities(capabilities);
+                result.addProperty("al_version", alGetString(AL_VERSION));
+                result.addProperty("al_renderer", alGetString(AL_RENDERER));
+                result.addProperty("al_device", alcGetString(audioDevice, ALC_DEVICE_SPECIFIER));
+                audioBuffer = alGenBuffers(); audioSource = alGenSources();
+                ByteBuffer silence = MemoryUtil.memCalloc(4410 * 2);
+                try { alBufferData(audioBuffer, AL_FORMAT_MONO16, silence, 44100); }
+                finally { MemoryUtil.memFree(silence); }
+                alSourcei(audioSource, AL_BUFFER, audioBuffer);
+                alSourcei(audioSource, AL_LOOPING, AL_TRUE);
+                alSourcef(audioSource, AL_GAIN, 0.0f); // Only this fixture's source; no system volume change.
+                alSourcePlay(audioSource);
+                if (alGetError() != AL_NO_ERROR || alcGetError(audioDevice) != ALC_NO_ERROR
+                        || alGetSourcei(audioSource, AL_SOURCE_STATE) != AL_PLAYING)
+                    throw new IllegalStateException("SILENT_AUDIO_NOT_PLAYING");
+            }
             if (texture != 0) {
                 if (!GL.getCapabilities().GL_NVX_gpu_memory_info)
                     throw new IllegalStateException("GPU_HEADROOM_UNAVAILABLE");
@@ -117,6 +149,13 @@ public final class GuardianRenderFixture {
                 Thread.sleep(17);
             }
             result.add("red_samples", samples); result.addProperty("frames", 20);
+            if (audio) {
+                if (alGetSourcei(audioSource, AL_SOURCE_STATE) != AL_PLAYING
+                        || alGetSourcef(audioSource, AL_GAIN) != 0.0f || alGetError() != AL_NO_ERROR)
+                    throw new IllegalStateException("SILENT_AUDIO_NOT_PLAYING");
+                result.addProperty("audio_state", "playing"); result.addProperty("silent_pcm", true);
+                result.addProperty("source_gain", 0);
+            }
             result.addProperty("status", "ready"); result.addProperty("resources_held", true);
             publish(root.resolve("ready.json"), result);
             long stopDeadline = System.nanoTime() + 20_000_000_000L;
@@ -129,6 +168,12 @@ public final class GuardianRenderFixture {
             result.addProperty("status", "fail"); result.addProperty("failure_class", failure.getClass().getSimpleName());
             result.addProperty("failure", failure instanceof IllegalStateException ? failure.getMessage() : "RENDER_UNAVAILABLE");
         } finally {
+            if (audioContext != 0) {
+                if (audioSource != 0) { alSourceStop(audioSource); alDeleteSources(audioSource); }
+                if (audioBuffer != 0) alDeleteBuffers(audioBuffer);
+                alcMakeContextCurrent(0); alcDestroyContext(audioContext);
+            }
+            if (audioDevice != 0) alcCloseDevice(audioDevice);
             if (pixel != null) MemoryUtil.memFree(pixel);
             if (upload != null) MemoryUtil.memFree(upload);
             if (window != 0) { for (int textureId : textures) if (textureId != 0) glDeleteTextures(textureId); glfwDestroyWindow(window); }

@@ -22,7 +22,7 @@ def probe(monkeypatch):
 
 
 def report():
-    return {"schema": "strata/GuardianRenderFixture/1", "scope": "a" * 32,
+    return {"schema": "strata/GuardianRenderFixture/2", "scope": "a" * 32, "audio": False,
             "pid": 123, "minecraft": False, "visible": False, "heap_mib": 3072,
             "texture_mib": 256, "status": "ready", "resources_held": True,
             "frames": 20, "red_samples": [64, 191] * 10, "gl_version": "fixture",
@@ -31,7 +31,7 @@ def report():
 
 
 def test_only_explicit_distinct_bounded_profiles_can_dispatch(probe):
-    assert probe.selected_profiles(["combined-large"]) == [("combined-large", 3072, 1024)]
+    assert probe.selected_profiles(["combined-large"]) == [("combined-large", 3072, 1024, False)]
     for names in [[], ["context", "context"], ["unbounded"], list(probe.PROFILES)]:
         with pytest.raises(Fault, match="GRAPHICS_PROFILE_INVALID"):
             probe.selected_profiles(names)
@@ -52,7 +52,7 @@ def test_rejects_unbound_or_incomplete_graphics_fixture(probe, field, value):
 
 def test_boot_record_never_substitutes_for_live_resource_evidence(probe):
     boot = {k: v for k, v in report().items() if k in (
-        "schema", "scope", "pid", "minecraft", "visible", "heap_mib", "texture_mib")}
+        "schema", "scope", "pid", "minecraft", "visible", "heap_mib", "texture_mib", "audio")}
     probe.validate(boot, scope="a" * 32, pid=123, heap=3072, texture=256, ready=False)
     with pytest.raises(Fault, match="GRAPHICS_FIXTURE_NOT_READY"):
         probe.validate(boot, scope="a" * 32, pid=123, heap=3072, texture=256, ready=True)
@@ -90,3 +90,15 @@ def test_late_stop_stays_failed_after_cleanup_and_always_closes(probe, monkeypat
     assert events == ["stop", "guard-close", "outer-close"]
     assert result["status"] == ("incomplete" if cleanup_fails else "measured")
     assert json.loads((root / "result.json").read_bytes()) == result
+
+
+@pytest.mark.parametrize("field,value", [("audio", False), ("audio", 1),
+    ("audio_state", "stopped"), ("silent_pcm", False), ("source_gain", 1),
+    ("source_gain", False), ("al_version", None), ("al_renderer", ""), ("al_device", None)])
+def test_silent_audio_requires_live_bound_evidence(probe, field, value):
+    current = {**report(), "audio": True, "audio_state": "playing", "silent_pcm": True,
+               "source_gain": 0, "al_version": "fixture", "al_renderer": "fixture", "al_device": "fixture"}
+    probe.validate(current, scope="a" * 32, pid=123, heap=3072, texture=256, audio=True, ready=True)
+    current[field] = value
+    with pytest.raises(Fault):
+        probe.validate(current, scope="a" * 32, pid=123, heap=3072, texture=256, audio=True, ready=True)

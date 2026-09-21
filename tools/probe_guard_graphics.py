@@ -19,8 +19,9 @@ from mcbench.process_guard import AttachedJava, inspect_process
 from mcbench.storage import Fault, reject_links, require
 import probe_guard_memory as memory
 
-PROFILES = {"context": (0, 0), "textures": (0, 256), "combined": (3072, 256),
-            "combined-large": (3072, 1024)}
+PROFILES = {"context": (0, 0, False), "textures": (0, 256, False),
+            "combined": (3072, 256, False), "combined-large": (3072, 1024, False),
+            "context-audio": (0, 0, True), "combined-large-audio": (3072, 1024, True)}
 
 
 def selected_profiles(names):
@@ -29,13 +30,14 @@ def selected_profiles(names):
     return [(name, *PROFILES[name]) for name in names]
 
 
-def validate(value, *, scope, pid, heap, texture, ready):
-    require(type(value) is dict and value.get("schema") == "strata/GuardianRenderFixture/1"
+def validate(value, *, scope, pid, heap, texture, ready, audio=False):
+    require(type(value) is dict and value.get("schema") == "strata/GuardianRenderFixture/2"
             and value.get("scope") == scope and type(value.get("pid")) is int
             and value["pid"] == pid and value.get("minecraft") is False
             and value.get("visible") is False and type(value.get("heap_mib")) is int
             and value["heap_mib"] == heap and type(value.get("texture_mib")) is int
-            and value["texture_mib"] == texture, "GRAPHICS_FIXTURE_BINDING")
+            and value["texture_mib"] == texture and value.get("audio") is audio,
+            "GRAPHICS_FIXTURE_BINDING")
     if ready:
         require(value.get("status") == "ready" and value.get("resources_held") is True
                 and type(value.get("frames")) is int and value["frames"] == 20
@@ -49,6 +51,12 @@ def validate(value, *, scope, pid, heap, texture, ready):
                     and type(value.get("gpu_free_kib_loaded")) is int
                     and value["gpu_free_kib_loaded"] >= 2048 * 1024,
                     "GRAPHICS_MEMORY_HEADROOM")
+        if audio:
+            require(value.get("audio_state") == "playing" and value.get("silent_pcm") is True
+                    and type(value.get("source_gain")) is int and value["source_gain"] == 0
+                    and all(type(value.get(key)) is str and 0 < len(value[key]) < 512
+                            for key in ("al_version", "al_renderer", "al_device")),
+                    "SILENT_AUDIO_NOT_READY")
 
 
 def wait_report(path, child, deadline):
@@ -64,18 +72,18 @@ def wait_report(path, child, deadline):
     raise Fault("GRAPHICS_FIXTURE_DEADLINE")
 
 
-def sample(java, classpath, root, name, heap, texture):
+def sample(java, classpath, root, name, heap, texture, audio=False):
     memory.admit([max(16, heap)], memory.memory_status())
     root.mkdir()
     scope = secrets.token_hex(16)
     arguments = ["-Xms64m", f"-Xmx{heap + 512}m", "-XX:+UseG1GC", "-cp", classpath,
-                 "GuardianRenderFixture", str(root), str(heap), str(texture), scope]
+                 "GuardianRenderFixture", str(root), str(heap), str(texture), scope, str(audio).lower()]
     argfile = root / "arguments.txt"
     argfile.write_text("\n".join('"' + x.replace("\\", "\\\\").replace('"', '\\"') + '"'
                                  for x in arguments), encoding="utf-8")
     result = {"profile": name, "heap_mib": heap, "texture_mib": texture,
               "status": "incomplete", "stop_result": "not_run", "cleanup_confirmed": False,
-              "scope": scope, "max_wall_ms": 45000, "guardian_wait_bound_ms": 500}
+              "scope": scope, "audio": audio, "max_wall_ms": 45000, "guardian_wait_bound_ms": 500}
     memory.publish(root / "intent.json", result)
     before = DesktopApi().input_name()
     environment = {k: os.environ[k] for k in ("SystemRoot", "WINDIR") if k in os.environ}
@@ -83,11 +91,13 @@ def sample(java, classpath, root, name, heap, texture):
     temp = root / "temp"
     temp.mkdir()
     environment.update(TEMP=str(temp), TMP=str(temp))
+    if audio:
+        environment.update(ALSOFT_LOGLEVEL="3", ALSOFT_LOGFILE=str(root / "openal.log"))
     child = guard = None
     try:
         child = DesktopProcess([str(java), "@" + str(argfile)], root, environment, max_wall_ms=45000)
         boot = wait_report(root / "boot.json", child, child.deadline)
-        validate(boot, scope=scope, pid=child.pid, heap=heap, texture=texture, ready=False)
+        validate(boot, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio, ready=False)
         guard = AttachedJava(inspect_process(child.pid), deadline=child.deadline)
         armed = root / "armed.pending"
         with armed.open("xb") as stream:
@@ -96,7 +106,7 @@ def sample(java, classpath, root, name, heap, texture):
             os.fsync(stream.fileno())
         armed.rename(root / "armed")
         ready = wait_report(root / "ready.json", child, child.deadline)
-        validate(ready, scope=scope, pid=child.pid, heap=heap, texture=texture, ready=True)
+        validate(ready, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio, ready=True)
         result["fixture"] = ready
         result["memory_loaded"] = memory.process_memory(guard.process)
         require(result["memory_loaded"]["private_bytes"] >= heap * memory.MIB,
@@ -185,15 +195,15 @@ def run(java, classpath_file, output, names):
              Path(memory.__file__), Path(process_guard.__file__), Path(processes.__file__),
              Path(desktop_process.__file__), repository / "tests/fixtures/GuardianRenderFixture.java"]
     pins = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
-    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-hidden-gl-textures-heap/2",
+    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-hidden-gl-silent-al/3",
             "classification": "synthetic-workload-native-process", "minecraft": False,
             "model_calls": 0, "physical_input": False, "scoring_eligible": False,
             "source_sha256": pins, "profiles": profiles}
     output.mkdir()
     memory.publish(output / "plan.json", plan)
     results = []
-    for name, heap, texture in profiles:
-        result = sample(java, classpath, output / name, name, heap, texture)
+    for name, heap, texture, audio in profiles:
+        result = sample(java, classpath, output / name, name, heap, texture, audio)
         results.append(result)
         if result["status"] != "measured":
             break

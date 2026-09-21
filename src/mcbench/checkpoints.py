@@ -4,6 +4,8 @@ Clean-stop attestations are supplied by the private supervisor; authentic pack
 path coverage and actual restore semantics still require integration evidence.
 """
 
+import hashlib
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -20,6 +22,34 @@ class Checkpoints:
         with database.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, campaign TEXT, "
                        "epoch INTEGER, digest TEXT, ref TEXT, namespace TEXT)")
+
+    def _native_components(self, manifest, namespace):
+        db = self.database.connection
+        required = False
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='native_retention_policies'").fetchone():
+            required = db.execute("SELECT 1 FROM native_retention_policies WHERE campaign=?",
+                                  (manifest.campaign_id,)).fetchone() is not None
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
+            required |= db.execute("SELECT 1 FROM native_jobs WHERE campaign=? AND "
+                "json_extract(plan,'$.broker_policy') IS NOT NULL", (manifest.campaign_id,)).fetchone() is not None
+        # A native component remains typed even if its registration store is missing.
+        for agent in manifest.agents:
+            raw = self.cas.read(OPERATOR, namespace, agent.runtime_state, max_bytes=4 * 1024 * 1024)
+            try:
+                body = json.loads(raw)
+            except (ValueError, UnicodeError):
+                body = None
+            if isinstance(body, dict):
+                required |= body.get("schema") in {"strata/NativeState/2", "strata/NativeCheckpointState/1"}
+        if not required:
+            return None
+        require(db.execute("SELECT 1 FROM sqlite_master WHERE name='native_profile'").fetchone(),
+                "NATIVE_EXPORT_PROFILE")
+        from .native import NativeExec
+        from .native_checkpoint import NativeCheckpointStates
+        mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
+        require(mode is not None, "NATIVE_EXPORT_PROFILE")
+        return NativeCheckpointStates(NativeExec(self.database, self.cas, simulation=bool(mode[0])))
 
     def commit(self, config: CampaignConfig, manifest: CheckpointManifest, namespace: str):
         require(not manifest.is_example and not config.is_example, "EXAMPLE_NOT_EXECUTABLE")
@@ -73,11 +103,19 @@ class Checkpoints:
             for field in ("workspace", "skills", "keymap", "backend_state", "runtime_state"):
                 if ref := getattr(agent, field):
                     self.cas.verify(OPERATOR, namespace, ref)
+        native = self._native_components(manifest, namespace)
+        if native:
+            for agent in manifest.agents:
+                native.validate_snapshot(manifest, agent, namespace)
+                require(native.load(agent.runtime_state)[1] == config, "CHECKPOINT_IDENTITY")
         body = manifest.model_dump() | {"status": "committed"}
         body["manifest_digest"] = digest({k: v for k, v in body.items() if k != "manifest_digest"})
         committed = CheckpointManifest.model_validate(body)
         ref = self.cas.put(OPERATOR, namespace, "operator", canonical(body), quota_bytes=2**53 - 1)
         with self.database.transaction() as db:
+            if native:
+                for agent in manifest.agents:
+                    native.validate_snapshot(manifest, agent, namespace)
             prior = db.execute("SELECT * FROM checkpoints WHERE id=?", (manifest.checkpoint_id,)).fetchone()
             if prior:
                 require(prior["digest"] == committed.manifest_digest, "IDEMPOTENCY_CONFLICT")
@@ -99,7 +137,13 @@ class Checkpoints:
         body = self.cas.json(OPERATOR, row["namespace"], row["ref"])
         require(digest({k: v for k, v in body.items() if k != "manifest_digest"}) == row["digest"] ==
                 body["manifest_digest"], "CORRUPT_EVIDENCE")
-        return CheckpointManifest.model_validate(body), row["namespace"]
+        manifest = CheckpointManifest.model_validate(body)
+        native = self._native_components(manifest, row["namespace"])
+        if native:
+            with self.database.transaction():
+                for agent in manifest.agents:
+                    native.validate_snapshot(manifest, agent, row["namespace"])
+        return manifest, row["namespace"]
 
     def materialize_world(self, checkpoint_id, target: Path):
         manifest, namespace = self.load(checkpoint_id)
@@ -132,3 +176,77 @@ class Checkpoints:
         return {"checkpoint": manifest.model_dump(), "new_epoch": current_epoch,
                 "label": "development-lost-interval", "cost_rollback": False,
                 "requires_fresh_grants": True, "requires_restore_assertions": True}
+
+    def materialize_set(self, checkpoint_id, config: CampaignConfig, current_epoch: int, target: Path):
+        """Stage every recorded member in one fresh private operator directory.
+
+        Only each agent's workspace is a candidate for later broker projection.
+        The set grants no process launch, capabilities, or restore assertions.
+        """
+        self.recovery_plan(checkpoint_id, config, current_epoch)
+        manifest, namespace = self.load(checkpoint_id)
+        native = self._native_components(manifest, namespace)
+        require(native is not None, "NATIVE_CHECKPOINT_REQUIRED")
+        require(all(native.load(a.runtime_state)[1] == config for a in manifest.agents), "CHECKPOINT_IDENTITY")
+        campaign = self.database.connection.execute("SELECT epoch FROM campaigns WHERE id=?", (config.campaign_id,)).fetchone()
+        require(campaign is not None and current_epoch >= campaign[0], "STALE_EPOCH")
+        target = target.absolute()
+        reject_links(target)
+        require(not target.exists(), "TARGET_EXISTS")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        members = {}
+        with tempfile.TemporaryDirectory(dir=target.parent, prefix=".restore-set-") as temporary:
+            staging = Path(temporary) / "instance"
+            staging.mkdir()
+            self.materialize_world(checkpoint_id, staging / "server")
+            copied = {"server/" + k: v for k, v in
+                      self.cas.json(OPERATOR, namespace, manifest.world_and_external_state)["files"].items()}
+            for agent in manifest.agents:
+                state = native.validate_snapshot(manifest, agent, namespace)
+                files = {}
+                for ref in (state.workspace, state.skills):
+                    files |= self.cas.json(OPERATOR, "operator", ref)["files"]
+                # IDs allow punctuation that is not a safe Windows path. Use an
+                # identity digest, never an agent-supplied directory component.
+                directory = "agents/" + digest({"agent_id": agent.agent_id})
+                workspace = staging.joinpath(*directory.split("/")) / "workspace"
+                workspace.mkdir(parents=True)
+                for path, ref in files.items():
+                    file = workspace.joinpath(*safe_relative(path).parts)
+                    file.parent.mkdir(parents=True, exist_ok=True)
+                    self.cas.copy_to(OPERATOR, "operator", ref, file)
+                    copied[directory + "/workspace/" + path] = ref
+                private = workspace.parent / "private"
+                private.mkdir()
+                for field in ("backend_state", "keymap", "runtime_state"):
+                    if ref := getattr(agent, field):
+                        self.cas.copy_to(OPERATOR, namespace, ref, private / (field + ".json"))
+                        copied[directory + "/private/" + field + ".json"] = ref
+                members[agent.agent_id] = {"directory": directory,
+                                          "files_digest": digest(files), "runtime_state": agent.runtime_state,
+                                          "helper_state_imported": False, "skills_activated": False}
+            # Revalidate after copy. No mixed/changed source can publish a set.
+            require(self.load(checkpoint_id)[0] == manifest, "MIXED_SNAPSHOT")
+            actual = {p.relative_to(staging).as_posix(): p for p in staging.rglob("*") if p.is_file()}
+            require(set(actual) == set(copied), "MIXED_SNAPSHOT")
+            for path, file in actual.items():
+                reject_links(file)
+                with file.open("rb") as stream:
+                    require(hashlib.file_digest(stream, "sha256").hexdigest() == copied[path][11:], "CORRUPT_EVIDENCE")
+            result = {"schema": "strata/RestoredCheckpoint/1", "checkpoint_id": checkpoint_id,
+                "is_example": native.runtime.simulation,
+                "manifest_digest": manifest.manifest_digest, "new_epoch": current_epoch,
+                "members": members, "cost_rollback": False, "dispatch_authorized": False,
+                "requires_fresh_grants": True, "requires_restore_assertions": True}
+            with (staging / "restore.json").open("xb") as stream:
+                stream.write(canonical(result))
+                stream.flush()
+                os.fsync(stream.fileno())
+            with self.database.transaction() as db:
+                campaign = db.execute("SELECT epoch,config FROM campaigns WHERE id=?", (config.campaign_id,)).fetchone()
+                require(campaign is not None and current_epoch >= campaign["epoch"], "STALE_EPOCH")
+                require(json.loads(campaign["config"]) == config.model_dump(), "CHECKPOINT_IDENTITY")
+                for agent in manifest.agents:
+                    native.validate_snapshot(manifest, agent, namespace)
+                os.rename(staging, target)
+        return result

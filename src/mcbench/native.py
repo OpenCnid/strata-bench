@@ -642,7 +642,8 @@ class NativeExec:
         files are present; production qualification includes the restored workspace.
         """
         state = self.cas.json(Principal("operator", "operator"), self.namespace, state_ref)
-        require(state.get("schema") != "strata/NativeState/2", "NATIVE_COMPLETE_RESTORE_REQUIRED")
+        require(state.get("schema") not in {"strata/NativeState/2", "strata/NativeCheckpointState/1"},
+                "NATIVE_COMPLETE_RESTORE_REQUIRED")
         require(plan.broker_policy is None, "NATIVE_STATE_LEGACY")
         require(state.get("schema") == "strata/NativeState/1" and
                 state.get("is_example") == self.simulation and state.get("resume_mode") ==

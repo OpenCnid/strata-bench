@@ -1,6 +1,7 @@
 """Source-bound native component exports, not game checkpoints or restore permits."""
 
 import json
+from contextlib import nullcontext
 from typing import Literal
 
 from pydantic import Field
@@ -273,7 +274,9 @@ class NativeExports:
         return ref
 
     def load(self, ref):
-        with self.db.transaction() as db:
+        # Checkpoint commit may already hold the writer transaction so that the
+        # source and the complete-set publication share one validation boundary.
+        with (nullcontext(self.db.connection) if self.db.connection.in_transaction else self.db.transaction()) as db:
             state = NativeStateV2.model_validate(private_json(db, self.cas, ref))
             require(state.is_example is self.runtime.simulation, "NATIVE_EXPORT_PROFILE")
             stored = db.execute("SELECT * FROM native_exports WHERE job=?", (state.job_id,)).fetchone()

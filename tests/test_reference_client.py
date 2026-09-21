@@ -5,6 +5,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 
 from pydantic import ValidationError
 import pytest
@@ -229,3 +231,45 @@ def test_registration_rechecks_declared_bytes_under_held_handles(
             assert validate_client_binding(binding, setup, launch)["registration_consistent"]
             with pytest.raises(PermissionError):
                 path.write_bytes(b'{"changed":true}')
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows reference launcher")
+def test_module_cli_validates_binding_before_missing_bootstrap_without_dispatch(
+    registration, tmp_path
+):
+    store, binding, setup, launch = registration
+    store.seal(setup, tmp_path / "sealed-cli")
+    arguments = []
+    for name, value in (("plan", launch), ("client-binding", binding)):
+        path = tmp_path / (name + ".json")
+        path.write_text(json.dumps(value), encoding="utf-8")
+        arguments.extend(["--" + name, str(path)])
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "strata_evaluator.reference_launch",
+            "--database",
+            str(store.database.path),
+            *arguments,
+        ],
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join([str(root / "src"), str(root / "evaluator/src")]),
+        },
+        capture_output=True,
+        text=True,
+        timeout=15,
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
+    # Deliberately omit the Python/bootstrap pins, making dispatch impossible.
+    # The real -m entrypoint must cross its module-class boundary first.
+    assert result.returncode != 0 and "REFERENCE_BOOTSTRAP_UNPINNED" in result.stderr, result.stderr
+    assert not Path(launch["evidence_directory"]).exists()
+    assert (
+        store.database.connection.execute(
+            "SELECT COUNT(*) FROM craft_reference_launches"
+        ).fetchone()[0]
+        == 0
+    )

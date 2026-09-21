@@ -286,6 +286,12 @@ The [first actual client reference](../verification/2026-09-20-reference-client-
 failed before actions because of stale endpoint identity; its consumed grant
 cannot be reused. A new reference must have fresh identity/lineage and a clean
 registration, preserving current inventory and declared setup interventions.
+The [corrected-body trial](../verification/2026-09-20-native-craft-reference.md)
+also remains uncertain: startup left insufficient full worker exposure and an
+outer abort interrupted cleanup reports. Do not use that unclean world as a
+checkpoint or rerun its grant. Implement typed outer failure/abort coordination
+and verify the bounded cleanup path before another game. Keep the hard server,
+client and guardian limits and record missing reports as missing.
 
 Wait for the atomically published `participant-ready.json` in the private launch
 evidence directory. Before dispatching the client, validate

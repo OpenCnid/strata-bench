@@ -162,7 +162,9 @@ class ReferenceLauncher:
                 require(client_binding is not None, "REFERENCE_CLIENT_BINDING_REQUIRED")
                 from .reference_client import ClientReferenceBinding, validate_client_binding
                 binding = ClientReferenceBinding.model_validate(client_binding)
-                validate_client_binding(binding, setup, plan)
+                # The -m entrypoint owns __main__ model classes; pass wire data
+                # across the imported client validator boundary, not class identity.
+                validate_client_binding(binding, setup, plan.model_dump(by_alias=True))
             else:
                 require(client_binding is None, "REFERENCE_CLIENT_PROFILE")
         else:
@@ -235,7 +237,7 @@ class ReferenceLauncher:
             if binding is not None:
                 # Revalidate the declared hashes while the exact module/declaration
                 # handles deny writes; a preflight-to-lease change is not accepted.
-                validate_client_binding(binding, setup, plan)
+                validate_client_binding(binding, setup, plan.model_dump(by_alias=True))
             environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "TEMP", "TMP") if key in os.environ}
             environment.update(JAVA_HOME=str(Path(plan.executable.path).parent.parent),
                 PATH=str(Path(plan.executable.path).parent) + os.pathsep + str(Path(os.environ["SystemRoot"]) / "System32"),

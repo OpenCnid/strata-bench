@@ -36,6 +36,27 @@ def bind(ingress, value):
     service.bind_request("job", value[1].operation_id, value[0].request_digest, headers, "/v1/responses")
 
 
+def test_historical_capture_check_never_reopens_revoked_admission(admitted, ingress):
+    from mcbench.native_ingress import require_ingress_capture, require_ingress_request
+    _, gate, _, plan, request, prepare, _ = admitted
+    value = request("one")
+    bind(ingress, value)
+    ingress[0].revoke("job")
+    gate.db.connection.execute("UPDATE native_jobs SET state='FINALIZED'")
+    require_ingress_capture(gate.db.connection, plan, "one", value[0].request_digest)
+    for action in (lambda:require_ingress_request(gate.db.connection, plan, "one", value[0].request_digest),
+                   lambda:prepare(value)):
+        with pytest.raises(Fault, match="INGRESS_REVOKED|RUNTIME_NOT_RUNNING"):
+            action()
+    with pytest.raises(Fault, match="INGRESS_REQUEST_NOT_AUTHENTICATED"):
+        require_ingress_capture(gate.db.connection, plan, "one", "b" * 64)
+    with pytest.raises(Fault, match="INGRESS_REQUEST_NOT_AUTHENTICATED"):
+        require_ingress_capture(gate.db.connection, plan, "other", value[0].request_digest)
+    gate.db.connection.execute("UPDATE native_ingress SET body='{}'")
+    with pytest.raises(Fault, match="INGRESS_PROFILE_CHANGED"):
+        require_ingress_capture(gate.db.connection, plan, "one", value[0].request_digest)
+
+
 def test_authenticated_request_required_before_budget_and_rechecked_at_dispatch(admitted, ingress):
     _, gate, _, _, request, prepare, _ = admitted
     value = request("one")

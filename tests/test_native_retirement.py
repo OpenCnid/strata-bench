@@ -39,7 +39,7 @@ def settle(admitted, value, response=None, *, sse=False):
 
 
 def scenario(admitted, *, status=None, stale=False, pending=False, descendant=False,
-             issue_change=None, observation_change=None, sse=False, reused=False):
+             issue_change=None, observation_change=None, sse=False, reused=False, before_revoke=None):
     admission, gate, broker, plan, request, _, put = admitted
     plan.helper_limit = 2 if descendant else 1
     gate.db.connection.execute("UPDATE native_jobs SET plan=?", (plan.model_dump_json(),))
@@ -64,6 +64,8 @@ def scenario(admitted, *, status=None, stale=False, pending=False, descendant=Fa
         grand = (a, r, raw, envelope)
         begin(admitted, grand)
         settle(admitted, grand)
+    if before_revoke:
+        before_revoke()
     if not stale:
         admission.revoke("job", "child")
     issued = request("status-issue")

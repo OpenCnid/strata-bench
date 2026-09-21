@@ -66,7 +66,7 @@ def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
-        deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False):
+        deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -100,13 +100,19 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not retirement_mode or bootstrap_mode and tool_projections is not None and
             no_patch_catalog is not None and not any((canary_mode, state_mode, inherited_helper, gateway_mode)),
             "RETIREMENT_PINNED_BOOTSTRAP_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode,
+    require(not interrupt_mode or bootstrap_mode and ingress_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, inherited_helper,
+                                                      gateway_mode, retirement_mode)),
+            "INTERRUPT_PINNED_BOOTSTRAP_REQUIRED")
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
+    from native_interrupt_probe import InterruptProbe
     state_probe = StateCanaries() if state_mode else None
     retirement_probe = RetirementProbe() if retirement_mode else None
-    request_limit = 20 if retirement_mode else 12
+    interrupt_probe = InterruptProbe() if interrupt_mode else None
+    request_limit = 20 if retirement_mode or interrupt_mode else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
@@ -127,6 +133,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
             if state_probe:
                 state_probe.observe(agent, body)
+            if interrupt_probe:
+                interrupt_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
@@ -214,6 +222,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item, *extra_items = state_probe.next(agent, step, operation)
             elif retirement_probe:
                 item = retirement_probe.next(self, agent, step, operation)
+            elif interrupt_probe:
+                item = interrupt_probe.next(self, agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
                     2 + int(canary_mode) + int(no_patch_catalog is not None)):
@@ -280,7 +290,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         category="development")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
-                        helper_requests=5 if state_mode else 4)
+                        helper_requests=8 if interrupt_mode else 5 if state_mode else 4)
     gateway = None
     if gateway_mode:
         from mcbench.accounting import EstimateBasis, FiniteExposure
@@ -399,7 +409,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "helper_limit": 1 if retirement_mode else plan.helper_limit,
+            "helper_limit": 1 if retirement_mode or interrupt_mode else plan.helper_limit,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
@@ -673,6 +683,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     if state_probe:
         result["state_canaries"] = state_probe.report()
         result["checks"].update(result["state_canaries"]["checks"])
+    if interrupt_probe:
+        result["interruption"] = interrupt_probe.report(provider, db)
+        result["checks"].update(result["interruption"]["checks"])
+        result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}

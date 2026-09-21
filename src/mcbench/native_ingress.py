@@ -139,6 +139,20 @@ def active_binding(db, job, *, now):
 
 def require_ingress_request(db, plan, operation, request_digest):
     _, binding = active_binding(db, plan.job_id, now=time.time())
+    _request_bound(db, plan, operation, request_digest, binding)
+
+
+def require_ingress_capture(db, plan, operation, request_digest):
+    """Historical source authentication only; never admits or revives a job."""
+    require(db.execute("SELECT 1 FROM sqlite_master WHERE name='native_ingress'").fetchone(),
+            "INGRESS_NOT_REGISTERED")
+    binding = provider_binding(plan)
+    row = db.execute("SELECT body FROM native_ingress WHERE job=?", (plan.job_id,)).fetchone()
+    require(row is not None and row[0] == canonical(binding).decode(), "INGRESS_PROFILE_CHANGED")
+    _request_bound(db, plan, operation, request_digest, binding)
+
+
+def _request_bound(db, plan, operation, request_digest, binding):
     row = db.execute("SELECT * FROM native_ingress_requests WHERE operation=?", (operation,)).fetchone()
     require(row is not None and row["job"] == plan.job_id and row["profile"] == plan.profile_digest()
             and row["request_digest"] == request_digest and row["authority_digest"] == digest(binding),

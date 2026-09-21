@@ -194,6 +194,10 @@ def retire_participant(admission, job, thread, proof_ref):
         require(db.execute("SELECT 1 FROM native_request_admissions a JOIN inference_attempts i "
             "ON i.operation=a.operation WHERE a.job=? AND a.thread=? AND i.state!='SETTLED'",
             (job, thread)).fetchone() is None, "METERING_UNKNOWN")
+        from .broker_lifecycle import require_drained
+        require_drained(db, job, thread)
+        from .native_cell_lifecycle import require_native_cells_drained
+        cell_drain = require_native_cells_drained(db, admission.cas, plan, thread)
         close_helper_envelope(admission.budgets, db, plan, row, proof_ref)
         db.execute("UPDATE native_participants SET state='CLOSED' WHERE job=? AND thread=?", (job, thread))
         db.execute("UPDATE native_participant_retirements SET proof_ref=? WHERE job=? AND thread=?",
@@ -201,4 +205,6 @@ def retire_participant(admission, job, thread, proof_ref):
         admission.db.event(db, "native.participant_retired", {"policy": POLICY, "job": job,
             "thread": thread, "envelope": row["envelope"], "native_status": terminal,
             "proof_ref": proof_ref, "fence_ordinal": fence["fence_ordinal"]})
+        admission.db.event(db, "native.participant_cells_drained", {"job": job, "thread": thread,
+            "proof_ref": proof_ref, **cell_drain})
         return dict(row) | {"state": "CLOSED"}

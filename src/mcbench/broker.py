@@ -15,6 +15,7 @@ from pydantic import Field
 
 from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict, UInt
 from .budgets import Budgets
+from . import broker_lifecycle
 from .runtime import CODEX_VERSION
 from .storage import Fault, Principal, canonical, digest, require, safe_relative
 
@@ -77,6 +78,7 @@ class NativeBroker:
             db.execute("CREATE TABLE IF NOT EXISTS broker_game_calls (runtime TEXT, thread TEXT, "
                 "request TEXT, fingerprint TEXT, state TEXT, result TEXT, "
                 "PRIMARY KEY(runtime,thread,request))")
+            broker_lifecycle.install(db)
 
     def admit(self, grant: BrokerGrant):
         """Operator enrollment, after job/budget admission; never model-callable."""
@@ -226,10 +228,37 @@ class NativeBroker:
         require(name in ARGUMENTS, "BROKER_TOOL_FORBIDDEN")
         value = ARGUMENTS[name].model_validate(arguments)
         # Authenticate before resolving any artifact name or forwarding game data.
+        start = time.monotonic_ns()
         with self.db.transaction() as db:
             g = self._authenticate(db, meta)
-            self.db.event(db, "broker.call", {"runtime": self.runtime_id, "thread": g.thread_id,
-                "tool": name, "call_id": meta["callId"], "arguments_digest": digest(arguments)})
+            event = self.db.event(db, "broker.call", {"runtime": self.runtime_id, "thread": g.thread_id,
+                "tool": name, "call_id": meta["callId"], "arguments_digest": digest(arguments),
+                "lifecycle_policy": broker_lifecycle.POLICY})
+            broker_lifecycle.started(db, event)
+        try:
+            result = self._execute(name, value, g, game_transport)
+        except Exception as error:
+            # Transport ambiguity remains unknown even if its caller has returned.
+            known = isinstance(error, Fault) and error.code != "BROKER_GAME_OUTCOME_UNKNOWN"
+            with self.db.transaction() as db:
+                broker_lifecycle.finished(self.db, db, event, "REJECTED" if known else "UNKNOWN",
+                    time.monotonic_ns() - start, fault=error.code if isinstance(error, Fault) else "BROKER_CALL_UNKNOWN")
+            raise
+        # Linearize output publication against subtree revocation. No successful
+        # read/result may pass the fence merely because it began before revocation.
+        denied = None
+        with self.db.transaction() as db:
+            try:
+                self._grant(db, g.thread_id)
+            except Fault as error:
+                denied = error
+            broker_lifecycle.finished(self.db, db, event, "REJECTED" if denied else "RETURNED",
+                time.monotonic_ns() - start, result=result, fault=denied.code if denied else None)
+        if denied:
+            raise denied
+        return result
+
+    def _execute(self, name, value, g, game_transport):
         if name == "artifact_list":
             return {"files": [dict(r) for r in self.db.connection.execute(
                 "SELECT path,ref,immutable FROM broker_files WHERE namespace=? ORDER BY path LIMIT 1024",

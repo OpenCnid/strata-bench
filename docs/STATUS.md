@@ -1,5 +1,7 @@
 # Strata current status
 
+Latest M0 shutdown investigation: The [bounded native heap diagnostic](verification/2026-09-21-guardian-native-memory.md) implements an owned JVM fixture with finite distinct loads, desktop headroom checks, durable intents and failure-preserving cleanup. Eleven focused checks pass. Actual 256/1,536/3,072-MiB cases prove complete stop in 15.8761/63.9651/131.2826 ms under the unchanged 500-ms bound; all outer histories are 4/4 terminal, no watchdog/cleanup faults, source pins unchanged. This synthetic workload does not reproduce or resolve the authentic failure. Next discriminate native graphics/resource teardown using the existing separate-desktop fixture before another changed game profile. Original model uncertainty and all historical failures remain.
+
 Updated September 21, 2026. Operator-only. This is a navigation summary;
 [MILESTONES.md](../MILESTONES.md) is the authoritative progress ledger and
 [SPEC.md](../SPEC.md) defines acceptance. Read the

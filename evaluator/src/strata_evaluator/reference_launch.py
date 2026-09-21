@@ -35,6 +35,12 @@ E9E_BOOTSTRAP_PINS = {
     "serverstarter-2.4.0.jar": "70bec2771fd000209a8778b8457f231bf8e6244bb3d8dba6bb739c3662e099b4",
     "server-setup-config.yaml": "4759535f6bb6559dc3486a7a51ff1fbe270880f054877caba395e19c8af4d92a",
 }
+# The online protected profile starts the already installed official pack.
+# Pinning this reviewed lock prevents entering ServerStarter's installation
+# branch (which can download/apply overrides) during a reference launch.
+E9E_INSTALLED_STATE_PINS = {
+    "serverstarter.lock": "a4906ffd312d6edba112a7456a90bda4a1de3d54feded0d20f89e204d223b7db",
+}
 
 
 class ReferenceLaunchBase(Strict):
@@ -75,9 +81,14 @@ class ReferenceLaunchPlanV4(ReferenceLaunchPlanV3):
     gate_helper: PrivateFile
 
 
+class ReferenceLaunchPlanV5(ReferenceLaunchPlanV4):
+    schema_: Literal["strata/PrivateReferenceLaunch/5"] = Field(alias="schema")
+    network_policy: Literal["native-online-private-server/1"]
+
+
 def parse_launch_plan(value):
     return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3 |
-                       ReferenceLaunchPlanV4).validate_python(value)
+                       ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5).validate_python(value)
 
 
 def same_path(a, b):
@@ -159,11 +170,14 @@ class ReferenceLauncher:
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
         plan = parse_launch_plan(value)
         protected = isinstance(plan, ReferenceLaunchPlanV4)
+        online = isinstance(plan, ReferenceLaunchPlanV5)
         require(protected == (custody is not None), "REFERENCE_CUSTODY_REQUIRED")
         if protected:
             custody.check()
-            require(plan.mode == "synthetic-fixture" and plan.max_wall_s + plan.graceful_stop_s + 2 <= 30,
+            require(online == (custody.plan.schema_ == "strata/PrivateWriterPreparationPlan/2"),
                     "REFERENCE_PROTECTED_PROFILE_UNQUALIFIED")
+            require(online or (plan.mode == "synthetic-fixture"
+                    and plan.max_wall_s + plan.graceful_stop_s + 2 <= 30), "REFERENCE_PROTECTED_PROFILE_UNQUALIFIED")
             require(plan.custody_id == custody.plan.id and not custody.launched
                     and same_path(plan.executable.path, custody.plan.java.path), "REFERENCE_CUSTODY_SCOPE")
         row, setup, authority, authority_path = self.store._load(plan.instance_id)
@@ -205,6 +219,10 @@ class ReferenceLauncher:
             by_path = {str(Path(pin.path).resolve()).casefold(): pin for pin in plan.immutable_files}
             require(all(by_path[str((game / name).resolve()).casefold()].sha256 == expected
                         for name, expected in E9E_BOOTSTRAP_PINS.items()), "REFERENCE_BOOTSTRAP_UNREVIEWED")
+            if online:
+                require(all(str((game / name).resolve()).casefold() in by_path
+                    and by_path[str((game / name).resolve()).casefold()].sha256 == expected
+                    for name, expected in E9E_INSTALLED_STATE_PINS.items()), "REFERENCE_INSTALLED_STATE_UNREVIEWED")
             roots = {str(Path(path).resolve()).casefold() for path in plan.immutable_trees}
             require(all(str(path.resolve()).casefold() in roots for path in (
                 Path(plan.executable.path).parent.parent, game / "mods", game / "libraries",
@@ -253,7 +271,8 @@ class ReferenceLauncher:
                 custody.check()
                 broker = TelemetryPipeBroker(self.database, authority, spool, plan, setup,
                     writer_sid=custody.plan.writer_sid, group_sid=custody.tree.group_sid,
-                    scope_sid=custody.tree.scope_sid, deadline=custody.deadline,
+                    scope_sid=custody.tree.scope_sid,
+                    deadline=min(custody.deadline, started + plan.max_wall_s + plan.graceful_stop_s),
                     settings={"schema": "strata/ForgeTelemetryBrokerSettings/1", "campaign_id": setup.campaign_id,
                         "epoch": setup.epoch, "max_bytes": 8388608, "max_events": 2000,
                         "recipe_ids": list(setup.recipe_digests), "config_queries": []})
@@ -294,11 +313,15 @@ class ReferenceLauncher:
                 import hashlib
                 pin = {"path": str(config_path), "bytes": config_path.stat().st_size,
                        "sha256": hashlib.sha256(config_path.read_bytes()).hexdigest()}
-                native = custody.launch({"schema": "strata/PrivateWriterLaunch/1", "mode": "synthetic-fixture",
+                writer_plan = {"schema": "strata/PrivateWriterLaunch/2" if online else "strata/PrivateWriterLaunch/1",
+                    "mode": plan.mode,
                     "helper_class": plan.gate_helper.model_dump(),
                     "immutable_files": [*[item.model_dump() for item in plan.immutable_files], pin],
                     "immutable_trees": plan.immutable_trees, "arguments": arguments,
-                    "max_wall_s": max(15, plan.max_wall_s + plan.graceful_stop_s + 2)}, broker,
+                    "max_wall_s": max(15, plan.max_wall_s + plan.graceful_stop_s + (0 if online else 2))}
+                if online:
+                    writer_plan["network_policy"] = plan.network_policy
+                native = custody.launch(writer_plan, broker,
                     ready=ready, evidence_directory=evidence / "native")
                 proc = native.process
                 logs = {name: native.evidence / ("server." + name) for name in logs}

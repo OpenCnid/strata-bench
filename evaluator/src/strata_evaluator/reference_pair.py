@@ -11,7 +11,7 @@ import threading
 import time
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
@@ -21,7 +21,7 @@ from mcbench.storage import Database, Fault, canonical, digest, reject_links, re
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path
 from .reference_abort import AbortSignal, failure_record, request_abort
-from .reference_launch import ReferenceLaunchPlanV3, parse_launch_plan
+from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, parse_launch_plan
 from .reference_participant import ParticipantReady, publish, REPORT_LIMIT
 from .telemetry_auth import private_read
 
@@ -50,6 +50,31 @@ class ReferencePairPlan(Strict):
     evidence_directory: str
     client_window_ms: int = Field(ge=1000, le=420000)
     finalize_ms: int = Field(ge=1000, le=15000)
+
+
+class ReferencePairPlanV2(ReferencePairPlan):
+    schema_: Literal["strata/PrivateReferencePair/2"] = Field(alias="schema")
+    protected_file: PrivateFile
+
+
+def parse_pair_plan(value):
+    return TypeAdapter(ReferencePairPlan | ReferencePairPlanV2).validate_python(value)
+
+
+def protected_result_matches(database, instance, protected, result, server_result):
+    """A child exit/report cannot substitute for the durable closed lifetime."""
+    row = database.connection.execute(
+        "SELECT state,plan,body FROM protected_references WHERE instance=?", (instance,)
+    ).fetchone()
+    preparation = result.get("preparation", {})
+    custody = preparation.get("custody", {})
+    return (row is not None and row["state"] == "STOPPED"
+        and strict_json(row["plan"]) == protected.model_dump(by_alias=True)
+        and strict_json(row["body"]) == result and result.get("status") == "stopped"
+        and result.get("plan_digest") == digest(protected.model_dump(by_alias=True))
+        and result.get("launch") == server_result
+        and preparation.get("status") == "stopped_reference"
+        and custody.get("live") is False and custody.get("status") == "stopped")
 
 
 class OwnedCli:
@@ -227,13 +252,22 @@ class ReferencePair:
 
     def run(self, value):
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
-        plan = ReferencePairPlan.model_validate(value)
+        plan = parse_pair_plan(value)
         launch = parse_launch_plan(read_pinned(plan.launch_file, 8 * 1024**2))
-        # A protected launch needs live preparation custody in its owning
-        # process. The legacy pair entrypoint cannot reconstruct that from JSON.
-        require(type(launch) is ReferenceLaunchPlanV3, "REFERENCE_PAIR_PROFILE")
-        row, setup, _, authority = self.store._load(launch.instance_id)
-        require(row["digest"] == launch.setup_digest, "REFERENCE_SETUP_CHANGED")
+        protected = None
+        if plan.schema_ == "strata/PrivateReferencePair/2":
+            from .protected_reference import parse_protected_plan
+            protected = parse_protected_plan(read_pinned(plan.protected_file, 32 * 1024**2))
+            require(protected.schema_ == "strata/ProtectedReferencePlan/2"
+                    and type(launch) is ReferenceLaunchPlanV5, "REFERENCE_PAIR_PROFILE")
+            require(protected.launch.model_dump(by_alias=True) == launch.model_dump(by_alias=True),
+                    "REFERENCE_PAIR_PROTECTED_BINDING")
+            setup = protected.setup
+        else:
+            # A legacy pair cannot reconstruct live custody from a launch JSON.
+            require(type(launch) is ReferenceLaunchPlanV3, "REFERENCE_PAIR_PROFILE")
+            row, setup, _, authority = self.store._load(launch.instance_id)
+            require(row["digest"] == launch.setup_digest, "REFERENCE_SETUP_CHANGED")
         evidence = private_path(plan.evidence_directory)
         server_evidence = private_path(launch.evidence_directory)
         report = private_path(launch.participant.report_path)
@@ -244,7 +278,13 @@ class ReferencePair:
             and not report.exists(),
             "REFERENCE_PAIR_PATH",
         )
-        roots = [evidence, server_evidence, private_path(setup.game_directory), authority.parent]
+        if protected:
+            protected_evidence = private_path(protected.evidence_directory)
+            workspace = private_path(protected.preparation.workspace_directory)
+            require(not protected_evidence.exists() and not workspace.exists(), "REFERENCE_PAIR_PATH")
+            roots = [evidence, protected_evidence, workspace]
+        else:
+            roots = [evidence, server_evidence, private_path(setup.game_directory), authority.parent]
         require(
             all(
                 not a.is_relative_to(b) and not b.is_relative_to(a)
@@ -264,14 +304,22 @@ class ReferencePair:
         )
         private_path(plan.client_driver.path)
         pins = [plan.launch_file, plan.client_driver, plan.python, plan.bootstrap, *plan.inputs]
+        if protected:
+            prep = protected.preparation
+            pins.extend([plan.protected_file, prep.codex, prep.java, prep.helper_class,
+                         protected.launch.gate_helper, *prep.sources.values()])
+        binding = None
         if launch.mode == "e9e-serverstarter":
-            from .reference_client import ClientReferenceBinding, validate_client_binding
+            from .reference_client import ClientReferenceBinding, validate_client_binding, validate_client_scope
 
             require(plan.client_binding is not None, "REFERENCE_CLIENT_BINDING_REQUIRED")
             binding = ClientReferenceBinding.model_validate(
                 read_pinned(plan.client_binding, 1024**2)
             )
-            validate_client_binding(binding, setup, launch.model_dump(by_alias=True))
+            # Future prepared module bytes do not exist yet. The child validates
+            # them under custody before server dispatch; we repeat before client dispatch.
+            validate = validate_client_scope if protected else validate_client_binding
+            validate(binding, setup, launch.model_dump(by_alias=True))
             require(
                 plan.client_window_ms == binding.client_wall_ms + binding.terminal_reserve_ms,
                 "REFERENCE_PAIR_EXPOSURE",
@@ -292,12 +340,17 @@ class ReferencePair:
             )
             inventory[key] = pin.model_dump()
         # At least the code providing pair/abort/launch behavior must be declared.
-        for name in (
+        required_sources = [
             "reference_pair.py",
             "reference_abort.py",
             "reference_launch.py",
             "reference_participant.py",
-        ):
+        ]
+        if protected:
+            required_sources += ["protected_reference.py", "writer_preparation.py", "writer_custody.py",
+                "windows_writer.py", "telemetry_pipe.py", "private_pipe.py", "craft_reference.py",
+                "telemetry_auth.py", "reference_client.py"]
+        for name in required_sources:
             require(
                 str(Path(__file__).with_name(name).resolve()) in inventory,
                 "REFERENCE_PAIR_SOURCE_UNPINNED",
@@ -315,6 +368,9 @@ class ReferencePair:
             "gameplay_or_inference_admission": False,
             "shared_desktop_input_verified": False,
         }
+        if protected:
+            body["protected_plan_digest"] = digest(protected.model_dump(by_alias=True))
+            body["network_policy"] = protected.launch.network_policy
         lease = FileLease(
             {
                 "schema": "strata/LaunchFileInventory/1",
@@ -390,11 +446,11 @@ class ReferencePair:
 
             arguments = [
                 "-m",
-                "strata_evaluator.reference_launch",
+                "strata_evaluator.protected_reference" if protected else "strata_evaluator.reference_launch",
                 "--database",
                 str(self.database.path),
                 "--plan",
-                plan.launch_file.path,
+                plan.protected_file.path if protected else plan.launch_file.path,
             ]
             if plan.client_binding:
                 arguments += ["--client-binding", plan.client_binding.path]
@@ -402,7 +458,8 @@ class ReferencePair:
             server = start(
                 "server",
                 arguments,
-                started + launch.max_wall_s + launch.graceful_stop_s + plan.finalize_ms / 1000,
+                started + (protected.preparation.max_wall_s if protected else
+                           launch.max_wall_s + launch.graceful_stop_s) + plan.finalize_ms / 1000,
             )
             while True:
                 try:
@@ -458,6 +515,8 @@ class ReferencePair:
                                 and not (server_evidence / "result.json").exists(),
                                 "REFERENCE_PAIR_SERVER_TERMINAL",
                             )
+                            if binding is not None:
+                                validate_client_binding(binding, setup, launch.model_dump(by_alias=True))
                             body["readiness_digest"] = digest(ready.model_dump(by_alias=True))
                             publish(
                                 evidence / "client-intent.json",
@@ -548,10 +607,13 @@ class ReferencePair:
                         or state.get("exit_code") != 0
                     ):
                         body["status"] = "uncertain"
-                for name, path in (
+                reports = [
                     ("server_result", server_evidence / "result.json"),
                     ("client_result", report),
-                ):
+                ]
+                if protected:
+                    reports.append(("protected_result", protected_evidence / "result.json"))
+                for name, path in reports:
                     try:
                         raw = private_read(path, REPORT_LIMIT)
                         value = strict_json(raw)
@@ -594,6 +656,14 @@ class ReferencePair:
                                 "server_monitor", Fault("REFERENCE_PAIR_RESULT_UNRECORDED")
                             ).model_dump()
                         )
+                if protected and body["status"] == "stopped_pair":
+                    try:
+                        require(protected_result_matches(self.database, launch.instance_id, protected,
+                            body["protected_result"].get("value", {}), body["server_result"]["value"]),
+                            "REFERENCE_PAIR_PROTECTED_UNCLOSED")
+                    except Exception as error:
+                        body["status"] = "uncertain"
+                        body["failures"].append(failure_record("server_monitor", error).model_dump())
                 body["outer_abort"] = signal.result
                 body["elapsed_s"] = time.monotonic() - started
                 lease.close()

@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
@@ -13,9 +13,9 @@ from mcbench.storage import Database, canonical, digest, require
 from .craft_reference import (
     CraftReferencePlan, CraftReferencePlanV2, CraftReferenceStore, private_path, write_new,
 )
-from .reference_launch import ReferenceLaunchPlanV4, ReferenceLauncher, same_path
+from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLauncher, same_path
 from .telemetry_auth import private_read
-from .writer_preparation import WriterPreparationPlan, WriterPreparations
+from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, WriterPreparations
 
 
 class ProtectedReferencePlan(Strict):
@@ -39,9 +39,27 @@ class ProtectedReferencePlan(Strict):
         require(launch.custody_id == prep.id and launch.instance_id == setup.instance_id
                 and launch.setup_digest == digest(setup.model_dump(by_alias=True))
                 and same_path(launch.executable.path, prep.java.path), "PROTECTED_REFERENCE_BINDING")
-        require(prep.evidence_kind == setup.evidence_kind == "synthetic"
-                and launch.mode == "synthetic-fixture", "PROTECTED_REFERENCE_PROFILE_UNQUALIFIED")
+        if self.schema_ == "strata/ProtectedReferencePlan/1":
+            require(prep.evidence_kind == setup.evidence_kind == "synthetic"
+                    and launch.mode == "synthetic-fixture", "PROTECTED_REFERENCE_PROFILE_UNQUALIFIED")
+        else:
+            require(prep.evidence_kind == setup.evidence_kind
+                    and ((setup.evidence_kind == "synthetic" and launch.mode == "synthetic-fixture")
+                         or (setup.evidence_kind == "authentic_operator_reference" and launch.mode == "e9e-serverstarter")),
+                    "PROTECTED_REFERENCE_PROFILE_UNQUALIFIED")
+            require(prep.max_wall_s >= launch.max_wall_s + launch.graceful_stop_s + 60,
+                    "PROTECTED_REFERENCE_EXPOSURE")
         return self
+
+
+class ProtectedReferencePlanV2(ProtectedReferencePlan):
+    schema_: Literal["strata/ProtectedReferencePlan/2"] = Field(alias="schema")
+    preparation: WriterPreparationPlanV2
+    launch: ReferenceLaunchPlanV5
+
+
+def parse_protected_plan(value):
+    return TypeAdapter(ProtectedReferencePlan | ProtectedReferencePlanV2).validate_python(value)
 
 
 class ProtectedReferences:
@@ -59,15 +77,23 @@ class ProtectedReferences:
                        (state, canonical(body).decode(), instance))
             self.database.event(db, "private.protected_reference", {"instance": instance, "state": state, **body})
 
-    def run(self, value):
-        plan = ProtectedReferencePlan.model_validate(value)
+    def run(self, value, *, client_binding=None):
+        plan = parse_protected_plan(value)
+        online = plan.schema_ == "strata/ProtectedReferencePlan/2"
+        require((plan.launch.mode == "e9e-serverstarter") == (client_binding is not None),
+                "PROTECTED_REFERENCE_CLIENT_BINDING")
+        if client_binding is not None:
+            from .reference_client import validate_client_scope
+            validate_client_scope(client_binding, plan.setup, plan.launch.model_dump(by_alias=True))
         evidence, workspace = private_path(plan.evidence_directory), private_path(plan.preparation.workspace_directory)
         require(not evidence.exists() and not workspace.exists(), "PROTECTED_REFERENCE_OUTPUT_EXISTS")
         require(not private_path(self.database.path).is_relative_to(workspace), "PROTECTED_REFERENCE_SCOPE")
         instance = plan.setup.instance_id
         body = {"schema": "strata/ProtectedReferenceResult/1", "status": "intent",
             "plan_digest": digest(plan.model_dump(by_alias=True)), "evidence_kind": plan.setup.evidence_kind,
-            "capability": "native-private-reference-custody/1", "scoring_eligible": False,
+            "capability": "native-private-reference-custody/2" if online else "native-private-reference-custody/1",
+            "network_policy": "native-online-private-server/1" if online else "native-offline-writer/1",
+            "scoring_eligible": False,
             "setup_authority_qualified": False, "model_calls": 0, "game_launched": False}
         with self.database.transaction() as db:
             require(db.execute("SELECT 1 FROM protected_references WHERE instance=? OR workspace=?",
@@ -86,7 +112,9 @@ class ProtectedReferences:
                 self._record(instance, "SEALED_IN_CUSTODY", body)
                 custody.check()
                 self._record(instance, "DISPATCHING", body)
-                body["launch"] = launcher.run(plan.launch.model_dump(by_alias=True), custody=custody)
+                body["launch"] = launcher.run(plan.launch.model_dump(by_alias=True),
+                                              custody=custody, client_binding=client_binding)
+                body["game_launched"] = plan.launch.mode == "e9e-serverstarter" and body["launch"].get("launch_binding_verified", False)
                 require(body["launch"]["status"] == "stopped_reference",
                         body["launch"].get("error", "PROTECTED_REFERENCE_LAUNCH_UNCERTAIN"))
                 require(custody.completed, "PROTECTED_REFERENCE_CUSTODY_UNCERTAIN")
@@ -111,11 +139,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", type=Path, required=True)
     parser.add_argument("--plan", type=Path, required=True)
+    parser.add_argument("--client-binding", type=Path)
     args = parser.parse_args()
     value = strict_json(private_read(private_path(args.plan), 32 * 1024**2))
     database = Database(private_path(args.database))
     try:
-        result = ProtectedReferences(database).run(value)
+        binding = strict_json(private_read(private_path(args.client_binding), 1024**2)) if args.client_binding else None
+        result = ProtectedReferences(database).run(value, client_binding=binding)
         print(json.dumps({"status": result["status"], "error": result.get("error"), "scoring_eligible": False}))
         return 0 if result["status"] == "stopped" else 1
     finally:

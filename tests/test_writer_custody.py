@@ -16,7 +16,8 @@ def held():
     tree = SimpleNamespace(group_sid="group", scope_sid="scope", verify=lambda: order.append("tree"))
     workspace = SimpleNamespace(verify_enrolled=lambda *_: order.append("workspace"))
     original = SimpleNamespace(recheck=lambda: order.append("original"))
-    custody = WriterCustody(SimpleNamespace(id="one"), tree, workspace, [original],
+    custody = WriterCustody(SimpleNamespace(id="one", schema_="strata/PrivateWriterPreparationPlan/1",
+                                            evidence_kind="synthetic"), tree, workspace, [original],
                             time.monotonic() + 10, {}, lambda *args: records.append(args))
     return custody, order, records
 

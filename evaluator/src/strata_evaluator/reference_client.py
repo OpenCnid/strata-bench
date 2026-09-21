@@ -71,12 +71,11 @@ def same_pin(first, second):
     )
 
 
-def validate_client_binding(value, setup_value, launch_value):
-    """Verify registration against sealed inputs before consuming a launch grant.
+def validate_client_scope(value, setup_value, launch_value):
+    """Check only the declared relationship before future files are prepared.
 
-    The driver must still compare the actual native identity, enforce the bounded
-    process lifetime, and preserve a failed guardian. This function grants neither
-    native action authority nor permission to reuse a consumed instance.
+    This returns parsed plans, never an admission or file-validation report.
+    Dispatch still requires validate_client_binding against the prepared bytes.
     """
     binding = ClientReferenceBinding.model_validate(value)
     setup, launch = parse_plan(setup_value), parse_launch_plan(launch_value)
@@ -122,6 +121,16 @@ def validate_client_binding(value, setup_value, launch_value):
         "REFERENCE_CLIENT_FIXTURE",
     )
     require(binding.fixture_declaration.bytes <= 1024**2, "REFERENCE_CLIENT_FIXTURE_QUOTA")
+    return binding, setup, launch
+
+
+def validate_client_binding(value, setup_value, launch_value):
+    """Verify registration and sealed input bytes before dispatch.
+
+    Actual native identity, bounded lifetime and guardian evidence remain required.
+    This grants neither action authority nor permission to reuse an instance.
+    """
+    binding, setup, launch = validate_client_scope(value, setup_value, launch_value)
     for pin in (binding.server_module, binding.fixture_declaration):
         check_file(private_path(pin.path), pin)
     declared = strict_json(private_read(binding.fixture_declaration.path, 1024**2))

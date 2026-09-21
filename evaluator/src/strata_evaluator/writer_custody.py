@@ -9,7 +9,7 @@ import threading
 import time
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
@@ -31,6 +31,13 @@ class WriterLaunchPlan(Strict):
     immutable_trees: list[str] = Field(max_length=16)
     arguments: list[str] = Field(min_length=1, max_length=63)
     max_wall_s: int = Field(ge=15, le=30)
+
+
+class WriterLaunchPlanV2(WriterLaunchPlan):
+    schema_: Literal["strata/PrivateWriterLaunch/2"] = Field(alias="schema")
+    mode: Literal["synthetic-fixture", "e9e-serverstarter"]
+    network_policy: Literal["native-online-private-server/1"]
+    max_wall_s: int = Field(ge=15, le=720)
 
 
 class WriterCustody:
@@ -70,21 +77,41 @@ class WriterCustody:
         require(not self.launched, "WRITER_CUSTODY_ALREADY_LAUNCHED")
         # Take responsibility for closing the endpoint even if validation fails.
         self.launched, self.broker = True, broker
-        plan = WriterLaunchPlan.model_validate(value)
+        plan = TypeAdapter(WriterLaunchPlan | WriterLaunchPlanV2).validate_python(value)
+        online = plan.schema_ == "strata/PrivateWriterLaunch/2"
+        require(online == (self.plan.schema_ == "strata/PrivateWriterPreparationPlan/2"),
+                "WRITER_LAUNCH_PROFILE")
+        self.result["capability"] = "native-private-java-custody/2" if online else "native-private-java-custody/1"
+        self.result["network_policy"] = "native-online-private-server/1" if online else "native-offline-writer/1"
         require(Path(plan.helper_class.path).name == "StrataWriterLaunch.class", "WRITER_LAUNCH_HELPER")
         require(Path(broker.setup.game_directory).resolve() == self.tree.path.resolve()
                 and Path(broker.plan.executable.path).resolve() == Path(self.plan.java.path).resolve()
                 and (broker.writer_sid, broker.group_sid, broker.scope_sid) ==
                     (self.plan.writer_sid, self.tree.group_sid, self.tree.scope_sid)
                 and broker.deadline <= self.deadline, "WRITER_LAUNCH_BROKER_SCOPE")
-        # The trusted operator supplies exact Java arguments. They are never
-        # interpreted by a shell; this profile admits only the compiled fixture.
-        require(len(plan.arguments) == 8 and plan.arguments[0] == "-cp"
-                and plan.arguments[2] == "io.github.opencnid.strata.telemetry.OwnedLaunchFixture"
-                and all("\0" not in arg for arg in plan.arguments)
+        require(all("\0" not in arg for arg in plan.arguments)
                 and sum(len(arg) for arg in plan.arguments) < 24000, "WRITER_LAUNCH_PROFILE")
-        descriptor = Path(plan.arguments[3]).resolve()
-        require(all(Path(path).is_absolute() for path in
+        if plan.mode == "e9e-serverstarter":
+            from .reference_launch import E9E_BOOTSTRAP_PINS, E9E_INSTALLED_STATE_PINS
+            require(online and self.plan.evidence_kind == "authentic_operator_reference"
+                    and plan.arguments == ["-jar", "serverstarter-2.4.0.jar"], "WRITER_LAUNCH_PROFILE")
+            by_path = {Path(pin.path).resolve(): pin for pin in plan.immutable_files}
+            require(all(by_path.get(self.tree.path / name) is not None
+                    and by_path[self.tree.path / name].sha256 == sha for name, sha in E9E_BOOTSTRAP_PINS.items()),
+                    "WRITER_LAUNCH_BOOTSTRAP_UNREVIEWED")
+            require(all(by_path.get(self.tree.path / name) is not None
+                    and by_path[self.tree.path / name].sha256 == sha for name, sha in E9E_INSTALLED_STATE_PINS.items()),
+                    "WRITER_LAUNCH_INSTALLED_STATE_UNREVIEWED")
+            descriptor = self.workspace.path / "control/reference-telemetry.json"
+            required = {descriptor, Path(broker.plan.module_file.path).resolve(),
+                        *(self.tree.path / name for name in E9E_BOOTSTRAP_PINS | E9E_INSTALLED_STATE_PINS)}
+        else:
+            # The fixture remains an explicit identity, even on the online token.
+            require(len(plan.arguments) == 8 and plan.arguments[0] == "-cp"
+                and plan.arguments[2] == "io.github.opencnid.strata.telemetry.OwnedLaunchFixture"
+                and self.plan.evidence_kind == "synthetic", "WRITER_LAUNCH_PROFILE")
+            descriptor = Path(plan.arguments[3]).resolve()
+            require(all(Path(path).is_absolute() for path in
                     [*plan.arguments[1].split(os.pathsep), *plan.arguments[3:6]])
                 and descriptor.is_relative_to(self.workspace.path / "control")
                 and Path(plan.arguments[4]).resolve() == self.tree.path.resolve()
@@ -92,8 +119,8 @@ class WriterCustody:
                 and plan.arguments[6] == str(broker.plan.server_port)
                 and plan.arguments[7] in ("normal", "missing-stop", "early-exit", "hang"),
                 "WRITER_LAUNCH_PROFILE")
-        required = {descriptor, Path(plan.arguments[5]).resolve(),
-                    *(Path(path).resolve() for path in plan.arguments[1].split(os.pathsep))}
+            required = {descriptor, Path(plan.arguments[5]).resolve(),
+                        *(Path(path).resolve() for path in plan.arguments[1].split(os.pathsep))}
         pinned = {Path(pin.path).resolve() for pin in plan.immutable_files}
         trees = {Path(path).resolve() for path in plan.immutable_trees}
         require(required <= pinned | trees, "WRITER_LAUNCH_UNPINNED")
@@ -134,6 +161,11 @@ class WriterCustody:
         challenge = secrets.token_hex(32)
         environment = {name: os.environ[name] for name in ("SystemRoot", "WINDIR") if name in os.environ}
         environment["CODEX_HOME"] = self.plan.sandbox_home
+        if online:
+            environment.update(JAVA_HOME=str(Path(self.plan.java.path).parent.parent),
+                PATH=str(Path(self.plan.java.path).parent) + os.pathsep +
+                     str(Path(os.environ["SystemRoot"]) / "System32"),
+                STRATA_TELEMETRY_CONFIG=str(descriptor))
         gate = [self.plan.java.path, "-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
             "-Djava.io.tmpdir=" + str(self.workspace.path / "tmp"), "-cp", str(classes),
             "StrataWriterLaunch", str(self.tree.path), str(control), challenge]

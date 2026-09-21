@@ -15,7 +15,7 @@ import sys
 import time
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, TypeAdapter, model_validator
 
 from mcbench.contracts import Id, Strict
 from mcbench.inference_transport import strict_json
@@ -72,13 +72,29 @@ class WriterPreparationPlan(Strict):
         return self
 
 
+class WriterPreparationPlanV2(WriterPreparationPlan):
+    schema_: Literal["strata/PrivateWriterPreparationPlan/2"] = Field(alias="schema")
+    network_policy: Literal["native-online-private-server/1"]
+    max_wall_s: int = Field(ge=25, le=900)
+
+
+def parse_preparation_plan(value):
+    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2).validate_python(value)
+
+
 def native_argv(plan, workspace, command):
-    settings = {"windows.sandbox": "elevated", "default_permissions": "strata-writer-preparation",
-        "permissions.strata-writer-preparation.filesystem": {":root": "deny", ":minimal": "read",
+    online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+    profile = "strata-private-server" if online else "strata-writer-preparation"
+    settings = {"windows.sandbox": "elevated", "default_permissions": profile,
+        f"permissions.{profile}.filesystem": {":root": "deny", ":minimal": "read",
             ":workspace_roots": {".": "write"}, str(Path(plan.java.path).parent.parent): "read"},
-        "permissions.strata-writer-preparation.network.enabled": False}
+        f"permissions.{profile}.network.enabled": online}
+    if online:
+        # Server authentication needs outbound networking. No domain filtering
+        # claim: this explicit private-server capability uses direct networking.
+        settings["features.network_proxy"] = False
     argv = [plan.codex.path, "sandbox", "--include-managed-config", "--permission-profile",
-            "strata-writer-preparation", "--cd", str(workspace)]
+            profile, "--cd", str(workspace)]
     for key, value in sorted(settings.items()):
         argv.extend(["-c", key + "=" + _toml_value(value)])
     return [*argv, "--", *command]
@@ -132,10 +148,11 @@ class WriterPreparations:
         handle. A serialized result or previous workspace can never resume it.
         """
         require(continuation is None or callable(continuation), "WRITER_CONTINUATION")
-        plan = WriterPreparationPlan.model_validate(value)
+        plan = parse_preparation_plan(value)
         value = plan.model_dump(by_alias=True)
         require(os.name == "nt", "WRITER_PLATFORM_UNSUPPORTED")
-        require(plan.evidence_kind == "synthetic", "WRITER_PROFILE_UNQUALIFIED")
+        online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+        require(plan.evidence_kind == "synthetic" or online, "WRITER_PROFILE_UNQUALIFIED")
         evidence = private_path(plan.evidence_directory)
         workspace = private_path(plan.workspace_directory)
         require(not evidence.exists() and not workspace.exists(), "WRITER_OUTPUT_EXISTS")
@@ -146,7 +163,8 @@ class WriterPreparations:
             check_file(Path(pin.path), pin)
         body = {"schema": "strata/PrivateWriterPreparationResult/1", "plan_digest": digest(value),
                 "evidence_kind": plan.evidence_kind,
-                "capability": "native-private-java-preparation/1",
+                "capability": "native-private-java-preparation/2" if online else "native-private-java-preparation/1",
+                "network_policy": "native-online-private-server/1" if online else "native-offline-writer/1",
                 "status": "intent", "setup_authority_qualified": False, "scoring_eligible": False,
                 "model_calls": 0, "game_launched": False, "stages": {}}
         with self.database.transaction() as db:

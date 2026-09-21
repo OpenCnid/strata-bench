@@ -116,6 +116,45 @@ class WindowsSecurity:
         finally:
             self.kernel.CloseHandle(token)
 
+    def bind_process(self, process_handle, writer_sid, group_sid, scope_sid):
+        """Read the token of a retained process handle, never a reported SID/PID."""
+        token = w.HANDLE()
+        require(self.adv.OpenProcessToken(process_handle, 8, c.byref(token)),
+                "WRITER_TOKEN_UNAVAILABLE")
+        try:
+            def info(kind):
+                size = w.DWORD()
+                self.adv.GetTokenInformation(token, kind, None, 0, c.byref(size))
+                require(0 < size.value <= 65536, "WRITER_TOKEN_UNAVAILABLE")
+                buffer = c.create_string_buffer(size.value)
+                require(self.adv.GetTokenInformation(token, kind, buffer, size, c.byref(size)),
+                        "WRITER_TOKEN_UNAVAILABLE")
+                return buffer
+
+            def groups(kind):
+                class Entry(c.Structure):
+                    _fields_ = [("sid", c.c_void_p), ("attributes", w.DWORD)]
+                buffer = info(kind)
+                count = w.DWORD.from_buffer(buffer).value
+                offset = c.sizeof(c.c_void_p)
+                require(count <= 256 and offset + count * c.sizeof(Entry) <= len(buffer),
+                        "WRITER_TOKEN_UNAVAILABLE")
+                return [(self.sid_text(value.sid), value.attributes)
+                        for value in (Entry.from_buffer(buffer, offset + n * c.sizeof(Entry))
+                                      for n in range(count))]
+
+            user = info(1)
+            actual_user = self.sid_text(c.c_void_p.from_buffer(user))
+            enabled = {sid for sid, flags in groups(2) if flags & 4 and not flags & 16}
+            restricted = {sid for sid, _ in groups(11)}
+            require(actual_user == writer_sid and group_sid in enabled
+                    and scope_sid in restricted and group_sid not in restricted,
+                    "WRITER_TOKEN_SCOPE_MISMATCH")
+            return {"user_sid": actual_user, "group_sid": group_sid, "scope_sid": scope_sid,
+                    "held_token_verified": True, "read_isolation_qualified": False}
+        finally:
+            self.kernel.CloseHandle(token)
+
     def check_principal(self, sid, kind_required):
         require(type(sid) is str and re.fullmatch(r"S-1-5-21-(?:\d+-){3}\d+", sid)
                 and sid != self.current_sid, "WRITER_DISTINCT_USER_REQUIRED")
@@ -300,3 +339,56 @@ class WriterTree:
 
     def __exit__(self, *_):
         self.close()
+
+
+class OperatorWorkspace:
+    """Fresh protected operator directory, before native scoped enrollment.
+
+    Use a parent whose normal listing permits Java's ancestor canonicalization;
+    do not grant listing on unrelated private operator ancestors to make it work.
+    Final creation ACL excludes inherited Public/Users/Everyone permissions.
+    """
+
+    def __init__(self, path):
+        self.security = WindowsSecurity()
+        self.path, self.handles = Path(path), []
+        self.closed = False
+        require(self.path.is_absolute(), "WRITER_PATH_INVALID")
+        component(self.path.name)
+        descriptor = c.c_void_p()
+        require(self.security.adv.ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            f"O:{self.security.current_sid}D:P(A;OICI;FA;;;{self.security.current_sid})(A;OICI;FA;;;SY)",
+            1, c.byref(descriptor), None), "WRITER_DESCRIPTOR_INVALID")
+        try:
+            parent = safe(self.path.parent)
+            for ancestor in reversed((parent, *parent.parents)):
+                self.handles.append(self.security.open_directory(ancestor))
+            create_parent = self.security.open_directory(parent, 4 | SYNCHRONIZE)
+            try:
+                self.handles.append(self.security.create(create_parent, self.path.name,
+                                                          descriptor, directory=True))
+            finally:
+                self.security.kernel.CloseHandle(create_parent)
+            owner, protected, entries = self.security.access(self.path)
+            require(owner == self.security.current_sid and protected and len(entries) == 2
+                    and set(entries) == {(0, 3, owner, FILE_ALL), (0, 3, "S-1-5-18", FILE_ALL)},
+                    "WRITER_WORKSPACE_ACL")
+        except BaseException:
+            self.close()
+            raise
+        finally:
+            self.security.kernel.LocalFree(descriptor)
+
+    def close(self):
+        for handle in reversed(self.handles):
+            self.security.kernel.CloseHandle(handle)
+        self.handles.clear()
+        self.closed = True
+
+    def verify_enrolled(self, group_sid, scope_sid):
+        require(not self.closed, "WRITER_WORKSPACE_CLOSED")
+        owner, protected, entries = self.security.access(self.path)
+        require(owner == self.security.current_sid and protected and len(entries) == 4
+                and set(entries) == {(0, 3, owner, FILE_ALL), (0, 3, "S-1-5-18", FILE_ALL),
+                                     (0, 3, group_sid, FILE_MODIFY), (0, 3, scope_sid, FILE_MODIFY)},
+                "WRITER_WORKSPACE_ACL")

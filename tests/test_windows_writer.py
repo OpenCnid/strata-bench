@@ -6,7 +6,7 @@ import os
 import pytest
 
 from mcbench.storage import Fault
-from strata_evaluator.windows_writer import WindowsSecurity, WriterTree, component
+from strata_evaluator.windows_writer import WindowsSecurity, WriterTree, OperatorWorkspace, component
 
 
 @pytest.mark.parametrize("name", ["", ".", "..", "a/b", "a\\b", "a:stream", "a.", "a ",
@@ -143,3 +143,27 @@ def test_failed_post_creation_validation_releases_all_namespace_handles(
         WriterTree(path, writer_sid, writer_group, SYNTHETIC_SCOPE)
     assert not list(path.iterdir())
     path.rmdir()  # Still-held namespace handles would deny this.
+
+
+def test_workspace_excludes_inheritance_and_keeps_namespace_until_close(tmp_path, security):
+    path = tmp_path / "preparation"
+    workspace = OperatorWorkspace(path)
+    try:
+        owner, protected, entries = security.access(path)
+        assert owner == security.current_sid and protected
+        assert len(entries) == 2
+        assert {entry[2] for entry in entries} == {security.current_sid, "S-1-5-18"}
+        with pytest.raises(PermissionError):
+            path.rename(path.with_name("replaced"))
+        with pytest.raises(Fault, match="WRITER_WORKSPACE_ACL"):
+            workspace.verify_enrolled("absent-group", SYNTHETIC_SCOPE)
+        with pytest.raises(Fault, match="WRITER_CREATE_DENIED"):
+            OperatorWorkspace(path)
+        before = security.access(path)
+    finally:
+        workspace.close()
+    workspace.close()
+    assert security.access(path) == before
+    with pytest.raises(Fault, match="WRITER_WORKSPACE_CLOSED"):
+        workspace.verify_enrolled("absent-group", SYNTHETIC_SCOPE)
+    path.rmdir()

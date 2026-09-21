@@ -18,6 +18,52 @@ from test_reference_launch import launch  # noqa: F401
 from test_craft_reference import reference, pin  # noqa: F401
 
 
+def test_unconfirmed_watcher_cannot_bypass_job_close_or_claim_terminal_proof(tmp_path):
+    from types import SimpleNamespace
+    events = []
+    job = SimpleNamespace(
+        accounting=lambda: {"active_processes": 0, "total_processes": 1},
+        member_status=lambda: {"held_processes": 1, "signaled_processes": 1},
+        close=lambda: events.append("job-close"))
+    owned = object.__new__(module.OwnedCli)
+    owned.process = SimpleNamespace(job=job, poll=lambda: 0,
+                                   close=lambda: events.append("process-close"))
+    owned.deadline = time.monotonic() + 2
+    owned.fired, owned.errors, owned.readers = False, [], []
+    owned.done = SimpleNamespace(set=lambda: events.append("watcher-stop"))
+    owned.watcher = SimpleNamespace(join=lambda _: None, is_alive=lambda: True)
+    result = owned.finish()
+    assert not result["terminal_verified"] and result["forced"]
+    assert result["errors"][0]["code"] == "REFERENCE_PAIR_WATCHDOG_UNCONFIRMED"
+    assert events == ["watcher-stop", "job-close", "process-close"]
+
+
+@pytest.mark.parametrize("retained", [1, 2])
+def test_forced_cleanup_waits_for_signaling_without_forgiving_missing_history(retained):
+    from types import SimpleNamespace
+    state = {"stopped": False, "observations": 0, "closed": False}
+
+    def status():
+        if state["stopped"]:
+            state["observations"] += 1
+        return {"held_processes": retained,
+                "signaled_processes": retained if state["observations"] >= 2 else 0}
+
+    job = SimpleNamespace(
+        accounting=lambda: {"active_processes": 0 if state["stopped"] else 2, "total_processes": 2},
+        member_status=status, close=lambda: state.update(closed=True))
+    owned = object.__new__(module.OwnedCli)
+    owned.process = SimpleNamespace(job=job, poll=lambda: 125 if state["stopped"] else None,
+        stop=lambda: state.update(stopped=True), close=lambda: None)
+    owned.deadline = time.monotonic() - 1
+    owned.fired, owned.errors, owned.readers = False, [], []
+    owned.done = SimpleNamespace(set=lambda: None)
+    owned.watcher = SimpleNamespace(join=lambda _: None, is_alive=lambda: False)
+    result = owned.finish()
+    assert result["forced"] and state["closed"] and state["observations"] >= 2
+    assert result["terminal_verified"] is (retained == 2)
+
+
 DRIVER = """
 import json, sys, time
 from pathlib import Path

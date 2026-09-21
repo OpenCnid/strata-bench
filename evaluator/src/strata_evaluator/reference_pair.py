@@ -144,6 +144,19 @@ class OwnedCli:
             if self.process.poll() is None or self.process.job.accounting()["active_processes"]:
                 result["forced"] = True
                 self.process.stop()
+                # TerminateJobObject/root wait can precede signaling of other
+                # retained handles even after active_processes reaches zero.
+                # Bound cleanup reconciliation; incomplete history still fails.
+                stopped_until = time.monotonic() + 2
+                while True:
+                    accounting = self.process.job.accounting()
+                    held = self.process.job.member_status()
+                    if (accounting["active_processes"] == 0
+                            and held["held_processes"] == held["signaled_processes"]):
+                        break
+                    if time.monotonic() >= stopped_until:
+                        break
+                    time.sleep(0.01)
             result["exit_code"] = self.process.poll()
             result["job"] = self.process.job.accounting()
             result["held"] = self.process.job.member_status()
@@ -165,7 +178,14 @@ class OwnedCli:
         finally:
             self.done.set()
             self.watcher.join(2)
-            require(not self.watcher.is_alive(), "REFERENCE_PAIR_WATCHDOG_UNCONFIRMED")
+            if self.watcher.is_alive():
+                # Never let missing watcher confirmation bypass the retained
+                # Job's kill-on-close backstop or release an apparently clean
+                # reference. Preserve uncertainty without escaping cleanup.
+                result["terminal_verified"] = False
+                result["forced"] = True
+                result["errors"].append(failure_record("outer_cleanup",
+                    Fault("REFERENCE_PAIR_WATCHDOG_UNCONFIRMED")).model_dump())
             result["forced"] = result["forced"] or self.fired
             for reader in self.readers:
                 reader.join(2)

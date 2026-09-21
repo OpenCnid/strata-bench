@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.77](../SPEC.md)
+Updated September 21, 2026. Operator-only. [SPEC v0.2.78](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -106,7 +106,9 @@ The historical inventory failure remains unexplained and UNCERTAIN. Do not repea
 
 M0.2c.3b.2b/.1 now has a [scoped mutable-writer candidate](verification/2026-09-21-writer-boundary.md) in `windows_writer.py` with `writer_boundary_probe.py` and a native file fixture. Fresh roots receive their final protected DACL atomically; OWNER RIGHTS removes implicit permission resets; local sandbox group plus workspace restricting SID admits scoped writes. List-access directory handles fix the observed root-rename bypass. The account-only candidate failed sibling writes; retain it. Final private `2026-09-21-writer-boundary-12` passes intended read/update/rename and ordinary-user/sibling write denials, but **sibling read-open succeeds**, leaving the overall canary fail (12/13). Twenty-nine focused tests pass; source and binaries/evidence stay private where required. These are actual OS/CLI synthetic-file tests, with no game/model/desktop input or account/firewall change.
 
-**Next M0 action:** integrate protected preparation and the exact writer token/workspace with the owned server lifecycle, first using a finite Java file fixture. The primitive is not connected to ReferenceLauncher, does not validate full setup/history and cannot issue scoring or recovery authority. Closing preserves the DACL but not a lost namespace handle; never adopt a path on that basis. Close the demonstrated sibling read path through the enforced native tool/broker boundary, retaining the original loopback failures. Do not rerun the finished positive craft trajectory or ask for a VM. Accounting at 06:50:27 UTC remains original $10, one migration and $0.7554 uncertain hold; no replay/refund. M0 in_progress, G0 fail and G1–G5 not_run.
+**Current M0 action:** [owned Java preparation](verification/2026-09-21-writer-preparation.md) implements M0.2c.3b.2b.2 with durable one-use intent, complete runtime/source leases, protected workspace and actual held-Job/token binding before copy. The final positive actual-CLI/JVM synthetic fixture copies two files/53 bytes and stops 10/10 normally. Changed wrong-token and post-copy interruption controls stop 10/10 after recording uncertainty; inputs stay locked through cleanup. Restart preserves exact records and rejects replay. All 53 selected checks pass. Earlier Java canonicalization, 9/10 enrollment and premature 4/10 signaling failures remain retained.
+
+**Next M0 action:** implement **M0.2c.3b.2b.3**, retaining preparation/token/namespace custody continuously into ReferenceLauncher and brokering private configuration/telemetry. Current preparation is synthetic-only and closes its namespace handles; never adopt that stopped output as launch/setup/recovery authority. Preserve the actual sibling-read failure and close its route through enforced native tool/broker admission. No authentic setup/scoring qualification or game/model run occurred. Original $10/one migration and $0.7554 uncertain hold remain at 07:34:04 UTC. Do not replay the request, reset/refund the budget, repeat the completed craft trajectory or ask for a VM. M0 in_progress, G0 fail, G1–G5 not_run.
 
 ## Settled authority and limits
 

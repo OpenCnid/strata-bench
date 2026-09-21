@@ -145,6 +145,135 @@
       "title": "Session Storage",
       "type": "string"
     },
+    "accounting_basis_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Accounting Basis Digest"
+    },
+    "broker_policy": {
+      "anyOf": [
+        {
+          "const": "native-stdio-projected-artifacts-executor-game/1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Broker Policy"
+    },
+    "bootstrap_manifest": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Bootstrap Manifest"
+    },
+    "bootstrap_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Bootstrap Digest"
+    },
+    "ingress_policy": {
+      "anyOf": [
+        {
+          "const": "native-job-http-header/1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ingress Policy"
+    },
+    "gateway_config_digest": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gateway Config Digest"
+    },
+    "tool_projection_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Projection Ref"
+    },
+    "tool_catalog_policy": {
+      "anyOf": [
+        {
+          "const": "native-selected-model-without-apply-patch/1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tool Catalog Policy"
+    },
+    "skill_activation_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Skill Activation Ref"
+    },
+    "helper_skill_activation_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Helper Skill Activation Ref"
+    },
     "config_overrides": {
       "additionalProperties": {
         "$ref": "#/$defs/JsonValue"

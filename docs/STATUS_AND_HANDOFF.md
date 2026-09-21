@@ -1,10 +1,13 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.84](../SPEC.md)
+Updated September 21, 2026. Operator-only. [SPEC v0.2.85](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
 ## Start here
+
+**Current bounded M0 work:** The [bounded independent process observer](verification/2026-09-21-process-resources.md) now records private CPU/I/O/handle counters and incremental aggregate region censuses outside the guardian stop path. 61 distinct focused checks pass. The changed native fixture supplies six complete live counter samples and three two-segment censuses; complete tree proof takes 294.1257/500 ms. Two censuses precede stop and one overlaps teardown. The earlier full walks remain partial, with a retained audit erratum. No Minecraft/model/shared input; the authentic 500.1327-ms failure remains. Next connect this observer to one freshly registered protected reference, preserving unplayed source lineage, consumed scopes, every failed sample and the original $0.7554 unresolved model hold.
+Private `process-resources-01` and `-02` cases are terminal. The observer is ready for fresh driver integration; the protected case04 and its archived observer must remain unchanged. Use the new repo module with exact held-process identity, pin its sources, and retain terminal counters and census intervals. All older next-action statements below are historical where superseded by this paragraph.
 
 Implementation resumed from the merged documentation checkpoint. The active
 long-horizon goal preserves the user's objective:

@@ -58,7 +58,7 @@ class HeldProcess:
     hash is a check of the on-disk executable, not loaded-code attestation.
     """
 
-    def __init__(self, pid: int, *, may_attach=False):
+    def __init__(self, pid: int, *, may_attach=False, query_information=False):
         require(os.name == "nt", "PROCESS_GUARD_UNSUPPORTED")
         require(type(pid) is int and 0 < pid <= 0xFFFFFFFF, "PROCESS_ID_INVALID")
         from ctypes import wintypes
@@ -77,8 +77,10 @@ class HeldProcess:
             function = getattr(self.kernel, name)
             function.argtypes, function.restype = arguments, result
         # QUERY_LIMITED_INFORMATION + SYNCHRONIZE; attach additionally needs
-        # PROCESS_SET_QUOTA + PROCESS_TERMINATE. Handles are not inheritable.
-        rights = 0x1000 | 0x100000 | (0x100 | 1 if may_attach else 0)
+        # PROCESS_SET_QUOTA + PROCESS_TERMINATE. The independent resource
+        # observer can add QUERY_INFORMATION, never VM_READ or mutation rights.
+        # Handles are not inheritable; guardian defaults remain unchanged.
+        rights = 0x1000 | 0x100000 | (0x100 | 1 if may_attach else 0) | (0x400 if query_information else 0)
         self.handle = self.kernel.OpenProcess(rights, False, pid)
         require(bool(self.handle), "PROCESS_IDENTITY_UNAVAILABLE")
         try:

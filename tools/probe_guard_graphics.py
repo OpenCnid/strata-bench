@@ -12,7 +12,7 @@ from pathlib import Path
 import secrets
 import time
 
-from mcbench import desktop_process, process_guard, processes
+from mcbench import desktop_process, process_guard, processes, process_observer, process_resources
 from mcbench.desktop_process import DesktopApi, DesktopProcess
 from mcbench.native_settings import strict_json
 from mcbench.process_guard import AttachedJava, inspect_process
@@ -72,7 +72,9 @@ def wait_report(path, child, deadline):
     raise Fault("GRAPHICS_FIXTURE_DEADLINE")
 
 
-def sample(java, classpath, root, name, heap, texture, audio=False):
+def sample(java, classpath, root, name, heap, texture, audio=False, *, resource_observer=False, hold_seconds=0):
+    started, parent_cpu = time.perf_counter_ns(), time.process_time_ns()
+    require(type(hold_seconds) is int and hold_seconds in (0, 5), "FIXTURE_HOLD_INVALID")
     memory.admit([max(16, heap)], memory.memory_status())
     root.mkdir()
     scope = secrets.token_hex(16)
@@ -83,7 +85,8 @@ def sample(java, classpath, root, name, heap, texture, audio=False):
                                  for x in arguments), encoding="utf-8")
     result = {"profile": name, "heap_mib": heap, "texture_mib": texture,
               "status": "incomplete", "stop_result": "not_run", "cleanup_confirmed": False,
-              "scope": scope, "audio": audio, "max_wall_ms": 45000, "guardian_wait_bound_ms": 500}
+              "scope": scope, "audio": audio, "max_wall_ms": 45000, "guardian_wait_bound_ms": 500,
+              "resource_observer": resource_observer, "hold_seconds": hold_seconds}
     memory.publish(root / "intent.json", result)
     before = DesktopApi().input_name()
     environment = {k: os.environ[k] for k in ("SystemRoot", "WINDIR") if k in os.environ}
@@ -93,7 +96,7 @@ def sample(java, classpath, root, name, heap, texture, audio=False):
     environment.update(TEMP=str(temp), TMP=str(temp))
     if audio:
         environment.update(ALSOFT_LOGLEVEL="3", ALSOFT_LOGFILE=str(root / "openal.log"))
-    child = guard = None
+    child = guard = observer = None
     try:
         child = DesktopProcess([str(java), "@" + str(argfile)], root, environment, max_wall_ms=45000)
         boot = wait_report(root / "boot.json", child, child.deadline)
@@ -108,6 +111,14 @@ def sample(java, classpath, root, name, heap, texture, audio=False):
         ready = wait_report(root / "ready.json", child, child.deadline)
         validate(ready, scope=scope, pid=child.pid, heap=heap, texture=texture, audio=audio, ready=True)
         result["fixture"] = ready
+        if resource_observer:
+            observer = process_observer.ExitObserver(child.pid, root / "absent-supervisor.jsonl",
+                root / "exit-observer.jsonl", expected_identity=guard.process.identity)
+        until = time.monotonic() + hold_seconds
+        while time.monotonic() < until:
+            require(child.poll() is None and child.reason is None
+                    and not (root / "terminal.json").exists(), "GRAPHICS_FIXTURE_EXITED")
+            time.sleep(.02)
         result["memory_loaded"] = memory.process_memory(guard.process)
         require(result["memory_loaded"]["private_bytes"] >= heap * memory.MIB,
                 "FIXTURE_ALLOCATION_MISSING")
@@ -152,6 +163,12 @@ def sample(java, classpath, root, name, heap, texture, audio=False):
         if child:
             result["outer_stop_reason"] = child.reason
             cleanup(child.close)
+        if observer:
+            # The guardian stop has already finished; never join before termination.
+            observer.thread.join(.3)
+            result["observer"] = observer.finish()
+            if result["observer"]["status"] != "pass":
+                result["status"] = "incomplete"
         try:
             result["input_desktop_unchanged"] = DesktopApi().input_name() == before
         except Fault:
@@ -159,11 +176,13 @@ def sample(java, classpath, root, name, heap, texture, audio=False):
         if (not result["input_desktop_unchanged"] or result["cleanup_errors"]
                 or not result["cleanup_confirmed"] or result.get("outer_stop_reason") is not None):
             result["status"] = "incomplete"
+        result["sample_elapsed_ns"] = time.perf_counter_ns() - started
+        result["sample_parent_cpu_ns"] = time.process_time_ns() - parent_cpu
         memory.publish(root / "result.json", result)
     return result
 
 
-def run(java, classpath_file, output, names):
+def run(java, classpath_file, output, names, *, resource_observer=False, hold_seconds=0):
     profiles = selected_profiles(names)
     require(os.name == "nt", "WINDOWS_REQUIRED")
     repository = Path(__file__).resolve().parents[1]
@@ -193,17 +212,20 @@ def run(java, classpath_file, output, names):
     paths = [*artifacts, java, java.parent.parent / "bin/server/jvm.dll",
              java.parent.parent / "lib/modules", classpath_file, Path(__file__),
              Path(memory.__file__), Path(process_guard.__file__), Path(processes.__file__),
+             Path(process_observer.__file__), Path(process_resources.__file__),
              Path(desktop_process.__file__), repository / "tests/fixtures/GuardianRenderFixture.java"]
     pins = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
-    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-hidden-gl-silent-al/3",
+    plan = {"schema": "strata/PrivateGuardianGraphicsProbe/1", "policy": "held-native-resources-census/5",
             "classification": "synthetic-workload-native-process", "minecraft": False,
             "model_calls": 0, "physical_input": False, "scoring_eligible": False,
-            "source_sha256": pins, "profiles": profiles}
+            "source_sha256": pins, "profiles": profiles, "resource_observer": resource_observer,
+            "hold_seconds": hold_seconds}
     output.mkdir()
     memory.publish(output / "plan.json", plan)
     results = []
     for name, heap, texture, audio in profiles:
-        result = sample(java, classpath, output / name, name, heap, texture, audio)
+        result = sample(java, classpath, output / name, name, heap, texture, audio,
+                        resource_observer=resource_observer, hold_seconds=hold_seconds)
         results.append(result)
         if result["status"] != "measured":
             break
@@ -221,8 +243,11 @@ def main():
     parser.add_argument("--classpath-file", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--profiles", nargs="+", choices=list(PROFILES), required=True)
+    parser.add_argument("--resource-observer", action="store_true")
+    parser.add_argument("--hold-five-seconds", action="store_true")
     args = parser.parse_args()
-    result = run(args.java, args.classpath_file, args.output, args.profiles)
+    result = run(args.java, args.classpath_file, args.output, args.profiles,
+                 resource_observer=args.resource_observer, hold_seconds=5 if args.hold_five_seconds else 0)
     print(json.dumps({"status": result["status"], "scoring_eligible": False,
                      "samples": [{k: r.get(k) for k in ("profile", "status", "stop_result",
                         "cleanup_confirmed", "input_desktop_unchanged", "error_code")}

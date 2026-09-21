@@ -27,6 +27,12 @@ block; it binds a fresh per-boot key to the intended instance/campaign/epoch.
 The key file must stay outside the game installation and agent access. Keep
 configuration versions 1/2 labeled unauthenticated when replaying old evidence.
 
+The private [craft reference seal](private-scoring.md#sealed-craft-reference-inputs)
+issues authority schema 2, binding its preserved setup digest into the same
+opaque authority fingerprint. The Java module/configuration stays at 0.3.3/3.
+Plain authority schema 1 remains valid for historical stream inspection but
+cannot be attached retroactively to a sealed craft reference.
+
 ```powershell
 python -m strata_evaluator.telemetry_auth issue `
   --directory <fresh-absolute-private-directory> --game-directory <absolute-game-root> `

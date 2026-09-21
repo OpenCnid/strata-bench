@@ -2,6 +2,8 @@ package io.github.opencnid.strata.telemetry;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /** Actual production spool in a plain JVM; synthetic events, no game/server launch. */
@@ -9,6 +11,22 @@ public final class AuthenticatedSpoolFixture {
     public static void main(String[] args) throws Exception {
         TelemetryConfig config = TelemetryConfig.read(Path.of(args[0]), Path.of(args[1]));
         try (EventSpool spool = new EventSpool(config)) {
+            if (args.length == 3) {
+                // Operator test records only. Exercise the actual production
+                // writer/claim/MAC without loading a Minecraft server.
+                Path input = Path.of(args[2]);
+                if (Files.size(input) > 1048576) throw new IllegalArgumentException("FIXTURE_QUOTA");
+                var records = JsonParser.parseString(Files.readString(input)).getAsJsonArray();
+                if (records.size() > 64) throw new IllegalArgumentException("FIXTURE_QUOTA");
+                for (var value : records) {
+                    var record = value.getAsJsonObject();
+                    spool.publish(record.get("server_tick").getAsLong(), record.get("kind").getAsString(),
+                        record.get("payload_schema").getAsString(), record.getAsJsonObject("payload"),
+                        record.getAsJsonArray("actor_ids"));
+                }
+                System.out.println(spool.bootId());
+                return;
+            }
             JsonObject start = new JsonObject();
             start.addProperty("module", "strata-forge1192-telemetry/0.3.3");
             start.addProperty("minecraft", "1.19.2"); start.addProperty("forge", "43.4.23");

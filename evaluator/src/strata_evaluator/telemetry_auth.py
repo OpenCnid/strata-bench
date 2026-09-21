@@ -16,7 +16,7 @@ import secrets
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Digest, Id, Positive, Strict
 from mcbench.inference_transport import strict_json
@@ -48,6 +48,15 @@ class SpoolAuthority(Strict):
                 "key_sha256": self.key_sha256, "authority_digest": self.fingerprint()}
 
 
+class BoundSpoolAuthority(SpoolAuthority):
+    schema_: Literal["strata/TelemetrySpoolAuthority/2"] = Field(alias="schema")
+    setup_digest: Digest
+
+
+def parse_authority(value):
+    return TypeAdapter(SpoolAuthority | BoundSpoolAuthority).validate_python(value)
+
+
 def private_read(path, limit):
     path = Path(path)
     require(path.is_absolute(), "TELEMETRY_AUTH_PATH")
@@ -60,7 +69,7 @@ def private_read(path, limit):
     return data
 
 
-def issue_authority(directory, game_directory, *, instance_id, campaign_id, epoch):
+def issue_authority(directory, game_directory, *, instance_id, campaign_id, epoch, setup_digest=None):
     """Fresh operator directory only; never overwrite or renew a consumed grant."""
     directory, game_directory = Path(directory), Path(game_directory)
     require(directory.is_absolute() and game_directory.is_absolute(), "TELEMETRY_AUTH_PATH")
@@ -72,10 +81,12 @@ def issue_authority(directory, game_directory, *, instance_id, campaign_id, epoc
             and not any((parent / ".git").exists() for parent in directory.parents),
             "TELEMETRY_AUTH_PRIVATE_DIRECTORY")
     key = secrets.token_bytes(32)
-    authority = SpoolAuthority.model_validate({"schema": "strata/TelemetrySpoolAuthority/1",
+    authority = parse_authority({"schema": "strata/TelemetrySpoolAuthority/2" if setup_digest is not None
+                                else "strata/TelemetrySpoolAuthority/1",
         "policy": POLICY, "instance_id": instance_id, "campaign_id": campaign_id, "epoch": epoch,
         "challenge": secrets.token_hex(32), "key_file": str(directory / "producer.key"),
-        "key_sha256": hashlib.sha256(key).hexdigest()})
+        "key_sha256": hashlib.sha256(key).hexdigest(),
+        **({"setup_digest": setup_digest} if setup_digest is not None else {})})
     directory.mkdir()  # Parent must already be an operator-owned location.
     for path, data in [(directory / "producer.key", key),
                        (directory / "authority.json", canonical(authority.model_dump(by_alias=True))),
@@ -89,7 +100,7 @@ def issue_authority(directory, game_directory, *, instance_id, campaign_id, epoc
 
 class SpoolVerifier:
     def __init__(self, authority):
-        self.authority = SpoolAuthority.model_validate(authority)
+        self.authority = parse_authority(authority)
         self._key = private_read(self.authority.key_file, 32)
         require(len(self._key) == 32 and hmac.compare_digest(hashlib.sha256(self._key).hexdigest(),
             self.authority.key_sha256), "TELEMETRY_AUTH_KEY_CHANGED")
@@ -99,7 +110,6 @@ class SpoolVerifier:
                 and claim["authority_digest"] == self.authority.fingerprint()
                 and claim["challenge"] == self.authority.challenge,
                 "TELEMETRY_AUTH_CLAIM")
-        from pydantic import TypeAdapter
         self.boot = TypeAdapter(Id).validate_python(claim["server_boot_id"])
         claimed = f"{POLICY}\nclaim\n{self.authority.fingerprint()}\n{self.authority.challenge}\n{self.boot}\n".encode("ascii")
         require(isinstance(claim["mac"], str) and re.fullmatch(r"[a-f0-9]{64}", claim["mac"]) and hmac.compare_digest(
@@ -153,7 +163,7 @@ class SpoolVerifier:
 
 def inspect_authenticated_spool(path, authority_path):
     from .telemetry import inspect_spool
-    authority = SpoolAuthority.model_validate(strict_json(private_read(authority_path, 65536)))
+    authority = parse_authority(strict_json(private_read(authority_path, 65536)))
     with SpoolVerifier(authority) as verifier:
         return inspect_spool(path, authority.campaign_id, authority.epoch, authentication=verifier)
 

@@ -180,13 +180,15 @@ def test_wire_growth_after_initial_stat_cannot_bypass_total_quota(source, monkey
         inspect(source)
 
 
-def test_actual_java_producer_verifies_in_python_without_game(source, tmp_path):
+@pytest.mark.parametrize("bound_setup", [False, True])
+def test_actual_java_producer_verifies_in_python_without_game(source, tmp_path, bound_setup):
     java = os.environ.get("STRATA_TELEMETRY_TEST_JAVA")
     classpath = os.environ.get("STRATA_TELEMETRY_TEST_CLASSPATH")
     if not java or not classpath:
         pytest.skip("Explicit pinned Java/classpath required; synthetic source test only")
     authority = issue_authority(tmp_path / "java-private", tmp_path / "game",
-        instance_id="java-instance", campaign_id="java-synthetic", epoch=1)
+        instance_id="java-instance", campaign_id="java-synthetic", epoch=1,
+        setup_digest="a" * 64 if bound_setup else None)
     spool = tmp_path / "spool"
     spool.mkdir()
     config = {"schema": "strata/ForgeTelemetryConfig/3", "campaign_id": authority.campaign_id,

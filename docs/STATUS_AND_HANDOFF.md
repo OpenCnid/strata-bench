@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 20, 2026. Operator-only. [SPEC v0.2.68](../SPEC.md)
+Updated September 20, 2026. Operator-only. [SPEC v0.2.69](../SPEC.md)
 defines the target; [MILESTONES.md](../MILESTONES.md) owns detailed progress,
 decisions and history. [STATUS.md](STATUS.md) is the short evidence index.
 
@@ -76,7 +76,9 @@ M0.2c.3 implements [private telemetry authentication](verification/2026-09-20-au
 
 M0.2c.3a now passes the narrow authentic dedicated reference: distinct protected E9E clone, module 0.3.3/config 3, 13 signed records, 186 sampled ticks, six exact expert-recipe assertions and clean stream termination. Server elapsed 156.203 s, no client/model/shared input, all 18,215 original source files unchanged. Four derived tamper/scope/completeness controls reject. A plain-JVM writer also rejects the consumed authentic grant without changing its claim/spool. Actual evidence and keys remain private. This does not qualify a score, OS process isolation, mechanical parity, the 500-ms guardian or full recovery. Do not repeat this stream trial unchanged.
 
-Next M0.2c.3b binds the authenticated source to sealed setup/team/recipe/resource authority and private positive/negative scorer controls. Continue from `telemetry_auth.py`, `telemetry.py`, `craft_witness.py` and `scoring_scope.py`; arbitrary source-registration digest strings still do not verify artifacts. Raw witnesses remain unscorable until the complete provenance/control contract is met. Preserve all original failed samples. The online telemetry API and full recovery remain open. Model admission remains blocked by the original $0.7554 unknown-usage hold; no replay/refund or repeated accounting matrix.
+M0.2c.3b.1 now implements [private fixture seals and the authenticated craft reference join](verification/2026-09-20-craft-reference-seal.md). `craft_reference.py` verifies/preserves complete fixture/supporting bytes, binds the plan into authority v2, reserves one launch and imports a signed complete stream against roster/recipe/tick-window checks. Identical imports are idempotent; changed/missing evidence and reused grants reject. 133 affected Python checks, final 35 reference checks, 20 Java tests, package exclusion and the actual synthetic CLI/JVM flow pass. No protected score, Minecraft/model dispatch or new allowance.
+
+Next M0.2c.3b.2 must bind this one-use reservation to an owned server launcher, exact game directory/configuration/artifacts and actual process. Preflight alone does not prove which world starts or exclude concurrent writers; keep uncertain intents without replay. Then .3b.3 needs native setup/admin/mode/pack-team facts and authentic joint controls/parity. The registered benchmark roster is not FTB Teams evidence; verified supporting bytes are not an automatic setup-validity assertion. Raw/candidate witnesses remain unscorable. The online telemetry API and full recovery remain open. Preserve all original failures and the $0.7554 unknown-usage hold; no model replay/refund or unchanged accounting/stream trial.
 
 ## Settled authority and limits
 

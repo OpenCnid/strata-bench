@@ -25,7 +25,7 @@ defines files, failure cases and exit evidence. No VM procurement or exact OAuth
 billing-conversion question remains pending. The original $10 total, OAuth/Luna
 selection, conservative reservations and shared-desktop pause remain in force.
 
-M0.2c.3 now has [authenticated telemetry implementation and a narrow authentic Forge reference](verification/2026-09-20-authenticated-telemetry.md): 136 affected Python, 24 final authentication and 20 Java checks; then 13 actual signed records, 186 sampled server ticks, exact expert recipe and clean stream termination. M0.2c.3a verifies that selected stream only; all 18,215 original source files remain unchanged. Next M0.2c.3b binds setup/team/resource provenance and scorer controls. Byte authentication does not qualify a score or OS process boundary.
+M0.2c.3 now has [authenticated telemetry implementation and a narrow authentic Forge reference](verification/2026-09-20-authenticated-telemetry.md): 136 affected Python, 24 final authentication and 20 Java checks; then 13 actual signed records, 186 sampled server ticks, exact expert recipe and clean stream termination. M0.2c.3a verifies that selected stream only; all 18,215 original source files remain unchanged. M0.2c.3b.1 now adds [private fixture seals and authenticated resource joining](verification/2026-09-20-craft-reference-seal.md), with source/synthetic CLI/JVM evidence. Next .3b.2 binds the owned launcher; native setup/team facts and scorer controls remain .3b.3. Byte authentication does not qualify a score or OS process boundary.
 
 The latest Forge pair04 is terminal and overall **fail**: cancellation, full
 journal staging, restart and 16 + 4 = 20 primitive charges pass; phase 2 shutdown

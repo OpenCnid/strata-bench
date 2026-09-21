@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.71, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (native setup observations and registered pack-team point checks). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.72, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-20 (bounded private reference participant coordination). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -1379,6 +1379,8 @@ Server predicates validate causally relevant behavior: crafting source and consu
 For retention, compare fixed earlier-family variants at the registered mastery checkpoint and after a fixed later-training block, e.g. 6 additional active hours; use fresh variants, not the original instances. If no mastery checkpoint exists, report retention as not defined and report absolute earlier-family performance. For transfer, create fresh target-pack worlds and compare source-trained artifacts versus same-model initial artifacts at target exposure zero and matched later target exposure; include source-training cost. No world-save migration.
 
 Optional changed-mechanic diagnostic: independently validate reachability; randomize standard/changed worlds and predeclare observable encounters. Estimate `[(E-I)_changed - (E-I)_standard]`. An encounter is an authoritative rule-relevant action plus visible feedback, not the agent saying it noticed a change. This track has its own information policy; permitting a recipe browser that reveals the rule changes the inference being tested. Recovery latency/futile repetition after naturally occurring setbacks is descriptive unless exposure/perturbation was randomized.
+
+**Private reference participant coordination.** `PrivateReferenceLaunch/2` adds an explicitly registered operator participant window of at most 420 seconds within the existing 600-second server exposure; the complete window must still fit after boot. Version 1 retains its separate 60-second headless timing policy. Publish private readiness only after native/retained-process binding and server readiness, with the instance, setup, launch-plan digest, boot, participant, fresh challenge and finite expiry. Journal readiness before publication. Accept one matching terminal receipt with a bounded, preserved report whose exact bytes remain leased through server stop. Missing, premature, foreign, changed, malformed, late or failed completion cannot qualify a stopped reference or bypass uncertain-dispatch import rejection. Retain the original one-use grant after failure; do not restart or shorten registered exposure automatically. The external operator driver must independently own and bound its client/worker processes using the existing separate-desktop and guardian facilities. A coordination receipt does not prove that a client executed, passed its guardian, satisfied native craft/team controls or earned a score; `participant_execution_verified` and `scoring_eligible` remain false. Server graceful-stop and 500-ms guardian thresholds are unchanged. [Source and JVM fixture evidence](docs/verification/2026-09-20-reference-participant.md).
 
 ### 13.4 Replication, uncertainty, censoring and power
 

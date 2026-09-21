@@ -10,7 +10,7 @@ import threading
 import time
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Digest, Id, Strict
 from mcbench.inference_transport import strict_json
@@ -21,6 +21,7 @@ from mcbench.server_health import inspect_server_log
 from mcbench.storage import Database, Fault, canonical, digest, require
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path, write_new
+from .reference_participant import ParticipantPlan, ParticipantWindow, validate_paths
 from .telemetry import ServerStartedV5, ServerStartedV6
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 
@@ -35,8 +36,7 @@ E9E_BOOTSTRAP_PINS = {
 }
 
 
-class ReferenceLaunchPlan(Strict):
-    schema_: Literal["strata/PrivateReferenceLaunch/1"] = Field(alias="schema")
+class ReferenceLaunchBase(Strict):
     instance_id: Id
     setup_digest: Digest
     mode: Literal["e9e-serverstarter", "synthetic-fixture"]
@@ -49,8 +49,21 @@ class ReferenceLaunchPlan(Strict):
     evidence_directory: str
     server_port: int = Field(ge=1024, le=65535)
     max_wall_s: int = Field(ge=1, le=600)
-    ready_run_s: int = Field(ge=1, le=60)
     graceful_stop_s: int = Field(ge=1, le=120)
+
+
+class ReferenceLaunchPlan(ReferenceLaunchBase):
+    schema_: Literal["strata/PrivateReferenceLaunch/1"] = Field(alias="schema")
+    ready_run_s: int = Field(ge=1, le=60)
+
+
+class ReferenceLaunchPlanV2(ReferenceLaunchBase):
+    schema_: Literal["strata/PrivateReferenceLaunch/2"] = Field(alias="schema")
+    participant: ParticipantPlan
+
+
+def parse_launch_plan(value):
+    return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2).validate_python(value)
 
 
 def same_path(a, b):
@@ -130,7 +143,7 @@ class ReferenceLauncher:
 
     def run(self, value):
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
-        plan = ReferenceLaunchPlan.model_validate(value)
+        plan = parse_launch_plan(value)
         row, setup, authority, authority_path = self.store._load(plan.instance_id)
         require(row["digest"] == plan.setup_digest, "REFERENCE_SETUP_CHANGED")
         require(plan.mode != "synthetic-fixture" or setup.evidence_kind == "synthetic", "REFERENCE_MODE")
@@ -140,7 +153,12 @@ class ReferenceLauncher:
         require(not evidence.exists() and not evidence.is_relative_to(game)
                 and not game.is_relative_to(evidence) and not evidence.is_relative_to(authority_path.parent),
                 "REFERENCE_EVIDENCE_PATH")
-        require(plan.ready_run_s <= plan.max_wall_s, "REFERENCE_DEADLINE")
+        coordinated = isinstance(plan, ReferenceLaunchPlanV2)
+        if coordinated:
+            require(plan.participant.window_s <= plan.max_wall_s, "REFERENCE_DEADLINE")
+            validate_paths(plan.participant, evidence, game, authority_path.parent)
+        else:
+            require(plan.ready_run_s <= plan.max_wall_s, "REFERENCE_DEADLINE")
         pinned = {str(Path(pin.path).resolve()).casefold() for pin in plan.immutable_files}
         bootstrap = Path(__file__).resolve().parents[3] / "src/mcbench/process_bootstrap.py"
         require(all(str(path.resolve()).casefold() in pinned for path in
@@ -178,12 +196,14 @@ class ReferenceLauncher:
             db.execute("INSERT INTO reference_dispatches VALUES (?,?,?,?)",
                        (plan.instance_id, canonical(plan.model_dump(by_alias=True)).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.reference_dispatch", {"instance": plan.instance_id, **body})
-        proc, lease = None, None
+        proc, lease, participant = None, None, None
         readers, reader_errors = [], []
         ready = threading.Event()
         overflow = threading.Event()
         started, stopped_at, bound_at = time.monotonic(), None, None
         body.update(stop_sent=False, forced_stop=False)
+        if coordinated:
+            body["participant"] = {"status": "not_ready", "participant_execution_verified": False}
         try:
             evidence.mkdir()
             spool = evidence / "telemetry"
@@ -246,8 +266,21 @@ class ReferenceLauncher:
                         bound_at = time.monotonic()
                         self._record(plan.instance_id, "BOUND", body)
                 now = time.monotonic()
-                stop = now - started >= plan.max_wall_s or (
-                    bound_at is not None and ready.is_set() and now - bound_at >= plan.ready_run_s)
+                if coordinated and stopped_at is None:
+                    if participant is None:
+                        require(not (evidence / "participant-completion.json").exists(),
+                                "REFERENCE_PARTICIPANT_PREMATURE")
+                        if bound_at is not None and ready.is_set():
+                            participant = ParticipantWindow(plan.participant, evidence, plan, body["server_boot_id"],
+                                                            now, time.time(), started + plan.max_wall_s)
+                            body["participant"] = participant.result
+                            body["participant_readiness"] = participant.ready.model_dump(by_alias=True)
+                            self._record(plan.instance_id, "PARTICIPANT_READY", body)
+                            participant.publish()
+                    stop = participant is not None and participant.poll(time.monotonic())
+                else:
+                    stop = not coordinated and bound_at is not None and ready.is_set() and now - bound_at >= plan.ready_run_s
+                stop = stop or now - started >= plan.max_wall_s
                 if stop and stopped_at is None:
                     body["stop_sent"] = True
                     self._record(plan.instance_id, "STOPPING", body)
@@ -280,6 +313,9 @@ class ReferenceLauncher:
             body["spool_sha256"] = inspection["file_sha256"]
             body["records"] = inspection["records"]
             body["sampled_server_ticks"] = inspection["sampled_server_ticks"]
+            if coordinated:
+                require(participant is not None, "REFERENCE_PARTICIPANT_MISSING")
+                participant.finish()
             body["status"] = "stopped_reference"
             lease.recheck()
         except BaseException as error:
@@ -298,6 +334,8 @@ class ReferenceLauncher:
                 thread.join(2)
             if lease:
                 lease.close()
+            if participant:
+                participant.close()
             body["elapsed_s"] = time.monotonic() - started
             state = "STOPPED" if body["status"] == "stopped_reference" else "UNCERTAIN"
             self._record(plan.instance_id, state, body)

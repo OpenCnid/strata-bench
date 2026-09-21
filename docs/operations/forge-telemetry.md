@@ -254,6 +254,35 @@ their dispatch state. `launch_binding_verified` does not imply scoring,
 mutable-world/config writer exclusion, full process isolation or recovery.
 See [verification and limitations](../verification/2026-09-20-reference-launch.md).
 
+For a bounded external operator client, use `PrivateReferenceLaunch/2`, omit
+`ready_run_s` and provide `participant` with `participant_id`, `window_s` (1–420)
+and an absolute fresh `report_path`. Its existing parent must be outside source,
+game, authority and launcher evidence directories. The complete participant
+window must fit within `max_wall_s` (still at most 600) after boot; otherwise the
+one-use run fails without publishing readiness. Version 1 is unchanged.
+
+Wait for the atomically published `participant-ready.json` in the private launch
+evidence directory. Before dispatching the client, validate
+`ReferenceParticipantReady/1` and compare instance, setup, complete launch-plan
+digest and participant with the registered plan; reject an expired receipt or
+terminal server. Independently own the client/worker, retain their bounded wall
+watchdogs and existing guardian acceptance criteria, and keep shared input paused.
+The launcher does not spawn or terminate the external participant.
+
+After the client/worker have terminated, durably close the registered JSON report
+(at most 8 MiB), then call `reference_participant.submit_completion(evidence,
+ready, report_path, outcome)` exactly once. `outcome` is `completed` or `failed`;
+do not relabel a failed client/guardian as completed. The helper publishes a
+complete, non-replacing `participant-completion.json` with readiness digest and
+report hash/length. The launcher verifies and preserves the report, holds its
+bytes through server stop and journals the receipt before sending `stop`.
+Missing/invalid/failed completion retains uncertainty; no automatic replay or
+import bypass is allowed. Final server results are separate from the participant
+report, so the driver must not wait for server termination before submitting its
+own terminal report. A receipt is coordination evidence only, never authenticated
+client execution, scoring or process isolation. See the
+[focused evidence](../verification/2026-09-20-reference-participant.md).
+
 Telemetry 0.3.5 uses `ServerStarted/6`, retaining configuration 3 and the launch
 identity while declaring `native-e9e-setup-observation/1`. It emits private
 `NativeSetupSnapshot/1` records at tick 1 and before each craft begin/end.

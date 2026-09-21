@@ -2,8 +2,9 @@
 
 September 20, 2026. M0.2c.3; F04/F09/F10/F13/F16,
 N01/N02/N04/N06/N08, C12/C18/C24, partial T01/T06/T07/T10/T13,
-G0 item 5. This is implementation and synthetic verification, including the
-actual Java spool and operator CLI. No Minecraft launch or model call occurred.
+G0 item 5. Source/synthetic checks include the actual Java spool and operator
+CLI. The subsequent dedicated Forge reference below qualifies a narrow authentic
+signed stream. No model request or shared-desktop input occurred in either phase.
 M0 remains in progress, G0 fails, G1–G5 are not run.
 
 ## Implementation
@@ -73,11 +74,60 @@ The earlier CLI control used candidate
 its manifest is retained. The final candidate also rejects a server authentication
 plan on the optional client probe, before consuming its grant. Issuance rejects
 other Git worktrees as well as this checkout.
-It has not replaced an installed client/server module or qualified a pack.
+The synthetic phase did not replace an installed client/server module or
+qualify a pack. The subsequent reference used a distinct private server clone.
 Private control artifacts are under
 `C:/Users/Darian/.strata/evidence/2026-09-20-authenticated-telemetry-01`:
 commands, synthetic marker, authority/key/claim, signed spool, report and tests.
 Keep this directory out of public source and gameplay access.
+
+## Authentic dedicated reference
+
+Source commit `ec15bbd` and the final candidate above ran once against the existing
+official E9E 1.27.0 / Minecraft 1.19.2 / Forge 43.4.23 distribution. Preparation
+copied and hash-checked 18,215 files from the stopped development reference into
+a distinct protected directory. The changes were explicit: server telemetry
+0.3.1 → 0.3.3, loopback port 25566 → 25568, and a fresh private version-3
+authentication scope. Existing 2–5 GiB heap limits, `nogui`, online authentication
+and disabled automatic restart remained. No setup command, player connection,
+gameplay primitive or inference occurred.
+
+The existing bounded development runner held the server in its Windows Job
+Object, captured logs, and sent one normal stop after ten seconds of readiness.
+The private observer recorded the descendant tree and executable hashes, including
+the pinned Java launcher and actual Forge process. This is operator process
+evidence, not an adversarial process-isolation certificate.
+
+| Authentic check | Result |
+|---|---|
+| Startup, bounded run and normal stop | Exit 0, no forced stop; server elapsed 156.203 s, surrounding reference 156.859 s |
+| Signed stream and private CLI import | 13 records: startup, two recipes, nine health samples and stop; all signatures/sequence/scope/claim checks pass |
+| Actual clocks | 188 final server ticks; 186 sampled ticks over 9.2608555 s; zero avatar exposure |
+| Expert recipe | Six existing exact assertions pass, including expert ingredients/output and absent vanilla recipe |
+| Derived negative files | Changed module bytes reject `TELEMETRY_AUTH_MAC`; duplicate record rejects `TELEMETRY_AUTH_SEQUENCE`; missing stop rejects `TELEMETRY_CLEAN_STOP_MISSING`; changed authority rejects `TELEMETRY_AUTH_CLAIM` |
+| Original reference preservation | All 18,215 recorded source file hashes unchanged after the run; installed candidate hash unchanged |
+| Offline replay and shutdown state | Reinspection identical; zero remaining Java processes |
+
+Logs retain the distribution's existing warnings/errors; the bounded critical
+failure inspector passes. This is not a complete pack-health or save-integrity
+certificate. No 500-ms guardian test was performed, so previous failed samples
+remain unchanged.
+
+A separate plain-JVM invocation of the actual writer then attempted to use the
+consumed authentic grant. It rejected with `FileAlreadyExistsException` before
+opening a spool; the claim and signed stream remained byte-identical, with zero
+synthetic events emitted. That check did not boot Minecraft a second time and
+does not qualify a complete server restart/recovery.
+
+Private root:
+`C:/Users/Darian/.strata/evidence/2026-09-20-authenticated-telemetry-live-01`.
+It holds the preparation/source manifest, launch plan, process observations,
+key/claim, raw spool/logs, CLI report, negative derivatives and audit scripts.
+Spool SHA-256:
+`c8590676febb74a991bd7a0dce2e9ce88b552e978230b65f10008c215bed818b`.
+Independent audit SHA-256:
+`088eae61841f451cee8cbbf0b2a0947c9bfc274bd5084ce6accb38e49d4ccefd`.
+Keep this evidence private; publish only the source and sanitized report.
 
 ## Qualification limits and next M0 work
 
@@ -90,9 +140,8 @@ aggregate gates unpassed. Registration is still not authoritative scoring;
 no raw witness was promoted to credit. Online telemetry API/lifecycle and full
 checkpoint/recovery integration remain required.
 
-Next qualify this changed module/configuration on a dedicated authentic Forge
-reference, with a fresh private grant and exact launch/artifact identity,
-then bind authenticated setup/team/recipe/resource evidence and scorer controls.
+Next bind authenticated setup/team/recipe/resource evidence and scorer controls.
+The narrow dedicated stream reference is complete; do not repeat it unchanged.
 Retain the previous 500-ms shutdown failures, five effective-file failures,
 Mineflayer/E9E incompatibility, loopback canaries and remaining provenance/
 recovery requirements. Do not use this module change as an unchanged shutdown

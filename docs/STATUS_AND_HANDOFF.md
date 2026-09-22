@@ -76,7 +76,9 @@ capture, clean-save/custody or full checkpoint qualification yet.
 
 M0.1d.5 now implements preregistration and paired native/world components.
 [Source evidence](verification/2026-09-21-native-game-retention.md): 33 new synthetic
-checks pass. Register the declared initial tree before the next native job; retain
+checks pass; final input hardening has 35 passes. Direct layout inspection now
+normalizes Windows paths; 66 affected checks pass/14.60 s after a preparation-only
+failure. Register the declared initial tree before the next native job; retain
 its source-bound component and the v2 stopped-world capture together. Prepare one
 changed connected trial with scripted responses. No retroactive registration,
 new model allowance or complete checkpoint claim. Pack/custody/clock/fresh restore

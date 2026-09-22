@@ -5494,3 +5494,7 @@ Initial 6 pass/16 unsupported Pin.name fixture failures corrected to 22 pass/1.2
 Final combined retention/export/checkpoint/evidence/persistence/package/record regression selection: 179 pass/51.85 s. Full Ruff and whitespace pass. Authentic paired capture remains pending; source checks do not close G0.
 
 Input hardening additionally pins every directly referenced campaign/agent context preimage and checks actual vanilla lock identity without changing its status. Final new selection 35 pass/10.11 s; full Ruff pass. Read-only original accounting before trial preparation still totals 756,858 microUSD with uncertainty, two actual requests; vanilla remains RESOLVED/unsealed.
+
+Connected capture preparation found a normal/extended Windows path mismatch in direct layout inspection before any output, clone or process was created. Normalize the root in layout itself; a new normal/extended-path regression and the affected persistence/retention selection verify the fix. This is preparation evidence, not an authentic trial.
+
+Path-normalization verification: 66 persistence/retention checks pass/14.60 s; focused Ruff and whitespace pass. The intended connected run has still not started.

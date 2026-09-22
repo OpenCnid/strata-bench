@@ -44,6 +44,10 @@ def stopped():
         member_status=lambda: {"held_processes": 2, "signaled_processes": 2}))
 
 
+def test_layout_accepts_normal_and_extended_windows_paths(installed):
+    assert persistence.layout(installed)[1:] == persistence.layout(persistence.safe(installed))[1:]
+
+
 def capture(root, target, process=None):
     service = persistence.VanillaPersistence(root)
     try:

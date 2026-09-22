@@ -60,3 +60,9 @@ $0.001458 settled usage and consumed D12 are unchanged.
 Final preimage/profile hardening: 35 new checks pass/10.11 s; full Ruff passes.
 The 179-check combined run precedes only this bounded input hardening. No new
 canonical record or acceptance threshold was introduced.
+
+Preparation stopped before directory/process creation on a normal/extended Windows
+path mismatch in direct layout inspection. Root normalization and an explicit
+normal/extended-path equivalence check fix the public inspection path.
+Affected persistence/retention selection: 66 pass/14.60 s; focused Ruff and
+whitespace pass. No game/model dispatch occurred during the failed preparation.

@@ -45,6 +45,7 @@ def disposition(path):
 
 
 def layout(root):
+    root = safe(root)
     inventory = snapshot([], [root])
     entries = {}
     for entry in inventory["files"]:

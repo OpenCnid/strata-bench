@@ -182,17 +182,21 @@ mcbench pack launch-worker --binding C:/StrataPrivate/binding.json --invocation 
 
 The import-only invocation consumes its fresh configuration path; preserve it
 and use new invocation paths for a later worker run. Omit `--import-only` to
-start the worker against the already owned server declared by the profile.
-It performs the fixed import check first, then launches with the generated
-configuration. The worker grant remains in the private state directory for the
+start and own both the matching server and worker. Both roles are resolved before
+the server creates world/log files. It performs the fixed import check first,
+starts the server, waits for readiness, then launches the prepared worker with
+the generated configuration. The worker grant remains in the private state directory for the
 scoped CLI/broker. No inference is dispatched. The operator command retains
 bounded logs, preparation/process elapsed times and owned-stop evidence, while
 `HeldPackWorker` exposes the same lifecycle for a future joint native launcher.
-Resolve both role commands before the server mutates a fresh instance.
+The server has an 80-second readiness bound, the worker's pinned exposure and a
+120-second normal-save window, with a separate lifetime watchdog. Failed readiness,
+worker startup, logs, exits or shutdown retain failure and owned cleanup. These
+development limits do not replace D13's emergency shutdown gate.
 
-The actual candidate has been validated against existing files, but the
-original vanilla PackLock is still unsealed and rejects this command. Complete
-its remaining bound provisioning evidence before publication; do not use a
-synthetic store or copied authority to bypass the refusal. The existing native
-development runner remains separate until its server custody/capture is joined
-to the sealed launch. [Exact source/inspection evidence and retained parser failure](../verification/2026-09-22-pack-worker-launch.md).
+The original vanilla request is now SEALED with nine evidence-bound provisioning
+checks. Its first actual materialization and held import-only invocation pass.
+This does not qualify full joint gameplay: connect the existing native runner
+and inventory-bound capture, then collect the changed-profile evidence. The
+existing development execution/recovery remains narrower. [Actual seal/import,
+source checks and retained failures](../verification/2026-09-22-vanilla-packlock.md).

@@ -176,8 +176,8 @@ def launch_worker(binding: Annotated[Path, typer.Option()], invocation: Annotate
                   evidence: Annotated[Path, typer.Option()], import_only: bool = False):
     """Launch the sealed vanilla worker; import-only performs no authentication/game connection.
 
-    Reads existing authority without migrations. Full mode requires the declared
-    server already running; private state holds the scoped worker grant.
+    Reads existing authority without migrations. Full mode owns the matching
+    server and worker; private state holds the scoped worker grant.
     """
     from .pack_launch import PackLaunchBinding
     from .pack_worker import _path, _apart, ROOT, run_pack_worker

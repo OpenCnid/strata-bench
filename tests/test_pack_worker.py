@@ -3,6 +3,7 @@
 import io
 import json
 from pathlib import Path
+import threading
 from types import SimpleNamespace
 
 from pydantic import ValidationError
@@ -39,6 +40,7 @@ def candidate(inputs, tmp_path):
         item.origin = "https://piston-data.mojang.com/fixture"
     server = Path(roles[1].root)
     (server / "server.properties").write_text(PROPERTIES)
+    (server / "eula.txt").write_text("eula=true\n")
     roles[1].files = [FileEntry.model_validate(item | {"role": "server", "origin": "fixture",
         "project_id": None, "file_id": None, "license_ref": "fixture", "layer": "resolved"})
         for item in scan_tree(server)]
@@ -174,17 +176,39 @@ def test_actual_vanilla_separator_escaping_is_decoded_without_key_aliases(candid
     assert properties["level-type"] == "minecraft:normal" and properties["motd"] == "equals=colon:space here"
 
 
-def fake_process_factory(calls, *, exit_code=0):
+def fake_process_factory(calls, *, exit_code=0, server_ready=True, server_fatal=False, worker_error=False):
     class Process:
-        def __init__(self, argv, cwd, environment, prompt):
+        def __init__(self, argv, cwd, environment, prompt, *, interactive=False, bootstrap_python=None):
+            assert bootstrap_python is not None and bootstrap_python.name == "python.exe"
+            if worker_error and len(calls) == 2:
+                if worker_error == "interrupt":
+                    raise KeyboardInterrupt("synthetic operator interruption")
+                raise OSError("synthetic worker construction failure")
             self.argv, self.closed = argv, False
-            self.process = SimpleNamespace(stdout=io.BytesIO(b"synthetic output"), stderr=io.BytesIO())
-            self.job = SimpleNamespace(accounting=lambda: {"active_processes": 0, "total_processes": 1,
+            self.code = None if interactive else exit_code
+            output = (b'[00:00:00] [Server thread/INFO]: Done (1.0s)! For help, type "help"\n'
+                      if interactive and server_ready else b"synthetic output\n")
+            error = (b"[00:00:00] [Server thread/ERROR]: Exception in server tick loop\n"
+                     if interactive and server_fatal else b"")
+            self.process = SimpleNamespace(stdout=io.BytesIO(output), stderr=io.BytesIO(error))
+            self.job = SimpleNamespace(accounting=lambda: {"active_processes": int(self.code is None), "total_processes": 1,
                                                            "terminated_processes": 0})
+            if interactive:
+                # This would break the previous full command's second fresh
+                # materialization check after server startup.
+                (Path(cwd) / "world").mkdir()
+                (Path(cwd) / "world/level.dat").write_bytes(b"synthetic generated state")
             calls.append((self, str(cwd), environment, prompt))
 
         def poll(self):
-            return exit_code
+            return self.code
+
+        def send_input(self, value):
+            assert value == "stop\n" and self.code is None
+            self.code = 0
+
+        def stop(self):
+            self.code = 125
 
         def close(self):
             # The complete runtime must still be held at owned cleanup.
@@ -234,18 +258,93 @@ def test_operator_command_retains_result_and_uses_only_selected_launch_mode(pack
     else:
         assert run_pack_worker(binding, invocation, output, import_only=import_only)["status"] == "stopped_unqualified"
     result = json.loads((output / "result.json").read_bytes())
-    assert result["mode"] == ("import-only" if import_only else "worker") and not result["campaign_admission"]
-    assert len(calls) == (1 if import_only else 2) and calls[0][0].argv[-1] == "--check-vanilla-runtime"
+    assert result["mode"] == ("import-only" if import_only else "owned-server-worker") and not result["campaign_admission"]
+    assert len(calls) == (1 if import_only else 3) and calls[0][0].argv[-1] == "--check-vanilla-runtime"
     if not import_only:
-        assert calls[1][0].argv[-1] == invocation["configuration_path"]
+        assert calls[2][0].argv[-1] == invocation["configuration_path"]
+        assert result["server_stop_sent"] and "server_forced_stop" not in result
+        assert set(result["receipt"]["owned_processes"]) == {"preflight", "server", "worker"}
+        assert result["receipt"]["server_launch_digest"] == result["server_launch_digest"]
+        assert (Path(binding.instance) / "server/world/level.dat").exists()
     assert all(call[0].closed for call in calls)
     assert not any(Path(invocation["state_directory"]).iterdir())
+
+
+@pytest.mark.parametrize("failure", ["readiness", "worker-construction", "worker-interrupt", "server-log"])
+def test_joint_failure_retains_evidence_and_stops_the_owned_server(pack, tmp_path, monkeypatch, failure):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+    calls = []
+    monkeypatch.setattr(module, "ManagedProcess", fake_process_factory(calls,
+        server_ready=failure != "readiness", server_fatal=failure == "server-log",
+        worker_error="interrupt" if failure == "worker-interrupt" else failure == "worker-construction"))
+    if failure == "readiness":
+        monkeypatch.setattr(module, "SERVER_READY_SECONDS", 0)
+    output = tmp_path / "failed-evidence"
+    with pytest.raises((Fault, OSError, KeyboardInterrupt)):
+        run_pack_worker(binding, invocation, output)
+    result = json.loads((output / "result.json").read_bytes())
+    assert result["status"] == "fail" and "receipt" not in result
+    assert result["server_stop_sent"] and "server_forced_stop" not in result
+    assert len(calls) == (3 if failure == "server-log" else 2)
+    assert all(call[0].closed and call[0].poll() == 0 for call in calls)
+    assert (output / "server-launch.json").is_file()
+
+
+def test_server_cannot_start_before_import_or_twice(pack, monkeypatch):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+    calls = []
+    monkeypatch.setattr(module, "ManagedProcess", fake_process_factory(calls))
+    with HeldPackWorker(binding, invocation, own_server=True) as worker:
+        with pytest.raises(Fault, match="WORKER_PREFLIGHT_INCOMPLETE"):
+            worker.start_server()
+        worker.start(preflight=True)
+        server = worker.start_server()
+        with pytest.raises(Fault, match="WORKER_LAUNCH_ALREADY_STARTED"):
+            worker.start_server()
+        exposed = worker.server_resolved
+        exposed["launch"]["arguments"].append("untrusted mutation")
+        assert exposed != worker.server_resolved
+        server.send_input("stop\n")
+        with pytest.raises(Fault, match="SERVER_PROCESS_UNAVAILABLE"):
+            worker.start()
+
+
+def test_server_lifetime_expires_independently_of_a_blocked_owner():
+    from mcbench.pack_worker import _ServerDeadline
+    stopped = threading.Event()
+    deadline = _ServerDeadline(SimpleNamespace(stop=stopped.set), .02)
+    assert stopped.wait(2)
+    deadline.close()
+    assert deadline.expired.is_set()
+
+
+def test_server_stop_timeout_retains_forced_cleanup_failure(pack, tmp_path, monkeypatch):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+    calls = []
+    factory = fake_process_factory(calls)
+    def create(*args, **kwargs):
+        process = factory(*args, **kwargs)
+        if kwargs.get("interactive"):
+            process.send_input = lambda _value: None
+        return process
+    monkeypatch.setattr(module, "ManagedProcess", create)
+    monkeypatch.setattr(module, "SERVER_STOP_SECONDS", 0)
+    output = tmp_path / "timeout-evidence"
+    with pytest.raises(Fault, match="SERVER_STOP_TIMEOUT"):
+        run_pack_worker(binding, invocation, output)
+    result = json.loads((output / "result.json").read_bytes())
+    assert result["status"] == "fail" and result["server_forced_stop"]
+    assert "receipt" not in result and all(call[0].closed for call in calls)
+    assert calls[1][0].poll() == 125
 
 
 def test_process_construction_failure_releases_leases_without_a_stop_receipt(pack, monkeypatch):
     import mcbench.pack_worker as module
     binding, invocation, _ = pack
-    def fail(*_):
+    def fail(*_, **__):
         raise OSError("synthetic process construction failure")
     monkeypatch.setattr(module, "ManagedProcess", fail)
     with pytest.raises(OSError):

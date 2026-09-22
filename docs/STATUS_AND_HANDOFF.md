@@ -1,10 +1,12 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.120](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.121](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
-**Sealed worker launch — M0.3a.3:** [Implementation and actual-file inspection](verification/2026-09-22-pack-worker-launch.md) add LaunchProfile/2 and `pack launch-worker`: pinned software/settings with typed fresh run identity, generated held configuration and owned cleanup. 127 distinct focused source cases pass; the final affected selection is 34/34. The actual 11,722-file candidate validates after retaining its initial escaped-property rejection. All 34 authority tables and $0.756858 accounting remain unchanged. The original pack stays VERIFIED/unsealed and rejects launch; new candidate review refs are not yet published. Next complete bound provisioning checks and the actual seal, then join native launch/server custody/capture to it. Fresh-instance launch only; scorer/setup/clocks/isolation and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input.
+**Actual vanilla seal and joint launch — M0.3a.2/.3:** [Implementation and evidence](verification/2026-09-22-vanilla-packlock.md) seal the original vanilla request with nine bound provisioning checks and fix server/worker startup ordering. M0.3a.2 is verified for the installed vanilla template/provenance disposition; M0.3a.3 remains implemented_unverified for authentic joint launch. The actual 11,722-file sealed import passes with all owned processes exited; 70 distinct focused source cases pass (final affected selection 41/41). Original accounting, consumed D12, all old object/event rows and 31 other authority tables are preserved. Next connect the existing native action/recovery runner and inventory-bound capture to this sealed launch, then collect changed-profile evidence. Scorer/setup, E9E, isolation, complete clocks and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input in this checkpoint.
+
+**Prior checkpoint (fc9b381), sealed worker launch — M0.3a.3:** [Implementation and actual-file inspection](verification/2026-09-22-pack-worker-launch.md) add LaunchProfile/2 and `pack launch-worker`: pinned software/settings with typed fresh run identity, generated held configuration and owned cleanup. 127 distinct focused source cases pass; the final affected selection is 34/34. The actual 11,722-file candidate validates after retaining its initial escaped-property rejection. All 34 authority tables and $0.756858 accounting remain unchanged. The original pack stays VERIFIED/unsealed and rejects launch; new candidate review refs are not yet published. Next complete bound provisioning checks and the actual seal, then join native launch/server custody/capture to it. Fresh-instance launch only; scorer/setup/clocks/isolation and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input.
 
 ## Resume from the merged checkpoint
 
@@ -129,7 +131,7 @@ passes at 568.994 ms and protected custody closes normally. The original
 [CPU-profile](verification/2026-09-21-bundle-preparation.md) failures remain intact.
 Do not repeat the unchanged successful craft or resume 500-ms optimization.
 Full authentic fault/launch containment and general isolation remain open.
-Candidate vanilla PackLock now has a VERIFIED installed inventory and remains unsealed; canonical save/custody/
+The original vanilla PackLock is now SEALED with actual materialization/import evidence; canonical save/custody/
 clock/checkpoint qualification remains open despite the successful bounded
 native/world continuation. Original accounting and consumed D12 remain
 unchanged; no permission question or missing user input is pending.

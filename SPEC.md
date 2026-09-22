@@ -2,7 +2,7 @@
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.117, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-22 (installed Mineflayer dependency provenance). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.118, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-22 (private Mineflayer worker runtime preparation). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -438,6 +438,8 @@ Vanilla 1.19.2 uses an official CurseForge-managed profile if that path is suppo
 E9E is the first expert target. E6E/1.16.5 and E2E/1.12.2 receive independent Java/Forge/input/quest/save modules later. They are not interchangeable versions or an ordered difficulty ladder. Never upgrade an E9E campaign save to another pack to graduate an agent.
 
 **Private client configuration probe.** Telemetry 0.3.2 retains the server 0.3.1 payload contracts and adds an opt-in connected-client export. An operator JVM property supplies an external `ForgeTelemetryConfig/2` plan with exactly one event, 64 KiB–1 MiB output cap, no recipe queries and 1–16 exact config selectors. The client reads the same bounded registration/spec/raw-data snapshots after joining, without config getters, changes, corrections, reloads, reflection or consumer-cache claims. Pin unchanged plan bytes and record process/session/actor/dimension/runtime with selected queries/results in `ClientConfigSnapshot/1`. No gameplay endpoint exists. Strict private ingestion verifies scope, complete ordered selectors and source bytes, and retains unregistered/failed states. A same-user file does not authenticate the process, qualify a pack lock or prove consumer/mechanics parity; actual role comparison, cold restart, instrumentation and isolation gates remain required. Installing this optional probe changes the client artifact identity and must be pinned as a distinct diagnostic profile. Dedicated telemetry still requires its separate explicit server plan; integrated-server telemetry remains disabled.
+
+**Private vanilla worker preparation.** Operator-only `WorkerRuntimeBundle/1` binds exact source/output file inventories, retained npm evidence, Node, compiled worker/public schemas and the stdlib-only Windows ACL helper runtime. Require the existing live vanilla request and verified npm bytes; reject unsafe/overlapping/occupied paths, links/hardlinks, changed dependencies and incomplete copies. Hold source files while independently copying, retain failed partial outputs without a manifest, and verify complete output membership/hashes. Exclude Python bytecode and site-packages only with the helper's isolated/no-site/no-bytecode invocation. Preserve the existing finite inventory limits. Use Node-compatible absolute launch paths while retaining long-path inventory support. Copy no account cache, game state, operator instructions or private evaluator material. Preparation cannot authenticate, launch gameplay, establish process isolation or qualify a campaign; future launch must independently verify and hold its expected runtime descriptor. [Source and relocated checks](docs/verification/2026-09-22-worker-bundle.md).
 
 ## 8. Observation, actions and the keybinding skill
 

@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.117](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.118](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Private worker runtime — M0.3a.2:** [Preparation and relocated checks](verification/2026-09-22-worker-bundle.md) copy the exact Mineflayer worker, Node and stdlib-only Python ACL helper outside the checkout. All 11,722 files stay pinned during a successful worker import and real Windows ACL checks using a synthetic cache; weakened permissions reject. Fourteen Python and 12 Node source cases pass. Both initial Windows-path failures remain retained. All 34 authority tables and original $0.756858 accounting are unchanged; no game, account authentication, model or shared input. Next connect the native runner to this expected-hash bundle with lifetime file locks, then complete sealed launch/custody/recovery. The current runner still uses checkout-local worker files. M0 incomplete, G0 fail.
 
 **Installed Mineflayer runtime — M0.3a.2:** [Implementation and actual verification](verification/2026-09-22-mineflayer-runtime.md) add offline lock/archive/file verification and an operator command. All 111 packages and 9,376 installed files match; 39 npm wrappers independently regenerate. A real import-only worker check passes under 9,599 held inputs. 26 distinct source cases, 10 independent evidence checks and 39 publication/conservation checks pass. One private report object/event is added; prior history, 32 other tables and $0.756858 accounting remain unchanged. The pack stays VERIFIED/unsealed. Next bind the authenticated worker and Python ACL helper, server launch/configuration/update policy, finish remaining component review, then seal and connect custody/recovery. D05 account/EULA evidence already exists. M0 incomplete, G0 fail.
 

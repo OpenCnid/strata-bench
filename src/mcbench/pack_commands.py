@@ -129,6 +129,24 @@ def prepare_vanilla_client(assets: Path, destination: Path, request: Request, st
         emit(service.prepare_vanilla_client(request, assets, library_root, destination))
 
 
+@pack_app.command("prepare-vanilla-worker")
+def prepare_vanilla_worker(repository: Path, node: Path, python_root: Path, destination: Path,
+                           npm_evidence: Annotated[str, typer.Option()], request: Request, store: Store):
+    """Copy a private worker/stdlib helper runtime from existing reviewed software.
+
+    Requires retained npm evidence in the original request. No auth or game launch.
+    """
+    from .worker_bundle import prepare_worker_bundle
+    with provider(store, False) as service:
+        require(".." not in destination.parts and ".." not in store.parts, "WORKER_BUNDLE_PATH")
+        row = service._row(request, active=True)
+        require(row["target"] == "vanilla" and row["state"] in {"VERIFIED", "SEALED"}, "UNVERIFIED_PACK")
+        require(not destination.absolute().is_relative_to(store.absolute())
+                and not store.absolute().is_relative_to(destination.absolute()), "UNSAFE_PATH")
+        emit(prepare_worker_bundle(repository, node, python_root, destination,
+             service._json(request, npm_evidence), npm_evidence))
+
+
 @pack_app.command("seal")
 def seal(request: Request, launch: Annotated[Path, typer.Option()],
          evidence: Annotated[Path, typer.Option()], store: Store, simulation: bool = False):

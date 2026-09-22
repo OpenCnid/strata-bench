@@ -135,8 +135,8 @@ plans. Keep `target`, `max_wall_s` and external `evidence`; replace `launch` wit
 and `instance`. The store must already exist. The runner derives the reviewed
 server command from its seal and rechecks both fresh role inventories. A separate
 command override rejects. Evidence must be outside both instance and store.
-The resolver is also callable for the client role; no client supervisor is
-added by this path.
+The version-1 resolver is also callable for the client role. The version-2
+vanilla worker launcher below adds bounded execution for that explicit profile.
 
 This is first-launch preflight, not ongoing custody: arguments retain their
 reviewed spelling, absolute executable pins remain host-specific, and runtime
@@ -159,3 +159,40 @@ bytes. It verifies the entire installed tree and emits private
 `NpmInstalledRuntime/1` with scope limits. Publish a reviewed report using the
 existing `pack evidence` command when appropriate. [Actual verification and
 retained failures](../verification/2026-09-22-mineflayer-runtime.md).
+
+For the active vanilla Mineflayer client, `LaunchProfile/2` pins `worker_runtime`
+(`path`, `sha256`), `worker_settings` (host, port, username, private auth-cache
+reference, wall and primitive limits), and
+`update_policy: sealed-local-bytes/no-installer/1`. Its client command is the
+descriptor's exact Node executable and worker entrypoint followed by the literal
+`{strata.worker_config}` slot. This is implemented substitution of one typed
+configuration argument, not arbitrary shell interpolation. The server command
+retains the existing reviewed argument/environment contract.
+
+After actual sealing and fresh materialization, write an operator-only binding
+with `store`, `request_id`, `lock` and `instance`. The separate invocation contains
+exactly `campaign_id`, `agent_id`, `epoch`, `lease_id`, `state_directory` and
+`configuration_path`. State must be an existing empty private directory; the
+configuration must not exist and its parent must exist. Neither may overlap
+the store, installation, runtime, credentials or checkout.
+
+```powershell
+mcbench pack launch-worker --binding C:/StrataPrivate/binding.json --invocation C:/StrataPrivate/invocation.json --evidence C:/StrataPrivate/import-check --import-only
+```
+
+The import-only invocation consumes its fresh configuration path; preserve it
+and use new invocation paths for a later worker run. Omit `--import-only` to
+start the worker against the already owned server declared by the profile.
+It performs the fixed import check first, then launches with the generated
+configuration. The worker grant remains in the private state directory for the
+scoped CLI/broker. No inference is dispatched. The operator command retains
+bounded logs, preparation/process elapsed times and owned-stop evidence, while
+`HeldPackWorker` exposes the same lifecycle for a future joint native launcher.
+Resolve both role commands before the server mutates a fresh instance.
+
+The actual candidate has been validated against existing files, but the
+original vanilla PackLock is still unsealed and rejects this command. Complete
+its remaining bound provisioning evidence before publication; do not use a
+synthetic store or copied authority to bypass the refusal. The existing native
+development runner remains separate until its server custody/capture is joined
+to the sealed launch. [Exact source/inspection evidence and retained parser failure](../verification/2026-09-22-pack-worker-launch.md).

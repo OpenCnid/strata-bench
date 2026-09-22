@@ -1,8 +1,10 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.119](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.120](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
+
+**Sealed worker launch — M0.3a.3:** [Implementation and actual-file inspection](verification/2026-09-22-pack-worker-launch.md) add LaunchProfile/2 and `pack launch-worker`: pinned software/settings with typed fresh run identity, generated held configuration and owned cleanup. 127 distinct focused source cases pass; the final affected selection is 34/34. The actual 11,722-file candidate validates after retaining its initial escaped-property rejection. All 34 authority tables and $0.756858 accounting remain unchanged. The original pack stays VERIFIED/unsealed and rejects launch; new candidate review refs are not yet published. Next complete bound provisioning checks and the actual seal, then join native launch/server custody/capture to it. Fresh-instance launch only; scorer/setup/clocks/isolation and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input.
 
 ## Resume from the merged checkpoint
 

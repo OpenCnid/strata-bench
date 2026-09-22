@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from .contracts import Id, Ref, Strict
 from .inventory import file_hash, scan_tree, template_path
 from .pack_policies import reviewed_vendor_paths
-from .provisioning import LaunchProfile, TARGETS, validate_launch_environment
+from .provisioning import TARGETS, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
 from .storage import CAS, Principal, canonical, digest, reject_links, require
 
@@ -33,7 +33,7 @@ def _absolute(value):
     return path
 
 
-def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False):
+def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False, worker_invocation=None):
     """Resolve an exact sealed command without creating/migrating a store.
 
 The caller must keep the binding private and enforce its own process, input,
@@ -80,8 +80,12 @@ credential, runtime dependency and mutable-world boundaries.
         require(report.get("schema") == "strata/AcquisitionReport/1"
                 and report.get("is_example") is simulation and report.get("receipt") == row["receipt"]
                 and report.get("inventory") == row["inventory"], "PACK_BINDING_MISMATCH")
-        launch = LaunchProfile.model_validate(read(lock.launch_profile))
+        launch = parse_launch_profile(read(lock.launch_profile))
         require(launch.is_example == simulation, "EXAMPLE_NOT_EXECUTABLE")
+        require(worker_invocation is None or role == "client" and isinstance(launch, VanillaLaunchProfile),
+                "WORKER_INVOCATION_UNSUPPORTED")
+        if isinstance(launch, VanillaLaunchProfile):
+            require(row["target"] == "vanilla", "RELEASE_MISMATCH")
         command = getattr(launch, role).model_copy(deep=True)
         read(command.reviewed_bootstrap)
         target = row["target"]
@@ -121,9 +125,13 @@ credential, runtime dependency and mutable-world boundaries.
     require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
     validate_launch_environment(command.environment)
     command.working_directory = str(working_directory)
-    return {"schema": "strata/ResolvedPackLaunch/1", "is_example": simulation,
+    result = {"schema": "strata/ResolvedPackLaunch/1", "is_example": simulation,
             "request_id": binding.request_id, "lock": binding.lock, "target": target,
             "inventory_digest": lock.installed_root_digest, "launch_profile": lock.launch_profile,
             "role": role, "instance": str(instance), "launch": command.model_dump(),
             "scope": "fresh_materialization_preflight", "writer_custody_qualified": False,
             "campaign_admission": False}
+    if isinstance(launch, VanillaLaunchProfile) and role == "client":
+        from .pack_worker import resolve_worker_invocation
+        result.update(resolve_worker_invocation(launch, worker_invocation, binding))
+    return result

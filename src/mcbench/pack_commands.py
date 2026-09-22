@@ -8,7 +8,7 @@ from typing import Annotated
 import typer
 
 from .provisioning import (
-    LaunchProfile, PackProvider, ProvisioningEvidence, RoleInventoryInput, parse_acquisition,
+    PackProvider, ProvisioningEvidence, RoleInventoryInput, parse_acquisition, parse_launch_profile,
 )
 from .storage import CAS, Database, Fault, require
 from .pack_modes import inspect_e9e_mode
@@ -152,7 +152,7 @@ def seal(request: Request, launch: Annotated[Path, typer.Option()],
          evidence: Annotated[Path, typer.Option()], store: Store, simulation: bool = False):
     """Freeze a verified template; keeps conformance and campaign admission separate."""
     with provider(store, simulation) as service:
-        profile = LaunchProfile.model_validate_json(launch.read_text(encoding="utf-8"))
+        profile = parse_launch_profile(json.loads(launch.read_text(encoding="utf-8")))
         proof = ProvisioningEvidence.model_validate_json(evidence.read_text(encoding="utf-8"))
         emit({"lock": service.seal_template(request, profile, proof)})
 
@@ -169,3 +169,19 @@ def status(request: Request, store: Store, simulation: bool = False):
     """Read the durable request state without acquisition retries."""
     with provider(store, simulation) as service:
         emit(service.status(request))
+
+
+@pack_app.command("launch-worker")
+def launch_worker(binding: Annotated[Path, typer.Option()], invocation: Annotated[Path, typer.Option()],
+                  evidence: Annotated[Path, typer.Option()], import_only: bool = False):
+    """Launch the sealed vanilla worker; import-only performs no authentication/game connection.
+
+    Reads existing authority without migrations. Full mode requires the declared
+    server already running; private state holds the scoped worker grant.
+    """
+    from .pack_launch import PackLaunchBinding
+    from .pack_worker import _path, _apart, ROOT, run_pack_worker
+    for path in (binding, invocation):
+        _apart(_path(str(path)), _path(str(ROOT)))
+    emit(run_pack_worker(PackLaunchBinding.model_validate_json(binding.read_bytes()),
+                        json.loads(invocation.read_bytes()), evidence, import_only=import_only))

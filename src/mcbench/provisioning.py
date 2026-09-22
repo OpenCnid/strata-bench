@@ -99,6 +99,34 @@ class LaunchProfile(Strict):
     server: LaunchCommand
 
 
+WORKER_CONFIG_ARGUMENT = "{strata.worker_config}"
+
+
+class WorkerRuntimeReference(Strict):
+    path: str
+    sha256: Digest
+
+
+class VanillaWorkerSettings(Strict):
+    host: Literal["127.0.0.1"]
+    port: Annotated[int, Field(ge=1, le=65535)]
+    username: Annotated[str, Field(min_length=1, max_length=255)]
+    auth_cache: str
+    max_wall_ms: Annotated[int, Field(ge=1, le=600000)]
+    primitive_limit: Annotated[int, Field(ge=1, le=100000)]
+
+
+class VanillaLaunchProfile(LaunchProfile):
+    schema_: Literal["strata/LaunchProfile/2"] = Field(alias="schema")
+    worker_runtime: WorkerRuntimeReference
+    worker_settings: VanillaWorkerSettings
+    update_policy: Literal["sealed-local-bytes/no-installer/1"]
+
+
+def parse_launch_profile(value):
+    return TypeAdapter(LaunchProfile | VanillaLaunchProfile).validate_python(value)
+
+
 def validate_launch_environment(environment: dict[str, str]):
     """Explicit operator settings only; never fill gaps from inherited state."""
     directories = {"SystemRoot", "WINDIR", "TEMP", "TMP"}
@@ -394,12 +422,25 @@ class PackProvider:
         result.update(schema="strata/VanillaClientSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
 
-    def seal_template(self, request_id, launch: LaunchProfile, evidence: ProvisioningEvidence):
+    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile, evidence: ProvisioningEvidence):
         row = self._row(request_id, active=True)
         require(row["state"] in {"VERIFIED", "SEALED"}, "INVALID_TRANSITION")
         require(launch.is_example == evidence.is_example == self.simulation,
                 "EXAMPLE_NOT_EXECUTABLE")
         require(evidence.request_id == request_id, "SCOPE_MISMATCH")
+        if isinstance(launch, VanillaLaunchProfile):
+            from .pack_worker import validate_worker_profile
+            require(row["target"] == "vanilla", "RELEASE_MISMATCH")
+            # Validate the selected runtime before accepting attestations or
+            # publishing profile objects. Reacquire its lease at actual launch.
+            validate_worker_profile(launch)
+            inventory = self._json(request_id, row["inventory"])
+            properties = [item for item in inventory["files"]
+                          if item["role"] == "server" and item["path"] == "server.properties"]
+            require(len(properties) == 1, "WORKER_SERVER_SETTINGS_MISMATCH")
+            from .pack_worker import validate_server_settings
+            validate_server_settings(self.cas.read(self.principal, self.namespace(request_id),
+                "cas:sha256:" + properties[0]["digest"]), launch.worker_settings)
         require(evidence.inventory_digest == row["inventory"][11:] and
                 evidence.receipt_digest == row["receipt"][11:] and
                 evidence.launch_profile_digest == digest(launch.model_dump()), "HASH_MISMATCH")

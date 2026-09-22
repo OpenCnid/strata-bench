@@ -1,0 +1,180 @@
+{
+  "$defs": {
+    "LaunchCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "executable": {
+          "$ref": "#/$defs/Pin"
+        },
+        "executable_path": {
+          "minLength": 1,
+          "title": "Executable Path",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Arguments",
+          "type": "array"
+        },
+        "working_directory": {
+          "title": "Working Directory",
+          "type": "string"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Environment",
+          "type": "object"
+        },
+        "reviewed_bootstrap": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Reviewed Bootstrap",
+          "type": "string"
+        }
+      },
+      "required": [
+        "executable",
+        "executable_path",
+        "arguments",
+        "working_directory",
+        "environment",
+        "reviewed_bootstrap"
+      ],
+      "title": "LaunchCommand",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    },
+    "VanillaWorkerSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "const": "127.0.0.1",
+          "title": "Host",
+          "type": "string"
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Port",
+          "type": "integer"
+        },
+        "username": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Username",
+          "type": "string"
+        },
+        "auth_cache": {
+          "title": "Auth Cache",
+          "type": "string"
+        },
+        "max_wall_ms": {
+          "maximum": 600000,
+          "minimum": 1,
+          "title": "Max Wall Ms",
+          "type": "integer"
+        },
+        "primitive_limit": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Primitive Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "host",
+        "port",
+        "username",
+        "auth_cache",
+        "max_wall_ms",
+        "primitive_limit"
+      ],
+      "title": "VanillaWorkerSettings",
+      "type": "object"
+    },
+    "WorkerRuntimeReference": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "WorkerRuntimeReference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/LaunchProfile/2",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "client": {
+      "$ref": "#/$defs/LaunchCommand"
+    },
+    "server": {
+      "$ref": "#/$defs/LaunchCommand"
+    },
+    "worker_runtime": {
+      "$ref": "#/$defs/WorkerRuntimeReference"
+    },
+    "worker_settings": {
+      "$ref": "#/$defs/VanillaWorkerSettings"
+    },
+    "update_policy": {
+      "const": "sealed-local-bytes/no-installer/1",
+      "title": "Update Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "client",
+    "server",
+    "worker_runtime",
+    "worker_settings",
+    "update_policy"
+  ],
+  "title": "VanillaLaunchProfile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

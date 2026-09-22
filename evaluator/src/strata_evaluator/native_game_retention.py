@@ -15,7 +15,8 @@ def inspect_retention(db, cas, bundle, native, intent):
         require("retention_source" not in plan and "run/retention-input.json" not in bundle.files,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return {"preregistered": False, "complete_checkpoint": False}
-    require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4"},
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
+                              "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"},
             "NATIVE_GAME_RETENTION_PROFILE")
     anchor = plan["retention_source"]["sha256"]
     retention = GameRetention({"path": str(bundle.path("run/retention-input.json")), "sha256": anchor})
@@ -85,9 +86,14 @@ def inspect_retention(db, cas, bundle, native, intent):
     result = {"preregistered": True, "component_ref": report["component_ref"], "input_sha256": anchor,
             "source_epoch": native.epoch, "retained_files": len(files), "costs_preserved": True,
             "complete_checkpoint": False}
-    if plan["schema"] == "strata/M0NativeGameSmoke/4":
+    if plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         require(c.pack_lock == plan["pack"]["lock"], "NATIVE_GAME_RETENTION_INPUT")
         result["pack_lock_ref"] = c.pack_lock
+        if plan["schema"] == "strata/M0NativeGameSmoke/5":
+            from mcbench.pack_launch import parse_pack_binding
+            from mcbench.pack_restore import baseline_record
+            require(strict_json(retention.body["objects"][c.world_baseline]) == baseline_record(parse_pack_binding(plan["pack"])),
+                    "NATIVE_GAME_RETENTION_INPUT")
     return result
 
 
@@ -96,7 +102,7 @@ def inspect_stopped_components(bundle, retention, server, server_plan, result):
         require("joint_components" not in result and "stopped_snapshot" not in server,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return retention
-    sealed = server_plan["schema"] == "strata/DevelopmentServer/4"
+    sealed = server_plan["schema"] in {"strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
     require(sealed or server_plan["schema"] == "strata/DevelopmentServer/2", "NATIVE_GAME_RETENTION_PROFILE")
     snapshot = server["stopped_snapshot"]
     # Archived absolute paths are never used as read authority.

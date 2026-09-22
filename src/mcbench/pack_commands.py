@@ -171,6 +171,20 @@ def status(request: Request, store: Store, simulation: bool = False):
         emit(service.status(request))
 
 
+@pack_app.command("restore-world")
+def restore_world(destination: Path, binding: Annotated[Path, typer.Option()],
+                  snapshot: Annotated[Path, typer.Option()], sha256: Annotated[str, typer.Option()]):
+    """Restore pinned stopped world bytes into a NEW sealed instance; never starts a game."""
+    from .pack_launch import PackLaunchBinding
+    from .pack_restore import restore_pack_instance
+    from .pack_worker import _path, _apart, ROOT
+    fresh = PackLaunchBinding.model_validate_json(binding.read_bytes())
+    for value in (str(binding), str(snapshot), str(destination), fresh.instance, fresh.store):
+        _apart(_path(value), _path(str(ROOT)))
+    result = restore_pack_instance(fresh, {"snapshot": str(snapshot), "sha256": sha256}, destination)
+    emit({"binding": result.model_dump(), "complete_checkpoint": False, "dispatch_authorized": False})
+
+
 @pack_app.command("launch-worker")
 def launch_worker(binding: Annotated[Path, typer.Option()], invocation: Annotated[Path, typer.Option()],
                   evidence: Annotated[Path, typer.Option()], import_only: bool = False):
@@ -179,9 +193,9 @@ def launch_worker(binding: Annotated[Path, typer.Option()], invocation: Annotate
     Reads existing authority without migrations. Full mode owns the matching
     server and worker; private state holds the scoped worker grant.
     """
-    from .pack_launch import PackLaunchBinding
+    from .pack_launch import parse_pack_binding
     from .pack_worker import _path, _apart, ROOT, run_pack_worker
     for path in (binding, invocation):
         _apart(_path(str(path)), _path(str(ROOT)))
-    emit(run_pack_worker(PackLaunchBinding.model_validate_json(binding.read_bytes()),
+    emit(run_pack_worker(parse_pack_binding(json.loads(binding.read_bytes())),
                         json.loads(invocation.read_bytes()), evidence, import_only=import_only))

@@ -17,7 +17,7 @@ from pathlib import Path
 from mcbench.inventory import file_hash
 from mcbench.processes import ManagedProcess
 from mcbench.launch_integrity import IntegrityError
-from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
+from mcbench.pack_launch import RestoredPackLaunchBinding, parse_pack_binding, resolve_pack_launch
 from mcbench.provisioning import LaunchCommand, validate_launch_environment
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Fault, digest, reject_links, require
@@ -33,7 +33,7 @@ def outside(path):
 
 
 def validate_persistence_profile(plan, launch, text):
-    sealed = plan.get("schema") == "strata/DevelopmentServer/4"
+    sealed = plan.get("schema") in {"strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
     arguments = ["-Xms1G", "-Xmx2G", "-jar", "server.jar", "nogui"]
     require(os.name == "nt" and plan["target"] == "vanilla"
             and plan["persistence_policy"] == (PACK_POLICY if sealed else POLICY)
@@ -51,17 +51,19 @@ def main(argv=None):
     parser.add_argument("plan", type=Path)
     options = parser.parse_args(argv)
     plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
-    capture = plan.get("schema") in {"strata/DevelopmentServer/2", "strata/DevelopmentServer/4"}
-    sealed = plan.get("schema") in {"strata/DevelopmentServer/3", "strata/DevelopmentServer/4"}
+    capture = plan.get("schema") in {"strata/DevelopmentServer/2", "strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
+    sealed = plan.get("schema") in {"strata/DevelopmentServer/3", "strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
     require(set(plan) == {"schema", "pack" if sealed else "launch", "evidence", "max_wall_s", "target"} | ({"persistence_policy"} if capture else set()),
             "SCHEMA_UNSUPPORTED")
     require(plan["schema"] in {"strata/DevelopmentServer/1", "strata/DevelopmentServer/2",
-                               "strata/DevelopmentServer/3", "strata/DevelopmentServer/4"}
+                               "strata/DevelopmentServer/3", "strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
             and plan["target"] in {"vanilla", "e9e"}, "SCHEMA_UNSUPPORTED")
     require(type(plan["max_wall_s"]) is int and 1 <= plan["max_wall_s"] <= 600, "CONFIG_RANGE")
     binding = None
     if sealed:
-        pack = PackLaunchBinding.model_validate(plan["pack"])
+        pack = parse_pack_binding(plan["pack"])
+        require(isinstance(pack, RestoredPackLaunchBinding) == (plan["schema"] == "strata/DevelopmentServer/5"),
+                "PACK_RESTORE_UNSUPPORTED")
         outside(pack.store)
         outside(pack.instance)
         binding = resolve_pack_launch(pack, "server")

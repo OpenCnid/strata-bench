@@ -406,7 +406,8 @@ def worker_runtime_evidence(bundle, intent, cap):
     """
     plan = intent["plan"]
     result = bundle.json("run/result.json")
-    pinned = plan["schema"] in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4", "strata/M0NativeGameRecovery/2"}
+    pinned = plan["schema"] in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4",
+                               "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/2"}
     if not pinned:
         require("worker_runtime" not in plan and "worker_runtime" not in result
                 and "run/worker-runtime.json" not in bundle.files, "NATIVE_GAME_WORKER_PROFILE")
@@ -503,7 +504,7 @@ def source_evidence(bundle, native, intent, cap):
 def saved_player_evidence(bundle, observations):
     after = NbtReader(unpack_chunk(bundle.read("run/player-after.dat"), 1)).root()
     rotation_after = field(after, "Rotation", 9)
-    sealed = bundle.json("run/intent.json")["plan"]["schema"] == "strata/M0NativeGameSmoke/4"
+    sealed = bundle.json("run/intent.json")["plan"]["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
     if sealed:
         require("run/player-before.dat" not in bundle.files, "NATIVE_GAME_SAVED_PLAYER")
         response = bundle.json("run/initial-observation.json")
@@ -543,8 +544,9 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
     from mcbench.provisioning import VanillaLaunchProfile
     from mcbench.records import PackLock
     plan = intent["plan"]
-    require(plan["schema"] == "strata/M0NativeGameSmoke/4"
-            and server_plan["schema"] == "strata/DevelopmentServer/4"
+    restored = plan["schema"] == "strata/M0NativeGameSmoke/5"
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+            and server_plan["schema"] == ("strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4")
             and server_plan["pack"] == plan["pack"], "NATIVE_GAME_PACK_BINDING")
     binding = plan["pack"]
     lock = PackLock.model_validate(bundle.json("run/pack-lock.json"))
@@ -561,13 +563,26 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
     launched_server = bundle.json("run/server/pack-launch.json")
     require(worker["schema"] == "strata/ResolvedPackLaunch/2"
             and launched_server["schema"] == "strata/ResolvedPackLaunch/1", "NATIVE_GAME_PACK_BINDING")
+    if restored:
+        from mcbench.vanilla_persistence import verify_snapshot
+        source = binding["restoration"]
+        baseline = verify_snapshot(bundle.path("run/baseline/manifest.json").parent, source["sha256"])
+        require(set(source) == {"snapshot", "sha256"} and baseline["schema"] == "strata/StoppedVanillaSnapshot/2"
+                and baseline["installed_inventory"] == inventory
+                and baseline["pack"] == {"lock": binding["lock"], "request_id": binding["request_id"],
+                                         "inventory_digest": lock.installed_root_digest}
+                and not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in baseline["files"]),
+                "NATIVE_GAME_PACK_BASELINE")
     for role, value in (("client", worker), ("server", launched_server)):
         require(value["lock"] == binding["lock"] and value["request_id"] == binding["request_id"]
                 and value["launch_profile"] == lock.launch_profile and value["inventory_digest"] == lock.installed_root_digest
                 and value["role"] == role and value["target"] == "vanilla"
-                and value["is_example"] is False and value["scope"] == "fresh_materialization_preflight"
+                and value["is_example"] is False
+                and value["scope"] == ("restored_materialization_preflight" if restored else "fresh_materialization_preflight")
                 and value["campaign_admission"] is False and value["writer_custody_qualified"] is False
                 and windows(value["instance"]) == windows(binding["instance"]), "NATIVE_GAME_PACK_BINDING")
+        require((value.get("restoration") == binding["restoration"] if restored else "restoration" not in value),
+                "NATIVE_GAME_PACK_BASELINE")
         expected = getattr(profile, role).model_dump()
         expected["working_directory"] = str(windows(binding["instance"]) / role)
         if role == "client":
@@ -648,7 +663,7 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             and all(result.get(name) == {"returncode": 0} for name in ("worker-preflight", "worker-driver", "server-driver")),
             "NATIVE_GAME_OUTER_STOP_UNCERTAIN")
     server_plan = bundle.json("run/server/plan.json")
-    if intent["plan"]["schema"] == "strata/M0NativeGameSmoke/4":
+    if intent["plan"]["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         pins["sealed_pack_launch"] = sealed_pack_evidence(bundle, intent, result, config, server_plan, server)
     retention = inspect_stopped_components(bundle, retention, server, server_plan, result)
     require(server == result.get("server_result") and server.get("plan_digest") == digest(server_plan)

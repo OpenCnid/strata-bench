@@ -214,7 +214,15 @@ class VanillaPersistence:
             self.template = template_files(self.installed_inventory, self.pack)
         else:
             require(resolved is None, "VANILLA_TEMPLATE_CHANGED")
-        inventory, entries, _ = layout(self.root, template=self.template, initial=self.pack is not None)
+        from .pack_launch import RestoredPackLaunchBinding
+        if isinstance(pack, RestoredPackLaunchBinding):
+            from .pack_restore import load_restoration, restored_layout
+            world = load_restoration(pack, self.installed_inventory)
+            require(resolved.get("scope") == "restored_materialization_preflight"
+                    and resolved.get("restoration") == pack.restoration.model_dump(), "VANILLA_TEMPLATE_CHANGED")
+            inventory, entries, _ = restored_layout(self.root, world)
+        else:
+            inventory, entries, _ = layout(self.root, template=self.template, initial=self.pack is not None)
         self.immutable = {p: e for p, e in entries.items() if e["disposition"] == "immutable"}
         selected = [e for e in inventory["files"] if Path(e["path"]).relative_to(self.root).as_posix() in self.immutable]
         roots = [self.root / "libraries", self.root / "versions"]

@@ -29,7 +29,7 @@ from native_game_probe import GameProbe
 from native_mcp_identity_probe import run as run_native
 from mcbench.native_game_retention import GameRetention, paired_components
 from mcbench.worker_bundle import HeldWorkerBundle
-from mcbench.pack_launch import PackLaunchBinding
+from mcbench.pack_launch import RestoredPackLaunchBinding, parse_pack_binding
 from mcbench.pack_worker import HeldPackWorker, WorkerInvocation
 from mcbench.vanilla_persistence import PACK_POLICY
 
@@ -53,7 +53,7 @@ def write(path, body):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    sealed = version == "strata/M0NativeGameSmoke/4"
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
     pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
     if sealed:
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
@@ -82,10 +82,12 @@ def run(plan_path):
 
 def run_plan(plan, resources, runtime=None):
     version = plan["schema"]
-    sealed = version == "strata/M0NativeGameSmoke/4"
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+    restored = version == "strata/M0NativeGameSmoke/5"
     prepared = None
     retention = recovery = None
-    if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4"}:
+    if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
+                   "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
     if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}:
@@ -99,20 +101,27 @@ def run_plan(plan, resources, runtime=None):
     output = private(plan["output"])
     require(not output.exists(), "TARGET_EXISTS")
     if sealed:
-        pack = PackLaunchBinding.model_validate(plan["pack"])
+        pack = parse_pack_binding(plan["pack"])
+        require(isinstance(pack, RestoredPackLaunchBinding) == restored, "M0_PACK_RESTORATION_REQUIRED")
         private(pack.store)
         private(pack.instance)
         invocation = WorkerInvocation.model_validate(plan["worker_invocation"])
         require(safe(invocation.state_directory) == safe(output / "worker")
                 and safe(invocation.configuration_path) == safe(output / "worker-config.json"), "M0_PLAN_INVALID")
         require(retention.config.pack_lock == pack.lock, "M0_PACK_RETENTION_MISMATCH")
+        if restored:
+            from mcbench.pack_restore import archive_restoration, baseline_record
+            private(pack.restoration.snapshot)
+            require(json.loads(retention.body["objects"][retention.config.world_baseline]) == baseline_record(pack),
+                    "M0_PACK_BASELINE_MISMATCH")
         output.mkdir(parents=True)
         (output / "worker").mkdir()
         prepared = resources.enter_context(HeldPackWorker(pack, invocation.model_dump()))
         require(prepared.resolved["worker_runtime"] == plan["worker_runtime"], "M0_PACK_RUNTIME_MISMATCH")
         runtime = prepared.runtime
         worker_config = prepared.resolved["worker_configuration"]
-        server_plan = {"schema": "strata/DevelopmentServer/4", "pack": pack.model_dump(), "target": "vanilla",
+        server_plan = {"schema": "strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4",
+            "pack": pack.model_dump(), "target": "vanilla",
             "persistence_policy": PACK_POLICY, "evidence": str(output / "server"),
             "max_wall_s": (worker_config["max_wall_ms"] + 999) // 1000 + 80}
         server_source, worker_source = output / "server-plan.json", output / "worker-config.json"
@@ -128,12 +137,18 @@ def run_plan(plan, resources, runtime=None):
                 stream.write(source.read_bytes())
                 stream.flush()
                 os.fsync(stream.fileno())
+        if restored:
+            world = archive_restoration(pack, json.loads((output / "pack-inventory.json").read_bytes()),
+                                        output / "baseline")
+            require(not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in world["files"]),
+                    "M0_BASELINE_HAS_PLAYER_STATE")
     else:
         server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
         server_plan, worker_config = (json.loads(p.read_bytes()) for p in (server_source, worker_source))
     if retention:
         retention.check_scope(worker_config)
-        require(server_plan["schema"] == ("strata/DevelopmentServer/4" if sealed else "strata/DevelopmentServer/2")
+        expected = "strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4" if sealed else "strata/DevelopmentServer/2"
+        require(server_plan["schema"] == expected
                 and server_plan["persistence_policy"] == (PACK_POLICY if sealed else "vanilla1192-stopped-instance/1"),
                 "M0_CAPTURE_REQUIRED")
     require(server_plan["target"] == "vanilla" and worker_config["schema"] == "strata/DevelopmentWorker/1"

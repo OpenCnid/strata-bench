@@ -11,9 +11,10 @@ followed by merged [PR #4](https://github.com/OpenCnid/strata-bench/pull/4) at `
 The [checkpoint report](verification/2026-09-21-session-handoff.md) records
 merge verification. Publication does not qualify a release gate.
 
-M0.1d.5 adds preregistered native retention and paired stopped-world components.
-[Source verification](verification/2026-09-21-native-game-retention.md): 33 new
-synthetic checks pass; changed authentic capture is pending. Full recovery remains open.
+M0.1d.4/M0.1d.5 have [partial authentic component evidence](verification/2026-09-21-native-game-retention.md):
+29 native checks and 28 stopped-world files verify; the outer receipt fails on
+Windows path spelling and remains sealed. The fix has focused source evidence.
+Next fresh restoration dependencies; full pack/custody/clocks/recovery remain open.
 
 | Evidence class | Delivered scope | Remaining limit |
 |---|---|---|

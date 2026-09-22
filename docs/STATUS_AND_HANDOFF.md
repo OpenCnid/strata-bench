@@ -65,24 +65,30 @@ Next bind authoritative stopped vanilla persistence and preregistered retention,
 then fresh grants/observations and joint restore assertions. Existing game runs
 without prior retention policy cannot be retroactively promoted to checkpoints.
 
-M0.1d.4 now implements the stopped vanilla capture dependency.
-[Source/process evidence](verification/2026-09-21-vanilla-persistence.md): 80 focused
-checks pass; the existing stopped layout has 68 accounted-for files and is
-unchanged. No new game was launched or historical run re-sealed. The new v2
-profile requires held full process termination before leased byte capture.
-Next preregister native retention before a changed connected capture trial;
-then fresh grants/observations and complete joint assertions. No authentic
-capture, clean-save/custody or full checkpoint qualification yet.
+M0.1d.4/M0.1d.5 now have partial authentic component evidence.
+[Connected capture and retained failure](verification/2026-09-21-native-game-retention.md):
+case 04 passes 29 native checks, six scripted calls/84 fixture units and one real
+primitive. Native preregistration/retention and 28 captured real world-state files
+independently reconcile after three complete owned-process exits. The outer run
+fails `M0_CAPTURE_INCOMPLETE` on normal/extended Windows path equality and has no
+joint receipt; keep that sealed failure. The fixed comparison has four focused
+passing checks, not corrected live-publication evidence. Original 68 source files
+and $0.756858 accounting are unchanged; no Java remains, D12 stays consumed.
 
-M0.1d.5 now implements preregistration and paired native/world components.
-[Source evidence](verification/2026-09-21-native-game-retention.md): 33 new synthetic
-checks pass; final input hardening has 35 passes. Direct layout inspection now
-normalizes Windows paths; 66 affected checks pass/14.60 s after a preparation-only
-failure. Register the declared initial tree before the next native job; retain
-its source-bound component and the v2 stopped-world capture together. Prepare one
-changed connected trial with scripted responses. No retroactive registration,
-new model allowance or complete checkpoint claim. Pack/custody/clock/fresh restore
-assertions and all old failures remain open.
+Original bundle: `C:/Users/Darian/.strata/evidence/2026-09-21-m0-native-game-04`;
+seal `cbe9ad5579386734b82f1680e01bbd2b8bde214eff370deab4bb598c51e37cfa`.
+Independent audit in adjacent `2026-09-21-m0-native-game-04-audit` verifies the
+components and explicitly retains outer failure/full-verifier rejection.
+Case 03's preparation-created unsealed SQLite sidecars were retained separately
+and removed from their exact paths; its original seal/bytes verify unchanged.
+Use frozen-store immutable reads for historical SQLite, ordinary read-only
+access for live accounting authority. See the report for incident evidence.
+
+Next implement fresh restoration dependencies using the verified components.
+Do not rewrite case 04's result, replay a model request, or repeat an unchanged
+game to replace failure. Candidate vanilla PackLock remains RESOLVED/unsealed;
+no full game save/custody, clock, checkpoint or restore assertion is qualified.
+Continue these M0 dependencies and independent scorer/isolation/shutdown gaps.
 
 ## Durable accounting: D12 is consumed
 

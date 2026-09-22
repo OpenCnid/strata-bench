@@ -21,6 +21,23 @@ INITIAL = {"supplied/plan.md": "STRATA_SCOPED_PLAN",
 MAX_INPUT = 1024 * 1024
 
 
+def paired_components(output, result, input_sha256, server_plan):
+    """Join normal/extended Windows paths without weakening stop requirements."""
+    from mcbench.launch_integrity import safe
+    from mcbench.vanilla_persistence import verify_snapshot
+    snapshot = result["server_result"]["stopped_snapshot"]
+    target = safe(output / "server/stopped-instance")
+    require(result["status"] == "pass" and safe(Path(snapshot["path"])) == target,
+            "M0_CAPTURE_INCOMPLETE")
+    captured = verify_snapshot(target, snapshot["manifest_sha256"])
+    require(captured["server_plan_digest"] == digest(server_plan) and "native_retention" in result,
+            "M0_CAPTURE_INCOMPLETE")
+    return {"schema": "strata/NativeGameStoppedComponents/1",
+        "native_component": result["native_retention"]["component_ref"],
+        "snapshot_sha256": snapshot["manifest_sha256"], "retention_input_sha256": input_sha256,
+        "complete_checkpoint": False, "dispatch_authorized": False, "G0": "fail"}
+
+
 def strict_json(raw):
     def pairs(items):
         result = {}

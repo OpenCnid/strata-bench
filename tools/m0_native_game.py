@@ -25,7 +25,7 @@ from mcbench.storage import Fault, canonical, reject_links, require
 from native_dispatch_probe import BINARY_SHA256, CODEX_VERSION, DOVETAIL_COMMIT, MODEL
 from native_game_probe import GameProbe
 from native_mcp_identity_probe import run as run_native
-from mcbench.native_game_retention import GameRetention
+from mcbench.native_game_retention import GameRetention, paired_components
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -233,19 +233,7 @@ def run(plan_path):
         if retention:
             # Both components must exist; neither alone is a joint checkpoint.
             try:
-                from mcbench.vanilla_persistence import verify_snapshot
-                from mcbench.storage import digest
-                snapshot = result["server_result"]["stopped_snapshot"]
-                require(result["status"] == "pass" and
-                        Path(snapshot["path"]) == output / "server/stopped-instance", "M0_CAPTURE_INCOMPLETE")
-                captured = verify_snapshot(Path(snapshot["path"]), snapshot["manifest_sha256"])
-                require(captured["server_plan_digest"] == digest(server_plan) and
-                        "native_retention" in result, "M0_CAPTURE_INCOMPLETE")
-                result["joint_components"] = {"schema": "strata/NativeGameStoppedComponents/1",
-                    "native_component": result["native_retention"]["component_ref"],
-                    "snapshot_sha256": snapshot["manifest_sha256"],
-                    "retention_input_sha256": retention.source["sha256"],
-                    "complete_checkpoint": False, "dispatch_authorized": False, "G0": "fail"}
+                result["joint_components"] = paired_components(output, result, retention.source["sha256"], server_plan)
                 write(output / "joint-components.json", result["joint_components"])
             except Exception as error:
                 result["status"] = "fail"

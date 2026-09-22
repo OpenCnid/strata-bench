@@ -2,8 +2,9 @@
 
 September 21, 2026. Operator-only. M0.1d.5; partial F03/F04/F09/F11/F16,
 N01/N02/N03/N06, C06/C12/C16/C20, T01/T06/T07/T12, G0 items 1/4/6.
-Implementation and synthetic verification; authentic changed-profile capture
-is pending. M0 remains incomplete and G0 fails.
+Implementation, synthetic verification and partial authentic component evidence.
+The changed run failed outer receipt publication; its native component and stopped
+world independently reconcile. M0 remains incomplete and G0 fails.
 
 `M0NativeGameSmoke/2` adds an externally hash-pinned
 `NativeGameRetentionInput/1` and requires the existing stopped-vanilla v2
@@ -66,3 +67,54 @@ path mismatch in direct layout inspection. Root normalization and an explicit
 normal/extended-path equivalence check fix the public inspection path.
 Affected persistence/retention selection: 66 pass/14.60 s; focused Ruff and
 whitespace pass. No game/model dispatch occurred during the failed preparation.
+
+## Authentic changed-profile capture and retained failure
+
+One finite changed-profile vanilla/native run used the preregistered input on
+source commit `4e9716e`. All **29 native checks pass**: six scripted calls,
+60 input/24 output tokens, 84 fixture units, one real bounded action, helper
+closure, native accounting FINALIZED and a committed retained component.
+The stopped snapshot contains **28 state files / 14,346,453 bytes**, captured
+under leases after all **three lifetime/held/signaled server processes** exited;
+active and forced-terminated counts are zero. Server interval 195.313 s,
+capture 1.422 s, outer interval 198.359 s. No Java remains, no desktop input or
+real-model request occurred, all 68 original instance files are unchanged and
+the original $0.756858 held/settled authority with consumed D12 is unchanged.
+
+**The outer result is fail.** Its path equality compared the capture's extended
+Windows path with an ordinary path after successful capture, returning
+`M0_CAPTURE_INCOMPLETE` and publishing no joint receipt. Preserve this exact
+failure. The full evidence verifier rejects the original with
+`NATIVE_GAME_OUTER_STOP_UNCERTAIN`; no result/seal was rewritten. The corrected
+runner normalizes both paths while retaining the success, exact-target, complete
+snapshot and source-plan requirements. Four affected join cases pass/4.44 s,
+including rejection of a failed outer summary and another directory. Corrected
+outer publication has source/fixture evidence, not a new live-run pass.
+
+Private original bundle:
+`C:/Users/Darian/.strata/evidence/2026-09-21-m0-native-game-04`.
+Seal: `cbe9ad5579386734b82f1680e01bbd2b8bde214eff370deab4bb598c51e37cfa`;
+4,293 files / 91,942,042 bytes. Independent component audit:
+`C:/Users/Darian/.strata/evidence/2026-09-21-m0-native-game-04-audit/components-audit.json`,
+SHA-256 `462a05965e20b81f0fd272de0b7bb2536cec1a42dd4b9203f540b07a8765a148`.
+Stopped snapshot manifest:
+`00b97b835ed43fdc1709e702d25c39465f443aafc1eac03ade05fe56198558e6`.
+Native retention, accounting and stopped-world bytes reconcile independently;
+clean-save semantics, external-writer custody and full checkpoint remain false.
+
+A preparation-only capability lookup opened case 03's SQLite database with
+`mode=ro`, which created an unsealed 32,768-byte SHM and empty WAL. The old
+archive verifier rejected the extra inventory. Every sealed byte was unchanged.
+Those two newly created sidecars were copied and hash-verified in the separate
+private `2026-09-21-legacy-read-sidecar-recovery-01` evidence directory, then
+removed only from their exact original paths. Case 03 again passes with its
+original seal `235481abe34d26b9abd5f28b7b7b83f3193c341e4056be798ca3f6b3a771d6bd`,
+no changed original bytes and no new sidecars. Future stopped-archive reads use
+frozen-store checks and immutable read-only SQLite; the active accounting store
+continues normal read-only access so pending WAL authority is not hidden.
+
+Next build the fresh restoration dependency from these independently verified
+components, retaining the failed run and pending corrected publication. Do not
+repeat the game merely to replace this failure. Pack/provenance, custody,
+authoritative clocks, fresh grants/observations and complete joint assertions
+remain required, alongside the independent scorer/shutdown/isolation gaps.

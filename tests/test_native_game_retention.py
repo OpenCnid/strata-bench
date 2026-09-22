@@ -292,6 +292,15 @@ def test_stopped_world_and_native_component_join(archived_retention, installed, 
         snapshot = service.capture(target, stopped(), plan_digest=digest(server_plan))
     finally:
         service.close()
+    from mcbench.native_game_retention import paired_components
+    summary = {"status": "pass", "server_result": {"stopped_snapshot": snapshot},
+               "native_retention": {"component_ref": retention["component_ref"]}}
+    paired = paired_components(root / "run", summary, retention["input_sha256"], server_plan)
+    assert paired["snapshot_sha256"] == snapshot["manifest_sha256"] and not paired["complete_checkpoint"]
+    with pytest.raises(Fault, match="M0_CAPTURE_INCOMPLETE"):
+        paired_components(root / "run", summary | {"status": "fail"}, retention["input_sha256"], server_plan)
+    with pytest.raises(Fault, match="M0_CAPTURE_INCOMPLETE"):
+        paired_components(root / "wrong-run", summary, retention["input_sha256"], server_plan)
     # Never follow historical absolute paths, even when the summary contains one.
     snapshot["path"] = "C:/not-an-authorized-input"
     joint = {"schema": "strata/NativeGameStoppedComponents/1", "native_component": retention["component_ref"],

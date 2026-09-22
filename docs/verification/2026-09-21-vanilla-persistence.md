@@ -71,3 +71,14 @@ stopped-game/native component and fresh-epoch assertions. Old runs without
 retention policy or a held capture boundary cannot acquire those facts afterward.
 Preserve all prior shutdown, effective-file, Mineflayer/E9E, scoring/isolation
 and accounting failures. M0 remains incomplete; G0 fails.
+
+
+## Subsequent authentic component evidence
+
+[Connected case 04](2026-09-21-native-game-retention.md) now captures 28 real
+state files under leases after all three held server processes exit. Its outer
+receipt publication fails on a normal/extended Windows path comparison; that
+failure is sealed and retained. Independent native/world component verification
+passes without rewriting the failed result. The normalization fix has focused
+source tests only. Full clean-save/custody/checkpoint/restore qualification remains
+open; do not reinterpret this component evidence as a full integration pass.

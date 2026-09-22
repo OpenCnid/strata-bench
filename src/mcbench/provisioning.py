@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from .contracts import Digest, Id, Ref, Strict, UInt
 from .inventory import file_hash, inspect_archive, scan_tree, template_path
@@ -61,6 +61,17 @@ class AcquisitionReceipt(Strict):
     launcher: Pin
     java: Pin
     official_workflow_evidence: Ref
+
+
+class VanillaAcquisitionReceipt(AcquisitionReceipt):
+    schema_: Literal["strata/AcquisitionReceipt/2"] = Field(alias="schema")
+    target: Literal["vanilla"]
+    vanilla_manifest: Ref
+    vanilla_version_metadata: Ref
+
+
+def parse_acquisition(value):
+    return TypeAdapter(AcquisitionReceipt | VanillaAcquisitionReceipt).validate_python(value)
 
 
 class RoleInventoryInput(Strict):
@@ -208,6 +219,18 @@ class PackProvider:
             return row["receipt"]
         require(row["state"] in {"RESOLVED", "AWAITING_ARTIFACT"}, "INVALID_TRANSITION")
         self._json(request_id, receipt.official_workflow_evidence)
+        source_verification = None
+        if isinstance(receipt, VanillaAcquisitionReceipt):
+            from .vanilla_artifacts import distribution, metadata
+            source_verification = metadata(
+                self.cas.read(self.principal, self.namespace(request_id), receipt.vanilla_manifest,
+                              max_bytes=4 * 1024**2),
+                self.cas.read(self.principal, self.namespace(request_id), receipt.vanilla_version_metadata,
+                              max_bytes=2 * 1024**2))
+            source_verification["distributions"] = [distribution(item, source_verification["downloads"][item.role])
+                                                    for item in receipt.distributions]
+            source_verification.update(installed_roles_qualified=False, game_conformance_claim=None,
+                                       metadata_authority="operator-retained-official-manifest")
         distributions = []
         for item in receipt.distributions:
             official_origin(item.origin, receipt.target, item.role, item.file_id)
@@ -222,8 +245,11 @@ class PackProvider:
             ref = self.cas.put_file(self.principal, self.namespace(request_id), "operator", path,
                                    item.sha256, quota_bytes=self.quota, max_object_bytes=8 * 1024**3)
             distributions.append({"role": item.role, "ref": ref, "archive": archive})
-        ref = self._put(request_id, {"schema": "strata/AcquisitionImport/1",
-                                    "receipt": receipt.model_dump(), "distributions": distributions})
+        imported = {"schema": "strata/AcquisitionImport/1",
+                    "receipt": receipt.model_dump(), "distributions": distributions}
+        if source_verification is not None:
+            imported["source_verification"] = source_verification
+        ref = self._put(request_id, imported)
         with self.db.transaction() as db:
             current = db.execute("SELECT receipt FROM provisioning WHERE id=?", (request_id,)).fetchone()
             require(current[0] in (None, ref), "IDEMPOTENCY_CONFLICT")
@@ -326,7 +352,7 @@ class PackProvider:
             require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
             self._json(request_id, command.reviewed_bootstrap)
         imported = self._json(request_id, row["receipt"])
-        receipt = AcquisitionReceipt.model_validate(imported["receipt"])
+        receipt = parse_acquisition(imported["receipt"])
         inventory = self._json(request_id, row["inventory"])
         launch_ref = self._put(request_id, launch.model_dump())
         evidence_ref = self._put(request_id, evidence.model_dump())

@@ -31,6 +31,20 @@ store and resulting locks as examples; a simulation store cannot be reopened liv
 
 The strict models in [provisioning.py](../../src/mcbench/provisioning.py) define inputs:
 
+For new vanilla distribution verification, use `AcquisitionReceipt/2` with
+`vanilla_manifest` and `vanilla_version_metadata` CAS references. Preserve the
+exact downloaded JSON bytes with `mcbench pack evidence --preserve-source-bytes`
+when importing those two documents; normal evidence import still canonicalizes
+JSON. Retain the official HTTPS acquisition observation separately. Version 2
+joins the one 1.19.2 release entry to its metadata hash and each role's exact
+URL, size, SHA-1 and receipt SHA-256. A self-consistent receipt for an altered
+shared-cache JAR is rejected. Legacy version-1 receipts keep their original
+meaning and do not receive this stronger verification credit.
+
+The [vanilla intake checkpoint](../verification/2026-09-21-vanilla-acquisition.md)
+records the authentic distribution import and retained shared-client mismatch.
+`ACQUIRED` is not a sealed installation or T02 pass.
+
 - `AcquisitionReceipt`: exactly one client and one server distribution, actual
   SHA-256 hashes, exact official origin/file IDs, license references, JVM/launcher
   pins and private evidence refs. E9E's client archive must carry the selected

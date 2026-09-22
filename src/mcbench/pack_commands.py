@@ -8,9 +8,9 @@ from typing import Annotated
 import typer
 
 from .provisioning import (
-    AcquisitionReceipt, LaunchProfile, PackProvider, ProvisioningEvidence, RoleInventoryInput,
+    LaunchProfile, PackProvider, ProvisioningEvidence, RoleInventoryInput, parse_acquisition,
 )
-from .storage import CAS, Database, Fault
+from .storage import CAS, Database, Fault, require
 from .pack_modes import inspect_e9e_mode
 
 pack_app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
@@ -66,18 +66,25 @@ def acquire(request: Request, store: Store, simulation: bool = False):
 def import_receipt(receipt: Annotated[Path, typer.Option()], store: Store, simulation: bool = False):
     """Import exact official distributions and a provenance receipt into private storage."""
     with provider(store, simulation) as service:
-        parsed = AcquisitionReceipt.model_validate_json(receipt.read_text(encoding="utf-8"))
+        from .inference_transport import strict_json
+        parsed = parse_acquisition(strict_json(receipt.read_bytes()))
         emit({"receipt": service.import_acquisition_receipt(parsed)})
 
 
 @pack_app.command("evidence")
 def import_evidence(request: Request, file: Annotated[Path, typer.Option()], store: Store,
-                    simulation: bool = False):
+                    simulation: bool = False, preserve_source_bytes: bool = False):
     """Import operator-authored JSON evidence; does not certify its truth or any gate."""
     with provider(store, simulation) as service:
         service._row(request, active=True)
-        value = json.loads(file.read_text(encoding="utf-8"))
-        emit({"ref": service._put(request, value), "authority": "operator_attestation"})
+        from .inference_transport import strict_json
+        require(file.stat().st_size <= 64 * 1024**2, "ARTIFACT_QUOTA")
+        raw = file.read_bytes()
+        value = strict_json(raw)
+        ref = (service.cas.put(service.principal, service.namespace(request), "operator", raw,
+                               quota_bytes=service.quota, max_object_bytes=64 * 1024**2)
+               if preserve_source_bytes else service._put(request, value))
+        emit({"ref": ref, "authority": "operator_attestation"})
 
 
 @pack_app.command("verify")

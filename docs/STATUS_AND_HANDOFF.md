@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.110](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.111](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Current acquisition result — M0.3a.1:** [Metadata-bound vanilla intake](verification/2026-09-21-vanilla-acquisition.md) is verified for distribution intake: the original vanilla request is now ACQUIRED with exact official client/server artifacts and a version-2 receipt. The altered shared client JAR was rejected and retained; the installation was not replaced. Forty focused source tests pass. All 31 non-intake tables, existing objects/journal prefix, E9E record and original $0.756858 accounting remain unchanged. No game/model/desktop input occurred. Next complete compatible installed-role provenance, runtime configuration/update policy and the real PackLock; scorer, isolation, client-startup and canonical recovery gaps remain.
 
 **Current history admission — M0.2c.3b.3c.2:** [Plan 3 implementation and evidence](verification/2026-09-21-protected-craft-history.md) requires signed clear startup before client readiness and complete history at import. 196 focused source/JVM checks pass. Authentic case 01 passes startup binding but fails the 420-second reservation; fresh case 02 fits a smaller reservation, then fails client bridge startup at its existing 270-second bound. No new craft/guardian sample or score is claimed. Both failures are sealed; retention audits pass 16/16 and 19/19, all processes exit, credentials retire and accounting stays unchanged. Continue independent M0 provenance/lock and canonical recovery work; revisit the integrated history craft only after a relevant startup fix.
 

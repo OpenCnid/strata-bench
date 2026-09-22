@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.116](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.117](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Installed Mineflayer runtime — M0.3a.2:** [Implementation and actual verification](verification/2026-09-22-mineflayer-runtime.md) add offline lock/archive/file verification and an operator command. All 111 packages and 9,376 installed files match; 39 npm wrappers independently regenerate. A real import-only worker check passes under 9,599 held inputs. 26 distinct source cases, 10 independent evidence checks and 39 publication/conservation checks pass. One private report object/event is added; prior history, 32 other tables and $0.756858 accounting remain unchanged. The pack stays VERIFIED/unsealed. Next bind the authenticated worker and Python ACL helper, server launch/configuration/update policy, finish remaining component review, then seal and connect custody/recovery. D05 account/EULA evidence already exists. M0 incomplete, G0 fail.
 
 **Sealed-pack launch connection — M0.3a.3:** [Implementation and verification](verification/2026-09-22-pack-launch.md) connect a durable PackLock to the bounded server runner. Both role inventories, marker, command and executable are checked before launch; overrides and changed instances reject. 116 distinct source/process cases pass, including a disposable Python process. The actual unsealed vanilla request is refused with 11/11 checks and all 34 tables/accounting unchanged. This is fresh-instance preflight, not runtime custody or an authentic game pass. M0.3a.3 is implemented_unverified; M0 incomplete, G0 fail. Next complete the actual Mineflayer/server launch/runtime/update and legal/source checks, seal the pack, then inventory-bound custody/recovery.
 

@@ -123,10 +123,11 @@ directory and never hardlinks mutable instances to immutable blobs. Corruption
 leaves no partially published instance. Windows is the initial deployment target;
 other operating systems still require their own filesystem/isolation conformance.
 
-Remaining integration: actual official acquisition/account/terms, reviewed
-bootstrap and download inventory, cold restart/expert evidence, authenticated
-launch supervisor and health/stop, full transitive provenance validation, and
-real vanilla followed immediately by exact-pack structured-control tests.
+Original account sign-in/EULA acceptance and vanilla acquisition have recorded
+evidence (SPEC §15, D05). Remaining integration includes complete runtime and
+transitive-provenance review, cold restart/expert evidence, authenticated launch
+supervision and full exact-pack structured-control qualification. Do not repeat
+settled account/terms steps or treat an import as those broader passes.
 
 The bounded server runner also accepts private `strata/DevelopmentServer/3`
 plans. Keep `target`, `max_wall_s` and external `evidence`; replace `launch` with
@@ -143,3 +144,18 @@ dependency/isolation checks remain required. Once a game mutates the instance,
 use a separately qualified recovery policy; do not strip state to force this
 check to pass. The original real vanilla request remains VERIFIED and unsealed,
 so this runner correctly refuses it. [Source/process checks and actual refusal](../verification/2026-09-22-pack-launch.md).
+
+Inspect the existing Mineflayer npm installation without reinstalling it:
+
+```powershell
+mcbench pack inspect-npm-runtime C:/StrataSource/backends/mineflayer C:/StrataPrivate/archives-sha512 C:/StrataPrivate/reviewed-shims > C:/StrataPrivate/npm-runtime.json
+```
+
+The archive directory uses the SHA-512 layout `aa/bb/rest-of-hex`. The separate
+reviewed shim directory mirrors every declared `node_modules/.bin` path,
+including nested dependencies. Preserve generator source/license pins and its
+procedure privately; the command does not authenticate arbitrary supplied shim
+bytes. It verifies the entire installed tree and emits private
+`NpmInstalledRuntime/1` with scope limits. Publish a reviewed report using the
+existing `pack evidence` command when appropriate. [Actual verification and
+retained failures](../verification/2026-09-22-mineflayer-runtime.md).

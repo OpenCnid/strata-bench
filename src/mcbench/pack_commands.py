@@ -34,6 +34,21 @@ def emit(value):
     typer.echo(json.dumps(value, indent=2))
 
 
+@pack_app.command("inspect-npm-runtime")
+def inspect_npm_runtime(root: Path, cache: Path, generated_shims: Path):
+    """Compare installed dependencies with retained tarballs and reviewed npm shim output.
+
+    Cache names the sha512 content directory, not a registry or npm configuration.
+    Emits private evidence only; never downloads, runs scripts or seals a pack.
+    """
+    from .npm_runtime import verify_installed_packages
+    try:
+        emit(verify_installed_packages(root, cache, generated_shims))
+    except Fault as error:
+        emit({"status": "blocked", "code": error.code, "started": False})
+        raise typer.Exit(2) from None
+
+
 @pack_app.command("inspect-expert-mode")
 def inspect_expert_mode(root: Path, role: str = "server", effective: bool = False,
                         world: str | None = None):

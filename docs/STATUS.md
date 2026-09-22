@@ -5,6 +5,8 @@ and G1–G5 are `not_run`.** Required M0–M6 and conditional M7/extensions rema
 in scope. [MILESTONES.md](../MILESTONES.md) owns progress and retained failures;
 [SPEC.md](../SPEC.md) defines acceptance.
 
+**Current shutdown/preparation work:** [Prepared four-processor JVM profile](verification/2026-09-21-jvm-resource-profile.md) has source checks but no authentic client result. Both attempts failed on exposure before client dispatch; forced inner cleanup in case 02 is retained. All processes exited and credentials retired. Path validation now avoids duplicate metadata queries: 69 distinct focused passes/three symbolic-link privilege skips, with actual junction rejection. The metadata-only comparison improves; whole preparation and shutdown remain unqualified. Next fix measured preparation/startup cost within the declared bounds.
+
 The implementation checkpoint is merged in [PR #3](https://github.com/OpenCnid/strata-bench/pull/3)
 followed by merged [PR #4](https://github.com/OpenCnid/strata-bench/pull/4) at `c2161a6e79cea0c668ab993df149ab1ed5af119b`. Read the
 [current handoff](STATUS_AND_HANDOFF.md) before resuming on fetched main.
@@ -40,9 +42,9 @@ this summary is not executable authority. [Admission contract](operations/valida
 
 **M0.2c.3b.3c mutation history has partial authentic evidence.** [Implementation and verification](verification/2026-09-21-setup-history.md) adds sticky native mutation counters, exact signed setup/terminal joins and rejection of reversed changes. One changed headless E9E reference passes 33/33 hook/startup/terminal checks; six owned processes exit and all 18,225 source files remain unchanged. The [fixed private world-mode control](verification/2026-09-21-setup-control.md) now passes 58 source/JVM checks and 42/42 authentic checks, independently preserving Creative and restored Survival saves while retaining tainted history. Other mutation trajectories and mutable FTB/KubeJS routes remain open. Continue protected custody, parity/isolation, shutdown and integrated joint recovery. Complete setup history/scoring remains unqualified; the goal stays M0/G0 only.
 
-**M0.1d.3 adds durable restored-set verification.** [Implementation/evidence](verification/2026-09-21-restored-set.md) binds world/agent files to the committed source and publication record, rejecting changed, mixed, stale or interrupted sets. 107 distinct source/process checks and 17/17 recorded-native/synthetic-world audit checks pass with costs retained. Authentic stopped persistence and joint game/native restart remain unverified.
+**M0.1d.3 adds durable restored-set verification.** [Implementation/evidence](verification/2026-09-21-restored-set.md) binds world/agent files to the committed source and publication record, rejecting changed, mixed, stale or interrupted sets. Its 107 distinct source/process checks and 17/17 recorded-native/synthetic-world audit checks remain separate from the subsequent [authentic bounded continuation](verification/2026-09-21-native-game-recovery.md). Canonical checkpoint qualification remains open.
 
-**M0.1d.4 implements stopped vanilla capture.** [Source/process checks](verification/2026-09-21-vanilla-persistence.md): 80 pass, and all 68 existing stopped-instance files have explicit disposition. Held process history, input leases and archive byte checks are enforced by the new profile. Authentic capture and joint recovery remain unverified; next preregister retention before the changed connected trial.
+**M0.1d.4 implements stopped vanilla capture.** [Source/process checks](verification/2026-09-21-vanilla-persistence.md): 80 pass, and all 68 existing stopped-instance files have explicit disposition. Subsequent [retention](verification/2026-09-21-native-game-retention.md) and [recovery](verification/2026-09-21-native-game-recovery.md) evidence captures 28 real mutable files and continues the saved native/game state with scripted replies. The failed first publication and recovery remain; full save/custody/clock qualification stays open.
 
 Evidence entry points:
 

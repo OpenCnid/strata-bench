@@ -25,6 +25,7 @@ from .reference_participant import ParticipantPlan, ParticipantWindow, validate_
 from .reference_abort import AbortSignal, request_abort
 from .telemetry import LAUNCH_STARTUP_MODELS
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
+from .setup_control import SetupControl, SetupControlPlan, saved_mode, startup_prefix
 
 # Only this inspected official E9E 1.27.0 bootstrap profile is admitted. Its
 # YAML disables autoRestart/ramDisk, uses the working directory and PATH Java,
@@ -86,9 +87,15 @@ class ReferenceLaunchPlanV5(ReferenceLaunchPlanV4):
     network_policy: Literal["native-online-private-server/1"]
 
 
+class ReferenceLaunchPlanV6(ReferenceLaunchPlan):
+    """Separate headless negative-control profile; no participant or arbitrary command."""
+    schema_: Literal["strata/PrivateReferenceLaunch/6"] = Field(alias="schema")
+    setup_control: SetupControlPlan
+
+
 def parse_launch_plan(value):
     return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3 |
-                       ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5).validate_python(value)
+                       ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5 | ReferenceLaunchPlanV6).validate_python(value)
 
 
 def same_path(a, b):
@@ -182,6 +189,8 @@ class ReferenceLauncher:
                     and same_path(plan.executable.path, custody.plan.java.path), "REFERENCE_CUSTODY_SCOPE")
         row, setup, authority, authority_path = self.store._load(plan.instance_id)
         require(row["digest"] == plan.setup_digest, "REFERENCE_SETUP_CHANGED")
+        control = (SetupControl(saved_mode(authority_path.parent / "fixture/level.dat"))
+                   if isinstance(plan, ReferenceLaunchPlanV6) else None)
         require(plan.mode != "synthetic-fixture" or setup.evidence_kind == "synthetic", "REFERENCE_MODE")
         require(plan.mode != "e9e-serverstarter" or not plan.fixture_arguments, "REFERENCE_ARGUMENTS")
         evidence = private_path(plan.evidence_directory)
@@ -219,7 +228,7 @@ class ReferenceLauncher:
             by_path = {str(Path(pin.path).resolve()).casefold(): pin for pin in plan.immutable_files}
             require(all(by_path[str((game / name).resolve()).casefold()].sha256 == expected
                         for name, expected in E9E_BOOTSTRAP_PINS.items()), "REFERENCE_BOOTSTRAP_UNREVIEWED")
-            if online:
+            if online or control is not None:
                 require(all(str((game / name).resolve()).casefold() in by_path
                     and by_path[str((game / name).resolve()).casefold()].sha256 == expected
                     for name, expected in E9E_INSTALLED_STATE_PINS.items()), "REFERENCE_INSTALLED_STATE_UNREVIEWED")
@@ -259,6 +268,8 @@ class ReferenceLauncher:
         overflow = threading.Event()
         started, stopped_at, bound_at, aborted_at = time.monotonic(), None, None, None
         body.update(stop_sent=False, forced_stop=False)
+        if control is not None:
+            body["setup_control"] = control.result
         if coordinated:
             body["participant"] = {"status": "not_ready", "participant_execution_verified": False}
         try:
@@ -378,6 +389,21 @@ class ReferenceLauncher:
                         bound_at = time.monotonic()
                         self._record(plan.instance_id, "BOUND", body)
                 now = time.monotonic()
+                if control is not None and control.sent_at is None and stopped_at is None \
+                        and bound_at is not None and ready.is_set():
+                    record_control = lambda: self._record(plan.instance_id, "SETUP_CONTROL", body)  # noqa: E731
+                    if not control.attempted:
+                        prefix = startup_prefix(spool, authority, body["server_boot_id"])
+                        if prefix is not None:
+                            require(prefix["launch_identity"] == body["binding"]["native_observation"],
+                                    "SETUP_CONTROL_START_CHANGED")
+                            control.dispatch(prefix, proc, record_control,
+                                deadline=started + plan.max_wall_s, exposure_s=plan.ready_run_s,
+                                log=logs["stdout.log"])
+                    else:
+                        control.advance(proc, record_control, world=setup.fixture_directory,
+                            log=logs["stdout.log"], deadline=started + plan.max_wall_s, exposure_s=plan.ready_run_s)
+                    now = time.monotonic()
                 if aborted_at is not None:
                     # No new readiness after abort. A live participant gets only
                     # its declared remaining cleanup time, then normal server stop.
@@ -396,7 +422,8 @@ class ReferenceLauncher:
                             participant.publish()
                     stop = participant is not None and participant.poll(time.monotonic())
                 else:
-                    stop = not coordinated and bound_at is not None and ready.is_set() and now - bound_at >= plan.ready_run_s
+                    run_from = control.sent_at if control is not None else bound_at
+                    stop = not coordinated and run_from is not None and ready.is_set() and now - run_from >= plan.ready_run_s
                 stop = stop or now - started >= plan.max_wall_s
                 if stop and stopped_at is None:
                     body["stop_sent"] = True
@@ -436,6 +463,8 @@ class ReferenceLauncher:
             body["spool_sha256"] = inspection["file_sha256"]
             body["records"] = inspection["records"]
             body["sampled_server_ticks"] = inspection["sampled_server_ticks"]
+            if control is not None:
+                control.finish(inspection, setup.fixture_directory, logs["stdout.log"])
             if coordinated:
                 require(abort is None or not abort.poll(), "REFERENCE_OUTER_ABORTED")
                 require(participant is not None, "REFERENCE_PARTICIPANT_MISSING")

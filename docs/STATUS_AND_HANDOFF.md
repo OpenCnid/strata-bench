@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.101](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.102](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -43,6 +43,18 @@ and scorer controls/nonleakage, bounded shutdown/resource behavior, and complete
 game plus agent restoration with costs retained. Do not substitute more
 documentation for implementation. If model admission stays blocked, these
 independent implementation paths remain authorized.
+
+M0.2c.3b.3c.1 is verified for the fixed private world-mode control.
+[Source and authentic verification](verification/2026-09-21-setup-control.md):
+58 source/JVM/package checks and 42/42 independent authentic checks pass.
+Intermediate Creative and final Survival saves are independently retained;
+matching final state does not erase two signed mutations. Six held processes
+exited; all 18,225 original files are unchanged. No model/client/desktop input.
+The single consumed reference in
+`C:/Users/Darian/.strata/evidence/2026-09-21-setup-control-live-01`
+must not be restarted. Other mutation routes, custody, parity and scoring
+remain unqualified. Accounting read-only at 23:59:14 UTC is unchanged.
+Continue integrated M0 joint recovery while preserving these independent gaps.
 
 ## Durable accounting: D12 is consumed
 

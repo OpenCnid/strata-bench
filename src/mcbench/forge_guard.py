@@ -24,7 +24,9 @@ from pydantic import Field
 from .contracts import Digest
 from .native_game import GameConnection, NativeGameClient
 from .native_settings import strict_json
-from .process_guard import GuardPipes, ProcessGuardGrant, failure_event, guard, read_grant
+from .process_guard import (
+    D13_STOP_POLICY, LEGACY_STOP_POLICY, GuardPipes, ProcessGuardGrant, failure_event, guard, read_grant,
+)
 from .storage import Fault, digest, reject_links, require
 
 GUARD_SOURCES = ("forge_guard.py", "process_guard.py", "processes.py", "native_game.py",
@@ -45,6 +47,11 @@ class ForgeGuardGrant(ProcessGuardGrant):
     body_fingerprint: Digest
     capability_digest: Digest
     primitive_limit: int = Field(ge=2, le=100000)
+
+
+class ForgeGuardGrantV2(ForgeGuardGrant):
+    wire_schema: Literal["strata/ForgeProcessGuardGrant/2"] = Field(alias="schema")
+    shutdown_policy: Literal["java-tree1000-lease750/1"]
 
 
 def listener_owned_by(port: int, pid: int):
@@ -109,6 +116,8 @@ def connection_for(grant: ForgeGuardGrant):
 class NativeHealth:
     def __init__(self, grant: ForgeGuardGrant, client: NativeGameClient):
         self.grant, self.client = grant, client
+        self.period_s = .25 if isinstance(grant, ForgeGuardGrantV2) else 1.0
+        self.stale_s = .75 if isinstance(grant, ForgeGuardGrantV2) else 1.5
         self.latest = time.monotonic()
         self.error = None
         self.initial = queue.Queue(maxsize=1)
@@ -148,7 +157,7 @@ class NativeHealth:
                             and health["fenced"] and health["epoch"] == self.initial_epoch,
                             "PROCESS_NATIVE_EPOCH_MISMATCH")
                 self.latest = time.monotonic()
-                self.stop.wait(1.0)
+                self.stop.wait(self.period_s)
         except Exception as error:
             self.error = error.code if isinstance(error, Fault) else "PROCESS_NATIVE_HEALTH_FAILED"
 
@@ -165,7 +174,7 @@ class NativeHealth:
         raise Fault("PROCESS_NATIVE_START_TIMEOUT")
 
     def failure(self, now):
-        return self.error or ("PROCESS_NATIVE_HEALTH_TIMEOUT" if now - self.latest > 1.5 else None)
+        return self.error or ("PROCESS_NATIVE_HEALTH_TIMEOUT" if now - self.latest > self.stale_s else None)
 
 
 def main():
@@ -176,13 +185,15 @@ def main():
     pipes = None
     try:
         require(sys.version_info[:3] == (3, 12, 14), "PROCESS_GUARD_RUNTIME_MISMATCH")
-        grant = read_grant(args.grant, Path(__file__).resolve().parents[2], ForgeGuardGrant)
+        grant = read_grant(args.grant, Path(__file__).resolve().parents[2], ForgeGuardGrant | ForgeGuardGrantV2)
+        version2 = isinstance(grant, ForgeGuardGrantV2)
         client = connection_for(grant)
         monitor = NativeHealth(grant, client)
         identity = monitor.prepare()
         pipes = GuardPipes(sys.stdin.buffer, sys.stdout.buffer)
         result = guard(grant, pipes, health_check=monitor.failure, termination_evidence=True,
-            ready_extra={"policy": "forge-process-listener-client-thread/1",
+            stop_policy=D13_STOP_POLICY if version2 else LEGACY_STOP_POLICY,
+            ready_extra={"policy": f"forge-process-listener-client-thread/{2 if version2 else 1}",
                          "connection_digest": grant.connection_digest,
                          "body_fingerprint": identity["body_fingerprint"],
                          "connection_generation": identity["connection_generation"],

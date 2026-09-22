@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, ValidationError
+from pydantic import Field, TypeAdapter, ValidationError
 
 from .contracts import Digest, Id, Strict
 from .native_settings import strict_json
@@ -30,6 +30,14 @@ from .storage import Fault, canonical, digest, reject_links, require
 LEASE_SECONDS = 1.5
 POLL_SECONDS = .01
 STOP_WAIT_MS = 500
+LEGACY_STOP_POLICY = "java-tree500-lease1500/1"
+D13_STOP_POLICY = "java-tree1000-lease750/1"
+
+
+def stop_settings(policy):
+    require(type(policy) is str and policy in {LEGACY_STOP_POLICY, D13_STOP_POLICY}, "PROCESS_STOP_POLICY")
+    return (1000, 750, "job-call-wait-tree-qpc/3") if policy == D13_STOP_POLICY else (
+        STOP_WAIT_MS, round(LEASE_SECONDS * 1000), "job-call-wait-tree-qpc/2")
 
 
 class ProcessIdentity(Strict):
@@ -157,7 +165,8 @@ class AttachedJava:
             self.close()
             raise
 
-    def terminate(self):
+    def terminate(self, *, stop_policy=LEGACY_STOP_POLICY):
+        stop_wait_ms, _, timing_policy = stop_settings(stop_policy)
         # Always terminate the job, even if the root already exited, to reap
         # descendants created *after* attachment. Pre-existing children are not
         # enrolled by AssignProcessToJobObject and require launch integration.
@@ -169,9 +178,9 @@ class AttachedJava:
             tracking_failed = True
         started = time.perf_counter_ns()
         timing = self.termination_timing = {
-            "policy": "job-call-wait-tree-qpc/2", "started_qpc_ns": str(started),
+            "policy": timing_policy, "started_qpc_ns": str(started),
             "clock_resolution_ns": round(time.get_clock_info("perf_counter").resolution * 1e9),
-            "wait_bound_ms": STOP_WAIT_MS, "job_succeeded": False,
+            "wait_bound_ms": stop_wait_ms, "job_succeeded": False,
             "job_returned_after_ns": None, "wait_started_after_ns": None,
             "wait_returned_after_ns": None, "wait_result": "not_started",
             "tree_checked_after_ns": None, "active_processes": None,
@@ -185,7 +194,7 @@ class AttachedJava:
             timing["job_returned_after_ns"] = time.perf_counter_ns() - started
         timing["wait_started_after_ns"] = time.perf_counter_ns() - started
         try:
-            signaled = self.process.exited(STOP_WAIT_MS)
+            signaled = self.process.exited(stop_wait_ms)
             timing["wait_result"] = "signaled" if signaled else "timeout"
         except BaseException:
             timing["wait_result"] = "error"
@@ -194,14 +203,14 @@ class AttachedJava:
             timing["wait_returned_after_ns"] = time.perf_counter_ns() - started
         require(signaled, "PROCESS_STOP_UNCONFIRMED")
         # A signaled root does not establish that its descendants have stopped.
-        # Spend only the remainder of the same 500 ms wait, never a new allowance.
+        # Spend only the remainder of the selected wait, never a new allowance.
         timing["tree_result"] = "error"
         checked = timing["wait_returned_after_ns"]
         if tracking_failed:
             timing["tree_checked_after_ns"] = checked
             raise Fault("PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
         while True:
-            remaining = STOP_WAIT_MS * 1_000_000 - (checked - timing["wait_started_after_ns"])
+            remaining = stop_wait_ms * 1_000_000 - (checked - timing["wait_started_after_ns"])
             if remaining <= 0:
                 timing["tree_checked_after_ns"] = checked
                 timing["tree_result"] = "timeout"
@@ -218,7 +227,7 @@ class AttachedJava:
                 timing.update(total_processes=total, held_processes=held, signaled_processes=signaled)
             finally:
                 checked = timing["tree_checked_after_ns"] = time.perf_counter_ns() - started
-            remaining = STOP_WAIT_MS * 1_000_000 - (checked - timing["wait_started_after_ns"])
+            remaining = stop_wait_ms * 1_000_000 - (checked - timing["wait_started_after_ns"])
             if remaining < 0:
                 timing["tree_result"] = "timeout"
                 raise Fault("PROCESS_STOP_UNCONFIRMED")
@@ -249,7 +258,7 @@ def read_grant(path: Path, repository: Path, model=ProcessGuardGrant):
         raw = source.read(8193)
     require(len(raw) <= 8192, "PROCESS_GRANT_QUOTA")
     try:
-        grant = model.model_validate(strict_json(raw))
+        grant = TypeAdapter(model).validate_python(strict_json(raw))
     except (ValidationError, UnicodeError, ValueError):
         raise Fault("PROCESS_GRANT_INVALID") from None
     remaining = grant.expires_unix_ms - time.time_ns() // 1000000
@@ -302,13 +311,14 @@ class GuardPipes:
 
 
 def guard(grant: ProcessGuardGrant, pipes: GuardPipes, *, ready_extra=None, health_check=None,
-          termination_evidence=False):
+          termination_evidence=False, stop_policy=LEGACY_STOP_POLICY):
     """Independent challenge lease. Stale queued heartbeats cannot renew it.
 
     Parent must answer each fresh nonce with {"kind":"renew", "seq":N,
     "nonce":"..."}; {"kind":"stop"} ends this dedicated client lifetime.
     There is intentionally no detach/disarm command.
     """
+    _, lease_ms, _ = stop_settings(stop_policy)
     started = time.monotonic()
     remaining = (grant.expires_unix_ms - time.time_ns() // 1000000) / 1000
     require(0 < remaining <= 600, "PROCESS_GRANT_EXPIRED")
@@ -348,10 +358,10 @@ def guard(grant: ProcessGuardGrant, pipes: GuardPipes, *, ready_extra=None, heal
             if nonce is None and now >= next_challenge:
                 sequence += 1
                 nonce = secrets.token_hex(16)
-                lease_until = now + LEASE_SECONDS
+                lease_until = now + lease_ms / 1000
                 next_challenge = now + .25
                 pipes.emit({"schema": "strata/ProcessGuardEvent/1", "kind": "challenge",
-                            "seq": sequence, "nonce": nonce, "lease_ms": 1500})
+                            "seq": sequence, "nonce": nonce, "lease_ms": lease_ms})
             try:
                 message = pipes.received.get_nowait()
             except queue.Empty:
@@ -367,7 +377,7 @@ def guard(grant: ProcessGuardGrant, pipes: GuardPipes, *, ready_extra=None, heal
                 break
             nonce = None
         detected = time.monotonic()
-        target.terminate()
+        target.terminate(stop_policy=stop_policy)
         confirmed = True
     finally:
         # Kernel kill-on-close also covers guard crash/SIGKILL after attachment.

@@ -388,9 +388,11 @@ def test_guard_failure_preserves_typed_fault_without_exception_text():
                          "reason": "PROCESS_GUARD_FAILURE", "termination_confirmed": False}
 
 
+@pytest.mark.parametrize("stop_policy", ["java-tree500-lease1500/1", "java-tree1000-lease750/1"])
 @pytest.mark.parametrize("outcome", ["signaled", "timeout", "error", "job_error"])
-def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch, outcome):
+def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch, outcome, stop_policy):
     import mcbench.process_guard as module
+    wait_ms, _, policy = module.stop_settings(stop_policy)
     calls = []
 
     class Job:
@@ -423,18 +425,18 @@ def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch,
     errors = {"timeout": "PROCESS_STOP_UNCONFIRMED", "error": "PROCESS_STATE_UNAVAILABLE",
               "job_error": "PROCESS_STOP_FAILED"}
     if outcome == "signaled":
-        target.terminate()
+        target.terminate(stop_policy=stop_policy)
     else:
         with pytest.raises(Fault, match=errors[outcome]):
-            target.terminate()
+            target.terminate(stop_policy=stop_policy)
     timing = target.termination_timing
     assert timing["started_qpc_ns"] == "100000000000"
-    assert timing["wait_bound_ms"] == 500
+    assert timing["wait_bound_ms"] == wait_ms
     assert timing["job_returned_after_ns"] == 7
     assert timing["job_succeeded"] is (outcome != "job_error")
-    expected = ["terminate"] if outcome == "job_error" else ["terminate", ("wait", 500)]
+    expected = ["terminate"] if outcome == "job_error" else ["terminate", ("wait", wait_ms)]
     assert calls == expected + (["accounting"] if outcome == "signaled" else [])
-    assert timing["policy"] == "job-call-wait-tree-qpc/2"
+    assert timing["policy"] == policy
     assert timing["wait_result"] == ("not_started" if outcome == "job_error" else outcome)
     assert timing["wait_started_after_ns"] == (None if outcome == "job_error" else 11)
     assert timing["wait_returned_after_ns"] == (None if outcome == "job_error" else 400000019)
@@ -443,11 +445,14 @@ def test_stop_timing_preserves_faults_one_attempt_and_existing_wait(monkeypatch,
     assert timing["tree_checked_after_ns"] == (400000023 if outcome == "signaled" else None)
 
 
+@pytest.mark.parametrize("stop_policy", ["java-tree500-lease1500/1", "java-tree1000-lease750/1"])
 @pytest.mark.parametrize("case", ["drained", "lingering", "query_error", "invalid_count",
                                   "late_zero", "late_root", "unsignaled", "inventory_gap",
                                   "inventory_error", "member_error"])
-def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case):
+def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case, stop_policy):
     import mcbench.process_guard as module
+    wait_ms, _, _ = module.stop_settings(stop_policy)
+    limit_ns = wait_ms * 1_000_000
     elapsed = 0
     counts, calls, sleeps = [], [], []
 
@@ -455,7 +460,7 @@ def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case)
         def exited(self, timeout):
             nonlocal elapsed
             calls.append(("wait", timeout))
-            elapsed += 510_000_000 if case == "late_root" else 480_000_000
+            elapsed += limit_ns + 10_000_000 if case == "late_root" else limit_ns - 20_000_000
             return True
 
     class Job:
@@ -492,22 +497,22 @@ def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case)
     target = AttachedJava.__new__(AttachedJava)
     target.job, target.process = Job(), Process()
     if case == "drained":
-        target.terminate()
+        target.terminate(stop_policy=stop_policy)
         assert counts == [1, 0]
     else:
         error = "PROCESS_STATE_UNAVAILABLE" if case in {"query_error", "invalid_count", "member_error"} else (
             "PROCESS_MEMBER_INVENTORY_UNAVAILABLE" if case == "inventory_error" else "PROCESS_STOP_UNCONFIRMED")
         with pytest.raises(Fault, match=error):
-            target.terminate()
+            target.terminate(stop_policy=stop_policy)
     timing = target.termination_timing
-    assert calls.count("terminate") == 1 and calls.count(("wait", 500)) == 1
+    assert calls.count("terminate") == 1 and calls.count(("wait", wait_ms)) == 1
     assert timing["wait_result"] == "signaled"
     expected = "empty" if case == "drained" else (
         "error" if case in {"query_error", "invalid_count", "inventory_error", "member_error"} else (
             "incomplete" if case == "inventory_gap" else "timeout"))
     assert timing["tree_result"] == expected
     if case == "lingering":
-        assert elapsed == 500_000_000 and sum(sleeps) < .020
+        assert elapsed == limit_ns and sum(sleeps) < .020
         assert timing["active_processes"] == 1
     if case == "late_root":
         assert "accounting" not in calls
@@ -515,7 +520,7 @@ def test_root_exit_requires_empty_owned_job_within_same_bound(monkeypatch, case)
         assert timing["active_processes"] == 0  # Empty too late cannot pass.
     if case == "unsignaled":
         assert timing["active_processes"] == 0 and timing["signaled_processes"] == 0
-        assert elapsed == 500_000_000
+        assert elapsed == limit_ns
 
 
 @pytest.mark.parametrize("emit_fails", [False, True])
@@ -532,7 +537,7 @@ def test_timing_output_occurs_after_cleanup_even_when_wait_failed(monkeypatch, e
         def __init__(self, *args, **kwargs):
             pass
 
-        def terminate(self):
+        def terminate(self, **kwargs):
             calls.append("terminate")
             raise Fault("PROCESS_STOP_UNCONFIRMED")
 

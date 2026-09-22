@@ -94,9 +94,10 @@ export function forgeCapabilities(nativeFingerprint: string) {
       prediction:'ordinary-native-click-conserved-visible-resources',confirmation:'server-owned-slots-and-cursor-exact',
       pre_click_echo:'one-charged-refresh-no-click-replay',machine_processing:'not-attributed-to-click',hidden_slots:'not-read',player_to_machine_quick_move:false},
     release:{policy:'confirmed-native-release/1',timeout_ms:250,fence_on_stop_all:true},
-    process_guard:{policy:'forge-process-listener-client-thread/1',platform:'win32',python:'3.12.14',
-      implementation_digest:guardImplementationDigest(),parent_lease_ms:1500,native_stale_ms:1500,
-      native_health_period_ms:1000,termination_wait_ms:500,whole_client_lifetime:true},
+    process_guard:{policy:'forge-process-listener-client-thread/2',platform:'win32',python:'3.12.14',
+      shutdown_policy:'java-tree1000-lease750/1',
+      implementation_digest:guardImplementationDigest(),parent_lease_ms:750,native_stale_ms:750,
+      native_health_period_ms:250,termination_wait_ms:1000,whole_client_lifetime:true},
     limits:{movement_ms:30000,action_ms:10000,observation_age_ms:2000},
     conformance:'unverified', campaign_admission:false, operator_development_only:true,
   };

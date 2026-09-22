@@ -41,6 +41,22 @@ const drained={...timing,wait_returned_after_ns:400000000,wait_result:'signaled'
   tree_checked_after_ns:400100000,active_processes:0,tree_result:'empty',
   total_processes:3,held_processes:3,signaled_processes:3};
 
+test('D13 binds a distinct one-second tree proof and never upgrades legacy evidence',t=>{
+  const root=mkdtempSync(join(tmpdir(),'strata-guard-d13-'));const evidence=new SupervisorEvidence(root,1);
+  t.after(()=>{evidence.close();unlinkSync(join(root,'supervisor-1.jsonl'));rmdirSync(root);});
+  const changed={...drained,policy:'job-call-wait-tree-qpc/3',wait_bound_ms:1000,
+    wait_returned_after_ns:630_000_000,tree_checked_after_ns:640_000_000};
+  assert.equal(recordTerminationTiming(evidence,changed,'java-tree1000-lease750/1'),'signaled');
+  assert.throws(()=>recordTerminationTiming(evidence,changed),Fault);
+  assert.throws(()=>recordTerminationTiming(evidence,drained,'java-tree1000-lease750/1'),Fault);
+  for(const patch of [{wait_bound_ms:500},{policy:'job-call-wait-tree-qpc/2'},
+    {tree_checked_after_ns:1_000_002_101},{wait_returned_after_ns:1_000_002_101},
+    {active_processes:1},{held_processes:2},{signaled_processes:2},{total_processes:4}]) {
+    assert.throws(()=>recordTerminationTiming(evidence,{...changed,...patch},'java-tree1000-lease750/1'),Fault);
+  }
+  assert.equal(recordTerminationTiming(evidence,timing),'timeout');
+});
+
 test('bounded termination diagnostics keep each result separate from confirmed stop', t=>{
   const root=mkdtempSync(join(tmpdir(),'strata-guard-timing-'));const evidence=new SupervisorEvidence(root,1);
   t.after(()=>{evidence.close();unlinkSync(join(root,'supervisor-1.jsonl'));rmdirSync(root);});

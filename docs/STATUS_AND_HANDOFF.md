@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.108](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.109](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -32,9 +32,9 @@ The current user request and active long-horizon goal are **M0 and its complete 
 
 ## Current implementation and next action
 
-**Current shutdown/preparation work:** [Bounded bundle preparation](verification/2026-09-21-bundle-preparation.md) fits the authentic protected-copy stage in 86.531 s, versus the prior 196.282 s. The real E9E client completes the seven-operation craft and reconciles 79 primitives. Its guardian still fails: 512.8631/500 ms wait, no tree check; the pair remains uncertain. All held processes exit, credentials retire and the input desktop stays unchanged. Source/Java selection: 98 passes; package exclusion passes separately. The 28/32 trajectory audit retains four failures; the CPU-input audit passes 22/22 without qualifying shutdown or scoring. Preserve all three consumed CPU scopes and prior failures. Next advance M0 acquisition/provenance; do not repeat this unchanged CPU profile.
+**Current shutdown result — D13:** [The new 1,000-ms policy passes its authentic normal-shutdown sample](verification/2026-09-21-d13-shutdown.md): complete Java tree proof **568.994 ms**, real seven-operation craft, 74 reconciled primitives, normally closed protected custody and stopped pair. Independent audits pass 33/33 and 28/28; all held processes terminal, credentials retired and desktop unchanged. Earlier 500-ms failures stay failed under their old profile. This resolves the named normal-stop blocker for D13, not full T07/G0 or scoring. Next connect the sealed candidate to remaining scorer/setup/provenance and canonical recovery requirements; no unchanged craft rerun or more 500-ms optimization.
 
-**Latest working behavior:** [M0.1d.6 development recovery](verification/2026-09-21-native-game-recovery.md) resumes the captured vanilla world, native root notes and preserved accounting together. Case 02 passes 35/35 native checks with scripted replies, stale token/epoch rejection, saved-player assertions, one new action and normal recapture. Cumulative 12 calls/168 fixture units/two primitives; original accounting unchanged. Failed case 01 and failed source case 04 remain sealed. This closes the bounded development continuation only. Next connect canonical checkpoint/provenance and remaining scorer/setup, isolation and 500-ms shutdown requirements; no unchanged live rerun.
+**Latest working behavior:** [M0.1d.6 development recovery](verification/2026-09-21-native-game-recovery.md) resumes the captured vanilla world, native root notes and preserved accounting together. Case 02 passes 35/35 native checks with scripted replies, stale token/epoch rejection, saved-player assertions, one new action and normal recapture. Cumulative 12 calls/168 fixture units/two primitives; original accounting unchanged. Failed case 01 and failed source case 04 remain sealed. This closes the bounded development continuation only. Next connect canonical checkpoint/provenance, scorer/setup and isolation; D13 now passes the authentic normal-stop sample, with other fault qualification still required. No unchanged live rerun.
 
 M0.1d.1 is verified for its bounded read-only evidence-reconstruction contract. [Implementation, command and exact evidence](verification/2026-09-21-native-game-verifier.md): existing case 02 independently reconciles six scripted calls, 84 fixture units, one real primitive, root/helper closure and stopped state; 52 focused checks and 16 synthetic derived-copy negatives pass. The original flat manifest omitted 105 deep plugin files; their preexisting sealed bootstrap hash chain verifies them. Preserve the flat-inventory failure and original bytes. No game or model run was repeated. Missing authoritative clocks/scorer/isolation/shutdown/recovery evidence remains explicit; parent M0.1d remains implemented_unverified.
 
@@ -99,15 +99,18 @@ The 4,370-file seal is
 The failed first recovery's null-sentinel assertion and forced cleanup remain
 sealed. See the latest report for all source tests, failures and qualification limits.
 
-Continue the remaining integrated scorer/setup, isolation and shutdown work.
-The latest shutdown evidence is [authentic resources and file discrimination](verification/2026-09-21-authentic-resources-and-files.md),
-not the earlier memory/graphics-only reports. It retains the 513.433/500-ms
-failure and shows that the tested resource fixtures did not reproduce it;
-there is no established shutdown remedy. Do not repeat those fixtures or an
-unchanged game profile. Candidate vanilla PackLock remains RESOLVED/unsealed;
-canonical save/custody/clock/checkpoint qualification remains open despite the
-successful bounded development continuation. Original accounting and D12 remain
-unchanged, and no permission question or missing user input is pending.
+Continue the remaining integrated scorer/setup, provenance, isolation and canonical
+recovery work. [D13](verification/2026-09-21-d13-shutdown.md) explicitly changes new
+Forge grants to a 1,000-ms tree-proof policy; its authentic normal-stop sample
+passes at 568.994 ms and protected custody closes normally. The original
+[resource/file](verification/2026-09-21-authentic-resources-and-files.md) and
+[CPU-profile](verification/2026-09-21-bundle-preparation.md) failures remain intact.
+Do not repeat the unchanged successful craft or resume 500-ms optimization.
+Full authentic fault/launch containment and general isolation remain open.
+Candidate vanilla PackLock remains RESOLVED/unsealed; canonical save/custody/
+clock/checkpoint qualification remains open despite the successful bounded
+native/world continuation. Original accounting and consumed D12 remain
+unchanged; no permission question or missing user input is pending.
 
 ## Durable accounting: D12 is consumed
 

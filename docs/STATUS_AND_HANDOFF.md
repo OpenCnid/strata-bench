@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.103](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.104](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -64,6 +64,15 @@ no authentic game restore is claimed. Costs and old source files stay unchanged.
 Next bind authoritative stopped vanilla persistence and preregistered retention,
 then fresh grants/observations and joint restore assertions. Existing game runs
 without prior retention policy cannot be retroactively promoted to checkpoints.
+
+M0.1d.4 now implements the stopped vanilla capture dependency.
+[Source/process evidence](verification/2026-09-21-vanilla-persistence.md): 80 focused
+checks pass; the existing stopped layout has 68 accounted-for files and is
+unchanged. No new game was launched or historical run re-sealed. The new v2
+profile requires held full process termination before leased byte capture.
+Next preregister native retention before a changed connected capture trial;
+then fresh grants/observations and complete joint assertions. No authentic
+capture, clean-save/custody or full checkpoint qualification yet.
 
 ## Durable accounting: D12 is consumed
 

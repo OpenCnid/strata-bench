@@ -34,6 +34,8 @@ this summary is not executable authority. [Admission contract](operations/valida
 
 **M0.1d.3 adds durable restored-set verification.** [Implementation/evidence](verification/2026-09-21-restored-set.md) binds world/agent files to the committed source and publication record, rejecting changed, mixed, stale or interrupted sets. 107 distinct source/process checks and 17/17 recorded-native/synthetic-world audit checks pass with costs retained. Authentic stopped persistence and joint game/native restart remain unverified.
 
+**M0.1d.4 implements stopped vanilla capture.** [Source/process checks](verification/2026-09-21-vanilla-persistence.md): 80 pass, and all 68 existing stopped-instance files have explicit disposition. Held process history, input leases and archive byte checks are enforced by the new profile. Authentic capture and joint recovery remain unverified; next preregister retention before the changed connected trial.
+
 Evidence entry points:
 
 - [Connected native/game run](verification/2026-09-21-m0-native-game.md) and

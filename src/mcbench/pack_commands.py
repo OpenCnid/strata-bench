@@ -105,6 +105,15 @@ def prepare_vanilla_server(root: Path, destination: Path, request: Request, stor
         emit(service.prepare_vanilla_server(request, root, destination))
 
 
+@pack_app.command("prepare-vanilla-client")
+def prepare_vanilla_client(assets: Path, destination: Path, request: Request, store: Store,
+                           library_root: Annotated[list[Path], typer.Option("--library-root")],
+                           simulation: bool = False):
+    """Prepare the acquired Windows client with exact cached libraries/assets."""
+    with provider(store, simulation) as service:
+        emit(service.prepare_vanilla_client(request, assets, library_root, destination))
+
+
 @pack_app.command("seal")
 def seal(request: Request, launch: Annotated[Path, typer.Option()],
          evidence: Annotated[Path, typer.Option()], store: Store, simulation: bool = False):

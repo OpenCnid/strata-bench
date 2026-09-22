@@ -69,6 +69,25 @@ Complete licensing, configuration, Java/client roles, update policy and cold
 restart evidence before the full PackLock. [Implementation and actual software
 preparation](../verification/2026-09-22-vanilla-runtime.md).
 
+Prepare the Windows client from the acquired pristine client and exact
+metadata-selected cache inputs:
+
+```powershell
+mcbench pack prepare-vanilla-client C:/StrataPrivate/cache/assets C:/StrataPrivate/new-client-software --request vanilla-1192 --store C:/StrataPrivate/store --library-root C:/StrataPrivate/cache/libraries --library-root C:/StrataPrivate/verified-server-software/libraries
+```
+
+Library roots are explicit and ordered. Missing entries may come from a later
+root only when their metadata hashes match; a corrupt earlier candidate rejects.
+The command preserves the declared Windows classpath order and records other-OS
+exclusions. It verifies the asset index, all unique asset objects, aliases and
+logging configuration, then copies only the named inputs plus the acquired
+client/version bytes. It never copies the shared launcher tree or substitutes
+its altered client JAR. Complete-copy and unchanged-source checks precede
+`VanillaClientSoftware/1` publication in private CAS; no provisioning state
+promotion occurs. All licensing, runtime configuration, Java, cold restart
+and complete-role checks still apply. [Actual client preparation and Java
+source comparison](../verification/2026-09-22-vanilla-client.md).
+
 - `AcquisitionReceipt`: exactly one client and one server distribution, actual
   SHA-256 hashes, exact official origin/file IDs, license references, JVM/launcher
   pins and private evidence refs. E9E's client archive must carry the selected

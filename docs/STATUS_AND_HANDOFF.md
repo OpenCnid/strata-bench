@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.112](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.113](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Current client/Java software — M0.3a.2:** [Actual client preparation and Java source inventory](verification/2026-09-22-vanilla-client.md) now provide 3,432 exact client software files, 65 ordered classpath entries and all 3,364 distinct assets. Four missing shared-cache libraries use exact verified server copies; the shared installation remains unchanged. All 316 installed Java files match the publisher ZIP, and a separate private copy preserves them and 183 legal/notice files. Fifty-one focused source checks plus the gameplay-package check pass; 32 durable tables and original accounting remain unchanged. Next assemble complete role inventories with configuration/update policy, finish component/shaded/native licensing and qualify cold restart. No game/model/input activity or complete PackLock claim.
 
 **Current server software — M0.3a.2:** [Acquired vanilla server preparation](verification/2026-09-22-vanilla-runtime.md) now joins the original acquired bundle to the installed inner server and all 29 libraries, then prepares 31 independent private software files. The actual audit preserves all 63 source files, 32 durable tables, existing evidence and original accounting. Sixty-seven distinct focused source cases pass. The SLF4J archive-metadata rejection and initial audit/parser errors remain sealed. Embedded and published provenance/license metadata is retained; five Mojang component license declarations, shaded/native contents, compatible client/Java roles, configuration/update policy and cold restart remain open. Continue those concrete PackLock dependencies using the prepared bytes; no unchanged preparation/game rerun. M0/G0 remains incomplete/fail.
 

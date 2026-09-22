@@ -320,11 +320,10 @@ class PackProvider:
             self.db.event(db, "pack.inventory_verified", {"request_id": request_id, "ref": ref})
         return ref
 
-    def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
-        """Join exact installed server payloads to the durable acquired distribution."""
+    def _vanilla_distribution(self, request_id, role):
+        """Recheck the durable acquisition without reopening its old source paths."""
         import hashlib
         from .vanilla_artifacts import metadata
-        from .vanilla_runtime import prepare_server
 
         row = self._row(request_id, active=True)
         require(row["target"] == "vanilla" and row["state"] in {"ACQUIRED", "VERIFIED", "SEALED"},
@@ -334,25 +333,43 @@ class PackProvider:
         require(isinstance(receipt, VanillaAcquisitionReceipt) and receipt.request_id == request_id
                 and receipt.is_example == self.simulation, "VANILLA_SOURCE_VERIFICATION_REQUIRED")
         namespace = self.namespace(request_id)
+        version_raw = self.cas.read(self.principal, namespace, receipt.vanilla_version_metadata, max_bytes=2 * 1024**2)
         source = metadata(self.cas.read(self.principal, namespace, receipt.vanilla_manifest, max_bytes=4 * 1024**2),
-                          self.cas.read(self.principal, namespace, receipt.vanilla_version_metadata, max_bytes=2 * 1024**2))
+                          version_raw)
         require({item.role for item in receipt.distributions} == {"client", "server"}, "ROLE_MISMATCH")
-        server = next(item for item in receipt.distributions if item.role == "server")
-        require(server.origin == source["downloads"]["server"]["url"] and server.file_id is None,
+        selected = next(item for item in receipt.distributions if item.role == role)
+        require(selected.origin == source["downloads"][role]["url"] and selected.file_id is None,
                 "VANILLA_DISTRIBUTION_SOURCE")
-        artifacts = [item for item in imported["distributions"] if item["role"] == "server"]
-        require(len(artifacts) == 1 and artifacts[0]["ref"] == "cas:sha256:" + server.sha256,
+        artifacts = [item for item in imported["distributions"] if item["role"] == role]
+        require(len(artifacts) == 1 and artifacts[0]["ref"] == "cas:sha256:" + selected.sha256,
                 "VANILLA_DISTRIBUTION_MISMATCH")
         raw = self.cas.read(self.principal, namespace, artifacts[0]["ref"], max_bytes=512 * 1024**2)
-        require(len(raw) == source["downloads"]["server"]["bytes"] and
-                hashlib.sha1(raw).hexdigest() == source["downloads"]["server"]["sha1"],
+        require(len(raw) == source["downloads"][role]["bytes"] and
+                hashlib.sha1(raw).hexdigest() == source["downloads"][role]["sha1"],
                 "VANILLA_DISTRIBUTION_MISMATCH")
+        binding = {"is_example": self.simulation, "request_id": request_id,
+                   "acquisition_receipt": row["receipt"], "distribution_ref": artifacts[0]["ref"],
+                   "source_verification": source}
+        return raw, version_raw, binding
+
+    def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
+        """Join exact installed server payloads to the durable acquired distribution."""
+        from .vanilla_runtime import prepare_server
+        raw, _, binding = self._vanilla_distribution(request_id, "server")
         require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
                 "UNSAFE_PATH")
         result = prepare_server(raw, root, destination)
-        result.update(schema="strata/VanillaServerSoftware/1", is_example=self.simulation,
-                      request_id=request_id, acquisition_receipt=row["receipt"],
-                      distribution_ref=artifacts[0]["ref"], source_verification=source)
+        result.update(schema="strata/VanillaServerSoftware/1", **binding)
+        return {"evidence": self._put(request_id, result), **result}
+
+    def prepare_vanilla_client(self, request_id, assets: Path, library_roots: list[Path], destination: Path):
+        """Prepare the exact acquired Windows client and its metadata-selected inputs."""
+        from .vanilla_client import prepare_client
+        raw, version_raw, binding = self._vanilla_distribution(request_id, "client")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        result = prepare_client(raw, version_raw, assets, library_roots, destination)
+        result.update(schema="strata/VanillaClientSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
 
     def seal_template(self, request_id, launch: LaunchProfile, evidence: ProvisioningEvidence):

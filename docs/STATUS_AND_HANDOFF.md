@@ -63,8 +63,9 @@ verifier. [Source/process and recorded-native evidence](verification/2026-09-21-
 107 distinct focused cases and 17/17 offline audit checks pass. The audit retains
 an actual native component with scripted responses and synthetic world data;
 no authentic game restore is claimed. Costs and old source files stay unchanged.
-Next bind authoritative stopped vanilla persistence and preregistered retention,
-then fresh grants/observations and joint restore assertions. Existing game runs
+M0.1d.4–.6 now connect stopped vanilla capture, preregistered retention and
+a fresh-epoch development continuation. Canonical checkpoint admission still
+requires authoritative save/custody/clocks and a sealed pack. Existing game runs
 without prior retention policy cannot be retroactively promoted to checkpoints.
 
 M0.1d.4/M0.1d.5 now have partial authentic component evidence.
@@ -74,7 +75,8 @@ primitive. Native preregistration/retention and 28 captured real world-state fil
 independently reconcile after three complete owned-process exits. The outer run
 fails `M0_CAPTURE_INCOMPLETE` on normal/extended Windows path equality and has no
 joint receipt; keep that sealed failure. The fixed comparison has four focused
-passing checks, not corrected live-publication evidence. Original 68 source files
+passing checks and now publishes successfully in recovery case 02; the original
+case-04 failure remains unchanged. Original 68 source files
 and $0.756858 accounting are unchanged; no Java remains, D12 stays consumed.
 
 Original bundle: `C:/Users/Darian/.strata/evidence/2026-09-21-m0-native-game-04`;
@@ -86,17 +88,24 @@ and removed from their exact paths; its original seal/bytes verify unchanged.
 Use frozen-store immutable reads for historical SQLite, ordinary read-only
 access for live accounting authority. See the report for incident evidence.
 
-Current M0.1d.6 is now verified for the bounded development profile above. Earlier implementation note: the user explicitly called out lack of integrated
-progress. Continue straight through the connected recovery path. Native root
-restoration is implemented with 14 focused synthetic passes; copied native
-accounting, world/worker restoration and actual fresh-epoch continuation remain
-to wire and run. Preserve current uncommitted work.
+M0.1d.6's connected development recovery is committed as `f2b8983`.
+Private recovery case 02 and its independent audit verify saved own state,
+retained-note read/continuation, denied helper history and stale token/epoch,
+preserved old costs/action, fresh action, normal termination and recapture.
+The 4,370-file seal is
+`9f9e32c888a5cb48bd6c15fee65efe22a14c8305e80f58f4ca76a88df01eed2b`.
+The failed first recovery's null-sentinel assertion and forced cleanup remain
+sealed. See the latest report for all source tests, failures and qualification limits.
 
-Next implement fresh restoration dependencies using the verified components.
-Do not rewrite case 04's result, replay a model request, or repeat an unchanged
-game to replace failure. Candidate vanilla PackLock remains RESOLVED/unsealed;
-no full game save/custody, clock, checkpoint or restore assertion is qualified.
-Continue these M0 dependencies and independent scorer/isolation/shutdown gaps.
+Continue the remaining integrated scorer/setup, isolation and shutdown work.
+The latest shutdown evidence is [authentic resources and file discrimination](verification/2026-09-21-authentic-resources-and-files.md),
+not the earlier memory/graphics-only reports. It retains the 513.433/500-ms
+failure and shows that the tested resource fixtures did not reproduce it;
+there is no established shutdown remedy. Do not repeat those fixtures or an
+unchanged game profile. Candidate vanilla PackLock remains RESOLVED/unsealed;
+canonical save/custody/clock/checkpoint qualification remains open despite the
+successful bounded development continuation. Original accounting and D12 remain
+unchanged, and no permission question or missing user input is pending.
 
 ## Durable accounting: D12 is consumed
 

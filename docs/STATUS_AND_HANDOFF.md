@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.111](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.112](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Current server software — M0.3a.2:** [Acquired vanilla server preparation](verification/2026-09-22-vanilla-runtime.md) now joins the original acquired bundle to the installed inner server and all 29 libraries, then prepares 31 independent private software files. The actual audit preserves all 63 source files, 32 durable tables, existing evidence and original accounting. Sixty-seven distinct focused source cases pass. The SLF4J archive-metadata rejection and initial audit/parser errors remain sealed. Embedded and published provenance/license metadata is retained; five Mojang component license declarations, shaded/native contents, compatible client/Java roles, configuration/update policy and cold restart remain open. Continue those concrete PackLock dependencies using the prepared bytes; no unchanged preparation/game rerun. M0/G0 remains incomplete/fail.
 
 **Current acquisition result — M0.3a.1:** [Metadata-bound vanilla intake](verification/2026-09-21-vanilla-acquisition.md) is verified for distribution intake: the original vanilla request is now ACQUIRED with exact official client/server artifacts and a version-2 receipt. The altered shared client JAR was rejected and retained; the installation was not replaced. Forty focused source tests pass. All 31 non-intake tables, existing objects/journal prefix, E9E record and original $0.756858 accounting remain unchanged. No game/model/desktop input occurred. Next complete compatible installed-role provenance, runtime configuration/update policy and the real PackLock; scorer, isolation, client-startup and canonical recovery gaps remain.
 
@@ -111,7 +113,7 @@ passes at 568.994 ms and protected custody closes normally. The original
 [CPU-profile](verification/2026-09-21-bundle-preparation.md) failures remain intact.
 Do not repeat the unchanged successful craft or resume 500-ms optimization.
 Full authentic fault/launch containment and general isolation remain open.
-Candidate vanilla PackLock remains RESOLVED/unsealed; canonical save/custody/
+Candidate vanilla PackLock remains ACQUIRED/unsealed; canonical save/custody/
 clock/checkpoint qualification remains open despite the successful bounded
 native/world continuation. Original accounting and consumed D12 remain
 unchanged; no permission question or missing user input is pending.

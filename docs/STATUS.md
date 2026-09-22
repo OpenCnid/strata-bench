@@ -1,9 +1,11 @@
 # Strata current status
 
-Updated September 21, 2026. Operator-only. **M0 is incomplete, G0 is `fail`,
+Updated September 22, 2026. Operator-only. **M0 is incomplete, G0 is `fail`,
 and G1–G5 are `not_run`.** Required M0–M6 and conditional M7/extensions remain
 in scope. [MILESTONES.md](../MILESTONES.md) owns progress and retained failures;
 [SPEC.md](../SPEC.md) defines acceptance.
+
+**Current server software — M0.3a.2:** [Acquired vanilla server preparation](verification/2026-09-22-vanilla-runtime.md) now joins the original acquired bundle to the installed inner server and all 29 libraries, then prepares 31 independent private software files. The actual audit preserves all 63 source files, 32 durable tables, existing evidence and original accounting. Sixty-seven distinct focused source cases pass. The SLF4J archive-metadata rejection and initial audit/parser errors remain sealed. Embedded and published provenance/license metadata is retained; five Mojang component license declarations, shaded/native contents, compatible client/Java roles, configuration/update policy and cold restart remain open. Continue those concrete PackLock dependencies using the prepared bytes; no unchanged preparation/game rerun. M0/G0 remains incomplete/fail.
 
 **Current acquisition result — M0.3a.1:** [Metadata-bound vanilla intake](verification/2026-09-21-vanilla-acquisition.md) is verified for distribution intake: the original vanilla request is now ACQUIRED with exact official client/server artifacts and a version-2 receipt. The altered shared client JAR was rejected and retained; the installation was not replaced. Forty focused source tests pass. All 31 non-intake tables, existing objects/journal prefix, E9E record and original $0.756858 accounting remain unchanged. No game/model/desktop input occurred. Next complete compatible installed-role provenance, runtime configuration/update policy and the real PackLock; scorer, isolation, client-startup and canonical recovery gaps remain.
 

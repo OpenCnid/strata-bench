@@ -97,6 +97,14 @@ def verify(request: Request, inventory: Annotated[Path, typer.Option()], store: 
         emit({"inventory": service.verify_inventory(request, roles)})
 
 
+@pack_app.command("prepare-vanilla-server")
+def prepare_vanilla_server(root: Path, destination: Path, request: Request, store: Store,
+                           simulation: bool = False):
+    """Verify acquired/installed server payloads and prepare a new private software copy."""
+    with provider(store, simulation) as service:
+        emit(service.prepare_vanilla_server(request, root, destination))
+
+
 @pack_app.command("seal")
 def seal(request: Request, launch: Annotated[Path, typer.Option()],
          evidence: Annotated[Path, typer.Option()], store: Store, simulation: bool = False):

@@ -45,6 +45,30 @@ The [vanilla intake checkpoint](../verification/2026-09-21-vanilla-acquisition.m
 records the authentic distribution import and retained shared-client mismatch.
 `ACQUIRED` is not a sealed installation or T02 pass.
 
+Prepare the acquired vanilla server's software bytes with:
+
+```powershell
+mcbench pack prepare-vanilla-server C:/StrataPrivate/installed-server C:/StrataPrivate/new-server-software --request vanilla-1192 --store C:/StrataPrivate/store
+```
+
+This operator command requires a durable version-2 vanilla acquisition and
+rechecks its metadata/CAS joins. It verifies `server.jar`, the inner server
+and every declared installed library, including exact directory membership,
+before independently copying the acquired payloads to a **new** directory.
+No installed source is changed or game launched. Known configuration files
+are hash-recorded as pending; world/account state and logs have explicit
+excluded dispositions. Unknown root files or runtime extras reject.
+An error after output creation preserves diagnostic partial output, which
+must not be reused. A successful auxiliary `VanillaServerSoftware/1` report
+enters the request's private operator CAS; provisioning state is unchanged.
+
+Embedded license/notices/POM metadata and opaque archive anomalies remain
+bound to their original JAR hashes. This does not assign licenses, qualify
+stopped-source custody or replace `RoleInventoryInput`/provisioning checks.
+Complete licensing, configuration, Java/client roles, update policy and cold
+restart evidence before the full PackLock. [Implementation and actual software
+preparation](../verification/2026-09-22-vanilla-runtime.md).
+
 - `AcquisitionReceipt`: exactly one client and one server distribution, actual
   SHA-256 hashes, exact official origin/file IDs, license references, JVM/launcher
   pins and private evidence refs. E9E's client archive must carry the selected

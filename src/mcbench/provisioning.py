@@ -99,6 +99,22 @@ class LaunchProfile(Strict):
     server: LaunchCommand
 
 
+def validate_launch_environment(environment: dict[str, str]):
+    """Explicit operator settings only; never fill gaps from inherited state."""
+    directories = {"SystemRoot", "WINDIR", "TEMP", "TMP"}
+    require(set(environment) <= {"JAVA_HOME", "PATH", "LANG", "TZ"} | directories,
+            "ENVIRONMENT_NOT_ALLOWED")
+    require(all("\x00" not in value for value in environment.values()), "INVALID_ENVIRONMENT")
+    for name in directories & environment.keys():
+        path = Path(environment[name])
+        require(path.is_absolute(), "INVALID_ENVIRONMENT")
+        reject_links(path)
+        require(path.is_dir(), "INVALID_ENVIRONMENT")
+    for first, second in (("TEMP", "TMP"), ("SystemRoot", "WINDIR")):
+        if first in environment and second in environment:
+            require(Path(environment[first]) == Path(environment[second]), "INVALID_ENVIRONMENT")
+
+
 class ProvisioningEvidence(Strict):
     schema_: Literal["strata/ProvisioningEvidence/1"] = Field(alias="schema")
     is_example: bool
@@ -279,7 +295,7 @@ class PackProvider:
         row = self._row(request_id, active=True)
         require(row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
         require(len(roles) == 2 and {r.role for r in roles} == {"client", "server"}, "ROLE_MISMATCH")
-        entries, role_evidence = [], []
+        entries, role_evidence, prepared = [], [], []
         reviewed = reviewed_vendor_paths(row["target"])
         for role in sorted(roles, key=lambda r: r.role):
             root = Path(role.root)
@@ -297,6 +313,12 @@ class PackProvider:
                 require(actual == {k: getattr(entry, k) for k in ("path", "digest", "bytes")},
                         "HASH_MISMATCH")
                 require(bool(entry.origin) and bool(entry.license_ref), "PROVENANCE_MISSING")
+            prepared.append((role, root, scanned, declared))
+        # Validate BOTH roles completely before consuming storage or journaling
+        # any installed file. A known missing provenance field in the second
+        # role must not leave thousands of imported assets from the first.
+        for role, root, scanned, declared in prepared:
+            for entry in declared:
                 self.cas.put_file(self.principal, self.namespace(request_id), "operator",
                                   root / entry.path, entry.digest, quota_bytes=self.quota,
                                   max_object_bytes=8 * 1024**3)
@@ -396,8 +418,7 @@ class PackProvider:
         for command in (launch.client, launch.server):
             require(command.working_directory == "." or
                     bool(template_path(command.working_directory)), "UNSAFE_PATH")
-            require(set(command.environment) <= {"JAVA_HOME", "PATH", "LANG", "TZ"},
-                    "ENVIRONMENT_NOT_ALLOWED")
+            validate_launch_environment(command.environment)
             require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
             executable = Path(command.executable_path)
             require(executable.is_absolute(), "UNSAFE_PATH")

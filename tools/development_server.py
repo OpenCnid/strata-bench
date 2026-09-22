@@ -17,7 +17,7 @@ from pathlib import Path
 from mcbench.inventory import file_hash
 from mcbench.processes import ManagedProcess
 from mcbench.launch_integrity import IntegrityError
-from mcbench.provisioning import LaunchCommand
+from mcbench.provisioning import LaunchCommand, validate_launch_environment
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Fault, digest, reject_links, require
 from mcbench.vanilla_persistence import POLICY, VanillaPersistence
@@ -54,6 +54,7 @@ def main(argv=None):
             and plan["target"] in {"vanilla", "e9e"}, "SCHEMA_UNSUPPORTED")
     require(type(plan["max_wall_s"]) is int and 1 <= plan["max_wall_s"] <= 600, "CONFIG_RANGE")
     launch = LaunchCommand.model_validate(plan["launch"])
+    validate_launch_environment(launch.environment)
     root = outside(launch.working_directory)
     require(root.is_dir(), "AWAITING_ARTIFACT")
     exe = Path(launch.executable_path)

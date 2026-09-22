@@ -13,7 +13,7 @@ from mcbench.inventory import file_hash, inspect_archive, scan_tree, template_pa
 from mcbench.pack_policies import reviewed_vendor_paths
 from mcbench.provisioning import (
     EXPERT_CHECKS, PROVISION_CHECKS, AcquisitionReceipt, LaunchProfile, PackProvider,
-    ProvisioningEvidence, RoleInventoryInput,
+    ProvisioningEvidence, RoleInventoryInput, validate_launch_environment,
 )
 from mcbench.records import FileEntry, PackLock
 from mcbench.storage import Fault, Principal, digest
@@ -79,6 +79,27 @@ def seal(prepared):
     return service.seal_template("pack1", launch, proof), proof
 
 
+@pytest.mark.parametrize("missing", ["license", "origin", "file"])
+def test_invalid_second_role_is_rejected_before_any_installed_file_import(prepared, missing):
+    service, receipt, roles, _, _ = prepared
+    service.import_acquisition_receipt(receipt)
+    role = next(role for role in roles if role.role == "server")
+    if missing == "license":
+        role.files[-1].license_ref = None
+    elif missing == "origin":
+        role.files[-1].origin = ""
+    else:
+        (Path(role.root) / role.files[-1].path).unlink()
+    before_objects = list(service.db.connection.execute("SELECT * FROM objects ORDER BY namespace,ref"))
+    before_events = list(service.db.connection.execute("SELECT * FROM outbox ORDER BY cursor"))
+    with pytest.raises(Fault):
+        service.verify_inventory("pack1", roles)
+    assert list(service.db.connection.execute("SELECT * FROM objects ORDER BY namespace,ref")) == before_objects
+    assert list(service.db.connection.execute("SELECT * FROM outbox ORDER BY cursor")) == before_events
+    assert service.status("pack1")["state"] == "ACQUIRED"
+    assert service.status("pack1")["inventory"] is None
+
+
 def test_full_import_seal_materialization_independent_bytes(prepared, tmp_path):
     service, receipt, roles, launch, _ = prepared
     result = service.request_acquisition("pack1")
@@ -98,6 +119,38 @@ def test_full_import_seal_materialization_independent_bytes(prepared, tmp_path):
     with pytest.raises(Fault, match="DESTINATION_EXISTS"):
         service.materialize("pack1", tmp_path / "two")
     assert service.status("pack1")["game_conformance_claim"] is None
+
+
+def test_sealed_explicit_platform_environment_preserves_only_declared_values(prepared, tmp_path, monkeypatch):
+    service, _, _, launch, _ = prepared
+    scratch = tmp_path / "private-temp"
+    scratch.mkdir()
+    settings = {"SystemRoot": str(tmp_path), "WINDIR": str(tmp_path),
+                "TEMP": str(scratch), "TMP": str(scratch)}
+    monkeypatch.setenv("OPENAI_API_KEY", "synthetic-inherited-canary")
+    launch.server.environment = settings
+    lock_ref, _ = seal(prepared)
+    lock = service._json("pack1", lock_ref)
+    profile = service._json("pack1", lock["launch_profile"])
+    assert profile["server"]["environment"] == settings
+    assert profile["client"]["environment"] == {}
+
+
+@pytest.mark.parametrize("case", ["secret", "java_injection", "nul", "relative", "missing", "file", "mismatch"])
+def test_launch_environment_rejects_unsafe_or_ambiguous_settings(tmp_path, case):
+    file = tmp_path / "file"
+    file.write_text("fixture")
+    values = {
+        "secret": {"OPENAI_API_KEY": "synthetic-secret"},
+        "java_injection": {"JAVA_TOOL_OPTIONS": "-Dfixture=true"},
+        "nul": {"LANG": "en\x00US"},
+        "relative": {"TEMP": "relative"},
+        "missing": {"TEMP": str(tmp_path / "missing")},
+        "file": {"TMP": str(file)},
+        "mismatch": {"TEMP": str(tmp_path), "TMP": str(tmp_path.parent)},
+    }
+    with pytest.raises(Fault, match="ENVIRONMENT_NOT_ALLOWED|INVALID_ENVIRONMENT"):
+        validate_launch_environment(values[case])
 
 
 def test_expired_request_and_stable_candidate(database, cas):

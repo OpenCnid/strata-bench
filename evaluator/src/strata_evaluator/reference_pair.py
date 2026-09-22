@@ -381,6 +381,8 @@ class ReferencePair:
                 "telemetry_auth.py", "reference_client.py"]
         if preparation is not None:
             required_sources.append("reference_preparation.py")
+        if protected and protected.preparation.schema_ == "strata/PrivateWriterPreparationPlan/3":
+            required_sources.append("writer_staging.py")
         for name in required_sources:
             require(
                 str(Path(__file__).with_name(name).resolve()) in inventory,

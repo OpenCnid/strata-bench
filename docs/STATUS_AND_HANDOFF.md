@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.107](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.108](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -32,7 +32,7 @@ The current user request and active long-horizon goal are **M0 and its complete 
 
 ## Current implementation and next action
 
-**Current shutdown/preparation implementation:** [Prepared JVM resource profile](verification/2026-09-21-jvm-resource-profile.md) adds effective four-processor argument validation. Fresh case 01 fails before Minecraft on writer exposure; case 02 starts the server but rejects insufficient participant exposure before client dispatch. Keep both sealed failures, including forced inner exit 125 in case 02. All held processes exit and unused credentials retire; no new guardian sample exists. Path validation now uses one non-following metadata query per component, without caching or removing checks. The focused selection has 69 distinct passes/three symbolic-link privilege skips; actual junction rejection passes. An 8,609-path comparison is faster, but full preparation/startup fit remains unverified. Next address the measured preparation/startup bottleneck within the registered bounds before a fresh changed-profile CPU shutdown trial. Do not replay either scope, continue shrinking time limits, or treat initial preparation as shutdown evidence.
+**Current shutdown/preparation work:** [Bounded bundle preparation](verification/2026-09-21-bundle-preparation.md) fits the authentic protected-copy stage in 86.531 s, versus the prior 196.282 s. The real E9E client completes the seven-operation craft and reconciles 79 primitives. Its guardian still fails: 512.8631/500 ms wait, no tree check; the pair remains uncertain. All held processes exit, credentials retire and the input desktop stays unchanged. Source/Java selection: 98 passes; package exclusion passes separately. The 28/32 trajectory audit retains four failures; the CPU-input audit passes 22/22 without qualifying shutdown or scoring. Preserve all three consumed CPU scopes and prior failures. Next advance M0 acquisition/provenance; do not repeat this unchanged CPU profile.
 
 **Latest working behavior:** [M0.1d.6 development recovery](verification/2026-09-21-native-game-recovery.md) resumes the captured vanilla world, native root notes and preserved accounting together. Case 02 passes 35/35 native checks with scripted replies, stale token/epoch rejection, saved-player assertions, one new action and normal recapture. Cumulative 12 calls/168 fixture units/two primitives; original accounting unchanged. Failed case 01 and failed source case 04 remain sealed. This closes the bounded development continuation only. Next connect canonical checkpoint/provenance and remaining scorer/setup, isolation and 500-ms shutdown requirements; no unchanged live rerun.
 

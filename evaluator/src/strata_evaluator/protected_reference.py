@@ -15,7 +15,7 @@ from .craft_reference import (
 )
 from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLauncher, same_path
 from .telemetry_auth import private_read
-from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, WriterPreparations
+from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, WriterPreparationPlanV3, WriterPreparations
 
 
 class ProtectedReferencePlan(Strict):
@@ -54,7 +54,7 @@ class ProtectedReferencePlan(Strict):
 
 class ProtectedReferencePlanV2(ProtectedReferencePlan):
     schema_: Literal["strata/ProtectedReferencePlan/2"] = Field(alias="schema")
-    preparation: WriterPreparationPlanV2
+    preparation: WriterPreparationPlanV2 | WriterPreparationPlanV3
     launch: ReferenceLaunchPlanV5
 
 

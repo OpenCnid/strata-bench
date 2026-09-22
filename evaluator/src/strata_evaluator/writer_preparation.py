@@ -79,8 +79,17 @@ class WriterPreparationPlanV2(WriterPreparationPlan):
     max_wall_s: int = Field(ge=25, le=900)
 
 
+class WriterPreparationPlanV3(WriterPreparationPlanV2):
+    schema_: Literal["strata/PrivateWriterPreparationPlan/3"] = Field(alias="schema")
+    staging_policy: Literal["sequential-bundles512mib/1"]
+
+
+def online_preparation(plan):
+    return plan.schema_ in {"strata/PrivateWriterPreparationPlan/2", "strata/PrivateWriterPreparationPlan/3"}
+
+
 def parse_preparation_plan(value):
-    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2).validate_python(value)
+    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2 | WriterPreparationPlanV3).validate_python(value)
 
 
 def pinned_inventory(pins, runtime_trees=()):
@@ -107,7 +116,7 @@ def pinned_inventory(pins, runtime_trees=()):
 
 
 def native_argv(plan, workspace, command):
-    online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+    online = online_preparation(plan)
     profile = "strata-private-server" if online else "strata-writer-preparation"
     settings = {"windows.sandbox": "elevated", "default_permissions": profile,
         f"permissions.{profile}.filesystem": {":root": "deny", ":minimal": "read",
@@ -176,7 +185,7 @@ class WriterPreparations:
         plan = parse_preparation_plan(value)
         value = plan.model_dump(by_alias=True)
         require(os.name == "nt", "WRITER_PLATFORM_UNSUPPORTED")
-        online = plan.schema_ == "strata/PrivateWriterPreparationPlan/2"
+        online = online_preparation(plan)
         require(plan.evidence_kind == "synthetic" or online, "WRITER_PROFILE_UNQUALIFIED")
         evidence = private_path(plan.evidence_directory)
         workspace = private_path(plan.workspace_directory)
@@ -228,20 +237,25 @@ class WriterPreparations:
             (classes / "StrataWriterPreparation.class").write_bytes(Path(plan.helper_class.path).read_bytes())
             staged_pins = [plan.helper_class.model_dump() | {
                 "path": str(classes / "StrataWriterPreparation.class")}]
-            lines = []
-            for number, (relative, pin) in enumerate(sorted(plan.sources.items())):
-                staged = staging / str(number)
-                # Copy while original file handles deny writes/replacement.
-                with Path(pin.path).open("rb") as source, staged.open("xb") as target:
-                    while chunk := source.read(65536):
-                        require(time.monotonic() < until, "WRITER_STAGING_TIMEOUT")
-                        target.write(chunk)
-                    target.flush()
-                    os.fsync(target.fileno())
-                staged_pins.append(pin.model_dump() | {"path": str(staged)})
-                lines.append("\t".join([base64.b64encode(relative.encode()).decode(),
-                    base64.b64encode(str(staged).encode()).decode(), pin.sha256, str(pin.bytes)]))
-            manifest = "\n".join(lines).encode("utf-8")
+            if isinstance(plan, WriterPreparationPlanV3):
+                from .writer_staging import stage_bundles
+                bundle_pins, manifest, body["staging"] = stage_bundles(staging, plan.sources, until)
+                staged_pins.extend(bundle_pins)
+            else:
+                lines = []
+                for number, (relative, pin) in enumerate(sorted(plan.sources.items())):
+                    staged = staging / str(number)
+                    # Copy while original file handles deny writes/replacement.
+                    with Path(pin.path).open("rb") as source, staged.open("xb") as target:
+                        while chunk := source.read(65536):
+                            require(time.monotonic() < until, "WRITER_STAGING_TIMEOUT")
+                            target.write(chunk)
+                        target.flush()
+                        os.fsync(target.fileno())
+                    staged_pins.append(pin.model_dump() | {"path": str(staged)})
+                    lines.append("\t".join([base64.b64encode(relative.encode()).decode(),
+                        base64.b64encode(str(staged).encode()).decode(), pin.sha256, str(pin.bytes)]))
+                manifest = "\n".join(lines).encode("utf-8")
             require(len(manifest) <= 8 * 1024**2, "WRITER_MANIFEST_QUOTA")
             (control / "files.tsv").write_bytes(manifest)
             phase("staged")

@@ -181,7 +181,8 @@ class ReferenceLauncher:
         require(protected == (custody is not None), "REFERENCE_CUSTODY_REQUIRED")
         if protected:
             custody.check()
-            require(online == (custody.plan.schema_ == "strata/PrivateWriterPreparationPlan/2"),
+            from .writer_preparation import online_preparation
+            require(online == online_preparation(custody.plan),
                     "REFERENCE_PROTECTED_PROFILE_UNQUALIFIED")
             require(online or (plan.mode == "synthetic-fixture"
                     and plan.max_wall_s + plan.graceful_stop_s + 2 <= 30), "REFERENCE_PROTECTED_PROFILE_UNQUALIFIED")

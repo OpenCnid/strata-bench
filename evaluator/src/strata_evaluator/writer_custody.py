@@ -19,7 +19,7 @@ from mcbench.storage import digest, require
 from .craft_reference import PrivateFile, check_file, private_path, write_new
 from .reference_pair import OwnedCli
 from .telemetry_auth import private_read
-from .writer_preparation import grant, java_identity, native_argv
+from .writer_preparation import grant, java_identity, native_argv, online_preparation
 
 
 class WriterLaunchPlan(Strict):
@@ -79,7 +79,7 @@ class WriterCustody:
         self.launched, self.broker = True, broker
         plan = TypeAdapter(WriterLaunchPlan | WriterLaunchPlanV2).validate_python(value)
         online = plan.schema_ == "strata/PrivateWriterLaunch/2"
-        require(online == (self.plan.schema_ == "strata/PrivateWriterPreparationPlan/2"),
+        require(online == online_preparation(self.plan),
                 "WRITER_LAUNCH_PROFILE")
         self.result["capability"] = "native-private-java-custody/2" if online else "native-private-java-custody/1"
         self.result["network_policy"] = "native-online-private-server/1" if online else "native-offline-writer/1"

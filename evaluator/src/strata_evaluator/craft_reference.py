@@ -84,10 +84,16 @@ class CraftReferencePlanV2(CraftReferencePlan):
         return self
 
 
+class CraftReferencePlanV3(CraftReferencePlanV2):
+    schema_: Literal["strata/PrivateCraftReferencePlan/3"] = Field(alias="schema")
+    required_history_policy: Literal["native-e9e-setup-mutation-watch/1"]
+
+
 def parse_plan(value):
     if isinstance(value, CraftReferencePlan):
         return value
-    model = CraftReferencePlanV2 if value.get("schema") == "strata/PrivateCraftReferencePlan/2" else CraftReferencePlan
+    model = {"strata/PrivateCraftReferencePlan/2": CraftReferencePlanV2,
+             "strata/PrivateCraftReferencePlan/3": CraftReferencePlanV3}.get(value.get("schema"), CraftReferencePlan)
     return model.model_validate(value)
 
 
@@ -278,6 +284,9 @@ class CraftReferenceStore:
         require(launch_body["setup_digest"] == row["digest"] and launch_body["authority_digest"] == row["authority"],
                 "CRAFT_LAUNCH_CHANGED")
         report = inspect_authenticated_spool(Path(spool), path)
+        if isinstance(plan, CraftReferencePlanV3):
+            require(report.get("setup_history", {}).get("policy") == plan.required_history_policy,
+                    "CRAFT_NATIVE_HISTORY_MISSING")
         if protected is not None:
             protected_plan, protected_body = strict_json(protected["plan"]), strict_json(protected["body"])
             preparation = protected_body.get("preparation", {})
@@ -349,6 +358,9 @@ class CraftReferenceStore:
                 native_startup=report["setup_startup"], native_setup_continuity_qualified=False)
         if "setup_history" in report:
             result["native_mutation_history"] = report["setup_history"]
+        if isinstance(plan, CraftReferencePlanV3):
+            result.update(schema="strata/PrivateCraftReferenceInspection/3",
+                          required_history_policy=plan.required_history_policy)
         # Legacy source-only references retain their original report shape.
         # A tracked dispatch may not be replaced by that weaker path after an
         # uncertain launch, failed identity binding or incomplete stop.

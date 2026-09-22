@@ -13,10 +13,11 @@ from pydantic import ValidationError
 
 from mcbench.storage import Fault
 from strata_evaluator.setup_control import COMMANDS, SetupControl, SetupControlPlan, saved_mode, startup_prefix
+from strata_evaluator.reference_launch import participant_startup
 from strata_evaluator.telemetry_auth import inspect_authenticated_spool
 from test_craft_reference import reference, seal  # noqa: F401
 from test_setup_facts import native  # noqa: F401
-from test_setup_history import history, histories  # noqa: F401
+from test_setup_history import history, histories, require_history  # noqa: F401
 from test_saved_blocks import root_bytes
 from test_craft_reference import pin
 
@@ -44,6 +45,29 @@ def test_prefix_waits_for_complete_authenticated_startup_then_returns_bound_fact
     prefix = startup_prefix(folder, authority, boot)
     assert prefix["last_event_seq"] == 4 and prefix["startup"]["phase"] == "startup"
     assert prefix["server_boot_id"] == boot
+
+
+@pytest.mark.parametrize("change", ["clear", "incomplete", "legacy", "tainted", "changed_identity"])
+def test_participant_waits_for_registered_signed_history_before_readiness(history, tmp_path, change):  # noqa: F811
+    setup = require_history(history[1])
+    if change == "legacy":
+        history[2][0]["payload_schema"] = "strata/ServerStarted/7"
+    elif change == "tainted":
+        histories(history[2])[0]["payload"]["attempts"]["world_mode"] = 2
+    folder, authority, path, boot = source(history, tmp_path)
+    body = {"server_boot_id": boot, "binding": {"native_observation": history[2][0]["payload"]["launch_identity"]}}
+    if change == "changed_identity":
+        body["binding"]["native_observation"] = {}
+    if change == "incomplete":
+        path.write_bytes(b"".join(path.read_bytes().splitlines(keepends=True)[:2]))
+        assert not participant_startup(setup, folder, authority, body)
+    elif change == "clear":
+        assert participant_startup(setup, folder, authority, body)
+        assert body["participant_setup_prefix"]["history"]["phase"] == "startup"
+    else:
+        with pytest.raises(Fault):
+            participant_startup(setup, folder, authority, body)
+    assert ("participant_setup_prefix" in body) is (change == "clear")
 
 
 @pytest.mark.parametrize("change", ["module", "hooks", "taint", "creative", "operator", "scope", "order", "signature"])

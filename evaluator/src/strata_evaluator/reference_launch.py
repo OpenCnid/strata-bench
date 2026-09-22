@@ -20,7 +20,7 @@ from mcbench.records import GameEvent
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Database, Fault, canonical, digest, require
 
-from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path, write_new
+from .craft_reference import CraftReferencePlanV3, CraftReferenceStore, PrivateFile, check_file, private_path, write_new
 from .reference_participant import ParticipantPlan, ParticipantWindow, validate_paths
 from .reference_abort import AbortSignal, request_abort
 from .telemetry import LAUNCH_STARTUP_MODELS
@@ -157,6 +157,24 @@ def first_start(spool_directory, authority):
                 "REFERENCE_START_INVALID")
         model = LAUNCH_STARTUP_MODELS[event.payload_schema]
         return files[0], event, model.model_validate(event.payload)
+
+
+def participant_startup(setup, spool, authority, body):
+    """History-required references cannot publish readiness on a legacy startup.
+
+    Reuse the signed clear-baseline parser used by private mutation controls.
+    Its receipt remains private and is journalled with participant readiness.
+    """
+    if not isinstance(setup, CraftReferencePlanV3):
+        return True
+    prefix = startup_prefix(spool, authority, body["server_boot_id"])
+    if prefix is None:
+        return False
+    require(prefix["launch_identity"] == body["binding"]["native_observation"]
+            and prefix["history"]["policy"] == setup.required_history_policy,
+            "REFERENCE_HISTORY_START_CHANGED")
+    body["participant_setup_prefix"] = prefix
+    return True
 
 
 class ReferenceLauncher:
@@ -414,7 +432,7 @@ class ReferenceLauncher:
                     if participant is None:
                         require(not (evidence / "participant-completion.json").exists(),
                                 "REFERENCE_PARTICIPANT_PREMATURE")
-                        if bound_at is not None and ready.is_set():
+                        if bound_at is not None and ready.is_set() and participant_startup(setup, spool, authority, body):
                             participant = ParticipantWindow(plan.participant, evidence, plan, body["server_boot_id"],
                                                             now, time.time(), started + plan.max_wall_s)
                             body["participant"] = participant.result

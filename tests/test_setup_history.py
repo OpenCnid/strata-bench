@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from mcbench.storage import Fault
+from strata_evaluator.craft_reference import CraftReferencePlanV3, parse_plan
 from strata_evaluator.setup_history import POLICY, ROUTES
 from test_craft_reference import reference, seal  # noqa: F401
 from test_setup_facts import native, renumber  # noqa: F401
@@ -37,6 +38,45 @@ def history(native):  # noqa: F811
 
 def histories(events):
     return [event for event in events if event["kind"] == "setup_history"]
+
+
+def require_history(plan):
+    plan.update(schema="strata/PrivateCraftReferencePlan/3", required_history_policy=POLICY)
+    return parse_plan(plan)
+
+
+def test_required_history_cannot_import_a_valid_legacy_point_only_stream(native):  # noqa: F811
+    store, plan, _, _, spool = native
+    require_history(plan)
+    seal(native)
+    with pytest.raises(Fault, match="CRAFT_NATIVE_HISTORY_MISSING"):
+        store.inspect("i", spool)
+    assert store.database.connection.execute("SELECT COUNT(*) FROM craft_reference_imports").fetchone()[0] == 0
+
+
+def test_required_history_is_sealed_and_imported_without_promoting_qualification(history):
+    store, plan, _, _, spool = history
+    parsed = require_history(plan)
+    assert isinstance(parsed, CraftReferencePlanV3)
+    seal(history)
+    result = store.inspect("i", spool)
+    assert result["schema"] == "strata/PrivateCraftReferenceInspection/3"
+    assert result["required_history_policy"] == POLICY
+    assert result["candidate_complete"] and result["native_mutation_history"]["observed_history_clear"]
+    assert not result["scoring_eligible"] and not result["native_setup_continuity_qualified"]
+    assert store.inspect("i", spool) == result
+
+
+@pytest.mark.parametrize("change", ["missing", "unknown"])
+def test_history_required_plan_cannot_drop_or_replace_its_policy(native, change):  # noqa: F811
+    plan = native[1]
+    require_history(plan)
+    if change == "missing":
+        del plan["required_history_policy"]
+    else:
+        plan["required_history_policy"] = "point-observations-only"
+    with pytest.raises(ValidationError):
+        parse_plan(plan)
 
 
 def test_complete_clear_history_adds_no_score_and_retains_resource_witness(history):

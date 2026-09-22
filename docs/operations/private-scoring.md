@@ -95,7 +95,18 @@ a reversed change or an attempt after the craft. Counters cannot roll back;
 missing/reordered/foreign history or incomplete termination rejects the stream.
 One exact terminal native stop command is distinguished through its actual
 handler, source and thread; its counters remain visible. It cannot excuse an
-extra command or establish the 500-ms shutdown gate. Legacy streams remain
+extra command or establish the declared shutdown gate (D13 uses 1,000 ms;
+legacy 500-ms failures remain failed). Legacy streams remain
 readable without retroactive history credit. Public mutable FTB fields/maps,
 KubeJS globals and other direct writes remain uncovered, so clear observed
 history still earns no score. [Implementation and exact limits](../verification/2026-09-21-setup-history.md).
+
+Use `PrivateCraftReferencePlan/3` for a history-required protected craft.
+Alongside the version-2 native roster, explicitly register
+`required_history_policy: native-e9e-setup-mutation-watch/1`. Participant
+readiness requires a complete authenticated clear startup/history prefix whose
+native identity matches the owned server. Import requires the complete history;
+an older valid point-only stream fails with `CRAFT_NATIVE_HISTORY_MISSING`.
+Version-3 inspections retain this requirement. Do not upgrade consumed older
+plans or infer complete route coverage from clear counters. [Admission contract
+and integration evidence](../verification/2026-09-21-protected-craft-history.md).

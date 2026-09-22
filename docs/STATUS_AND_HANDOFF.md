@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.109](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.110](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Current history admission — M0.2c.3b.3c.2:** [Plan 3 implementation and evidence](verification/2026-09-21-protected-craft-history.md) requires signed clear startup before client readiness and complete history at import. 196 focused source/JVM checks pass. Authentic case 01 passes startup binding but fails the 420-second reservation; fresh case 02 fits a smaller reservation, then fails client bridge startup at its existing 270-second bound. No new craft/guardian sample or score is claimed. Both failures are sealed; retention audits pass 16/16 and 19/19, all processes exit, credentials retire and accounting stays unchanged. Continue independent M0 provenance/lock and canonical recovery work; revisit the integrated history craft only after a relevant startup fix.
 
 **Current shutdown result — D13:** [The new 1,000-ms policy passes its authentic normal-shutdown sample](verification/2026-09-21-d13-shutdown.md): complete Java tree proof **568.994 ms**, real seven-operation craft, 74 reconciled primitives, normally closed protected custody and stopped pair. Independent audits pass 33/33 and 28/28; all held processes terminal, credentials retired and desktop unchanged. Earlier 500-ms failures stay failed under their old profile. This resolves the named normal-stop blocker for D13, not full T07/G0 or scoring. Next connect the sealed candidate to remaining scorer/setup/provenance and canonical recovery requirements; no unchanged craft rerun or more 500-ms optimization.
 

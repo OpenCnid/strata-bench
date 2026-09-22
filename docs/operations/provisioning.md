@@ -99,9 +99,16 @@ source comparison](../verification/2026-09-22-vanilla-client.md).
   then rescans the complete tree to catch source changes. Software templates reject
   saves, credentials, keys and links. This filename guard supplements actual
   operator review and isolation; it is not a general secret-content detector.
+  An installed file may have the exact bytes of already retained JSON/text
+  evidence. File import preserves that object's type and metadata while checking
+  the source bytes again; it cannot change its visibility. `VERIFIED` is the
+  installed-inventory stage, not a license certificate or sealed PackLock.
+  Retain absent component declarations explicitly alongside actual source/terms
+  references; separately qualify the required legal and runtime checks.
 - `LaunchProfile`: reviewed argument arrays, exact executable hashes, working
   directories and allowlisted environment. No guessed universal Java command.
   This stores an inspected launch plan; the supervisor must enforce it at execution.
+  The active vanilla client is Mineflayer; SPEC §7 does not require a renderer.
 - `ProvisioningEvidence`: every required named check, bound to the imported
   receipt, inventory and launch-profile digests. Each `ProvisioningCheck` retains
   its private raw evidence. E9E also needs cold-start expert configuration, altered

@@ -156,6 +156,10 @@ def test_v2_receipt_survives_template_sealing_and_materialization(inputs, tmp_pa
         root = tmp_path / (role + "-role")
         root.mkdir()
         (root / "fixture.txt").write_text("synthetic installed role")
+        if role == "client":
+            metadata = root / "versions/1.19.2/1.19.2.json"
+            metadata.parent.mkdir(parents=True)
+            metadata.write_bytes(encoded(version))
         files = [item | {"role": role, "origin": "synthetic", "project_id": None, "file_id": None,
                          "license_ref": "synthetic", "layer": "resolved"} for item in scan_tree(root)]
         roles.append(RoleInventoryInput.model_validate({"role": role, "root": str(root), "files": files,
@@ -177,4 +181,8 @@ def test_v2_receipt_survives_template_sealing_and_materialization(inputs, tmp_pa
     result = provider.materialize("vanilla", tmp_path / "instance")
     assert result["lock"] == lock and result["is_example"]
     assert (tmp_path / "instance/server/fixture.txt").read_text() == "synthetic installed role"
+    assert (tmp_path / "instance/client/versions/1.19.2/1.19.2.json").read_bytes() == encoded(version)
+    row = provider.db.connection.execute("SELECT visibility,media_type FROM objects WHERE namespace=? AND ref=?",
+        (provider.namespace("vanilla"), receipt["vanilla_version_metadata"])).fetchone()
+    assert tuple(row) == ("operator", "application/json")
     assert provider.status("vanilla")["game_conformance_claim"] is None

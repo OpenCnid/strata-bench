@@ -357,6 +357,43 @@ def test_streaming_quota_no_orphans_and_no_agent_access(cas, operator, tmp_path)
     assert file_hash(tmp_path / "copied") == sha
 
 
+def test_file_import_preserves_existing_operator_type_and_still_verifies_source(cas, operator, tmp_path):
+    raw = b'{"fixture": true}\n'
+    source = tmp_path / "version.json"
+    source.write_bytes(raw)
+    ref = cas.put(operator, "typed", "operator", raw, media_type="application/json")
+    objects = list(cas.database.connection.execute("SELECT * FROM objects"))
+    events = list(cas.database.connection.execute("SELECT * FROM outbox"))
+    assert cas.put_file(operator, "typed", "operator", source, ref[11:],
+                        quota_bytes=1024, max_object_bytes=1024) == ref
+    assert list(cas.database.connection.execute("SELECT * FROM objects")) == objects
+    assert list(cas.database.connection.execute("SELECT * FROM outbox")) == events
+    source.write_bytes(b"x" * len(raw))
+    with pytest.raises(Fault, match="HASH_MISMATCH"):
+        cas.put_file(operator, "typed", "operator", source, ref[11:],
+                     quota_bytes=1024, max_object_bytes=1024)
+    assert cas.read(operator, "typed", ref) == raw
+    # An explicit type change through put remains a policy conflict.
+    with pytest.raises(Fault, match="REFERENCE_POLICY_CONFLICT"):
+        cas.put(operator, "typed", "operator", raw, media_type="application/octet-stream")
+    assert list(cas.database.connection.execute("SELECT * FROM objects")) == objects
+    assert list(cas.database.connection.execute("SELECT * FROM outbox")) == events
+    assert not list(cas.root.glob(".asset-*"))
+
+
+@pytest.mark.parametrize("visibility", ["agent", "evaluator"])
+def test_file_import_cannot_reclassify_existing_visibility(cas, operator, tmp_path, visibility):
+    source = tmp_path / "fixture.txt"
+    source.write_bytes(b"synthetic typed fixture")
+    ref = cas.put(operator, "typed", visibility, source.read_bytes())
+    with pytest.raises(Fault, match="REFERENCE_POLICY_CONFLICT"):
+        cas.put_file(operator, "typed", "operator", source, ref[11:],
+                     quota_bytes=1024, max_object_bytes=1024)
+    row = cas.database.connection.execute("SELECT visibility FROM objects WHERE namespace=? AND ref=?",
+                                          ("typed", ref)).fetchone()
+    assert row["visibility"] == visibility
+
+
 def test_pack_cli_requests_do_not_install_or_accept_terms(tmp_path):
     runner = CliRunner()
     args = ["--request", "vanilla1", "--store", str(tmp_path / "private")]

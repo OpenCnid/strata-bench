@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.114](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.115](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -32,7 +32,9 @@ The current user request and active long-horizon goal are **M0 and its complete 
 
 ## Current implementation and next action
 
-**Current role assembly and cold restart — M0.3a.2:** [Implementation and authentic bounded evidence](verification/2026-09-22-vanilla-roles.md) assemble 4,097 exact client/server/Java files, reject incomplete provenance before any installed-file import, and qualify the changed-environment server start/restart narrowly. Both rounds stop normally in 67.312/26.282 s; software, configuration and saved-world continuity match. Fifty-one focused source checks plus two process/package checks and 34 independent conservation checks pass. The empty-environment JNA failure remains retained. Original accounting, 32 durable tables and 3,781 source files are unchanged; no model/client/shared input or Java remains. Next finish seven Mojang component references, shaded/native review, client launch/update policy and the actual PackLock; canonical custody/recovery, scorer/setup and isolation remain open. No unchanged server-pair rerun. M0 remains incomplete and G0 fails.
+**Current vanilla installed inventory — M0.3a.2:** [Actual publication and source fix](verification/2026-09-22-vanilla-inventory.md) advance the original vanilla request to VERIFIED for all 4,097 installed-file entries; the PackLock remains unsealed. File import preserves existing typed operator evidence while rechecking bytes and refusing visibility changes. Ninety focused source checks and 25 independent actual-state checks pass. All 31 unrelated tables, previous object/event history, source roles and original $0.756858 accounting remain unchanged. Forty-one component records retain source notices, distribution terms and absent declarations without a standalone license or legal-qualification claim. Both preparation/import failures remain retained. Next pin the active Mineflayer worker/server launch and runtime/update policies, complete required legal/source review and bound provisioning checks, then the actual PackLock and canonical custody/recovery. Vanilla uses Mineflayer without a renderer under SPEC §7. No game/model/shared input; M0 incomplete, G0 fail.
+
+**Role assembly and cold-restart checkpoint — M0.3a.2:** [Implementation and authentic bounded evidence](verification/2026-09-22-vanilla-roles.md) assemble 4,097 exact client/server/Java files, reject incomplete provenance before any installed-file import, and qualify the changed-environment server start/restart narrowly. Both rounds stop normally in 67.312/26.282 s; software, configuration and saved-world continuity match. Fifty-one focused source checks plus two process/package checks and 34 independent conservation checks pass. The empty-environment JNA failure remains retained. Original accounting, 32 durable tables and 3,781 source files are unchanged; no model/client/shared input or Java remains. The installed inventory is now separately verified, with absent declarations retained in component records; remaining legal/source review, active Mineflayer launch/update policy and the PackLock stay open; canonical custody/recovery, scorer/setup and isolation remain open. No unchanged server-pair rerun. M0 remains incomplete and G0 fails.
 
 **Client/Java software checkpoint — M0.3a.2:** [Actual client preparation and Java source inventory](verification/2026-09-22-vanilla-client.md) now provide 3,432 exact client software files, 65 ordered classpath entries and all 3,364 distinct assets. Four missing shared-cache libraries use exact verified server copies; the shared installation remains unchanged. All 316 installed Java files match the publisher ZIP, and a separate private copy preserves them and 183 legal/notice files. Fifty-one focused source checks plus the gameplay-package check pass; 32 durable tables and original accounting remain unchanged. Role assembly and bounded server cold restart now have separate evidence; complete licensing, client launch/update policy and the PackLock remain open. No game/model/input activity or complete PackLock claim.
 
@@ -117,7 +119,7 @@ passes at 568.994 ms and protected custody closes normally. The original
 [CPU-profile](verification/2026-09-21-bundle-preparation.md) failures remain intact.
 Do not repeat the unchanged successful craft or resume 500-ms optimization.
 Full authentic fault/launch containment and general isolation remain open.
-Candidate vanilla PackLock remains ACQUIRED/unsealed; canonical save/custody/
+Candidate vanilla PackLock now has a VERIFIED installed inventory and remains unsealed; canonical save/custody/
 clock/checkpoint qualification remains open despite the successful bounded
 native/world continuation. Original accounting and consumed D12 remain
 unchanged; no permission question or missing user input is pending.

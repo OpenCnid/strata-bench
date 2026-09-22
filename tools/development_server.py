@@ -21,7 +21,7 @@ from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
 from mcbench.provisioning import LaunchCommand, validate_launch_environment
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Fault, digest, reject_links, require
-from mcbench.vanilla_persistence import POLICY, VanillaPersistence
+from mcbench.vanilla_persistence import POLICY, PACK_POLICY, VanillaPersistence
 
 
 def outside(path):
@@ -33,8 +33,11 @@ def outside(path):
 
 
 def validate_persistence_profile(plan, launch, text):
-    require(os.name == "nt" and plan["target"] == "vanilla" and plan["persistence_policy"] == POLICY
-            and launch.arguments == ["-Xms1G", "-Xmx2G", "-jar", "server.jar", "nogui"],
+    sealed = plan.get("schema") == "strata/DevelopmentServer/4"
+    arguments = ["-Xms1G", "-Xmx2G", "-jar", "server.jar", "nogui"]
+    require(os.name == "nt" and plan["target"] == "vanilla"
+            and plan["persistence_policy"] == (PACK_POLICY if sealed else POLICY)
+            and launch.arguments == (["-XX:ActiveProcessorCount=2", *arguments] if sealed else arguments),
             "VANILLA_PERSISTENCE_PROFILE_UNSUPPORTED")
     require(re.findall(r"(?m)^level-name=(.*)$", text) == ["world"]
             and re.findall(r"(?m)^enable-rcon=(true|false)$", text) == ["false"]
@@ -48,11 +51,12 @@ def main(argv=None):
     parser.add_argument("plan", type=Path)
     options = parser.parse_args(argv)
     plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
-    capture = plan.get("schema") == "strata/DevelopmentServer/2"
-    sealed = plan.get("schema") == "strata/DevelopmentServer/3"
+    capture = plan.get("schema") in {"strata/DevelopmentServer/2", "strata/DevelopmentServer/4"}
+    sealed = plan.get("schema") in {"strata/DevelopmentServer/3", "strata/DevelopmentServer/4"}
     require(set(plan) == {"schema", "pack" if sealed else "launch", "evidence", "max_wall_s", "target"} | ({"persistence_policy"} if capture else set()),
             "SCHEMA_UNSUPPORTED")
-    require(plan["schema"] in {"strata/DevelopmentServer/1", "strata/DevelopmentServer/2", "strata/DevelopmentServer/3"}
+    require(plan["schema"] in {"strata/DevelopmentServer/1", "strata/DevelopmentServer/2",
+                               "strata/DevelopmentServer/3", "strata/DevelopmentServer/4"}
             and plan["target"] in {"vanilla", "e9e"}, "SCHEMA_UNSUPPORTED")
     require(type(plan["max_wall_s"]) is int and 1 <= plan["max_wall_s"] <= 600, "CONFIG_RANGE")
     binding = None
@@ -94,7 +98,8 @@ def main(argv=None):
     overflow = threading.Event()
     reader_failed = threading.Event()
     threads = []
-    persistence = VanillaPersistence(root) if capture else None
+    persistence = (VanillaPersistence(root, pack=pack if sealed else None,
+                                     resolved=binding if sealed else None) if capture else None)
     try:
         # Bypass the venv executable redirector for this explicitly tracked
         # profile: the base bootstrap waits for Job assignment before children.

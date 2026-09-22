@@ -13,6 +13,8 @@ from mcbench import vanilla_persistence as persistence
 from mcbench.launch_integrity import IntegrityError
 from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault
+from mcbench.storage import canonical, digest
+from mcbench.pack_launch import PackLaunchBinding
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from development_server import validate_persistence_profile
@@ -42,6 +44,89 @@ def stopped():
     return SimpleNamespace(poll=lambda: 0, job=SimpleNamespace(
         accounting=lambda: {"total_processes": 2, "active_processes": 0, "terminated_processes": 0},
         member_status=lambda: {"held_processes": 2, "signaled_processes": 2}))
+
+
+@pytest.fixture
+def sealed_installation(installed, tmp_path):
+    root = tmp_path / "fresh-sealed/server"
+    root.mkdir(parents=True)
+    files = {path: (installed / path).read_bytes() for path in
+             ("server.jar", "eula.txt", "server.properties", "versions/1.19.2/server-1.19.2.jar", "libraries/library.jar")}
+    files |= {"java/bin/java.exe": b"synthetic jvm", "java/release": b"synthetic java identity"}
+    for name, raw in files.items():
+        target = root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
+    entries = [{"path": name, "bytes": len(raw), "digest": hashlib.sha256(raw).hexdigest(),
+        "role": "server", "origin": "synthetic", "project_id": None, "file_id": None,
+        "license_ref": "synthetic", "layer": "resolved"} for name, raw in files.items()]
+    entries.append(entries[0] | {"role": "client"})
+    inventory = {"schema": "strata/InstalledInventory/1", "is_example": False, "files": entries}
+    store = tmp_path / "sealed-store"
+    (store / "objects").mkdir(parents=True)
+    (store / "objects" / digest(inventory)).write_bytes(canonical(inventory))
+    binding = PackLaunchBinding(store=str(store), instance=str(root.parent), request_id="synthetic-pack", lock="cas:sha256:"+"e"*64)
+    external = tmp_path / "external-java"
+    for name in ("bin/java.exe", "release"):
+        target = external / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((root / "java" / name).read_bytes())
+    resolved = {"lock": binding.lock, "request_id": binding.request_id, "inventory_digest": digest(inventory),
+        "target": "vanilla", "role": "server", "launch": {"working_directory": str(root),
+        "executable_path": str(external / "bin/java.exe")}}
+    return root, binding, resolved, external
+
+
+def write_generated_save(root, installed):
+    for name in [*persistence.MUTABLE, "world/level.dat", "world/session.lock", "logs/latest.log"]:
+        target = root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((installed / name).read_bytes())
+    (root / "world/datapacks").mkdir()
+
+
+def test_fresh_sealed_capture_holds_actual_java_and_captures_generated_world(sealed_installation, installed, tmp_path):
+    root, binding, resolved, external = sealed_installation
+    service = persistence.VanillaPersistence(root, pack=binding, resolved=resolved)
+    try:
+        assert not (root / "world").exists()
+        for target in (root / "java/release", external / "release"):
+            with pytest.raises(PermissionError):
+                target.write_bytes(b"replace")
+        write_generated_save(root, installed)
+        receipt = service.capture(tmp_path / "sealed-capture", stopped(), plan_digest="a"*64)
+        body = persistence.verify_snapshot(Path(receipt["path"]), receipt["manifest_sha256"])
+        assert body["schema"] == "strata/StoppedVanillaSnapshot/2" and body["policy"] == persistence.PACK_POLICY
+        assert body["pack"]["lock"] == binding.lock and body["pack"]["inventory_digest"] == resolved["inventory_digest"]
+        assert body["files"]["java/release"]["disposition"] == "immutable"
+        assert not (Path(receipt["path"]) / "state/java").exists()
+        assert not body["complete_checkpoint"] and not body["writer_custody_qualified"]
+        body["files"]["java/release"]["sha256"] = "f"*64
+        (Path(receipt["path"]) / "manifest.json").write_bytes(canonical(body))
+        with pytest.raises(Fault, match="VANILLA_TEMPLATE_CHANGED"):
+            persistence.verify_snapshot(Path(receipt["path"]), digest(body))
+    finally:
+        service.close()
+    (external / "release").write_bytes(b"lease released after cleanup")
+
+
+@pytest.mark.parametrize("change", ["inventory", "extra-java", "changed-java", "external-java", "unexpected-world", "empty-world"])
+def test_sealed_capture_refuses_unbound_initial_bytes(sealed_installation, change):
+    root, binding, resolved, external = sealed_installation
+    if change == "inventory":
+        (Path(binding.store) / "objects" / resolved["inventory_digest"]).write_bytes(b"{}")
+    elif change == "extra-java":
+        (root / "java/unreviewed.dll").write_bytes(b"unknown")
+    elif change == "changed-java":
+        (root / "java/release").write_bytes(b"different")
+    elif change == "external-java":
+        (external / "release").write_bytes(b"different")
+    else:
+        (root / "world").mkdir()
+        if change == "unexpected-world":
+            (root / "world/level.dat").write_bytes(b"prior state")
+    with pytest.raises(Fault):
+        persistence.VanillaPersistence(root, pack=binding, resolved=resolved)
 
 
 def test_layout_accepts_normal_and_extended_windows_paths(installed):

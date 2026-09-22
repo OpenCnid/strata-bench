@@ -15,7 +15,7 @@ def inspect_retention(db, cas, bundle, native, intent):
         require("retention_source" not in plan and "run/retention-input.json" not in bundle.files,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return {"preregistered": False, "complete_checkpoint": False}
-    require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"},
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4"},
             "NATIVE_GAME_RETENTION_PROFILE")
     anchor = plan["retention_source"]["sha256"]
     retention = GameRetention({"path": str(bundle.path("run/retention-input.json")), "sha256": anchor})
@@ -82,9 +82,13 @@ def inspect_retention(db, cas, bundle, native, intent):
         "source_export": report["source_export"], "component": state.model_dump(), "model_evidence": "synthetic_provider",
         "controller_state": "DRAFT", "cost_rollback": False, "complete_checkpoint": False,
         "dispatch_authorized": False, "pack_qualified": False, "G0": "fail"}, "NATIVE_GAME_RETENTION_COMPONENT")
-    return {"preregistered": True, "component_ref": report["component_ref"], "input_sha256": anchor,
+    result = {"preregistered": True, "component_ref": report["component_ref"], "input_sha256": anchor,
             "source_epoch": native.epoch, "retained_files": len(files), "costs_preserved": True,
             "complete_checkpoint": False}
+    if plan["schema"] == "strata/M0NativeGameSmoke/4":
+        require(c.pack_lock == plan["pack"]["lock"], "NATIVE_GAME_RETENTION_INPUT")
+        result["pack_lock_ref"] = c.pack_lock
+    return result
 
 
 def inspect_stopped_components(bundle, retention, server, server_plan, result):
@@ -92,12 +96,23 @@ def inspect_stopped_components(bundle, retention, server, server_plan, result):
         require("joint_components" not in result and "stopped_snapshot" not in server,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return retention
-    require(server_plan["schema"] == "strata/DevelopmentServer/2", "NATIVE_GAME_RETENTION_PROFILE")
+    sealed = server_plan["schema"] == "strata/DevelopmentServer/4"
+    require(sealed or server_plan["schema"] == "strata/DevelopmentServer/2", "NATIVE_GAME_RETENTION_PROFILE")
     snapshot = server["stopped_snapshot"]
     # Archived absolute paths are never used as read authority.
     stopped = verify_snapshot(bundle.path("run/server/stopped-instance/manifest.json").parent,
                               snapshot["manifest_sha256"])
     require(stopped["server_plan_digest"] == digest(server_plan), "NATIVE_GAME_RETENTION_INPUT")
+    if sealed:
+        lock = bundle.json("run/pack-lock.json")
+        require(stopped["schema"] == "strata/StoppedVanillaSnapshot/2"
+                and stopped["pack"]["lock"] == server_plan["pack"]["lock"] == retention.get("pack_lock_ref")
+                and stopped["pack"]["request_id"] == server_plan["pack"]["request_id"] == lock["lock_id"]
+                and stopped["pack"]["inventory_digest"] == lock["installed_root_digest"]
+                and stopped["installed_inventory"] == bundle.json("run/pack-inventory.json"),
+                "NATIVE_GAME_RETENTION_INPUT")
+    else:
+        require(stopped["schema"] == "strata/StoppedVanillaSnapshot/1", "NATIVE_GAME_RETENTION_PROFILE")
     joint = {"schema": "strata/NativeGameStoppedComponents/1", "native_component": retention["component_ref"],
         "snapshot_sha256": snapshot["manifest_sha256"], "retention_input_sha256": retention["input_sha256"],
         "complete_checkpoint": False, "dispatch_authorized": False, "G0": "fail"}

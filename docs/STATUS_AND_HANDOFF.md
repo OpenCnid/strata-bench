@@ -1,8 +1,10 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.121](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.122](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
+
+**Sealed native execution — M0.1d.8 (in progress):** [Implementation and retained startup failure](verification/2026-09-22-sealed-native-startup.md) connect the existing native action/helper runner to the actual sealed worker and inventory-bound stopped capture. The changed authentic run fails `SERVER_START_TIMEOUT`: Java reaches readiness after 97.408 s against the 80 s bound, before any avatar or native/model action. All 14 owned processes exit normally; the independently verified stopped component retains 20 state files, without claiming a complete checkpoint. Source checks pass after correcting a malformed synthetic observation fixture. All 34 original authority tables and consumed D12 remain unchanged. Next implement explicit sealed-template restoration from the retained no-avatar world, then qualify connected execution and joint recovery; do not reuse the mutated instance as fresh or repeat the unchanged startup profile. Scorer/setup, clocks, isolation and E9E remain open; M0 incomplete/G0 fail.
 
 **Actual vanilla seal and joint launch — M0.3a.2/.3:** [Implementation and evidence](verification/2026-09-22-vanilla-packlock.md) seal the original vanilla request with nine bound provisioning checks and fix server/worker startup ordering. M0.3a.2 is verified for the installed vanilla template/provenance disposition; M0.3a.3 remains implemented_unverified for authentic joint launch. The actual 11,722-file sealed import passes with all owned processes exited; 70 distinct focused source cases pass (final affected selection 41/41). Original accounting, consumed D12, all old object/event rows and 31 other authority tables are preserved. Next connect the existing native action/recovery runner and inventory-bound capture to this sealed launch, then collect changed-profile evidence. Scorer/setup, E9E, isolation, complete clocks and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input in this checkpoint.
 

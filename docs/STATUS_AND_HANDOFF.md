@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 22, 2026. Operator-only. [SPEC v0.2.115](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.116](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Sealed-pack launch connection — M0.3a.3:** [Implementation and verification](verification/2026-09-22-pack-launch.md) connect a durable PackLock to the bounded server runner. Both role inventories, marker, command and executable are checked before launch; overrides and changed instances reject. 116 distinct source/process cases pass, including a disposable Python process. The actual unsealed vanilla request is refused with 11/11 checks and all 34 tables/accounting unchanged. This is fresh-instance preflight, not runtime custody or an authentic game pass. M0.3a.3 is implemented_unverified; M0 incomplete, G0 fail. Next complete the actual Mineflayer/server launch/runtime/update and legal/source checks, seal the pack, then inventory-bound custody/recovery.
 
 **Current vanilla installed inventory — M0.3a.2:** [Actual publication and source fix](verification/2026-09-22-vanilla-inventory.md) advance the original vanilla request to VERIFIED for all 4,097 installed-file entries; the PackLock remains unsealed. File import preserves existing typed operator evidence while rechecking bytes and refusing visibility changes. Ninety focused source checks and 25 independent actual-state checks pass. All 31 unrelated tables, previous object/event history, source roles and original $0.756858 accounting remain unchanged. Forty-one component records retain source notices, distribution terms and absent declarations without a standalone license or legal-qualification claim. Both preparation/import failures remain retained. Next pin the active Mineflayer worker/server launch and runtime/update policies, complete required legal/source review and bound provisioning checks, then the actual PackLock and canonical custody/recovery. Vanilla uses Mineflayer without a renderer under SPEC §7. No game/model/shared input; M0 incomplete, G0 fail.
 

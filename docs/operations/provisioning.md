@@ -127,3 +127,19 @@ Remaining integration: actual official acquisition/account/terms, reviewed
 bootstrap and download inventory, cold restart/expert evidence, authenticated
 launch supervisor and health/stop, full transitive provenance validation, and
 real vanilla followed immediately by exact-pack structured-control tests.
+
+The bounded server runner also accepts private `strata/DevelopmentServer/3`
+plans. Keep `target`, `max_wall_s` and external `evidence`; replace `launch` with
+`pack`, containing `store`, `request_id`, the actual sealed `lock` CAS reference,
+and `instance`. The store must already exist. The runner derives the reviewed
+server command from its seal and rechecks both fresh role inventories. A separate
+command override rejects. Evidence must be outside both instance and store.
+The resolver is also callable for the client role; no client supervisor is
+added by this path.
+
+This is first-launch preflight, not ongoing custody: arguments retain their
+reviewed spelling, absolute executable pins remain host-specific, and runtime
+dependency/isolation checks remain required. Once a game mutates the instance,
+use a separately qualified recovery policy; do not strip state to force this
+check to pass. The original real vanilla request remains VERIFIED and unsealed,
+so this runner correctly refuses it. [Source/process checks and actual refusal](../verification/2026-09-22-pack-launch.md).

@@ -21,9 +21,13 @@ from mcbench.storage import Fault, Principal, digest
 
 @pytest.fixture
 def prepared(database, cas, tmp_path):
-    service = PackProvider(database, cas, simulation=True)
+    return prepare_fixture(database, cas, tmp_path)
+
+
+def prepare_fixture(database, cas, tmp_path, *, simulation=True):
+    service = PackProvider(database, cas, simulation=simulation)
     service.resolve_candidate("pack1", "e9e")
-    evidence = service._put("pack1", {"is_example": True, "source": "synthetic fixture"})
+    evidence = service._put("pack1", {"is_example": simulation, "source": "synthetic fixture"})
     manifest = {"manifestType": "minecraftModpack", "manifestVersion": 1, "version": "1.27.0",
                 "minecraft": {"version": "1.19.2", "modLoaders": [
                     {"id": "forge-43.4.23", "primary": True}]},
@@ -42,7 +46,7 @@ def prepared(database, cas, tmp_path):
     executable.write_bytes(b"Not an executable; synthetic JVM fingerprint fixture")
     pin = {"version": "synthetic-17", "digest": file_hash(executable)}
     receipt = AcquisitionReceipt.model_validate({"schema": "strata/AcquisitionReceipt/1",
-        "is_example": True, "request_id": "pack1", "provider": "curseforge", "target": "e9e",
+        "is_example": simulation, "request_id": "pack1", "provider": "curseforge", "target": "e9e",
         "distributions": distributions, "launcher": pin, "java": pin,
         "official_workflow_evidence": evidence})
     roles = []
@@ -58,7 +62,7 @@ def prepared(database, cas, tmp_path):
             "files": entries, "provenance_evidence": evidence, "exclusions_evidence": evidence}))
     command = {"executable": pin, "executable_path": str(executable), "arguments": ["@args.txt"],
                "working_directory": ".", "environment": {}, "reviewed_bootstrap": evidence}
-    launch = LaunchProfile.model_validate({"schema": "strata/LaunchProfile/1", "is_example": True,
+    launch = LaunchProfile.model_validate({"schema": "strata/LaunchProfile/1", "is_example": simulation,
                                           "client": command, "server": command})
     return service, receipt, roles, launch, evidence
 
@@ -67,13 +71,13 @@ def seal(prepared):
     service, receipt, roles, launch, evidence = prepared
     imported = service.import_acquisition_receipt(receipt)
     inventory = service.verify_inventory("pack1", roles)
-    identity = {"is_example": True, "request_id": "pack1", "inventory_digest": inventory[11:],
+    identity = {"is_example": service.simulation, "request_id": "pack1", "inventory_digest": inventory[11:],
                 "receipt_digest": imported[11:], "launch_profile_digest": digest(launch.model_dump())}
     checks = {key: service._put("pack1", {"schema": "strata/ProvisioningCheck/1", **identity,
               "check_id": key, "result": "pass", "evidence_refs": [evidence]})
               for key in PROVISION_CHECKS | EXPERT_CHECKS}
     proof = ProvisioningEvidence.model_validate({"schema": "strata/ProvisioningEvidence/1",
-        "is_example": True, "request_id": "pack1", "inventory_digest": inventory[11:],
+        "is_example": service.simulation, "request_id": "pack1", "inventory_digest": inventory[11:],
         "receipt_digest": imported[11:], "launch_profile_digest": digest(launch.model_dump()),
         "checks": checks})
     return service.seal_template("pack1", launch, proof), proof

@@ -17,6 +17,7 @@ from pathlib import Path
 from mcbench.inventory import file_hash
 from mcbench.processes import ManagedProcess
 from mcbench.launch_integrity import IntegrityError
+from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
 from mcbench.provisioning import LaunchCommand, validate_launch_environment
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Fault, digest, reject_links, require
@@ -48,12 +49,20 @@ def main(argv=None):
     options = parser.parse_args(argv)
     plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
     capture = plan.get("schema") == "strata/DevelopmentServer/2"
-    require(set(plan) == {"schema", "launch", "evidence", "max_wall_s", "target"} | ({"persistence_policy"} if capture else set()),
+    sealed = plan.get("schema") == "strata/DevelopmentServer/3"
+    require(set(plan) == {"schema", "pack" if sealed else "launch", "evidence", "max_wall_s", "target"} | ({"persistence_policy"} if capture else set()),
             "SCHEMA_UNSUPPORTED")
-    require(plan["schema"] in {"strata/DevelopmentServer/1", "strata/DevelopmentServer/2"}
+    require(plan["schema"] in {"strata/DevelopmentServer/1", "strata/DevelopmentServer/2", "strata/DevelopmentServer/3"}
             and plan["target"] in {"vanilla", "e9e"}, "SCHEMA_UNSUPPORTED")
     require(type(plan["max_wall_s"]) is int and 1 <= plan["max_wall_s"] <= 600, "CONFIG_RANGE")
-    launch = LaunchCommand.model_validate(plan["launch"])
+    binding = None
+    if sealed:
+        pack = PackLaunchBinding.model_validate(plan["pack"])
+        outside(pack.store)
+        outside(pack.instance)
+        binding = resolve_pack_launch(pack, "server")
+        require(binding["target"] == plan["target"], "RELEASE_MISMATCH")
+    launch = LaunchCommand.model_validate(binding["launch"] if sealed else plan["launch"])
     validate_launch_environment(launch.environment)
     root = outside(launch.working_directory)
     require(root.is_dir(), "AWAITING_ARTIFACT")
@@ -72,8 +81,13 @@ def main(argv=None):
     if capture:
         validate_persistence_profile(plan, launch, text)
     evidence = outside(plan["evidence"])
+    if sealed:
+        require(all(not evidence.is_relative_to(path) and not path.is_relative_to(evidence)
+                    for path in (outside(pack.store), outside(pack.instance))), "UNSAFE_PATH")
     evidence.mkdir(parents=True, exist_ok=False)
     (evidence / "plan.json").write_text(json.dumps(plan, indent=2), encoding="utf-8")
+    if binding:
+        (evidence / "pack-launch.json").write_text(json.dumps(binding, indent=2), encoding="utf-8")
     require(shutil.disk_usage(root).free >= 5 * 1024**3, "DISK_RESERVE_LOW")
     started = time.monotonic()
     ready = threading.Event()
@@ -95,6 +109,8 @@ def main(argv=None):
               "stop_sent": False, "forced_stop": False, "exit_code": None,
               "gate_result": "not_run", "campaign_admission": False,
               "status": "fail", "clean_save_proven": False}
+    if binding:
+        result["pack_launch_digest"] = digest(binding)
 
     def copy(source, name):
         try:

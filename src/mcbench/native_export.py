@@ -255,6 +255,17 @@ def inspect_native_source(db, cas, job, *, simulation, live_jobs=()):
         # missing journals cannot later be invented to publish a revision.
         if writes:
             source["artifact_writes"] = writes
+    if plan.resume_component_ref is not None:
+        projected = [dict(r) for r in db.execute("SELECT * FROM native_recovery_projections WHERE runtime=?", (job,))]
+        root = next(p["thread"] for p in participants if p["depth"] == 0)
+        require(projected == [{"runtime": job, "thread": root, "component": plan.resume_component_ref}],
+                "NATIVE_RECOVERY_SCOPE")
+        events = [dict(r) for r in db.execute("SELECT cursor,body FROM outbox WHERE "
+            "kind='native.recovery_projected' AND json_extract(body,'$.job')=?", (job,))]
+        require(len(events) == 1 and json.loads(events[0]["body"]).get("component") == plan.resume_component_ref
+                and all(events[0]["cursor"] < call["cursor"] for call in calls
+                        if json.loads(call["body"])["thread"] == root), "NATIVE_RECOVERY_SCOPE")
+        source["retained_projection"] = {"binding": projected[0], "event": events[0]}
     return plan, source, inventories
 
 

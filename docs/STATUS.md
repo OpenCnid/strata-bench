@@ -11,17 +11,20 @@ followed by merged [PR #4](https://github.com/OpenCnid/strata-bench/pull/4) at `
 The [checkpoint report](verification/2026-09-21-session-handoff.md) records
 merge verification. Publication does not qualify a release gate.
 
-M0.1d.4/M0.1d.5 have [partial authentic component evidence](verification/2026-09-21-native-game-retention.md):
-29 native checks and 28 stopped-world files verify; the outer receipt fails on
-Windows path spelling and remains sealed. The fix has focused source evidence.
-Next fresh restoration dependencies; full pack/custody/clocks/recovery remain open.
+[M0.1d.6 connected development recovery](verification/2026-09-21-native-game-recovery.md)
+now resumes saved vanilla and native root state together: 35/35 native checks,
+one fresh action, retained costs/notes, denied helper history and stale worker
+credentials, then normal stop/recapture. Cumulative 12 scripted calls/168 fixture
+units. The failed first recovery and case-04 source publication remain sealed.
+Canonical complete checkpoints, provenance/custody/clocks/scorer/isolation and
+shutdown qualification remain open.
 
 | Evidence class | Delivered scope | Remaining limit |
 |---|---|---|
 | Working native/game path | Actual pinned Codex/Dovetail root/helper and restricted broker perform one real vanilla action, match worker receipt and saved orientation, and stop normally | Model replies are scripted; no live-model gameplay, authoritative score or complete restoration |
 | D11 accounting | Versioned API-equivalent estimates, explicit original-authority migration, finite reservations, nested envelopes, retry/helper/summary aggregation and receipt deduplication | General OAuth admission remains blocked by an unresolved request |
 | D12 authentic usage | One distinct completed Luna receipt recovered offline at $0.001458 API-equivalent | Native reply delivery failed; changed `/2` transport has source/local-HTTP evidence only; D12 is consumed |
-| Native boundary and persistence | Restricted tools, scoped broker, clean helper admission, pinned skill/supporting-file reads, learned activation/export and synthetic checkpoint handoff | Full runtime isolation, all native retention arms and authentic game/agent recovery remain unqualified |
+| Native boundary and persistence | Restricted tools, scoped broker, clean helper admission, pinned skill/supporting-file reads, learned activation/export and synthetic checkpoint handoff | Full runtime isolation, all native retention arms and complete canonical game/agent recovery remain unqualified |
 | Authentic game references | Selected vanilla mechanics and separate Forge machine/expert-craft/cancel/restart evidence | Mineflayer/E9E compatibility, five effective-file checks, shutdown reliability and private scorer/setup authority remain incomplete or failed |
 | Research | Source foundations for controls, matched probes, analysis and reporting | Required capacity tests, 1/8/24-hour soaks and scientific pilot/confirmation are not run |
 

@@ -69,6 +69,7 @@ class NativeLaunch(Strict):
     # Exclude absent extension fields so historical plan/source hashes survive.
     skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    resume_component_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -101,6 +102,9 @@ class NativeLaunch(Strict):
         if self.skill_activation_ref is not None or self.helper_skill_activation_ref is not None:
             body["skill_activation"] = {"policy": "native-checkpoint-learned-overlay/1",
                 "root": self.skill_activation_ref, "helpers": self.helper_skill_activation_ref}
+        if self.resume_component_ref is not None:
+            body["component_resume"] = {"policy": "native-development-component-resume/1",
+                                        "source": self.resume_component_ref}
         return digest(body)
 
 
@@ -235,6 +239,9 @@ class NativeExec:
         if plan.skill_activation_ref is not None:
             from .native_skill_activation import NativeSkillSets
             NativeSkillSets(self).validate_launch(plan)
+        if plan.resume_component_ref is not None:
+            from .native_recovery import NativeRecovery
+            NativeRecovery(self).validate_launch(plan)
         if not self.simulation and plan.broker_policy is not None:
             require(plan.bootstrap_digest is not None, "BOOTSTRAP_REQUIRED")
             require(plan.ingress_policy is not None, "INGRESS_PROFILE_REQUIRED")

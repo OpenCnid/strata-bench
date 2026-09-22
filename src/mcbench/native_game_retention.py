@@ -143,3 +143,18 @@ class GameRetention:
                 "model_evidence": "synthetic_provider", "controller_state": "DRAFT",
                 "cost_rollback": False, "complete_checkpoint": False, "dispatch_authorized": False,
                 "pack_qualified": False, "G0": "fail"}
+
+    def attach_existing(self, runtime, plan):
+        """Bind an already registered lineage; never reinstall or replace policy."""
+        from mcbench.native_recovery import NativeRecovery
+        NativeRecovery(runtime).validate_launch(plan)
+        self.check_scope(plan.model_dump())
+        row = runtime.db.connection.execute("SELECT * FROM native_retention_policies WHERE campaign=? AND agent=?",
+            (plan.campaign_id, plan.agent_id)).fetchone()
+        require(row is not None and row["ref"] == self.agent.memory_policy
+                and strict_json(row["config"]) == self.config.model_dump()
+                and strict_json(row["agent_config"]) == self.agent.model_dump(), "RETENTION_INPUT_SCOPE")
+        self.input_ref = "cas:sha256:" + self.source["sha256"]
+        require(runtime.cas.read(OPERATOR, "operator", self.input_ref) == self.raw, "RETENTION_INPUT_CHANGED")
+        self.service = NativeCheckpointStates(runtime)
+        self.runtime, self.plan = runtime, plan

@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.105](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.106](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -31,6 +31,8 @@ The current user request and active long-horizon goal are **M0 and its complete 
    repeat unchanged live trials or expand unrelated M1 settings work.
 
 ## Current implementation and next action
+
+**Latest working behavior:** [M0.1d.6 development recovery](verification/2026-09-21-native-game-recovery.md) resumes the captured vanilla world, native root notes and preserved accounting together. Case 02 passes 35/35 native checks with scripted replies, stale token/epoch rejection, saved-player assertions, one new action and normal recapture. Cumulative 12 calls/168 fixture units/two primitives; original accounting unchanged. Failed case 01 and failed source case 04 remain sealed. This closes the bounded development continuation only. Next connect canonical checkpoint/provenance and remaining scorer/setup, isolation and 500-ms shutdown requirements; no unchanged live rerun.
 
 M0.1d.1 is verified for its bounded read-only evidence-reconstruction contract. [Implementation, command and exact evidence](verification/2026-09-21-native-game-verifier.md): existing case 02 independently reconciles six scripted calls, 84 fixture units, one real primitive, root/helper closure and stopped state; 52 focused checks and 16 synthetic derived-copy negatives pass. The original flat manifest omitted 105 deep plugin files; their preexisting sealed bootstrap hash chain verifies them. Preserve the flat-inventory failure and original bytes. No game or model run was repeated. Missing authoritative clocks/scorer/isolation/shutdown/recovery evidence remains explicit; parent M0.1d remains implemented_unverified.
 
@@ -83,6 +85,12 @@ Case 03's preparation-created unsealed SQLite sidecars were retained separately
 and removed from their exact paths; its original seal/bytes verify unchanged.
 Use frozen-store immutable reads for historical SQLite, ordinary read-only
 access for live accounting authority. See the report for incident evidence.
+
+Current M0.1d.6 is now verified for the bounded development profile above. Earlier implementation note: the user explicitly called out lack of integrated
+progress. Continue straight through the connected recovery path. Native root
+restoration is implemented with 14 focused synthetic passes; copied native
+accounting, world/worker restoration and actual fresh-epoch continuation remain
+to wire and run. Preserve current uncommitted work.
 
 Next implement fresh restoration dependencies using the verified components.
 Do not rewrite case 04's result, replay a model request, or repeat an unchanged

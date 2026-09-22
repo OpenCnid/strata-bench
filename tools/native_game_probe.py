@@ -11,17 +11,18 @@ from mcbench.storage import require
 
 
 class GameProbe:
-    def __init__(self, descriptor, lease_id):
+    def __init__(self, descriptor, lease_id, *, recovery=False):
         WorkerTransport(descriptor)
         self.descriptor = dict(descriptor)
         self.scope = {k: descriptor[k] for k in ("campaign_id", "agent_id", "epoch")}
         require(isinstance(lease_id, str) and 0 < len(lease_id) <= 128, "GAME_LEASE_REQUIRED")
         self.lease_id = lease_id
+        self.request_id = "native-bounded-look" + (f"-epoch-{descriptor['epoch']}" if recovery else "")
 
     def code(self):
         # All state/action arguments below are derived inside the native tool
         # invocation from the public observation. The provider sees no raw world.
-        return "const scope=" + json.dumps(self.scope) + "; const lease=" + json.dumps(self.lease_id) + r''';
+        code = "const scope=" + json.dumps(self.scope) + "; const lease=" + json.dumps(self.lease_id) + r''';
 const tool=ALL_TOOLS.find(t=>t.name.endsWith("__game"));
 if (!tool) throw new Error("GAME_TOOL_MISSING");
 let seq=0;
@@ -61,6 +62,7 @@ if (after.last_action_seq!==batch.seq || after.state_revision<=before.state_revi
 text({native_game_completed:true,request_id:batch.request_id,receipt,
   before_observation:before.observation_id,after_observation:after.observation_id});
 '''
+        return code.replace('"native-bounded-look"', json.dumps(self.request_id))
 
     def report(self, db, plan, provider):
         rows = [dict(r) for r in db.connection.execute(
@@ -72,7 +74,7 @@ text({native_game_completed:true,request_id:batch.request_id,receipt,
                         and r["result"].get("schema") == "mcbench/Observation/1"]
         receipts = [r["result"] for r in responses if r.get("status") == "ok"
                     and isinstance(r.get("result"), dict)
-                    and r["result"].get("request_id") == "native-bounded-look"]
+                    and r["result"].get("request_id") == self.request_id]
         closed = db.connection.execute("SELECT state,stop_result FROM native_worker_bindings WHERE job=?",
                                        (plan.job_id,)).fetchone()
         outputs = json.dumps(provider.outputs)

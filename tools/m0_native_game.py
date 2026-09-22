@@ -47,14 +47,21 @@ def write(path, body):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2"}
+    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1"}
             and set(plan) == {"schema", "output", "server_plan", "worker_config", "codex", "node",
                               "tool_projections", "model_catalog"} |
-            ({"retention_source"} if version == "strata/M0NativeGameSmoke/2" else set()), "M0_PLAN_INVALID")
-    retention = None
+            ({"retention_source"} if version == "strata/M0NativeGameSmoke/2" else
+             {"recovery_source"} if version == "strata/M0NativeGameRecovery/1" else set()), "M0_PLAN_INVALID")
+    retention = recovery = None
     if version == "strata/M0NativeGameSmoke/2":
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
+    if version == "strata/M0NativeGameRecovery/1":
+        from native_game_recovery import GameRecovery
+        private(plan["recovery_source"]["bundle"])
+        private(plan["recovery_source"]["template_directory"])
+        recovery = GameRecovery(plan["recovery_source"])
+        retention = recovery.retention
     output = private(plan["output"])
     require(not output.exists(), "TARGET_EXISTS")
     server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
@@ -94,6 +101,9 @@ def run(plan_path):
         "source_pins": {p.relative_to(ROOT).as_posix(): file_hash(p)
                         for directory in (ROOT / "src/mcbench", ROOT / "tools", ROOT / "backends/mineflayer/dist/src")
                         for p in directory.iterdir() if p.suffix in {".py", ".js"}}})
+    if recovery:
+        private(server_plan["launch"]["working_directory"])
+        recovery.materialize(output, server_plan, worker_config)
     environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "TEMP", "TMP", "PATH")
                    if key in os.environ}
     environment["PYTHONPATH"] = str(ROOT / "src")
@@ -161,18 +171,30 @@ def run(plan_path):
                     timespec="milliseconds").replace("+00:00", "Z"), "target_request_id": None, "after": None})
             observed = transport(request)
             if observed.get("status") == "ok" and observed["result"]["state"]["connected"]:
+                if recovery:
+                    from native_game_recovery import player_matches
+                    if not player_matches(recovery.player, observed["result"]["state"]):
+                        require(time.monotonic() < deadline, "GAME_RECOVERY_PLAYER_CHANGED")
+                        time.sleep(.6)
+                        continue
                 write(output / "initial-observation.json", observed)
                 break
             require(worker.poll() is None and time.monotonic() < deadline, "GAME_CONNECT_TIMEOUT")
             time.sleep(.6)
         print(json.dumps({"status": "native_game_ready", "elapsed_s": round(time.monotonic()-started, 3)}), flush=True)
+        if recovery:
+            result["recovery_start"] = recovery.verify_start(descriptor, observed)
+            write(output / "recovery-start.json", result["recovery_start"])
         native = output / "native"
         native.mkdir()
+        if recovery:
+            recovery.copy_native(native)
         native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
             bootstrap_mode=True, ingress_mode=True, oauth_mode=True,
             tool_projections=json.loads(Path(plan["tool_projections"]).read_bytes()),
-            no_patch_catalog=Path(plan["model_catalog"]), game_probe=GameProbe(descriptor, worker_config["lease_id"]),
-            game_retention=retention)
+            no_patch_catalog=Path(plan["model_catalog"]),
+            game_probe=GameProbe(descriptor, worker_config["lease_id"], recovery=recovery is not None),
+            game_retention=retention, game_recovery=recovery, job_id="root-recovery" if recovery else "root")
         write(output / "native-result.json", native_result)
         result["native_checks"] = native_result["checks"]
         result["native_closure"] = native_result["closure"]
@@ -221,10 +243,19 @@ def run(plan_path):
                 actions = [{"batch": json.loads(r[0]), "ack": json.loads(r[1])}
                            for r in db.execute("SELECT request,ack FROM actions ORDER BY seq")]
                 counters = dict(db.execute("SELECT name,value FROM counters"))
+            db.close()
             result["worker_journal"] = {"actions": actions, "counters": counters,
                                         "sha256": file_hash(journal)}
-            joined = len(actions) == 1 and actions[0]["batch"]["request_id"] == "native-bounded-look" and \
-                actions[0]["ack"]["status"] == "completed" and counters.get("primitive_events", 0) > 0
+            selected = [a for a in actions if a["batch"]["epoch"] == worker_config["epoch"]]
+            action_id = "native-bounded-look" + (f"-epoch-{worker_config['epoch']}" if recovery else "")
+            joined = len(selected) == 1 and selected[0]["batch"]["request_id"] == action_id and \
+                selected[0]["ack"]["status"] == "completed" and counters.get("primitive_events", 0) > 0
+            if recovery:
+                try:
+                    result["recovery_journal"] = recovery.worker_report(journal)
+                except Exception as error:
+                    joined = False
+                    result["recovery_error"] = error.code if isinstance(error, Fault) else type(error).__name__
             result["native_worker_journal_join"] = joined
             if not joined:
                 result["status"] = "fail"

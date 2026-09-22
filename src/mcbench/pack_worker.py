@@ -157,6 +157,7 @@ class HeldPackWorker:
         self._resources = None
         self._resolved = None
         self.processes = {}
+        self.restored_journal = None
 
     @property
     def resolved(self):
@@ -226,6 +227,20 @@ class HeldPackWorker:
         self._resources.callback(process.close)
         return process
 
+    def restore_journal(self, reference):
+        from .worker_journal_restore import HeldRestoredJournal
+        require(self._resources is not None and self.restored_journal is None
+                and set(self.processes) == {"preflight"} and self.processes["preflight"].poll() == 0
+                and self.processes["preflight"].job.accounting()["active_processes"] == 0
+                and self.processes["preflight"].job.accounting()["terminated_processes"] == 0,
+                "WORKER_JOURNAL_ORDER")
+        source = _path(reference["path"])
+        for other in (self.runtime.root, _path(self.binding.store), _path(self.binding.instance),
+                      _path(self._resolved["worker_configuration"]["auth_cache"]), _path(str(ROOT))):
+            _apart(source, other)
+        self.restored_journal = HeldRestoredJournal(reference, self._resolved["worker_configuration"])
+        self._resources.callback(self.restored_journal.close)
+
     def start(self, *, preflight=False):
         require(self._resources is not None and type(preflight) is bool, "WORKER_LAUNCH_NOT_HELD")
         mode = "preflight" if preflight else "worker"
@@ -238,10 +253,13 @@ class HeldPackWorker:
             require("server" in self.processes and self.processes["server"].poll() is None,
                     "SERVER_PROCESS_UNAVAILABLE")
         require(not preflight or "worker" not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
-        require(not any(_path(self._resolved["worker_configuration"]["state_directory"]).iterdir()),
+        require(self.restored_journal is not None and not preflight
+                or not any(_path(self._resolved["worker_configuration"]["state_directory"]).iterdir()),
                 "WORKER_INVOCATION_NOT_FRESH")
         self.runtime.recheck()
         self.config_lease.recheck()
+        if self.restored_journal is not None:
+            self.restored_journal.handoff()
         command = self._resolved["launch"]
         argv = ([command["executable_path"], command["arguments"][0], "--check-vanilla-runtime"]
                 if preflight else [command["executable_path"], *command["arguments"]])
@@ -264,12 +282,16 @@ class HeldPackWorker:
         self.config_lease.recheck()
         if self._server_resolved:
             self.server_executable_lease.recheck()
-        return {"schema": "strata/HeldPackWorker/1", "lock": self._resolved["lock"],
+        result = {"schema": "strata/HeldPackWorker/1", "lock": self._resolved["lock"],
             "launch_profile": self._resolved["launch_profile"],
             "configuration_sha256": self._resolved["worker_configuration_sha256"],
             "runtime": self.runtime.receipt(), "owned_processes": owned,
             "server_launch_digest": digest(self._server_resolved) if self._server_resolved else None,
             "held_through_owned_stop": True, "campaign_admission": False, "isolation_qualified": False}
+        if self.restored_journal is not None:
+            require("worker" in self.processes, "WORKER_LAUNCH_STOP_UNPROVEN")
+            result.update(schema="strata/HeldPackWorker/2", journal_restoration=self.restored_journal.receipt())
+        return result
 
     def __exit__(self, *_):
         if self._resources:

@@ -53,11 +53,12 @@ def write(path, body):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
     if sealed:
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
-                              "tool_projections", "model_catalog", "retention_source"}, "M0_PLAN_INVALID")
+                              "tool_projections", "model_catalog",
+                              "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}, "M0_PLAN_INVALID")
         with ExitStack() as resources:
             return run_plan(plan, resources)
     require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1",
@@ -82,19 +83,21 @@ def run(plan_path):
 
 def run_plan(plan, resources, runtime=None):
     version = plan["schema"]
-    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
-    restored = version == "strata/M0NativeGameSmoke/5"
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    restored = version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    sealed_recovery = version == "strata/M0NativeGameRecovery/3"
     prepared = None
     retention = recovery = None
     if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
                    "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
-    if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}:
+    if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}:
         from native_game_recovery import GameRecovery
         private(plan["recovery_source"]["bundle"])
-        private(plan["recovery_source"]["template_directory"])
-        recovery = GameRecovery(plan["recovery_source"])
+        if not sealed_recovery:
+            private(plan["recovery_source"]["template_directory"])
+        recovery = GameRecovery(plan["recovery_source"], sealed=sealed_recovery)
         retention = recovery.retention
         if runtime:
             recovery.check_worker_runtime(runtime.reference)
@@ -112,13 +115,18 @@ def run_plan(plan, resources, runtime=None):
         if restored:
             from mcbench.pack_restore import archive_restoration, baseline_record
             private(pack.restoration.snapshot)
-            require(json.loads(retention.body["objects"][retention.config.world_baseline]) == baseline_record(pack),
-                    "M0_PACK_BASELINE_MISMATCH")
+            if sealed_recovery:
+                recovery.validate_sealed_binding(pack, invocation.model_dump())
+            else:
+                require(json.loads(retention.body["objects"][retention.config.world_baseline]) == baseline_record(pack),
+                        "M0_PACK_BASELINE_MISMATCH")
         output.mkdir(parents=True)
         (output / "worker").mkdir()
         prepared = resources.enter_context(HeldPackWorker(pack, invocation.model_dump()))
         require(prepared.resolved["worker_runtime"] == plan["worker_runtime"], "M0_PACK_RUNTIME_MISMATCH")
         runtime = prepared.runtime
+        if sealed_recovery:
+            recovery.check_worker_runtime(runtime.reference)
         worker_config = prepared.resolved["worker_configuration"]
         server_plan = {"schema": "strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4",
             "pack": pack.model_dump(), "target": "vanilla",
@@ -139,8 +147,8 @@ def run_plan(plan, resources, runtime=None):
                 os.fsync(stream.fileno())
         if restored:
             world = archive_restoration(pack, json.loads((output / "pack-inventory.json").read_bytes()),
-                                        output / "baseline")
-            require(not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in world["files"]),
+                                        output / ("restoration-source" if sealed_recovery else "baseline"))
+            require(sealed_recovery or not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in world["files"]),
                     "M0_BASELINE_HAS_PLAYER_STATE")
     else:
         server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
@@ -197,7 +205,7 @@ def run_plan(plan, resources, runtime=None):
         "model_provider": "synthetic", "real_model_requests": 0, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
         "source_pins": source_pins})
-    if recovery:
+    if recovery and not sealed_recovery:
         private(server_plan["launch"]["working_directory"])
         recovery.materialize(output, server_plan, worker_config)
     environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "TEMP", "TMP", "PATH")
@@ -260,6 +268,8 @@ def run_plan(plan, resources, runtime=None):
         loader = launch("worker-preflight", worker_command("--check-vanilla-runtime"))
         wait(lambda: loader.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT")
         require(loader.poll() == 0, "WORKER_PREFLIGHT_FAILED")
+        if sealed_recovery:
+            recovery.restore_worker(prepared, output)
         server = launch("server-driver", [sys.executable, "-X", "utf8", str(ROOT / "tools/development_server.py"),
                                            str(output / "server-plan.json")])
         wait(lambda: (output / "server/ready.json").exists() or server.poll() is not None,

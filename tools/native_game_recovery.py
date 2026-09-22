@@ -44,12 +44,21 @@ def player_matches(player, state):
 
 
 class GameRecovery:
-    def __init__(self, source):
-        require(isinstance(source, dict) and set(source) == {"bundle", "seal_sha256", "template_directory"},
+    def __init__(self, source, *, sealed=False):
+        require(type(sealed) is bool and isinstance(source, dict)
+                and set(source) == {"bundle", "seal_sha256"} | (set() if sealed else {"template_directory"}),
                 "GAME_RECOVERY_SOURCE")
+        self.sealed = sealed
         self.bundle = b = EvidenceBundle(source["bundle"], source["seal_sha256"], inventory_extension=bootstrap_inventory)
-        self.source, self.template = source, safe(Path(source["template_directory"]))
+        self.source, self.template = source, None if sealed else safe(Path(source["template_directory"]))
         self.worker = b.json("run/worker-config.json")
+        if sealed:
+            from strata_evaluator.native_game_evidence import NativeGameEvidencePlan, inspect_native_game
+            require(b.json("run/intent.json")["plan"]["schema"] == "strata/M0NativeGameSmoke/5", "GAME_RECOVERY_SOURCE")
+            self.source_report = inspect_native_game(NativeGameEvidencePlan.model_validate({
+                "schema": "strata/NativeGameEvidencePlan/1", "bundle": source["bundle"],
+                "seal_sha256": source["seal_sha256"], "job_id": "root",
+                **{k: self.worker[k] for k in ("campaign_id", "agent_id", "epoch")}}))
         self.result, self.server = b.json("run/result.json"), b.json("run/server/result.json")
         require(all(b.json("run/native-result.json")["checks"].values())
                 and self.result.get("error") is None and self.result["native_worker_journal_join"], "GAME_RECOVERY_STOP")
@@ -87,12 +96,42 @@ class GameRecovery:
     def check_worker_runtime(self, reference):
         """Pinned recovery must retain the source run's exact worker runtime."""
         plan = self.bundle.json("run/intent.json")["plan"]
-        require(plan["schema"] == "strata/M0NativeGameSmoke/3"
+        require(plan["schema"] == ("strata/M0NativeGameSmoke/5" if getattr(self, "sealed", False) else "strata/M0NativeGameSmoke/3")
                 and plan.get("worker_runtime", {}).get("sha256") == reference["sha256"]
                 and self.bundle.files["run/worker-runtime.json"].sha256 == reference["sha256"]
                 and self.result.get("worker_runtime", {}).get("manifest_sha256") == reference["sha256"]
                 and self.result["worker_runtime"].get("held_through_owned_stop") is True,
                 "GAME_RECOVERY_WORKER_CHANGED")
+
+    def validate_sealed_binding(self, binding, invocation):
+        from mcbench.pack_launch import RestoredPackLaunchBinding
+        require(self.sealed and isinstance(binding, RestoredPackLaunchBinding)
+                and binding.lock == self.retention.config.pack_lock == self.world["pack"]["lock"]
+                and binding.request_id == self.world["pack"]["request_id"]
+                and binding.restoration.sha256 == self.server["stopped_snapshot"]["manifest_sha256"]
+                and safe(binding.restoration.snapshot) == safe(self.world_root), "GAME_RECOVERY_SOURCE")
+        require(invocation["campaign_id"] == self.worker["campaign_id"]
+                and invocation["agent_id"] == self.worker["agent_id"]
+                and invocation["epoch"] == self.worker["epoch"] + 1
+                and invocation["lease_id"] != self.worker["lease_id"], "GAME_RECOVERY_SCOPE")
+
+    def restore_worker(self, prepared, output):
+        require(self.sealed, "GAME_RECOVERY_SOURCE")
+        self.validate_sealed_binding(prepared.binding, prepared.resolved["worker_configuration"])
+        reference = {"path": str(self.bundle.path("run/worker/actions.sqlite")),
+            "sha256": self.bundle.files["run/worker/actions.sqlite"].sha256,
+            **{k: self.worker[k] for k in ("campaign_id", "agent_id", "epoch")}}
+        prepared.restore_journal(reference)
+        with (output / "player-before.dat").open("xb") as stream:
+            stream.write(self.bundle.read("run/player-after.dat"))
+        self.record_source(output, prepared.resolved["worker_configuration"])
+
+    def record_source(self, output, worker):
+        with (output / "recovery-source.json").open("xb") as stream:
+            stream.write(canonical({"source": self.source,
+                "component": self.retained["component_ref"], "original_outer_result": self.result["status"],
+                "world_snapshot": self.server["stopped_snapshot"]["manifest_sha256"], "epoch": worker["epoch"],
+                "worker_rows_preserved": len(self.old_actions), "full_checkpoint": False, "G0": "fail"}))
 
     def verify_start(self, descriptor, observed):
         from datetime import datetime, timezone
@@ -121,6 +160,7 @@ class GameRecovery:
                 "original_outer_result": self.result["status"], "full_checkpoint": False}
 
     def materialize(self, output, server_plan, worker):
+        require(not self.sealed, "GAME_RECOVERY_SOURCE")
         require(worker["campaign_id"] == self.worker["campaign_id"] and worker["agent_id"] == self.worker["agent_id"]
                 and worker["epoch"] == self.worker["epoch"] + 1 and worker["port"] == self.worker["port"]
                 and worker["lease_id"] != self.worker["lease_id"], "GAME_RECOVERY_SCOPE")
@@ -162,10 +202,7 @@ class GameRecovery:
             with sqlite3.connect(output / "worker/actions.sqlite") as dest_db:
                 source_db.backup(dest_db)
             dest_db.close()
-        (output / "recovery-source.json").write_bytes(canonical({"source": self.source,
-            "component": self.retained["component_ref"], "original_outer_result": self.result["status"],
-            "world_snapshot": self.server["stopped_snapshot"]["manifest_sha256"], "epoch": worker["epoch"],
-            "worker_rows_preserved": len(self.old_actions), "full_checkpoint": False, "G0": "fail"}))
+        self.record_source(output, worker)
 
     def copy_native(self, output):
         require(not (output / "synthetic.sqlite").exists() and not (output / "objects").exists(), "TARGET_EXISTS")

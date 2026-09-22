@@ -32,6 +32,8 @@ this summary is not executable authority. [Admission contract](operations/valida
 
 **M0.2c.3b.3c mutation history has partial authentic evidence.** [Implementation and verification](verification/2026-09-21-setup-history.md) adds sticky native mutation counters, exact signed setup/terminal joins and rejection of reversed changes. One changed headless E9E reference passes 33/33 hook/startup/terminal checks; six owned processes exit and all 18,225 source files remain unchanged. The [fixed private world-mode control](verification/2026-09-21-setup-control.md) now passes 58 source/JVM checks and 42/42 authentic checks, independently preserving Creative and restored Survival saves while retaining tainted history. Other mutation trajectories and mutable FTB/KubeJS routes remain open. Continue protected custody, parity/isolation, shutdown and integrated joint recovery. Complete setup history/scoring remains unqualified; the goal stays M0/G0 only.
 
+**M0.1d.3 adds durable restored-set verification.** [Implementation/evidence](verification/2026-09-21-restored-set.md) binds world/agent files to the committed source and publication record, rejecting changed, mixed, stale or interrupted sets. 107 distinct source/process checks and 17/17 recorded-native/synthetic-world audit checks pass with costs retained. Authentic stopped persistence and joint game/native restart remain unverified.
+
 Evidence entry points:
 
 - [Connected native/game run](verification/2026-09-21-m0-native-game.md) and

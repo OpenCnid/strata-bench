@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.102](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.103](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -55,6 +55,15 @@ The single consumed reference in
 must not be restarted. Other mutation routes, custody, parity and scoring
 remain unqualified. Accounting read-only at 23:59:14 UTC is unchanged.
 Continue integrated M0 joint recovery while preserving these independent gaps.
+
+Current M0.1d.3 implements durable complete-set publication and a reusable operator
+verifier. [Source/process and recorded-native evidence](verification/2026-09-21-restored-set.md):
+107 distinct focused cases and 17/17 offline audit checks pass. The audit retains
+an actual native component with scripted responses and synthetic world data;
+no authentic game restore is claimed. Costs and old source files stay unchanged.
+Next bind authoritative stopped vanilla persistence and preregistered retention,
+then fresh grants/observations and joint restore assertions. Existing game runs
+without prior retention policy cannot be retroactively promoted to checkpoints.
 
 ## Durable accounting: D12 is consumed
 

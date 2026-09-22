@@ -498,6 +498,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
         stop = stop_evidence(db, bundle, native, plan)
         pins = source_evidence(bundle, native, intent, cap)
         saved = saved_player_evidence(bundle, observations)
+        from .native_game_retention import inspect_retention, inspect_stopped_components
+        retention = inspect_retention(db, cas, bundle, native, intent)
         started, ended = row["started"], row["ended"]
         require(all(type(v) in (int, float) and math.isfinite(v) for v in (started, ended))
                 and 0 < started <= ended, "NATIVE_GAME_CLOCK_INVALID")
@@ -511,6 +513,7 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             and all(result.get(name) == {"returncode": 0} for name in ("worker-preflight", "worker-driver", "server-driver")),
             "NATIVE_GAME_OUTER_STOP_UNCERTAIN")
     server_plan = bundle.json("run/server/plan.json")
+    retention = inspect_stopped_components(bundle, retention, server, server_plan, result)
     require(server == result.get("server_result") and server.get("plan_digest") == digest(server_plan)
             and server.get("target") == "vanilla" and server.get("status") == "stopped_unqualified"
             and server.get("exit_code") == 0 and server.get("stop_sent") is True
@@ -535,6 +538,7 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             **{k: getattr(plan, k) for k in (*SCOPE, "job_id")},
             "evidence_kind": "authentic_game_with_scripted_inference", "model": model, "game": game,
             "stop": stop | {"server": "stopped_unqualified"}, "pins": pins, "saved_player": saved,
+            "retention": retention,
             "clocks": {"native_observed_wall_s": ended - started,
                        "native_wall_basis": "recorded_unix_lifecycle_difference",
                        "outer_observed_wall_s": result["elapsed_s"], "server_observed_wall_s": server["elapsed_s"],

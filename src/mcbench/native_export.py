@@ -259,6 +259,32 @@ def inspect_native_source(db, cas, job, *, simulation, live_jobs=()):
 
 
 
+def inspect_native_export(db, cas, ref, *, simulation, live_jobs=()):
+    """Validate a committed export without schema creation or any writes."""
+    state = NativeStateV2.model_validate(private_json(db, cas, ref))
+    require(state.is_example is simulation, "NATIVE_EXPORT_PROFILE")
+    stored = db.execute("SELECT * FROM native_exports WHERE job=?", (state.job_id,)).fetchone()
+    require(stored is not None and stored["ref"] == ref and stored["source_digest"] == state.source_digest,
+            "NATIVE_EXPORT_UNCOMMITTED")
+    plan, current, inventories = inspect_native_source(db, cas, state.job_id,
+                                                      simulation=simulation, live_jobs=live_jobs)
+    require(digest(current) == state.source_digest and
+        digest(private_json(db, cas, state.source_ref)) == state.source_digest and
+        state.campaign_id == plan.campaign_id and state.agent_id == plan.agent_id and
+        state.source_epoch == plan.epoch and state.profile_digest == plan.profile_digest(),
+        "NATIVE_EXPORT_SOURCE_CHANGED")
+    for thread, inventory in inventories.items():
+        inventory_ref = state.root_artifacts if inventory["role"] == "executor" else state.helper_artifacts.get(thread)
+        require(private_json(db, cas, inventory_ref) == inventory, "NATIVE_EXPORT_SOURCE_CHANGED")
+    require(set(state.helper_artifacts) == {k for k, v in inventories.items() if v["role"] == "helper"},
+            "NATIVE_EXPORT_PARTICIPANTS")
+    accounting = private_json(db, cas, state.accounting_ref)
+    require(accounting.get("schema") == "strata/NativeAccountingContinuity/1" and
+        accounting.get("account") == plan.account and accounting.get("cost_rollback") is False and
+        accounting.get("grants_new_allowance") is False, "NATIVE_EXPORT_LEDGER")
+    return state
+
+
 class NativeExports:
     def __init__(self, runtime):
         self.runtime, self.db, self.cas = runtime, runtime.db, runtime.cas
@@ -321,24 +347,5 @@ class NativeExports:
         # Checkpoint commit may already hold the writer transaction so that the
         # source and the complete-set publication share one validation boundary.
         with (nullcontext(self.db.connection) if self.db.connection.in_transaction else self.db.transaction()) as db:
-            state = NativeStateV2.model_validate(private_json(db, self.cas, ref))
-            require(state.is_example is self.runtime.simulation, "NATIVE_EXPORT_PROFILE")
-            stored = db.execute("SELECT * FROM native_exports WHERE job=?", (state.job_id,)).fetchone()
-            require(stored is not None and stored["ref"] == ref and stored["source_digest"] == state.source_digest,
-                    "NATIVE_EXPORT_UNCOMMITTED")
-            plan, current, inventories = self._capture(db, state.job_id)
-            require(digest(current) == state.source_digest and
-                digest(private_json(db, self.cas, state.source_ref)) == state.source_digest and
-                state.campaign_id == plan.campaign_id and state.agent_id == plan.agent_id and
-                state.source_epoch == plan.epoch and state.profile_digest == plan.profile_digest(),
-                "NATIVE_EXPORT_SOURCE_CHANGED")
-            for thread, inventory in inventories.items():
-                inventory_ref = state.root_artifacts if inventory["role"] == "executor" else state.helper_artifacts.get(thread)
-                require(private_json(db, self.cas, inventory_ref) == inventory, "NATIVE_EXPORT_SOURCE_CHANGED")
-            require(set(state.helper_artifacts) == {k for k, v in inventories.items() if v["role"] == "helper"},
-                    "NATIVE_EXPORT_PARTICIPANTS")
-            accounting = private_json(db, self.cas, state.accounting_ref)
-            require(accounting.get("schema") == "strata/NativeAccountingContinuity/1" and
-                accounting.get("account") == plan.account and accounting.get("cost_rollback") is False and
-                accounting.get("grants_new_allowance") is False, "NATIVE_EXPORT_LEDGER")
-            return state
+            return inspect_native_export(db, self.cas, ref, simulation=self.runtime.simulation,
+                                         live_jobs=self.runtime.live)

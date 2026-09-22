@@ -11,6 +11,10 @@ followed by merged [PR #4](https://github.com/OpenCnid/strata-bench/pull/4) at `
 The [checkpoint report](verification/2026-09-21-session-handoff.md) records
 merge verification. Publication does not qualify a release gate.
 
+M0.1d.5 adds preregistered native retention and paired stopped-world components.
+[Source verification](verification/2026-09-21-native-game-retention.md): 33 new
+synthetic checks pass; changed authentic capture is pending. Full recovery remains open.
+
 | Evidence class | Delivered scope | Remaining limit |
 |---|---|---|
 | Working native/game path | Actual pinned Codex/Dovetail root/helper and restricted broker perform one real vanilla action, match worker receipt and saved orientation, and stop normally | Model replies are scripted; no live-model gameplay, authoritative score or complete restoration |

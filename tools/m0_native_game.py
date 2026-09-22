@@ -22,9 +22,10 @@ from mcbench.contracts import RpcRequest
 from mcbench.inventory import file_hash
 from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault, canonical, reject_links, require
-from native_dispatch_probe import BINARY_SHA256
+from native_dispatch_probe import BINARY_SHA256, CODEX_VERSION, DOVETAIL_COMMIT, MODEL
 from native_game_probe import GameProbe
 from native_mcp_identity_probe import run as run_native
+from mcbench.native_game_retention import GameRetention
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,13 +46,23 @@ def write(path, body):
 
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
-    require(set(plan) == {"schema", "output", "server_plan", "worker_config", "codex", "node",
-                          "tool_projections", "model_catalog"} and
-            plan["schema"] == "strata/M0NativeGameSmoke/1", "M0_PLAN_INVALID")
+    version = plan.get("schema")
+    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2"}
+            and set(plan) == {"schema", "output", "server_plan", "worker_config", "codex", "node",
+                              "tool_projections", "model_catalog"} |
+            ({"retention_source"} if version == "strata/M0NativeGameSmoke/2" else set()), "M0_PLAN_INVALID")
+    retention = None
+    if version == "strata/M0NativeGameSmoke/2":
+        private(plan["retention_source"]["path"])
+        retention = GameRetention(plan["retention_source"])
     output = private(plan["output"])
     require(not output.exists(), "TARGET_EXISTS")
     server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
     server_plan, worker_config = (json.loads(p.read_bytes()) for p in (server_source, worker_source))
+    if retention:
+        retention.check_scope(worker_config)
+        require(server_plan["schema"] == "strata/DevelopmentServer/2" and
+                server_plan["persistence_policy"] == "vanilla1192-stopped-instance/1", "M0_CAPTURE_REQUIRED")
     require(server_plan["target"] == "vanilla" and worker_config["schema"] == "strata/DevelopmentWorker/1"
             and worker_config["server_kind"] == "vanilla" and worker_config["host"] == "127.0.0.1",
             "M0_PROFILE_UNSUPPORTED")
@@ -59,6 +70,9 @@ def run(plan_path):
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
+    if retention:
+        retention.check_identity(model=MODEL, dovetail_commit=DOVETAIL_COMMIT,
+            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=2)
     for key in ("tool_projections", "model_catalog"):
         private(plan[key])
     require(not (private(worker_config["auth_cache"]) / "auth.lock").exists(), "AUTH_CACHE_IN_USE")
@@ -68,6 +82,12 @@ def run(plan_path):
     server_plan["evidence"] = str(output / "server")
     write(output / "worker-config.json", worker_config)
     write(output / "server-plan.json", server_plan)
+    if retention:
+        # Preserve exactly the externally pinned preregistration bytes.
+        with (output / "retention-input.json").open("xb") as stream:
+            stream.write(retention.raw)
+            stream.flush()
+            os.fsync(stream.fileno())
     write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
         "model_provider": "synthetic", "real_model_requests": 0, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
@@ -151,11 +171,14 @@ def run(plan_path):
         native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
             bootstrap_mode=True, ingress_mode=True, oauth_mode=True,
             tool_projections=json.loads(Path(plan["tool_projections"]).read_bytes()),
-            no_patch_catalog=Path(plan["model_catalog"]), game_probe=GameProbe(descriptor, worker_config["lease_id"]))
+            no_patch_catalog=Path(plan["model_catalog"]), game_probe=GameProbe(descriptor, worker_config["lease_id"]),
+            game_retention=retention)
         write(output / "native-result.json", native_result)
         result["native_checks"] = native_result["checks"]
         result["native_closure"] = native_result["closure"]
         result["fixture_model_costs"] = native_result["budget"]
+        if retention:
+            result["native_retention"] = native_result["retention"]
         require(all(native_result["checks"].values()), "NATIVE_GAME_CHECK_FAILED")
         wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
         require(worker.poll() == 0, "WORKER_EXIT_FAILED")
@@ -207,6 +230,26 @@ def run(plan_path):
                 result["status"] = "fail"
         if not result["native_worker_journal_join"]:
             result["status"] = "fail"
+        if retention:
+            # Both components must exist; neither alone is a joint checkpoint.
+            try:
+                from mcbench.vanilla_persistence import verify_snapshot
+                from mcbench.storage import digest
+                snapshot = result["server_result"]["stopped_snapshot"]
+                require(result["status"] == "pass" and
+                        Path(snapshot["path"]) == output / "server/stopped-instance", "M0_CAPTURE_INCOMPLETE")
+                captured = verify_snapshot(Path(snapshot["path"]), snapshot["manifest_sha256"])
+                require(captured["server_plan_digest"] == digest(server_plan) and
+                        "native_retention" in result, "M0_CAPTURE_INCOMPLETE")
+                result["joint_components"] = {"schema": "strata/NativeGameStoppedComponents/1",
+                    "native_component": result["native_retention"]["component_ref"],
+                    "snapshot_sha256": snapshot["manifest_sha256"],
+                    "retention_input_sha256": retention.source["sha256"],
+                    "complete_checkpoint": False, "dispatch_authorized": False, "G0": "fail"}
+                write(output / "joint-components.json", result["joint_components"])
+            except Exception as error:
+                result["status"] = "fail"
+                result["capture_error"] = error.code if isinstance(error, Fault) else type(error).__name__
         write(output / "result.json", result)
     return result
 

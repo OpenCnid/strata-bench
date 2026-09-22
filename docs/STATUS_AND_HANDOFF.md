@@ -1,6 +1,6 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.104](../SPEC.md) defines
+Updated September 21, 2026. Operator-only. [SPEC v0.2.105](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
 
@@ -73,6 +73,14 @@ profile requires held full process termination before leased byte capture.
 Next preregister native retention before a changed connected capture trial;
 then fresh grants/observations and complete joint assertions. No authentic
 capture, clean-save/custody or full checkpoint qualification yet.
+
+M0.1d.5 now implements preregistration and paired native/world components.
+[Source evidence](verification/2026-09-21-native-game-retention.md): 33 new synthetic
+checks pass. Register the declared initial tree before the next native job; retain
+its source-bound component and the v2 stopped-world capture together. Prepare one
+changed connected trial with scripted responses. No retroactive registration,
+new model allowance or complete checkpoint claim. Pack/custody/clock/fresh restore
+assertions and all old failures remain open.
 
 ## Durable accounting: D12 is consumed
 

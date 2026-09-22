@@ -68,7 +68,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
-        activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None):
+        activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -114,6 +114,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, activation_source, inherited_helper)),
             "GAME_PINNED_BOOTSTRAP_REQUIRED")
+    require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
@@ -194,8 +195,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         if activation is None or agent != "/root":
                             broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
                         if agent == "/root" and activation is None:
-                            broker.project(grant.thread_id, "initial/skill.md", "STRATA_IMMUTABLE_SKILL")
-                            broker.project(grant.thread_id, "docs/root-only.md", "STRATA_ROOT_ONLY_CANARY")
+                            from mcbench.native_game_retention import INITIAL
+                            for path, text in INITIAL.items():
+                                if path != "supplied/plan.md":
+                                    broker.project(grant.thread_id, path, text)
                     finally:
                         connection.close()
                     game_request = {"schema": "strata/GameRequest/1",
@@ -481,6 +484,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "output_bound_method", "max_input_tokens", "max_output_tokens")}})
             gateway.bind(plan, gateway_config)
         provider.plan = plan
+        if game_retention:
+            game_retention.register(runtime, plan)
         if ingress_mode:
             NativeIngress(db).register(plan)
         if broker_mode:
@@ -655,6 +660,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["activation"] = activation.report(provider, db, plan)
         result["checks"].update(result["activation"]["checks"])
         result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
+    if game_retention:
+        result["retention"] = game_retention.finish()
+        result["checks"]["preregistered_native_retention_component"] = True
     db.export_journal(output / "journal.jsonl")
     if ingress_mode:
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])

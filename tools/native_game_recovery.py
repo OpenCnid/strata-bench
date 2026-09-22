@@ -84,6 +84,16 @@ class GameRecovery:
             self.old_primitives = db.execute("SELECT value FROM counters WHERE name='primitive_events'").fetchone()[0]
         require(len(self.old_actions) == 1, "GAME_RECOVERY_SOURCE")
 
+    def check_worker_runtime(self, reference):
+        """Pinned recovery must retain the source run's exact worker runtime."""
+        plan = self.bundle.json("run/intent.json")["plan"]
+        require(plan["schema"] == "strata/M0NativeGameSmoke/3"
+                and plan.get("worker_runtime", {}).get("sha256") == reference["sha256"]
+                and self.bundle.files["run/worker-runtime.json"].sha256 == reference["sha256"]
+                and self.result.get("worker_runtime", {}).get("manifest_sha256") == reference["sha256"]
+                and self.result["worker_runtime"].get("held_through_owned_stop") is True,
+                "GAME_RECOVERY_WORKER_CHANGED")
+
     def verify_start(self, descriptor, observed):
         from datetime import datetime, timezone
         from mcbench.broker_stdio import WorkerTransport

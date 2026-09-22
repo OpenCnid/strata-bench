@@ -41,13 +41,14 @@ await new Promise(resolve=>setTimeout(resolve,550));
 const before=await game("observe");
 if (!before.state.connected || before.is_example) throw new Error("REAL_GAME_NOT_CONNECTED");
 const p=before.state.position;
+const yaw=before.state.yaw+Math.PI/4;
 const batch={schema:"mcbench/ActionBatch/1",is_example:false,...scope,
   seq:(before.last_action_seq||0)+1,recorded_at:new Date().toISOString(),lease_id:lease,
   request_id:"native-bounded-look",observation_id:before.observation_id,
   expected_state_revision:before.state_revision,capability_digest:before.capability_digest,
   control_revision:before.control_revision,keymap_digest:null,mode:"structured",
   deadline_at:new Date(Date.now()+2000).toISOString(),duration_ms:2000,
-  action:{kind:"look_at",target:{x:p.x+3,y:p.y+1.62,z:p.z}},events:[],release_at_end:true};
+  action:{kind:"look_at",target:{x:p.x-Math.sin(yaw)*3,y:p.y+1.62,z:p.z-Math.cos(yaw)*3}},events:[],release_at_end:true};
 let receipt=await game("act",batch);
 for(let i=0;i<6 && ["accepted","executing"].includes(receipt.status);i++) {
   await new Promise(resolve=>setTimeout(resolve,100));

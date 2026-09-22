@@ -398,6 +398,59 @@ def one_event_for_state(db, job, state):
     return rows[0]
 
 
+def worker_runtime_evidence(bundle, intent, cap):
+    """Join the pinned worker's recorded lease; archived paths stay inert data.
+
+    This does not imply arbitrary-process isolation or archive external runtime
+    files. Their independently held pins and source manifest remain explicit.
+    """
+    plan = intent["plan"]
+    result = bundle.json("run/result.json")
+    pinned = plan["schema"] in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
+    if not pinned:
+        require("worker_runtime" not in plan and "worker_runtime" not in result
+                and "run/worker-runtime.json" not in bundle.files, "NATIVE_GAME_WORKER_PROFILE")
+        return {"pinned": False, "external_runtime_bytes_archived": False}
+    reference = plan["worker_runtime"]
+    require(set(reference) == {"path", "sha256"} and "node" not in plan,
+            "NATIVE_GAME_WORKER_PROFILE")
+    raw = bundle.read("run/worker-runtime.json", maximum=16 * 1024**2)
+    import hashlib
+    require(hashlib.sha256(raw).hexdigest() == reference["sha256"], "NATIVE_GAME_WORKER_MANIFEST")
+    body = strict_json(raw)
+    root = windows(body["root"])
+    require(root.is_absolute() and body["schema"] == "strata/WorkerRuntimeBundle/1"
+            and body["profile"] == "vanilla1192-private-worker/1"
+            and body["python_arguments"] == ["-I", "-S", "-B"], "NATIVE_GAME_WORKER_PROFILE")
+    files = {windows(e["path"]).relative_to(root).as_posix(): e for e in body["inventory"]["files"]}
+    require(len(files) == len(body["inventory"]["files"]) and 0 < len(files) < 12000,
+            "NATIVE_GAME_WORKER_MANIFEST")
+    from mcbench.worker_bundle import WORKER_PATHS
+    require(all(windows(body[key]) == root / name and name in files for key, name in WORKER_PATHS.items()),
+            "NATIVE_GAME_WORKER_MANIFEST")
+    modules = {PureWindowsPath(name).name: e["sha256"] for name, e in files.items()
+               if name.startswith("backends/mineflayer/dist/src/") and name.count('/') == 4 and name.endswith('.js')}
+    schemas = {name: files[f"schemas/v1/public/{name}.json"]["sha256"]
+               for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest")}
+    require(digest(modules) == cap["implementation_digest"]
+            and digest(schemas) == cap["schema_digest"]
+            and files["backends/mineflayer/package-lock.json"]["sha256"] == cap["dependency_lock_digest"],
+            "NATIVE_GAME_WORKER_CAPABILITY")
+    expected = {"schema": "strata/HeldWorkerRuntime/1", "manifest_sha256": reference["sha256"],
+        "policy": "expected-bundle-deny-write-through-owned-stop/1", "files": len(files),
+        "bytes": sum(e["bytes"] for e in files.values()), "manifest_held": True,
+        "isolation_qualified": False, "runtime_qualified": False,
+        "owned_processes": {name: {"parent_returncode": 0, "active_processes": 0}
+                            for name in ("worker-preflight", "worker-driver", "server-driver")},
+        "held_through_owned_stop": True, "root": body["root"],
+        "preflight_argv": [body["node"], body["worker"], "--check-vanilla-runtime"],
+        "worker_argv": [body["node"], body["worker"], str(windows(plan["output"]) / "worker-config.json")]}
+    require(result.get("worker_runtime") == expected and "worker_runtime_error" not in result,
+            "NATIVE_GAME_WORKER_CUSTODY")
+    return {"pinned": True, "manifest_sha256": reference["sha256"], "files": len(files),
+            "held_through_owned_stop": True, "isolation_qualified": False, "external_runtime_bytes_archived": False}
+
+
 def source_evidence(bundle, native, intent, cap):
     pins = bundle.json("source-pins.json")
     require(isinstance(pins, dict) and pins and isinstance(intent.get("source_pins"), dict), "NATIVE_GAME_SOURCE_PINS")
@@ -443,7 +496,8 @@ def source_evidence(bundle, native, intent, cap):
             "worker_dependency_lock_digest": cap["dependency_lock_digest"],
             "worker_schema_digest": cap["schema_digest"], "pack_lock_qualified": False,
             "dependency_lock_and_schema_bytes_verified": dependency_bytes_verified,
-            "external_executable_archived": False}
+            "external_executable_archived": False,
+            "worker_runtime": worker_runtime_evidence(bundle, intent, cap)}
 
 
 def saved_player_evidence(bundle, observations):

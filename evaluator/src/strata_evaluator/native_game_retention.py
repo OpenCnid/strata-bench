@@ -1,4 +1,4 @@
-"""Read-only joins for the explicit v2 stopped-component development profile."""
+"""Read-only joins for the explicit stopped-component development profiles."""
 
 from mcbench.budgets import Budgets
 from mcbench.inference_transport import strict_json
@@ -15,7 +15,8 @@ def inspect_retention(db, cas, bundle, native, intent):
         require("retention_source" not in plan and "run/retention-input.json" not in bundle.files,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return {"preregistered": False, "complete_checkpoint": False}
-    require(plan["schema"] == "strata/M0NativeGameSmoke/2", "NATIVE_GAME_RETENTION_PROFILE")
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"},
+            "NATIVE_GAME_RETENTION_PROFILE")
     anchor = plan["retention_source"]["sha256"]
     retention = GameRetention({"path": str(bundle.path("run/retention-input.json")), "sha256": anchor})
     retention.check_scope(native.model_dump())

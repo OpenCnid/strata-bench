@@ -15,17 +15,20 @@ import sys
 import threading
 import time
 import uuid
+from contextlib import ExitStack
 from datetime import datetime, timezone
 
 from mcbench.broker_stdio import WorkerTransport
 from mcbench.contracts import RpcRequest
 from mcbench.inventory import file_hash
+from mcbench.launch_integrity import safe
 from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault, canonical, reject_links, require
 from native_dispatch_probe import BINARY_SHA256, CODEX_VERSION, DOVETAIL_COMMIT, MODEL
 from native_game_probe import GameProbe
 from native_mcp_identity_probe import run as run_native
 from mcbench.native_game_retention import GameRetention, paired_components
+from mcbench.worker_bundle import HeldWorkerBundle
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -33,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def private(path):
     path = Path(path).absolute()
     reject_links(path)
-    require(not path.resolve().is_relative_to(ROOT), "PRIVATE_PATH_REQUIRED")
+    require(not safe(path.resolve()).is_relative_to(safe(ROOT)), "PRIVATE_PATH_REQUIRED")
     return path
 
 
@@ -47,21 +50,41 @@ def write(path, body):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1"}
-            and set(plan) == {"schema", "output", "server_plan", "worker_config", "codex", "node",
+    pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
+    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1",
+                        "strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
+            and set(plan) == {"schema", "output", "server_plan", "worker_config", "codex",
+                              "worker_runtime" if pinned else "node",
                               "tool_projections", "model_catalog"} |
-            ({"retention_source"} if version == "strata/M0NativeGameSmoke/2" else
-             {"recovery_source"} if version == "strata/M0NativeGameRecovery/1" else set()), "M0_PLAN_INVALID")
+            ({"retention_source"} if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"} else
+             {"recovery_source"} if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}
+             else set()), "M0_PLAN_INVALID")
+    with ExitStack() as resources:
+        runtime = None
+        if pinned:
+            private(plan["worker_runtime"]["path"])
+            runtime = HeldWorkerBundle(plan["worker_runtime"])
+            private(runtime.body["root"])
+            resources.enter_context(runtime)
+        # Process callbacks are registered after the runtime lease. They close
+        # before its release even when setup, native execution or cleanup raises.
+        return run_plan(plan, resources, runtime)
+
+
+def run_plan(plan, resources, runtime=None):
+    version = plan["schema"]
     retention = recovery = None
-    if version == "strata/M0NativeGameSmoke/2":
+    if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
-    if version == "strata/M0NativeGameRecovery/1":
+    if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}:
         from native_game_recovery import GameRecovery
         private(plan["recovery_source"]["bundle"])
         private(plan["recovery_source"]["template_directory"])
         recovery = GameRecovery(plan["recovery_source"])
         retention = recovery.retention
+        if runtime:
+            recovery.check_worker_runtime(runtime.reference)
     output = private(plan["output"])
     require(not output.exists(), "TARGET_EXISTS")
     server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
@@ -83,24 +106,37 @@ def run(plan_path):
     for key in ("tool_projections", "model_catalog"):
         private(plan[key])
     require(not (private(worker_config["auth_cache"]) / "auth.lock").exists(), "AUTH_CACHE_IN_USE")
+    if runtime:
+        for path in (output, server_source, worker_source, private(worker_config["auth_cache"])):
+            require(not safe(path).is_relative_to(runtime.root) and not runtime.root.is_relative_to(safe(path)),
+                    "WORKER_BUNDLE_OVERLAP")
     output.mkdir(parents=True)
     (output / "worker").mkdir()
     worker_config["state_directory"] = str(output / "worker")
     server_plan["evidence"] = str(output / "server")
     write(output / "worker-config.json", worker_config)
     write(output / "server-plan.json", server_plan)
+    if runtime:
+        with (output / "worker-runtime.json").open("xb") as stream:
+            stream.write(runtime.raw)
+            stream.flush()
+            os.fsync(stream.fileno())
     if retention:
         # Preserve exactly the externally pinned preregistration bytes.
         with (output / "retention-input.json").open("xb") as stream:
             stream.write(retention.raw)
             stream.flush()
             os.fsync(stream.fileno())
+    source_pins = {p.relative_to(ROOT).as_posix(): file_hash(p)
+                   for directory in (ROOT / "src/mcbench", ROOT / "tools")
+                   for p in directory.iterdir() if p.suffix == ".py"}
+    worker_root = Path(runtime.body["root"]) if runtime else ROOT
+    source_pins.update({p.relative_to(worker_root).as_posix(): file_hash(p)
+                       for p in (worker_root / "backends/mineflayer/dist/src").iterdir() if p.suffix == ".js"})
     write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
         "model_provider": "synthetic", "real_model_requests": 0, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
-        "source_pins": {p.relative_to(ROOT).as_posix(): file_hash(p)
-                        for directory in (ROOT / "src/mcbench", ROOT / "tools", ROOT / "backends/mineflayer/dist/src")
-                        for p in directory.iterdir() if p.suffix in {".py", ".js"}}})
+        "source_pins": source_pins})
     if recovery:
         private(server_plan["launch"]["working_directory"])
         recovery.materialize(output, server_plan, worker_config)
@@ -108,15 +144,21 @@ def run(plan_path):
                    if key in os.environ}
     environment["PYTHONPATH"] = str(ROOT / "src")
     environment["NODE_COMPILE_CACHE"] = str(output / "node-compile-cache")
-    processes, readers, reader_faults = {}, [], []
+    processes, readers, reader_faults, closed = {}, [], [], set()
     result = {"schema": "strata/M0NativeGameResult/1", "status": "fail", "G0": "fail",
               "model_evidence": "synthetic_provider", "game_evidence": "authentic_vanilla",
               "real_model_requests": 0, "production_qualified": False, "native_worker_journal_join": False}
     started = time.monotonic()
 
+    def close_owned(name):
+        if name not in closed:
+            processes[name].close()
+            closed.add(name)
+
     def launch(name, argv):
         process = ManagedProcess(argv, ROOT, environment, "")
         processes[name] = process
+        resources.callback(close_owned, name)
 
         def drain(stream, destination):
             try:
@@ -147,16 +189,18 @@ def run(plan_path):
             time.sleep(.1)
 
     try:
-        loader = launch("worker-preflight", [plan["node"], str(ROOT / "backends/mineflayer/dist/src/worker.js"),
-                                             "--check-vanilla-runtime"])
+        def worker_command(argument):
+            return runtime.command(argument) if runtime else [plan["node"],
+                str(ROOT / "backends/mineflayer/dist/src/worker.js"), str(argument)]
+
+        loader = launch("worker-preflight", worker_command("--check-vanilla-runtime"))
         wait(lambda: loader.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT")
         require(loader.poll() == 0, "WORKER_PREFLIGHT_FAILED")
         server = launch("server-driver", [sys.executable, "-X", "utf8", str(ROOT / "tools/development_server.py"),
                                            str(output / "server-plan.json")])
         wait(lambda: (output / "server/ready.json").exists() or server.poll() is not None, 60, "SERVER_START_TIMEOUT")
         require(server.poll() is None, "SERVER_EARLY_EXIT")
-        worker = launch("worker-driver", [plan["node"], str(ROOT / "backends/mineflayer/dist/src/worker.js"),
-                                           str(output / "worker-config.json")])
+        worker = launch("worker-driver", worker_command(output / "worker-config.json"))
         grant_path = output / "worker" / f"grant-{worker_config['epoch']}.json"
         wait(lambda: grant_path.exists() or worker.poll() is not None, 30, "WORKER_START_TIMEOUT")
         require(worker.poll() is None and grant_path.exists(), "WORKER_EARLY_EXIT")
@@ -227,9 +271,13 @@ def run(plan_path):
         for reader in readers:
             reader.join(2)
         result["logs_complete"] = not reader_faults and not any(t.is_alive() for t in readers)
+        trees = {}
         for name, process in processes.items():
             result[name] = {"returncode": process.poll()}
-            process.close()
+            if runtime:
+                trees[name] = {"parent_returncode": process.poll(),
+                    "active_processes": process.job.accounting()["active_processes"] if process.job else None}
+            close_owned(name)
         result["elapsed_s"] = time.monotonic() - started
         if not result["logs_complete"] or any(process.poll() != 0 for process in processes.values()):
             result["status"] = "fail"
@@ -269,6 +317,18 @@ def run(plan_path):
             except Exception as error:
                 result["status"] = "fail"
                 result["capture_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+        if runtime:
+            try:
+                require(set(trees) == {"worker-preflight", "worker-driver", "server-driver"}
+                        and all(row == {"parent_returncode": 0, "active_processes": 0} for row in trees.values()),
+                        "WORKER_RUNTIME_STOP_UNCERTAIN")
+                result["worker_runtime"] = runtime.receipt() | {"owned_processes": trees,
+                    "held_through_owned_stop": True, "root": runtime.body["root"],
+                    "preflight_argv": worker_command("--check-vanilla-runtime"),
+                    "worker_argv": worker_command(output / "worker-config.json")}
+            except Exception as error:
+                result["status"] = "fail"
+                result["worker_runtime_error"] = error.code if isinstance(error, Fault) else str(error)
         write(output / "result.json", result)
     return result
 

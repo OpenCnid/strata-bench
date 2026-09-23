@@ -33,6 +33,7 @@ from mcbench.pack_launch import RestoredPackLaunchBinding, parse_pack_binding
 from mcbench.pack_worker import HeldPackWorker, WorkerInvocation
 from mcbench.vanilla_persistence import PACK_POLICY
 from mcbench.worker_stop import stop_owned_worker
+from mcbench.runtime import native_companion_paths
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,6 +61,8 @@ def run(plan_path):
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
                               "tool_projections", "model_catalog",
                               "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}, "M0_PLAN_INVALID")
+        require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
+        native_companion_paths(plan["codex"])
         with ExitStack() as resources:
             return run_plan(plan, resources)
     require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1",
@@ -70,6 +73,8 @@ def run(plan_path):
             ({"retention_source"} if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"} else
              {"recovery_source"} if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}
              else set()), "M0_PLAN_INVALID")
+    require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
+    native_companion_paths(plan["codex"])
     with ExitStack() as resources:
         runtime = None
         if pinned:

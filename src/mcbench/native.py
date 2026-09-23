@@ -265,6 +265,10 @@ class NativeExec:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
                     "RUNTIME_PIN_MISMATCH")
+            if plan.broker_policy is not None:
+                from .launch_integrity import read_manifest
+                require(read_manifest(plan.bootstrap_manifest, plan.bootstrap_digest)["schema"] ==
+                        "strata/NativeBootstrap/2", "NATIVE_COMPANION_PINS_REQUIRED")
             require(callable(self.revoke_game), "REVOCATION_REQUIRED")
             self._proof(plan)
             policy = self.authorizations.check(self.authorization_id, plan.account, plan.provider,

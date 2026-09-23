@@ -11,8 +11,9 @@ from pathlib import Path
 import shutil
 import sys
 
-from .launch_integrity import FileLease, encode, read_manifest, safe, snapshot, tree_files
+from .launch_integrity import FileLease, encode, native_companion_inventory, read_manifest, safe, snapshot, tree_files
 from .native_broker_policy import BROKER_TOOLS, validate_broker_settings
+from .runtime import CODEX_COMPANION_PINS, native_companion_paths
 from .storage import require
 
 DEPENDENCIES = ("pydantic", "pydantic_core", "annotated_types", "typing_extensions",
@@ -37,6 +38,7 @@ def copy_software(source, target):
 
 
 def prepare_bundle(root, *, native_executable, plugin_root, broker_config, static_files=(), static_trees=()):
+    companions = native_companion_paths(native_executable)
     root = safe(root)
     require(not root.exists(), "BOOTSTRAP_TARGET_EXISTS")
     root.mkdir(parents=True)
@@ -56,17 +58,19 @@ def prepare_bundle(root, *, native_executable, plugin_root, broker_config, stati
     require(python.is_file(), "BOOTSTRAP_PLATFORM_UNQUALIFIED")
     config = json.loads(safe(broker_config).read_bytes())
     require(config.get("schema") == "strata/SealedBrokerConfig/1", "BOOTSTRAP_BROKER_CONFIG")
-    files = [Path(native_executable), Path(broker_config), *map(Path, static_files)]
+    files = [Path(native_executable), *companions, Path(broker_config), *map(Path, static_files)]
     if config["worker_grant"] is not None:
         files.append(Path(config["worker_grant"]))
     # Mutable DB/CAS, native session state and credentials are never inventoried/copied.
     inventory = snapshot(files, [root, Path(plugin_root), *map(Path, static_trees)])
-    manifest = {"schema": "strata/NativeBootstrap/1", "policy": "windows-held-files-isolated-imports/1",
+    manifest = {"schema": "strata/NativeBootstrap/2", "policy": "windows-held-files-isolated-imports/1",
+        "native_companions": dict(CODEX_COMPANION_PINS),
         "python": str(python), "python_paths": [str(source), str(dependencies),
             str(root / "python/Lib"), str(root / "python/DLLs"), str(root / "python")],
         "broker_config": str(Path(broker_config)), "native_executable": str(Path(native_executable)),
         "broker_bootstrap": str(source / "mcbench/sealed_broker.py"),
         "process_bootstrap": str(source / "mcbench/process_bootstrap.py"), "inventory": inventory}
+    native_companion_inventory(manifest)
     # Keep the manifest outside the inventoried root to avoid self-reference.
     path = root.with_suffix(".manifest.json")
     require(not path.exists(), "BOOTSTRAP_TARGET_EXISTS")

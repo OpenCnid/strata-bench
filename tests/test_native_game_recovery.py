@@ -170,6 +170,10 @@ def test_recovery_three_accepts_only_the_explicit_sealed_plan(tmp_path, monkeypa
     path = tmp_path / "plan.json"
     path.write_bytes(canonical(plan))
     calls = []
+    # This test isolates plan shape/composition; dependency admission has its own
+    # missing/changed-file tests and actual native/game evidence.
+    monkeypatch.setattr(runner, "file_hash", lambda _path: runner.BINARY_SHA256)
+    monkeypatch.setattr(runner, "native_companion_paths", lambda _path: [])
     monkeypatch.setattr(runner, "run_plan", lambda body, _resources: calls.append(body))
     if change:
         with pytest.raises(Fault, match="M0_PLAN_INVALID"):

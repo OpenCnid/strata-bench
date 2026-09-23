@@ -26,9 +26,9 @@ The [native/game implementation](docs/verification/2026-09-22-native-recovery-ve
 connects actual Dovetail/root/helper/broker execution to a pinned vanilla worker.
 Bounded sealed recovery restores player state and root notes, rejects stale
 access and preserves usage; reusable verification reconstructs both epochs.
-Model replies are scripted. The latest [normal-stop work](docs/verification/2026-09-22-native-normal-stop.md)
-is implemented with a prepared sealed profile; its first attempt failed before
-Java/native startup, and the capture-scope fix still needs authentic execution.
+Model replies are scripted. The [changed normal-stop case](docs/verification/2026-09-22-native-companions.md)
+now passes native completion, worker drain, server stop/capture and independent
+evidence reconstruction. All prior failures remain; full G0 qualification is open.
 
 ## What is implemented
 

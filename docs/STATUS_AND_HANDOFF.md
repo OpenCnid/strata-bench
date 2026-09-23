@@ -5,8 +5,8 @@ not a new design exercise. **M0 is incomplete; G0 fails; G1–G5 are not run.**
 The current task is M0/G0 only. Preserve M1–M7 and their activation conditions.
 
 [Implementation PR #5](https://github.com/OpenCnid/strata-bench/pull/5) is merged at
-`303b43fd2477a44179313915cce4469116cbea16`; this is its separate documentation
-follow-up. Fetch main for the documentation merge before starting new work.
+`303b43fd2477a44179313915cce4469116cbea16`; documentation PR #6 is also merged. The active implementation branch started
+from fetched merged main `f3b009e`.
 
 Start by reading [AGENTS.md](../AGENTS.md), [SPEC.md](../SPEC.md), the current
 position and six-item closure checklist in [MILESTONES.md](../MILESTONES.md),
@@ -16,34 +16,29 @@ actual merged main, inspect the current worktree and original accounting, and
 start a fresh branch from main. Preserve all old branches, changes and private
 evidence. Do not launch Minecraft merely to inspect the checkpoint.
 
-## Immediate deliverable
+## Delivered normal completion
 
-Finish M0.1d.8c's authentic normal completion path. The committed source now
-connects native closure to one operator-owned worker drain, then a normal
-server stop/capture and reusable evidence reconstruction.
+M0.1d.8c and .8c.1 now pass their bounded scripted-provider evidence. Case04
+uses a fresh restoration of the original unplayed world and the same sealed
+worker/template/PackLock. All 29 native checks and independent reconciliation
+pass: seven requests/98 fixture units/one primitive, normal 36.2536-ms worker
+drain, 1,828-ms server stop-to-exit, capture and all 46 owned processes terminal.
+Original accounting/template remain unchanged. Exact seals/report digest are
+in [the current report](verification/2026-09-22-native-companions.md).
 
-The changed runtime and new vanilla PackLock are already prepared and sealed.
-Attempt 01 failed before Java/avatar/native startup because the persistence
-constructor rejected the explicit imported-baseline scope. The source now
-shares scope selection between launch, capture and verifier. The added
-regression exercises imported-world capture; missing server capture has a typed
-M0_CAPTURE_INCOMPLETE failure. There is no post-fix authentic run.
+Retain attempts 01–03: scope rejection, removed pinned executable, then missing
+adjacent tool host after Java/avatar startup. `NativeBootstrap/2` now binds and
+holds all three exact-version companion binaries and rejects missing dependencies
+before game launch. Native-only scripted checks pass 55/55 (11 requests); focused
+source checks pass 117/3 existing privilege skips. Historical version-1 evidence
+gets no retroactive qualification. No live inference occurred.
 
-Revalidate the existing prepared profile/instance through the normal launch
-checks, use a fresh private evidence directory and worker scope, and run one
-changed headless native/vanilla case with scripted replies. Its required outcome
-is native closure, confirmed worker drain, one normal server stop, captured state
-and independent receipt/lifecycle reconciliation. If it fails, retain the case
-and make the smallest fix to the demonstrated cause before another trial.
+Do not rerun this successful bounded case, reuse failed instances as unplayed
+baselines, rebuild unchanged software, or expand stop work. Observed lifecycle
+intervals do not establish authoritative ticks/active time, clean-save custody or
+a complete checkpoint. The next implementation work is the remaining G0 work below.
 
-The prepared instance was independently verified unchanged after attempt 01;
-no game process used it. It can be revalidated for this run without rebuilding
-the installation. The occupied case-01 output and its one-use scripts are
-immutable. Do not reexecute those scripts or use the failed archive as a
-recovery parent. Do not rebuild the unchanged private worker bundle or publish
-another PackLock unless a real runtime/profile change requires it.
-
-## Then close the remaining G0 requirements
+## Immediate remaining G0 requirements
 
 1. Connect a short private server-verified milestone to the existing game/native
    evidence. Finish setup/team/ingress provenance and positive/negative scorer

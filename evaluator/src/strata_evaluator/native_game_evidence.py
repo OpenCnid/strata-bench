@@ -88,7 +88,7 @@ def bootstrap_inventory(bundle):
     original = windows(bundle.json("run/intent.json")["plan"]["output"])
     require(original.is_absolute(), "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     bootstrap = bundle.json("run/native/broker-runtime.manifest.json")
-    require(bootstrap.get("schema") == "strata/NativeBootstrap/1"
+    require(bootstrap.get("schema") in {"strata/NativeBootstrap/1", "strata/NativeBootstrap/2"}
             and bootstrap["inventory"].get("schema") == "strata/LaunchFileInventory/1",
             "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     entries = bootstrap["inventory"]["files"]
@@ -500,10 +500,15 @@ def source_evidence(bundle, native, intent, cap):
     require(bundle.files["run/native/broker-runtime.manifest.json"].sha256 == native.bootstrap_digest,
             "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     bootstrap = bundle.json("run/native/broker-runtime.manifest.json")
-    require(bootstrap.get("schema") == "strata/NativeBootstrap/1", "NATIVE_GAME_BOOTSTRAP_MISMATCH")
+    from mcbench.launch_integrity import native_companion_inventory
+    companion_pins = native_companion_inventory(bootstrap)
     # Map archived Windows paths lexically; never follow them into current installs.
     original = windows(intent["plan"]["output"])
-    external = []
+    expected_external = {windows(native.executable): native.binary_digest}
+    if companion_pins is not None:
+        expected_external.update({windows(native.executable).parent / name: sha
+                                  for name, sha in companion_pins.items()})
+    external = {}
     for entry in bootstrap["inventory"]["files"]:
         old_path = windows(entry["path"])
         if old_path.is_relative_to(original):
@@ -512,10 +517,10 @@ def source_evidence(bundle, native, intent, cap):
             require(actual is not None and actual.sha256 == entry["sha256"] and actual.bytes == entry["bytes"],
                     "NATIVE_GAME_BOOTSTRAP_MISMATCH")
         else:
-            require(old_path == windows(native.executable) and entry["sha256"] == native.binary_digest,
+            require(old_path not in external and expected_external.get(old_path) == entry["sha256"],
                     "NATIVE_GAME_EXTERNAL_PIN")
-            external.append(entry["sha256"])
-    require(external == [native.binary_digest], "NATIVE_GAME_EXTERNAL_PIN")
+            external[old_path] = entry["sha256"]
+    require(external == expected_external, "NATIVE_GAME_EXTERNAL_PIN")
     lock = bundle.files.get("source/backends/mineflayer/package-lock.json")
     schema_names = ("ActionBatch", "ActionAck", "Observation", "RpcRequest")
     schemas = {name: bundle.files.get(f"source/schemas/v1/public/{name}.json") for name in schema_names}
@@ -532,6 +537,8 @@ def source_evidence(bundle, native, intent, cap):
             "worker_schema_digest": cap["schema_digest"], "pack_lock_qualified": False,
             "dependency_lock_and_schema_bytes_verified": dependency_bytes_verified,
             "external_executable_archived": False,
+            **({"native_companions": companion_pins, "external_companion_bytes_archived": False}
+               if companion_pins is not None else {}),
             "worker_runtime": worker_runtime_evidence(bundle, intent, cap)}
 
 

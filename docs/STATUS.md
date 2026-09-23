@@ -8,21 +8,19 @@ Use the [current handoff](STATUS_AND_HANDOFF.md) to resume and the
 [checkpoint report](verification/2026-09-22-session-handoff.md) for exact pins,
 merge checks and private paths.
 
-[Implementation PR #5](https://github.com/OpenCnid/strata-bench/pull/5) is merged.
-The native/game verifier and bounded sealed vanilla execution/recovery work
-with scripted replies. The controlled-worker successor and imported baseline
-are prepared. Its first attempt failed before Java/native startup; the
-capture-scope fix and regression are committed, but a post-fix authentic
-normal-stop run remains pending. No game trial remains active at this checkpoint.
+The implementation and documentation checkpoint PRs are merged. The active
+branch resumes from `f3b009e` with the requested M0/G0-only long-horizon goal.
+Reusable native/game evidence and sealed vanilla recovery remain verified only
+in their documented scripted-provider scopes.
 
 ## Next working result
 
-Revalidate the prepared profile/instance and execute one changed headless
-native/vanilla case with fresh output and scope. Verify native completion,
-one bounded worker drain, normal server stop/capture and independent evidence
-reconstruction. Preserve failed attempt 01. The existing instance was verified
-unchanged and unused by a game process; installation/runtime preparation need
-not be repeated. See [the stop report](verification/2026-09-22-native-normal-stop.md).
+M0.1d.8c and its complete-native-dependency child are verified in their bounded
+scripted-provider scope. Case04 passes all 29 native/game checks and independent
+reconstruction: seven requests, 98 fixture units, one primitive, normal worker
+and server stop, captured state and all 46 owned processes terminal. Retained
+attempts 01–03 remain failures. [Evidence](verification/2026-09-22-native-companions.md).
+Do not repeat or expand the successful normal-stop case without a new gap.
 
 Then finish the connected private scorer/setup, enforced isolation,
 authoritative clock/save/recovery and exact E9E qualification gaps below.
@@ -35,7 +33,7 @@ Do not restart the completed verifier/accounting matrix or expand M1–M7.
 | 1. Native host, bounded action, isolated helper | Actual Dovetail/root/helper/broker and real vanilla action with scripted replies; bounded recovery retains root state and costs | Authentic model/native delivery and complete gameplay/helper isolation; general admission blocked |
 | 2. Authentic locked installations | Official vanilla/E9E boots; vanilla inventory/runtime and original plus controlled-worker PackLocks sealed | Full qualified profiles, E9E role/config provenance and seal; retain five effective-file failures and Mineflayer incompatibility |
 | 3. Ordinary and expert mechanics | Selected vanilla mine/walk/inventory/craft/container and separate Forge modded block, processing/collection and expert furnace witnesses | Joined profile/reference qualification under the other required rows; no Mineflayer/E9E pass |
-| 4. Bound/cancel, stop, reconnect without duplicate mutation | Selected vanilla/Forge cancellation and bounded sealed recovery; D13 sample passes 568.994/1,000 ms | Changed normal-stop integration, remaining applicable fault cases, full containment and canonical recovery |
+| 4. Bound/cancel, stop, reconnect without duplicate mutation | Selected vanilla/Forge cancellation and bounded sealed recovery; D13 sample passes 568.994/1,000 ms | Remaining applicable fault cases, full containment and canonical recovery |
 | 5. Private server-verified milestone | Private signed telemetry/resource witnesses and partial setup/history controls | Authentic score provenance, setup/team/ingress authority, full positive/negative controls and enforced nonleakage |
 | 6. Complete costs, time and evidence | Single-run and two-epoch reconstruction; sealed pair preserves 13 scripted calls/182 fixture units/two primitives | Complete qualified root/helper/model costs, authoritative active time/ticks, save/custody and profile joins |
 

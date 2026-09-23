@@ -53,6 +53,16 @@ def write(path, body):
         os.fsync(stream.fileno())
 
 
+def finish_native_worker(worker, config, output, wait, operator_stop, checks, result):
+    """A completed negative gameplay result still receives the normal stop path."""
+    if operator_stop:
+        result["worker_stop"] = stop_owned_worker(worker, config, output, wait)
+    else:
+        wait(lambda: worker.poll() is not None, config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
+    require(worker.poll() == 0, "WORKER_EXIT_FAILED")
+    require(all(checks.values()), "NATIVE_GAME_CHECK_FAILED")
+
+
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
@@ -368,12 +378,8 @@ def run_plan(plan, resources, runtime=None):
             result["fixture_model_costs"] = native_result["budget"]
         if retention and not pilot:
             result["native_retention"] = native_result["retention"]
-        require(all(native_result["checks"].values()), "NATIVE_GAME_CHECK_FAILED")
-        if runtime and runtime.operator_stop:
-            result["worker_stop"] = stop_owned_worker(worker, worker_config, output, wait)
-        else:
-            wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
-        require(worker.poll() == 0, "WORKER_EXIT_FAILED")
+        finish_native_worker(worker, worker_config, output, wait,
+                             runtime is not None and runtime.operator_stop, native_result["checks"], result)
         result["status"] = "pass"
     except BaseException as error:
         result["error"] = error.code if isinstance(error, Fault) else type(error).__name__

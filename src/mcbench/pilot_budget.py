@@ -1,7 +1,8 @@
 """Distinct one-run decisions, retaining all original costs and holds.
 
-D18 is a prepared proposal, not authorization. An explicit operator decision
-with user_authorized=true remains required before install or any dispatch.
+D18 carries continuing user approval within the original allowance. Each run
+still requires its own bounded durable admission; consumed jobs cannot rearm.
+The D18 entry below records the first approved run, m0-pilot-03.
 """
 
 import json

@@ -63,8 +63,9 @@ def wait(predicate, seconds, code):
         time.sleep(.02)
 
 
-@pytest.mark.parametrize("hang", [False, True])
-def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang):
+@pytest.mark.parametrize("hang,negative_gameplay", [(False, False), (True, False), (False, True), (True, True)])
+def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang, negative_gameplay):
+    from m0_native_game import finish_native_worker
     node = Path(shutil.which("node") or "C:/Program Files/nodejs/node.exe").resolve()
     assert node.is_file(), "pinned Node required for owned-process test"
     root = Path(__file__).resolve().parents[1]
@@ -94,13 +95,22 @@ def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_fai
         wait(lambda: (tmp_path / "ready").exists() or process.poll() is not None, 5, "FIXTURE_START")
         assert process.poll() is None
         config = SCOPE | {"state_directory": str(state)}
+        result = {}
+        def finish():
+            finish_native_worker(process, config, tmp_path, wait, True,
+                                 {"model_selected_movement": not negative_gameplay}, result)
         if hang:
             with pytest.raises(Fault, match="WORKER_STOP_PROCESS"):
-                stop_owned_worker(process, config, tmp_path, wait)
+                finish()
             failure = json.loads((state / "supervisor-stop-2.json").read_bytes())
             assert failure["forced"] and failure["status"] == "fail" and process.poll() != 0
         else:
-            report = stop_owned_worker(process, config, tmp_path, wait)
+            if negative_gameplay:
+                with pytest.raises(Fault, match="NATIVE_GAME_CHECK_FAILED"):
+                    finish()
+            else:
+                finish()
+            report = result["worker_stop"]
             assert report["receipt"]["status"] == "pass" and report["owner_elapsed_ms"] < 5000
             assert report["owned_processes"]["active_processes"] == 0 and process.poll() == 0
         before = (tmp_path / "worker-stop-intent.json").read_bytes()

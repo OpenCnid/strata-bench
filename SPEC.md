@@ -1,8 +1,12 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**Current D18 result:** provider delivery and Mineflayer observations worked; live-model action conformance remains unverified. A negative gameplay result skipped normal worker shutdown and caused forced worker cleanup. The source correction retains normal shutdown before reporting that negative result; 123 focused Python cases pass, including real owned Node child shutdown/hang cases. Next clarify observation paging and prepare a fresh bounded pilot under existing D18 approval; no permission is pending. M0 stays in_progress, G0 fail. [Evidence and next action](docs/verification/2026-09-23-d18-pilot.md).
+
+**D18 — continuing execution approval (2026-09-23):** the user stated, “I approve all runs and authorize the spend.” This authorizes necessary M0/G0 implementation and validation runs within the original $10 total API-equivalent allowance; no further per-run user confirmation is required within that scope. It creates no new allowance and does not release the old $0.7554 unknown hold or permit blind replay. Every run remains bounded and individually accounted; any new unknown usage stops further admission. The first run, m0-pilot-03, has finished: six settled GPT-6 Luna requests cost $0.004677; capabilities and observation reached Mineflayer, but the model selected no actions. Combined exposure is $0.778471 including the unchanged hold. The used job cannot replay; continuing approval remains active. M1–M7 and shared-desktop input remain outside scope.
+
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.138, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-23 (D17 requested GPT-6 Luna selection). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.139, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-23 (D18 continuing M0/G0 execution approval). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 

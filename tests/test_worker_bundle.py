@@ -41,7 +41,26 @@ def inputs(tmp_path):
 def prepare(inputs, **updates):
     repository, node, python, destination, report = inputs
     return prepare_worker_bundle(repository, node, python, updates.get("destination", destination),
-        updates.get("report", report), updates.get("ref", "cas:sha256:" + digest(report)))
+        updates.get("report", report), updates.get("ref", "cas:sha256:" + digest(report)),
+        operator_stop=updates.get("operator_stop", False))
+
+
+def test_operator_control_is_explicitly_versioned_and_only_on_actual_worker_command(inputs):
+    from mcbench.worker_bundle import HeldWorkerBundle
+    from mcbench.worker_stop import ARGUMENT, POLICY
+    (inputs[0] / "backends/mineflayer/dist/src/worker_control.js").write_bytes(b"synthetic control module")
+    result = prepare(inputs, operator_stop=True)
+    with HeldWorkerBundle({"path": result["manifest"], "sha256": result["sha256"]}) as held:
+        assert held.operator_stop and held.body["schema"] == "strata/WorkerRuntimeBundle/2"
+        assert held.body["operator_stop_policy"] == POLICY
+        assert held.command("fixture-config.json")[-1] == ARGUMENT
+        assert held.command("--check-vanilla-runtime")[-1] == "--check-vanilla-runtime"
+
+
+def test_operator_control_cannot_be_claimed_when_the_module_is_missing(inputs):
+    with pytest.raises(Fault, match="WORKER_BUNDLE_INCOMPLETE"):
+        prepare(inputs, operator_stop=True)
+    assert not inputs[3].exists()
 
 
 def test_only_software_is_copied_and_every_output_is_pinned(inputs):

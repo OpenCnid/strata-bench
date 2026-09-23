@@ -96,6 +96,17 @@ def main(argv=None):
         (evidence / "pack-launch.json").write_text(json.dumps(binding, indent=2), encoding="utf-8")
     require(shutil.disk_usage(root).free >= 5 * 1024**3, "DISK_RESERVE_LOW")
     started = time.monotonic()
+    lifecycle = []
+
+    def stamp(kind, **detail):
+        value = {"seq": len(lifecycle) + 1, "kind": kind, "mono_ns": time.monotonic_ns(),
+                 "unix": time.time(), **detail}
+        with (evidence / "lifecycle.jsonl").open("ab" if lifecycle else "xb") as stream:
+            stream.write((json.dumps(value, sort_keys=True) + "\n").encode())
+            stream.flush()
+            os.fsync(stream.fileno())
+        lifecycle.append(value)
+
     ready = threading.Event()
     overflow = threading.Event()
     reader_failed = threading.Event()
@@ -103,6 +114,7 @@ def main(argv=None):
     persistence = (VanillaPersistence(root, pack=pack if sealed else None,
                                      resolved=binding if sealed else None) if capture else None)
     try:
+        stamp("spawn_requested")
         # Bypass the venv executable redirector for this explicitly tracked
         # profile: the base bootstrap waits for Job assignment before children.
         proc = ManagedProcess([str(exe), *launch.arguments], root, launch.environment, "",
@@ -138,6 +150,7 @@ def main(argv=None):
             reader_failed.set()
 
     try:
+        stamp("spawned")
         for source, name in ((proc.process.stdout, "stdout.log"), (proc.process.stderr, "stderr.log")):
             thread = threading.Thread(target=copy, args=(source, name), daemon=True)
             thread.start()
@@ -149,6 +162,7 @@ def main(argv=None):
             now = time.monotonic()
             if ready.is_set() and not result["ready"]:
                 result["ready"] = True
+                stamp("ready")
                 (evidence / "ready.json").write_text(json.dumps({"plan_digest": digest(plan),
                     "ready_unix": time.time(), "campaign_admission": False}), encoding="utf-8")
                 print(json.dumps({"status": "server_ready", "evidence": str(evidence),
@@ -164,7 +178,9 @@ def main(argv=None):
             if should_stop and stopping is None:
                 result["stop_sent"] = True
                 stopping = now
+                stamp("stop_command_attempted", trigger="operator_file" if stop_file.exists() else "wall_deadline")
                 proc.send_input("stop\n")
+                stamp("stop_command_written")
                 print(json.dumps({"status": "server_stop_requested"}), flush=True)
             if stopping is not None and now - stopping >= 120:
                 result["forced_stop"] = True
@@ -172,6 +188,7 @@ def main(argv=None):
                 break
             time.sleep(0.1)
         result["exit_code"] = proc.process.wait(timeout=2)
+        stamp("process_exited")
     except (OSError, Fault, IntegrityError) as error:
         result["error"] = error.code if isinstance(error, Fault) else (
             str(error) if isinstance(error, IntegrityError) else "SERVER_PROCESS_UNAVAILABLE")
@@ -197,8 +214,10 @@ def main(argv=None):
                 result["status"] = "stopped_unqualified"
                 if persistence:
                     capture_started = time.monotonic()
+                    stamp("snapshot_started")
                     result["stopped_snapshot"] = persistence.capture(evidence / "stopped-instance", proc,
                                                                      plan_digest=digest(plan))
+                    stamp("snapshot_captured")
                     result["snapshot_elapsed_s"] = time.monotonic() - capture_started
         except (OSError, Fault, IntegrityError) as error:
             result["status"] = "fail"
@@ -210,6 +229,8 @@ def main(argv=None):
             proc.close()
         if capture:
             result["total_elapsed_s"] = time.monotonic() - started
+        result["lifecycle"] = {"schema": "strata/ServerLifecycle/1", "clock": "python-monotonic-ns/same-host-boot",
+                               "events": lifecycle, "authoritative_ticks": False, "clean_save_proven": False}
         (evidence / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(json.dumps({"status": "server_stopped", **result}), flush=True)
     return 0 if result["status"] == "stopped_unqualified" else 1

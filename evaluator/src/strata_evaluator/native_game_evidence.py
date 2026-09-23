@@ -441,11 +441,16 @@ def worker_runtime_evidence(bundle, intent, cap):
     require(hashlib.sha256(raw).hexdigest() == reference["sha256"], "NATIVE_GAME_WORKER_MANIFEST")
     body = strict_json(raw)
     root = windows(body["root"])
-    require(root.is_absolute() and body["schema"] == "strata/WorkerRuntimeBundle/1"
-            and body["profile"] == "vanilla1192-private-worker/1"
+    controlled = body["schema"] == "strata/WorkerRuntimeBundle/2"
+    from mcbench.worker_stop import ARGUMENT, POLICY as STOP_POLICY
+    require(root.is_absolute() and body["schema"] == ("strata/WorkerRuntimeBundle/2" if controlled else "strata/WorkerRuntimeBundle/1")
+            and body["profile"] == ("vanilla1192-private-worker/2" if controlled else "vanilla1192-private-worker/1")
+            and (body.get("operator_stop_policy") == STOP_POLICY if controlled else "operator_stop_policy" not in body)
             and body["python_arguments"] == ["-I", "-S", "-B"], "NATIVE_GAME_WORKER_PROFILE")
     files = {windows(e["path"]).relative_to(root).as_posix(): e for e in body["inventory"]["files"]}
     require(len(files) == len(body["inventory"]["files"]) and 0 < len(files) < 12000,
+            "NATIVE_GAME_WORKER_MANIFEST")
+    require(not controlled or "backends/mineflayer/dist/src/worker_control.js" in files,
             "NATIVE_GAME_WORKER_MANIFEST")
     from mcbench.worker_bundle import WORKER_PATHS
     require(all(windows(body[key]) == root / name and name in files for key, name in WORKER_PATHS.items()),
@@ -466,10 +471,18 @@ def worker_runtime_evidence(bundle, intent, cap):
                             for name in ("worker-preflight", "worker-driver", "server-driver")},
         "held_through_owned_stop": True, "root": body["root"],
         "preflight_argv": [body["node"], body["worker"], "--check-vanilla-runtime"],
-        "worker_argv": [body["node"], body["worker"], str(windows(plan["output"]) / "worker-config.json")]}
+        "worker_argv": [body["node"], body["worker"], str(windows(plan["output"]) / "worker-config.json"),
+                        *([ARGUMENT] if controlled else [])]}
     require(result.get("worker_runtime") == expected and "worker_runtime_error" not in result,
             "NATIVE_GAME_WORKER_CUSTODY")
+    if controlled:
+        from .native_game_stop import inspect_worker_stop
+        inspect_worker_stop(bundle, result)
+    else:
+        require("worker_stop" not in result and "run/worker-stop-intent.json" not in bundle.files,
+                "NATIVE_GAME_WORKER_STOP_PROFILE")
     return {"pinned": True, "manifest_sha256": reference["sha256"], "files": len(files),
+            **({"operator_stop_policy": STOP_POLICY, "normal_worker_stop_reconciled": True} if controlled else {}),
             "held_through_owned_stop": True, "isolation_qualified": False, "external_runtime_bytes_archived": False}
 
 
@@ -614,7 +627,7 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *,
         expected = getattr(profile, role).model_dump()
         expected["working_directory"] = str(windows(binding["instance"]) / role)
         if role == "client":
-            expected["arguments"] = [expected["arguments"][0], str(windows(plan["output"]) / "worker-config.json")]
+            expected["arguments"][1] = str(windows(plan["output"]) / "worker-config.json")
         require(value["launch"] == expected, "NATIVE_GAME_PACK_COMMAND")
     settings = profile.worker_settings.model_dump()
     settings["auth_cache"] = str(windows(settings["auth_cache"]))
@@ -735,6 +748,12 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
     require(ended - started <= result["elapsed_s"] and server["elapsed_s"] <= result["elapsed_s"]
             and intent["started_unix"] <= server["started_unix"] <= started <= ended
             <= server["started_unix"] + server["elapsed_s"] + .25, "NATIVE_GAME_CLOCK_INVALID")
+    if "worker_stop" in result:
+        from .native_game_stop import inspect_normal_boundary
+        stop["normal_boundary"] = inspect_normal_boundary(bundle, result, server)
+        requested = result["worker_stop"]["intent"]["requested_unix"]
+        require(ended <= requested and requested + result["worker_stop"]["owner_elapsed_ms"] / 1000
+                <= server["started_unix"] + server["elapsed_s"] + .25, "NATIVE_GAME_WORKER_STOP_CLOCK")
     # Cross-check old summaries, but all totals above came from independent inputs.
     expected = result.get("fixture_model_costs", {}).get("committed_and_reserved", {})
     totals = model["cumulative_totals"] if previous else model["totals"]

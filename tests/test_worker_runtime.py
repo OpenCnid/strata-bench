@@ -9,7 +9,10 @@ from mcbench.storage import Fault, canonical
 from mcbench.worker_bundle import HeldWorkerBundle
 import test_worker_bundle as bundle_tests
 
+import test_worker_stop as stop_tests
+
 inputs = bundle_tests.inputs
+stop_archive = stop_tests.archive
 
 
 @pytest.fixture
@@ -163,12 +166,9 @@ def test_pinned_runner_rejects_node_override_before_any_launch(prepared, tmp_pat
         runner.private(str(safe(runner.ROOT / "private.json")))
 
 
-@pytest.mark.parametrize("change", [None, "manifest", "capability", "stop", "argv", "legacy", "count"])
-def test_archived_runtime_receipt_is_bound_to_manifest_capability_and_stop(prepared, change):
+def runtime_archive(prepared):
     from pathlib import Path, PureWindowsPath
-    from types import SimpleNamespace
     from mcbench.storage import digest
-    from strata_evaluator.native_game_evidence import worker_runtime_evidence
 
     raw = Path(prepared["path"]).read_bytes()
     body = json.loads(raw)
@@ -189,6 +189,14 @@ def test_archived_runtime_receipt_is_bound_to_manifest_capability_and_stop(prepa
         "dependency_lock_digest": entries["backends/mineflayer/package-lock.json"]["sha256"]}
     intent = {"plan": {"schema": "strata/M0NativeGameSmoke/3", "worker_runtime": dict(prepared),
                        "output": r"C:\private\run"}}
+    return raw, receipt, cap, intent
+
+
+@pytest.mark.parametrize("change", [None, "manifest", "capability", "stop", "argv", "legacy", "count"])
+def test_archived_runtime_receipt_is_bound_to_manifest_capability_and_stop(prepared, change):
+    from types import SimpleNamespace
+    from strata_evaluator.native_game_evidence import worker_runtime_evidence
+    raw, receipt, cap, intent = runtime_archive(prepared)
     if change == "manifest":
         intent["plan"]["worker_runtime"]["sha256"] = "a" * 64
     elif change == "capability":
@@ -210,3 +218,42 @@ def test_archived_runtime_receipt_is_bound_to_manifest_capability_and_stop(prepa
         result = worker_runtime_evidence(bundle, intent, cap)
         assert result["pinned"] and result["held_through_owned_stop"]
         assert not result["external_runtime_bytes_archived"] and not result["isolation_qualified"]
+
+
+@pytest.mark.parametrize("change", [None, "no-intent", "policy", "downgrade", "argument", "stop-reference", "module"])
+def test_controlled_runtime_requires_its_pinned_policy_command_and_stop_evidence(inputs, stop_archive, change):
+    import hashlib
+    from types import SimpleNamespace
+    from strata_evaluator.native_game_evidence import worker_runtime_evidence
+    (inputs[0] / "backends/mineflayer/dist/src/worker_control.js").write_bytes(b"synthetic operator control")
+    prepared = bundle_tests.prepare(inputs, operator_stop=True)
+    raw, runtime, cap, intent = runtime_archive({"path": prepared["manifest"], "sha256": prepared["sha256"]})
+    _, values, result = stop_archive
+    result["worker_runtime"] = runtime
+    if change == "no-intent":
+        del values["run/worker-stop-intent.json"]
+    elif change in {"policy", "downgrade", "module"}:
+        body = json.loads(raw)
+        if change == "policy":
+            body["operator_stop_policy"] = "unreviewed"
+        elif change == "downgrade":
+            body["schema"] = "strata/WorkerRuntimeBundle/1"
+        else:
+            body["inventory"]["files"] = [e for e in body["inventory"]["files"]
+                                          if not e["path"].endswith("worker_control.js")]
+        raw = canonical(body)
+        intent["plan"]["worker_runtime"]["sha256"] = hashlib.sha256(raw).hexdigest()
+    elif change == "argument":
+        runtime["worker_argv"].pop()
+    elif change == "stop-reference":
+        result["worker_stop"]["receipt"] = deepcopy(result["worker_stop"]["receipt"])
+        result["worker_stop"]["receipt"]["request"]["request_id"] = "different"
+    values["run/result.json"] = result
+    bundle = SimpleNamespace(json=lambda name: deepcopy(values[name]),
+        read=lambda *_, **__: raw, files={"run/worker-runtime.json": True, **{name: True for name in values}})
+    if change:
+        with pytest.raises((Fault, KeyError), match="NATIVE_GAME_WORKER_MANIFEST" if change == "module" else None):
+            worker_runtime_evidence(bundle, intent, cap)
+    else:
+        result = worker_runtime_evidence(bundle, intent, cap)
+        assert result["normal_worker_stop_reconciled"] and not result["isolation_qualified"]

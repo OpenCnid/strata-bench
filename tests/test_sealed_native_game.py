@@ -56,6 +56,13 @@ def test_retained_pack_binds_both_commands_configuration_and_owned_exit(archive)
     assert not result["full_game_conformance_qualified"]
 
 
+@pytest.mark.parametrize("candidate", [True], indirect=True)
+def test_sealed_join_preserves_operator_control_argument_from_the_exact_profile(archive):
+    bodies = archive[0]
+    assert bodies["run/pack-worker-launch.json"]["launch"]["arguments"][-1] == "--operator-stop"
+    assert inspect(archive)["both_roles_bound"]
+
+
 @pytest.mark.parametrize("change", ["lock", "inventory", "command", "environment", "settings", "state", "receipt", "forced-child", "server-join", "schema"])
 def test_changed_pack_commands_settings_or_stop_proof_do_not_reconcile(archive, change):
     bodies, intent, result, config, server_plan, server_result = archive

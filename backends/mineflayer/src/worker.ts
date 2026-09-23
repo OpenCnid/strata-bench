@@ -1,6 +1,6 @@
 import { fork, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { statfsSync, writeFileSync } from 'node:fs';
+import { closeSync, fsyncSync, openSync, statfsSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { workerConfig, type WorkerConfig } from './worker_config.js';
@@ -11,6 +11,7 @@ import { digest, errorBody, Fault, requireThat } from './protocol.js';
 import { serve } from './server.js';
 import { ForgeProcessGuard, SupervisorEvidence, type ForgeGuardReady } from './forge_guard.js';
 import { WorkerStartup, WORKER_STARTUP_MS, WORKER_STARTUP_POLICY } from './worker_startup.js';
+import { OPERATOR_STOP_ARGUMENT, WorkerControl } from './worker_control.js';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
@@ -72,8 +73,10 @@ async function main(): Promise<void> {
     console.log(JSON.stringify({status:'vanilla_runtime_loaded',capability_digest:capabilityDigest,
       avatar_created:false,campaign_admission:false}));return;
   }
-  requireThat(process.argv.length === 3, 'SCHEMA_UNSUPPORTED');
+  const operatorControl=process.argv.length===4 && process.argv[3]===OPERATOR_STOP_ARGUMENT;
+  requireThat(process.argv.length === 3 || operatorControl, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
+  requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1','CAPABILITY_MISSING');
   const fs = statfsSync(c.state_directory);
   requireThat(fs.bavail * fs.bsize >= 5 * 1024**3, 'DISK_RESERVE_LOW');
   const token = randomBytes(32).toString('hex');
@@ -91,6 +94,7 @@ async function main(): Promise<void> {
   let forcedKill: NodeJS.Timeout | undefined;
   let connectionReported = false;
   let fenceReported = false;
+  let control:WorkerControl|undefined;
   const stop = () => {
     if (!stopping) {stopping=true; if (worker?.connected) worker.send('stop',() => {});}
     rejectBoot?.(new Fault('WORKER_STOPPED'));
@@ -122,12 +126,16 @@ async function main(): Promise<void> {
       rejectBoot?.(new Fault('WORKER_PROCESS_FAILED'));resolveExit(code ?? 1);
     }));
     executorExit=ended;
+    if(operatorControl)control=new WorkerControl(process.stdin,
+      {campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id},()=>{
+        requireThat(lifecycle.phase==='active' && !stopping && !forced,'WORKER_OPERATOR_NOT_ACTIVE');stop();
+      },fail);
     worker.once('error',() => fail('WORKER_PROCESS_FAILED'));
     evidence?.event('worker_started',{pid:worker.pid,epoch:c.epoch});
     health = setInterval(() => {
       if (!stopping && performance.now()-started >= c.max_wall_ms) stop();
       const failure=lifecycle.failure();
-      if (failure || performance.now()-started >= c.max_wall_ms+2250) {
+      if (failure || control?.expired() || performance.now()-started >= c.max_wall_ms+2250) {
         fail(failure ?? 'WORKER_DRAIN_TIMEOUT');activeWorker.kill('SIGKILL');
       }
     },50);
@@ -176,7 +184,14 @@ async function main(): Promise<void> {
     worker.send({config:c,token,guard:binding},error => {if (error) fail('WORKER_PROCESS_FAILED');});
     const code = await ended;
     process.exitCode = code === 0 && !forced ? 0 : 1;
+    if(control){
+      const receipt=control.receipt(code,forced);
+      if(receipt.status==='fail')process.exitCode=1;
+      const fd=openSync(resolve(c.state_directory,`supervisor-stop-${c.epoch}.json`),'wx',0o600);
+      try {writeFileSync(fd,JSON.stringify(receipt)+'\n');fsyncSync(fd);} finally {closeSync(fd);}
+    }
   } finally {
+    control?.close();
     clearInterval(health); clearInterval(lease); clearTimeout(forcedKill);
     process.removeListener('SIGINT',stop); process.removeListener('SIGTERM',stop);
     if (worker && worker.exitCode === null && worker.signalCode === null) worker.kill('SIGKILL');

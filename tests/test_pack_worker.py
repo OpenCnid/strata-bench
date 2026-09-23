@@ -28,7 +28,7 @@ PROPERTIES = ("server-ip=127.0.0.1\nserver-port=25565\nonline-mode=true\nenable-
 
 
 @pytest.fixture
-def candidate(inputs, tmp_path):
+def candidate(inputs, tmp_path, request):
     db = Database(tmp_path / "store/controller.sqlite")
     service, receipt, roles, old, evidence = prepare_fixture(db, CAS(db, tmp_path / "store/objects"),
                                                            tmp_path, simulation=False)
@@ -44,7 +44,10 @@ def candidate(inputs, tmp_path):
     roles[1].files = [FileEntry.model_validate(item | {"role": "server", "origin": "fixture",
         "project_id": None, "file_id": None, "license_ref": "fixture", "layer": "resolved"})
         for item in scan_tree(server)]
-    bundle = bundle_tests.prepare(inputs)
+    controlled = getattr(request, "param", False)
+    if controlled:
+        (inputs[0] / "backends/mineflayer/dist/src/worker_control.js").write_bytes(b"synthetic control module")
+    bundle = bundle_tests.prepare(inputs, operator_stop=controlled)
     body = json.loads(Path(bundle["manifest"]).read_bytes())
     cache = tmp_path / "private-cache"
     cache.mkdir()
@@ -56,7 +59,7 @@ def candidate(inputs, tmp_path):
         "update_policy": "sealed-local-bytes/no-installer/1",
         "client": old.client.model_dump() | {"executable_path": body["node"],
             "executable": {"version": "synthetic-node", "digest": file_hash(Path(body["node"]))},
-            "arguments": [body["worker"], WORKER_CONFIG_ARGUMENT]}})
+            "arguments": [body["worker"], WORKER_CONFIG_ARGUMENT, *(["--operator-stop"] if controlled else [])]}})
     imported = service.import_acquisition_receipt(receipt)
     inventory = service.verify_inventory("pack1", roles)
     yield service, profile, evidence, imported, inventory
@@ -185,15 +188,16 @@ def fake_process_factory(calls, *, exit_code=0, server_ready=True, server_fatal=
                     raise KeyboardInterrupt("synthetic operator interruption")
                 raise OSError("synthetic worker construction failure")
             self.argv, self.closed = argv, False
-            self.code = None if interactive else exit_code
+            server = interactive and "--operator-stop" not in argv
+            self.code = None if server else exit_code
             output = (b'[00:00:00] [Server thread/INFO]: Done (1.0s)! For help, type "help"\n'
-                      if interactive and server_ready else b"synthetic output\n")
+                      if server and server_ready else b"synthetic output\n")
             error = (b"[00:00:00] [Server thread/ERROR]: Exception in server tick loop\n"
-                     if interactive and server_fatal else b"")
+                     if server and server_fatal else b"")
             self.process = SimpleNamespace(stdout=io.BytesIO(output), stderr=io.BytesIO(error))
             self.job = SimpleNamespace(accounting=lambda: {"active_processes": int(self.code is None), "total_processes": 1,
                                                            "terminated_processes": 0})
-            if interactive:
+            if server:
                 # This would break the previous full command's second fresh
                 # materialization check after server startup.
                 (Path(cwd) / "world").mkdir()
@@ -243,6 +247,24 @@ def test_held_configuration_and_runtime_outlive_owned_cleanup(pack, monkeypatch,
         assert fail
     assert len(calls) == 2 and all(item[0].closed for item in calls)
     Path(invocation["configuration_path"]).write_text("released after owned close")
+
+
+@pytest.mark.parametrize("candidate", [True], indirect=True)
+def test_controlled_profile_opens_operator_pipe_only_for_the_worker(pack, monkeypatch):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+    calls = []
+    def process(argv, *args, **options):
+        calls.append((argv, options))
+        return SimpleNamespace(poll=lambda: 0, close=lambda: None,
+            job=SimpleNamespace(accounting=lambda: {"active_processes": 0, "terminated_processes": 0}))
+    monkeypatch.setattr(module, "ManagedProcess", process)
+    with HeldPackWorker(binding, invocation) as worker:
+        worker.start(preflight=True)
+        worker.start()
+        assert calls[0][0][-1] == "--check-vanilla-runtime" and calls[0][1]["interactive"] is False
+        assert calls[1][0][-1] == "--operator-stop" and calls[1][1]["interactive"] is True
+        assert worker.resolved["launch"]["arguments"][-1] == "--operator-stop"
 
 
 @pytest.mark.parametrize("exit_code,import_only", [(0, True), (1, True), (0, False)])

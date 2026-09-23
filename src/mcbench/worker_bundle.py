@@ -13,6 +13,7 @@ import shutil
 
 from .launch_integrity import FileLease, encode, safe, snapshot, tree_files
 from .storage import digest, require, safe_relative
+from .worker_stop import ARGUMENT, POLICY as STOP_POLICY
 
 MANIFEST_LIMIT = 16 * 1024**2
 WORKER_PATHS = {"node": "node/node.exe", "worker": "backends/mineflayer/dist/src/worker.js",
@@ -39,12 +40,14 @@ class HeldWorkerBundle:
         require(len(self.raw) <= MANIFEST_LIMIT, "WORKER_BUNDLE_MANIFEST")
         require(hashlib.sha256(self.raw).hexdigest() == reference["sha256"], "WORKER_BUNDLE_CHANGED")
         self.body = body = json.loads(self.raw)
+        self.operator_stop = body.get("schema") == "strata/WorkerRuntimeBundle/2"
         require(set(body) == {"schema", "profile", "root", "node", "worker", "python", "acl_helper",
                     "python_arguments", "dependency_evidence", "source_inventory", "inventory", "excluded_python_files",
                     "exclusion_policy", "auth_cache_copied", "game_state_copied", "campaign_admission",
-                    "runtime_qualified", "isolation_qualified"}
-                and body.get("schema") == "strata/WorkerRuntimeBundle/1"
-                and body.get("profile") == "vanilla1192-private-worker/1"
+                    "runtime_qualified", "isolation_qualified"} | ({"operator_stop_policy"} if self.operator_stop else set())
+                and body.get("schema") == ("strata/WorkerRuntimeBundle/2" if self.operator_stop else "strata/WorkerRuntimeBundle/1")
+                and body.get("profile") == ("vanilla1192-private-worker/2" if self.operator_stop else "vanilla1192-private-worker/1")
+                and (not self.operator_stop or body.get("operator_stop_policy") == STOP_POLICY)
                 and body.get("python_arguments") == ["-I", "-S", "-B"]
                 and body.get("exclusion_policy") == "no-bytecode-or-site-packages/1"
                 and all(body.get(k) is False for k in ("auth_cache_copied", "game_state_copied",
@@ -74,6 +77,8 @@ class HeldWorkerBundle:
                 and inventory["trees"] == [{"path": str(self.root), "files": sorted(paths)}]
                 and all(str(self.root / name) in paths for name in WORKER_PATHS.values()),
                 "WORKER_BUNDLE_INVENTORY")
+        require(not self.operator_stop or str(self.root / "backends/mineflayer/dist/src/worker_control.js") in paths,
+                "WORKER_BUNDLE_INCOMPLETE")
         self.reference = {"path": launch_path(self.path), "sha256": reference["sha256"]}
         self.inventory = inventory
         self.lease = None
@@ -90,7 +95,8 @@ class HeldWorkerBundle:
 
     def command(self, argument):
         self.recheck()
-        return [self.body["node"], self.body["worker"], str(argument)]
+        return [self.body["node"], self.body["worker"], str(argument),
+                *([ARGUMENT] if self.operator_stop and str(argument) != "--check-vanilla-runtime" else [])]
 
     def receipt(self):
         self.recheck()
@@ -117,7 +123,8 @@ def launch_path(path: Path) -> str:
 
 
 def prepare_worker_bundle(repository: Path, node: Path, python_root: Path, destination: Path,
-                          dependency_report: dict, dependency_ref: str):
+                          dependency_report: dict, dependency_ref: str, *, operator_stop=False):
+    require(type(operator_stop) is bool, "WORKER_BUNDLE_PROFILE")
     require(all(".." not in Path(p).parts for p in (repository, node, python_root, destination)),
             "WORKER_BUNDLE_PATH")
     repository, node, python_root, destination = map(safe, (repository, node, python_root, destination))
@@ -173,6 +180,8 @@ def prepare_worker_bundle(repository: Path, node: Path, python_root: Path, desti
             ".venv/Scripts/Lib/encodings/__init__.py", ".venv/Scripts/DLLs/_ctypes.pyd",
             "backends/mineflayer/dist/src/worker.js", "backends/mineflayer/dist/src/auth_cache.js")),
             "WORKER_BUNDLE_INCOMPLETE")
+    require(not operator_stop or "backends/mineflayer/dist/src/worker_control.js" in assignments,
+            "WORKER_BUNDLE_INCOMPLETE")
     require(len(assignments) < 12000, "WORKER_BUNDLE_INVENTORY")  # Reserve one held slot for the manifest.
     source = snapshot(list(assignments.values()), [backend / "node_modules", backend / "dist/src"])
     pins = {entry["path"]: entry for entry in source["files"]}
@@ -205,6 +214,9 @@ def prepare_worker_bundle(repository: Path, node: Path, python_root: Path, desti
         "excluded_python_files": exclusions, "exclusion_policy": "no-bytecode-or-site-packages/1",
         "auth_cache_copied": False, "game_state_copied": False, "campaign_admission": False,
         "runtime_qualified": False, "isolation_qualified": False}
+    if operator_stop:
+        manifest.update(schema="strata/WorkerRuntimeBundle/2", profile="vanilla1192-private-worker/2",
+                        operator_stop_policy=STOP_POLICY)
     manifest_path = destination.with_suffix(".manifest.json")
     raw = encode(manifest)
     require(len(raw) <= MANIFEST_LIMIT, "WORKER_BUNDLE_MANIFEST")

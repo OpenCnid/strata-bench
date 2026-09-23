@@ -32,6 +32,7 @@ from mcbench.worker_bundle import HeldWorkerBundle
 from mcbench.pack_launch import RestoredPackLaunchBinding, parse_pack_binding
 from mcbench.pack_worker import HeldPackWorker, WorkerInvocation
 from mcbench.vanilla_persistence import PACK_POLICY
+from mcbench.worker_stop import stop_owned_worker
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -228,6 +229,7 @@ def run_plan(plan, resources, runtime=None):
             process = prepared.start(preflight=name == "worker-preflight")
         else:
             process = ManagedProcess(argv, ROOT, environment, "",
+                interactive=name == "worker-driver" and runtime is not None and runtime.operator_stop,
                 **({"bootstrap_python": Path(runtime.body["python"])} if prepared else {}))
         processes[name] = process
         resources.callback(close_owned, name)
@@ -321,7 +323,10 @@ def run_plan(plan, resources, runtime=None):
         if retention:
             result["native_retention"] = native_result["retention"]
         require(all(native_result["checks"].values()), "NATIVE_GAME_CHECK_FAILED")
-        wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
+        if runtime and runtime.operator_stop:
+            result["worker_stop"] = stop_owned_worker(worker, worker_config, output, wait)
+        else:
+            wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
         require(worker.poll() == 0, "WORKER_EXIT_FAILED")
         result["status"] = "pass"
     except BaseException as error:
@@ -335,8 +340,21 @@ def run_plan(plan, resources, runtime=None):
             worker.stop()
         server = processes.get("server-driver")
         if server and server.poll() is None:
-            if (output / "server").is_dir():
-                (output / "server/stop.request").touch(exist_ok=True)
+            try:
+                if (output / "server").is_dir():
+                    if "worker_stop" in result:
+                        boundary = {"schema": "strata/WorkerServerStopBoundary/1",
+                            "worker_stop_request_id": result["worker_stop"]["intent"]["request"]["request_id"],
+                            "requested_mono_ns": time.monotonic_ns(), "requested_unix": time.time()}
+                        write(output / "server/stop.request", boundary)
+                        result["server_stop_intent"] = boundary
+                    else:
+                        (output / "server/stop.request").touch(exist_ok=True)
+            except Exception as error:
+                result["status"] = "fail"
+                result["server_stop_intent_error"] = type(error).__name__
+                result["forced_server_cleanup"] = True
+                server.stop()
             try:
                 wait(lambda: server.poll() is not None, 125, "SERVER_STOP_TIMEOUT")
             except Exception:

@@ -26,6 +26,7 @@ from .provisioning import VanillaLaunchProfile, WORKER_CONFIG_ARGUMENT, validate
 from .server_health import inspect_server_log
 from .storage import Fault, canonical, digest, require
 from .worker_bundle import HeldWorkerBundle, launch_path
+from .worker_stop import ARGUMENT
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVER_READY_SECONDS = 80
@@ -86,7 +87,8 @@ def check_worker_command(profile, runtime):
     _apart(runtime.root, safe(ROOT))
     _apart(runtime.path, safe(ROOT))
     command = profile.client
-    require(command.arguments == [runtime.body["worker"], WORKER_CONFIG_ARGUMENT]
+    require(command.arguments == [runtime.body["worker"], WORKER_CONFIG_ARGUMENT,
+                                  *([ARGUMENT] if runtime.operator_stop else [])]
             and command.executable_path == runtime.body["node"]
             and command.executable.digest == file_hash(Path(runtime.body["node"]))
             and command.working_directory == ".", "WORKER_LAUNCH_COMMAND_MISMATCH")
@@ -133,7 +135,7 @@ def resolve_worker_invocation(profile, value, binding):
         raw = canonical(configuration)
         require(len(raw) <= 8192, "WORKER_LAUNCH_CONFIG_QUOTA")
         command = profile.client.model_dump() | {
-            "arguments": [runtime.body["worker"], launch_path(config)],
+            "arguments": [runtime.body["worker"], launch_path(config), *([ARGUMENT] if runtime.operator_stop else [])],
             "working_directory": launch_path(_path(binding.instance) / "client")}
         return {"schema": "strata/ResolvedPackLaunch/2", "launch": command,
             "worker_runtime": profile.worker_runtime.model_dump(), "worker_configuration": configuration,
@@ -266,7 +268,8 @@ class HeldPackWorker:
         # The pinned base interpreter avoids an unowned venv redirector child
         # before the bootstrap can wait for Job Object assignment.
         process = ManagedProcess(argv, Path(command["working_directory"]), command["environment"], "",
-                                 bootstrap_python=Path(self.runtime.body["python"]))
+                                 bootstrap_python=Path(self.runtime.body["python"]),
+                                 interactive=not preflight and self.runtime.operator_stop)
         self.processes[mode] = process
         self._resources.callback(process.close)
         return process

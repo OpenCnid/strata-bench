@@ -229,7 +229,8 @@ def run_native_trial(args, *, pilot=None):
             "enforcement_ref": "cas:sha256:" + "a" * 64})
         amount = exposure.amount(basis)
         job_amount = native_piloting.MAX_SPEND if pilot else amount
-        calls = native_piloting.MAX_REQUESTS if pilot else 1
+        calls = (pilot.get("budget_decision", {}).get("max_requests", native_piloting.MAX_REQUESTS)
+                 if pilot else 1)
         require((before["budget"]["dispatch_allowed"] or trial == "D12" or
                  pilot and pilot.get("budget_decision") is not None) and
                 amount <= job_amount <= before["authorization"]["first_trial_max_microusd"]
@@ -258,7 +259,7 @@ def run_native_trial(args, *, pilot=None):
             "hard_timeout_s": 90, "output_limit_bytes": previous.output_limit_bytes, "qualification_ref": None})
         if pilot:
             scope = {k: pilot["descriptor"][k] for k in ("campaign_id", "agent_id", "epoch")}
-            plan = plan.model_copy(update=scope | {"prompt": native_piloting.prompt(scope, pilot["lease_id"])})
+            plan = plan.model_copy(update=scope | {"prompt": native_piloting.prompt(scope, pilot["lease_id"], calls)})
             campaign = plan.campaign_id
         plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
             cas, plan, json.loads(args.tool_projections.read_bytes()))})

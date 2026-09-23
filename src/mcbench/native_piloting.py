@@ -17,6 +17,7 @@ from .storage import Principal, canonical, digest, require
 PURPOSE = "development_piloting"
 SCHEMA = "strata/NativePilotPermit/1"
 MAX_REQUESTS = 6
+REQUEST_LIMITS = {6, 12}
 MAX_SPEND = 1_000_000
 PRECHECKS = {"scoped_native_tools", "all_request_reservations", "finite_exposure", "verified_tls"}
 GAME_CONTRACT_PATH = "initial/game/contract.json"
@@ -70,9 +71,9 @@ def game_contract():
         ]}).decode()
 
 
-def prompt(scope, lease_id):
+def prompt(scope, lease_id, max_requests=MAX_REQUESTS):
     require(set(scope) == {"campaign_id", "agent_id", "epoch"} and
-            isinstance(lease_id, str) and 0 < len(lease_id) <= 128, "PILOT_SCOPE")
+            isinstance(lease_id, str) and 0 < len(lease_id) <= 128 and max_requests in REQUEST_LIMITS, "PILOT_SCOPE")
     return (
         "Pilot this Minecraft avatar using the scoped game tool. First read " + GAME_CONTRACT_PATH +
         " through strata_broker.artifact_read; it documents the exact request envelope and action schema. "
@@ -94,7 +95,7 @@ def prompt(scope, lease_id):
         "observations expire for action acceptance after 2000 ms. Recheck the target against the refreshed state. "
         "Poll action_status for an accepted/executing action; never replay an uncertain action. "
         "Observe after each action and report the actual position and orientation changes, including "
-        "failures. Finish promptly; the trial allows at most six model requests and 90 seconds. "
+        f"failures. Finish promptly; the trial allows at most {max_requests} model requests and 90 seconds. "
         "The public game scope is " + canonical(scope).decode() + "; lease_id=" + json.dumps(lease_id) + "."
     )
 
@@ -102,12 +103,13 @@ def prompt(scope, lease_id):
 def require_profile(plan, config, lease_id):
     scope = {k: getattr(plan, k) for k in ("campaign_id", "agent_id", "epoch")}
     require(plan.purpose == PURPOSE and plan.role == "executor" and plan.depth == 0 and
-            plan.parent_job_id is None and plan.helper_limit == 0 and plan.prompt == prompt(scope, lease_id) and
+            plan.parent_job_id is None and plan.helper_limit == 0 and
+            plan.prompt == prompt(scope, lease_id, config.max_requests) and
             plan.budget_mode == "per_dispatch" and plan.auth_mode == "chatgpt_oauth" and
             plan.provider == "openai" and plan.model in {"gpt-5.6-luna", "gpt-6-luna"} and plan.hard_timeout_s <= 90 and
             plan.bootstrap_digest is not None and plan.ingress_policy is not None and
             plan.config_overrides.get("developer_instructions") == INSTRUCTIONS and
-            config.max_requests == MAX_REQUESTS and config.max_handlers == 1 and
+            config.max_requests in REQUEST_LIMITS and config.max_handlers == 1 and
             config.helper_calls_bound == 1 and config.skill_corpus_ref is not None and
             config.authorization_id is not None and config.job_id == plan.job_id and
             config.profile_digest == plan.profile_digest() and
@@ -139,7 +141,7 @@ def validate_permit(gate, proof, plan, config, *, account_digest):
             proof.get("authorization_id") == config.authorization_id and
             type(proof.get("expires_unix")) in {float, int} and
             time.time() < proof["expires_unix"] <= time.time() + 600 and
-            proof.get("max_requests") == MAX_REQUESTS and proof.get("maximum_microusd") == MAX_SPEND and
+            proof.get("max_requests") == config.max_requests and proof.get("maximum_microusd") == MAX_SPEND and
             isinstance(proof.get("prechecks"), dict) and set(proof["prechecks"]) == PRECHECKS,
             "PILOT_UNADMITTED")
     policy = gate.authorizations.check(config.authorization_id, plan.account,
@@ -185,7 +187,7 @@ def require_permit_for_request(gate, proof, credentials, attempt, reserve):
             attempt.runtime_job_id == plan.job_id, "PILOT_UNADMITTED")
     requests = list(gate.db.connection.execute("SELECT operation FROM native_gateway_requests WHERE job=?",
                                               (plan.job_id,)))
-    require(1 <= len(requests) <= MAX_REQUESTS and
+    require(1 <= len(requests) <= config.max_requests and
             any(row[0] == reserve.operation_id for row in requests), "PILOT_REQUEST_LIMIT")
 
 

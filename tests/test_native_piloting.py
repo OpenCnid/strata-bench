@@ -174,6 +174,40 @@ def test_public_before_after_evidence_proves_both_effects():
     assert changes[-1]["horizontal_distance"] == 1. and changes[-1]["target_distance"] == 0.
 
 
+@pytest.mark.parametrize("fault", [None, "missing-ack", "no-release", "stale", "no-turn", "missing-after"])
+def test_partial_turn_is_retained_without_claiming_complete_pilot(fault):
+    calls = trajectory()[:3]
+    if fault == "missing-ack":
+        calls[1]["result"] = None
+    elif fault == "no-release":
+        calls[1]["result"]["result"]["release_confirmed"] = False
+    elif fault == "stale":
+        calls[2]["result"]["result"]["state_revision"] = 1
+    elif fault == "no-turn":
+        calls[2]["result"]["result"]["state"]["yaw"] = 0
+    elif fault == "missing-after":
+        calls.pop()
+    checks, changes = movement_checks(calls)
+    assert checks["turn_observed"] == (fault is None)
+    assert not checks["two_model_selected_actions"] and not checks["walk_observed"]
+    if fault is None:
+        assert checks["bounded_actions_observed"] and len(changes) == 1
+
+
+def test_twelve_request_profile_requires_matching_prompt_and_permit(pilot):
+    gate, proof, plan, config, _ = pilot
+    config.max_requests = 12
+    scope = {k: getattr(plan, k) for k in ("campaign_id", "agent_id", "epoch")}
+    plan = plan.model_copy(update={"prompt": prompt(scope, "lease-1", 12),
+                                  "gateway_config_digest": config.profile_fingerprint()})
+    config.profile_digest = plan.profile_digest()
+    require_profile(plan, config, "lease-1")
+    with pytest.raises(Fault, match="PILOT_UNADMITTED"):
+        validate_permit(gate, proof, plan, config, account_digest="c"*64)
+    with pytest.raises(Fault, match="PILOT_SCOPE"):
+        require_profile(plan.model_copy(update={"prompt": prompt(scope, "lease-1", 6)}), config, "lease-1")
+
+
 @pytest.mark.parametrize("fault", ["no-move", "no-turn", "no-release", "stale", "wrong-target", "damage",
     "foreign-scope", "fixture", "held-key", "missing-observation", "unsettled", "extra-action"])
 def test_successful_receipt_alone_cannot_pass_piloting(fault):

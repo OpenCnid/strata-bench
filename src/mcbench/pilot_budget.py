@@ -19,7 +19,10 @@ POLICY = "one-pilot-retain-unknown-holds/1"
 DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 763280),
              "D18": (AUTHORIZATION + ":m0-pilot-03", 773794),
              "D18.1": (AUTHORIZATION + ":m0-pilot-04", 778471),
-             "D18.2": (AUTHORIZATION + ":m0-pilot-05", 784341)}
+             "D18.2": (AUTHORIZATION + ":m0-pilot-05", 784341),
+             "D18.3": (AUTHORIZATION + ":m0-pilot-06", 789908),
+             "D18.4": (AUTHORIZATION + ":m0-pilot-07", 795559)}
+LUNA6_DECISIONS = frozenset(DECISIONS) - {"D15", "D16"}
 
 
 def decision_body(db, decision_id="D15"):
@@ -29,23 +32,22 @@ def decision_body(db, decision_id="D15"):
     require(row is not None, "PILOT_DECISION_REQUIRED")
     totals, unknown = Budgets.totals(db, row["account"])
     require(unknown and totals["spend_microusd"] == prior, "PILOT_RETAINED_HOLDS_CHANGED")
-    predecessors = {"D15": [], "D16": [JOB], "D18": [JOB, DECISIONS["D16"][0]],
-                    "D18.1": [JOB, DECISIONS["D16"][0], DECISIONS["D18"][0]],
-                    "D18.2": [JOB, DECISIONS["D16"][0], DECISIONS["D18"][0], DECISIONS["D18.1"][0]]}[decision_id]
+    predecessors = [DECISIONS[key][0] for key in list(DECISIONS)[:list(DECISIONS).index(decision_id)]]
     for predecessor in predecessors:
         previous = db.execute("SELECT state FROM native_jobs WHERE id=?", (predecessor,)).fetchone()
         require(previous is not None and previous[0] == "FINALIZED" and
                 db.execute("SELECT count(*) FROM inference_attempts WHERE "
                     "json_extract(request,'$.runtime_job_id')=? AND state='SETTLED'", (predecessor,)).fetchone()[0] == 6,
                 "PILOT_PRIOR_RUN_UNSETTLED")
-    if decision_id in {"D18", "D18.1", "D18.2"}:
+    if decision_id in LUNA6_DECISIONS:
         from .authorization import ModelExecutionAuthorization, parse_authorization
         policy = parse_authorization(row["body"])
         require(isinstance(policy, ModelExecutionAuthorization) and policy.models == ["gpt-6-luna"] and
                 policy.accounting_basis.model == "gpt-6-luna", "PILOT_MODEL_AUTHORITY")
     return {"schema": "strata/PilotBudgetDecision/1", "decision_id": decision_id, "policy": POLICY,
         "authorization_id": AUTHORIZATION, "authorization_digest": row["digest"], "job_id": job,
-        "maximum_microusd": MAX_SPEND, "max_requests": MAX_REQUESTS, "hard_timeout_s": 90,
+        "maximum_microusd": MAX_SPEND, "max_requests": 12 if decision_id == "D18.4" else MAX_REQUESTS,
+        "hard_timeout_s": 90,
         "helper_limit": 0, "prior_exposure_microusd": prior, "combined_exposure_microusd": prior + MAX_SPEND,
         "retained_digest": digest(uncertain_rows(db, row["account"])), "user_authorized": True}
 
@@ -73,11 +75,11 @@ def install(database, cas, plan, reserve, decision):
                 plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
                 plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
                 plan.hard_timeout_s <= 90 and plan.budget_mode == "per_dispatch" and
-                plan.model == ("gpt-6-luna" if decision["decision_id"] in {"D18", "D18.1", "D18.2"} else "gpt-5.6-luna") and
+                plan.model == ("gpt-6-luna" if decision["decision_id"] in LUNA6_DECISIONS else "gpt-5.6-luna") and
                 plan.auth_mode == "chatgpt_oauth" and
                 plan.provider == "openai" and reserve.operation_id == plan.operation_id and
                 reserve.parent_operation_id is None and reserve.kind == "model" and
-                reserve.usage.model_calls == MAX_REQUESTS and reserve.usage.spend_microusd == MAX_SPEND and
+                reserve.usage.model_calls == decision["max_requests"] and reserve.usage.spend_microusd == MAX_SPEND and
                 MAX_SPEND <= policy.first_trial_max_microusd and
                 decision["combined_exposure_microusd"] <= policy.total_spend_microusd,
                 "PILOT_BUDGET_SCOPE")
@@ -87,7 +89,7 @@ def install(database, cas, plan, reserve, decision):
         authority = db.execute("SELECT account FROM execution_authorizations WHERE id=?", (AUTHORIZATION,)).fetchone()[0]
         limits = json.loads(chain[0]["limits"])
         require(len(chain) == 2 and chain[1]["id"] == authority and
-                limits["spend_microusd"] == MAX_SPEND and limits["model_calls"] == MAX_REQUESTS,
+                limits["spend_microusd"] == MAX_SPEND and limits["model_calls"] == decision["max_requests"],
                 "PILOT_BUDGET_SCOPE")
         body = {"decision_ref": ref, "authorization_digest": decision["authorization_digest"],
             "authority": authority, "retained_digest": decision["retained_digest"],
@@ -130,6 +132,7 @@ def admit(db, account, record, *, envelope):
         children = list(db.execute("SELECT actual FROM operations WHERE parent=?", (body["envelope"],)))
         require(row["state"] == "ENVELOPE_RESERVED" and job["state"] == "RUNNING" and
                 record.parent_operation_id == body["envelope"] and record.usage.model_calls == 1 and
-                len(children) == row["requests"] < MAX_REQUESTS and all(c[0] is not None for c in children),
+                len(children) == row["requests"] < body["maximum"]["model_calls"] and
+                all(c[0] is not None for c in children),
                 "METERING_UNKNOWN")
         db.execute("UPDATE pilot_trials SET requests=requests+1 WHERE account=?", (account,))

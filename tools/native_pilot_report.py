@@ -5,8 +5,8 @@ import math
 
 from mcbench.broker import inspect_game_requests
 from mcbench.contracts import ActionAck, Observation
-from mcbench.native_piloting import MAX_REQUESTS
-from mcbench.storage import Principal, canonical
+from mcbench.native_gateway import GatewayConfig, require_gateway
+from mcbench.storage import Fault, Principal, canonical
 
 
 def movement_checks(calls):
@@ -29,7 +29,8 @@ def movement_checks(calls):
               [a["action"]["kind"] for _, a in actions] == ["look_at", "move_to"],
               "bounded_actions_observed": False, "turn_observed": False, "walk_observed": False}
     changes = []
-    if not checks["two_model_selected_actions"]:
+    if not actions or len(actions) > 2 or any(a["action"]["kind"] not in {"look_at", "move_to"}
+                                             for _, a in actions):
         return checks, changes
     scope = None
     for index, batch in actions:
@@ -95,7 +96,14 @@ def record_outcome(gate, plan, seal_ref):
         "inference_attempts a ON a.operation=v.operation WHERE json_extract(a.request,'$.runtime_job_id')=?", (plan.job_id,))]
     stopped = db.execute("SELECT state FROM native_worker_bindings WHERE job=?", (plan.job_id,)).fetchone()
     native = db.execute("SELECT state,returncode,reason FROM native_jobs WHERE id=?", (plan.job_id,)).fetchone()
-    checks.update(authentic_model_receipts=not gate.simulation and 1 <= len(attempts) <= MAX_REQUESTS and
+    request_limit = 0
+    try:
+        config = GatewayConfig.model_validate_json(require_gateway(db, plan, "CLOSED")["config"])
+        if config.profile_fingerprint() == plan.gateway_config_digest:
+            request_limit = config.max_requests
+    except Fault:
+        pass  # A failure before gateway binding cannot establish authentic receipts.
+    checks.update(authentic_model_receipts=not gate.simulation and 1 <= len(attempts) <= request_limit and
         len(valuations) == len(attempts) and all(a["state"] == "SETTLED" for a in attempts),
         one_executor=len({c["thread"] for c in calls}) == 1,
         native_completed=native is not None and tuple(native) == ("FINALIZED", 0, "native_exit"),

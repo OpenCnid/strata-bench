@@ -329,14 +329,28 @@ class NativeGateway:
                 on_headers=headers, on_chunk=chunk, after_begin=begin)
             self._record(db, result["state"], operation)
         except Exception as error:
+            reason = error.code if isinstance(error, Fault) else "GATEWAY_REQUEST_FAILED"
             if db and operation:
                 row = db.connection.execute("SELECT state FROM inference_attempts WHERE operation=?",
                                             (operation,)).fetchone()
                 self._record(db, row[0] if row else "REJECTED", operation,
-                             error.code if isinstance(error, Fault) else "GATEWAY_REQUEST_FAILED")
+                             reason)
+            elif db and reason == "GATEWAY_REQUEST_LIMIT":
+                with db.transaction() as conn:
+                    db.event(conn, "native.gateway_refused", {"job": self.plan.job_id, "reason": reason,
+                                                             "max_requests": self.config.max_requests})
             if not started:
                 try:
-                    handler.send_error(403)
+                    if reason == "GATEWAY_REQUEST_LIMIT":
+                        body = canonical({"error": {"code": reason, "type": "strata_gateway_error",
+                            "message": "The pilot request limit has been reached. Stop; do not retry."}})
+                        handler.send_response(403)
+                        handler.send_header("Content-Type", "application/json")
+                        handler.send_header("Content-Length", str(len(body)))
+                        handler.end_headers()
+                        handler.wfile.write(body)
+                    else:
+                        handler.send_error(403)
                 except OSError:
                     pass
         finally:

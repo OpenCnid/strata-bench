@@ -101,9 +101,19 @@ readable without retroactive history credit. Public mutable FTB fields/maps,
 KubeJS globals and other direct writes remain uncovered, so clear observed
 history still earns no score. [Implementation and exact limits](../verification/2026-09-21-setup-history.md).
 
+Telemetry 0.3.9 / startup 10 / NativeSetupHistory/2 adds a separate runtime
+check of the observed KubeJS GLOBAL map and a fourteenth sticky route for writes
+to its three pack-mode keys, including map methods and retained collection
+views. The inherited callback clock contract remains mandatory. Reflection,
+direct FTB state, pre-activation changes, custody and mechanical parity remain
+unqualified. Keep complete-history and scoring flags false. The changed-profile
+headless roundtrip qualifies only its observed route; it does not qualify an
+unchanged pack. [Current source and authentic evidence](../verification/2026-09-23-global-history.md).
+
 Use `PrivateCraftReferencePlan/3` for a history-required protected craft.
 Alongside the version-2 native roster, explicitly register
-`required_history_policy: native-e9e-setup-mutation-watch/1`. Participant
+`required_history_policy: native-e9e-setup-mutation-watch/1` or `/2`, matching
+the selected module and sealed requirement exactly. Participant
 readiness requires a complete authenticated clear startup/history prefix whose
 native identity matches the owned server. Import requires the complete history;
 an older valid point-only stream fails with `CRAFT_NATIVE_HISTORY_MISSING`.

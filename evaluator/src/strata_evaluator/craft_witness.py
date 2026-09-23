@@ -111,11 +111,12 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
     )
     a, b = CraftBegin.model_validate(begin.payload), CraftEnd.model_validate(end.payload)
     if end_history is not None:
-        from .setup_history import SetupHistory
-        history = SetupHistory.model_validate(end_history.payload)
+        from .setup_history import SetupHistoryV2, parse_history
+        history = parse_history(end_history.payload)
         require(end_observation is not None and not end_history.is_example
                 and end_history.visibility == "evaluator" and end_history.kind == "setup_history"
-                and end_history.payload_schema == "strata/NativeSetupHistory/1"
+                and end_history.payload_schema == ("strata/NativeSetupHistory/2" if isinstance(history, SetupHistoryV2)
+                                                   else "strata/NativeSetupHistory/1")
                 and history.phase == "craft_end" and history.transaction_id == a.transaction_id
                 and (end_history.campaign_id, end_history.epoch, end_history.server_boot_id,
                      end_history.server_tick, end_history.actor_ids, end_history.server_event_seq)

@@ -15,7 +15,7 @@ from mcbench.inference_transport import strict_json
 from mcbench.storage import digest, reject_links, require
 
 from .craft_reference import Actor
-from .setup_history import SetupHistory
+from .setup_history import parse_history
 from .telemetry_auth import private_read
 
 POLICY = "private-operator-roundtrip/1"
@@ -132,7 +132,7 @@ class OperatorControl:
                 and inspection["setup_startup"] == prefix["startup"]
                 and inspection["launch_identity"] == prefix["launch_identity"], "OPERATOR_CONTROL_INSPECTION_SCOPE")
         history = inspection.get("setup_history", {})
-        terminal = SetupHistory.model_validate(history.get("terminal", {}))
+        terminal = parse_history(history.get("terminal", {}))
         expected = dict.fromkeys(terminal.attempts, 0)
         expected.update(command_attempt=3, native_stop_command=1, operator_add=1, operator_remove=1)
         require(history.get("policy") == terminal.policy and terminal.phase == "stop"

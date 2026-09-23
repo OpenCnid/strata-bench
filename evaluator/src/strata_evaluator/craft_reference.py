@@ -86,7 +86,7 @@ class CraftReferencePlanV2(CraftReferencePlan):
 
 class CraftReferencePlanV3(CraftReferencePlanV2):
     schema_: Literal["strata/PrivateCraftReferencePlan/3"] = Field(alias="schema")
-    required_history_policy: Literal["native-e9e-setup-mutation-watch/1"]
+    required_history_policy: Literal["native-e9e-setup-mutation-watch/1", "native-e9e-setup-mutation-watch/2"]
 
 
 def parse_plan(value):

@@ -13,6 +13,15 @@ import java.util.zip.GZIPOutputStream;
 
 /** Real owned JVM and signing code, fabricated setup/world/commands. Never Minecraft. */
 public final class SetupControlFixture {
+    // Historical launch/control fixtures explicitly project the original 13-route wire contract.
+    // They are synthetic compatibility evidence, never qualification of the current live hooks.
+    private static final String LEGACY_HISTORY = "native-e9e-setup-mutation-watch/1";
+    private static JsonObject legacyHistory(SetupHistory.Monitor monitor, String phase) {
+        var value = monitor.capture(phase, null);
+        value.addProperty("policy", LEGACY_HISTORY);
+        value.getAsJsonObject("attempts").remove("global_mode_write");
+        return value;
+    }
     private static JsonObject point() {
         return JsonParser.parseString("""
             {"policy":"native-e9e-setup-observation/1","phase":"startup","transaction_id":null,
@@ -55,11 +64,11 @@ public final class SetupControlFixture {
             var support = new JsonObject(); support.addProperty("status", "supported");
             var pins = new JsonObject(); SetupCapture.PINS.forEach(pins::addProperty); support.add("artifacts", pins);
             boot.add("setup_capture_support", support); boot.addProperty("telemetry_transport", "private-file/1");
-            var history = new JsonObject(); history.addProperty("policy", SetupHistory.POLICY);
+            var history = new JsonObject(); history.addProperty("policy", LEGACY_HISTORY);
             history.addProperty("vanilla_hooks_verified", true); history.addProperty("team_hooks_verified", true);
             history.addProperty("all_mutation_routes_covered", false); boot.add("setup_history_support", history);
             spool.publish(0, "server_started", clockMode ? "strata/ServerStarted/9" : "strata/ServerStarted/8", boot, new JsonArray());
-            spool.publish(1, "setup_history", "strata/NativeSetupHistory/1", monitor.capture("startup", null), new JsonArray());
+            spool.publish(1, "setup_history", "strata/NativeSetupHistory/1", legacyHistory(monitor, "startup"), new JsonArray());
             spool.publish(1, "setup_snapshot", "strata/NativeSetupSnapshot/1", point(), new JsonArray());
             var health = new JsonObject(); health.addProperty("interval_wall_ns", 1000000000);
             health.addProperty("interval_server_ticks", 20); health.addProperty("observed_tick_work_ns", 100);
@@ -82,7 +91,7 @@ public final class SetupControlFixture {
                 if (line.equals("stop")) {
                     monitor.stopping(source, Thread.currentThread());
                     if (clockMode) spool.publish(22, "server_clock", "strata/ServerClock/1", clock.stop(), new JsonArray());
-                    spool.publish(clockMode ? 22 : 20, "setup_history", "strata/NativeSetupHistory/1", monitor.capture("stop", null), new JsonArray());
+                    spool.publish(clockMode ? 22 : 20, "setup_history", "strata/NativeSetupHistory/1", legacyHistory(monitor, "stop"), new JsonArray());
                     spool.publish(clockMode ? 22 : 20, "server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());
                     break;
                 }

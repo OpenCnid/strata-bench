@@ -9,11 +9,11 @@ native Codex loop, with typed `mcgame` commands to a persistent game worker.
 Mineflayer is the first backend; the separately identified Forge extension is
 the authorized development fallback for exact E9E compatibility work.
 
-**Status: implementation in progress, not a runnable research MVP.** M0–M5 have
-partial implementations, M6 remains required later work, and M7 is conditional.
-Narrow authentic vanilla and E9E checks have passed; every aggregate release
-gate remains open. Exact E9E's Mineflayer handshake failed, and Forge fallback
-evidence does not convert it into a Mineflayer pass.
+**Status: implementation in progress. M0 is incomplete and G0 fails.** The active
+work is M0/G0 only; the complete later roadmap remains in SPEC and MILESTONES.
+Narrow authentic vanilla and separate Forge checks have passed. Exact E9E's
+Mineflayer handshake failed, and fallback evidence remains a separate backend
+qualification. G1–G5 are not_run.
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
 - [Current status](docs/STATUS.md): M0 closure gaps and evidence index
@@ -22,7 +22,13 @@ evidence does not convert it into a Mineflayer pass.
 - [Project instructions](AGENTS.md): implementation and verification process
 - [Build plan](BUILD_PLAN.md) and [research](research/): supporting design evidence
 
-The [native/game smoke command](docs/verification/2026-09-21-m0-native-game.md) now runs the actual native Dovetail/helper/broker path against real vanilla Minecraft, with a bounded action, joined receipts and clean shutdown. Its model responses are scripted; it does not establish a live-model M0 pass.
+The [native/game implementation](docs/verification/2026-09-22-native-recovery-verifier.md)
+connects actual Dovetail/root/helper/broker execution to a pinned vanilla worker.
+Bounded sealed recovery restores player state and root notes, rejects stale
+access and preserves usage; reusable verification reconstructs both epochs.
+Model replies are scripted. The latest [normal-stop work](docs/verification/2026-09-22-native-normal-stop.md)
+is implemented with a prepared sealed profile; its first attempt failed before
+Java/native startup, and the capture-scope fix still needs authentic execution.
 
 ## What is implemented
 
@@ -37,11 +43,13 @@ The [native/game smoke command](docs/verification/2026-09-21-m0-native-game.md) 
 | Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded
-block, machine processing/collection and expert furnace crafting checks. The latest
-Forge cancellation/restart pair preserves full journal, saved-state and cost
-continuity, but fails its second 500-ms shutdown check. M0 remains incomplete;
-G0 is `fail` and G1–G5 are `not_run`. Separate-desktop rendering keeps the operator
-desktop usable; it does not provide filesystem/process/network isolation.
+block, machine processing/collection and expert furnace crafting. The approved
+[D13 shutdown policy](docs/verification/2026-09-21-d13-shutdown.md) now allows
+1,000 ms and has a passing 568.994-ms sample; all old 500-ms failures remain
+recorded. Private scorer/setup controls, full isolation, authoritative clock/save
+evidence and remaining profile/recovery qualification still block G0.
+Separate-desktop rendering preserves desktop usability but does not establish
+filesystem/process/network isolation.
 
 ## Local development
 
@@ -93,7 +101,7 @@ its hash is enforced. No game or modpack binaries are distributed here. See the
 [settings extension runbook](docs/operations/forge-client-settings.md) for build
 inputs and limitations. A clean-machine build has not been qualified.
 
-See the [session checkpoint verification](docs/verification/2026-09-21-session-handoff.md)
+See the [session checkpoint verification](docs/verification/2026-09-22-session-handoff.md)
 for current merge checks and the historical baseline. These are local contract,
 process and fixture checks; they do not substitute for real integration gates.
 

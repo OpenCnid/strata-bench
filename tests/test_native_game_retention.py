@@ -312,7 +312,8 @@ def test_missing_server_capture_has_typed_failure(tmp_path, server):
         paired_components(tmp_path, {"status": "fail", "server_result": server}, "a" * 64, {})
 
 
-@pytest.mark.parametrize("case", ["valid", "wrong-plan", "world-changed", "joint-changed"])
+@pytest.mark.parametrize("case", ["valid", "wrong-plan", "world-changed", "joint-changed",
+                                 "player-copy-changed", "player-copy-same-size", "player-copy-missing", "no-player", "two-players"])
 def test_stopped_world_and_native_component_join(archived_retention, installed, case):
     from mcbench.storage import digest
     from mcbench.vanilla_persistence import VanillaPersistence
@@ -324,6 +325,16 @@ def test_stopped_world_and_native_component_join(archived_retention, installed, 
     server_plan = {"schema": "strata/DevelopmentServer/2"}
     target = root / "run/server/stopped-instance"
     target.parent.mkdir()
+    players = installed / "world/playerdata"
+    players.mkdir()
+    if case != "no-player":
+        (players / "11111111-1111-1111-1111-111111111111.dat").write_bytes(b"synthetic saved player")
+    if case == "two-players":
+        (players / "22222222-2222-2222-2222-222222222222.dat").write_bytes(b"synthetic sibling")
+    if case != "player-copy-missing":
+        (root / "run/player-after.dat").write_bytes(
+            b"different player" if case == "player-copy-changed" else
+            b"x" * len(b"synthetic saved player") if case == "player-copy-same-size" else b"synthetic saved player")
     service = VanillaPersistence(installed)
     try:
         snapshot = service.capture(target, stopped(), plan_digest=digest(server_plan))
@@ -356,6 +367,7 @@ def test_stopped_world_and_native_component_join(archived_retention, installed, 
                                           server_plan, {"joint_components": joint})
     if case == "valid":
         assert inspect()["stopped_world_captured"] and not inspect()["complete_checkpoint"]
+        assert inspect()["saved_player_bound_to_snapshot"]
     else:
         with pytest.raises(Fault):
             inspect()

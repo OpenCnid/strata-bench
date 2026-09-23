@@ -130,7 +130,7 @@ or full continuity. [Source and control evidence](../verification/2026-09-23-tea
 
 Use `PrivateCraftReferencePlan/3` for a history-required protected craft.
 Alongside the version-2 native roster, explicitly register
-`required_history_policy: native-e9e-setup-mutation-watch/1`, `/2` or `/3`, matching
+`required_history_policy: native-e9e-setup-mutation-watch/1`, `/2`, `/3` or `/4`, matching
 the selected module and sealed requirement exactly. Participant
 readiness requires a complete authenticated clear startup/history prefix whose
 native identity matches the owned server. Import requires the complete history;

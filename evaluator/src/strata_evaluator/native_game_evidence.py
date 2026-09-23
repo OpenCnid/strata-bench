@@ -27,7 +27,7 @@ from mcbench.storage import canonical, digest, reject_links, require, safe_relat
 from .evidence_bundle import EvidenceBundle, EvidenceCAS
 from .saved_blocks import NbtReader, field, unpack_chunk
 
-POLICY = "sealed-native-vanilla-evidence-join/1"
+POLICY = "sealed-native-vanilla-evidence-join/2"
 SCOPE = ("campaign_id", "agent_id", "epoch")
 TERMINAL = {"completed", "emitted", "failed", "cancelled", "rejected", "unknown"}
 PRIMITIVE_POLICY = "durable-pre-dispatch-charge/1"
@@ -575,9 +575,13 @@ def saved_player_evidence(bundle, observations):
             and yaw_error <= .01 and pitch_error <= .01
             and all(abs(position[i] - latest["position"][axis]) <= .01 for i, axis in enumerate(("x", "y", "z"))),
             "NATIVE_GAME_SAVED_PLAYER")
+    from .native_game_continuation import player_matches
+    require(player_matches(after, latest), "NATIVE_GAME_SAVED_PLAYER")
     changed = initial_rotation != rotation if sealed else rotations[0] != rotations[1]
     return {"orientation_changed": changed, "position_matches": True,
-            "orientation_matches": True, "complete_checkpoint": False}
+            "orientation_matches": True, "dimension_matches": True,
+            "health_matches": True, "food_matches": True, "inventory_slots_items_counts_match": True,
+            "item_metadata_compared": False, "complete_checkpoint": False}
 
 
 def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *, previous=None):
@@ -781,8 +785,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
     bundle.verify()
     if previous:
         previous.verify()
-    return {"schema": "strata/NativeGameEvidenceReport/2" if previous else "strata/NativeGameEvidenceReport/1",
-            "policy": "sealed-native-vanilla-recovery-evidence-join/1" if previous else POLICY, "visibility": "evaluator",
+    return {"schema": "strata/NativeGameEvidenceReport/4" if previous else "strata/NativeGameEvidenceReport/3",
+            "policy": "sealed-native-vanilla-recovery-evidence-join/2" if previous else POLICY, "visibility": "evaluator",
             **({"recovery": recovery} if previous else {}),
             "reconciliation": "pass", "seal_sha256": plan.seal_sha256,
             "custody": custody,

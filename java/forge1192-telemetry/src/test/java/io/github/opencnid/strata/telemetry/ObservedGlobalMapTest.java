@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class ObservedGlobalMapTest {
     private long count() { return SetupHistory.capture("startup",null).getAsJsonObject("attempts").get("global_mode_write").getAsLong(); }
+    private long teams() { return SetupHistory.capture("startup",null).getAsJsonObject("attempts").get("team_map_write").getAsLong(); }
     private Map.Entry<String,Object> entry(Map<String,Object> map) {
         return map.entrySet().stream().filter(e->e.getKey().equals("packmode")).findFirst().orElseThrow();
     }
@@ -35,6 +36,30 @@ class ObservedGlobalMapTest {
                 long before=count(); operation.accept(observed); operation.accept(plain);
                 assertTrue(count()>before); assertEquals(plain,observed); assertEquals(plain.hashCode(),observed.hashCode());
             }
+            for(boolean linked:new boolean[]{false,true}) {
+                for(var operation:writes) {
+                    Map<String,Object> observed=linked?new ObservedTeamLinkedMap<>():new ObservedTeamHashMap<>(true);
+                    Map<String,Object> plain=linked?new java.util.LinkedHashMap<>():new HashMap<>();
+                    observed.put("packmode","expert");plain.put("packmode","expert");
+                    long before=teams();operation.accept(observed);operation.accept(plain);
+                    assertTrue(teams()>before);assertEquals(plain,observed);
+                    assertEquals(List.copyOf(plain.keySet()),List.copyOf(observed.keySet()));
+                }
+            }
+            var ordered=new ObservedTeamLinkedMap<String,Object>();
+            var expected=new java.util.LinkedHashMap<String,Object>();
+            for(String key:List.of("z","a","m","b")) { ordered.put(key,key);expected.put(key,key); }
+            ordered.remove("a");expected.remove("a");ordered.put("a",2);expected.put("a",2);
+            assertEquals(List.copyOf(expected.keySet()),List.copyOf(ordered.keySet()));
+            long beforeTeams=teams();
+            ((java.util.LinkedHashMap<String,Object>)ordered.clone()).clear();
+            assertEquals(beforeTeams,teams());
+            var cached=new ObservedTeamHashMap<String,Object>(false);
+            cached.put("team","value");assertFalse(cached.armed());assertEquals(beforeTeams,teams());
+            cached.arm();cached.arm();assertTrue(cached.armed());
+            var retained=cached.entrySet().iterator().next();
+            retained.setValue("temporary");retained.setValue("value");
+            assertEquals(beforeTeams+2,teams());
             var map=new ObservedGlobalMap();map.put("packmode","expert");
             var alias=entry(map); long before=count();
             alias.setValue("normal");alias.setValue("expert");

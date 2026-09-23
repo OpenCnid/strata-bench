@@ -20,6 +20,7 @@ public final class SetupControlFixture {
         var value = monitor.capture(phase, null);
         value.addProperty("policy", LEGACY_HISTORY);
         value.getAsJsonObject("attempts").remove("global_mode_write");
+        value.getAsJsonObject("attempts").remove("team_map_write");
         return value;
     }
     private static JsonObject point() {

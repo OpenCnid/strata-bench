@@ -149,7 +149,7 @@ class TelemetryPipeBroker:
                     "TELEMETRY_PIPE_FIRST_EVENT")
             model = LAUNCH_STARTUP_MODELS[event.payload_schema]
             payload = model.model_validate(event.payload)
-            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10"}
+            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11"}
                     or payload.telemetry_transport == "windows-owned-pipe/1", "TELEMETRY_PIPE_TRANSPORT")
             from .reference_launch import bind_identity
             binding = bind_identity(self.plan, self.setup, payload.launch_identity, identity)

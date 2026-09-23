@@ -14,8 +14,8 @@ from mcbench.storage import digest, reject_links, require
 
 from .saved_blocks import NbtReader, field, unpack_chunk
 from .setup_facts import ManagerReady, PackMode, SetupSnapshot
-from .setup_history import SetupHistoryV2, parse_history
-from .telemetry import RecipeSnapshot, ServerStartedV8, ServerStartedV9, ServerStartedV10
+from .setup_history import HISTORY_SCHEMAS, parse_history
+from .telemetry import RecipeSnapshot, LAUNCH_STARTUP_MODELS, ServerStartedV10, ServerStartedV11
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, private_read
 
 POLICY = "private-world-mode-roundtrip/1"
@@ -69,14 +69,15 @@ def startup_prefix(directory, authority, expected_boot):
             previous_tick = event.server_tick
             if seq == 1:
                 require(event.kind == "server_started" and event.payload_schema in
-                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10"}
+                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11"}
                         and event.server_tick == 0, "SETUP_CONTROL_MODULE_REQUIRED")
-                model = ServerStartedV10 if event.payload_schema.endswith("/10") else ServerStartedV9 if event.payload_schema.endswith("/9") else ServerStartedV8
+                model = LAUNCH_STARTUP_MODELS[event.payload_schema]
                 boot = model.model_validate(event.payload)
                 require(boot.setup_capture_support.status == "supported"
                         and boot.setup_history_support.vanilla_hooks_verified
                         and boot.setup_history_support.team_hooks_verified and
-                        (not isinstance(boot, ServerStartedV10) or boot.setup_history_support.global_map_hooks_verified),
+                        (not isinstance(boot, ServerStartedV10) or boot.setup_history_support.global_map_hooks_verified) and
+                        (not isinstance(boot, ServerStartedV11) or boot.setup_history_support.team_map_hooks_verified),
                         "SETUP_CONTROL_HOOKS_REQUIRED")
             elif history is not None:
                 require(event.kind == "setup_snapshot" and event.payload_schema == "strata/NativeSetupSnapshot/1"
@@ -99,11 +100,10 @@ def startup_prefix(directory, authority, expected_boot):
                         "module_sha256": boot.launch_identity.module_sha256,
                         "prefix_binding_digest": digest([boot.model_dump(), history.model_dump(), point.model_dump()])}
             elif event.kind == "setup_history":
-                require(event.payload_schema == ("strata/NativeSetupHistory/2" if isinstance(boot, ServerStartedV10)
-                                                  else "strata/NativeSetupHistory/1") and event.server_tick == 1,
+                require(event.payload_schema == HISTORY_SCHEMAS[boot.setup_history_support.policy] and event.server_tick == 1,
                         "SETUP_CONTROL_PREFIX_ORDER")
                 history = parse_history(event.payload)
-                require(isinstance(history, SetupHistoryV2) == isinstance(boot, ServerStartedV10), "SETUP_HISTORY_MODULE")
+                require(history.policy == boot.setup_history_support.policy, "SETUP_HISTORY_MODULE")
                 require(history.phase == "startup" and not any(history.attempts.values())
                         and not history.off_thread_attempts and not history.overflowed,
                         "SETUP_CONTROL_BASELINE_TAINTED")

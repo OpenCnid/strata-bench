@@ -9,6 +9,7 @@ from mcbench.storage import require
 
 POLICY = "native-e9e-setup-mutation-watch/1"
 POLICY_V2 = "native-e9e-setup-mutation-watch/2"
+POLICY_V3 = "native-e9e-setup-mutation-watch/3"
 ROUTES = frozenset({
     "command_attempt", "actor_mode_change", "operator_add", "operator_remove", "operator_reload",
     "allow_cheats", "world_mode", "world_difficulty", "team_deserialize", "party_change",
@@ -51,8 +52,23 @@ class SetupHistoryV2(SetupHistory):
     routes: ClassVar[frozenset[str]] = ROUTES | {"global_mode_write"}
 
 
+class HistorySupportV3(HistorySupportV2):
+    policy: Literal["native-e9e-setup-mutation-watch/3"]
+    team_map_hooks_verified: bool
+
+
+class SetupHistoryV3(SetupHistoryV2):
+    policy: Literal["native-e9e-setup-mutation-watch/3"]
+    routes: ClassVar[frozenset[str]] = SetupHistoryV2.routes | {"team_map_write"}
+
+
+HISTORY_MODELS = {POLICY: SetupHistory, POLICY_V2: SetupHistoryV2, POLICY_V3: SetupHistoryV3}
+HISTORY_SCHEMAS = {POLICY: "strata/NativeSetupHistory/1", POLICY_V2: "strata/NativeSetupHistory/2",
+                   POLICY_V3: "strata/NativeSetupHistory/3"}
+
+
 def parse_history(value):
-    return (SetupHistoryV2 if value.get("policy") == POLICY_V2 else SetupHistory).model_validate(value)
+    return HISTORY_MODELS.get(value.get("policy"), SetupHistory).model_validate(value)
 
 
 def advance(previous, current):
@@ -73,6 +89,8 @@ def qualify_history(support, terminal):
         reasons.append("mutation_hooks_unavailable")
     if isinstance(support, HistorySupportV2) and not support.global_map_hooks_verified:
         reasons.append("global_map_hook_unavailable")
+    if isinstance(support, HistorySupportV3) and not support.team_map_hooks_verified:
+        reasons.append("team_map_hook_unavailable")
     if terminal.off_thread_attempts:
         reasons.append("off_thread_mutation_attempt")
     if terminal.overflowed:

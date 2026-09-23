@@ -112,6 +112,9 @@ def resolve_worker_invocation(profile, value, binding):
     """Resolve the single declared argument slot, with no caller setting overrides."""
     require(value is not None, "WORKER_INVOCATION_REQUIRED")
     invocation = WorkerInvocation.model_validate(value)
+    from .pack_launch import WorkerProfileBaseline
+    if isinstance(getattr(binding, "restoration", None), WorkerProfileBaseline):
+        require(invocation.epoch == 1, "PACK_BASELINE_NEW_CAMPAIGN_REQUIRED")
     state, config = _path(invocation.state_directory), _path(invocation.configuration_path)
     require(state.is_dir() and not any(state.iterdir()) and config.parent.is_dir()
             and not config.exists(), "WORKER_INVOCATION_NOT_FRESH")

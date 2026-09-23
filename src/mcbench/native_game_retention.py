@@ -25,7 +25,9 @@ def paired_components(output, result, input_sha256, server_plan):
     """Join normal/extended Windows paths without weakening stop requirements."""
     from mcbench.launch_integrity import safe
     from mcbench.vanilla_persistence import verify_snapshot
-    snapshot = result["server_result"]["stopped_snapshot"]
+    server = result.get("server_result")
+    require(isinstance(server, dict) and isinstance(server.get("stopped_snapshot"), dict), "M0_CAPTURE_INCOMPLETE")
+    snapshot = server["stopped_snapshot"]
     target = safe(output / "server/stopped-instance")
     require(result["status"] == "pass" and safe(Path(snapshot["path"])) == target,
             "M0_CAPTURE_INCOMPLETE")

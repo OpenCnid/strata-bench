@@ -214,11 +214,11 @@ class VanillaPersistence:
             self.template = template_files(self.installed_inventory, self.pack)
         else:
             require(resolved is None, "VANILLA_TEMPLATE_CHANGED")
-        from .pack_launch import RestoredPackLaunchBinding
+        from .pack_launch import RestoredPackLaunchBinding, restoration_scope
         if isinstance(pack, RestoredPackLaunchBinding):
             from .pack_restore import load_restoration, restored_layout
             world = load_restoration(pack, self.installed_inventory)
-            require(resolved.get("scope") == "restored_materialization_preflight"
+            require(resolved.get("scope") == restoration_scope(pack)
                     and resolved.get("restoration") == pack.restoration.model_dump(), "VANILLA_TEMPLATE_CHANGED")
             inventory, entries, _ = restored_layout(self.root, world)
         else:

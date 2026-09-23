@@ -584,6 +584,9 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *,
             and server_plan["schema"] == ("strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4")
             and server_plan["pack"] == plan["pack"], "NATIVE_GAME_PACK_BINDING")
     binding = plan["pack"]
+    from mcbench.pack_launch import WorkerProfileBaseline, parse_pack_binding, restoration_scope
+    typed_binding = parse_pack_binding(binding)
+    imported = isinstance(getattr(typed_binding, "restoration", None), WorkerProfileBaseline)
     lock = PackLock.model_validate(bundle.json("run/pack-lock.json"))
     profile = VanillaLaunchProfile.model_validate(bundle.json("run/pack-launch-profile.json"))
     inventory = bundle.json("run/pack-inventory.json")
@@ -603,10 +606,19 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *,
         source = binding["restoration"]
         archived = "restoration-source" if recovery else "baseline"
         baseline = verify_snapshot(bundle.path(f"run/{archived}/manifest.json").parent, source["sha256"])
-        require(set(source) == {"snapshot", "sha256"} and baseline["schema"] == "strata/StoppedVanillaSnapshot/2"
+        if imported:
+            from mcbench.pack_baseline import verify_profile_baseline
+            require(not recovery and config["epoch"] == 1, "PACK_BASELINE_NEW_CAMPAIGN_REQUIRED")
+            documents = {"source_lock": bundle.json("run/baseline-source-lock.json"),
+                         "source_profile": bundle.json("run/baseline-source-profile.json"),
+                         "target_lock": lock.model_dump(), "target_profile": profile.model_dump()}
+            proof = verify_profile_baseline(typed_binding, baseline, inventory, documents,
+                                            bundle.path("run/baseline/manifest.json").parent)
+            require(bundle.json("run/baseline-import.json") == proof, "NATIVE_GAME_PACK_BASELINE")
+        require((imported or set(source) == {"snapshot", "sha256"}) and baseline["schema"] == "strata/StoppedVanillaSnapshot/2"
                 and baseline["installed_inventory"] == inventory
-                and baseline["pack"] == {"lock": binding["lock"], "request_id": binding["request_id"],
-                                         "inventory_digest": lock.installed_root_digest}
+                and (imported or baseline["pack"] == {"lock": binding["lock"], "request_id": binding["request_id"],
+                                         "inventory_digest": lock.installed_root_digest})
                 and (recovery or not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in baseline["files"])),
                 "NATIVE_GAME_PACK_BASELINE")
         if recovery:
@@ -619,7 +631,7 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *,
                 and value["launch_profile"] == lock.launch_profile and value["inventory_digest"] == lock.installed_root_digest
                 and value["role"] == role and value["target"] == "vanilla"
                 and value["is_example"] is False
-                and value["scope"] == ("restored_materialization_preflight" if restored else "fresh_materialization_preflight")
+                and value["scope"] == (restoration_scope(typed_binding) if restored else "fresh_materialization_preflight")
                 and value["campaign_admission"] is False and value["writer_custody_qualified"] is False
                 and windows(value["instance"]) == windows(binding["instance"]), "NATIVE_GAME_PACK_BINDING")
         require((value.get("restoration") == binding["restoration"] if restored else "restoration" not in value),

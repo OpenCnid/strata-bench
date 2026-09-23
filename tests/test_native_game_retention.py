@@ -275,6 +275,13 @@ def test_reconstruction_rejects_derived_corruption(archived_retention, case, cod
         inspect_archive_retention(root, launch, intent)
 
 
+@pytest.mark.parametrize("server", [None, {}, {"stopped_snapshot": None}])
+def test_missing_server_capture_has_typed_failure(tmp_path, server):
+    from mcbench.native_game_retention import paired_components
+    with pytest.raises(Fault, match="M0_CAPTURE_INCOMPLETE"):
+        paired_components(tmp_path, {"status": "fail", "server_result": server}, "a" * 64, {})
+
+
 @pytest.mark.parametrize("case", ["valid", "wrong-plan", "world-changed", "joint-changed"])
 def test_stopped_world_and_native_component_join(archived_retention, installed, case):
     from mcbench.storage import digest

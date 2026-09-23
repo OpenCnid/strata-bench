@@ -1,8 +1,9 @@
 # Native completion and normal worker/server stop
 
 September 22, 2026. Operator-only. M0.1d.8c is `implemented_unverified`:
-the connected source and synthetic process checks pass; the changed runtime
-still needs a new sealed launch identity and authentic native/game execution.
+the connected source and synthetic process checks pass; a new sealed launch is
+prepared. Its first attempt failed before Java/native startup. The capture-scope
+fix has focused verification; post-fix authentic execution remains pending.
 M0 remains incomplete and G0 is `fail`.
 
 Coverage: parent M0.1d.8 requirements/contracts, plus N03; partial
@@ -114,3 +115,75 @@ integration remain open. The original $10 API-equivalent allowance retains
 $0.7554 unresolved plus $0.001458 settled; D12 is consumed and general model
 admission remains blocked. No game, actual model request or shared-desktop
 input ran for this source change. M0 incomplete; G0 fail; goal remains active.
+
+## Changed-profile baseline connection
+
+The follow-up source connects an explicit `WorkerProfileBaseline` to the existing
+restorer, held worker, native runner and offline evidence verifier. It requires
+both durable sealed identities, exact installed inventory and unchanged server
+configuration, while preserving the original snapshot identity. Player-history
+files and a nonempty user cache reject; the imported worker requires epoch 1,
+and the old-campaign recovery path rejects this import policy.
+Materialization/3 and StoppedWorldBaseline/2 keep the new campaign declaration
+separate from same-profile restoration. Full save/intervention qualification
+remains open. SPEC 0.2.127; M0.1d.8c and its existing coverage.
+
+Focused restoration/import verification: **29 passed**. The changed import plus
+affected sealed native, retention, continuation, recovery and gameplay-package
+selection: **149 passed**. This includes actual sealed SQLite/CAS/file operations
+on synthetic worlds, a controlled worker fixture and offline reconstruction;
+changed server/budget/Java/environment, source pins, recorded player history,
+later epochs, old-campaign recovery and retired source authority reject. Counts
+overlap. Ruff passes; the two existing Typer/Click warnings remain.
+
+The actual new private request `vanilla-1192-worker-stop-20260922` is SEALED with
+PackLock `cas:sha256:12e7d7542c58bec5852f2dd82923482fe448ea4481d42e692c0983bc2a5d7cbd`.
+It reuses the original acquired distribution bytes and verified installed roles,
+with explicit acquisition-reuse provenance; no download or allowance is created.
+Nine new checks bind the new identity to retained unchanged-input evidence and
+the actual controlled-runtime import. These are template provisioning checks,
+not a full game or G0 qualification. The new template and imported instance are
+prepared outside the public checkout. The original startup failure and snapshot
+remain unchanged; both level files were independently checked for absent
+embedded Player data, and the retained origin records zero avatars/native work.
+
+Private publication audit `2026-09-22-worker-stop-launch-01`: **20 files /
+2,157,744 bytes**, independently verified seal
+`4b237bf00c9fc1a71b18ada6e1024580ca3daa800b2a187eabc69aa4a88db406`.
+All original objects, journal entries and provisioning rows are preserved.
+Only objects/outbox/provisioning add the new profile; **31 other tables** and
+all original accounting/D12 state remain unchanged. The audit launches no game,
+model or shared-desktop input.
+
+The changed native/game run is prepared as `2026-09-22-m0-normal-stop-01`, using
+a new declared campaign/system identity, the exact controlled runtime and
+scripted replies. Its first outcome is retained below; authentic completion-to-stop verification remains pending.
+
+## Retained attempt and stopping checkpoint
+
+Attempt `2026-09-22-m0-normal-stop-01` ends with `SERVER_EARLY_EXIT`: the
+VanillaPersistence constructor required the old restoration scope and rejected
+the explicitly imported baseline with `VANILLA_TEMPLATE_CHANGED`. This happens
+before Java spawn, avatar connection or native work. Absent server capture also
+produced a secondary `TypeError`. All **11 owned processes** are terminal, zero
+forced-terminated members; the outer process exits **1** after **45.578 s**.
+All 34 authority tables and the complete prepared instance are unchanged.
+
+The independently verified failed archive contains **247 files / 30,923,063
+bytes**, seal
+`c393439b6aa9fa0b6c951ee1d3d488fbe4f713767989127ff3fce37df8bfdeae`.
+It retains the exact executed source, plans, preflight, error traces and failed
+result. It is not a successful game run or eligible native recovery parent.
+
+The source now shares restoration-scope selection between launch, persistence
+and offline verification. The imported-baseline regression exercises the actual
+capture constructor and verifies the resulting snapshot names the new PackLock
+while preserving the old source snapshot. Missing server captures now produce
+`M0_CAPTURE_INCOMPLETE` without replacing the original launch error. Focused
+import/retention/persistence checks: **91 passed**, with the same two existing
+warnings; Ruff and whitespace pass. No post-fix authentic run is claimed.
+
+The user requested two ordered merge checkpoints and a new session. No more game
+trials run before that handoff. Next revalidate the prepared new profile and run
+one changed native/vanilla completion-to-stop case in a fresh evidence directory;
+retain attempt 01. M0 remains incomplete and G0 fails.

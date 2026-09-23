@@ -80,8 +80,9 @@ class GameRecovery:
                 "GAME_RECOVERY_WORKER_CHANGED")
 
     def validate_sealed_binding(self, binding, invocation):
-        from mcbench.pack_launch import RestoredPackLaunchBinding
+        from mcbench.pack_launch import RestoredPackLaunchBinding, VanillaWorldSource
         require(self.sealed and isinstance(binding, RestoredPackLaunchBinding)
+                and type(binding.restoration) is VanillaWorldSource
                 and binding.lock == self.retention.config.pack_lock == self.world["pack"]["lock"]
                 and binding.request_id == self.world["pack"]["request_id"]
                 and binding.restoration.sha256 == self.server["stopped_snapshot"]["manifest_sha256"]

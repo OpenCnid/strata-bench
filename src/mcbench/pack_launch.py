@@ -10,6 +10,7 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Literal
 
 from .contracts import Digest, Id, Ref, Strict
 from .inventory import file_hash, scan_tree, template_path
@@ -31,8 +32,26 @@ class VanillaWorldSource(Strict):
     sha256: Digest
 
 
+class WorkerProfileBaseline(VanillaWorldSource):
+    policy: Literal["vanilla1192-worker-profile-baseline/1"]
+    source_request_id: Id
+    source_lock: Ref
+
+
+def parse_world_source(value):
+    if isinstance(value, VanillaWorldSource):
+        value = value.model_dump()
+    model = WorkerProfileBaseline if isinstance(value, dict) and "policy" in value else VanillaWorldSource
+    return model.model_validate(value)
+
+
 class RestoredPackLaunchBinding(PackLaunchBinding):
-    restoration: VanillaWorldSource
+    restoration: WorkerProfileBaseline | VanillaWorldSource
+
+
+def restoration_scope(binding):
+    return ("imported_baseline_preflight" if isinstance(binding.restoration, WorkerProfileBaseline)
+            else "restored_materialization_preflight")
 
 
 def parse_pack_binding(value):
@@ -157,7 +176,7 @@ credential, runtime dependency and mutable-world boundaries.
             "scope": "fresh_materialization_preflight", "writer_custody_qualified": False,
             "campaign_admission": False}
     if restored:
-        result.update(scope="restored_materialization_preflight", restoration=binding.restoration.model_dump())
+        result.update(scope=restoration_scope(binding), restoration=binding.restoration.model_dump())
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
         from .pack_worker import resolve_worker_invocation
         result.update(resolve_worker_invocation(launch, worker_invocation, binding))

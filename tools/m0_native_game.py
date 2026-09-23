@@ -149,6 +149,16 @@ def run_plan(plan, resources, runtime=None):
         if restored:
             world = archive_restoration(pack, json.loads((output / "pack-inventory.json").read_bytes()),
                                         output / ("restoration-source" if sealed_recovery else "baseline"))
+            from mcbench.pack_launch import WorkerProfileBaseline
+            if isinstance(pack.restoration, WorkerProfileBaseline):
+                from mcbench.pack_baseline import profile_documents, verify_profile_baseline
+                require(not sealed_recovery and invocation.epoch == 1, "PACK_BASELINE_NEW_CAMPAIGN_REQUIRED")
+                documents = profile_documents(pack)
+                proof = verify_profile_baseline(pack, world, json.loads((output / "pack-inventory.json").read_bytes()),
+                                                documents, output / "baseline")
+                for key in ("source_lock", "source_profile"):
+                    write(output / ("baseline-" + key.replace("_", "-") + ".json"), documents[key])
+                write(output / "baseline-import.json", proof)
             require(sealed_recovery or not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in world["files"]),
                     "M0_BASELINE_HAS_PLAYER_STATE")
     else:

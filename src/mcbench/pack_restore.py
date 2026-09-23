@@ -11,7 +11,9 @@ import shutil
 
 from .inventory import file_hash
 from .launch_integrity import FileLease, safe, snapshot
-from .pack_launch import PackLaunchBinding, RestoredPackLaunchBinding, VanillaWorldSource, _absolute, resolve_pack_launch
+from .pack_launch import (
+    PackLaunchBinding, RestoredPackLaunchBinding, WorkerProfileBaseline, _absolute, parse_world_source, resolve_pack_launch,
+)
 from .storage import canonical, digest, require
 from .vanilla_persistence import disposition, layout, template_files, verify_snapshot, write_new
 
@@ -23,6 +25,10 @@ def load_restoration(binding, inventory):
     for path in (_absolute(binding.instance), _absolute(binding.store)):
         require(not source.is_relative_to(path) and not path.is_relative_to(source), "PACK_RESTORE_OVERLAP")
     world = verify_snapshot(source, binding.restoration.sha256)
+    if isinstance(binding.restoration, WorkerProfileBaseline):
+        from .pack_baseline import profile_documents, verify_profile_baseline
+        verify_profile_baseline(binding, world, inventory, profile_documents(binding), source)
+        return world
     require(world["schema"] == "strata/StoppedVanillaSnapshot/2"
             and world["pack"] == {"lock": binding.lock, "request_id": binding.request_id,
                                   "inventory_digest": digest(inventory)}
@@ -31,8 +37,9 @@ def load_restoration(binding, inventory):
 
 
 def restoration_marker(binding, world):
-    return {"schema": "strata/Materialization/2", "is_example": False, "lock": binding.lock,
-            "inventory_digest": world["pack"]["inventory_digest"], "policy": POLICY,
+    imported = isinstance(binding.restoration, WorkerProfileBaseline)
+    return {"schema": "strata/Materialization/3" if imported else "strata/Materialization/2", "is_example": False, "lock": binding.lock,
+            "inventory_digest": world["pack"]["inventory_digest"], "policy": binding.restoration.policy if imported else POLICY,
             "restoration": binding.restoration.model_dump(), "complete_checkpoint": False,
             "dispatch_authorized": False, "writer_custody_qualified": False}
 
@@ -56,6 +63,11 @@ def digest_bytes(raw):
 
 
 def baseline_record(binding):
+    if isinstance(binding.restoration, WorkerProfileBaseline):
+        return {"schema": "strata/StoppedWorldBaseline/2", "pack_lock": binding.lock,
+                "snapshot_sha256": binding.restoration.sha256, "source_lock": binding.restoration.source_lock,
+                "source_request_id": binding.restoration.source_request_id, "policy": binding.restoration.policy,
+                "new_campaign_baseline": True, "complete_checkpoint": False, "baseline_save_qualified": False}
     return {"schema": "strata/StoppedWorldBaseline/1", "pack_lock": binding.lock,
             "snapshot_sha256": binding.restoration.sha256, "complete_checkpoint": False,
             "baseline_save_qualified": False}
@@ -89,7 +101,7 @@ def restore_pack_instance(fresh, source, destination):
     only read. A failed staging directory is retained and cannot be reused.
     """
     require(type(fresh) is PackLaunchBinding, "PACK_RESTORE_TEMPLATE")
-    source = VanillaWorldSource.model_validate(source)
+    source = parse_world_source(source)
     template_root, target = _absolute(fresh.instance), _absolute(destination)
     require(not target.exists() and target.parent.is_dir(), "PACK_RESTORE_TARGET")
     binding = RestoredPackLaunchBinding(**(fresh.model_dump() | {"instance": str(target)}), restoration=source)

@@ -60,3 +60,9 @@ Current evidence cannot settle it. Under the recorded
 bounded exception retaining that hold is needed before this live trial can be
 dispatched. D14 changed isolation scope only. No such exception has been
 installed, and no model call has been made by this implementation.
+
+The [fresh preparation and independent audit](../verification/2026-09-23-pilot-preparation.md)
+now establish the actual unused instance and sealed private plan. Use those
+inputs after the pending admission decision, preserving their version and all
+retained failures. No reinstall, worker rebuild or repeated normal-stop trial
+is needed to resume.

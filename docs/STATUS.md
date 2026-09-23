@@ -1,5 +1,7 @@
 # Strata current status
 
+**Fresh pilot inputs are prepared:** [preparation case02](verification/2026-09-23-pilot-preparation.md) validates a new unused vanilla instance, zero helpers, the existing sealed Mineflayer worker and original-baseline binding. No game/model process ran; the actual driver confirms the unchanged accounting block. The pending one-run exception is the next live-piloting dependency. Reuse this prepared instance, preserving the failed initial preparation and native flat-seal inventory corrections.
+
 **September 23 implementation:** [M0.1d.9](verification/2026-09-23-native-piloting.md) connects actual native model decisions to the existing Mineflayer backend with two bounded turn/walk actions and observation/journal checks. 275 distinct focused source/schema cases pass. Authentic piloting remains unrun because the original unknown-usage rule blocks admission before game startup. The [one-run trial](operations/m0-piloting-trial.md) is ready for review; no budget exception is installed.
 
 **Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.

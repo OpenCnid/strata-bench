@@ -1,5 +1,12 @@
 # D14 Mineflayer piloting implementation
 
+**Inventory correction from the subsequent preparation:** the original
+top-level seals below omit 211 deep Windows paths each. They remain failed as
+standalone complete inventories. Their already sealed bootstrap manifests bind
+all omitted bytes; complete transitive verification passes without changing
+old seals or rerunning tests. See the [preparation report](2026-09-23-pilot-preparation.md)
+for exact complete counts and the ready private pilot inputs.
+
 M0.1d.9 is **implemented_unverified** for authentic integration. M0 stays
 in_progress and G0 stays fail. The complete M1–M7 roadmap remains represented.
 Coverage: F03/F06/F09/F11/F16, N01/N02/N04/N06, C06/C12/C20, partial
@@ -65,7 +72,8 @@ to the changed source. Case02 also passes 58/58 checks, 11 scripted requests,
 FINALIZED closure and unchanged authority. All 111 current source pins match.
 Its seal is `5985b95fa1729fc460b46943945531fbce1f767468164fcbb77e5524e3e7b599`,
 3,441 files / 73,447,905 bytes. Both complete bundles and external seal receipts
-remain in private evidence storage.
+remain in private evidence storage; use the inventory correction above when
+assessing completeness.
 
 Final review adds a required normal native exit before success. Case02 remains
 retained for its exact source; case03 refreshes the native preflight after that

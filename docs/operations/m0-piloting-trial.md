@@ -1,6 +1,6 @@
 # M0 development piloting trial
 
-**Current M0 piloting result (2026-09-23):** D18.1 exposed incorrect paging instructions and a missing pilot method; corrected D18.2 successfully delivered capabilities, observe and observe.page through real Mineflayer. Both runs settled six requests and stopped normally; neither model selected an action. Original exposure is $0.789908, including the unchanged $0.7554 hold. The follow-up prompt separates turning from walking and removes the extra landmark prerequisite; 44 focused cases pass, but it needs fresh native/live evidence. Continuing D18 approval remains active; no permission is pending. Next refresh preflight and create a fresh bounded admission/instance, preserving all five used pilots. M0 in_progress/G0 fail. [Exact evidence and limits](../verification/2026-09-23-pagination-pilot.md).
+**Current M0 piloting result (2026-09-23):** D18.3 completed the first actual GPT-6 Luna-selected Mineflayer turn (71.55 degrees, one primitive, released controls). The distinct D18.4 / m0-pilot-07 used the corrected 12-request cap but failed on request five: HTTP 200, incomplete stream, no terminal usage receipt. Four requests settled for $0.002896; request six was refused before dispatch with METERING_UNKNOWN. All 53 processes are terminal; worker forced cleanup remains a failure. Original committed/reserved exposure is $1.795559, including the retained old hold and unresolved new $1 job envelope. New paid dispatch is blocked by this new uncertainty, not pending user approval; no replay or refund. Follow-up diagnostics and drain-before-accounting-failure fixes pass 173 focused cases; authentic changed failure-path integration remains unverified. Continue independent M0 scorer/setup and clock/save work. All seven used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](../verification/2026-09-23-first-model-action.md).
 
 **D18 — continuing execution approval (2026-09-23):** the user stated, “I approve all runs and authorize the spend.” This authorizes necessary M0/G0 implementation and validation runs within the original $10 total API-equivalent allowance; no further per-run user confirmation is required within that scope. It creates no new allowance and does not release the old $0.7554 unknown hold or permit blind replay. Every run remains bounded and individually accounted; any new unknown usage stops further admission. The first run, m0-pilot-03, has finished: six settled GPT-6 Luna requests cost $0.004677; capabilities and observation reached Mineflayer, but the model selected no actions. Combined exposure is $0.778471 including the unchanged hold. The used job cannot replay; continuing approval remains active. M1–M7 and shared-desktop input remain outside scope.
 
@@ -33,7 +33,7 @@ retained as an outcome, not retried to manufacture a pass.
 |---|---|
 | Model | D17-selected `gpt-6-luna`, ChatGPT OAuth; fresh generation/initial artifacts |
 | Bodies/helpers | One Mineflayer avatar, zero helpers |
-| Model calls | At most six, one handler, every request reserved and settled separately |
+| Model calls | Six or twelve as pinned by the immutable run decision; one handler, each request separately reserved and settled |
 | Additional API-equivalent estimate | At most $1 total from the original $10; not $1 per call or an OAuth invoice |
 | Retained accounting | Existing $0.7554 unknown hold and $0.018394 settled usage remain; maximum combined exposure $1.773794 |
 | Native duration | At most 90 seconds after native start; existing worker/server lifecycle limits still apply |
@@ -51,7 +51,7 @@ It requires a fresh original-baseline restoration and output, the existing
 controlled worker/PackLock, a fresh zero-helper preregistration, current native
 preflight, and original authority/credential references. Its `pilot` object has
 `database`, `objects`, `credentials`, `preflight`, `authorization`, and `job_id`;
-the proposed one-run identity is `validation-2026-09-18:m0-pilot-03`. It is distinct from the consumed 01/02 jobs.
+all identities through `validation-2026-09-18:m0-pilot-07` are now used and cannot replay. Each run requires a distinct durable decision, preserving preceding costs and unknown usage. D18.4 permits twelve model requests; D15 through D18.3 retain six. Both profiles keep the 90-second/$1/zero-helper bounds.
 D15 additionally supplied the private `budget_decision` file, validated against
 the unchanged original authorization and retained unknown rows.
 
@@ -81,3 +81,5 @@ exception; six actual requests settled, but malformed game calls prevented
 piloting. D15 is now consumed and cannot be rearmed.
 
 The earlier [D15 preparation](../verification/2026-09-23-pilot-preparation.md) is historical and its instance was used. D16 also used its prepared instance. Preserve both. The [GPT-6 Luna preparation](../verification/2026-09-23-luna6-pilot-preparation.md) identifies the current fresh plan and its actual verification. No reinstall or unchanged worker rebuild is needed.
+
+The current D18.4 unknown differs from the original hold: it has a partial HTTP-200 stream but no terminal usage receipt. The $1 job envelope remains reserved and further paid admission is blocked. Continuing D18 approval remains valid; no approval question is pending. Preserve all seven used instances and continue independent M0 implementation. The next possible native trial needs fresh preflight evidence for the diagnostic/cleanup changes and resolved admission authority; never rerun the old plan.

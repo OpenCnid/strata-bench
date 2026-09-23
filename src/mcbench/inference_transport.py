@@ -16,10 +16,27 @@ from urllib.parse import urlsplit
 
 from .accounting import EstimateBasis, TokenUsage, UsageValuation
 from .records import BudgetLedger
-from .storage import Principal, require
+from .storage import Fault, Principal, require
 
 MAX_RESPONSE_BYTES = 256 * 1024
 BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
+
+
+def transport_failure_code(error, *, cancelled=False):
+    """Stable diagnosis without exception messages, URLs, headers or credentials."""
+    if cancelled:
+        return "TRANSPORT_CANCELLED"
+    if isinstance(error, Fault):
+        return error.code
+    if isinstance(error, TimeoutError):
+        return "TRANSPORT_TIMEOUT"
+    if isinstance(error, http.client.IncompleteRead):
+        return "TRANSPORT_TRUNCATED_BODY"
+    if isinstance(error, http.client.HTTPException):
+        return "TRANSPORT_HTTP_ERROR"
+    if isinstance(error, OSError):
+        return "TRANSPORT_IO_ERROR"
+    return "TRANSPORT_INTERNAL_ERROR"
 
 
 def strict_json(raw):
@@ -218,16 +235,19 @@ class _ResponsesTransport:
             connection, path, headers = self._request()
             capture = None
             raw_ref = None
+            phase = "connect"
             try:
                 connection.connect()
                 sock = connection.sock
                 with self.connection_lock:
                     self.active_socket = sock
                 require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
+                phase = "send_request"
                 connection.request("POST", path, body=body, headers=headers)
                 remaining = deadline - time.monotonic()
                 require(remaining > 0, "TRANSPORT_DEADLINE")
                 sock.settimeout(remaining)
+                phase = "response_headers"
                 response = connection.getresponse()
                 media = response.getheader("Content-Type", "").split(";", 1)[0].strip().lower()
                 # Preserve safe diagnostic metadata even when the wire format is
@@ -248,8 +268,10 @@ class _ResponsesTransport:
                 capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream") if (
                     supported or buffered_sse) else RejectedResponseCapture()
                 if supported:
+                    phase = "deliver_headers"
                     on_headers(response.status, media)
                 while not response.isclosed():
+                    phase = "response_body"
                     remaining = deadline - time.monotonic()
                     require(remaining > 0, "TRANSPORT_DEADLINE")
                     sock.settimeout(remaining)
@@ -260,12 +282,16 @@ class _ResponsesTransport:
                     if safe:
                         capture.feed(safe)
                         if supported:
+                            phase = "deliver_body"
                             on_chunk(safe)
+                phase = "receipt_validation"
                 safe = self._filter(b"", final=True)
                 if safe:
                     capture.feed(safe)
                     if supported:
+                        phase = "deliver_body"
                         on_chunk(safe)
+                phase = "receipt_validation"
                 observed = capture.finish()
                 if buffered_sse:
                     # Only the fixed native adapter opts in. Withhold the entire
@@ -276,8 +302,11 @@ class _ResponsesTransport:
                             "operation_id": reserve.operation_id, "policy": BUFFERED_SSE_POLICY,
                             "raw_sha256": hashlib.sha256(capture.raw).hexdigest(),
                             "simulation": self.gate.simulation})
+                    phase = "deliver_headers"
                     on_headers(200, "text/event-stream")
+                    phase = "deliver_body"
                     on_chunk(bytes(capture.raw))
+                phase = "receipt_recording"
                 event = observed.pop("event")
                 writes = observed.pop("cache_write_tokens", None)
                 # Cached input and reasoning output are subsets, never added twice.
@@ -307,6 +336,16 @@ class _ResponsesTransport:
                         "token_evidence": "synthetic_fixture" if self.gate.simulation else "provider_reported"})
                     return event, receipt, valuation
                 return event, receipt
+            except Exception as error:
+                with self.gate.db.transaction() as db:
+                    self.gate.db.event(db, "inference.transport_failure", {
+                        "operation_id": reserve.operation_id, "phase": phase,
+                        "reason": transport_failure_code(error, cancelled=self.cancelled.is_set()),
+                        "elapsed_ms": int((time.monotonic() - started) * 1000),
+                        "deadline_ms": int(self.deadline_s * 1000),
+                        "captured_bytes": len(capture.raw) if capture is not None else 0,
+                        "simulation": self.gate.simulation})
+                raise
             finally:
                 connection.close()
                 with self.connection_lock:

@@ -1,6 +1,6 @@
 # M0 implementation handoff
 
-**Current M0 piloting result (2026-09-23):** D18.3 delivered the first actual GPT-6 Luna-selected Mineflayer action: a completed 71.55-degree turn, one primitive and confirmed release. Six settled requests cost $0.005651; the native session then returned 403 at its six-request cap before walking. Cap attribution is inferred from the retained config, request history and code; the old gateway did not audit pre-admission refusals. Original exposure is $0.795559, including the unchanged $0.7554 hold. Partial-effect reporting is corrected and future cap refusals are typed/audited. A distinct D18.4 run permits 12 requests with the same 90-second/$1/zero-helper/two-action limits under continuing D18. No permission is pending. All six used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](verification/2026-09-23-first-model-action.md).
+**Current M0 piloting result (2026-09-23):** D18.3 completed the first actual GPT-6 Luna-selected Mineflayer turn (71.55 degrees, one primitive, released controls). The distinct D18.4 / m0-pilot-07 used the corrected 12-request cap but failed on request five: HTTP 200, incomplete stream, no terminal usage receipt. Four requests settled for $0.002896; request six was refused before dispatch with METERING_UNKNOWN. All 53 processes are terminal; worker forced cleanup remains a failure. Original committed/reserved exposure is $1.795559, including the retained old hold and unresolved new $1 job envelope. New paid dispatch is blocked by this new uncertainty, not pending user approval; no replay or refund. Follow-up diagnostics and drain-before-accounting-failure fixes pass 173 focused cases; authentic changed failure-path integration remains unverified. Continue independent M0 scorer/setup and clock/save work. All seven used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](verification/2026-09-23-first-model-action.md).
 
 **D18 — continuing execution approval (2026-09-23):** the user stated, “I approve all runs and authorize the spend.” This authorizes necessary M0/G0 implementation and validation runs within the original $10 total API-equivalent allowance; no further per-run user confirmation is required within that scope. It creates no new allowance and does not release the old $0.7554 unknown hold or permit blind replay. Every run remains bounded and individually accounted; any new unknown usage stops further admission. The first run, m0-pilot-03, has finished: six settled GPT-6 Luna requests cost $0.004677; capabilities and observation reached Mineflayer, but the model selected no actions. Combined exposure is $0.778471 including the unchanged hold. The used job cannot replay; continuing approval remains active. M1–M7 and shared-desktop input remain outside scope.
 
@@ -82,7 +82,7 @@ team/direct-mutation authority are still required.
    fallback qualification. Mineflayer/E9E remains incompatible. Finally audit all
    six SPEC 16.1 items together; a vanilla-only or local-test pass cannot close G0.
 
-General model admission is blocked by the original hold. Continue independent
+General model admission retains the original hold; fresh bounded admission is now also blocked by D18.4's new unresolved request. Continue independent
 M0 implementation and authorized scripted-provider game integration. Do not
 replay an ambiguous request, reuse D12, replace the allowance, assume a refund,
 or reclassify synthetic replies as authentic model qualification.
@@ -104,8 +104,9 @@ or reclassify synthetic replies as authentic model qualification.
 
 The original $10 total API-equivalent allowance remains authoritative at
 C:/Users/Darian/.strata/operator/provisioning/controller.sqlite. It retains
-$0.7554 unresolved plus $0.018394 settled ($0.773794 combined), fourteen actual
-requests, uncertainty and consumed D12/D15. Read live SQLite with WAL-aware
+$0.7554 original unresolved hold, $0.043055 cumulative settled valuations, and
+the new unresolved D18.4 request/job envelope: $1.795559 committed/reserved,
+43 actual requests and 41 valuations. D12 and all seven pilot jobs are used. Read live SQLite with WAL-aware
 read-only access; historical immutable reads require frozen-WAL verification.
 There is no new allowance or general model admission.
 

@@ -157,7 +157,8 @@ def test_missing_receipt_keeps_hold_and_blocks_next_request(gateway, provider):
     endpoint, calls = provider(b'data: {"type":"response.created"}\n\n')
     gateway.service.fixture_upstream = endpoint.removesuffix("/v1/responses")
     assert gateway.post()[0] == 200
-    assert gateway.post()[0] == 403
+    status, raw = gateway.post()
+    assert status == 403 and json.loads(raw)["error"]["code"] == "METERING_UNKNOWN"
     assert len(calls) == 1
     db = gateway.gate.db.connection
     assert db.execute("SELECT state FROM inference_attempts").fetchone()[0] == "UNSETTLED"

@@ -63,8 +63,9 @@ def wait(predicate, seconds, code):
         time.sleep(.02)
 
 
-@pytest.mark.parametrize("hang,negative_gameplay", [(False, False), (True, False), (False, True), (True, True)])
-def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang, negative_gameplay):
+@pytest.mark.parametrize("hang", [False, True])
+@pytest.mark.parametrize("failure", [None, "gameplay", "accounting"])
+def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang, failure):
     from m0_native_game import finish_native_worker
     node = Path(shutil.which("node") or "C:/Program Files/nodejs/node.exe").resolve()
     assert node.is_file(), "pinned Node required for owned-process test"
@@ -98,15 +99,17 @@ def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_fai
         result = {}
         def finish():
             finish_native_worker(process, config, tmp_path, wait, True,
-                                 {"model_selected_movement": not negative_gameplay}, result)
+                                 {"model_selected_movement": failure is None}, result,
+                                 closure_error="METERING_UNKNOWN" if failure == "accounting" else None)
         if hang:
             with pytest.raises(Fault, match="WORKER_STOP_PROCESS"):
                 finish()
             failure = json.loads((state / "supervisor-stop-2.json").read_bytes())
             assert failure["forced"] and failure["status"] == "fail" and process.poll() != 0
         else:
-            if negative_gameplay:
-                with pytest.raises(Fault, match="NATIVE_GAME_CHECK_FAILED"):
+            if failure:
+                code = "PILOT_NATIVE_CLOSURE" if failure == "accounting" else "NATIVE_GAME_CHECK_FAILED"
+                with pytest.raises(Fault, match=code):
                     finish()
             else:
                 finish()

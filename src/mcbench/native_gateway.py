@@ -20,12 +20,12 @@ from pydantic import Field
 from .accounting import EstimateBasis, FiniteExposure
 from .contracts import Digest, Id, Ref, Strict
 from .inference_dispatch import InferenceAttempt, InferenceDispatches
-from .inference_transport import strict_json
+from .inference_transport import strict_json, transport_failure_code
 from .native_admission import NativeAdmission, context_metadata
 from .native_ingress import NativeIngress, provider_binding
 from .native_oauth import NativeOAuthRequest, NativeOAuthTransport, SyntheticOAuthTransport
 from .records import BudgetLedger
-from .storage import CAS, Database, Fault, Principal, canonical, digest, require
+from .storage import CAS, Database, Principal, canonical, digest, require
 
 POLICY = "native-budgeted-loopback-gateway/1"
 OPERATOR = Principal("operator", "operator")
@@ -329,7 +329,7 @@ class NativeGateway:
                 on_headers=headers, on_chunk=chunk, after_begin=begin)
             self._record(db, result["state"], operation)
         except Exception as error:
-            reason = error.code if isinstance(error, Fault) else "GATEWAY_REQUEST_FAILED"
+            reason = transport_failure_code(error)
             if db and operation:
                 row = db.connection.execute("SELECT state FROM inference_attempts WHERE operation=?",
                                             (operation,)).fetchone()
@@ -341,9 +341,11 @@ class NativeGateway:
                                                              "max_requests": self.config.max_requests})
             if not started:
                 try:
-                    if reason == "GATEWAY_REQUEST_LIMIT":
+                    if reason in {"GATEWAY_REQUEST_LIMIT", "METERING_UNKNOWN"}:
+                        message = ("The pilot request limit has been reached." if reason == "GATEWAY_REQUEST_LIMIT"
+                                   else "A prior request has unresolved usage.")
                         body = canonical({"error": {"code": reason, "type": "strata_gateway_error",
-                            "message": "The pilot request limit has been reached. Stop; do not retry."}})
+                            "message": message + " Stop; do not retry."}})
                         handler.send_response(403)
                         handler.send_header("Content-Type", "application/json")
                         handler.send_header("Content-Length", str(len(body)))

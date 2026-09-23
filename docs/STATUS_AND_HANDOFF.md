@@ -1,5 +1,7 @@
 # M0 implementation handoff
 
+**September 23 implementation:** [M0.1d.9](verification/2026-09-23-native-piloting.md) connects actual native model decisions to the existing Mineflayer backend with two bounded turn/walk actions and observation/journal checks. 275 distinct focused source/schema cases pass. Authentic piloting remains unrun because the original unknown-usage rule blocks admission before game startup. The [one-run trial](operations/m0-piloting-trial.md) is ready for review; no budget exception is installed.
+
 **Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
 
 Operator-only. Updated September 22, 2026. This is an implementation continuation,
@@ -55,9 +57,9 @@ team/direct-mutation authority are still required.
    evidence. Finish setup/team/ingress provenance and positive/negative scorer
    controls; prove that no criteria or scores reach gameplay. Existing craft
    witnesses and signed points are partial evidence, not an admissible score.
-2. Finish the smallest enforceable gameplay/helper filesystem, process, network
-   and tool boundary on the available hardware. A new conversation, broker tool
-   list or separate desktop alone does not qualify isolation.
+2. Preserve the scoped controls and D14 isolation-unqualified label. Full
+   gameplay/helper filesystem, process, network and tool isolation qualification
+   is deferred to M1/G1; do not pursue it as an M0 prerequisite.
 3. Join authoritative time/ticks, clean-save/custody and the remaining applicable
    cancellation/reconnect/recovery cases to the same qualified profile. Preserve
    all consumed costs and old outcomes. Use the existing native/game verifier and

@@ -41,7 +41,7 @@ class NativeLaunch(Strict):
     agent_id: Id
     epoch: Positive
     role: Literal["executor", "helper"]
-    purpose: Literal["campaign", "conformance"] = "campaign"
+    purpose: Literal["campaign", "conformance", "development_piloting"] = "campaign"
     parent_job_id: Id | None
     depth: UInt
     helper_limit: Annotated[int, Field(ge=0, le=32)] = 2
@@ -171,6 +171,10 @@ class NativeExec:
         require(plan.qualification_ref is not None, "RUNTIME_UNQUALIFIED")
         proof = self.cas.json(Principal("operator", "operator"), self.namespace,
                               plan.qualification_ref)
+        if plan.purpose == "development_piloting":
+            from .native_piloting import validate_runtime_admission
+            validate_runtime_admission(self, proof, plan)
+            return
         require(proof.get("schema") == "strata/RuntimeQualification/1" and
                 proof.get("is_example") is False and proof.get("profile_digest") ==
                 plan.profile_digest() and proof.get("expires_unix", 0) > time.time() and
@@ -207,7 +211,7 @@ class NativeExec:
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
         require(reserve.kind == ("helper" if plan.role == "helper" else "model"), "OPERATION_LINEAGE")
-        if plan.purpose == "conformance":
+        if plan.purpose in {"conformance", "development_piloting"}:
             require(reserve.campaign_account == "development", "CONFORMANCE_ACCOUNT_REQUIRED")
         require(reserve.usage.spend_microusd is not None and reserve.usage.spend_microusd > 0,
                 "SPENDING_CEILING_REQUIRED")

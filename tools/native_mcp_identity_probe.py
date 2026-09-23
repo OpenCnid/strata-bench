@@ -829,7 +829,9 @@ def main():
         root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",
         root / "src/mcbench/inference_transport.py", root / "src/mcbench/native_gateway.py",
         root / "src/mcbench/native_skills.py", root / "src/mcbench/native_conformance.py",
-        root / "tools/native_oauth_conformance.py"]
+        root / "tools/native_oauth_conformance.py", root / "src/mcbench/native_piloting.py",
+        root / "tools/native_pilot_trial.py", root / "tools/native_pilot_report.py",
+        root / "tools/m0_native_game.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")

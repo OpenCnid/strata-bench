@@ -3,7 +3,8 @@
 Usage: python tools/m0_native_game.py PRIVATE_PLAN.json
 The explicit plan references an already installed official server and licensed
 avatar cache. No downloads, admin gameplay tool, desktop input or paid model
-requests. Model replies are scripted; Minecraft and the native CLI are real.
+requests for Smoke/Recovery plans. M0NativePilot/1 explicitly selects real model
+decisions and original accounting admission; isolation remains unqualified (D14).
 """
 
 import argparse
@@ -55,12 +56,17 @@ def write(path, body):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    pilot = version == "strata/M0NativePilot/1"
+    if pilot:
+        from native_pilot_trial import check_inputs
+        check_inputs(plan.get("pilot"))
+    sealed = pilot or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
     if sealed:
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
                               "tool_projections", "model_catalog",
-                              "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}, "M0_PLAN_INVALID")
+                              "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}
+                | ({"pilot"} if pilot else set()), "M0_PLAN_INVALID")
         require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
         native_companion_paths(plan["codex"])
         with ExitStack() as resources:
@@ -89,12 +95,16 @@ def run(plan_path):
 
 def run_plan(plan, resources, runtime=None):
     version = plan["schema"]
-    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
-    restored = version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    pilot = version == "strata/M0NativePilot/1"
+    if pilot:
+        from native_pilot_trial import check_inputs
+        check_inputs(plan["pilot"])
+    sealed = pilot or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    restored = pilot or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     sealed_recovery = version == "strata/M0NativeGameRecovery/3"
     prepared = None
     retention = recovery = None
-    if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
+    if pilot or version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
                    "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
@@ -184,7 +194,7 @@ def run_plan(plan, resources, runtime=None):
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
     if retention:
         retention.check_identity(model=MODEL, dovetail_commit=DOVETAIL_COMMIT,
-            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=2)
+            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=0 if pilot else 2)
     for key in ("tool_projections", "model_catalog"):
         private(plan[key])
     require(not (private(worker_config["auth_cache"]) / "auth.lock").exists(), "AUTH_CACHE_IN_USE")
@@ -218,7 +228,8 @@ def run_plan(plan, resources, runtime=None):
     source_pins.update({p.relative_to(worker_root).as_posix(): file_hash(p)
                        for p in (worker_root / "backends/mineflayer/dist/src").iterdir() if p.suffix == ".js"})
     write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
-        "model_provider": "synthetic", "real_model_requests": 0, "authentic_game": True,
+        "model_provider": "native_oauth" if pilot else "synthetic", "real_model_requests": None if pilot else 0,
+        "isolation_qualified": False, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
         "source_pins": source_pins})
     if recovery and not sealed_recovery:
@@ -232,6 +243,10 @@ def run_plan(plan, resources, runtime=None):
     result = {"schema": "strata/M0NativeGameResult/1", "status": "fail", "G0": "fail",
               "model_evidence": "synthetic_provider", "game_evidence": "authentic_vanilla",
               "real_model_requests": 0, "production_qualified": False, "native_worker_journal_join": False}
+    if pilot:
+        result.update(schema="strata/M0NativePilotResult/1", model_evidence="actual_native_oauth",
+                      isolation_qualified=False, scope_decision="D14", complete_checkpoint=False,
+                      real_model_requests=None)
     started = time.monotonic()
 
     def close_owned(name):
@@ -322,10 +337,15 @@ def run_plan(plan, resources, runtime=None):
             result["recovery_start"] = recovery.verify_start(descriptor, observed)
             write(output / "recovery-start.json", result["recovery_start"])
         native = output / "native"
-        native.mkdir()
+        if not pilot:
+            native.mkdir()
         if recovery:
             recovery.copy_native(native)
-        native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
+        if pilot:
+            from native_pilot_trial import run_trial
+            native_result = run_trial(plan, native, descriptor, worker_config["lease_id"])
+        else:
+            native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
             bootstrap_mode=True, ingress_mode=True, oauth_mode=True,
             tool_projections=json.loads(Path(plan["tool_projections"]).read_bytes()),
             no_patch_catalog=Path(plan["model_catalog"]),
@@ -333,9 +353,15 @@ def run_plan(plan, resources, runtime=None):
             game_retention=retention, game_recovery=recovery, job_id="root-recovery" if recovery else "root")
         write(output / "native-result.json", native_result)
         result["native_checks"] = native_result["checks"]
-        result["native_closure"] = native_result["closure"]
-        result["fixture_model_costs"] = native_result["budget"]
-        if retention:
+        if pilot:
+            result["native_closure"] = native_result["runtime"]
+            result["real_model_requests"] = len(native_result["attempts"])
+            result["model_valuations"] = native_result["valuations"]
+            require(native_result["closure_error"] is None, "PILOT_NATIVE_CLOSURE")
+        else:
+            result["native_closure"] = native_result["closure"]
+            result["fixture_model_costs"] = native_result["budget"]
+        if retention and not pilot:
             result["native_retention"] = native_result["retention"]
         require(all(native_result["checks"].values()), "NATIVE_GAME_CHECK_FAILED")
         if runtime and runtime.operator_stop:
@@ -412,6 +438,16 @@ def run_plan(plan, resources, runtime=None):
             action_id = "native-bounded-look" + (f"-epoch-{worker_config['epoch']}" if recovery else "")
             joined = len(selected) == 1 and selected[0]["batch"]["request_id"] == action_id and \
                 selected[0]["ack"]["status"] == "completed" and counters.get("primitive_events", 0) > 0
+            if pilot:
+                report_path = output / "native/result.json"
+                model_actions = []
+                if report_path.exists():
+                    model_actions = [c["body"]["action"] for c in json.loads(report_path.read_bytes())["game_calls"]
+                                     if c["body"]["method"] == "act"]
+                joined = (len(selected) == len(model_actions) == 2 and
+                    [a["batch"] for a in selected] == model_actions and
+                    all(a["ack"]["status"] == "completed" and a["ack"]["release_confirmed"] for a in selected)
+                    and counters.get("primitive_events", 0) > 0)
             if recovery:
                 try:
                     result["recovery_journal"] = recovery.worker_report(journal)
@@ -423,7 +459,7 @@ def run_plan(plan, resources, runtime=None):
                 result["status"] = "fail"
         if not result["native_worker_journal_join"]:
             result["status"] = "fail"
-        if retention:
+        if retention and not pilot:
             # Both components must exist; neither alone is a joint checkpoint.
             try:
                 result["joint_components"] = paired_components(output, result, retention.source["sha256"], server_plan)

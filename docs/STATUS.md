@@ -1,5 +1,7 @@
 # Strata current status
 
+**September 23 implementation:** [M0.1d.9](verification/2026-09-23-native-piloting.md) connects actual native model decisions to the existing Mineflayer backend with two bounded turn/walk actions and observation/journal checks. 275 distinct focused source/schema cases pass. Authentic piloting remains unrun because the original unknown-usage rule blocks admission before game startup. The [one-run trial](operations/m0-piloting-trial.md) is ready for review; no budget exception is installed.
+
 **Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
 
 Updated September 22, 2026. Operator-only.
@@ -31,8 +33,9 @@ also passes its narrow authentic contract: 134 focused checks and 46/46 independ
 audit checks, with intermediate privileges, final empty roster and permanently
 tainted signed history. No scoring/full-history qualification is claimed.
 
-Then finish the connected private scorer/setup, enforced isolation,
-authoritative clock/save/recovery and exact E9E qualification gaps below.
+After piloting, finish the connected private scorer/setup, authoritative
+clock/save/recovery and exact E9E qualification gaps below. Full isolation
+qualification remains deferred to M1/G1 under D14.
 Do not restart the completed verifier/accounting matrix or expand M1–M7.
 
 ## Six required G0 outcomes
@@ -73,4 +76,6 @@ close G0. [Actual verification](verification/2026-09-22-session-handoff.md#execu
   Separate desktops or conversations do not qualify isolation. D05 sign-in,
   Java entitlement and EULA approval already exist.
 
-No missing user input is pending for the next independent M0 implementation.
+The bounded retained-hold exception question is pending for actual model dispatch.
+No renewed isolation, entitlement or EULA authorization is needed. Independent
+M0 source work remains authorized.

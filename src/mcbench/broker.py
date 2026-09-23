@@ -381,6 +381,8 @@ class NativeBroker:
                 inspect_game_requests(db, self.runtime_id)
                 return json.loads(old["result"]) if old["result"] is not None else {
                     "status": "unknown", "request_id": r.request_id, "replayed": False}
+            from .native_piloting import require_bounded_game_request
+            require_bounded_game_request(db, self.runtime_id, r)
             db.execute("INSERT INTO broker_game_calls VALUES(?,?,?,?,'DISPATCHING',NULL)",
                        (*key, digest(request)))
             db.execute("INSERT INTO broker_game_requests VALUES(?,?,?,?,?)", (*key, canonical(request).decode(), event))

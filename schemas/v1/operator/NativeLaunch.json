@@ -42,7 +42,8 @@
       "default": "campaign",
       "enum": [
         "campaign",
-        "conformance"
+        "conformance",
+        "development_piloting"
       ],
       "title": "Purpose",
       "type": "string"

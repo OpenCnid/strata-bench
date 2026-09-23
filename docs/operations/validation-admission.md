@@ -1,5 +1,8 @@
 # Initial validation: budget and native boundary
 
+**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 102 focused checks but has not had a new native or live-model trial. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](../verification/2026-09-23-d15-pilot.md).
+
+
 Updated September 22, 2026. Operator-only. This is the continuation contract for
 M0.1c.1c.2 and M0.1c.2b.2, not an executable authorization or qualification.
 Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12/D14 in MILESTONES.md.
@@ -34,7 +37,7 @@ wire transport and native supervisor now enforce versioned estimate bounds and
 valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
 records the actual private migration and focused source/synthetic evidence.
 The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
-read it before dispatch and do not install another allowance. The first actual OAuth request still holds $0.7554 once. D12's distinct request settled offline at $0.001458 from a completed captured receipt, preserving the original native delivery failure. Current total is $0.756858, two actual requests, one valuation, uncertainty true. D12 is consumed; general admission remains blocked. Full reply/exposure and isolation qualification remain incomplete; no reset or replay.
+read it before dispatch and do not install another allowance. The first actual OAuth request still holds $0.7554 once. D12's distinct request settled offline at $0.001458 from a completed captured receipt, preserving the original native delivery failure. After D15, current total is $0.763280: the original unknown hold plus seven settled valuations across eight actual requests. Uncertainty remains true solely from the retained original request. D12 and D15 are consumed; general admission remains blocked. Full reply/exposure and isolation qualification remain incomplete; no reset or replay.
 
 The [durable pre-dispatch denial extension](../verification/2026-09-21-native-activation-exec.md) now records known budget refusals without a receipt or charge. A rejected operation cannot replay; missing legacy proof blocks closure/export. This never clears the original ambiguous OAuth request or authorizes another trial.
 

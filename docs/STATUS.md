@@ -1,8 +1,7 @@
 # Strata current status
 
-**Fresh pilot inputs are prepared:** [preparation case02](verification/2026-09-23-pilot-preparation.md) validates a new unused vanilla instance, zero helpers, the existing sealed Mineflayer worker and original-baseline binding. No game/model process ran; the actual driver confirms the unchanged accounting block. The pending one-run exception is the next live-piloting dependency. Reuse this prepared instance, preserving the failed initial preparation and native flat-seal inventory corrections.
+**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 102 focused checks but has not had a new native or live-model trial. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](verification/2026-09-23-d15-pilot.md).
 
-**September 23 implementation:** [M0.1d.9](verification/2026-09-23-native-piloting.md) connects actual native model decisions to the existing Mineflayer backend with two bounded turn/walk actions and observation/journal checks. 275 distinct focused source/schema cases pass. Authentic piloting remains unrun because the original unknown-usage rule blocks admission before game startup. The [one-run trial](operations/m0-piloting-trial.md) is ready for review; no budget exception is installed.
 
 **Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
 
@@ -58,8 +57,8 @@ close G0. [Actual verification](verification/2026-09-22-session-handoff.md#execu
 
 ## Constraints and retained failures
 
-- Original **$10 API-equivalent total**: **$0.7554 unresolved + $0.001458 settled**,
-  two actual requests, uncertainty and consumed D12. General model admission
+- Original **$10 API-equivalent total**: **$0.7554 unresolved + $0.007880 settled**,
+  eight actual requests, uncertainty and consumed D12/D15. General model admission
   stays blocked. No refund, replay, D12 reuse or fresh allowance.
   [Admission contract](operations/validation-admission.md).
 - **D13 is 1,000 ms.** Its 568.994-ms sample passes. Preserve the old 500-ms
@@ -78,6 +77,6 @@ close G0. [Actual verification](verification/2026-09-22-session-handoff.md#execu
   Separate desktops or conversations do not qualify isolation. D05 sign-in,
   Java entitlement and EULA approval already exist.
 
-The bounded retained-hold exception question is pending for actual model dispatch.
+The approved D15 pilot is consumed. Another model trial needs distinct authorization after corrected native compatibility checks.
 No renewed isolation, entitlement or EULA authorization is needed. Independent
 M0 source work remains authorized.

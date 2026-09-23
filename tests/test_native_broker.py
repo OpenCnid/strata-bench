@@ -254,6 +254,19 @@ def test_stdio_bounded_catalog_metadata_and_redacted_errors(broker):
     assert not output.getvalue()
 
 
+def test_bad_game_arguments_return_public_schema_without_rejected_input(broker):
+    from mcbench.broker import GameCall
+    b, _, _ = broker
+    result = respond(b, {"jsonrpc": "2.0", "method": "tools/call", "params": {
+        "name": "game", "_meta": meta(), "arguments": {"request": {"DO_NOT_ECHO": "secret"}}}})
+    raw = result["content"][0]["text"]
+    assert result["isError"] and "DO_NOT_ECHO" not in raw and '"secret"' not in raw
+    value = json.loads(raw)
+    assert value["code"] == "BROKER_ARGUMENTS_INVALID"
+    assert value["expected_arguments_schema"] == GameCall.model_json_schema()
+    assert b.db.connection.execute("SELECT count(*) FROM broker_game_calls").fetchone()[0] == 0
+
+
 @pytest.mark.parametrize("url", ["http://localhost:123/v1/game", "http://127.0.0.1:123/admin",
     "https://127.0.0.1:123/v1/game", "http://127.0.0.1:123/v1/game?url=elsewhere",
     "http://user:pass@127.0.0.1:123/v1/game"])

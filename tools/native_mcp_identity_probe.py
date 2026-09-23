@@ -830,6 +830,7 @@ def main():
         root / "src/mcbench/inference_transport.py", root / "src/mcbench/native_gateway.py",
         root / "src/mcbench/native_skills.py", root / "src/mcbench/native_conformance.py",
         root / "tools/native_oauth_conformance.py", root / "src/mcbench/native_piloting.py",
+        root / "src/mcbench/pilot_budget.py",
         root / "tools/native_pilot_trial.py", root / "tools/native_pilot_report.py",
         root / "tools/m0_native_game.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,

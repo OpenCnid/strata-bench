@@ -182,3 +182,6 @@ def project_initial_skills(database, cas, plan, grant, ref):
     broker = NativeBroker(database, cas, plan.job_id, plan.profile_digest())
     for item in body.get("files", body["bodies"]):
         broker.project(grant.thread_id, item["path"], item["text"])
+    from .native_piloting import PURPOSE, GAME_CONTRACT_PATH, game_contract
+    if getattr(plan, "purpose", None) == PURPOSE and grant.role == "executor":
+        broker.project(grant.thread_id, GAME_CONTRACT_PATH, game_contract())

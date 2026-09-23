@@ -1,7 +1,9 @@
 # M0 development piloting trial
 
-Updated September 23, 2026. Operator-only. Implements D14; live execution remains
-blocked by original accounting admission. This document does not authorize a
+**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 102 focused checks but has not had a new native or live-model trial. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](../verification/2026-09-23-d15-pilot.md).
+
+
+Updated September 23, 2026. Operator-only. Implements D14; the approved D15 execution is consumed and failed. This document does not authorize a
 new request or reuse D12.
 
 The path is **pinned native Codex/Dovetail → scoped game broker → existing
@@ -36,10 +38,13 @@ It requires a fresh original-baseline restoration and output, the existing
 controlled worker/PackLock, a fresh zero-helper preregistration, current native
 preflight, and original authority/credential references. Its `pilot` object has
 `database`, `objects`, `credentials`, `preflight`, `authorization`, and `job_id`;
-the one-run identity is `validation-2026-09-18:m0-pilot-01`.
+the consumed one-run identity is `validation-2026-09-18:m0-pilot-01`.
+D15 additionally supplied the private `budget_decision` file, validated against
+the unchanged original authorization and retained unknown rows.
 
 Read-only accounting checks run before Java, the worker, or credentials are
-opened. The current unresolved hold returns `PILOT_ACCOUNTING_BLOCKED`.
+opened. Without a decision, unresolved usage returns `PILOT_ACCOUNTING_BLOCKED`;
+the now-consumed job returns `PILOT_ALREADY_ATTEMPTED`.
 Native D14 admission deliberately makes no isolation-pass record. It retains
 the existing pinned binaries, tool catalog, scoped broker, finite exposure,
 fixed TLS destination, credential handling and durable accounting checks.
@@ -58,11 +63,12 @@ The unresolved usage receipt was not retained by the original failed transport.
 Current evidence cannot settle it. Under the recorded
 [admission contract](validation-admission.md), a distinct, explicitly authorized
 bounded exception retaining that hold is needed before this live trial can be
-dispatched. D14 changed isolation scope only. No such exception has been
-installed, and no model call has been made by this implementation.
+dispatched. D14 changed isolation scope only. D15 supplied that one-run
+exception; six actual requests settled, but malformed game calls prevented
+piloting. D15 is now consumed and cannot be rearmed.
 
 The [fresh preparation and independent audit](../verification/2026-09-23-pilot-preparation.md)
 now establish the actual unused instance and sealed private plan. Use those
-inputs after the pending admission decision, preserving their version and all
-retained failures. No reinstall, worker rebuild or repeated normal-stop trial
-is needed to resume.
+inputs were versioned for D15 and the instance was used by the failed pilot.
+Preserve it as evidence; another trial needs a fresh baseline and distinct
+authorization. No reinstall or unchanged worker rebuild is needed.

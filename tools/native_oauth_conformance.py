@@ -83,7 +83,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
     require({"src/mcbench/native_conformance.py", "tools/native_oauth_conformance.py"} <=
             set(manifest["source_sha256"]), "PREFLIGHT_SOURCE_UNPINNED")
     if piloting:
-        require({"src/mcbench/native_piloting.py", "tools/native_pilot_trial.py",
+        require({"src/mcbench/native_piloting.py", "src/mcbench/pilot_budget.py", "tools/native_pilot_trial.py",
                  "tools/native_pilot_report.py", "tools/m0_native_game.py"} <=
                 set(manifest["source_sha256"]), "PREFLIGHT_SOURCE_UNPINNED")
     for path, sha in manifest["source_sha256"].items():
@@ -128,7 +128,7 @@ def run(args):
 def run_native_trial(args, *, pilot=None):
     """Shared native lifecycle. The separate M0 driver supplies a real worker.
 
-    Ordinary accounting admission remains required, including unknown holds.
+    Ordinary accounting admission remains required, except the explicit D15 pilot.
     The one-use D12 branch remains receipt-only.
     """
     from mcbench import native_piloting
@@ -156,6 +156,9 @@ def run_native_trial(args, *, pilot=None):
     # One durable first-receipt job in this authority. A stopped or uncertain job
     # is inspected/reconciled explicitly; rerunning this script cannot replay it.
     trial = getattr(args, "metering_trial", None)
+    if pilot and pilot.get("budget_decision") is not None:
+        from mcbench.pilot_budget import check_decision
+        check_decision(db.connection, pilot["budget_decision"])
     job = pilot["job_id"] if pilot else args.authorization + (
         ":oauth-receipt-d12" if trial == "D12" else ":oauth-first-receipt")
     if db.connection.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
@@ -217,7 +220,8 @@ def run_native_trial(args, *, pilot=None):
         amount = exposure.amount(basis)
         job_amount = native_piloting.MAX_SPEND if pilot else amount
         calls = native_piloting.MAX_REQUESTS if pilot else 1
-        require((before["budget"]["dispatch_allowed"] or trial == "D12") and
+        require((before["budget"]["dispatch_allowed"] or trial == "D12" or
+                 pilot and pilot.get("budget_decision") is not None) and
                 amount <= job_amount <= before["authorization"]["first_trial_max_microusd"]
                 and before["budget"]["committed_and_reserved"]["spend_microusd"] + job_amount
                     <= before["authorization"]["total_spend_microusd"], "ALLOWANCE_UNAVAILABLE")
@@ -346,6 +350,10 @@ def run_native_trial(args, *, pilot=None):
             record = MeteringTrials(db).install(args.authorization, plan, reserve, decision_ref=decision_ref,
                                                cas=cas, snapshot_digest=auth.snapshot())
             (output / "metering-trial.json").write_bytes(canonical(record))
+        if pilot and pilot.get("budget_decision") is not None:
+            from mcbench.pilot_budget import install
+            record = install(db, cas, plan, reserve, pilot["budget_decision"])
+            (output / "pilot-budget.json").write_bytes(canonical(record))
         (output / "admission.json").write_bytes(canonical({"profile_digest": plan.profile_digest(),
             "maximum_microusd": job_amount, "transfer_ref": transfer_ref, "permit_ref": gateway_config.transport_qualification_ref,
             "no_game_grant": not bool(pilot), "helper_limit": 0, "max_requests": calls, "production_qualified": False,

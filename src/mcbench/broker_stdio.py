@@ -82,6 +82,11 @@ def respond(broker, request, game_transport=None):
         except (Fault, ValidationError) as error:
             # ValidationError contains rejected arguments; never echo them.
             code = error.code if isinstance(error, Fault) else "BROKER_ARGUMENTS_INVALID"
+            if isinstance(error, ValidationError) and params.get("name") == "game":
+                # Return the public contract, never rejected values or error locations
+                # (extra-field names can themselves contain sensitive user input).
+                code = canonical({"code": code, "expected_arguments_schema":
+                                  ARGUMENTS["game"].model_json_schema()}).decode()
             return {"isError": True, "content": [{"type": "text", "text": code}]}
     if method == "ping":
         return {}

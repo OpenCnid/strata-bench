@@ -19,13 +19,35 @@ SCHEMA = "strata/NativePilotPermit/1"
 MAX_REQUESTS = 6
 MAX_SPEND = 1_000_000
 PRECHECKS = {"scoped_native_tools", "all_request_reservations", "finite_exposure", "verified_tls"}
+GAME_CONTRACT_PATH = "initial/game/contract.json"
+
+
+def game_contract():
+    """Public wire documentation only; no coordinates, targets or evaluator data."""
+    from .broker import GameCall
+    return canonical({"schema": "strata/PublicGameInstructions/1",
+        "tool": "strata_broker.game", "arguments_schema": GameCall.model_json_schema(),
+        "instructions": [
+            "Wrap the RPC object in the tool's request field. The operation selector is method.",
+            "Use schema=strata/GameRequest/1, a unique request_id, and the supplied campaign_id, agent_id and epoch.",
+            "deadline_at is an absolute future UTC ISO timestamp, not a duration. Construct it immediately before calling.",
+            "For capabilities and observe, action, target_request_id and after are explicitly null.",
+            "An act request carries an ActionBatch in action; target_request_id and after stay null.",
+            "Copy observation_id, state_revision as expected_state_revision, capability_digest and control_revision from a fresh observation.",
+            "Set the batch seq to last_action_seq+1 (use 1 when null), and use the supplied lease_id and scope.",
+            "Use the ActionBatch schema for the remaining required fields. Targets must come from permitted observations.",
+            "Poll action_status with target_request_id equal to the batch request_id and action=null; never replay an uncertain action.",
+            "Schema availability does not grant a capability. Respect the runtime capabilities and the pilot's action limits."
+        ]}).decode()
 
 
 def prompt(scope, lease_id):
     require(set(scope) == {"campaign_id", "agent_id", "epoch"} and
             isinstance(lease_id, str) and 0 < len(lease_id) <= 128, "PILOT_SCOPE")
     return (
-        "Pilot this Minecraft avatar using the scoped game tool. Inspect capabilities and a fresh "
+        "Pilot this Minecraft avatar using the scoped game tool. First read " + GAME_CONTRACT_PATH +
+        " through strata_broker.artifact_read; it documents the exact request envelope and action schema. "
+        "Do not guess argument names. Inspect capabilities and a fresh "
         "observation first. Choose a visible nearby landmark, turn toward it, then walk one to two "
         "blocks toward it on safe observed ground and stop. Use look_at and move_to only. Choose "
         "the target coordinates yourself from observations; do not invent hidden terrain. If no safe "

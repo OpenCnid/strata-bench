@@ -17,7 +17,7 @@ for (const name of ['ActionBatch', 'ActionAck', 'Observation', 'RpcRequest', 'Sk
 // Operator/evaluator bindings are deliberately outside the gameplay worker tree.
 for (const [domain, names] of Object.entries({
   operator: ['PackLock','CampaignConfig','AgentConfig','CheckpointManifest','BudgetLedger',
-    'ExecutionAuthorization','NativeLaunch','AcquisitionReceipt','LaunchProfile',
+    'ExecutionAuthorization','ModelExecutionAuthorization','NativeLaunch','AcquisitionReceipt','LaunchProfile',
     'ProvisioningCheck','ProvisioningEvidence','RoleInventoryInput'],
   evaluator: ['GameEvent','EvaluationProtocol','EvaluationResult'],
 })) {

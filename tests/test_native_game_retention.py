@@ -78,6 +78,36 @@ def test_registration_before_jobs_is_durable_draft_and_no_budget_mutation(packag
     assert database.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("registered,authorized", [("gpt-6-luna", "gpt-6-luna"),
+    ("gpt-5.6-luna", "gpt-6-luna"), ("gpt-6-luna", "gpt-5.6-luna")])
+def test_pilot_launcher_uses_authorized_model_before_pack_or_output(package, tmp_path, monkeypatch,
+                                                                  registered, authorized):
+    import m0_native_game
+    import native_pilot_trial
+    from contextlib import ExitStack
+    body, save, _ = package
+    body["agent"].update(requested_model=registered, helper_limit=0,
+                         runtime={"version": CODEX_VERSION, "digest": m0_native_game.BINARY_SHA256})
+    source = save()
+    # Only authorization admission is synthetic; exercise the real driver and
+    # real sealed-retention identity check. Pack setup must not precede it.
+    monkeypatch.setattr(native_pilot_trial, "check_inputs", lambda _: {"model": authorized})
+    def stop_before_pack(_):
+        raise RuntimeError("IDENTITY_ACCEPTED_BEFORE_PACK")
+    monkeypatch.setattr(m0_native_game, "parse_pack_binding", stop_before_pack)
+    output = tmp_path / "unused-output"
+    plan = {"schema": "strata/M0NativePilot/1", "pilot": {}, "retention_source": source,
+            "output": str(output), "pack": {}}
+    with ExitStack() as resources:
+        if registered == authorized:
+            with pytest.raises(RuntimeError, match="IDENTITY_ACCEPTED_BEFORE_PACK"):
+                m0_native_game.run_plan(plan, resources)
+        else:
+            with pytest.raises(Fault, match="RETENTION_INPUT_PROFILE"):
+                m0_native_game.run_plan(plan, resources)
+    assert not output.exists()
+
+
 @pytest.mark.parametrize("case,code", [
     ("hash", "RETENTION_INPUT_CHANGED"), ("extra", "RETENTION_INPUT_INVALID"),
     ("duplicate", "RETENTION_INPUT_INVALID"), ("scope", "RETENTION_INPUT_SCOPE"),

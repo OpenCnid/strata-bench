@@ -39,7 +39,8 @@ partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 
 The [authorization](../../src/mcbench/authorization.py), [estimate basis](../../src/mcbench/accounting.py)
 and [configuration](../../configs/operator/live-validation.json) now implement
-`ExecutionAuthorization/2` with explicit migration. The existing dispatch gate,
+`ExecutionAuthorization/3` for D17 model selection, retaining the explicit D11
+version-2 migration and its predecessor. The existing dispatch gate,
 wire transport and native supervisor now enforce versioned estimate bounds and
 valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
 records the actual private migration and focused source/synthetic evidence.

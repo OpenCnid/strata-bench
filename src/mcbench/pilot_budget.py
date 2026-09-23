@@ -1,4 +1,8 @@
-"""Distinct D15/D16 one-run approvals, retaining all original costs and holds."""
+"""Distinct one-run decisions, retaining all original costs and holds.
+
+D18 is a prepared proposal, not authorization. An explicit operator decision
+with user_authorized=true remains required before install or any dispatch.
+"""
 
 import json
 import time
@@ -11,7 +15,8 @@ from .storage import Principal, canonical, digest, require
 AUTHORIZATION = "validation-2026-09-18"
 JOB = AUTHORIZATION + ":m0-pilot-01"
 POLICY = "one-pilot-retain-unknown-holds/1"
-DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 763280)}
+DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 763280),
+             "D18": (AUTHORIZATION + ":m0-pilot-03", 773794)}
 
 
 def decision_body(db, decision_id="D15"):
@@ -21,12 +26,18 @@ def decision_body(db, decision_id="D15"):
     require(row is not None, "PILOT_DECISION_REQUIRED")
     totals, unknown = Budgets.totals(db, row["account"])
     require(unknown and totals["spend_microusd"] == prior, "PILOT_RETAINED_HOLDS_CHANGED")
-    if decision_id == "D16":
-        previous = db.execute("SELECT state FROM native_jobs WHERE id=?", (JOB,)).fetchone()
+    predecessors = [JOB] if decision_id == "D16" else [JOB, DECISIONS["D16"][0]] if decision_id == "D18" else []
+    for predecessor in predecessors:
+        previous = db.execute("SELECT state FROM native_jobs WHERE id=?", (predecessor,)).fetchone()
         require(previous is not None and previous[0] == "FINALIZED" and
                 db.execute("SELECT count(*) FROM inference_attempts WHERE "
-                    "json_extract(request,'$.runtime_job_id')=? AND state='SETTLED'", (JOB,)).fetchone()[0] == 6,
+                    "json_extract(request,'$.runtime_job_id')=? AND state='SETTLED'", (predecessor,)).fetchone()[0] == 6,
                 "PILOT_PRIOR_RUN_UNSETTLED")
+    if decision_id == "D18":
+        from .authorization import ModelExecutionAuthorization, parse_authorization
+        policy = parse_authorization(row["body"])
+        require(isinstance(policy, ModelExecutionAuthorization) and policy.models == ["gpt-6-luna"] and
+                policy.accounting_basis.model == "gpt-6-luna", "PILOT_MODEL_AUTHORITY")
     return {"schema": "strata/PilotBudgetDecision/1", "decision_id": decision_id, "policy": POLICY,
         "authorization_id": AUTHORIZATION, "authorization_digest": row["digest"], "job_id": job,
         "maximum_microusd": MAX_SPEND, "max_requests": MAX_REQUESTS, "hard_timeout_s": 90,
@@ -57,7 +68,8 @@ def install(database, cas, plan, reserve, decision):
                 plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
                 plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
                 plan.hard_timeout_s <= 90 and plan.budget_mode == "per_dispatch" and
-                plan.model == "gpt-5.6-luna" and plan.auth_mode == "chatgpt_oauth" and
+                plan.model == ("gpt-6-luna" if decision["decision_id"] == "D18" else "gpt-5.6-luna") and
+                plan.auth_mode == "chatgpt_oauth" and
                 plan.provider == "openai" and reserve.operation_id == plan.operation_id and
                 reserve.parent_operation_id is None and reserve.kind == "model" and
                 reserve.usage.model_calls == MAX_REQUESTS and reserve.usage.spend_microusd == MAX_SPEND and

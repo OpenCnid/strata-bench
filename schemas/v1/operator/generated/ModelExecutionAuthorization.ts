@@ -1,8 +1,8 @@
 /* Operator-only generated binding. Never ship in a gameplay workspace. */
 
-export type Schema = "strata/ExecutionAuthorization/2";
+export type Schema = "strata/ExecutionAuthorization/3";
 export type AuthorizationId = string;
-export type DecisionId = "D11";
+export type DecisionId = "D17";
 export type Provider = "openai";
 export type AuthMode = "chatgpt_oauth" | "api_key";
 /**
@@ -42,8 +42,14 @@ export type UnknownCategories = "block";
 export type ToolCharges = "unsupported_block";
 export type Rounding = "ceil_per_request_microusd";
 export type FirstTrialMaxMicrousd = number;
+export type PreviousAuthorizationDigest = string;
+export type GenerationId = "gpt-6-luna-2026-09-23";
+export type RetentionPolicy = "fresh_initial_artifacts_no_cross_model_learning";
 
-export interface ExecutionAuthorization {
+/**
+ * D17 selects a fresh model generation on the existing allowance.
+ */
+export interface ModelExecutionAuthorization {
   schema: Schema;
   authorization_id: AuthorizationId;
   decision_id: DecisionId;
@@ -59,6 +65,9 @@ export interface ExecutionAuthorization {
   legacy_authorization_digest: LegacyAuthorizationDigest;
   accounting_basis: EstimateBasis;
   first_trial_max_microusd: FirstTrialMaxMicrousd;
+  previous_authorization_digest: PreviousAuthorizationDigest;
+  generation_id: GenerationId;
+  retention_policy: RetentionPolicy;
 }
 export interface EstimateBasis {
   schema: Schema1;

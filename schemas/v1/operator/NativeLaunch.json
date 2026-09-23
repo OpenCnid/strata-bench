@@ -239,7 +239,10 @@
     "tool_catalog_policy": {
       "anyOf": [
         {
-          "const": "native-selected-model-without-apply-patch/1",
+          "enum": [
+            "native-selected-model-without-apply-patch/1",
+            "native-luna6-broker-tools/1"
+          ],
           "type": "string"
         },
         {

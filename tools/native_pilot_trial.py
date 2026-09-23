@@ -49,7 +49,9 @@ def check_inputs(inputs):
             require(decision["job_id"] == inputs["job_id"], "PILOT_INPUTS")
         require(not unknown or decision is not None, "PILOT_ACCOUNTING_BLOCKED")
         require(totals["spend_microusd"] + MAX_SPEND <= policy.total_spend_microusd, "ALLOWANCE_UNAVAILABLE")
-        return {"authorization_digest": row["digest"], "committed_and_reserved": totals,
+        require(len(policy.models) == 1 and policy.models[0] == policy.accounting_basis.model,
+                "PILOT_MODEL_AUTHORITY")
+        return {"authorization_digest": row["digest"], "model": policy.models[0], "committed_and_reserved": totals,
                 "additional_maximum_microusd": MAX_SPEND, "isolation_qualified": False,
                 "budget_decision": decision}
     finally:

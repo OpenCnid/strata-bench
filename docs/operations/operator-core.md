@@ -4,10 +4,12 @@ These modules and commands are operator-only. Store data outside this repository
 and outside every gameplay workspace. Python service authorization assumes a
 trusted caller has authenticated the principal; it does not create an OS sandbox.
 
-For current D04/D11 interpretation and the first outstanding native accounting
-deliverable, read [validation admission](validation-admission.md). The checked-in
-`ExecutionAuthorization/1` remains a legacy hard-dollar policy; documentation
-clarification has not migrated its schema, stores or production admission checks.
+For current D04/D11/D17 authority and remaining execution limits, read
+[validation admission](validation-admission.md). The active configuration and
+durable store use `ExecutionAuthorization/3` for GPT-6 Luna on the original
+account. Versions 1 and 2 remain archived historical contracts; D17 preserves
+all prior costs, unknown holds and consumed one-run trials. Operator JSON and
+TypeScript schemas include the version-3 model-selection contract.
 
 The controller persists state and reservations; it does not launch a Minecraft
 server or a Codex job. `DRAFT`, `STARTING`, and a synthetic test's `RUNNING` state

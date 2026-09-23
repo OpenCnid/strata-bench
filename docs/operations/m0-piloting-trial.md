@@ -13,6 +13,8 @@
 Updated September 23, 2026. Operator-only. Implements D14; the approved D15 execution is consumed and failed. This document does not authorize a
 new request or reuse D12.
 
+**Current proposed run:** D18 is pending, not authorized. The fresh `m0-pilot-03` plan uses GPT-6 Luna and retains both failed earlier pilots. Source support for its admission cannot dispatch without the exact explicit decision.
+
 The path is **pinned native Codex/Dovetail → scoped game broker → existing
 Mineflayer worker → authentic vanilla Minecraft**. The model chooses its own
 targets from filtered observations. No desktop input or replacement backend.
@@ -25,17 +27,17 @@ retained as an outcome, not retried to manufacture a pass.
 
 | Bound | Proposed one-run scope |
 |---|---|
-| Model | Existing pinned `gpt-5.6-luna`, ChatGPT OAuth |
+| Model | D17-selected `gpt-6-luna`, ChatGPT OAuth; fresh generation/initial artifacts |
 | Bodies/helpers | One Mineflayer avatar, zero helpers |
 | Model calls | At most six, one handler, every request reserved and settled separately |
 | Additional API-equivalent estimate | At most $1 total from the original $10; not $1 per call or an OAuth invoice |
-| Retained accounting | Existing $0.7554 unknown hold and $0.001458 settled usage remain; maximum combined exposure $1.756858 |
+| Retained accounting | Existing $0.7554 unknown hold and $0.018394 settled usage remain; maximum combined exposure $1.773794 |
 | Native duration | At most 90 seconds after native start; existing worker/server lifecycle limits still apply |
 | Mutations | At most two forwarded `act` calls; only `look_at` or `move_to`; each at most 2 seconds with release required |
 | Failure | Preserve evidence and costs, stop the worker lane and owned processes; no automatic replay |
 | Qualification | Development only, explicitly isolation-unqualified; no private score, research or full G0 claim |
 
-The per-request conservative reservation is $0.7554 under the existing pinned
+The per-request conservative reservation is $0.3585 under the existing pinned
 basis. Six requests are a count ceiling, not a promised number: a subsequent
 request is refused if prior consumption plus its reservation exceeds the $1
 job envelope. Unknown new usage stops admission without releasing its hold.
@@ -45,13 +47,13 @@ It requires a fresh original-baseline restoration and output, the existing
 controlled worker/PackLock, a fresh zero-helper preregistration, current native
 preflight, and original authority/credential references. Its `pilot` object has
 `database`, `objects`, `credentials`, `preflight`, `authorization`, and `job_id`;
-the consumed one-run identity is `validation-2026-09-18:m0-pilot-01`.
+the proposed one-run identity is `validation-2026-09-18:m0-pilot-03`. It is distinct from the consumed 01/02 jobs.
 D15 additionally supplied the private `budget_decision` file, validated against
 the unchanged original authorization and retained unknown rows.
 
 Read-only accounting checks run before Java, the worker, or credentials are
 opened. Without a decision, unresolved usage returns `PILOT_ACCOUNTING_BLOCKED`;
-the now-consumed job returns `PILOT_ALREADY_ATTEMPTED`.
+a consumed job returns `PILOT_ALREADY_ATTEMPTED`. A proposal whose `user_authorized` is false returns `PILOT_DECISION_REQUIRED`.
 Native D14 admission deliberately makes no isolation-pass record. It retains
 the existing pinned binaries, tool catalog, scoped broker, finite exposure,
 fixed TLS destination, credential handling and durable accounting checks.
@@ -74,8 +76,4 @@ dispatched. D14 changed isolation scope only. D15 supplied that one-run
 exception; six actual requests settled, but malformed game calls prevented
 piloting. D15 is now consumed and cannot be rearmed.
 
-The [fresh preparation and independent audit](../verification/2026-09-23-pilot-preparation.md)
-now establish the actual unused instance and sealed private plan. Use those
-inputs were versioned for D15 and the instance was used by the failed pilot.
-Preserve it as evidence; another trial needs a fresh baseline and distinct
-authorization. No reinstall or unchanged worker rebuild is needed.
+The earlier [D15 preparation](../verification/2026-09-23-pilot-preparation.md) is historical and its instance was used. D16 also used its prepared instance. Preserve both. The [GPT-6 Luna preparation](../verification/2026-09-23-luna6-pilot-preparation.md) identifies the current fresh plan and its actual verification. No reinstall or unchanged worker rebuild is needed.

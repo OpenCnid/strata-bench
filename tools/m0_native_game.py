@@ -98,7 +98,7 @@ def run_plan(plan, resources, runtime=None):
     pilot = version == "strata/M0NativePilot/1"
     if pilot:
         from native_pilot_trial import check_inputs
-        check_inputs(plan["pilot"])
+        pilot_admission = check_inputs(plan["pilot"])
     sealed = pilot or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     restored = pilot or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     sealed_recovery = version == "strata/M0NativeGameRecovery/3"
@@ -108,6 +108,11 @@ def run_plan(plan, resources, runtime=None):
                    "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
+        # Check the real provider identity before materializing output or
+        # preparing Java/worker resources. MODEL is only the scripted fixture.
+        retention.check_identity(model=pilot_admission["model"] if pilot else MODEL,
+            dovetail_commit=DOVETAIL_COMMIT, binary_digest=BINARY_SHA256,
+            binary_version=CODEX_VERSION, helper_limit=0 if pilot else 2)
     if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}:
         from native_game_recovery import GameRecovery
         private(plan["recovery_source"]["bundle"])
@@ -192,7 +197,7 @@ def run_plan(plan, resources, runtime=None):
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
-    if retention:
+    if retention and not pilot:
         retention.check_identity(model=MODEL, dovetail_commit=DOVETAIL_COMMIT,
             binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=0 if pilot else 2)
     for key in ("tool_projections", "model_catalog"):

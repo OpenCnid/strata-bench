@@ -178,9 +178,10 @@
     }
   },
   "additionalProperties": false,
+  "description": "D17 selects a fresh model generation on the existing allowance.",
   "properties": {
     "schema": {
-      "const": "strata/ExecutionAuthorization/2",
+      "const": "strata/ExecutionAuthorization/3",
       "title": "Schema",
       "type": "string"
     },
@@ -190,7 +191,7 @@
       "type": "string"
     },
     "decision_id": {
-      "const": "D11",
+      "const": "D17",
       "title": "Decision Id",
       "type": "string"
     },
@@ -266,6 +267,21 @@
       "minimum": 1,
       "title": "First Trial Max Microusd",
       "type": "integer"
+    },
+    "previous_authorization_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Previous Authorization Digest",
+      "type": "string"
+    },
+    "generation_id": {
+      "const": "gpt-6-luna-2026-09-23",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "retention_policy": {
+      "const": "fresh_initial_artifacts_no_cross_model_learning",
+      "title": "Retention Policy",
+      "type": "string"
     }
   },
   "required": [
@@ -283,9 +299,12 @@
     "original_decision_id",
     "legacy_authorization_digest",
     "accounting_basis",
-    "first_trial_max_microusd"
+    "first_trial_max_microusd",
+    "previous_authorization_digest",
+    "generation_id",
+    "retention_policy"
   ],
-  "title": "ExecutionAuthorization",
+  "title": "ModelExecutionAuthorization",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"
 }

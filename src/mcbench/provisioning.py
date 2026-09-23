@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from .contracts import Digest, Id, Ref, Strict, UInt
 from .inventory import file_hash, inspect_archive, scan_tree, template_path
@@ -63,6 +63,17 @@ class AcquisitionReceipt(Strict):
     official_workflow_evidence: Ref
 
 
+class VanillaAcquisitionReceipt(AcquisitionReceipt):
+    schema_: Literal["strata/AcquisitionReceipt/2"] = Field(alias="schema")
+    target: Literal["vanilla"]
+    vanilla_manifest: Ref
+    vanilla_version_metadata: Ref
+
+
+def parse_acquisition(value):
+    return TypeAdapter(AcquisitionReceipt | VanillaAcquisitionReceipt).validate_python(value)
+
+
 class RoleInventoryInput(Strict):
     role: Role
     root: str
@@ -86,6 +97,50 @@ class LaunchProfile(Strict):
     is_example: bool
     client: LaunchCommand
     server: LaunchCommand
+
+
+WORKER_CONFIG_ARGUMENT = "{strata.worker_config}"
+
+
+class WorkerRuntimeReference(Strict):
+    path: str
+    sha256: Digest
+
+
+class VanillaWorkerSettings(Strict):
+    host: Literal["127.0.0.1"]
+    port: Annotated[int, Field(ge=1, le=65535)]
+    username: Annotated[str, Field(min_length=1, max_length=255)]
+    auth_cache: str
+    max_wall_ms: Annotated[int, Field(ge=1, le=600000)]
+    primitive_limit: Annotated[int, Field(ge=1, le=100000)]
+
+
+class VanillaLaunchProfile(LaunchProfile):
+    schema_: Literal["strata/LaunchProfile/2"] = Field(alias="schema")
+    worker_runtime: WorkerRuntimeReference
+    worker_settings: VanillaWorkerSettings
+    update_policy: Literal["sealed-local-bytes/no-installer/1"]
+
+
+def parse_launch_profile(value):
+    return TypeAdapter(LaunchProfile | VanillaLaunchProfile).validate_python(value)
+
+
+def validate_launch_environment(environment: dict[str, str]):
+    """Explicit operator settings only; never fill gaps from inherited state."""
+    directories = {"SystemRoot", "WINDIR", "TEMP", "TMP"}
+    require(set(environment) <= {"JAVA_HOME", "PATH", "LANG", "TZ"} | directories,
+            "ENVIRONMENT_NOT_ALLOWED")
+    require(all("\x00" not in value for value in environment.values()), "INVALID_ENVIRONMENT")
+    for name in directories & environment.keys():
+        path = Path(environment[name])
+        require(path.is_absolute(), "INVALID_ENVIRONMENT")
+        reject_links(path)
+        require(path.is_dir(), "INVALID_ENVIRONMENT")
+    for first, second in (("TEMP", "TMP"), ("SystemRoot", "WINDIR")):
+        if first in environment and second in environment:
+            require(Path(environment[first]) == Path(environment[second]), "INVALID_ENVIRONMENT")
 
 
 class ProvisioningEvidence(Strict):
@@ -208,6 +263,18 @@ class PackProvider:
             return row["receipt"]
         require(row["state"] in {"RESOLVED", "AWAITING_ARTIFACT"}, "INVALID_TRANSITION")
         self._json(request_id, receipt.official_workflow_evidence)
+        source_verification = None
+        if isinstance(receipt, VanillaAcquisitionReceipt):
+            from .vanilla_artifacts import distribution, metadata
+            source_verification = metadata(
+                self.cas.read(self.principal, self.namespace(request_id), receipt.vanilla_manifest,
+                              max_bytes=4 * 1024**2),
+                self.cas.read(self.principal, self.namespace(request_id), receipt.vanilla_version_metadata,
+                              max_bytes=2 * 1024**2))
+            source_verification["distributions"] = [distribution(item, source_verification["downloads"][item.role])
+                                                    for item in receipt.distributions]
+            source_verification.update(installed_roles_qualified=False, game_conformance_claim=None,
+                                       metadata_authority="operator-retained-official-manifest")
         distributions = []
         for item in receipt.distributions:
             official_origin(item.origin, receipt.target, item.role, item.file_id)
@@ -222,8 +289,11 @@ class PackProvider:
             ref = self.cas.put_file(self.principal, self.namespace(request_id), "operator", path,
                                    item.sha256, quota_bytes=self.quota, max_object_bytes=8 * 1024**3)
             distributions.append({"role": item.role, "ref": ref, "archive": archive})
-        ref = self._put(request_id, {"schema": "strata/AcquisitionImport/1",
-                                    "receipt": receipt.model_dump(), "distributions": distributions})
+        imported = {"schema": "strata/AcquisitionImport/1",
+                    "receipt": receipt.model_dump(), "distributions": distributions}
+        if source_verification is not None:
+            imported["source_verification"] = source_verification
+        ref = self._put(request_id, imported)
         with self.db.transaction() as db:
             current = db.execute("SELECT receipt FROM provisioning WHERE id=?", (request_id,)).fetchone()
             require(current[0] in (None, ref), "IDEMPOTENCY_CONFLICT")
@@ -253,7 +323,7 @@ class PackProvider:
         row = self._row(request_id, active=True)
         require(row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
         require(len(roles) == 2 and {r.role for r in roles} == {"client", "server"}, "ROLE_MISMATCH")
-        entries, role_evidence = [], []
+        entries, role_evidence, prepared = [], [], []
         reviewed = reviewed_vendor_paths(row["target"])
         for role in sorted(roles, key=lambda r: r.role):
             root = Path(role.root)
@@ -271,6 +341,12 @@ class PackProvider:
                 require(actual == {k: getattr(entry, k) for k in ("path", "digest", "bytes")},
                         "HASH_MISMATCH")
                 require(bool(entry.origin) and bool(entry.license_ref), "PROVENANCE_MISSING")
+            prepared.append((role, root, scanned, declared))
+        # Validate BOTH roles completely before consuming storage or journaling
+        # any installed file. A known missing provenance field in the second
+        # role must not leave thousands of imported assets from the first.
+        for role, root, scanned, declared in prepared:
+            for entry in declared:
                 self.cas.put_file(self.principal, self.namespace(request_id), "operator",
                                   root / entry.path, entry.digest, quota_bytes=self.quota,
                                   max_object_bytes=8 * 1024**3)
@@ -294,12 +370,77 @@ class PackProvider:
             self.db.event(db, "pack.inventory_verified", {"request_id": request_id, "ref": ref})
         return ref
 
-    def seal_template(self, request_id, launch: LaunchProfile, evidence: ProvisioningEvidence):
+    def _vanilla_distribution(self, request_id, role):
+        """Recheck the durable acquisition without reopening its old source paths."""
+        import hashlib
+        from .vanilla_artifacts import metadata
+
+        row = self._row(request_id, active=True)
+        require(row["target"] == "vanilla" and row["state"] in {"ACQUIRED", "VERIFIED", "SEALED"},
+                "INVALID_TRANSITION")
+        imported = self._json(request_id, row["receipt"])
+        receipt = parse_acquisition(imported["receipt"])
+        require(isinstance(receipt, VanillaAcquisitionReceipt) and receipt.request_id == request_id
+                and receipt.is_example == self.simulation, "VANILLA_SOURCE_VERIFICATION_REQUIRED")
+        namespace = self.namespace(request_id)
+        version_raw = self.cas.read(self.principal, namespace, receipt.vanilla_version_metadata, max_bytes=2 * 1024**2)
+        source = metadata(self.cas.read(self.principal, namespace, receipt.vanilla_manifest, max_bytes=4 * 1024**2),
+                          version_raw)
+        require({item.role for item in receipt.distributions} == {"client", "server"}, "ROLE_MISMATCH")
+        selected = next(item for item in receipt.distributions if item.role == role)
+        require(selected.origin == source["downloads"][role]["url"] and selected.file_id is None,
+                "VANILLA_DISTRIBUTION_SOURCE")
+        artifacts = [item for item in imported["distributions"] if item["role"] == role]
+        require(len(artifacts) == 1 and artifacts[0]["ref"] == "cas:sha256:" + selected.sha256,
+                "VANILLA_DISTRIBUTION_MISMATCH")
+        raw = self.cas.read(self.principal, namespace, artifacts[0]["ref"], max_bytes=512 * 1024**2)
+        require(len(raw) == source["downloads"][role]["bytes"] and
+                hashlib.sha1(raw).hexdigest() == source["downloads"][role]["sha1"],
+                "VANILLA_DISTRIBUTION_MISMATCH")
+        binding = {"is_example": self.simulation, "request_id": request_id,
+                   "acquisition_receipt": row["receipt"], "distribution_ref": artifacts[0]["ref"],
+                   "source_verification": source}
+        return raw, version_raw, binding
+
+    def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
+        """Join exact installed server payloads to the durable acquired distribution."""
+        from .vanilla_runtime import prepare_server
+        raw, _, binding = self._vanilla_distribution(request_id, "server")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        result = prepare_server(raw, root, destination)
+        result.update(schema="strata/VanillaServerSoftware/1", **binding)
+        return {"evidence": self._put(request_id, result), **result}
+
+    def prepare_vanilla_client(self, request_id, assets: Path, library_roots: list[Path], destination: Path):
+        """Prepare the exact acquired Windows client and its metadata-selected inputs."""
+        from .vanilla_client import prepare_client
+        raw, version_raw, binding = self._vanilla_distribution(request_id, "client")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        result = prepare_client(raw, version_raw, assets, library_roots, destination)
+        result.update(schema="strata/VanillaClientSoftware/1", **binding)
+        return {"evidence": self._put(request_id, result), **result}
+
+    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile, evidence: ProvisioningEvidence):
         row = self._row(request_id, active=True)
         require(row["state"] in {"VERIFIED", "SEALED"}, "INVALID_TRANSITION")
         require(launch.is_example == evidence.is_example == self.simulation,
                 "EXAMPLE_NOT_EXECUTABLE")
         require(evidence.request_id == request_id, "SCOPE_MISMATCH")
+        if isinstance(launch, VanillaLaunchProfile):
+            from .pack_worker import validate_worker_profile
+            require(row["target"] == "vanilla", "RELEASE_MISMATCH")
+            # Validate the selected runtime before accepting attestations or
+            # publishing profile objects. Reacquire its lease at actual launch.
+            validate_worker_profile(launch)
+            inventory = self._json(request_id, row["inventory"])
+            properties = [item for item in inventory["files"]
+                          if item["role"] == "server" and item["path"] == "server.properties"]
+            require(len(properties) == 1, "WORKER_SERVER_SETTINGS_MISMATCH")
+            from .pack_worker import validate_server_settings
+            validate_server_settings(self.cas.read(self.principal, self.namespace(request_id),
+                "cas:sha256:" + properties[0]["digest"]), launch.worker_settings)
         require(evidence.inventory_digest == row["inventory"][11:] and
                 evidence.receipt_digest == row["receipt"][11:] and
                 evidence.launch_profile_digest == digest(launch.model_dump()), "HASH_MISMATCH")
@@ -318,15 +459,14 @@ class PackProvider:
         for command in (launch.client, launch.server):
             require(command.working_directory == "." or
                     bool(template_path(command.working_directory)), "UNSAFE_PATH")
-            require(set(command.environment) <= {"JAVA_HOME", "PATH", "LANG", "TZ"},
-                    "ENVIRONMENT_NOT_ALLOWED")
+            validate_launch_environment(command.environment)
             require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
             executable = Path(command.executable_path)
             require(executable.is_absolute(), "UNSAFE_PATH")
             require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
             self._json(request_id, command.reviewed_bootstrap)
         imported = self._json(request_id, row["receipt"])
-        receipt = AcquisitionReceipt.model_validate(imported["receipt"])
+        receipt = parse_acquisition(imported["receipt"])
         inventory = self._json(request_id, row["inventory"])
         launch_ref = self._put(request_id, launch.model_dump())
         evidence_ref = self._put(request_id, evidence.model_dump())

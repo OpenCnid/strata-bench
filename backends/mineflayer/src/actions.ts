@@ -54,6 +54,7 @@ export class ActionLane {
     readonly primitiveLimit: number, maxWallMs: number) {
     this.deadline = mono() + maxWallMs;
     this.connectedOnce = backend.connected;
+    journal.beginPrimitiveAccounting({campaign_id:scope.campaign_id, agent_id:scope.agent_id, epoch:scope.epoch});
     journal.recover();
     this.signals = new Signals(journal);
     this.unsubscribeSignals = backend.subscribeSignals?.((kind, summary) => {
@@ -205,7 +206,8 @@ export class ActionLane {
           requireThat(!active.abort.signal.aborted && !this.fenced, 'LEASE_EXPIRED');
           requireThat(this.journal.counter('primitive_events') < this.primitiveLimit, 'BUDGET_EXHAUSTED');
         }
-        this.journal.counter('primitive_events', 1); active.emitted++;
+        this.journal.charge(b, active.emitted + 1, kind === 'safety_release');
+        active.emitted++;
       });
       if (this.active === active && !active.finishing) await this.finish(result ?? 'completed', null);
     } catch (e) {

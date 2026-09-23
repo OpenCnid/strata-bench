@@ -27,10 +27,15 @@ def safe(path):
         value = str(path)
         path = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value)
     for part in (path, *path.parents):
-        if part.exists() or part.is_symlink():
+        try:
             info = part.lstat()
-            check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
-                  "BOOTSTRAP_LINK")
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        # Inspect each component without first following it via exists(). This
+        # also rejects dangling links and halves metadata queries on existing
+        # paths. No component result is cached across checks or leases.
+        check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
+              "BOOTSTRAP_LINK")
     return path
 
 

@@ -237,6 +237,8 @@ class CAS:
         Quota and reference publication share the writer transaction. The expected
         digest binds the import to the operator's inspected inventory, including a
         source changed between inventory and copying. Game assets never use agent CAS.
+        Reusing identical operator bytes preserves their existing media type: a
+        raw file import does not request reinterpretation of retained JSON/text.
         """
         require(principal.role == "operator" and visibility == "operator", "FORBIDDEN")
         source = source.absolute()
@@ -250,8 +252,7 @@ class CAS:
             old = db.execute("SELECT * FROM objects WHERE namespace=? AND ref=?",
                              (namespace, ref)).fetchone()
             if old:
-                require(old["visibility"] == visibility and
-                        old["media_type"] == "application/octet-stream", "REFERENCE_POLICY_CONFLICT")
+                require(old["visibility"] == visibility, "REFERENCE_POLICY_CONFLICT")
                 require(old["bytes"] == size, "HASH_MISMATCH")
             else:
                 used = db.execute("SELECT COALESCE(SUM(bytes),0) FROM objects WHERE namespace=?",

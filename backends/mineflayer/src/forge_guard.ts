@@ -17,7 +17,7 @@ export function guardImplementationDigest(): string {
 export interface ForgeGuardReady {
   schema:'strata/ProcessGuardEvent/1'; kind:'ready'; process_digest:string;
   campaign_id:string; agent_id:string; epoch:number; whole_client_lifetime:true;
-  campaign_admission:false; remaining_wall_ms:number; policy:'forge-process-listener-client-thread/1';
+  campaign_admission:false; remaining_wall_ms:number; policy:'forge-process-listener-client-thread/2';
   connection_digest:string; body_fingerprint:string; connection_generation:number;
   implementation_digest:string; python:'3.12.14';
 }
@@ -54,18 +54,21 @@ export function recordGuardFailure(evidence: SupervisorEvidence, message: Record
 }
 
 /** Diagnostic timestamps never replace a separate confirmed-stop receipt. */
-export function recordTerminationTiming(evidence: SupervisorEvidence, message: Record<string,unknown>): string {
+export function recordTerminationTiming(evidence: SupervisorEvidence, message: Record<string,unknown>,
+  stopPolicy:'java-tree500-lease1500/1'|'java-tree1000-lease750/1'='java-tree500-lease1500/1'): string {
   fields(message,['schema','kind','policy','started_qpc_ns','clock_resolution_ns','wait_bound_ms',
     'job_succeeded','job_returned_after_ns','wait_started_after_ns','wait_returned_after_ns','wait_result',
     'tree_checked_after_ns','active_processes','tree_result',
     'total_processes','held_processes','signaled_processes']);
   const duration = (value:unknown):value is number => Number.isSafeInteger(value) && Number(value)>=0;
+  const changed = stopPolicy === 'java-tree1000-lease750/1';
+  const waitMs = changed ? 1000 : 500;
   requireThat(message.schema === 'strata/ProcessGuardEvent/1' && message.kind === 'termination_timing'
-    && message.policy === 'job-call-wait-tree-qpc/2' && typeof message.started_qpc_ns === 'string'
+    && message.policy === `job-call-wait-tree-qpc/${changed ? 3 : 2}` && typeof message.started_qpc_ns === 'string'
     && /^(0|[1-9][0-9]{0,19})$/.test(message.started_qpc_ns)
     && BigInt(message.started_qpc_ns)<=18446744073709551615n
     && duration(message.clock_resolution_ns) && message.clock_resolution_ns>0 && message.clock_resolution_ns<=1000000
-    && message.wait_bound_ms === 500 && typeof message.job_succeeded === 'boolean'
+    && message.wait_bound_ms === waitMs && typeof message.job_succeeded === 'boolean'
     && duration(message.job_returned_after_ns), 'PROCESS_GUARD_PROTOCOL');
   if (message.job_succeeded) {
     requireThat(duration(message.wait_started_after_ns) && duration(message.wait_returned_after_ns)
@@ -90,7 +93,7 @@ export function recordTerminationTiming(evidence: SupervisorEvidence, message: R
     if (message.tree_result==='empty') requireThat(counted && message.active_processes===0
       && Number(message.total_processes)>0 && message.total_processes===message.held_processes
       && message.held_processes===message.signaled_processes
-      && message.tree_checked_after_ns-Number(message.wait_started_after_ns)<=500_000_000,
+      && message.tree_checked_after_ns-Number(message.wait_started_after_ns)<=waitMs*1_000_000,
     'PROCESS_GUARD_PROTOCOL');
   } else {
     requireThat(message.tree_result==='not_started' && message.tree_checked_after_ns===null
@@ -125,9 +128,11 @@ export class ForgeProcessGuard {
     const grant = strictJson(readFileSync(c.process_guard_file,'utf8')) as Record<string,unknown>;
     fields(grant,
       ['schema','purpose','campaign_id','agent_id','epoch','process','expires_unix_ms','max_wall_ms',
-        'connection_file','connection_digest','native_fingerprint','body_fingerprint','capability_digest','primitive_limit']);
+        'connection_file','connection_digest','native_fingerprint','body_fingerprint','capability_digest','primitive_limit',
+        'shutdown_policy']);
     const connection = NativeGameClient.fromFile(c.connection_file).connection;
-    requireThat(grant.schema === 'strata/ForgeProcessGuardGrant/1'
+    requireThat(grant.schema === 'strata/ForgeProcessGuardGrant/2'
+      && grant.shutdown_policy === 'java-tree1000-lease750/1'
       && grant.purpose === 'dedicated-development-client-lifetime'
       && grant.campaign_id === c.campaign_id && grant.agent_id === c.agent_id && grant.epoch === c.epoch
       && grant.native_fingerprint === c.native_fingerprint && grant.body_fingerprint === c.body_fingerprint
@@ -171,7 +176,7 @@ export class ForgeProcessGuard {
             requireThat(!this.readyValue && message.process_digest === processDigest
               && message.campaign_id === c.campaign_id && message.agent_id === c.agent_id && message.epoch === c.epoch
               && message.whole_client_lifetime === true && message.campaign_admission === false
-              && message.policy === 'forge-process-listener-client-thread/1' && message.python === '3.12.14'
+              && message.policy === 'forge-process-listener-client-thread/2' && message.python === '3.12.14'
               && message.connection_digest === digest(connection) && message.body_fingerprint === c.body_fingerprint
               && Number.isSafeInteger(message.connection_generation) && Number(message.connection_generation) >= 0
               && Number.isSafeInteger(message.remaining_wall_ms) && Number(message.remaining_wall_ms) >= c.max_wall_ms+2250
@@ -182,13 +187,13 @@ export class ForgeProcessGuard {
             fields(message,['schema','kind','seq','nonce','lease_ms']);
             requireThat(this.readyValue && Number.isSafeInteger(message.seq) && Number(message.seq)>0
               && typeof message.nonce === 'string' && /^[a-f0-9]{32}$/.test(message.nonce)
-              && message.lease_ms === 1500,'PROCESS_GUARD_PROTOCOL');
+              && message.lease_ms === 750,'PROCESS_GUARD_PROTOCOL');
             requireThat(message.seq === this.challengeSeq+1 && !this.pendingRenew,'PROCESS_GUARD_PROTOCOL');
             this.challengeSeq = Number(message.seq);
             this.pendingRenew = {kind:'renew',seq:this.challengeSeq,nonce:message.nonce}; this.renew();
           } else if (message.kind === 'termination_timing') {
             requireThat(this.readyValue && this.terminationOutcome === null, 'PROCESS_GUARD_PROTOCOL');
-            this.terminationOutcome = recordTerminationTiming(this.evidence,message);
+            this.terminationOutcome = recordTerminationTiming(this.evidence,message,'java-tree1000-lease750/1');
           } else if (message.kind === 'stopped') {
             fields(message,['schema','kind','reason','termination_confirmed','release_confirmed',
               'elapsed_ms','termination_wait_ms','requires_resync','campaign_admission']);
@@ -233,7 +238,9 @@ export class ForgeProcessGuard {
       try {this.evidence.event('guard_stop_requested',{already_exited:this.ended});}
       catch {this.fail('EVIDENCE_UNAVAILABLE');}
       if (!this.ended) this.send({kind:'stop'});
-      const killer = setTimeout(() => this.child.kill(),1000);
+      // The complete tree proof has 1000 ms; receipt delivery/exit has a
+      // separate bounded reserve and can never turn a late proof into success.
+      const killer = setTimeout(() => this.child.kill(),1500);
       try {
         const code = await this.exited;
         requireThat(code === 0 && this.stoppedReceipt && !this.failure,'PROCESS_STOP_UNCONFIRMED');

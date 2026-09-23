@@ -7,10 +7,10 @@ from mcbench.records import AGENT_RECORDS, EVALUATOR_RECORDS, OPERATOR_RECORDS
 from mcbench.authorization import ExecutionAuthorization
 from mcbench.native import NativeLaunch
 from mcbench.provisioning import (
-    AcquisitionReceipt, LaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
+    AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
 )
 
-OPERATOR_API_MODELS = (ExecutionAuthorization, NativeLaunch, AcquisitionReceipt, LaunchProfile,
+OPERATOR_API_MODELS = (ExecutionAuthorization, NativeLaunch, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
                        ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput)
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -10,6 +10,7 @@ import pytest
 from mcbench.storage import Fault, canonical, digest
 from strata_evaluator.protected_reference import ProtectedReferencePlan
 from strata_evaluator.reference_launch import ReferenceLauncher
+from strata_evaluator.craft_reference import CraftReferencePlanV3
 from strata_evaluator.writer_preparation import CODEX_SHA256
 from test_craft_reference import reference, seal  # noqa: F401
 
@@ -39,6 +40,17 @@ def plan(reference, tmp_path):  # noqa: F811
         "abort_cleanup_ms": 500, "custody_id": "prep", "gate_helper": pin(tmp_path / "StrataWriterLaunch.class")}
     return {"schema": "strata/ProtectedReferencePlan/1", "preparation": preparation, "setup": setup,
             "launch": launch, "evidence_directory": str(evidence)}
+
+
+def test_protected_plan_retains_required_history_and_exact_setup_digest(plan):
+    from test_setup_history import require_history
+    from test_setup_facts import TEAM
+    plan["setup"]["native_team_ids"] = dict.fromkeys(plan["setup"]["roster"], TEAM)
+    require_history(plan["setup"])
+    plan["launch"]["setup_digest"] = digest(plan["setup"])
+    parsed = ProtectedReferencePlan.model_validate(plan)
+    assert isinstance(parsed.setup, CraftReferencePlanV3)
+    assert digest(parsed.setup.model_dump(by_alias=True)) == parsed.launch.setup_digest
 
 
 @pytest.mark.parametrize("change", ["world", "preparation_output", "launch_output", "custody_id",

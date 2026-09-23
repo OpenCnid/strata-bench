@@ -11,17 +11,18 @@ from mcbench.storage import require
 
 
 class GameProbe:
-    def __init__(self, descriptor, lease_id):
+    def __init__(self, descriptor, lease_id, *, recovery=False):
         WorkerTransport(descriptor)
         self.descriptor = dict(descriptor)
         self.scope = {k: descriptor[k] for k in ("campaign_id", "agent_id", "epoch")}
         require(isinstance(lease_id, str) and 0 < len(lease_id) <= 128, "GAME_LEASE_REQUIRED")
         self.lease_id = lease_id
+        self.request_id = "native-bounded-look" + (f"-epoch-{descriptor['epoch']}" if recovery else "")
 
     def code(self):
         # All state/action arguments below are derived inside the native tool
         # invocation from the public observation. The provider sees no raw world.
-        return "const scope=" + json.dumps(self.scope) + "; const lease=" + json.dumps(self.lease_id) + r''';
+        code = "const scope=" + json.dumps(self.scope) + "; const lease=" + json.dumps(self.lease_id) + r''';
 const tool=ALL_TOOLS.find(t=>t.name.endsWith("__game"));
 if (!tool) throw new Error("GAME_TOOL_MISSING");
 let seq=0;
@@ -40,13 +41,14 @@ await new Promise(resolve=>setTimeout(resolve,550));
 const before=await game("observe");
 if (!before.state.connected || before.is_example) throw new Error("REAL_GAME_NOT_CONNECTED");
 const p=before.state.position;
+const yaw=before.state.yaw+Math.PI/4;
 const batch={schema:"mcbench/ActionBatch/1",is_example:false,...scope,
   seq:(before.last_action_seq||0)+1,recorded_at:new Date().toISOString(),lease_id:lease,
   request_id:"native-bounded-look",observation_id:before.observation_id,
   expected_state_revision:before.state_revision,capability_digest:before.capability_digest,
   control_revision:before.control_revision,keymap_digest:null,mode:"structured",
   deadline_at:new Date(Date.now()+2000).toISOString(),duration_ms:2000,
-  action:{kind:"look_at",target:{x:p.x+3,y:p.y+1.62,z:p.z}},events:[],release_at_end:true};
+  action:{kind:"look_at",target:{x:p.x-Math.sin(yaw)*3,y:p.y+1.62,z:p.z-Math.cos(yaw)*3}},events:[],release_at_end:true};
 let receipt=await game("act",batch);
 for(let i=0;i<6 && ["accepted","executing"].includes(receipt.status);i++) {
   await new Promise(resolve=>setTimeout(resolve,100));
@@ -61,6 +63,7 @@ if (after.last_action_seq!==batch.seq || after.state_revision<=before.state_revi
 text({native_game_completed:true,request_id:batch.request_id,receipt,
   before_observation:before.observation_id,after_observation:after.observation_id});
 '''
+        return code.replace('"native-bounded-look"', json.dumps(self.request_id))
 
     def report(self, db, plan, provider):
         rows = [dict(r) for r in db.connection.execute(
@@ -72,7 +75,7 @@ text({native_game_completed:true,request_id:batch.request_id,receipt,
                         and r["result"].get("schema") == "mcbench/Observation/1"]
         receipts = [r["result"] for r in responses if r.get("status") == "ok"
                     and isinstance(r.get("result"), dict)
-                    and r["result"].get("request_id") == "native-bounded-look"]
+                    and r["result"].get("request_id") == self.request_id]
         closed = db.connection.execute("SELECT state,stop_result FROM native_worker_bindings WHERE job=?",
                                        (plan.job_id,)).fetchone()
         outputs = json.dumps(provider.outputs)

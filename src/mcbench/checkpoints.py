@@ -7,10 +7,12 @@ path coverage and actual restore semantics still require integration evidence.
 import hashlib
 import json
 import os
+import stat
 import tempfile
 from contextlib import nullcontext
 from pathlib import Path
 
+from .contracts import MAX_INT
 from .records import CampaignConfig, CheckpointManifest, PackLock
 from .storage import CAS, Database, Principal, canonical, digest, extended_path, reject_links, require, safe_relative
 
@@ -23,6 +25,8 @@ class Checkpoints:
         with database.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, campaign TEXT, "
                        "epoch INTEGER, digest TEXT, ref TEXT, namespace TEXT)")
+            db.execute("CREATE TABLE IF NOT EXISTS checkpoint_restorations (path TEXT PRIMARY KEY, "
+                       "checkpoint TEXT NOT NULL, epoch INTEGER NOT NULL, receipt TEXT NOT NULL)")
 
     def _native_components(self, manifest, namespace):
         db = self.database.connection
@@ -178,92 +182,169 @@ class Checkpoints:
                 "label": "development-lost-interval", "cost_rollback": False,
                 "requires_fresh_grants": True, "requires_restore_assertions": True}
 
+    def _set_inventory(self, manifest, namespace, native):
+        """Derive every member from the committed source, not a destination manifest."""
+        copied = {"server/" + k: (namespace, v) for k, v in
+                  self.cas.json(OPERATOR, namespace, manifest.world_and_external_state)["files"].items()}
+        directories, members = {"server", "agents"}, {}
+        for agent in manifest.agents:
+            state = native.validate_snapshot(manifest, agent, namespace)
+            files = {}
+            for ref in (state.workspace, state.skills):
+                files |= self.cas.json(OPERATOR, "operator", ref)["files"]
+            directory = "agents/" + digest({"agent_id": agent.agent_id})
+            directories.update({directory, directory + "/workspace", directory + "/private"})
+            copied.update({directory + "/workspace/" + p: ("operator", r) for p, r in files.items()})
+            for field in ("backend_state", "keymap", "runtime_state"):
+                if ref := getattr(agent, field):
+                    copied[directory + "/private/" + field + ".json"] = (namespace, ref)
+            skill_part = self.cas.json(OPERATOR, "operator", state.skills)
+            if activation_ref := skill_part.get("activation_ref"):
+                from .native_skill_activation import read_set
+                read_set(self.database.connection, self.cas, activation_ref)
+                copied[directory + "/private/active_skills.json"] = ("operator", activation_ref)
+            if publication_ref := skill_part.get("publication_ref"):
+                publication = native.publications.load(publication_ref)
+                copied[directory + "/private/skill_candidates.json"] = ("operator", publication_ref)
+                directories.add(directory + "/private/skill-bundles")
+                for record in publication["records"]:
+                    path = directory + "/private/skill-bundles/" + record["content"][11:] + ".json"
+                    copied[path] = ("operator", record["content"])
+            members[agent.agent_id] = {"directory": directory, "files_digest": digest(files),
+                "runtime_state": agent.runtime_state, "helper_state_imported": False, "skills_activated": False}
+        for path in copied:
+            directories.update(str(p) for p in safe_relative(path).parents if str(p) != ".")
+        return copied, directories, members
+
+    def _restore_source(self, checkpoint_id, config, current_epoch, *, native=None):
+        require(type(current_epoch) is int and 0 < current_epoch <= MAX_INT, "STALE_EPOCH")
+        manifest, namespace = self.load(checkpoint_id, _native=native)
+        require(manifest.campaign_id == config.campaign_id and manifest.system_digest == config.system_digest
+                and manifest.pack_lock == config.pack_lock, "CHECKPOINT_IDENTITY")
+        require(config.recovery_policy == "resume_development", "CONFIRMATORY_STATE_LOSS")
+        require(current_epoch > manifest.source_epoch, "STALE_EPOCH")
+        native = native or self._native_components(manifest, namespace)
+        require(native is not None, "NATIVE_CHECKPOINT_REQUIRED")
+        require(all(native.load(a.runtime_state)[1] == config for a in manifest.agents), "CHECKPOINT_IDENTITY")
+        campaign = self.database.connection.execute("SELECT epoch,config FROM campaigns WHERE id=?",
+                                                   (config.campaign_id,)).fetchone()
+        require(campaign is not None and current_epoch >= campaign["epoch"], "STALE_EPOCH")
+        require(json.loads(campaign["config"]) == config.model_dump(), "CHECKPOINT_IDENTITY")
+        copied, directories, members = self._set_inventory(manifest, namespace, native)
+        result = {"schema": "strata/RestoredCheckpoint/2", "checkpoint_id": checkpoint_id,
+            "is_example": native.runtime.simulation, "manifest_digest": manifest.manifest_digest,
+            "new_epoch": current_epoch, "members": members, "cost_rollback": False,
+            "dispatch_authorized": False, "requires_fresh_grants": True, "requires_restore_assertions": True,
+            "inventory_digest": digest({"files": {p: r for p, (_, r) in copied.items()},
+                                        "directories": sorted(directories)})}
+        return copied, directories, result, native
+
+    def _verify_staged_tree(self, root, files, directories, receipt=None):
+        """Point-in-time byte check; no process, write-exclusion or launch authority."""
+        reject_links(root)
+        require(root.is_dir(), "RESTORE_SET_MISSING")
+        expected = {p: r for p, (_, r) in files.items()}
+        sizes = {}
+        for path, (namespace, ref) in files.items():
+            self.cas.verify(OPERATOR, namespace, ref)
+            sizes[path] = self.database.connection.execute(
+                "SELECT bytes FROM objects WHERE namespace=? AND ref=?", (namespace, ref)).fetchone()[0]
+        if receipt is not None:
+            expected["restore.json"] = "cas:sha256:" + hashlib.sha256(receipt).hexdigest()
+            sizes["restore.json"] = len(receipt)
+        pending, seen_files, seen_dirs = [root], set(), set()
+        while pending:
+            with os.scandir(pending.pop()) as entries:
+                for entry in entries:
+                    path = Path(entry.path)
+                    reject_links(path)
+                    relative = path.relative_to(root).as_posix()
+                    # Windows DirEntry metadata may omit inode/link counts.
+                    # Query the actual path before comparing the open handle.
+                    info = path.lstat()
+                    if stat.S_ISDIR(info.st_mode):
+                        require(relative in directories and relative not in seen_dirs, "MIXED_SNAPSHOT")
+                        seen_dirs.add(relative)
+                        pending.append(path)
+                    else:
+                        require(stat.S_ISREG(info.st_mode) and info.st_nlink == 1, "UNSAFE_PATH")
+                        require(relative in expected and relative not in seen_files, "MIXED_SNAPSHOT")
+                        require(info.st_size == sizes[relative], "CORRUPT_EVIDENCE")
+                        with path.open("rb") as stream:
+                            held = os.fstat(stream.fileno())
+                            require((held.st_dev, held.st_ino, held.st_size, held.st_mtime_ns, held.st_nlink) ==
+                                    (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, 1), "CORRUPT_EVIDENCE")
+                            require("cas:sha256:" + hashlib.file_digest(stream, "sha256").hexdigest() ==
+                                    expected[relative], "CORRUPT_EVIDENCE")
+                            after = os.fstat(stream.fileno())
+                            require((after.st_size, after.st_mtime_ns, after.st_nlink) ==
+                                    (held.st_size, held.st_mtime_ns, 1), "CORRUPT_EVIDENCE")
+                        seen_files.add(relative)
+        require(seen_files == set(expected) and seen_dirs == directories, "MIXED_SNAPSHOT")
+
+    @staticmethod
+    def _restore_path(target):
+        target = extended_path(Path(target))
+        reject_links(target)
+        return target, os.path.normcase(str(target))
+
+    def verify_set(self, checkpoint_id, config: CampaignConfig, current_epoch: int, target: Path):
+        """Recheck a committed staged set before launch; never infer live restore success.
+
+        A copied receipt, legacy unregistered output or interrupted publication
+        cannot become authority. Full game assertions and fresh grants remain due.
+        Current costs and uncertainty are never in the rollback/materialization domain.
+        """
+        target, key = self._restore_path(target)
+        _, _, _, native = self._restore_source(checkpoint_id, config, current_epoch)
+        with self.database.transaction() as db:
+            row = db.execute("SELECT * FROM checkpoint_restorations WHERE path=?", (key,)).fetchone()
+            require(row is not None, "RESTORE_SET_UNCOMMITTED")
+            require(row["checkpoint"] == checkpoint_id and row["epoch"] == current_epoch, "RESTORE_SET_SCOPE")
+            files, directories, expected, _ = self._restore_source(checkpoint_id, config, current_epoch, native=native)
+            receipt = canonical(expected)
+            require(row["receipt"].encode() == receipt, "RESTORE_SET_SOURCE_CHANGED")
+            self._verify_staged_tree(target, files, directories, receipt)
+            # Repeat the authority check after I/O under the same writer lock.
+            require(self._restore_source(checkpoint_id, config, current_epoch, native=native)[2] == expected,
+                    "MIXED_SNAPSHOT")
+        return expected | {"verified_staging_only": True}
+
     def materialize_set(self, checkpoint_id, config: CampaignConfig, current_epoch: int, target: Path):
         """Stage every recorded member in one fresh private operator directory.
 
         Only each agent's workspace is a candidate for later broker projection.
         The set grants no process launch, capabilities, or restore assertions.
         """
-        self.recovery_plan(checkpoint_id, config, current_epoch)
-        manifest, namespace = self.load(checkpoint_id)
-        native = self._native_components(manifest, namespace)
-        require(native is not None, "NATIVE_CHECKPOINT_REQUIRED")
-        require(all(native.load(a.runtime_state)[1] == config for a in manifest.agents), "CHECKPOINT_IDENTITY")
-        campaign = self.database.connection.execute("SELECT epoch FROM campaigns WHERE id=?", (config.campaign_id,)).fetchone()
-        require(campaign is not None and current_epoch >= campaign[0], "STALE_EPOCH")
-        target = extended_path(target)
-        reject_links(target)
+        copied, directories, result, native = self._restore_source(checkpoint_id, config, current_epoch)
+        target, key = self._restore_path(target)
         require(not target.exists(), "TARGET_EXISTS")
+        require(self.database.connection.execute("SELECT 1 FROM checkpoint_restorations WHERE path=?", (key,)).fetchone()
+                is None, "TARGET_EXISTS")
         target.parent.mkdir(parents=True, exist_ok=True)
-        members = {}
         with tempfile.TemporaryDirectory(dir=target.parent, prefix=".restore-set-") as temporary:
             staging = Path(temporary) / "instance"
             staging.mkdir()
-            self.materialize_world(checkpoint_id, staging / "server")
-            copied = {"server/" + k: v for k, v in
-                      self.cas.json(OPERATOR, namespace, manifest.world_and_external_state)["files"].items()}
-            for agent in manifest.agents:
-                state = native.validate_snapshot(manifest, agent, namespace)
-                files = {}
-                for ref in (state.workspace, state.skills):
-                    files |= self.cas.json(OPERATOR, "operator", ref)["files"]
-                # IDs allow punctuation that is not a safe Windows path. Use an
-                # identity digest, never an agent-supplied directory component.
-                directory = "agents/" + digest({"agent_id": agent.agent_id})
-                workspace = staging.joinpath(*directory.split("/")) / "workspace"
-                workspace.mkdir(parents=True)
-                for path, ref in files.items():
-                    file = workspace.joinpath(*safe_relative(path).parts)
-                    file.parent.mkdir(parents=True, exist_ok=True)
-                    self.cas.copy_to(OPERATOR, "operator", ref, file)
-                    copied[directory + "/workspace/" + path] = ref
-                private = workspace.parent / "private"
-                private.mkdir()
-                for field in ("backend_state", "keymap", "runtime_state"):
-                    if ref := getattr(agent, field):
-                        self.cas.copy_to(OPERATOR, namespace, ref, private / (field + ".json"))
-                        copied[directory + "/private/" + field + ".json"] = ref
-                skill_part = self.cas.json(OPERATOR, "operator", state.skills)
-                if activation_ref := skill_part.get("activation_ref"):
-                    from .native_skill_activation import read_set
-                    read_set(self.database.connection, self.cas, activation_ref)
-                    self.cas.copy_to(OPERATOR, "operator", activation_ref, private / "active_skills.json")
-                    copied[directory + "/private/active_skills.json"] = activation_ref
-                if publication_ref := skill_part.get("publication_ref"):
-                    publication = native.publications.load(publication_ref)
-                    self.cas.copy_to(OPERATOR, "operator", publication_ref, private / "skill_candidates.json")
-                    copied[directory + "/private/skill_candidates.json"] = publication_ref
-                    bundles = private / "skill-bundles"
-                    bundles.mkdir()
-                    for record in publication["records"]:
-                        name = record["content"][11:] + ".json"
-                        self.cas.copy_to(OPERATOR, "operator", record["content"], bundles / name)
-                        copied[directory + "/private/skill-bundles/" + name] = record["content"]
-                members[agent.agent_id] = {"directory": directory,
-                                          "files_digest": digest(files), "runtime_state": agent.runtime_state,
-                                          "helper_state_imported": False, "skills_activated": False}
-            # Revalidate after copy. No mixed/changed source can publish a set.
-            require(self.load(checkpoint_id)[0] == manifest, "MIXED_SNAPSHOT")
-            actual = {p.relative_to(staging).as_posix(): p for p in staging.rglob("*") if p.is_file()}
-            require(set(actual) == set(copied), "MIXED_SNAPSHOT")
-            for path, file in actual.items():
-                reject_links(file)
-                with file.open("rb") as stream:
-                    require(hashlib.file_digest(stream, "sha256").hexdigest() == copied[path][11:], "CORRUPT_EVIDENCE")
-            result = {"schema": "strata/RestoredCheckpoint/1", "checkpoint_id": checkpoint_id,
-                "is_example": native.runtime.simulation,
-                "manifest_digest": manifest.manifest_digest, "new_epoch": current_epoch,
-                "members": members, "cost_rollback": False, "dispatch_authorized": False,
-                "requires_fresh_grants": True, "requires_restore_assertions": True}
+            for path in sorted(directories):
+                staging.joinpath(*safe_relative(path).parts).mkdir(parents=True, exist_ok=True)
+            for path, (namespace, ref) in copied.items():
+                self.cas.copy_to(OPERATOR, namespace, ref, staging.joinpath(*safe_relative(path).parts))
+            self._verify_staged_tree(staging, copied, directories)
+            receipt = canonical(result)
             with (staging / "restore.json").open("xb") as stream:
-                stream.write(canonical(result))
+                stream.write(receipt)
                 stream.flush()
                 os.fsync(stream.fileno())
             with self.database.transaction() as db:
-                campaign = db.execute("SELECT epoch,config FROM campaigns WHERE id=?", (config.campaign_id,)).fetchone()
-                require(campaign is not None and current_epoch >= campaign["epoch"], "STALE_EPOCH")
-                require(json.loads(campaign["config"]) == config.model_dump(), "CHECKPOINT_IDENTITY")
-                for agent in manifest.agents:
-                    native.validate_snapshot(manifest, agent, namespace)
+                require(self._restore_source(checkpoint_id, config, current_epoch, native=native)[2] == result,
+                        "MIXED_SNAPSHOT")
+                self._verify_staged_tree(staging, copied, directories, receipt)
+                require(db.execute("SELECT 1 FROM checkpoint_restorations WHERE path=?", (key,)).fetchone()
+                        is None and not target.exists(), "TARGET_EXISTS")
                 os.rename(staging, target)
+                # A crash here leaves an occupied, unregistered output. Neither
+                # retry nor a forged restore.json may bless or overwrite it.
+                db.execute("INSERT INTO checkpoint_restorations VALUES(?,?,?,?)",
+                           (key, checkpoint_id, current_epoch, receipt.decode()))
+                self.database.event(db, "checkpoint.restored_set", {"path": key, **result})
         return result

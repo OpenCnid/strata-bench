@@ -482,7 +482,7 @@ async function fixture(t: test.TestContext, hold = false, recipeMode = false) {
     async guardConfig(maxWallMs = 5000) {
       assert.ok(python); assert.ok(process.pid);
       const inspect = await promisify(execFile)(python,['-I','-m','mcbench.process_guard','--inspect',String(process.pid)],{windowsHide:true});
-      const grant = {schema:'strata/ForgeProcessGuardGrant/1',purpose:'dedicated-development-client-lifetime',
+      const grant = {schema:'strata/ForgeProcessGuardGrant/2',shutdown_policy:'java-tree1000-lease750/1',purpose:'dedicated-development-client-lifetime',
         campaign_id:config.campaign_id,agent_id:config.agent_id,epoch:config.epoch,process:JSON.parse(inspect.stdout),
         expires_unix_ms:Date.now()+120000,max_wall_ms:maxWallMs+5000,connection_file:connection,
         connection_digest:digest(client.connection),native_fingerprint:fingerprint,body_fingerprint:fingerprint,
@@ -1119,16 +1119,16 @@ test('actual guarded supervisor and worker expose only a public grant and termin
   assert.ok(stopIntent.seq < stopped.seq);
   const timing = records.find(r => r.kind === 'guard_termination_timing');
   assert.ok(stopIntent.seq < timing.seq && timing.seq < stopped.seq);
-  assert.equal(timing.value.wait_result,'signaled'); assert.equal(timing.value.wait_bound_ms,500);
+  assert.equal(timing.value.wait_result,'signaled'); assert.equal(timing.value.wait_bound_ms,1000);
   assert.ok(timing.value.job_returned_after_ns <= timing.value.wait_started_after_ns);
   assert.ok(timing.value.wait_started_after_ns <= timing.value.wait_returned_after_ns);
-  assert.equal(timing.value.policy,'job-call-wait-tree-qpc/2');
+  assert.equal(timing.value.policy,'job-call-wait-tree-qpc/3');
   assert.equal(timing.value.tree_result,'empty');assert.equal(timing.value.active_processes,0);
   assert.ok(timing.value.total_processes>0);
   assert.equal(timing.value.total_processes,timing.value.held_processes);
   assert.equal(timing.value.held_processes,timing.value.signaled_processes);
   assert.ok(timing.value.tree_checked_after_ns >= timing.value.wait_returned_after_ns);
-  assert.ok(timing.value.tree_checked_after_ns-timing.value.wait_started_after_ns <= 500_000_000);
+  assert.ok(timing.value.tree_checked_after_ns-timing.value.wait_started_after_ns <= 1_000_000_000);
   assert.equal(stopped.value.termination_confirmed,true); assert.equal(stopped.value.release_confirmed,false);
   assert.equal(stopped.value.reason,'PROCESS_STOP_REQUESTED');
   let previous = '0'.repeat(64);

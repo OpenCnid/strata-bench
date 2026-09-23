@@ -318,6 +318,11 @@ class NativeAdmission:
         return grant
 
     def _project_skills(self, plan, grant, broker):
+        if plan.resume_component_ref is not None:
+            from .native import NativeExec
+            from .native_recovery import NativeRecovery
+            mode = self.db.connection.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()[0]
+            NativeRecovery(NativeExec(self.db, self.cas, simulation=bool(mode))).project(plan, grant, broker)
         if plan.skill_activation_ref is not None:
             from .native import NativeExec
             from .native_skill_activation import NativeSkillSets

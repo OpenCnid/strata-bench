@@ -68,7 +68,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
-        activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None):
+        activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
+        game_recovery=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -114,6 +115,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, activation_source, inherited_helper)),
             "GAME_PINNED_BOOTSTRAP_REQUIRED")
+    require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
+    require(game_recovery is None or game_probe is not None and game_retention is not None,
+            "RECOVERY_GAME_REQUIRED")
     require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
@@ -127,13 +131,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
     patch_test = no_patch_catalog is not None and activation is None and game_probe is None
-    request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 12
+    # A resumed fixture shares the original 120000-unit cap and its consumed
+    # costs. Leave room for those costs instead of reinstalling the allowance.
+    request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
+            self.outputs_by_agent = {}
             self.direct_calls = []
             self.direct_agents = set()
             self.patch_direct_calls, self.patch_agents = [], set()
@@ -151,6 +158,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             if interrupt_probe:
                 interrupt_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
+                "custom_tool_call_output", "function_call_output"})
+            self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
             extra_items = []
@@ -194,8 +203,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         if activation is None or agent != "/root":
                             broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
                         if agent == "/root" and activation is None:
-                            broker.project(grant.thread_id, "initial/skill.md", "STRATA_IMMUTABLE_SKILL")
-                            broker.project(grant.thread_id, "docs/root-only.md", "STRATA_ROOT_ONLY_CANARY")
+                            from mcbench.native_game_retention import INITIAL
+                            for path, text in INITIAL.items():
+                                if path != "supplied/plan.md":
+                                    broker.project(grant.thread_id, path, text)
                     finally:
                         connection.close()
                     game_request = {"schema": "strata/GameRequest/1",
@@ -218,6 +229,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             calls = activation.calls(agent) + calls
                         else:
                             calls.extend(activation.calls(agent))
+                    if game_recovery:
+                        if agent == "/root":
+                            calls[0] = ("artifact_read", {"path": "notes/root.md"})
+                            calls[1][1].update(expected_ref=game_recovery.old_note, text="STRATA_RESTORED_AND_CONTINUED")
+                        else:
+                            calls.append(("artifact_read", {"path": "notes/root.md"}))
                     if skills_mode:
                         calls.append(("artifact_read", {"path":
                             "initial/dovetail/skills/prompt-engineering/SKILL.md"}))
@@ -320,7 +337,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
-    if activation is None:
+    if activation is None and game_recovery is None:
         gate.budgets.create_account("project", limits, "*")
         gate.budgets.create_account("a1", limits,
             game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
@@ -374,6 +391,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         plan = plan_for(binary, output, provider, job_id)
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
+        if game_recovery:
+            plan = game_recovery.prepare(runtime, plan)
         if activation:
             plan = activation.prepare(runtime, plan)
         installed = install_dovetail(binary, Path(plan.profile_directory))
@@ -481,6 +500,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "output_bound_method", "max_input_tokens", "max_output_tokens")}})
             gateway.bind(plan, gateway_config)
         provider.plan = plan
+        if game_retention:
+            if game_recovery:
+                game_retention.attach_existing(runtime, plan)
+            else:
+                game_retention.register(runtime, plan)
         if ingress_mode:
             NativeIngress(db).register(plan)
         if broker_mode:
@@ -655,6 +679,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["activation"] = activation.report(provider, db, plan)
         result["checks"].update(result["activation"]["checks"])
         result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
+    if game_retention:
+        result["retention"] = game_retention.finish()
+        result["checks"]["preregistered_native_retention_component"] = True
+    if game_recovery:
+        result["recovery"] = game_recovery.report(runtime, plan, provider)
+        result["checks"].update(result["recovery"]["checks"])
+        result["checks"]["aggregate_no_double_charge"] = result["recovery"]["checks"]["recovery_prior_costs_preserved"]
     db.export_journal(output / "journal.jsonl")
     if ingress_mode:
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])

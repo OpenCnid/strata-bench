@@ -67,7 +67,7 @@ class CraftEnd(CraftBoundary):
 
 
 def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe: dict,
-                  *, end_observation: GameEvent | None = None):
+                  *, end_observation: GameEvent | None = None, end_history: GameEvent | None = None):
     """Fail closed on changed resources, partial/foreign boundaries or fake callbacks."""
     require(
         begin.kind == "craft_begin"
@@ -86,7 +86,8 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
         (begin.campaign_id, begin.epoch, begin.server_boot_id, begin.server_tick, begin.actor_ids)
         == (end.campaign_id, end.epoch, end.server_boot_id, end.server_tick, end.actor_ids)
         and len(begin.actor_ids) == 1
-        and end.server_event_seq == begin.server_event_seq + (3 if end_observation is not None else 2),
+        and end.server_event_seq == begin.server_event_seq + 2
+            + int(end_observation is not None) + int(end_history is not None),
         "CRAFT_BOUNDARY_SCOPE",
     )
     require(
@@ -109,6 +110,17 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
         "CRAFT_CALLBACK_SCOPE",
     )
     a, b = CraftBegin.model_validate(begin.payload), CraftEnd.model_validate(end.payload)
+    if end_history is not None:
+        from .setup_history import SetupHistory
+        history = SetupHistory.model_validate(end_history.payload)
+        require(end_observation is not None and not end_history.is_example
+                and end_history.visibility == "evaluator" and end_history.kind == "setup_history"
+                and end_history.payload_schema == "strata/NativeSetupHistory/1"
+                and history.phase == "craft_end" and history.transaction_id == a.transaction_id
+                and (end_history.campaign_id, end_history.epoch, end_history.server_boot_id,
+                     end_history.server_tick, end_history.actor_ids, end_history.server_event_seq)
+                == (begin.campaign_id, begin.epoch, begin.server_boot_id, begin.server_tick,
+                    begin.actor_ids, begin.server_event_seq + 2), "CRAFT_SETUP_HISTORY_SCOPE")
     if end_observation is not None:
         from .setup_facts import SetupSnapshot
         point = SetupSnapshot.model_validate(end_observation.payload)
@@ -120,7 +132,8 @@ def qualify_click(begin: GameEvent, callback: GameEvent, end: GameEvent, recipe:
                 and (end_observation.campaign_id, end_observation.epoch, end_observation.server_boot_id,
                      end_observation.server_tick, end_observation.actor_ids, end_observation.server_event_seq)
                 == (begin.campaign_id, begin.epoch, begin.server_boot_id, begin.server_tick,
-                    begin.actor_ids, begin.server_event_seq + 2), "CRAFT_SETUP_POINT_SCOPE")
+                    begin.actor_ids, begin.server_event_seq + 2 + int(end_history is not None)),
+                "CRAFT_SETUP_POINT_SCOPE")
     require(
         a.transaction_id == b.transaction_id
         and a.container_id == b.container_id

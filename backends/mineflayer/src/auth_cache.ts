@@ -34,7 +34,9 @@ export function protectedCache(path: string, create = false): string {
     noLinks(script);
     const python = resolve(repository, '.venv/Scripts/python.exe'); noLinks(python);
     try {
-      execFileSync(python, ['-I',script,full,existsSync(full) ? 'Verify' : 'Create'],
+      // The ACL helper is stdlib-only. Do not execute site/.pth hooks or create
+      // bytecode in the frozen runtime used by a prepared private worker.
+      execFileSync(python, ['-I','-S','-B',script,full,existsSync(full) ? 'Verify' : 'Create'],
       {stdio: 'pipe', windowsHide: true, timeout: 15000, maxBuffer: 4096});
     } catch { throw new Fault('AUTH_CACHE_PROTECTION_FAILED'); }
   } else {

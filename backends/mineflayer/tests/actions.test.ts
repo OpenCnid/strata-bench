@@ -16,6 +16,7 @@ import { EventEmitter } from 'node:events';
 import type { Bot } from 'mineflayer';
 import { Vec3 } from 'vec3';
 import { trackBodyRevision } from '../src/body_revision.js';
+import { DatabaseSync } from 'node:sqlite';
 
 /** Synthetic backend only. These tests do not establish Minecraft mechanics or T03. */
 class SyntheticBackend implements Backend {
@@ -163,6 +164,48 @@ test('uncertain partial effect is retained, stops controls and blocks the next m
   assert.equal(f.journal.counter('primitive_events'),1);
   assert.throws(()=>f.lane.act(f.batch('r2',2)),/LEASE_EXPIRED/);
   assert.doesNotMatch(JSON.stringify(f.journal.status('r')),/canary/);
+});
+test('primitive charge and exact attribution commit before emission; duplicates retain one charge',async t=>{
+  const f=fixture(t); const b=f.batch();
+  f.backend.task=async (_signal,emit)=>{
+    emit();
+    const read=new DatabaseSync(join(f.dir,'actions.sqlite'),{readOnly:true});
+    try {
+      const row=read.prepare("SELECT body FROM events WHERE kind='primitive_charge'").get() as {body:string};
+      const charge=JSON.parse(row.body);
+      assert.equal(charge.request_id,b.request_id); assert.equal(charge.action_seq,b.seq);
+      assert.equal(charge.charge_seq,1); assert.equal(charge.action_charge_seq,1);
+      assert.equal(charge.emission_confirmed,false); assert.equal(charge.safety_release,false);
+      assert.equal(f.journal.counter('primitive_events'),1);
+    } finally {read.close();}
+  };
+  f.lane.act(b); await delay(30);
+  assert.equal(f.journal.status('r').status,'completed');
+  assert.equal(f.lane.act(b).emitted_events,1);
+  assert.equal(f.journal.counter('primitive_events'),1);
+});
+test('failed charge journal prevents emission and rolls its counter back atomically',async t=>{
+  const f=fixture(t); let emitted=false;
+  const write=new DatabaseSync(join(f.dir,'actions.sqlite'));
+  try {write.exec("CREATE TRIGGER synthetic_failure BEFORE INSERT ON events WHEN NEW.kind='primitive_charge' " +
+    "BEGIN SELECT RAISE(ABORT,'synthetic disk fault'); END");} finally {write.close();}
+  f.backend.task=async (_signal,emit)=>{emit();emitted=true;};
+  f.lane.act(f.batch()); await delay(30);
+  assert.equal(emitted,false); assert.equal(f.journal.counter('primitive_events'),0);
+  assert.equal(f.journal.status('r').status,'failed');
+});
+test('release charges survive uncertainty with explicit safety attribution',async t=>{
+  const f=fixture(t);
+  f.backend.task=async (_signal,emit)=>{emit();emit('safety_release');throw new Error('unknown effect');};
+  f.lane.act(f.batch()); await delay(30);
+  assert.equal(f.journal.status('r').status,'unknown');
+  const read=new DatabaseSync(join(f.dir,'actions.sqlite'),{readOnly:true});
+  try {
+    const charges=read.prepare("SELECT body FROM events WHERE kind='primitive_charge' ORDER BY cursor").all() as {body:string}[];
+    assert.deepEqual(charges.map(r=>JSON.parse(r.body).safety_release),[false,true]);
+    assert.deepEqual(charges.map(r=>JSON.parse(r.body).charge_seq),[1,2]);
+    assert.equal(f.journal.counter('primitive_events'),2);
+  } finally {read.close();}
 });
 test('pre-dispatch failure does not assert uncertain effects',async t=>{
   const f=fixture(t); f.backend.task=async()=>{throw new Fault('PRECONDITION_FAILED');};

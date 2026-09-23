@@ -1,9 +1,11 @@
 import io
+import json
 
 import pytest
 from pydantic import ValidationError
 
-from mcbench.broker import BrokerGrant, NativeBroker
+from mcbench.broker import BrokerGrant, NativeBroker, inspect_game_requests
+from mcbench.contracts import RpcRequest
 from mcbench.broker_stdio import WorkerTransport, respond, serve
 from mcbench.storage import CAS, Database, Fault, canonical
 
@@ -167,6 +169,74 @@ def test_successful_game_receipt_deduplicates_and_never_exposes_admin(broker):
     assert len(calls) == 1
     with pytest.raises(ValidationError):
         b.call("game", {"request": request() | {"method": "admin.eval"}}, meta(), game_transport=forward)
+
+
+def test_exact_request_is_committed_before_forward_and_survives_lost_reply(broker):
+    b, _, _ = broker
+    expected = RpcRequest.model_validate(request()).model_dump()
+    def forward(_):
+        # Independent connection proves the intent transaction has committed.
+        other = Database(b.db.path)
+        try:
+            assert inspect_game_requests(other.connection, "runtime") == {("root", "game-one"): expected}
+        finally:
+            other.close()
+        raise OSError("lost reply")
+    with pytest.raises(Fault, match="BROKER_GAME_OUTCOME_UNKNOWN"):
+        b.call("game", {"request": request()}, meta(), game_transport=forward)
+    restored = NativeBroker(b.db, b.cas, "runtime", "a" * 64, clock=lambda: 100)
+    assert restored.call("game", {"request": request()}, meta(), game_transport=lambda _: pytest.fail("replay"))["status"] == "unknown"
+    assert inspect_game_requests(b.db.connection, "runtime") == {("root", "game-one"): expected}
+
+
+@pytest.mark.parametrize("case", ["missing", "changed", "arguments"])
+def test_missing_or_conflicting_request_blocks_cached_reply_without_forward(broker, case):
+    b, _, _ = broker
+    b.call("game", {"request": request()}, meta(), game_transport=lambda _: {"status": "ok"})
+    if case == "missing":
+        b.db.connection.execute("DELETE FROM broker_game_requests")
+    elif case == "arguments":
+        row = b.db.connection.execute("SELECT cursor,body FROM outbox WHERE kind='broker.call'").fetchone()
+        event = json.loads(row["body"])
+        event["game_arguments"]["request"]["method"] = "capabilities"
+        b.db.connection.execute("UPDATE outbox SET body=? WHERE cursor=?", (canonical(event).decode(), row["cursor"]))
+    else:
+        body = RpcRequest.model_validate(request() | {"method": "capabilities"}).model_dump()
+        b.db.connection.execute("UPDATE broker_game_requests SET body=?", (canonical(body).decode(),))
+    with pytest.raises(Fault, match="BROKER_GAME_REQUEST_MISSING|BROKER_GAME_REQUEST_CONFLICT|BROKER_GAME_REQUEST_EVENT"):
+        b.call("game", {"request": request()}, meta(), game_transport=lambda _: pytest.fail("replay"))
+
+
+def test_legacy_migration_keeps_old_bytes_and_unknown_preimages(broker):
+    b, _, _ = broker
+    b.call("game", {"request": request()}, meta(), game_transport=lambda _: {"status": "ok"})
+    db = b.db.connection
+    old = [tuple(r) for r in db.execute("SELECT * FROM broker_game_calls")]
+    db.execute("DROP TABLE broker_game_requests")
+    db.execute("DROP TABLE broker_game_request_format")
+    for row in db.execute("SELECT cursor,body FROM outbox WHERE kind='broker.call'").fetchall():
+        event = json.loads(row["body"])
+        event.pop("game_arguments", None)  # Reproduce the historical format exactly.
+        db.execute("UPDATE outbox SET body=? WHERE cursor=?", (canonical(event).decode(), row["cursor"]))
+    restored = NativeBroker(b.db, b.cas, "runtime", "a" * 64, clock=lambda: 100)
+    assert [tuple(r) for r in db.execute("SELECT * FROM broker_game_calls")] == old
+    assert inspect_game_requests(db, "runtime") == {}
+    assert restored.call("game", {"request": request()}, meta(), game_transport=lambda _: pytest.fail("replay")) == {"status": "ok"}
+    later = request() | {"request_id": "game-two"}
+    restored.call("game", {"request": later}, meta(), game_transport=lambda _: {"status": "ok"})
+    evidence = inspect_game_requests(db, "runtime")
+    assert set(evidence) == {("root", "game-two")}
+    assert evidence[("root", "game-two")] == json.loads(db.execute("SELECT body FROM broker_game_requests").fetchone()[0])
+    assert tuple(db.execute("SELECT * FROM broker_game_calls WHERE request='game-one'").fetchone()) == old[0]
+
+
+def test_request_journal_failure_rolls_back_intent_before_any_forward(broker):
+    b, _, _ = broker
+    b.db.connection.execute("CREATE TRIGGER synthetic_failure BEFORE INSERT ON broker_game_requests "
+                            "BEGIN SELECT RAISE(ABORT, 'synthetic storage failure'); END")
+    with pytest.raises(Exception, match="synthetic storage failure"):
+        b.call("game", {"request": request()}, meta(), game_transport=lambda _: pytest.fail("unrecorded forward"))
+    assert b.db.connection.execute("SELECT count(*) FROM broker_game_calls").fetchone()[0] == 0
 
 
 def test_stdio_bounded_catalog_metadata_and_redacted_errors(broker):

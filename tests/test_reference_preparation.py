@@ -121,3 +121,58 @@ def test_legacy_production_pair_cannot_create_an_intent_or_spawn(monkeypatch):
     # No database/store is provided: this denial must precede all durable intent and processes.
     with pytest.raises(Fault, match="REFERENCE_CLIENT_PREPARATION_REQUIRED"):
         runner.run({})
+
+
+def argument_file(args):
+    return '\n'.join('"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"' for value in args).encode()
+
+
+@pytest.mark.parametrize("change", [None, "missing", "duplicate", "different", "after_main", "nested", "flags", "options", "escape", "jar", "other_main", "operand"])
+def test_resource_policy_checks_effective_jvm_argument_position_without_disclosing_tokens(change):
+    flag, main = "-XX:ActiveProcessorCount=4", "cpw.mods.bootstraplauncher.BootstrapLauncher"
+    args = ["-Xms512m", "-Xmx3072m", flag, "-cp", r"C:\fixture\bootstrap.jar", main,
+            "--accessToken", "synthetic-private-value"]
+    if change == "missing":
+        args.remove(flag)
+    elif change == "duplicate":
+        args.insert(0, flag)
+    elif change == "different":
+        args[2] = "-XX:ActiveProcessorCount=16"
+    elif change == "after_main":
+        args.remove(flag)
+        args.append(flag)
+    elif change == "jar":
+        args[:0] = ["-jar", "other.jar"]
+    elif change == "other_main":
+        args.insert(0, "other.Main")
+    elif change == "operand":
+        args.insert(2, "-cp")
+    elif change in {"nested", "flags", "options"}:
+        args.insert(0, {"nested": "@hidden.args", "flags": "-XX:Flags=hidden", "options": "-XX:VMOptionsFile=hidden"}[change])
+    raw = argument_file(args)
+    if change == "escape":
+        raw = raw.replace(b"ActiveProcessorCount", b"ActiveProcessor\\u0043ount")
+    if change:
+        with pytest.raises(Fault, match="REFERENCE_CLIENT_RESOURCE_ARGUMENTS") as error:
+            module.check_resource_arguments(raw)
+        assert "synthetic-private-value" not in str(error.value)
+    else:
+        report = module.check_resource_arguments(raw)
+        assert report["argument_bytes_verified"] and not report["shutdown_qualified"]
+        assert "synthetic-private-value" not in json.dumps(report)
+
+
+def test_v2_preparation_rechecks_resource_input_under_argument_lease(prepared):
+    value, proof = prepared
+    args = Path(value.session_arguments.path)
+    args.write_bytes(argument_file(["-XX:ActiveProcessorCount=4", "cpw.mods.bootstraplauncher.BootstrapLauncher"]))
+    receipt = Path(value.session_receipt.path)
+    body = json.loads(receipt.read_bytes()) | {"argfile_sha256": pin(args)["sha256"]}
+    receipt.write_bytes(canonical(body))
+    proof.write_bytes(canonical(value.model_dump(by_alias=True) | {
+        "schema": "strata/PrivateReferenceClientPreparation/2", "jvm_resource_policy": "hotspot-active-processors4/1",
+        "session_arguments": pin(args), "session_receipt": pin(receipt)}))
+    read = module.read_preparation(PrivateFile.model_validate(pin(proof)))
+    report = module.validate_preparation(read, "a" * 64, "b" * 64, 915000)
+    assert report["jvm_resource_input"]["reported_processors_argument"] == 4
+    assert not report["authentication_verified"]

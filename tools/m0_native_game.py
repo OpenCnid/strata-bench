@@ -15,16 +15,24 @@ import sys
 import threading
 import time
 import uuid
+from contextlib import ExitStack
 from datetime import datetime, timezone
 
 from mcbench.broker_stdio import WorkerTransport
 from mcbench.contracts import RpcRequest
 from mcbench.inventory import file_hash
+from mcbench.launch_integrity import safe
 from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault, canonical, reject_links, require
-from native_dispatch_probe import BINARY_SHA256
+from native_dispatch_probe import BINARY_SHA256, CODEX_VERSION, DOVETAIL_COMMIT, MODEL
 from native_game_probe import GameProbe
 from native_mcp_identity_probe import run as run_native
+from mcbench.native_game_retention import GameRetention, paired_components
+from mcbench.worker_bundle import HeldWorkerBundle
+from mcbench.pack_launch import RestoredPackLaunchBinding, parse_pack_binding
+from mcbench.pack_worker import HeldPackWorker, WorkerInvocation
+from mcbench.vanilla_persistence import PACK_POLICY
+from mcbench.worker_stop import stop_owned_worker
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def private(path):
     path = Path(path).absolute()
     reject_links(path)
-    require(not path.resolve().is_relative_to(ROOT), "PRIVATE_PATH_REQUIRED")
+    require(not safe(path.resolve()).is_relative_to(safe(ROOT)), "PRIVATE_PATH_REQUIRED")
     return path
 
 
@@ -45,13 +53,123 @@ def write(path, body):
 
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
-    require(set(plan) == {"schema", "output", "server_plan", "worker_config", "codex", "node",
-                          "tool_projections", "model_catalog"} and
-            plan["schema"] == "strata/M0NativeGameSmoke/1", "M0_PLAN_INVALID")
+    version = plan.get("schema")
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
+    if sealed:
+        require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
+                              "tool_projections", "model_catalog",
+                              "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}, "M0_PLAN_INVALID")
+        with ExitStack() as resources:
+            return run_plan(plan, resources)
+    require(version in {"strata/M0NativeGameSmoke/1", "strata/M0NativeGameSmoke/2", "strata/M0NativeGameRecovery/1",
+                        "strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
+            and set(plan) == {"schema", "output", "server_plan", "worker_config", "codex",
+                              "worker_runtime" if pinned else "node",
+                              "tool_projections", "model_catalog"} |
+            ({"retention_source"} if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3"} else
+             {"recovery_source"} if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2"}
+             else set()), "M0_PLAN_INVALID")
+    with ExitStack() as resources:
+        runtime = None
+        if pinned:
+            private(plan["worker_runtime"]["path"])
+            runtime = HeldWorkerBundle(plan["worker_runtime"])
+            private(runtime.body["root"])
+            resources.enter_context(runtime)
+        # Process callbacks are registered after the runtime lease. They close
+        # before its release even when setup, native execution or cleanup raises.
+        return run_plan(plan, resources, runtime)
+
+
+def run_plan(plan, resources, runtime=None):
+    version = plan["schema"]
+    sealed = version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    restored = version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    sealed_recovery = version == "strata/M0NativeGameRecovery/3"
+    prepared = None
+    retention = recovery = None
+    if version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
+                   "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
+        private(plan["retention_source"]["path"])
+        retention = GameRetention(plan["retention_source"])
+    if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}:
+        from native_game_recovery import GameRecovery
+        private(plan["recovery_source"]["bundle"])
+        if not sealed_recovery:
+            private(plan["recovery_source"]["template_directory"])
+        recovery = GameRecovery(plan["recovery_source"], sealed=sealed_recovery)
+        retention = recovery.retention
+        if runtime:
+            recovery.check_worker_runtime(runtime.reference)
     output = private(plan["output"])
     require(not output.exists(), "TARGET_EXISTS")
-    server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
-    server_plan, worker_config = (json.loads(p.read_bytes()) for p in (server_source, worker_source))
+    if sealed:
+        pack = parse_pack_binding(plan["pack"])
+        require(isinstance(pack, RestoredPackLaunchBinding) == restored, "M0_PACK_RESTORATION_REQUIRED")
+        private(pack.store)
+        private(pack.instance)
+        invocation = WorkerInvocation.model_validate(plan["worker_invocation"])
+        require(safe(invocation.state_directory) == safe(output / "worker")
+                and safe(invocation.configuration_path) == safe(output / "worker-config.json"), "M0_PLAN_INVALID")
+        require(retention.config.pack_lock == pack.lock, "M0_PACK_RETENTION_MISMATCH")
+        if restored:
+            from mcbench.pack_restore import archive_restoration, baseline_record
+            private(pack.restoration.snapshot)
+            if sealed_recovery:
+                recovery.validate_sealed_binding(pack, invocation.model_dump())
+            else:
+                require(json.loads(retention.body["objects"][retention.config.world_baseline]) == baseline_record(pack),
+                        "M0_PACK_BASELINE_MISMATCH")
+        output.mkdir(parents=True)
+        (output / "worker").mkdir()
+        prepared = resources.enter_context(HeldPackWorker(pack, invocation.model_dump()))
+        require(prepared.resolved["worker_runtime"] == plan["worker_runtime"], "M0_PACK_RUNTIME_MISMATCH")
+        runtime = prepared.runtime
+        if sealed_recovery:
+            recovery.check_worker_runtime(runtime.reference)
+        worker_config = prepared.resolved["worker_configuration"]
+        server_plan = {"schema": "strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4",
+            "pack": pack.model_dump(), "target": "vanilla",
+            "persistence_policy": PACK_POLICY, "evidence": str(output / "server"),
+            "max_wall_s": (worker_config["max_wall_ms"] + 999) // 1000 + 80}
+        server_source, worker_source = output / "server-plan.json", output / "worker-config.json"
+        write(output / "pack-worker-launch.json", prepared.resolved)
+        lock_path = safe(Path(pack.store) / "objects" / pack.lock[11:])
+        require(file_hash(lock_path) == pack.lock[11:], "M0_PACK_CHANGED")
+        lock = json.loads(lock_path.read_bytes())
+        for name, ref in {"pack-lock.json": pack.lock, "pack-launch-profile.json": lock["launch_profile"],
+                          "pack-inventory.json": lock["resolved_inventory"]}.items():
+            source = safe(Path(pack.store) / "objects" / ref[11:])
+            require(file_hash(source) == ref[11:] and source.stat().st_size <= 8 * 1024**2, "M0_PACK_CHANGED")
+            with (output / name).open("xb") as stream:
+                stream.write(source.read_bytes())
+                stream.flush()
+                os.fsync(stream.fileno())
+        if restored:
+            world = archive_restoration(pack, json.loads((output / "pack-inventory.json").read_bytes()),
+                                        output / ("restoration-source" if sealed_recovery else "baseline"))
+            from mcbench.pack_launch import WorkerProfileBaseline
+            if isinstance(pack.restoration, WorkerProfileBaseline):
+                from mcbench.pack_baseline import profile_documents, verify_profile_baseline
+                require(not sealed_recovery and invocation.epoch == 1, "PACK_BASELINE_NEW_CAMPAIGN_REQUIRED")
+                documents = profile_documents(pack)
+                proof = verify_profile_baseline(pack, world, json.loads((output / "pack-inventory.json").read_bytes()),
+                                                documents, output / "baseline")
+                for key in ("source_lock", "source_profile"):
+                    write(output / ("baseline-" + key.replace("_", "-") + ".json"), documents[key])
+                write(output / "baseline-import.json", proof)
+            require(sealed_recovery or not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in world["files"]),
+                    "M0_BASELINE_HAS_PLAYER_STATE")
+    else:
+        server_source, worker_source = private(plan["server_plan"]), private(plan["worker_config"])
+        server_plan, worker_config = (json.loads(p.read_bytes()) for p in (server_source, worker_source))
+    if retention:
+        retention.check_scope(worker_config)
+        expected = "strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4" if sealed else "strata/DevelopmentServer/2"
+        require(server_plan["schema"] == expected
+                and server_plan["persistence_policy"] == (PACK_POLICY if sealed else "vanilla1192-stopped-instance/1"),
+                "M0_CAPTURE_REQUIRED")
     require(server_plan["target"] == "vanilla" and worker_config["schema"] == "strata/DevelopmentWorker/1"
             and worker_config["server_kind"] == "vanilla" and worker_config["host"] == "127.0.0.1",
             "M0_PROFILE_UNSUPPORTED")
@@ -59,34 +177,72 @@ def run(plan_path):
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
+    if retention:
+        retention.check_identity(model=MODEL, dovetail_commit=DOVETAIL_COMMIT,
+            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=2)
     for key in ("tool_projections", "model_catalog"):
         private(plan[key])
     require(not (private(worker_config["auth_cache"]) / "auth.lock").exists(), "AUTH_CACHE_IN_USE")
-    output.mkdir(parents=True)
-    (output / "worker").mkdir()
-    worker_config["state_directory"] = str(output / "worker")
+    if runtime:
+        for path in (output, server_source, worker_source, private(worker_config["auth_cache"])):
+            require(not safe(path).is_relative_to(runtime.root) and not runtime.root.is_relative_to(safe(path)),
+                    "WORKER_BUNDLE_OVERLAP")
+    if not sealed:
+        output.mkdir(parents=True)
+        (output / "worker").mkdir()
+        worker_config["state_directory"] = str(output / "worker")
     server_plan["evidence"] = str(output / "server")
-    write(output / "worker-config.json", worker_config)
+    if not sealed:
+        write(output / "worker-config.json", worker_config)
     write(output / "server-plan.json", server_plan)
+    if runtime:
+        with (output / "worker-runtime.json").open("xb") as stream:
+            stream.write(runtime.raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+    if retention:
+        # Preserve exactly the externally pinned preregistration bytes.
+        with (output / "retention-input.json").open("xb") as stream:
+            stream.write(retention.raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+    source_pins = {p.relative_to(ROOT).as_posix(): file_hash(p)
+                   for directory in (ROOT / "src/mcbench", ROOT / "tools")
+                   for p in directory.iterdir() if p.suffix == ".py"}
+    worker_root = Path(runtime.body["root"]) if runtime else ROOT
+    source_pins.update({p.relative_to(worker_root).as_posix(): file_hash(p)
+                       for p in (worker_root / "backends/mineflayer/dist/src").iterdir() if p.suffix == ".js"})
     write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
         "model_provider": "synthetic", "real_model_requests": 0, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
-        "source_pins": {p.relative_to(ROOT).as_posix(): file_hash(p)
-                        for directory in (ROOT / "src/mcbench", ROOT / "tools", ROOT / "backends/mineflayer/dist/src")
-                        for p in directory.iterdir() if p.suffix in {".py", ".js"}}})
+        "source_pins": source_pins})
+    if recovery and not sealed_recovery:
+        private(server_plan["launch"]["working_directory"])
+        recovery.materialize(output, server_plan, worker_config)
     environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR", "TEMP", "TMP", "PATH")
                    if key in os.environ}
     environment["PYTHONPATH"] = str(ROOT / "src")
     environment["NODE_COMPILE_CACHE"] = str(output / "node-compile-cache")
-    processes, readers, reader_faults = {}, [], []
+    processes, readers, reader_faults, closed = {}, [], [], set()
     result = {"schema": "strata/M0NativeGameResult/1", "status": "fail", "G0": "fail",
               "model_evidence": "synthetic_provider", "game_evidence": "authentic_vanilla",
               "real_model_requests": 0, "production_qualified": False, "native_worker_journal_join": False}
     started = time.monotonic()
 
+    def close_owned(name):
+        if name not in closed:
+            processes[name].close()
+            closed.add(name)
+
     def launch(name, argv):
-        process = ManagedProcess(argv, ROOT, environment, "")
+        if prepared and name in {"worker-preflight", "worker-driver"}:
+            process = prepared.start(preflight=name == "worker-preflight")
+        else:
+            process = ManagedProcess(argv, ROOT, environment, "",
+                interactive=name == "worker-driver" and runtime is not None and runtime.operator_stop,
+                **({"bootstrap_python": Path(runtime.body["python"])} if prepared else {}))
         processes[name] = process
+        resources.callback(close_owned, name)
 
         def drain(stream, destination):
             try:
@@ -117,16 +273,21 @@ def run(plan_path):
             time.sleep(.1)
 
     try:
-        loader = launch("worker-preflight", [plan["node"], str(ROOT / "backends/mineflayer/dist/src/worker.js"),
-                                             "--check-vanilla-runtime"])
+        def worker_command(argument):
+            return runtime.command(argument) if runtime else [plan["node"],
+                str(ROOT / "backends/mineflayer/dist/src/worker.js"), str(argument)]
+
+        loader = launch("worker-preflight", worker_command("--check-vanilla-runtime"))
         wait(lambda: loader.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT")
         require(loader.poll() == 0, "WORKER_PREFLIGHT_FAILED")
+        if sealed_recovery:
+            recovery.restore_worker(prepared, output)
         server = launch("server-driver", [sys.executable, "-X", "utf8", str(ROOT / "tools/development_server.py"),
                                            str(output / "server-plan.json")])
-        wait(lambda: (output / "server/ready.json").exists() or server.poll() is not None, 60, "SERVER_START_TIMEOUT")
+        wait(lambda: (output / "server/ready.json").exists() or server.poll() is not None,
+             80 if sealed else 60, "SERVER_START_TIMEOUT")
         require(server.poll() is None, "SERVER_EARLY_EXIT")
-        worker = launch("worker-driver", [plan["node"], str(ROOT / "backends/mineflayer/dist/src/worker.js"),
-                                           str(output / "worker-config.json")])
+        worker = launch("worker-driver", worker_command(output / "worker-config.json"))
         grant_path = output / "worker" / f"grant-{worker_config['epoch']}.json"
         wait(lambda: grant_path.exists() or worker.poll() is not None, 30, "WORKER_START_TIMEOUT")
         require(worker.poll() is None and grant_path.exists(), "WORKER_EARLY_EXIT")
@@ -141,26 +302,44 @@ def run(plan_path):
                     timespec="milliseconds").replace("+00:00", "Z"), "target_request_id": None, "after": None})
             observed = transport(request)
             if observed.get("status") == "ok" and observed["result"]["state"]["connected"]:
+                if recovery:
+                    from native_game_recovery import player_matches
+                    if not player_matches(recovery.player, observed["result"]["state"]):
+                        require(time.monotonic() < deadline, "GAME_RECOVERY_PLAYER_CHANGED")
+                        time.sleep(.6)
+                        continue
                 write(output / "initial-observation.json", observed)
                 break
             require(worker.poll() is None and time.monotonic() < deadline, "GAME_CONNECT_TIMEOUT")
             time.sleep(.6)
         print(json.dumps({"status": "native_game_ready", "elapsed_s": round(time.monotonic()-started, 3)}), flush=True)
+        if recovery:
+            result["recovery_start"] = recovery.verify_start(descriptor, observed)
+            write(output / "recovery-start.json", result["recovery_start"])
         native = output / "native"
         native.mkdir()
+        if recovery:
+            recovery.copy_native(native)
         native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
             bootstrap_mode=True, ingress_mode=True, oauth_mode=True,
             tool_projections=json.loads(Path(plan["tool_projections"]).read_bytes()),
-            no_patch_catalog=Path(plan["model_catalog"]), game_probe=GameProbe(descriptor, worker_config["lease_id"]))
+            no_patch_catalog=Path(plan["model_catalog"]),
+            game_probe=GameProbe(descriptor, worker_config["lease_id"], recovery=recovery is not None),
+            game_retention=retention, game_recovery=recovery, job_id="root-recovery" if recovery else "root")
         write(output / "native-result.json", native_result)
         result["native_checks"] = native_result["checks"]
         result["native_closure"] = native_result["closure"]
         result["fixture_model_costs"] = native_result["budget"]
+        if retention:
+            result["native_retention"] = native_result["retention"]
         require(all(native_result["checks"].values()), "NATIVE_GAME_CHECK_FAILED")
-        wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
+        if runtime and runtime.operator_stop:
+            result["worker_stop"] = stop_owned_worker(worker, worker_config, output, wait)
+        else:
+            wait(lambda: worker.poll() is not None, worker_config["max_wall_ms"] / 1000 + 5, "WORKER_STOP_TIMEOUT")
         require(worker.poll() == 0, "WORKER_EXIT_FAILED")
         result["status"] = "pass"
-    except Exception as error:
+    except BaseException as error:
         result["error"] = error.code if isinstance(error, Fault) else type(error).__name__
     finally:
         # Revoke via the native binding first. Forced outer cleanup is a failure,
@@ -171,8 +350,21 @@ def run(plan_path):
             worker.stop()
         server = processes.get("server-driver")
         if server and server.poll() is None:
-            if (output / "server").is_dir():
-                (output / "server/stop.request").touch(exist_ok=True)
+            try:
+                if (output / "server").is_dir():
+                    if "worker_stop" in result:
+                        boundary = {"schema": "strata/WorkerServerStopBoundary/1",
+                            "worker_stop_request_id": result["worker_stop"]["intent"]["request"]["request_id"],
+                            "requested_mono_ns": time.monotonic_ns(), "requested_unix": time.time()}
+                        write(output / "server/stop.request", boundary)
+                        result["server_stop_intent"] = boundary
+                    else:
+                        (output / "server/stop.request").touch(exist_ok=True)
+            except Exception as error:
+                result["status"] = "fail"
+                result["server_stop_intent_error"] = type(error).__name__
+                result["forced_server_cleanup"] = True
+                server.stop()
             try:
                 wait(lambda: server.poll() is not None, 125, "SERVER_STOP_TIMEOUT")
             except Exception:
@@ -182,9 +374,19 @@ def run(plan_path):
         for reader in readers:
             reader.join(2)
         result["logs_complete"] = not reader_faults and not any(t.is_alive() for t in readers)
+        if prepared:
+            try:
+                result["sealed_worker_receipt"] = prepared.receipt()
+            except Exception as error:
+                result["status"] = "fail"
+                result["sealed_worker_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+        trees = {}
         for name, process in processes.items():
             result[name] = {"returncode": process.poll()}
-            process.close()
+            if runtime:
+                trees[name] = {"parent_returncode": process.poll(),
+                    "active_processes": process.job.accounting()["active_processes"] if process.job else None}
+            close_owned(name)
         result["elapsed_s"] = time.monotonic() - started
         if not result["logs_complete"] or any(process.poll() != 0 for process in processes.values()):
             result["status"] = "fail"
@@ -198,15 +400,44 @@ def run(plan_path):
                 actions = [{"batch": json.loads(r[0]), "ack": json.loads(r[1])}
                            for r in db.execute("SELECT request,ack FROM actions ORDER BY seq")]
                 counters = dict(db.execute("SELECT name,value FROM counters"))
+            db.close()
             result["worker_journal"] = {"actions": actions, "counters": counters,
                                         "sha256": file_hash(journal)}
-            joined = len(actions) == 1 and actions[0]["batch"]["request_id"] == "native-bounded-look" and \
-                actions[0]["ack"]["status"] == "completed" and counters.get("primitive_events", 0) > 0
+            selected = [a for a in actions if a["batch"]["epoch"] == worker_config["epoch"]]
+            action_id = "native-bounded-look" + (f"-epoch-{worker_config['epoch']}" if recovery else "")
+            joined = len(selected) == 1 and selected[0]["batch"]["request_id"] == action_id and \
+                selected[0]["ack"]["status"] == "completed" and counters.get("primitive_events", 0) > 0
+            if recovery:
+                try:
+                    result["recovery_journal"] = recovery.worker_report(journal)
+                except Exception as error:
+                    joined = False
+                    result["recovery_error"] = error.code if isinstance(error, Fault) else type(error).__name__
             result["native_worker_journal_join"] = joined
             if not joined:
                 result["status"] = "fail"
         if not result["native_worker_journal_join"]:
             result["status"] = "fail"
+        if retention:
+            # Both components must exist; neither alone is a joint checkpoint.
+            try:
+                result["joint_components"] = paired_components(output, result, retention.source["sha256"], server_plan)
+                write(output / "joint-components.json", result["joint_components"])
+            except Exception as error:
+                result["status"] = "fail"
+                result["capture_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+        if runtime:
+            try:
+                require(set(trees) == {"worker-preflight", "worker-driver", "server-driver"}
+                        and all(row == {"parent_returncode": 0, "active_processes": 0} for row in trees.values()),
+                        "WORKER_RUNTIME_STOP_UNCERTAIN")
+                result["worker_runtime"] = runtime.receipt() | {"owned_processes": trees,
+                    "held_through_owned_stop": True, "root": runtime.body["root"],
+                    "preflight_argv": worker_command("--check-vanilla-runtime"),
+                    "worker_argv": worker_command(output / "worker-config.json")}
+            except Exception as error:
+                result["status"] = "fail"
+                result["worker_runtime_error"] = error.code if isinstance(error, Fault) else str(error)
         write(output / "result.json", result)
     return result
 

@@ -22,6 +22,67 @@ from .storage import Fault, Principal, canonical, digest, require, safe_relative
 POLICY = "native-stdio-projected-artifacts-executor-game/1"
 NATIVE_METADATA_VERSION = CODEX_VERSION.removeprefix("codex-cli ")
 MAX_TEXT = 256 * 1024
+GAME_REQUEST_POLICY = "broker-durable-game-request/1"
+
+
+def install_game_requests(db):
+    """Add exact request evidence without inventing preimages for old calls."""
+    existing = db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_game_requests'").fetchone()
+    if not existing:
+        require(db.execute("SELECT 1 FROM sqlite_master WHERE name='broker_game_request_format'").fetchone() is None,
+                "BROKER_GAME_EVIDENCE_FORMAT")
+        cutoff = db.execute("SELECT coalesce(max(rowid),0) FROM broker_game_calls").fetchone()[0]
+        db.execute("CREATE TABLE broker_game_request_format (singleton INTEGER PRIMARY KEY CHECK(singleton=1), "
+                   "policy TEXT NOT NULL, legacy_max_rowid INTEGER NOT NULL)")
+        db.execute("INSERT INTO broker_game_request_format VALUES(1,?,?)", (GAME_REQUEST_POLICY, cutoff))
+        db.execute("CREATE TABLE broker_game_requests (runtime TEXT,thread TEXT,request TEXT,body TEXT NOT NULL, "
+                   "event INTEGER NOT NULL UNIQUE REFERENCES outbox(cursor), "
+                   "PRIMARY KEY(runtime,thread,request), FOREIGN KEY(runtime,thread,request) "
+                   "REFERENCES broker_game_calls(runtime,thread,request))")
+    game_request_cutoff(db)
+
+
+def game_request_cutoff(db):
+    rows = db.execute("SELECT * FROM broker_game_request_format").fetchall()
+    require(len(rows) == 1 and rows[0]["singleton"] == 1 and rows[0]["policy"] == GAME_REQUEST_POLICY
+            and type(rows[0]["legacy_max_rowid"]) is int and rows[0]["legacy_max_rowid"] >= 0,
+            "BROKER_GAME_EVIDENCE_FORMAT")
+    return rows[0]["legacy_max_rowid"]
+
+
+def inspect_game_requests(db, runtime):
+    """Pure read: legacy calls stay missing; new calls require their exact body."""
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if not {"broker_game_requests", "broker_game_request_format"} & tables:
+        return {}
+    require({"broker_game_requests", "broker_game_request_format"} <= tables, "BROKER_GAME_EVIDENCE_FORMAT")
+    cutoff = game_request_cutoff(db)
+    calls = db.execute("SELECT rowid AS source_rowid,* FROM broker_game_calls WHERE runtime=?", (runtime,)).fetchall()
+    records = {(r["thread"], r["request"]): r for r in db.execute(
+        "SELECT * FROM broker_game_requests WHERE runtime=?", (runtime,))}
+    require(set(records) <= {(r["thread"], r["request"]) for r in calls}, "BROKER_GAME_REQUEST_ORPHAN")
+    output = {}
+    for call in calls:
+        key = (call["thread"], call["request"])
+        record = records.get(key)
+        # A later cached-result query may have argument evidence without
+        # establishing the original legacy forwarding preimage. Never backfill it.
+        require(record is not None or call["source_rowid"] <= cutoff, "BROKER_GAME_REQUEST_MISSING")
+        if record is not None:
+            request = RpcRequest.model_validate_json(record["body"])
+            value = request.model_dump()
+            require(request.request_id == call["request"] and digest(value) == call["fingerprint"],
+                    "BROKER_GAME_REQUEST_CONFLICT")
+            event = db.execute("SELECT kind,body FROM outbox WHERE cursor=?", (record["event"],)).fetchone()
+            require(event is not None and event["kind"] == "broker.call", "BROKER_GAME_REQUEST_EVENT")
+            observed = json.loads(event["body"])
+            require((observed.get("runtime"), observed.get("thread"), observed.get("tool"))
+                    == (runtime, call["thread"], "game") and "game_arguments" in observed
+                    and digest(observed["game_arguments"]) == observed.get("arguments_digest")
+                    and GameCall.model_validate(observed["game_arguments"]).request.model_dump() == value,
+                    "BROKER_GAME_REQUEST_EVENT")
+            output[key] = value
+    return output
 
 
 class BrokerGrant(Strict):
@@ -78,6 +139,7 @@ class NativeBroker:
             db.execute("CREATE TABLE IF NOT EXISTS broker_game_calls (runtime TEXT, thread TEXT, "
                 "request TEXT, fingerprint TEXT, state TEXT, result TEXT, "
                 "PRIMARY KEY(runtime,thread,request))")
+            install_game_requests(db)
             db.execute("CREATE TABLE IF NOT EXISTS broker_artifact_writes (event INTEGER PRIMARY KEY, "
                 "runtime TEXT, thread TEXT, namespace TEXT, path TEXT, ref TEXT, expected_ref TEXT)")
             broker_lifecycle.install(db)
@@ -235,7 +297,8 @@ class NativeBroker:
             g = self._authenticate(db, meta)
             event = self.db.event(db, "broker.call", {"runtime": self.runtime_id, "thread": g.thread_id,
                 "tool": name, "call_id": meta["callId"], "arguments_digest": digest(arguments),
-                "lifecycle_policy": broker_lifecycle.POLICY})
+                "lifecycle_policy": broker_lifecycle.POLICY,
+                **({"game_arguments": arguments} if name == "game" else {})})
             broker_lifecycle.started(db, event)
         try:
             result = self._execute(name, value, g, game_transport, event)
@@ -315,10 +378,12 @@ class NativeBroker:
                 "AND request=?", key).fetchone()
             if old:
                 require(old["fingerprint"] == digest(request), "IDEMPOTENCY_CONFLICT")
+                inspect_game_requests(db, self.runtime_id)
                 return json.loads(old["result"]) if old["result"] is not None else {
                     "status": "unknown", "request_id": r.request_id, "replayed": False}
             db.execute("INSERT INTO broker_game_calls VALUES(?,?,?,?,'DISPATCHING',NULL)",
                        (*key, digest(request)))
+            db.execute("INSERT INTO broker_game_requests VALUES(?,?,?,?,?)", (*key, canonical(request).decode(), event))
         try:
             result = game_transport(r)
             require(len(canonical(result)) <= 131072, "BROKER_RESPONSE_LIMIT")

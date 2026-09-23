@@ -1,7 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { closeSync, openSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { digest, Fault, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
+import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
+
+export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 
 /** Private, synchronous FULL journal. Nothing dispatches before acceptance is committed. */
 export class Journal {
@@ -42,6 +44,27 @@ export class Journal {
   next(kind: string): number { return this.counter(`${this.epoch}:${kind}`, 1); }
   event(kind: string, body: unknown): void {
     this.db.prepare('INSERT INTO events(kind,body) VALUES (?,?)').run(kind, JSON.stringify(body));
+  }
+  beginPrimitiveAccounting(scope: {campaign_id:string; agent_id:string; epoch:number}): void {
+    this.transaction(() => {
+      requireThat(scope.epoch === this.epoch && !this.db.prepare(
+        "SELECT 1 FROM events WHERE kind='primitive_accounting' AND json_extract(body,'$.epoch')=?"
+      ).get(this.epoch), 'PRIMITIVE_ACCOUNTING_ALREADY_STARTED');
+      this.event('primitive_accounting', {schema:'strata/MineflayerPrimitiveAccounting/1',
+        policy:PRIMITIVE_ACCOUNTING_POLICY, ...scope, opening_primitive_events:this.counter('primitive_events')});
+    });
+  }
+  charge(batch: ActionBatch, actionChargeSeq: number, safetyRelease: boolean): void {
+    // Commit both charge and its attribution before the adapter can emit. A
+    // crash after this commit retains the charge; it never proves packet delivery.
+    this.transaction(() => {
+      const chargeSeq = this.counter('primitive_events', 1);
+      this.event('primitive_charge', {schema:'strata/MineflayerPrimitiveCharge/1',
+        policy:PRIMITIVE_ACCOUNTING_POLICY, campaign_id:batch.campaign_id, agent_id:batch.agent_id,
+        epoch:batch.epoch, request_id:batch.request_id, action_seq:batch.seq,
+        request_digest:digest(batch), charge_seq:chargeSeq, action_charge_seq:actionChargeSeq,
+        safety_release:safetyRelease, recorded_at:utc(), mono_ms:mono(), emission_confirmed:false});
+    });
   }
   previous(batch: ActionBatch): ActionAck | null {
     const row = this.db.prepare('SELECT digest,ack FROM actions WHERE request_id=?').get(batch.request_id) as

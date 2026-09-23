@@ -371,3 +371,13 @@ The operator importer checks exact record adjacency and scope. Version-2 sealed
 reference plans register expected native teams separately. The Gradle resource
 task now stamps `mods.toml` from the project version; keep historical artifacts
 and their previous metadata mismatch unchanged. [Evidence and open qualification](../verification/2026-09-20-native-setup.md).
+
+Telemetry 0.3.7 uses `ServerStarted/8` and retains the version-7 transport identity.
+Its private `NativeSetupHistory/1` records precede every setup point and the final
+stop event. Fixed native entry hooks retain mode/operator/team mutation attempts,
+including reversals, without recording raw command arguments. A single exact
+terminal native stop invocation is separately correlated. Hooks operate only
+between this module's startup and stop handlers; no complete process-lifetime or
+full mutation-route claim follows. Missing hooks, malformed history and observed
+taint prevent candidate use. Existing 0.3.5/0.3.6 profiles keep their exact schema
+and module requirements. [Implementation, verification and uncovered routes](../verification/2026-09-21-setup-history.md).

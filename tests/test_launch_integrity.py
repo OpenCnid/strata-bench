@@ -14,6 +14,59 @@ from mcbench.launch_integrity import FileLease, IntegrityError, encode, read_man
 pytestmark = pytest.mark.skipif(os.name != "nt", reason="Windows deny-write sharing contract")
 
 
+@pytest.mark.parametrize("target_kind", ["file", "dangling", "directory"])
+def test_path_check_rejects_native_links_including_missing_descendants(tmp_path, target_kind):
+    target, link = tmp_path / "target", tmp_path / "link"
+    if target_kind == "file":
+        target.write_bytes(b"unchanged")
+    elif target_kind == "directory":
+        target.mkdir()
+    try:
+        link.symlink_to(target, target_is_directory=target_kind == "directory")
+    except OSError as error:
+        if error.winerror == 1314:
+            pytest.skip("Native symbolic-link privilege unavailable")
+        raise
+    try:
+        checked = link / "missing" / "nested" if target_kind == "directory" else link
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+            safe(checked)
+    finally:
+        link.unlink()
+
+
+def test_path_check_allows_new_components_but_propagates_access_failure(tmp_path, monkeypatch):
+    path = tmp_path / "new" / "nested"
+    assert not safe(path).exists()
+    original = Path.lstat
+    def denied(value, *args, **kwargs):
+        if value.name == "nested":
+            raise PermissionError("unreadable component")
+        return original(value, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", denied)
+    with pytest.raises(PermissionError, match="unreadable component"):
+        safe(path)
+
+
+def test_path_check_rejects_native_directory_junction_with_missing_descendant(tmp_path):
+    target, link = tmp_path / "target", tmp_path / "junction"
+    target.mkdir()
+    child = target / "retained"
+    child.write_bytes(b"unchanged")
+    def quote(value):
+        return "'" + str(value).replace("'", "''") + "'"
+    subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+        f"New-Item -ItemType Junction -Path {quote(link)} -Target {quote(target)} -ErrorAction Stop | Out-Null"],
+        capture_output=True, check=True, timeout=15, creationflags=subprocess.CREATE_NO_WINDOW)
+    try:
+        assert link.lstat().st_file_attributes & 0x400
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+            safe(link / "missing" / "nested")
+    finally:
+        link.rmdir()  # Remove only the junction itself; never recurse into its target.
+    assert child.read_bytes() == b"unchanged"
+
+
 def test_windows_lease_denies_write_delete_replace_and_parent_rename(tmp_path):
     tree = tmp_path / "sealed"
     tree.mkdir()

@@ -17,6 +17,21 @@ from test_reference_client import registration  # noqa: F401
 from test_writer_custody import held  # noqa: F401
 
 
+def test_bundle_preparation_is_explicit_and_preserves_legacy_online_shape(online):
+    old = parse_preparation_plan(online["preparation"])
+    assert "staging_policy" not in old.model_dump(by_alias=True)
+    changed = copy.deepcopy(online)
+    changed["preparation"].update(schema="strata/PrivateWriterPreparationPlan/3",
+                                  staging_policy="sequential-bundles512mib/1")
+    parsed = parse_protected_plan(changed)
+    assert parsed.preparation.schema_ == "strata/PrivateWriterPreparationPlan/3"
+    assert native_argv(old, Path("C:/synthetic"), ["java"]) == native_argv(
+        parsed.preparation, Path("C:/synthetic"), ["java"])
+    del changed["preparation"]["staging_policy"]
+    with pytest.raises(ValueError):
+        parse_protected_plan(changed)
+
+
 @pytest.fixture
 def online(base_plan):  # noqa: F811
     value = copy.deepcopy(base_plan)

@@ -1,30 +1,33 @@
 # Implementation checkpoint and next-session handoff
 
-Updated September 21, 2026. Operator-only. [SPEC v0.2.99](../SPEC.md) defines
+Updated September 22, 2026. Operator-only. [SPEC v0.2.127](../SPEC.md) defines
 acceptance; [MILESTONES.md](../MILESTONES.md) owns progress and history.
 [STATUS.md](STATUS.md) is the compact evidence index.
+
+**Current: coordinated normal stop — M0.1d.8c (implemented_unverified):** [Implementation and verification](verification/2026-09-22-native-normal-stop.md) now connect explicit changed-worker baseline import to the restorer, held worker and native evidence reconstruction. The new actual profile is SEALED and its baseline prepared; original snapshot, PackLock and campaign remain intact. Focused selections pass 29 restoration/import and 149 affected source cases (overlapping). The private publication audit verifies all original rows and accounting preserved, with 31 unrelated tables unchanged. Changed attempt 01 failed before Java/native startup because the capture constructor rejected the new import scope. The failed bundle and unchanged prepared instance are retained; the scope connection and typed missing-capture error are fixed, with 91 focused tests passing. No authentic rerun precedes the user-requested merge checkpoint. Authoritative ticks/active time, clean-save custody, scorer/setup, isolation, E9E and authentic model qualification remain open. **M0 incomplete; G0 fail.** D13 remains 1,000 ms; original allowance, unresolved hold and consumed D12 remain unchanged.
+
+**Previous checkpoint: sealed recovery and reusable reconstruction — M0.1d.8a/.8b (verified for their bounded scopes):** [Implementation and evidence](verification/2026-09-22-native-recovery-verifier.md) restore the saved vanilla player, native root artifacts and prior accounting under a fresh epoch. The changed sealed run passes 35/35 native checks; independent reconstruction preserves all old history and reconciles seven original plus six new scripted calls (182 fixture units) and two cumulative primitives. All 46 owned processes exit normally; all 34 original authority tables remain unchanged. The first recovery's valid-empty-inventory rejection and forced cleanup stay failed and sealed; the validator is fixed with regression checks. Existing affected tests pass 107 cases; the final continuation/recovery selection passes 80. No real model request or shared-desktop input occurred. **M0 remains in_progress and G0 fails.** Next connect native completion to a coordinated worker/server stop and authoritative clock/save boundary, then remaining scorer/setup, isolation and E9E qualification. D13 remains 1,000 ms; original allowance, unresolved hold and consumed D12 are unchanged.
+
+Earlier checkpoint notes below retain superseded next actions; the current action is above. Dated reports and the append-only ledger preserve every original failure.
+
+**Restored sealed baseline — M0.1d.8 (in progress):** [Implementation and authentic evidence](verification/2026-09-22-restored-native-baseline.md) now restore verified stopped state into a new sealed installation and run the existing native root/helper/action path on that declared baseline. Actual restoration succeeds; Java reaches readiness in 32.487 s within the unchanged 80 s bound. All 29 native checks and independent evidence reconciliation pass: one real primitive, seven scripted calls/98 fixture units, 26 captured state files and 46 normally exited owned processes. The 133 affected source checks plus the gameplay-package check pass. Materialization adds one expected journal event; all old rows, 33 other tables and original accounting are preserved, and restore/gameplay leave all 34 tables unchanged. D12 remains consumed. Next restore this run's game, agent and accounting state together under a new epoch; no unchanged baseline rerun. The old 97.408/80-second fresh-start failure stays failed. Scorer/setup, isolation, authoritative clocks/save custody, E9E and full recovery remain open; M0 incomplete/G0 fail.
+
+**Sealed native execution — M0.1d.8 (in progress):** [Implementation and retained startup failure](verification/2026-09-22-sealed-native-startup.md) connect the existing native action/helper runner to the actual sealed worker and inventory-bound stopped capture. The changed authentic run fails `SERVER_START_TIMEOUT`: Java reaches readiness after 97.408 s against the 80 s bound, before any avatar or native/model action. All 14 owned processes exit normally; the independently verified stopped component retains 20 state files, without claiming a complete checkpoint. Source checks pass after correcting a malformed synthetic observation fixture. All 34 original authority tables and consumed D12 remain unchanged. Next implement explicit sealed-template restoration from the retained no-avatar world, then qualify connected execution and joint recovery; do not reuse the mutated instance as fresh or repeat the unchanged startup profile. Scorer/setup, clocks, isolation and E9E remain open; M0 incomplete/G0 fail.
+
+**Actual vanilla seal and joint launch — M0.3a.2/.3:** [Implementation and evidence](verification/2026-09-22-vanilla-packlock.md) seal the original vanilla request with nine bound provisioning checks and fix server/worker startup ordering. M0.3a.2 is verified for the installed vanilla template/provenance disposition; M0.3a.3 remains implemented_unverified for authentic joint launch. The actual 11,722-file sealed import passes with all owned processes exited; 70 distinct focused source cases pass (final affected selection 41/41). Original accounting, consumed D12, all old object/event rows and 31 other authority tables are preserved. Next connect the existing native action/recovery runner and inventory-bound capture to this sealed launch, then collect changed-profile evidence. Scorer/setup, E9E, isolation, complete clocks and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input in this checkpoint.
+
+**Prior checkpoint (fc9b381), sealed worker launch — M0.3a.3:** [Implementation and actual-file inspection](verification/2026-09-22-pack-worker-launch.md) add LaunchProfile/2 and `pack launch-worker`: pinned software/settings with typed fresh run identity, generated held configuration and owned cleanup. 127 distinct focused source cases pass; the final affected selection is 34/34. The actual 11,722-file candidate validates after retaining its initial escaped-property rejection. All 34 authority tables and $0.756858 accounting remain unchanged. The original pack stays VERIFIED/unsealed and rejects launch; new candidate review refs are not yet published. Next complete bound provisioning checks and the actual seal, then join native launch/server custody/capture to it. Fresh-instance launch only; scorer/setup/clocks/isolation and canonical recovery remain open. M0 incomplete/G0 fail; no game/model/shared input.
 
 ## Resume from the merged checkpoint
 
 [Implementation PR #3](https://github.com/OpenCnid/strata-bench/pull/3) merged at
 `f305b32005a61a9d72c430436127134ea64c1a3a`, including source head
 `f55a00f993bfe72c0887a567cc9387de2d57d759`. It follows merged PR #2 at
-`542a77ac760fb305b26941085e33447f392f8ba8`. This handoff is the separate
-documentation change requested after the implementation merge. Verify its PR
-and fetched main rather than assuming the implementation merge is the latest
-commit. [Merge checks](verification/2026-09-21-session-handoff.md).
+`542a77ac760fb305b26941085e33447f392f8ba8`. The separate documentation PR #4 then merged at c2161a6e79cea0c668ab993df149ab1ed5af119b. This handoff now tracks resumed M0-only implementation; preserve the current branch and changes until its checkpoint is merged. [Merge checks](verification/2026-09-21-session-handoff.md).
 
-The full objective remains:
+The current user request and active long-horizon goal are **M0 and its complete G0 only**. Preserve all required later milestones and conditional extensions; do not advance unrelated M1–M7 work. This is the current task boundary, not removal of product requirements.
 
-> Complete Strata according to SPEC.md and AGENTS.md through every required
-> M0–M6 deliverable and acceptance gate. Preserve M7 and other conditional
-> extensions with their activation conditions. Completion requires authoritative
-> evidence for the full specification, not merely passing local tests.
-
-**M0 remains incomplete; G0 fails; G1–G5 are not run.** The user requested this
-stopping checkpoint to move sessions, not a scope reduction or permission
-question at each later checkpoint. Verify the long-horizon goal and create it
-only if absent. Do not mark it complete because these PRs merged.
+**M0 remains incomplete; G0 fails; G1–G5 are not run.** PRs #3/#4 are merged; fetched main matches `c2161a6e79cea0c668ab993df149ab1ed5af119b`. Implementation resumed on fresh `codex/strata-m0-g0`. Do not recreate the already active M0/G0 goal or mark it complete because a checkpoint is finished.
 
 1. Read AGENTS.md, SPEC.md, MILESTONES.md, this handoff, STATUS.md,
    [validation admission](operations/validation-admission.md) and the
@@ -41,39 +44,115 @@ only if absent. Do not mark it complete because these PRs merged.
    implement it. Do not restart the completed native accounting matrix,
    repeat unchanged live trials or expand unrelated M1 settings work.
 
-## First implementation deliverable: M0.1d.1
+## Current implementation and next action
 
-The runnable `tools/m0_native_game.py PRIVATE_PLAN.json` already owns a real
-vanilla server/worker and the selected native Dovetail root/helper/broker path.
-Case 02 performs one real bounded look action, joins its receipt to the worker
-journal, checks saved orientation and stops normally. **Its six model replies
-are scripted (84 fixture units), not authentic model reasoning.** Case 01's
-startup failure is retained. [Command, plan and evidence](verification/2026-09-21-m0-native-game.md).
+The sealed Recovery/3 continuation and NativeGameEvidencePlan/2 reconstruction are complete for the explicit two-epoch development scope. The changed runner now uses WorkerRuntimeBundle/2 to request one owned normal worker drain immediately after native closure, then one normal server stop. Source and synthetic process checks pass; authentic execution under a new sealed launch remains unrun. The new private runtime is prepared and its held import passes. Next bind it to a reviewed sealed launch, then one changed run. Preserve the old PackLock and recovery baseline: a new worker identity cannot replace bytes or silently resume the old campaign. Recheck actual durable provisioning before publishing any successor. [Normal-stop implementation and limits](verification/2026-09-22-native-normal-stop.md). Authoritative ticks/active intervals and clean-save custody still require their own evidence; do not infer them from these observed process intervals.
 
-Implement a reusable read-only evidence verifier around this existing path.
-This work has **not started**. Join durable native attempts/receipts and
-root/helper budget envelopes to executor/job/epoch-bound worker actions,
-primitive charges, source/profile pins, stop receipts and available clock
-evidence. Reuse `native_worker.py`, existing dispatch/accounting records and
-the private run-cost verifier where applicable; do not rebuild the runner.
-Keep synthetic fixture units, API-equivalent estimates and actual charges
-distinct. Report unavailable clocks or scorer evidence as gaps, never zeros
-or invented proof.
+The successful parent is `2026-09-22-m0-restored-baseline-01`; the successful continuation is `2026-09-22-m0-sealed-recovery-02`, seal `2be1d6eecc05d8c6eccc03a7c951f5fbf803385e1fa05b7304155972c67400e0`. Its independent audit is `2026-09-22-sealed-recovery-audit-01`, report digest `c568dad7e683feb34a20a1ea2a7bb0eaa001914ab9be15341207fc06d0c602fd`. All are private under `C:/Users/Darian/.strata/evidence`. The first failed recovery's nonempty WAL remains part of that failed bundle; never read its main database as frozen or use it as a recovery parent. Do not reuse either executed instance as fresh or rerun unchanged successful pairs. [Full results and retained failure](verification/2026-09-22-native-recovery-verifier.md).
 
-Exit evidence: the sealed case-02 bundle produces an independently reconstructed
-report agreeing with its recorded six calls, 84 fixture units, one primitive
-and terminal state. Tampered copies with missing, duplicate, foreign-scope or
-conflicting receipts, altered sources and ambiguous stop evidence must reject
-or retain explicit incompleteness; originals remain byte-identical. This is
-verification of an existing authentic game run with scripted inference, not
-a new run or full G0 closure. Keep M0.1d implemented_unverified until its
-remaining live/model, clock, scorer, isolation and recovery contracts qualify.
+Prepared controlled runtime: `C:/Users/Darian/.strata/runtime/vanilla1192-worker-stop-01/runtime.manifest.json`, SHA-256 `dce7f4f2ba11f42f3387d60e6cd1449409f7323aa895ad060bbc4a4e86c28710`; capability digest `0a522b153be9c2aba8dc21d9560c7fd6194bcd9ce90eebaeef35efb2b475f492`. The private import audit is `2026-09-22-worker-stop-runtime-01`, seal `2974d34f38c85513ca060e5155461138fe0566681d5f355124aeae5bdf1b18d0`. All 34 authority tables are unchanged; no new PackLock has been published for this runtime. Do not rerun the one-use preparation script or reuse its occupied destination.
+
+Earlier implementation evidence follows; its old next actions are historical.
+
+**Pinned native worker — M0.1d.7:** [Connected implementation and evidence](verification/2026-09-22-pinned-native-worker.md) now launch the real vanilla worker from its expected-hash private bundle, with file locks retained through owned stop. The changed headless trial passes 29 native checks and reusable evidence reconciliation: one real action, six scripted calls/84 fixture units, 28 stopped state files and zero active owned processes. All 34 original authority tables and 69 source-server files remain unchanged. 121 distinct focused source cases pass. Pinned recovery passes 35 native checks and a 28-check independent audit: saved player/root state restored, old token/epoch denied, one fresh action, costs preserved to 12 scripted calls/168 fixture units and two total primitives. M0.1d.7 is verified for this development scope. Next bind the actual PackLock/server launch and custody; no unchanged pair rerun. Actual PackLock/server custody, scorer/setup, complete clocks and isolation remain open. M0 incomplete/G0 fail; no live model or shared input.
+
+**Private worker runtime — M0.3a.2:** [Preparation and relocated checks](verification/2026-09-22-worker-bundle.md) copy the exact Mineflayer worker, Node and stdlib-only Python ACL helper outside the checkout. All 11,722 files stay pinned during a successful worker import and real Windows ACL checks using a synthetic cache; weakened permissions reject. Fourteen Python and 12 Node source cases pass. Both initial Windows-path failures remain retained. All 34 authority tables and original $0.756858 accounting are unchanged; no game, account authentication, model or shared input. The subsequent M0.1d.7 profiles now use this bundle through execution and development recovery. Actual PackLock/server custody and canonical recovery remain open. M0 incomplete, G0 fail.
+
+**Installed Mineflayer runtime — M0.3a.2:** [Implementation and actual verification](verification/2026-09-22-mineflayer-runtime.md) add offline lock/archive/file verification and an operator command. All 111 packages and 9,376 installed files match; 39 npm wrappers independently regenerate. A real import-only worker check passes under 9,599 held inputs. 26 distinct source cases, 10 independent evidence checks and 39 publication/conservation checks pass. One private report object/event is added; prior history, 32 other tables and $0.756858 accounting remain unchanged. The pack stays VERIFIED/unsealed. The authenticated worker/Python helper are now connected under M0.1d.7. Next bind the actual server/worker launch and configuration/update policy, finish remaining component review, then seal and connect canonical custody/recovery. D05 account/EULA evidence already exists. M0 incomplete, G0 fail.
+
+**Sealed-pack launch connection — M0.3a.3:** [Implementation and verification](verification/2026-09-22-pack-launch.md) connect a durable PackLock to the bounded server runner. Both role inventories, marker, command and executable are checked before launch; overrides and changed instances reject. 116 distinct source/process cases pass, including a disposable Python process. The actual unsealed vanilla request is refused with 11/11 checks and all 34 tables/accounting unchanged. This is fresh-instance preflight, not runtime custody or an authentic game pass. M0.3a.3 is implemented_unverified; M0 incomplete, G0 fail. Next complete the actual Mineflayer/server launch/runtime/update and legal/source checks, seal the pack, then inventory-bound custody/recovery.
+
+**Current vanilla installed inventory — M0.3a.2:** [Actual publication and source fix](verification/2026-09-22-vanilla-inventory.md) advance the original vanilla request to VERIFIED for all 4,097 installed-file entries; the PackLock remains unsealed. File import preserves existing typed operator evidence while rechecking bytes and refusing visibility changes. Ninety focused source checks and 25 independent actual-state checks pass. All 31 unrelated tables, previous object/event history, source roles and original $0.756858 accounting remain unchanged. Forty-one component records retain source notices, distribution terms and absent declarations without a standalone license or legal-qualification claim. Both preparation/import failures remain retained. Next pin the active Mineflayer worker/server launch and runtime/update policies, complete required legal/source review and bound provisioning checks, then the actual PackLock and canonical custody/recovery. Vanilla uses Mineflayer without a renderer under SPEC §7. No game/model/shared input; M0 incomplete, G0 fail.
+
+**Role assembly and cold-restart checkpoint — M0.3a.2:** [Implementation and authentic bounded evidence](verification/2026-09-22-vanilla-roles.md) assemble 4,097 exact client/server/Java files, reject incomplete provenance before any installed-file import, and qualify the changed-environment server start/restart narrowly. Both rounds stop normally in 67.312/26.282 s; software, configuration and saved-world continuity match. Fifty-one focused source checks plus two process/package checks and 34 independent conservation checks pass. The empty-environment JNA failure remains retained. Original accounting, 32 durable tables and 3,781 source files are unchanged; no model/client/shared input or Java remains. The installed inventory is now separately verified, with absent declarations retained in component records; remaining legal/source review, active Mineflayer launch/update policy and the PackLock stay open; canonical custody/recovery, scorer/setup and isolation remain open. No unchanged server-pair rerun. M0 remains incomplete and G0 fails.
+
+**Client/Java software checkpoint — M0.3a.2:** [Actual client preparation and Java source inventory](verification/2026-09-22-vanilla-client.md) now provide 3,432 exact client software files, 65 ordered classpath entries and all 3,364 distinct assets. Four missing shared-cache libraries use exact verified server copies; the shared installation remains unchanged. All 316 installed Java files match the publisher ZIP, and a separate private copy preserves them and 183 legal/notice files. Fifty-one focused source checks plus the gameplay-package check pass; 32 durable tables and original accounting remain unchanged. Role assembly and bounded server cold restart now have separate evidence; complete licensing, client launch/update policy and the PackLock remain open. No game/model/input activity or complete PackLock claim.
+
+**Server software checkpoint — M0.3a.2:** [Acquired vanilla server preparation](verification/2026-09-22-vanilla-runtime.md) now joins the original acquired bundle to the installed inner server and all 29 libraries, then prepares 31 independent private software files. The actual audit preserves all 63 source files, 32 durable tables, existing evidence and original accounting. Sixty-seven distinct focused source cases pass. The SLF4J archive-metadata rejection and initial audit/parser errors remain sealed. Embedded and published provenance/license metadata is retained; five Mojang component license declarations, shaded/native contents, compatible client/Java roles, configuration/update policy and cold restart remain open. Continue those concrete PackLock dependencies using the prepared bytes; no unchanged preparation/game rerun. M0/G0 remains incomplete/fail.
+
+**Current acquisition result — M0.3a.1:** [Metadata-bound vanilla intake](verification/2026-09-21-vanilla-acquisition.md) is verified for distribution intake: the original vanilla request is now ACQUIRED with exact official client/server artifacts and a version-2 receipt. The altered shared client JAR was rejected and retained; the installation was not replaced. Forty focused source tests pass. All 31 non-intake tables, existing objects/journal prefix, E9E record and original $0.756858 accounting remain unchanged. No game/model/desktop input occurred. Next complete compatible installed-role provenance, runtime configuration/update policy and the real PackLock; scorer, isolation, client-startup and canonical recovery gaps remain.
+
+**Current history admission — M0.2c.3b.3c.2:** [Plan 3 implementation and evidence](verification/2026-09-21-protected-craft-history.md) requires signed clear startup before client readiness and complete history at import. 196 focused source/JVM checks pass. Authentic case 01 passes startup binding but fails the 420-second reservation; fresh case 02 fits a smaller reservation, then fails client bridge startup at its existing 270-second bound. No new craft/guardian sample or score is claimed. Both failures are sealed; retention audits pass 16/16 and 19/19, all processes exit, credentials retire and accounting stays unchanged. Continue independent M0 provenance/lock and canonical recovery work; revisit the integrated history craft only after a relevant startup fix.
+
+**Current shutdown result — D13:** [The new 1,000-ms policy passes its authentic normal-shutdown sample](verification/2026-09-21-d13-shutdown.md): complete Java tree proof **568.994 ms**, real seven-operation craft, 74 reconciled primitives, normally closed protected custody and stopped pair. Independent audits pass 33/33 and 28/28; all held processes terminal, credentials retired and desktop unchanged. Earlier 500-ms failures stay failed under their old profile. This resolves the named normal-stop blocker for D13, not full T07/G0 or scoring. Next connect the sealed candidate to remaining scorer/setup/provenance and canonical recovery requirements; no unchanged craft rerun or more 500-ms optimization.
+
+**Latest working behavior:** [M0.1d.6 development recovery](verification/2026-09-21-native-game-recovery.md) resumes the captured vanilla world, native root notes and preserved accounting together. Case 02 passes 35/35 native checks with scripted replies, stale token/epoch rejection, saved-player assertions, one new action and normal recapture. Cumulative 12 calls/168 fixture units/two primitives; original accounting unchanged. Failed case 01 and failed source case 04 remain sealed. This closes the bounded development continuation only. Next connect canonical checkpoint/provenance, scorer/setup and isolation; D13 now passes the authentic normal-stop sample, with other fault qualification still required. No unchanged live rerun.
+
+M0.1d.1 is verified for its bounded read-only evidence-reconstruction contract. [Implementation, command and exact evidence](verification/2026-09-21-native-game-verifier.md): existing case 02 independently reconciles six scripted calls, 84 fixture units, one real primitive, root/helper closure and stopped state; 52 focused checks and 16 synthetic derived-copy negatives pass. The original flat manifest omitted 105 deep plugin files; their preexisting sealed bootstrap hash chain verifies them. Preserve the flat-inventory failure and original bytes. No game or model run was repeated. Missing authoritative clocks/scorer/isolation/shutdown/recovery evidence remains explicit; parent M0.1d remains implemented_unverified.
+
+M0.1d.2 is verified narrowly for durable request/charge attribution. [Changed-profile integration](verification/2026-09-21-native-game-traces.md) adds exact original/forwarded broker requests, atomic per-primitive charges and complete request/event/receipt joins. 139 distinct Python/35 Node checks, 28 actual native/game checks and six new synthetic derived-copy negatives pass. One new real vanilla run used scripted inference, six calls/84 fixture units, one primitive and normal cleanup. Its flat 4,244-file seal is complete; all 69 original source files and the $0.756858 held/settled accounting remain unchanged. No Java remains. Old case-02 gaps/failures are preserved. No full scorer, isolation, clock, shutdown or recovery qualification.
+
+Current **M0.2c.3b.3c setup mutation history** has partial authentic evidence. [Implementation/evidence](verification/2026-09-21-setup-history.md): telemetry 0.3.7/startup 8, eight required mixins/25 verified native selectors, sticky counters, exact signed point/stop joins and rejection of reversed mutations. Native shutdown requires a single exact parsed command matched to its actual native handler/source/thread. Source/JVM controls pass. One changed headless E9E reference passes 33/33 independent checks: hooks applied, clear startup/history, one correlated native stop, six processes exited, all 18,225 source files unchanged. It performs no authentic mutation or craft. Next implement and exercise preregistered private mutation controls, retaining all unmediated FTB/KubeJS/write routes, custody, parity/nonleakage and scoring gaps. Do not promote failed protected references or repeat the unchanged startup. Model admission remains blocked; the original authority rechecked at 23:26:31 UTC still totals $0.756858 with uncertainty and D12 consumed.
 
 Continue next through actual M0 dependencies: protected setup/writer authority
 and scorer controls/nonleakage, bounded shutdown/resource behavior, and complete
 game plus agent restoration with costs retained. Do not substitute more
 documentation for implementation. If model admission stays blocked, these
 independent implementation paths remain authorized.
+
+M0.2c.3b.3c.1 is verified for the fixed private world-mode control.
+[Source and authentic verification](verification/2026-09-21-setup-control.md):
+58 source/JVM/package checks and 42/42 independent authentic checks pass.
+Intermediate Creative and final Survival saves are independently retained;
+matching final state does not erase two signed mutations. Six held processes
+exited; all 18,225 original files are unchanged. No model/client/desktop input.
+The single consumed reference in
+`C:/Users/Darian/.strata/evidence/2026-09-21-setup-control-live-01`
+must not be restarted. Other mutation routes, custody, parity and scoring
+remain unqualified. Accounting read-only at 23:59:14 UTC is unchanged.
+Continue integrated M0 joint recovery while preserving these independent gaps.
+
+Current M0.1d.3 implements durable complete-set publication and a reusable operator
+verifier. [Source/process and recorded-native evidence](verification/2026-09-21-restored-set.md):
+107 distinct focused cases and 17/17 offline audit checks pass. The audit retains
+an actual native component with scripted responses and synthetic world data;
+no authentic game restore is claimed. Costs and old source files stay unchanged.
+M0.1d.4–.6 now connect stopped vanilla capture, preregistered retention and
+a fresh-epoch development continuation. Canonical checkpoint admission still
+requires authoritative save/custody/clocks and a sealed pack. Existing game runs
+without prior retention policy cannot be retroactively promoted to checkpoints.
+
+M0.1d.4/M0.1d.5 now have partial authentic component evidence.
+[Connected capture and retained failure](verification/2026-09-21-native-game-retention.md):
+case 04 passes 29 native checks, six scripted calls/84 fixture units and one real
+primitive. Native preregistration/retention and 28 captured real world-state files
+independently reconcile after three complete owned-process exits. The outer run
+fails `M0_CAPTURE_INCOMPLETE` on normal/extended Windows path equality and has no
+joint receipt; keep that sealed failure. The fixed comparison has four focused
+passing checks and now publishes successfully in recovery case 02; the original
+case-04 failure remains unchanged. Original 68 source files
+and $0.756858 accounting are unchanged; no Java remains, D12 stays consumed.
+
+Original bundle: `C:/Users/Darian/.strata/evidence/2026-09-21-m0-native-game-04`;
+seal `cbe9ad5579386734b82f1680e01bbd2b8bde214eff370deab4bb598c51e37cfa`.
+Independent audit in adjacent `2026-09-21-m0-native-game-04-audit` verifies the
+components and explicitly retains outer failure/full-verifier rejection.
+Case 03's preparation-created unsealed SQLite sidecars were retained separately
+and removed from their exact paths; its original seal/bytes verify unchanged.
+Use frozen-store immutable reads for historical SQLite, ordinary read-only
+access for live accounting authority. See the report for incident evidence.
+
+M0.1d.6's connected development recovery is committed as `f2b8983`.
+Private recovery case 02 and its independent audit verify saved own state,
+retained-note read/continuation, denied helper history and stale token/epoch,
+preserved old costs/action, fresh action, normal termination and recapture.
+The 4,370-file seal is
+`9f9e32c888a5cb48bd6c15fee65efe22a14c8305e80f58f4ca76a88df01eed2b`.
+The failed first recovery's null-sentinel assertion and forced cleanup remain
+sealed. See the latest report for all source tests, failures and qualification limits.
+
+Continue the remaining integrated scorer/setup, provenance, isolation and canonical
+recovery work. [D13](verification/2026-09-21-d13-shutdown.md) explicitly changes new
+Forge grants to a 1,000-ms tree-proof policy; its authentic normal-stop sample
+passes at 568.994 ms and protected custody closes normally. The original
+[resource/file](verification/2026-09-21-authentic-resources-and-files.md) and
+[CPU-profile](verification/2026-09-21-bundle-preparation.md) failures remain intact.
+Do not repeat the unchanged successful craft or resume 500-ms optimization.
+Full authentic fault/launch containment and general isolation remain open.
+The original vanilla PackLock is now SEALED with actual materialization/import evidence; canonical save/custody/
+clock/checkpoint qualification remains open despite the successful bounded
+native/world continuation. Original accounting and consumed D12 remain
+unchanged; no permission question or missing user input is pending.
 
 ## Durable accounting: D12 is consumed
 

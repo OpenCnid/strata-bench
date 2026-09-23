@@ -13,7 +13,7 @@ from mcbench.inventory import file_hash, inspect_archive, scan_tree, template_pa
 from mcbench.pack_policies import reviewed_vendor_paths
 from mcbench.provisioning import (
     EXPERT_CHECKS, PROVISION_CHECKS, AcquisitionReceipt, LaunchProfile, PackProvider,
-    ProvisioningEvidence, RoleInventoryInput,
+    ProvisioningEvidence, RoleInventoryInput, validate_launch_environment,
 )
 from mcbench.records import FileEntry, PackLock
 from mcbench.storage import Fault, Principal, digest
@@ -21,9 +21,13 @@ from mcbench.storage import Fault, Principal, digest
 
 @pytest.fixture
 def prepared(database, cas, tmp_path):
-    service = PackProvider(database, cas, simulation=True)
+    return prepare_fixture(database, cas, tmp_path)
+
+
+def prepare_fixture(database, cas, tmp_path, *, simulation=True):
+    service = PackProvider(database, cas, simulation=simulation)
     service.resolve_candidate("pack1", "e9e")
-    evidence = service._put("pack1", {"is_example": True, "source": "synthetic fixture"})
+    evidence = service._put("pack1", {"is_example": simulation, "source": "synthetic fixture"})
     manifest = {"manifestType": "minecraftModpack", "manifestVersion": 1, "version": "1.27.0",
                 "minecraft": {"version": "1.19.2", "modLoaders": [
                     {"id": "forge-43.4.23", "primary": True}]},
@@ -42,7 +46,7 @@ def prepared(database, cas, tmp_path):
     executable.write_bytes(b"Not an executable; synthetic JVM fingerprint fixture")
     pin = {"version": "synthetic-17", "digest": file_hash(executable)}
     receipt = AcquisitionReceipt.model_validate({"schema": "strata/AcquisitionReceipt/1",
-        "is_example": True, "request_id": "pack1", "provider": "curseforge", "target": "e9e",
+        "is_example": simulation, "request_id": "pack1", "provider": "curseforge", "target": "e9e",
         "distributions": distributions, "launcher": pin, "java": pin,
         "official_workflow_evidence": evidence})
     roles = []
@@ -58,7 +62,7 @@ def prepared(database, cas, tmp_path):
             "files": entries, "provenance_evidence": evidence, "exclusions_evidence": evidence}))
     command = {"executable": pin, "executable_path": str(executable), "arguments": ["@args.txt"],
                "working_directory": ".", "environment": {}, "reviewed_bootstrap": evidence}
-    launch = LaunchProfile.model_validate({"schema": "strata/LaunchProfile/1", "is_example": True,
+    launch = LaunchProfile.model_validate({"schema": "strata/LaunchProfile/1", "is_example": simulation,
                                           "client": command, "server": command})
     return service, receipt, roles, launch, evidence
 
@@ -67,16 +71,37 @@ def seal(prepared):
     service, receipt, roles, launch, evidence = prepared
     imported = service.import_acquisition_receipt(receipt)
     inventory = service.verify_inventory("pack1", roles)
-    identity = {"is_example": True, "request_id": "pack1", "inventory_digest": inventory[11:],
+    identity = {"is_example": service.simulation, "request_id": "pack1", "inventory_digest": inventory[11:],
                 "receipt_digest": imported[11:], "launch_profile_digest": digest(launch.model_dump())}
     checks = {key: service._put("pack1", {"schema": "strata/ProvisioningCheck/1", **identity,
               "check_id": key, "result": "pass", "evidence_refs": [evidence]})
               for key in PROVISION_CHECKS | EXPERT_CHECKS}
     proof = ProvisioningEvidence.model_validate({"schema": "strata/ProvisioningEvidence/1",
-        "is_example": True, "request_id": "pack1", "inventory_digest": inventory[11:],
+        "is_example": service.simulation, "request_id": "pack1", "inventory_digest": inventory[11:],
         "receipt_digest": imported[11:], "launch_profile_digest": digest(launch.model_dump()),
         "checks": checks})
     return service.seal_template("pack1", launch, proof), proof
+
+
+@pytest.mark.parametrize("missing", ["license", "origin", "file"])
+def test_invalid_second_role_is_rejected_before_any_installed_file_import(prepared, missing):
+    service, receipt, roles, _, _ = prepared
+    service.import_acquisition_receipt(receipt)
+    role = next(role for role in roles if role.role == "server")
+    if missing == "license":
+        role.files[-1].license_ref = None
+    elif missing == "origin":
+        role.files[-1].origin = ""
+    else:
+        (Path(role.root) / role.files[-1].path).unlink()
+    before_objects = list(service.db.connection.execute("SELECT * FROM objects ORDER BY namespace,ref"))
+    before_events = list(service.db.connection.execute("SELECT * FROM outbox ORDER BY cursor"))
+    with pytest.raises(Fault):
+        service.verify_inventory("pack1", roles)
+    assert list(service.db.connection.execute("SELECT * FROM objects ORDER BY namespace,ref")) == before_objects
+    assert list(service.db.connection.execute("SELECT * FROM outbox ORDER BY cursor")) == before_events
+    assert service.status("pack1")["state"] == "ACQUIRED"
+    assert service.status("pack1")["inventory"] is None
 
 
 def test_full_import_seal_materialization_independent_bytes(prepared, tmp_path):
@@ -98,6 +123,38 @@ def test_full_import_seal_materialization_independent_bytes(prepared, tmp_path):
     with pytest.raises(Fault, match="DESTINATION_EXISTS"):
         service.materialize("pack1", tmp_path / "two")
     assert service.status("pack1")["game_conformance_claim"] is None
+
+
+def test_sealed_explicit_platform_environment_preserves_only_declared_values(prepared, tmp_path, monkeypatch):
+    service, _, _, launch, _ = prepared
+    scratch = tmp_path / "private-temp"
+    scratch.mkdir()
+    settings = {"SystemRoot": str(tmp_path), "WINDIR": str(tmp_path),
+                "TEMP": str(scratch), "TMP": str(scratch)}
+    monkeypatch.setenv("OPENAI_API_KEY", "synthetic-inherited-canary")
+    launch.server.environment = settings
+    lock_ref, _ = seal(prepared)
+    lock = service._json("pack1", lock_ref)
+    profile = service._json("pack1", lock["launch_profile"])
+    assert profile["server"]["environment"] == settings
+    assert profile["client"]["environment"] == {}
+
+
+@pytest.mark.parametrize("case", ["secret", "java_injection", "nul", "relative", "missing", "file", "mismatch"])
+def test_launch_environment_rejects_unsafe_or_ambiguous_settings(tmp_path, case):
+    file = tmp_path / "file"
+    file.write_text("fixture")
+    values = {
+        "secret": {"OPENAI_API_KEY": "synthetic-secret"},
+        "java_injection": {"JAVA_TOOL_OPTIONS": "-Dfixture=true"},
+        "nul": {"LANG": "en\x00US"},
+        "relative": {"TEMP": "relative"},
+        "missing": {"TEMP": str(tmp_path / "missing")},
+        "file": {"TMP": str(file)},
+        "mismatch": {"TEMP": str(tmp_path), "TMP": str(tmp_path.parent)},
+    }
+    with pytest.raises(Fault, match="ENVIRONMENT_NOT_ALLOWED|INVALID_ENVIRONMENT"):
+        validate_launch_environment(values[case])
 
 
 def test_expired_request_and_stable_candidate(database, cas):
@@ -302,6 +359,43 @@ def test_streaming_quota_no_orphans_and_no_agent_access(cas, operator, tmp_path)
     assert not (tmp_path / "stolen").exists()
     cas.copy_to(operator, "large", ref, tmp_path / "copied")
     assert file_hash(tmp_path / "copied") == sha
+
+
+def test_file_import_preserves_existing_operator_type_and_still_verifies_source(cas, operator, tmp_path):
+    raw = b'{"fixture": true}\n'
+    source = tmp_path / "version.json"
+    source.write_bytes(raw)
+    ref = cas.put(operator, "typed", "operator", raw, media_type="application/json")
+    objects = list(cas.database.connection.execute("SELECT * FROM objects"))
+    events = list(cas.database.connection.execute("SELECT * FROM outbox"))
+    assert cas.put_file(operator, "typed", "operator", source, ref[11:],
+                        quota_bytes=1024, max_object_bytes=1024) == ref
+    assert list(cas.database.connection.execute("SELECT * FROM objects")) == objects
+    assert list(cas.database.connection.execute("SELECT * FROM outbox")) == events
+    source.write_bytes(b"x" * len(raw))
+    with pytest.raises(Fault, match="HASH_MISMATCH"):
+        cas.put_file(operator, "typed", "operator", source, ref[11:],
+                     quota_bytes=1024, max_object_bytes=1024)
+    assert cas.read(operator, "typed", ref) == raw
+    # An explicit type change through put remains a policy conflict.
+    with pytest.raises(Fault, match="REFERENCE_POLICY_CONFLICT"):
+        cas.put(operator, "typed", "operator", raw, media_type="application/octet-stream")
+    assert list(cas.database.connection.execute("SELECT * FROM objects")) == objects
+    assert list(cas.database.connection.execute("SELECT * FROM outbox")) == events
+    assert not list(cas.root.glob(".asset-*"))
+
+
+@pytest.mark.parametrize("visibility", ["agent", "evaluator"])
+def test_file_import_cannot_reclassify_existing_visibility(cas, operator, tmp_path, visibility):
+    source = tmp_path / "fixture.txt"
+    source.write_bytes(b"synthetic typed fixture")
+    ref = cas.put(operator, "typed", visibility, source.read_bytes())
+    with pytest.raises(Fault, match="REFERENCE_POLICY_CONFLICT"):
+        cas.put_file(operator, "typed", "operator", source, ref[11:],
+                     quota_bytes=1024, max_object_bytes=1024)
+    row = cas.database.connection.execute("SELECT visibility FROM objects WHERE namespace=? AND ref=?",
+                                          ("typed", ref)).fetchone()
+    assert row["visibility"] == visibility
 
 
 def test_pack_cli_requests_do_not_install_or_accept_terms(tmp_path):

@@ -26,6 +26,7 @@ from .reference_abort import AbortSignal, request_abort
 from .telemetry import LAUNCH_STARTUP_MODELS
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 from .setup_control import SetupControl, SetupControlPlan, saved_mode, startup_prefix
+from .operator_control import OperatorControl, OperatorControlPlan
 
 # Only this inspected official E9E 1.27.0 bootstrap profile is admitted. Its
 # YAML disables autoRestart/ramDisk, uses the working directory and PATH Java,
@@ -93,9 +94,16 @@ class ReferenceLaunchPlanV6(ReferenceLaunchPlan):
     setup_control: SetupControlPlan
 
 
+class ReferenceLaunchPlanV7(ReferenceLaunchPlan):
+    """Headless operator-roster negative control; no participant or free commands."""
+    schema_: Literal["strata/PrivateReferenceLaunch/7"] = Field(alias="schema")
+    setup_control: OperatorControlPlan
+
+
 def parse_launch_plan(value):
     return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3 |
-                       ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5 | ReferenceLaunchPlanV6).validate_python(value)
+                       ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5 | ReferenceLaunchPlanV6 |
+                       ReferenceLaunchPlanV7).validate_python(value)
 
 
 def same_path(a, b):
@@ -210,6 +218,9 @@ class ReferenceLauncher:
         require(row["digest"] == plan.setup_digest, "REFERENCE_SETUP_CHANGED")
         control = (SetupControl(saved_mode(authority_path.parent / "fixture/level.dat"))
                    if isinstance(plan, ReferenceLaunchPlanV6) else None)
+        if isinstance(plan, ReferenceLaunchPlanV7):
+            control = OperatorControl(plan.setup_control, setup, authority_path.parent,
+                                      plan.max_wall_s + plan.graceful_stop_s)
         require(plan.mode != "synthetic-fixture" or setup.evidence_kind == "synthetic", "REFERENCE_MODE")
         require(plan.mode != "e9e-serverstarter" or not plan.fixture_arguments, "REFERENCE_ARGUMENTS")
         evidence = private_path(plan.evidence_directory)

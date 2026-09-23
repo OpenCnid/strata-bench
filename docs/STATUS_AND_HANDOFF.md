@@ -38,6 +38,13 @@ baselines, rebuild unchanged software, or expand stop work. Observed lifecycle
 intervals do not establish authoritative ticks/active time, clean-save custody or
 a complete checkpoint. The next implementation work is the remaining G0 work below.
 
+The [operator grant/revoke negative control](verification/2026-09-22-operator-control.md)
+is also verified narrowly (134 focused checks; authentic audit 46/46). Preserve
+its preparation-variable assertion failure and independent conservation review.
+Do not rerun this successful control. Intermediate privileges/final restoration
+leave signed history tainted; positive protected craft/history and remaining
+team/direct-mutation authority are still required.
+
 ## Immediate remaining G0 requirements
 
 1. Connect a short private server-verified milestone to the existing game/native

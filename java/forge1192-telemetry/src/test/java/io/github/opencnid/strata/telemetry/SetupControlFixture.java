@@ -73,6 +73,19 @@ public final class SetupControlFixture {
                 if (line.equals("save-all flush")) {
                     System.out.println("Saved the game"); System.out.flush(); continue;
                 }
+                if (args[4].startsWith("operator-")) {
+                    boolean grant = line.equals("op FixtureActor");
+                    if (!grant && !line.equals("deop FixtureActor"))
+                        throw new IllegalStateException("UNEXPECTED_SYNTHETIC_OPERATOR_COMMAND");
+                    monitor.attempt(grant ? "operator_add" : "operator_remove", Thread.currentThread());
+                    boolean keep = !args[4].equals("operator-no-effect")
+                        && (grant || args[4].equals("operator-wrong-restore"));
+                    Files.writeString(game.resolve("ops.json"), keep
+                        ? "[{\"uuid\":\"11111111-1111-1111-1111-111111111111\",\"name\":\"FixtureActor\",\"level\":4,\"bypassesPlayerLimit\":false}]"
+                        : "[]");
+                    System.out.println("Made FixtureActor " + (grant ? "a server operator" : "no longer a server operator"));
+                    System.out.flush(); continue;
+                }
                 if (!line.equals("defaultgamemode creative") && !line.equals("defaultgamemode survival"))
                     throw new IllegalStateException("UNEXPECTED_SYNTHETIC_COMMAND");
                 if (!args[4].equals("no-effect")) monitor.attempt("world_mode", Thread.currentThread());

@@ -22,6 +22,11 @@ and server stop, captured state and all 46 owned processes terminal. Retained
 attempts 01–03 remain failures. [Evidence](verification/2026-09-22-native-companions.md).
 Do not repeat or expand the successful normal-stop case without a new gap.
 
+The new [operator grant/revoke negative control](verification/2026-09-22-operator-control.md)
+also passes its narrow authentic contract: 134 focused checks and 46/46 independent
+audit checks, with intermediate privileges, final empty roster and permanently
+tainted signed history. No scoring/full-history qualification is claimed.
+
 Then finish the connected private scorer/setup, enforced isolation,
 authoritative clock/save/recovery and exact E9E qualification gaps below.
 Do not restart the completed verifier/accounting matrix or expand M1–M7.

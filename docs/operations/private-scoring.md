@@ -110,3 +110,20 @@ an older valid point-only stream fails with `CRAFT_NATIVE_HISTORY_MISSING`.
 Version-3 inspections retain this requirement. Do not upgrade consumed older
 plans or infer complete route coverage from clear counters. [Admission contract
 and integration evidence](../verification/2026-09-21-protected-craft-history.md).
+
+`PrivateReferenceLaunch/7` is the separate headless operator grant/revoke
+diagnostic. Its `setup_control` declares policy `private-operator-roundtrip/1`,
+purpose `negative_control`, the registered `agent_id`, `actor_uuid`, exact
+`player_name` and `operator_level: 4`. The setup seal must include supporting
+roles `operator-roster` and `profile-cache`, pointing respectively to the game
+directory's `ops.json` and `usercache.json`. The roster starts empty, and the
+cache must bind the exact target throughout the bounded reference. Arbitrary
+command text and participant fields are rejected.
+
+The ordinary private `reference_launch` CLI owns startup, one grant/revoke and
+normal stop. It preserves the actual intermediate operator file before any
+revocation, then joins the final empty roster to permanently tainted signed
+history. Uncertain effects or writes consume the reference without replay.
+Do not use the private clone as a clean gameplay baseline or interpret this
+negative control as full setup/scoring qualification. Version-6 world-mode
+behavior remains unchanged. [Control contract and evidence](../verification/2026-09-22-operator-control.md).

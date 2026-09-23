@@ -7,10 +7,10 @@ import java.util.TreeMap;
 
 /** Bounded sticky observations, with no game-state writes or raw command data. */
 public final class SetupHistory {
-    public static final String POLICY = "native-e9e-setup-mutation-watch/3";
+    public static final String POLICY = "native-e9e-setup-mutation-watch/4";
     static final String[] ROUTES = {"command_attempt", "actor_mode_change", "operator_add",
         "operator_remove", "operator_reload", "allow_cheats", "world_mode", "world_difficulty",
-        "team_deserialize", "party_change", "team_create", "team_reload", "native_stop_command", "global_mode_write", "team_map_write"};
+        "team_deserialize", "party_change", "team_create", "team_reload", "native_stop_command", "global_mode_write", "team_map_write", "team_script_field_write", "script_reflection_overflow"};
     private static Monitor monitor;
     private static boolean used;
 
@@ -50,7 +50,9 @@ public final class SetupHistory {
         } catch(ReflectiveOperationException ignored) {}
         result.addProperty("global_map_hooks_verified", global);
         result.addProperty("team_map_hooks_verified", TeamMapSupport.verified());
-        // Public mutable FTB scalar fields, reflection and pre-activation history remain unqualified.
+        result.addProperty("script_field_hooks_verified", marked("dev.latvian.mods.rhino.JavaMembers",
+            "dev.latvian.mods.rhino.MemberBox"));
+        // Arbitrary native/mod writes, method handles and pre-activation history remain unqualified.
         result.addProperty("all_mutation_routes_covered", false); return result;
     }
     private static boolean marked(String... names) {

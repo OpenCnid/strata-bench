@@ -21,6 +21,8 @@ public final class SetupControlFixture {
         value.addProperty("policy", LEGACY_HISTORY);
         value.getAsJsonObject("attempts").remove("global_mode_write");
         value.getAsJsonObject("attempts").remove("team_map_write");
+        value.getAsJsonObject("attempts").remove("team_script_field_write");
+        value.getAsJsonObject("attempts").remove("script_reflection_overflow");
         return value;
     }
     private static JsonObject point() {

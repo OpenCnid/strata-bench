@@ -15,7 +15,9 @@
     "StopHistoryMixin",
     "GlobalHistoryMixin",
     "TeamRanksHistoryMixin",
-    "TeamMapsHistoryMixin"
+    "TeamMapsHistoryMixin",
+    "ScriptFieldsHistoryMixin",
+    "ScriptMethodsHistoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

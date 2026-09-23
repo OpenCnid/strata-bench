@@ -21,7 +21,7 @@ from .cli import write_report
 from .telemetry_configs import ConfigQuery, ConfigSnapshot
 from .craft_witness import CraftBegin, CraftEnd, qualify_click
 from .setup_facts import SetupSnapshot, SetupSupport
-from .setup_history import (HistorySupport, HistorySupportV2, HistorySupportV3, SetupHistory,
+from .setup_history import (HistorySupport, HistorySupportV2, HistorySupportV3, HistorySupportV4, SetupHistory,
                             HISTORY_MODELS, HISTORY_SCHEMAS, advance, qualify_history)
 from .telemetry_clocks import ServerClock, reconcile_clock
 
@@ -132,13 +132,19 @@ class ServerStartedV11(ServerStartedV10):
     setup_history_support: HistorySupportV3
 
 
+class ServerStartedV12(ServerStartedV11):
+    module: Literal["strata-forge1192-telemetry/0.3.11"]
+    setup_history_support: HistorySupportV4
+
+
 LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/6": ServerStartedV6,
                         "strata/ServerStarted/7": ServerStartedV7,
                         "strata/ServerStarted/8": ServerStartedV8,
                         "strata/ServerStarted/9": ServerStartedV9,
                         "strata/ServerStarted/10": ServerStartedV10,
-                        "strata/ServerStarted/11": ServerStartedV11}
+                        "strata/ServerStarted/11": ServerStartedV11,
+                        "strata/ServerStarted/12": ServerStartedV12}
 
 
 class RecipeSnapshot(Strict):
@@ -249,9 +255,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version8 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/8"
             version10 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/10"
             version11 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/11"
+            version12 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/12"
             history_versioned = event.kind == "setup_history" and event.payload_schema in HISTORY_SCHEMAS.values()
             version9 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/9"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or history_versioned),
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or history_versioned),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -267,10 +274,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                             or (version8 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.7")
                             or (version9 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.8")
                             or (version10 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.9")
-                            or (version11 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.10"),
+                            or (version11 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.10")
+                            or (version12 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.11"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -289,17 +297,17 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                         "SETUP_HISTORY_MODULE")
             parsed = (startup_model if event.kind == "server_started" else
                       HISTORY_MODELS[history_support.policy] if event.kind == "setup_history" else PAYLOADS[event.kind]).model_validate(data)
-            if version5 or version6 or version7 or version8 or version9 or version10 or version11:
+            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version7 or version8 or version9 or version10 or version11:
+            if version7 or version8 or version9 or version10 or version11 or version12:
                 startup_transport = parsed.telemetry_transport
-            if version6 or version7 or version8 or version9 or version10 or version11:
+            if version6 or version7 or version8 or version9 or version10 or version11 or version12:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version8 or version9 or version10 or version11:
+            if version8 or version9 or version10 or version11 or version12:
                 history_support = parsed.setup_history_support
-            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11:
+            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11:
+            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12:
                 craft_policy = parsed.craft_capture_policy
             if terminal_clock is not None:
                 require(event.server_tick == terminal_clock.completed_server_ticks

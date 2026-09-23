@@ -32,6 +32,17 @@ the database transaction. Historical unbound state fails
 migration. Do not delete state or start a replacement scientific instance to
 conceal the missing provenance.
 
+Telemetry 0.3.11 / startup12 adds the separately versioned
+`native-e9e-setup-mutation-watch/4` history requirement. Its seventeen routes
+include script-origin FTB field writes and bounded reflection-inspection
+overflow. The pinned Rhino direct-field and reflective-invocation hooks must
+both be present. Any observed field write remains disqualifying after restore;
+missing hooks, schema/module mismatch, rollback or an altered sealed requirement
+reject admission or candidate credit. Policies1–3 keep their original meanings.
+These hooks do not establish coverage for arbitrary native/mod field writes,
+method handles, pre-activation changes or complete custody. See the
+[field-write control](../verification/2026-09-23-script-field-history.md).
+
 Outputs always retain `scoring_authority_qualified=false`. This interface does
 not admit a campaign or supply authenticated ingress, sealed setup/team
 authority, telemetry parity, filesystem/process/network isolation or full T10

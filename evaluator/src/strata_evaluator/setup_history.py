@@ -10,6 +10,7 @@ from mcbench.storage import require
 POLICY = "native-e9e-setup-mutation-watch/1"
 POLICY_V2 = "native-e9e-setup-mutation-watch/2"
 POLICY_V3 = "native-e9e-setup-mutation-watch/3"
+POLICY_V4 = "native-e9e-setup-mutation-watch/4"
 ROUTES = frozenset({
     "command_attempt", "actor_mode_change", "operator_add", "operator_remove", "operator_reload",
     "allow_cheats", "world_mode", "world_difficulty", "team_deserialize", "party_change",
@@ -62,9 +63,19 @@ class SetupHistoryV3(SetupHistoryV2):
     routes: ClassVar[frozenset[str]] = SetupHistoryV2.routes | {"team_map_write"}
 
 
-HISTORY_MODELS = {POLICY: SetupHistory, POLICY_V2: SetupHistoryV2, POLICY_V3: SetupHistoryV3}
+class HistorySupportV4(HistorySupportV3):
+    policy: Literal["native-e9e-setup-mutation-watch/4"]
+    script_field_hooks_verified: bool
+
+
+class SetupHistoryV4(SetupHistoryV3):
+    policy: Literal["native-e9e-setup-mutation-watch/4"]
+    routes: ClassVar[frozenset[str]] = SetupHistoryV3.routes | {"team_script_field_write", "script_reflection_overflow"}
+
+
+HISTORY_MODELS = {POLICY: SetupHistory, POLICY_V2: SetupHistoryV2, POLICY_V3: SetupHistoryV3, POLICY_V4: SetupHistoryV4}
 HISTORY_SCHEMAS = {POLICY: "strata/NativeSetupHistory/1", POLICY_V2: "strata/NativeSetupHistory/2",
-                   POLICY_V3: "strata/NativeSetupHistory/3"}
+                   POLICY_V3: "strata/NativeSetupHistory/3", POLICY_V4: "strata/NativeSetupHistory/4"}
 
 
 def parse_history(value):
@@ -91,6 +102,8 @@ def qualify_history(support, terminal):
         reasons.append("global_map_hook_unavailable")
     if isinstance(support, HistorySupportV3) and not support.team_map_hooks_verified:
         reasons.append("team_map_hook_unavailable")
+    if isinstance(support, HistorySupportV4) and not support.script_field_hooks_verified:
+        reasons.append("script_field_hook_unavailable")
     if terminal.off_thread_attempts:
         reasons.append("off_thread_mutation_attempt")
     if terminal.overflowed:

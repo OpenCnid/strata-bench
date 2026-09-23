@@ -15,7 +15,7 @@ from mcbench.storage import digest, reject_links, require
 from .saved_blocks import NbtReader, field, unpack_chunk
 from .setup_facts import ManagerReady, PackMode, SetupSnapshot
 from .setup_history import HISTORY_SCHEMAS, parse_history
-from .telemetry import RecipeSnapshot, LAUNCH_STARTUP_MODELS, ServerStartedV10, ServerStartedV11
+from .telemetry import RecipeSnapshot, LAUNCH_STARTUP_MODELS, ServerStartedV10, ServerStartedV11, ServerStartedV12
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, private_read
 
 POLICY = "private-world-mode-roundtrip/1"
@@ -69,7 +69,7 @@ def startup_prefix(directory, authority, expected_boot):
             previous_tick = event.server_tick
             if seq == 1:
                 require(event.kind == "server_started" and event.payload_schema in
-                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11"}
+                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12"}
                         and event.server_tick == 0, "SETUP_CONTROL_MODULE_REQUIRED")
                 model = LAUNCH_STARTUP_MODELS[event.payload_schema]
                 boot = model.model_validate(event.payload)
@@ -77,7 +77,8 @@ def startup_prefix(directory, authority, expected_boot):
                         and boot.setup_history_support.vanilla_hooks_verified
                         and boot.setup_history_support.team_hooks_verified and
                         (not isinstance(boot, ServerStartedV10) or boot.setup_history_support.global_map_hooks_verified) and
-                        (not isinstance(boot, ServerStartedV11) or boot.setup_history_support.team_map_hooks_verified),
+                        (not isinstance(boot, ServerStartedV11) or boot.setup_history_support.team_map_hooks_verified) and
+                        (not isinstance(boot, ServerStartedV12) or boot.setup_history_support.script_field_hooks_verified),
                         "SETUP_CONTROL_HOOKS_REQUIRED")
             elif history is not None:
                 require(event.kind == "setup_snapshot" and event.payload_schema == "strata/NativeSetupSnapshot/1"

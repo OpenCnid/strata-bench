@@ -70,15 +70,19 @@ def test_operator_signs_exact_event_and_acknowledges_only_durable_sequence(sink)
 
 
 @pytest.mark.parametrize("transport", ["windows-owned-pipe/1", "private-file/1"])
-def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport):
+@pytest.mark.parametrize("version", [8, 9])
+def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport, version):
     from strata_evaluator.setup_facts import PINS, POLICY as POINT_POLICY
     from strata_evaluator.setup_history import POLICY, ROUTES
     broker, first, identity, key, receipts, _ = sink
-    first["payload_schema"] = "strata/ServerStarted/8"
+    first["payload_schema"] = f"strata/ServerStarted/{version}"
     first["payload"].update(module="strata-forge1192-telemetry/0.3.7", telemetry_transport=transport,
         setup_capture_policy=POINT_POLICY, setup_capture_support={"status": "supported", "artifacts": PINS},
         setup_history_support={"policy": POLICY, "vanilla_hooks_verified": True,
             "team_hooks_verified": True, "all_mutation_routes_covered": False})
+    if version == 9:
+        from strata_evaluator.telemetry_clocks import POLICY as CLOCK_POLICY
+        first["payload"].update(module="strata-forge1192-telemetry/0.3.8", clock_policy=CLOCK_POLICY)
     if transport == "private-file/1":
         with pytest.raises(Fault, match="TELEMETRY_PIPE_TRANSPORT"):
             broker._event(canonical(first) + b"\n", identity, key)

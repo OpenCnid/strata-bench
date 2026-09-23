@@ -493,6 +493,8 @@ class ReferenceLauncher:
             body["spool_sha256"] = inspection["file_sha256"]
             body["records"] = inspection["records"]
             body["sampled_server_ticks"] = inspection["sampled_server_ticks"]
+            if "terminal_clock" in inspection:
+                body["terminal_clock"] = inspection["terminal_clock"]
             if control is not None:
                 control.finish(inspection, setup.fixture_directory, logs["stdout.log"])
             if coordinated:

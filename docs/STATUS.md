@@ -1,5 +1,7 @@
 # Strata current status
 
+**Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
+
 Updated September 22, 2026. Operator-only.
 **M0 is incomplete, G0 is fail, and G1–G5 are not_run.**
 The active implementation task is **M0/G0 only**; preserve M1–M7 as the later
@@ -12,6 +14,8 @@ The implementation and documentation checkpoint PRs are merged. The active
 branch resumes from `f3b009e` with the requested M0/G0-only long-horizon goal.
 Reusable native/game evidence and sealed vanilla recovery remain verified only
 in their documented scripted-provider scopes.
+
+The [terminal native clock increment](verification/2026-09-22-terminal-clocks.md) is also retained: 245 focused Python/39 Java passes and one authentic headless E9E reference (reviewed audit 38/38), 207 server ticks and 15.902282599 callback seconds. Actual avatar callbacks and full active-time authority remain unqualified. No game/model process remains from that test; do not repeat it unchanged. Next follow D14: direct observation/action and real LLM piloting, with the existing model-accounting hold handled explicitly.
 
 ## Next working result
 

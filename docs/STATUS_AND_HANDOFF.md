@@ -1,5 +1,7 @@
 # M0 implementation handoff
 
+**Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
+
 Operator-only. Updated September 22, 2026. This is an implementation continuation,
 not a new design exercise. **M0 is incomplete; G0 fails; G1–G5 are not run.**
 The current task is M0/G0 only. Preserve M1–M7 and their activation conditions.
@@ -15,6 +17,8 @@ and the [September 22 checkpoint report](verification/2026-09-22-session-handoff
 actual merged main, inspect the current worktree and original accounting, and
 start a fresh branch from main. Preserve all old branches, changes and private
 evidence. Do not launch Minecraft merely to inspect the checkpoint.
+
+The [terminal native clock increment](verification/2026-09-22-terminal-clocks.md) is also retained: 245 focused Python/39 Java passes and one authentic headless E9E reference (reviewed audit 38/38), 207 server ticks and 15.902282599 callback seconds. Actual avatar callbacks and full active-time authority remain unqualified. No game/model process remains from that test; do not repeat it unchanged. Next follow D14: direct observation/action and real LLM piloting, with the existing model-accounting hold handled explicitly.
 
 ## Delivered normal completion
 

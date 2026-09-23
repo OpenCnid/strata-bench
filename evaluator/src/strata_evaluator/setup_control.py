@@ -15,7 +15,7 @@ from mcbench.storage import digest, reject_links, require
 from .saved_blocks import NbtReader, field, unpack_chunk
 from .setup_facts import ManagerReady, PackMode, SetupSnapshot
 from .setup_history import SetupHistory
-from .telemetry import RecipeSnapshot, ServerStartedV8
+from .telemetry import RecipeSnapshot, ServerStartedV8, ServerStartedV9
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, private_read
 
 POLICY = "private-world-mode-roundtrip/1"
@@ -68,9 +68,11 @@ def startup_prefix(directory, authority, expected_boot):
                     "SETUP_CONTROL_PREFIX_SCOPE")
             previous_tick = event.server_tick
             if seq == 1:
-                require(event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/8"
+                require(event.kind == "server_started" and event.payload_schema in
+                        {"strata/ServerStarted/8", "strata/ServerStarted/9"}
                         and event.server_tick == 0, "SETUP_CONTROL_MODULE_REQUIRED")
-                boot = ServerStartedV8.model_validate(event.payload)
+                model = ServerStartedV9 if event.payload_schema.endswith("/9") else ServerStartedV8
+                boot = model.model_validate(event.payload)
                 require(boot.setup_capture_support.status == "supported"
                         and boot.setup_history_support.vanilla_hooks_verified
                         and boot.setup_history_support.team_hooks_verified, "SETUP_CONTROL_HOOKS_REQUIRED")

@@ -1,8 +1,8 @@
 # Initial validation: budget and native boundary
 
-Updated September 21, 2026. Operator-only. This is the continuation contract for
+Updated September 22, 2026. Operator-only. This is the continuation contract for
 M0.1c.1c.2 and M0.1c.2b.2, not an executable authorization or qualification.
-Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12 in MILESTONES.md.
+Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12/D14 in MILESTONES.md.
 Coverage: F03/F04/F07/F11/F16, N01/N02/N04/N06, C06/C12/C20,
 partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 
@@ -19,8 +19,11 @@ partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
   remains unknown; D12's separately authorized bounded receipt request is now
   consumed. Neither permits another trial or implies that $10 funds later
   soaks or the confirmatory study.
-- No user-supplied VM is required. Engineer the smallest enforceable boundary
-  on available hardware; keep the user's ordinary desktop usable.
+- D14 explicitly defers full sandbox/isolation qualification to M1/G1 and
+  prioritizes M0 observation/action correctness and actual LLM piloting. Use the
+  existing scoped controls and label development runs isolation-unqualified.
+  No user-supplied VM or sandbox setup is requested. This scope change does not
+  clear unknown model usage, reuse D12 or increase the allowance.
 
 ## Versioned estimated accounting: implemented source foundation
 
@@ -144,3 +147,7 @@ samples. Read the durable allowance first. No additional user permission is
 needed for a trial already within the existing authorization, but no amount of
 documentation substitutes for actual finite-exposure and isolation evidence.
 Do not expand into soaks, team runs or scientific claims before their gates.
+
+D14 supersedes earlier full-isolation prerequisites in this document for M0
+development piloting only. It does not change model request/receipt accounting
+or authorize protected-scoring, scientific-validity or G1 claims.

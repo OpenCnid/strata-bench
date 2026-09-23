@@ -257,6 +257,8 @@ def _inspect_costs(plan: CostJoin, epochs):
                            "avatar_identity_mapping", "startup_and_unsampled_clock_intervals",
                            "root_helper_retry_inference_join", "campaign_and_restart_aggregation"]}
     # Private comparison state is never serialized into the result.
+    if "terminal_clock" in telemetry:
+        report["terminal_clock"] = telemetry["terminal_clock"]
     native_bytes = native_path.read_bytes()
     require(hashlib.sha256(native_bytes).hexdigest() == plan.native_journal.sha256, "COST_INPUT_CHANGED")
     return report, {"actions": {r[0]: r for r in action_rows}, "events": event_rows,

@@ -22,6 +22,7 @@ from .telemetry_configs import ConfigQuery, ConfigSnapshot
 from .craft_witness import CraftBegin, CraftEnd, qualify_click
 from .setup_facts import SetupSnapshot, SetupSupport
 from .setup_history import HistorySupport, SetupHistory, advance, qualify_history
+from .telemetry_clocks import ServerClock, reconcile_clock
 
 KINDS = {
     "server_started": "strata/ServerStarted/1",
@@ -34,6 +35,7 @@ KINDS = {
     "craft_end": "strata/CraftEnd/1",
     "setup_snapshot": "strata/NativeSetupSnapshot/1",
     "setup_history": "strata/NativeSetupHistory/1",
+    "server_clock": "strata/ServerClock/1",
 }
 MAX_SPOOL_BYTES = 1024**3
 
@@ -114,10 +116,16 @@ class ServerStartedV8(ServerStartedV7):
     setup_history_support: HistorySupport
 
 
+class ServerStartedV9(ServerStartedV8):
+    module: Literal["strata-forge1192-telemetry/0.3.8"]
+    clock_policy: Literal["server-event-monotonic-cumulative/1"]
+
+
 LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/6": ServerStartedV6,
                         "strata/ServerStarted/7": ServerStartedV7,
-                        "strata/ServerStarted/8": ServerStartedV8}
+                        "strata/ServerStarted/8": ServerStartedV8,
+                        "strata/ServerStarted/9": ServerStartedV9}
 
 
 class RecipeSnapshot(Strict):
@@ -168,7 +176,7 @@ class RawCraftCallback(Strict):
 
 PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
                           RawCraftCallback, Strict, ConfigSnapshot, CraftBegin, CraftEnd, SetupSnapshot,
-                          SetupHistory), strict=True))
+                          SetupHistory, ServerClock), strict=True))
 
 
 def unique_object(pairs):
@@ -202,6 +210,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     last_command_count = 0
     history_support, previous_history, pending_history, terminal_history = None, None, None, None
     health_wall_ns, health_ticks, wire_bytes = 0, 0, 0
+    health_work_ns, terminal_clock = 0, None
     with path.open("rb") as stream:
         while line := stream.readline(limit + 1):
             require(len(line) <= limit and line.endswith(b"\n"), "TELEMETRY_PARTIAL_RECORD")
@@ -225,7 +234,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version6 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/6"
             version7 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/7"
             version8 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/8"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8),
+            version9 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/9"
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -238,10 +248,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                             or (version5 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.4")
                             or (version6 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.5")
                             or (version7 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.6")
-                            or (version8 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.7"),
+                            or (version8 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.7")
+                            or (version9 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.8"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -256,18 +267,29 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
             parsed = (startup_model if event.kind == "server_started" else PAYLOADS[event.kind]).model_validate(data)
-            if version5 or version6 or version7 or version8:
+            if version5 or version6 or version7 or version8 or version9:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version7 or version8:
+            if version7 or version8 or version9:
                 startup_transport = parsed.telemetry_transport
-            if version6 or version7 or version8:
+            if version6 or version7 or version8 or version9:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version8:
+            if version8 or version9:
                 history_support = parsed.setup_history_support
-            if version2 or version3 or version4 or version5 or version6 or version7 or version8:
+            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6 or version7 or version8:
+            if version3 or version4 or version5 or version6 or version7 or version8 or version9:
                 craft_policy = parsed.craft_capture_policy
+            if terminal_clock is not None:
+                require(event.server_tick == terminal_clock.completed_server_ticks
+                        and (event.kind == "server_stopped" or
+                             (event.kind == "setup_history" and parsed.phase == "stop")),
+                        "TELEMETRY_CLOCK_NOT_TERMINAL")
+            if event.kind == "server_clock":
+                require(issubclass(startup_model, ServerStartedV9) and terminal_clock is None
+                        and not event.actor_ids, "TELEMETRY_CLOCK_SCOPE")
+                reconcile_clock(parsed, final_tick=event.server_tick, sampled_ticks=health_ticks,
+                                sampled_wall_ns=health_wall_ns, sampled_work_ns=health_work_ns)
+                terminal_clock = parsed
             if pending_setup is not None:
                 observed_event, point = pending_setup
                 require(event.kind == point.phase and parsed.transaction_id == point.transaction_id
@@ -353,6 +375,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 health_tick = event.server_tick
                 health_ticks += ticks
                 health_wall_ns += wall
+                health_work_ns += parsed.observed_tick_work_ns
             elif event.kind == "craft_callback":
                 require(data.get("score_eligible") is False, "TELEMETRY_UNPROVEN_SCORE")
                 if craft_stack:
@@ -398,6 +421,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     require(pending_history is None and (not issubclass(startup_model, ServerStartedV8)
             or terminal_history is not None), "SETUP_HISTORY_STOP_MISSING")
     require(set(configs) == set(config_queries), "TELEMETRY_CONFIG_MISSING")
+    require(not issubclass(startup_model, ServerStartedV9) or terminal_clock is not None,
+            "TELEMETRY_CLOCK_MISSING")
     report = {"schema": "strata/PrivateTelemetryInspection/1", "visibility": "evaluator",
             "file_sha256": hasher.hexdigest(), "campaign_id": campaign_id, "epoch": epoch,
             "server_boot_id": boot, "records": count, "kind_counts": kinds,
@@ -418,6 +443,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
         report["telemetry_transport"] = startup_transport
     if issubclass(startup_model, ServerStartedV8):
         report["setup_history"] = qualify_history(history_support, terminal_history)
+    if terminal_clock is not None:
+        report["terminal_clock"] = reconcile_clock(
+            terminal_clock, final_tick=previous_tick, sampled_ticks=health_ticks,
+            sampled_wall_ns=health_wall_ns, sampled_work_ns=health_work_ns)
     return report
 
 

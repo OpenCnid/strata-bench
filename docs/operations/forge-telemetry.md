@@ -381,3 +381,21 @@ between this module's startup and stop handlers; no complete process-lifetime or
 full mutation-route claim follows. Missing hooks, malformed history and observed
 taint prevent candidate use. Existing 0.3.5/0.3.6 profiles keep their exact schema
 and module requirements. [Implementation, verification and uncovered routes](../verification/2026-09-21-setup-history.md).
+
+## Terminal callback clocks
+
+Telemetry 0.3.8 emits `ServerStarted/9` and one terminal `ServerClock/1`
+under `server-event-monotonic-cumulative/1`. It records completed server ticks,
+actual server-side avatar tick callbacks and monotonic callback exposure,
+including time outside the periodic health samples. The terminal clock precedes
+terminal mutation history and `server_stopped`; missing or inconsistent terminal
+evidence fails inspection. Avatar callbacks are bounded to 64 distinct UUIDs and
+one event per UUID per server tick; event-order, thread or clock violations are
+sticky failures. Existing health avatar fields remain legacy connected-presence
+samples and are never silently reinterpreted as actual avatar events.
+
+The private inspector, owned launcher and development cost join retain this
+record separately. Do not add its cumulative totals to overlapping health
+samples. Pre-startup and post-callback time, admitted roster identity, active
+campaign time, save custody, overhead and isolation still need their own
+authority/evidence. Historical modules retain their original meaning.

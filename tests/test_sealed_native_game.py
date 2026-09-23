@@ -90,10 +90,11 @@ def test_changed_pack_commands_settings_or_stop_proof_do_not_reconcile(archive, 
         inspect(archive)
 
 
-def test_sealed_native_plan_rejects_literal_command_overrides_before_composition(tmp_path, monkeypatch):
+@pytest.mark.parametrize("schema", ["strata/M0NativeGameSmoke/4", "strata/M0NativeGameFailure/1"])
+def test_sealed_native_plan_rejects_literal_command_overrides_before_composition(tmp_path, monkeypatch, schema):
     import m0_native_game as runner
     path = tmp_path / "plan.json"
-    body = {"schema": "strata/M0NativeGameSmoke/4", "output": "unused", "pack": {},
+    body = {"schema": schema, "output": "unused", "pack": {},
         "worker_invocation": {}, "worker_runtime": {}, "codex": "unused", "tool_projections": "unused",
         "model_catalog": "unused", "retention_source": {}, "worker_config": "unreviewed"}
     path.write_bytes(canonical(body))

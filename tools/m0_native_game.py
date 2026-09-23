@@ -68,10 +68,11 @@ def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
     pilot = version == "strata/M0NativePilot/1"
+    failure = version == "strata/M0NativeGameFailure/1"
     if pilot:
         from native_pilot_trial import check_inputs
         check_inputs(plan.get("pilot"))
-    sealed = pilot or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    sealed = pilot or failure or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     pinned = version in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameRecovery/2"}
     if sealed:
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
@@ -107,23 +108,24 @@ def run(plan_path):
 def run_plan(plan, resources, runtime=None):
     version = plan["schema"]
     pilot = version == "strata/M0NativePilot/1"
+    failure = version == "strata/M0NativeGameFailure/1"
     if pilot:
         from native_pilot_trial import check_inputs
         pilot_admission = check_inputs(plan["pilot"])
-    sealed = pilot or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
-    restored = pilot or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    sealed = pilot or failure or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    restored = pilot or failure or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     sealed_recovery = version == "strata/M0NativeGameRecovery/3"
     prepared = None
     retention = recovery = None
-    if pilot or version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
+    if pilot or failure or version in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
                    "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
         private(plan["retention_source"]["path"])
         retention = GameRetention(plan["retention_source"])
         # Check the real provider identity before materializing output or
         # preparing Java/worker resources. MODEL is only the scripted fixture.
-        retention.check_identity(model=pilot_admission["model"] if pilot else MODEL,
+        retention.check_identity(model=pilot_admission["model"] if pilot else "gpt-6-luna" if failure else MODEL,
             dovetail_commit=DOVETAIL_COMMIT, binary_digest=BINARY_SHA256,
-            binary_version=CODEX_VERSION, helper_limit=0 if pilot else 2)
+            binary_version=CODEX_VERSION, helper_limit=0 if pilot or failure else 2)
     if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}:
         from native_game_recovery import GameRecovery
         private(plan["recovery_source"]["bundle"])
@@ -209,8 +211,8 @@ def run_plan(plan, resources, runtime=None):
             "M0_EXPOSURE_INCOMPLETE")
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
     if retention and not pilot:
-        retention.check_identity(model=MODEL, dovetail_commit=DOVETAIL_COMMIT,
-            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=0 if pilot else 2)
+        retention.check_identity(model="gpt-6-luna" if failure else MODEL, dovetail_commit=DOVETAIL_COMMIT,
+            binary_digest=BINARY_SHA256, binary_version=CODEX_VERSION, helper_limit=0 if pilot or failure else 2)
     for key in ("tool_projections", "model_catalog"):
         private(plan[key])
     require(not (private(worker_config["auth_cache"]) / "auth.lock").exists(), "AUTH_CACHE_IN_USE")
@@ -263,6 +265,9 @@ def run_plan(plan, resources, runtime=None):
         result.update(schema="strata/M0NativePilotResult/1", model_evidence="actual_native_oauth",
                       isolation_qualified=False, scope_decision="D14", complete_checkpoint=False,
                       real_model_requests=None)
+    if failure:
+        result.update(schema="strata/M0NativeGameFailureResult/1", fault_case="truncated-response-after-observation/1",
+                      isolation_qualified=False, complete_checkpoint=False)
     started = time.monotonic()
 
     def close_owned(name):
@@ -361,12 +366,16 @@ def run_plan(plan, resources, runtime=None):
             from native_pilot_trial import run_trial
             native_result = run_trial(plan, native, descriptor, worker_config["lease_id"])
         else:
+            if failure:
+                from native_game_failure_probe import GameTransportFailureProbe
             native_result = run_native(Path(plan["codex"]), native, broker_mode=True, admission_mode=True,
             bootstrap_mode=True, ingress_mode=True, oauth_mode=True,
             tool_projections=json.loads(Path(plan["tool_projections"]).read_bytes()),
             no_patch_catalog=Path(plan["model_catalog"]),
-            game_probe=GameProbe(descriptor, worker_config["lease_id"], recovery=recovery is not None),
-            game_retention=retention, game_recovery=recovery, job_id="root-recovery" if recovery else "root")
+            game_probe=GameTransportFailureProbe(descriptor, worker_config["lease_id"]) if failure else
+                GameProbe(descriptor, worker_config["lease_id"], recovery=recovery is not None),
+            game_retention=None if failure else retention, game_recovery=recovery,
+            job_id="root-recovery" if recovery else "root", game_failure=failure, model="gpt-6-luna" if failure else MODEL)
         write(output / "native-result.json", native_result)
         result["native_checks"] = native_result["checks"]
         if pilot:
@@ -376,11 +385,14 @@ def run_plan(plan, resources, runtime=None):
         else:
             result["native_closure"] = native_result["closure"]
             result["fixture_model_costs"] = native_result["budget"]
-        if retention and not pilot:
+        if failure:
+            result["failure_control"] = native_result["failure_control"]
+            result["native_retention_unavailable_reason"] = "UNSETTLED_RESPONSE"
+        elif retention and not pilot:
             result["native_retention"] = native_result["retention"]
         finish_native_worker(worker, worker_config, output, wait,
                              runtime is not None and runtime.operator_stop, native_result["checks"], result,
-                             closure_error=native_result["closure_error"] if pilot else None)
+                             closure_error=native_result["closure_error"] if pilot else native_result["closure"].get("closure_error"))
         result["status"] = "pass"
     except BaseException as error:
         result["error"] = error.code if isinstance(error, Fault) else type(error).__name__
@@ -460,6 +472,10 @@ def run_plan(plan, resources, runtime=None):
                     [a["batch"] for a in selected] == model_actions and
                     all(a["ack"]["status"] == "completed" and a["ack"]["release_confirmed"] for a in selected)
                     and counters.get("primitive_events", 0) > 0)
+            if failure:
+                joined = not actions and counters.get("primitive_events", 0) == 0
+                if "failure_control" in result:
+                    result["failure_control"]["checks"]["worker_recorded_no_mutations"] = joined
             if recovery:
                 try:
                     result["recovery_journal"] = recovery.worker_report(journal)
@@ -471,7 +487,7 @@ def run_plan(plan, resources, runtime=None):
                 result["status"] = "fail"
         if not result["native_worker_journal_join"]:
             result["status"] = "fail"
-        if retention and not pilot:
+        if retention and not pilot and not failure:
             # Both components must exist; neither alone is a joint checkpoint.
             try:
                 result["joint_components"] = paired_components(output, result, retention.source["sha256"], server_plan)

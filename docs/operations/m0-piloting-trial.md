@@ -19,6 +19,19 @@ new request or reuse D12.
 
 **Current run:** m0-pilot-03 is consumed and failed its movement gate. D18 continuing approval remains active. Future bounded runs need fresh technical admission and source/profile evidence, not another permission request.
 
+For a deterministic cleanup control without paid admission, the distinct
+`strata/M0NativeGameFailure/1` plan uses the same sealed native/Mineflayer
+lifecycle with a fixed local response producer. It requires a fresh baseline,
+GPT-6 Luna native catalog, zero helpers and at most four synthetic dispatches.
+After a real observation acknowledgment, it truncates the next local response.
+The unknown reservation stays in a separate simulated database; the original
+authority is read only. A passing negative-control audit still leaves the
+native/game result failed and creates no complete checkpoint. This is not an
+alternate paid-admission path or evidence of model reasoning. See the
+[failure-control evidence](../verification/2026-09-23-native-failure-cleanup.md)
+for retained attempts and exact scope. Do not repeat a successful unchanged
+control or use it to settle a historical unknown request.
+
 The path is **pinned native Codex/Dovetail → scoped game broker → existing
 Mineflayer worker → authentic vanilla Minecraft**. The model chooses its own
 targets from filtered observations. No desktop input or replacement backend.

@@ -69,7 +69,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna"):
+        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -119,6 +119,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, activation_source, inherited_helper)),
             "GAME_PINNED_BOOTSTRAP_REQUIRED")
+    if game_failure:
+        from native_game_failure_probe import GameTransportFailureProbe
+        require(isinstance(game_probe, GameTransportFailureProbe) and oauth_mode and
+                game_retention is None and game_recovery is None and model == "gpt-6-luna",
+                "GAME_FAILURE_PROFILE_REQUIRED")
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
@@ -137,7 +142,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     patch_test = no_patch_catalog is not None and activation is None and game_probe is None and not piloting_contract
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
-    request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
+    request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
@@ -166,6 +171,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
+            if game_failure and step > 0:
+                require(agent == "/root" and step == 1, "GAME_FAILURE_PROFILE_REQUIRED")
+                game_probe.truncate(handler, operation, model, self.outputs)
             extra_items = []
             self.steps[agent] = step + 1
             root_id = next(i["thread_id"] for i in self.identities if i["agent"] == "/root")
@@ -486,14 +494,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "helper_limit": 0 if piloting_contract else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "helper_limit": 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
             "purpose": "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
-            "prompt": ("Read the public game contract and exercise the scripted request-format check. No helpers."
+            "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
@@ -807,6 +815,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         from native_pilot_contract_probe import report
         result["checks"] = report(db, cas, plan, result, provider, worker_calls)
         result["scope"] = "development_piloting_public_contract"
+        result["isolation_qualified"] = False
+    if game_failure:
+        result["failure_control"] = game_probe.failure_report(db, cas, plan, provider, result)
+        result["scope"] = "scripted_transport_failure_with_authentic_game"
         result["isolation_qualified"] = False
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

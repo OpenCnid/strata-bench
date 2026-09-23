@@ -47,6 +47,29 @@ def request():
         "method": "observe", "action": None, "target_request_id": None, "after": None}
 
 
+def test_public_pilot_pagination_reaches_worker_once_and_cannot_expand_methods(broker):
+    from mcbench.native_piloting import game_contract, PURPOSE
+    b, _, _ = broker
+    b.db.connection.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)",
+        ("runtime", "c1", "a1", 1, "executor", None, "a"*64, json.dumps({"purpose": PURPOSE}), "RUNNING"))
+    doc = json.loads(game_contract())
+    page = request() | {"method": doc["pagination"]["method"], "cursor": "delivered-page"}
+    forwarded = []
+    def transport(r):
+        forwarded.append(r.model_dump())
+        return {"status": "ok", "request_id": r.request_id, "result": {"is_example": True}}
+    first = b.call("game", {"request": page}, meta(), game_transport=transport)
+    assert b.call("game", {"request": page}, meta(), game_transport=transport) == first
+    assert len(forwarded) == 1 and forwarded[0]["method"] == "observe.page"
+    assert inspect_game_requests(b.db.connection, "runtime")[("root", "game-one")]["cursor"] == "delivered-page"
+    with pytest.raises(ValidationError, match="spatial cursor"):
+        b.call("game", {"request": page | {"method": "observe"}}, meta(), game_transport=transport)
+    with pytest.raises(Fault, match="PILOT_GAME_METHOD"):
+        b.call("game", {"request": request() | {"request_id": "not-allowed", "method": "wait_events", "after": 0}},
+               meta(), game_transport=transport)
+    assert len(forwarded) == 1
+
+
 def test_scoped_projection_and_drafts_survive_restart(broker):
     b, _, _ = broker
     assert b.call("artifact_read", {"path": "docs/allowed.md"}, meta())["text"] == "Allowed corpus."

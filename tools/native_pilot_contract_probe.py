@@ -56,7 +56,14 @@ const result=await tools[t.name]({request});
 const reply=JSON.parse(result.content[0].text);
 if(result.isError||reply.status!=="ok"||reply.request_id!==request.request_id||
    reply.result.visible_control!=="STRATA_SCOPED_GAME_CONTROL") throw new Error("GAME_FORWARD_FAILED");
-text("PUBLIC_GAME_CONTRACT_ROUNDTRIP_PASS");'''
+text("PUBLIC_GAME_CONTRACT_ROUNDTRIP_PASS");
+const pageRequest={...request,request_id:"game-page",method:doc.pagination.method,
+  cursor:reply.result.state.next_cursor,deadline_at:new Date(Date.now()+2000).toISOString()};
+const pageResult=await tools[t.name]({request:pageRequest});
+const page=JSON.parse(pageResult.content[0].text);
+if(pageResult.isError||page.status!=="ok"||page.request_id!==pageRequest.request_id||
+   page.result.visible_control!=="STRATA_SCOPED_GAME_CONTROL") throw new Error("GAME_PAGE_FORWARD_FAILED");
+text("PUBLIC_GAME_PAGE_ROUNDTRIP_PASS");'''
     return {"id": "tool-" + operation, "type": "custom_tool_call", "call_id": "call-" + operation,
             "namespace": "functions", "name": "exec", "input": code}
 
@@ -83,9 +90,11 @@ def report(db, cas, plan, result, provider, worker_calls):
             db.connection.execute("SELECT count(*) FROM broker_call_lifecycle l JOIN outbox o ON o.cursor=l.event "
                 "WHERE json_extract(o.body,'$.runtime')=? AND l.state='REJECTED' AND l.fault='DEADLINE_EXCEEDED'",
                 (plan.job_id,)).fetchone()[0] == 1,
-        valid_observation_forwarded_once=len(worker_calls) == 1 and worker_calls[0]["method"] == "observe" and
+        valid_observation_forwarded_once=len(worker_calls) == 2 and worker_calls[0]["method"] == "observe" and
             worker_calls[0]["request_id"] == "game-root" and
-            [e["tool"] for e in read_events] == ["artifact_read", "game", "game"],
+            [e["tool"] for e in read_events] == ["artifact_read", "game", "game", "game"],
+        observation_page_forwarded="PUBLIC_GAME_PAGE_ROUNDTRIP_PASS" in visible and len(worker_calls) == 2 and
+            worker_calls[1]["method"] == "observe.page" and worker_calls[1]["cursor"] == "synthetic-public-page",
         native_completed=result["closure"].get("state") == "FINALIZED" and
             result["closure"].get("returncode") == 0 and result["closure"].get("reason") == "native_exit" and
             "closure_error" not in result["closure"],

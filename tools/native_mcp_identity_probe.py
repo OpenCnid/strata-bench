@@ -389,7 +389,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 worker_calls.append(r)
                 raw = json.dumps({"schema": "strata/GameResponse/1", "status": "ok",
                     "request_id": r["request_id"], "result": {"is_example": True,
-                    "visible_control": "STRATA_SCOPED_GAME_CONTROL"}}).encode()
+                    "visible_control": "STRATA_SCOPED_GAME_CONTROL",
+                    **({"state": {"next_cursor": "synthetic-public-page", "truncated": True}}
+                       if piloting_contract and r["method"] == "observe" else {})}}).encode()
                 self.send_response(200)
                 self.send_header("Content-Length", str(len(raw)))
                 self.end_headers()

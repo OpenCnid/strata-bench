@@ -79,7 +79,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
         required = {"public_contract_read", "malformed_calls_rejected", "deadline_window_rejected", "valid_observation_forwarded_once",
                     "gateway_all_requests_settled_and_fenced", "native_oauth_headers_all_requests",
                     "oauth_secrets_absent_from_context_and_journal", "every_request_projection_checked",
-                    "native_completed", "zero_helpers", "three_settled_fixture_requests"}
+                    "native_completed", "zero_helpers", "three_settled_fixture_requests", "observation_page_forwarded"}
         require(result.get("scope") == "development_piloting_public_contract" and
                 result.get("isolation_qualified") is False, "PREFLIGHT_SCOPE_MISMATCH")
     require(result.get("is_example") is True and result.get("production_qualified") is False and

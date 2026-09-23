@@ -27,6 +27,8 @@ def game_contract():
     from .broker import GAME_DEADLINE_MAX_S, GameCall
     return canonical({"schema": "strata/PublicGameInstructions/1",
         "tool": "strata_broker.game", "arguments_schema": GameCall.model_json_schema(),
+        "pagination": {"method": "observe.page", "cursor_field": "cursor",
+            "cursor_source": "result.state.next_cursor", "fresh_capture_method": "observe"},
         "timing": {"maximum_request_future_ms": int(GAME_DEADLINE_MAX_S * 1000),
             "pilot_maximum_action_ms": 2000,
             "maximum_observation_age_ms": 2000, "snapshot_coalescing_ms": 500,
@@ -46,12 +48,21 @@ def game_contract():
             "stop instead of silently choosing another target. The local call may populate transport fields but "
             "must not plan a new action for you.",
             "For capabilities and observe, action, target_request_id and after are explicitly null.",
+            "Observations are paged: state.truncated=true and state.next_cursor mean more captured visible cells "
+            "are available. Request method=observe.page with cursor=state.next_cursor to read the next page. A missing cell "
+            "is unknown, not air or proof that ground is absent. Read additional pages when needed to assess a route.",
+            "A cursor reads the same captured region; it does not refresh its age. For an action, request a new "
+            "observe with cursor=null, then promptly read any needed pages of that new capture. Recheck your "
+            "chosen target and use the latest delivered observation references without changing your chosen action.",
             "An act request carries an ActionBatch in action; target_request_id and after stay null.",
             "Copy observation_id, state_revision as expected_state_revision, capability_digest and control_revision from a fresh observation.",
             "Set the batch seq to last_action_seq+1 (use 1 when null), and use the supplied lease_id and scope.",
             "Use the ActionBatch schema for the remaining required fields. Targets must come from permitted observations.",
             "ActionBatch recorded_at is current UTC, mode is structured, events is [], keymap_digest is null, "
             "and is_example is false for the real game. move_to also requires tolerance; look_at has no tolerance field.",
+            "move_to targets the avatar's feet position. For level walking, the support block's top must be "
+            "at the current feet height, with passable body and head space. Block positions are cell coordinates; "
+            "the horizontal center is x+0.5,z+0.5. Only already delivered cells are available to the local planner.",
             "Poll action_status with target_request_id equal to the batch request_id and action=null; never replay an uncertain action.",
             "After a terminal receipt, wait at least 500 ms before observe if needed to avoid a coalesced older "
             "snapshot. Confirm last_action_seq, state_revision, position/orientation and released controls.",
@@ -68,10 +79,15 @@ def prompt(scope, lease_id):
         "Construct deadline_at in functions.exec with new Date(Date.now()+2000).toISOString() immediately "
         "before each awaited game call; the broker rejects deadlines more than 5250 ms ahead. "
         "Do not guess argument names. Inspect capabilities and a fresh "
-        "observation first. Choose a visible nearby landmark, turn toward it, then walk one to two "
-        "blocks toward it on safe observed ground and stop. Use look_at and move_to only. Choose "
-        "the target coordinates yourself from observations; do not invent hidden terrain. If no safe "
-        "move is available, stop and explain. No helpers. At most two act calls. Each action must "
+        "observation first in one functions.exec call with a fresh deadline for each request. "
+        "If state.truncated and state.next_cursor indicate additional pages, read them as needed using "
+        "method=observe.page with cursor=state.next_cursor. Missing cells are unknown, not evidence of air or absent ground. "
+        "First choose an off-axis visible point and turn toward it in place using look_at. Complete and verify "
+        "this turn before deciding on the walk. Then choose a visible ground tile one to two blocks away "
+        "on safe level ground and walk to it with move_to. Any suitable observed tile can be the walk target; "
+        "a special landmark is not required. Choose the target coordinates yourself from observations; "
+        "do not invent hidden terrain. If no safe walk is available after the turn, stop and explain. "
+        "No helpers. At most two act calls. Each action must "
         "have a deadline and duration no greater than 2000 ms, and release_at_end=true. Use fresh "
         "observation IDs, revisions, capability digest and next sequence for each ActionBatch. "
         "After choosing a target, refresh observe and submit the chosen action in one functions.exec invocation; "
@@ -180,7 +196,7 @@ def require_bounded_game_request(db, runtime_id, request):
     row = db.execute("SELECT plan FROM native_jobs WHERE id=?", (runtime_id,)).fetchone()
     if row is None or json.loads(row[0]).get("purpose") != PURPOSE:
         return
-    require(request.method in {"capabilities", "observe", "act", "action_status", "cancel", "stop_all"},
+    require(request.method in {"capabilities", "observe", "observe.page", "act", "action_status", "cancel", "stop_all"},
             "PILOT_GAME_METHOD")
     if request.method != "act":
         return

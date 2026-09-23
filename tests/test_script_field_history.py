@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from mcbench.storage import Fault
 from strata_evaluator.setup_control import startup_prefix
-from strata_evaluator.setup_history import POLICY_V4, POLICY_V5
+from strata_evaluator.setup_history import POLICY_V4, POLICY_V5, POLICY_V6
 from strata_evaluator.telemetry_auth import inspect_authenticated_spool
 from test_team_map_history import team_history  # noqa: F401
 from test_global_setup_history import globals_history  # noqa: F401
@@ -17,11 +17,11 @@ from test_craft_reference import reference  # noqa: F401
 from test_setup_control import source
 
 
-@pytest.fixture(params=[4, 5])
+@pytest.fixture(params=[4, 5, 6])
 def fields_history(team_history, request):  # noqa: F811
     events = team_history[2]
     version = request.param
-    policy = POLICY_V4 if version == 4 else POLICY_V5
+    policy = {4: POLICY_V4, 5: POLICY_V5, 6: POLICY_V6}[version]
     events[0]["payload_schema"] = f"strata/ServerStarted/{version + 8}"
     events[0]["payload"].update(module=f"strata-forge1192-telemetry/0.3.{version + 7}")
     events[0]["payload"]["setup_history_support"].update(policy=policy, script_field_hooks_verified=True)
@@ -30,6 +30,8 @@ def fields_history(team_history, request):  # noqa: F811
             event["payload_schema"] = f"strata/NativeSetupHistory/{version}"
             event["payload"]["policy"] = policy
             event["payload"]["attempts"].update(team_script_field_write=0, script_reflection_overflow=0)
+            if version >= 6:
+                event["payload"]["attempts"]["script_handle_unresolved"] = 0
     team_history[1]["required_history_policy"] = policy
     return team_history
 
@@ -112,8 +114,8 @@ def test_unresolved_deep_reflection_taints_candidate(fields_history, tmp_path):
 def test_rank_owner_policy_cannot_be_relabelled_as_its_predecessor(fields_history, tmp_path):
     events = fields_history[2]
     events[0]["payload"]["setup_history_support"]["policy"] = (
-        POLICY_V4 if fields_history[1]["required_history_policy"] == POLICY_V5
-        else "native-e9e-setup-mutation-watch/3")
+        {POLICY_V4: "native-e9e-setup-mutation-watch/3", POLICY_V5: POLICY_V4, POLICY_V6: POLICY_V5}
+        [fields_history[1]["required_history_policy"]])
     _, authority, path, _ = source(fields_history, tmp_path)
     with pytest.raises((Fault, ValidationError)):
         inspect_authenticated_spool(path, Path(authority.key_file).with_name("authority.json"))
@@ -122,3 +124,19 @@ def test_rank_owner_policy_cannot_be_relabelled_as_its_predecessor(fields_histor
 def test_actual_java_signer_carries_versioned_rank_owner_contract(fields_history, tmp_path):
     from test_setup_facts import test_actual_java_signer_carries_native_point_contract_without_a_game
     test_actual_java_signer_carries_native_point_contract_without_a_game(fields_history, tmp_path)
+
+
+def test_opaque_handles_taint_current_history_and_reject_legacy_routes(fields_history, tmp_path):
+    for event in fields_history[2]:
+        if event["kind"] == "setup_history" and event["payload"]["phase"] != "startup":
+            event["payload"]["attempts"]["script_handle_unresolved"] = 4
+    _, _, path, _ = source(fields_history, tmp_path)
+    if fields_history[1]["required_history_policy"] != POLICY_V6:
+        with pytest.raises((Fault, ValidationError)):
+            fields_history[0].inspect("i", path)
+    else:
+        candidate = fields_history[0].inspect("i", path)
+        assert "observed:script_handle_unresolved" in candidate["native_mutation_history"]["reasons"]
+        assert not candidate["candidate_complete"] and not candidate["scoring_eligible"]
+        assert candidate["rejected_resource_witnesses"] == [
+            {"transaction_id": "transaction", "reason": "CRAFT_NATIVE_HISTORY_TAINTED"}]

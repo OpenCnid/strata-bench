@@ -12,6 +12,7 @@ POLICY_V2 = "native-e9e-setup-mutation-watch/2"
 POLICY_V3 = "native-e9e-setup-mutation-watch/3"
 POLICY_V4 = "native-e9e-setup-mutation-watch/4"
 POLICY_V5 = "native-e9e-setup-mutation-watch/5"
+POLICY_V6 = "native-e9e-setup-mutation-watch/6"
 ROUTES = frozenset({
     "command_attempt", "actor_mode_change", "operator_add", "operator_remove", "operator_reload",
     "allow_cheats", "world_mode", "world_difficulty", "team_deserialize", "party_change",
@@ -82,9 +83,18 @@ class SetupHistoryV5(SetupHistoryV4):
     policy: Literal["native-e9e-setup-mutation-watch/5"]
 
 
-HISTORY_MODELS = {POLICY: SetupHistory, POLICY_V2: SetupHistoryV2, POLICY_V3: SetupHistoryV3, POLICY_V4: SetupHistoryV4, POLICY_V5: SetupHistoryV5}
+class HistorySupportV6(HistorySupportV5):
+    policy: Literal["native-e9e-setup-mutation-watch/6"]
+
+
+class SetupHistoryV6(SetupHistoryV5):
+    policy: Literal["native-e9e-setup-mutation-watch/6"]
+    routes: ClassVar[frozenset[str]] = SetupHistoryV5.routes | {"script_handle_unresolved"}
+
+
+HISTORY_MODELS = {POLICY: SetupHistory, POLICY_V2: SetupHistoryV2, POLICY_V3: SetupHistoryV3, POLICY_V4: SetupHistoryV4, POLICY_V5: SetupHistoryV5, POLICY_V6: SetupHistoryV6}
 HISTORY_SCHEMAS = {POLICY: "strata/NativeSetupHistory/1", POLICY_V2: "strata/NativeSetupHistory/2",
-                   POLICY_V3: "strata/NativeSetupHistory/3", POLICY_V4: "strata/NativeSetupHistory/4", POLICY_V5: "strata/NativeSetupHistory/5"}
+                   POLICY_V3: "strata/NativeSetupHistory/3", POLICY_V4: "strata/NativeSetupHistory/4", POLICY_V5: "strata/NativeSetupHistory/5", POLICY_V6: "strata/NativeSetupHistory/6"}
 
 
 def parse_history(value):

@@ -69,7 +69,7 @@ def startup_prefix(directory, authority, expected_boot):
             previous_tick = event.server_tick
             if seq == 1:
                 require(event.kind == "server_started" and event.payload_schema in
-                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13"}
+                        {"strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14"}
                         and event.server_tick == 0, "SETUP_CONTROL_MODULE_REQUIRED")
                 model = LAUNCH_STARTUP_MODELS[event.payload_schema]
                 boot = model.model_validate(event.payload)

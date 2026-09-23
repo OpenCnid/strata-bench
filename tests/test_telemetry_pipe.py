@@ -72,7 +72,7 @@ def test_operator_signs_exact_event_and_acknowledges_only_durable_sequence(sink)
 
 
 @pytest.mark.parametrize("transport", ["windows-owned-pipe/1", "private-file/1"])
-@pytest.mark.parametrize("version", [8, 9, 10, 11, 12, 13])
+@pytest.mark.parametrize("version", [8, 9, 10, 11, 12, 13, 14])
 def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport, version):
     from strata_evaluator.setup_facts import PINS, POLICY as POINT_POLICY
     from strata_evaluator.setup_history import HISTORY_MODELS, HISTORY_SCHEMAS
@@ -110,7 +110,7 @@ def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transpor
 
 @pytest.mark.parametrize("change", ["schema", "policy", "missing-route", "extra-route", "bool-counter"])
 def test_history_drift_or_malformed_payload_never_receives_a_signature_or_ack(sink, change):
-    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 13)
+    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 14)
     broker, _, identity, key, receipts, _ = sink
     path = next(broker.spool.glob("*.jsonl"))
     before = path.read_bytes()
@@ -145,7 +145,7 @@ def test_history_requires_support_from_the_bound_startup(sink):
 
 
 def test_versioned_history_still_allows_only_one_terminal_stop(sink):
-    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 13)
+    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 14)
     broker, first, identity, key, receipts, _ = sink
     stop = first | {"kind": "server_stopped", "payload_schema": "strata/ServerStopped/1",
         "seq": 3, "server_event_seq": 3, "server_tick": 2, "payload": {}}

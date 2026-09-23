@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.util.Arrays;
+import java.util.List;
 import dev.ftb.mods.ftbteams.data.FieldHistoryFixture;
 
 final class ScriptFieldHistoryChecks {
@@ -55,5 +60,45 @@ final class ScriptFieldHistoryChecks {
         ScriptFieldHistory.beforeInvoke(method,receiver,args);
         assertEquals(overflows+1,count("script_reflection_overflow"));
         assertSame(fixture,fixture.actualTeam);
+        handles(fixture);
+    }
+    private static void handles(FieldHistoryFixture fixture) throws Exception {
+        long initial=count("script_handle_unresolved");
+        long fields=count("team_script_field_write");
+        var lookup=MethodHandles.lookup();
+        var setter=lookup.unreflectSetter(FieldHistoryFixture.class.getField("actualTeam")).bindTo(fixture);
+        Method call=MethodHandle.class.getMethod("invokeWithArguments",List.class);
+        for(Object value:new Object[]{null,fixture}) {
+            Object[] args={Arrays.asList(value)};
+            ScriptFieldHistory.beforeInvoke(call,setter,args);call.invoke(setter,args);
+            assertSame(value,fixture.actualTeam);
+        }
+        assertEquals(initial+2,count("script_handle_unresolved"));
+        // Getter targets are also unresolved; never call these observed writes.
+        var getter=lookup.unreflectGetter(FieldHistoryFixture.class.getField("actualTeam")).bindTo(fixture);
+        ScriptFieldHistory.beforeInvoke(call,getter,new Object[]{List.of()});
+        assertSame(fixture,call.invoke(getter,List.of()));
+        Method invoke=Method.class.getMethod("invoke",Object.class,Object[].class);
+        Object[] nested={setter,new Object[]{List.of(fixture)}};
+        ScriptFieldHistory.beforeInvoke(invoke,call,nested);invoke.invoke(call,nested);
+        var integer=lookup.unreflectSetter(FieldHistoryFixture.class.getField("count")).bindTo(fixture);
+        ScriptFieldHistory.beforeInvoke(call,integer,new Object[]{List.of("invalid")});
+        assertThrows(InvocationTargetException.class,()->call.invoke(integer,List.of("invalid")));
+        assertEquals(initial+5,count("script_handle_unresolved"));
+        var variable=lookup.findVarHandle(FieldHistoryFixture.class,"count",int.class);
+        ScriptFieldHistory.beforeInvoke(VarHandle.class.getMethod("set",Object[].class),variable,null);
+        variable.set(fixture,8);
+        ScriptFieldHistory.beforeInvoke(VarHandle.class.getMethod("get",Object[].class),variable,null);
+        assertEquals(8,(int)variable.get(fixture));
+        ScriptFieldHistory.beforeInvoke(VarHandle.class.getMethod("compareAndSet",Object[].class),variable,null);
+        assertFalse(variable.compareAndSet(fixture,99,100));
+        var converted=variable.toMethodHandle(VarHandle.AccessMode.SET).bindTo(fixture);
+        ScriptFieldHistory.beforeInvoke(call,converted,new Object[]{List.of(7)});
+        call.invoke(converted,List.of(7));assertEquals(7,fixture.count);
+        assertEquals(initial+9,count("script_handle_unresolved"));
+        ScriptFieldHistory.beforeInvoke(MethodHandle.class.getMethod("type"),setter,null);
+        ScriptFieldHistory.beforeInvoke(VarHandle.class.getMethod("coordinateTypes"),variable,null);
+        assertEquals(initial+9,count("script_handle_unresolved"));
+        assertEquals(fields,count("team_script_field_write"));
     }
 }

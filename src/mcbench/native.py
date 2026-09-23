@@ -65,7 +65,7 @@ class NativeLaunch(Strict):
     ingress_policy: Literal["native-job-http-header/1"] | None = None
     gateway_config_digest: Digest | None = None
     tool_projection_ref: Ref | None = None
-    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1"] | None = None
+    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1", "native-luna6-broker-tools/1"] | None = None
     # Exclude absent extension fields so historical plan/source hashes survive.
     skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)

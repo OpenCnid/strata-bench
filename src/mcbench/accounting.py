@@ -25,7 +25,7 @@ class EstimateBasis(Strict):
     schema_: Literal["strata/ApiEquivalentEstimateBasis/1"] = Field(alias="schema")
     kind: Literal["api_equivalent_estimate"]
     provider: Literal["openai"]
-    model: Literal["gpt-5.6-luna"]
+    model: Literal["gpt-5.6-luna", "gpt-6-luna"]
     currency: Literal["USD"]
     price_sources: Annotated[list[str], Field(min_length=1)]
     price_date: Annotated[str, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")]

@@ -17,7 +17,7 @@ from mcbench.storage import CAS, Database, Fault, Principal, canonical, digest
 @pytest.fixture
 def estimated(database, cas, example):
     policy = ExecutionAuthorization.model_validate_json(
-        (Path(__file__).resolve().parents[1] / "configs/operator/live-validation.json").read_text(
+        (Path(__file__).resolve().parents[1] / "configs/operator/legacy/live-validation-d11.json").read_text(
             encoding="utf-8"
         )
     )

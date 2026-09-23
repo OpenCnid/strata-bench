@@ -69,7 +69,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None, piloting_contract=False):
+        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna"):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -350,7 +350,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
             game_probe.scope["agent_id"] if game_probe else "a1", "project",
             category="development")
-    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
+    require(model in {"gpt-5.6-luna", "gpt-6-luna"}, "MODEL_POLICY")
+    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit, model=model,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
                         helper_requests=8 if interrupt_mode else 5 if state_mode else 4,
                         fixture_input_reserve=10000 if activation else 100000)
@@ -360,8 +361,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         from mcbench.native_gateway import GatewayConfig, NativeGateway
         gateway = NativeGateway(db.path, cas.root, simulation=True,
             fixture_upstream=f"http://127.0.0.1:{provider.upstream.server_port}")
+        basis_path = "configs/operator/live-validation.json" if model == "gpt-6-luna" else "configs/operator/legacy/live-validation-d11.json"
         basis = EstimateBasis.model_validate(json.loads((Path(__file__).resolve().parents[1] /
-            "configs/operator/live-validation.json").read_bytes())["accounting_basis"])
+            basis_path).read_bytes())["accounting_basis"])
+        require(basis.model == model, "PRICE_MODEL_MISMATCH")
         price = put(cas, basis.model_dump())
         exposure = FiniteExposure.model_validate({"schema": "strata/FiniteInferenceExposure/1",
             "basis_digest": basis.fingerprint(), "max_input_tokens": basis.context_window_tokens,
@@ -454,13 +457,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         bootstrap = {}
         catalog = None
         if no_patch_catalog is not None:
-            from mcbench.native_catalog import install_no_patch_catalog, NO_PATCH_POLICY
+            from mcbench.native_catalog import install_no_patch_catalog
             from mcbench.inventory import file_hash
             catalog = install_no_patch_catalog(no_patch_catalog, output / "restricted-model-catalog.json",
                 expected_sha256=file_hash(no_patch_catalog), model=plan.model)
             (output / "catalog-restriction.json").write_text(json.dumps(catalog, indent=2), encoding="utf-8")
             config.update(catalog["config_overrides"])
-            bootstrap["tool_catalog_policy"] = NO_PATCH_POLICY
+            bootstrap["tool_catalog_policy"] = catalog["policy"]
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
             (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
@@ -637,7 +640,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "all_envelopes_closed": db.connection.execute("SELECT count(*) FROM budget_envelopes e "
                     "JOIN operations o ON e.operation=o.id WHERE o.actual IS NULL OR o.uncertain=1").fetchone()[0] == 0,
                 "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"]
-                    == (7 if gateway_mode else 14) * len(provider.requests),
+                    # Fixture: 10 input, 2 cached, 4 output; unclassified writes
+                    # use the conservative write rate, rounded per request.
+                    == ({"gpt-5.6-luna": 7, "gpt-6-luna": 4}[model] if gateway_mode else 14)
+                    * len(provider.requests),
             })
             if plan.tool_projection_ref is not None:
                 from mcbench.native_tool_projection import read_tool_projection

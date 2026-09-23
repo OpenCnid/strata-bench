@@ -5,7 +5,7 @@ from pathlib import Path
 import sqlite3
 from types import SimpleNamespace
 
-from mcbench.authorization import ExecutionAuthorization
+from mcbench.authorization import ExecutionAuthorization, parse_authorization
 from mcbench.budgets import Budgets
 from mcbench.native_piloting import MAX_SPEND
 from mcbench.storage import digest, reject_links, require
@@ -31,8 +31,8 @@ def check_inputs(inputs):
         db.execute("BEGIN")
         row = db.execute("SELECT * FROM execution_authorizations WHERE id=?", (inputs["authorization"],)).fetchone()
         require(row is not None, "ORIGINAL_ACCOUNTING_REQUIRED")
-        policy = ExecutionAuthorization.model_validate_json(row["body"])
-        require(digest(policy.model_dump()) == row["digest"] and policy.first_trial_max_microusd >= MAX_SPEND,
+        policy = parse_authorization(row["body"])
+        require(isinstance(policy, ExecutionAuthorization) and digest(policy.model_dump()) == row["digest"] and policy.first_trial_max_microusd >= MAX_SPEND,
                 "ORIGINAL_ACCOUNTING_REQUIRED")
         require(db.execute("SELECT 1 FROM native_jobs WHERE id=?", (inputs["job_id"],)).fetchone() is None,
                 "PILOT_ALREADY_ATTEMPTED")

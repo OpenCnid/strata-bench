@@ -29,6 +29,7 @@ def game_contract():
         "tool": "strata_broker.game", "arguments_schema": GameCall.model_json_schema(),
         "timing": {"maximum_request_future_ms": int(GAME_DEADLINE_MAX_S * 1000),
             "pilot_maximum_action_ms": 2000,
+            "maximum_observation_age_ms": 2000, "snapshot_coalescing_ms": 500,
             "deadline_expression": "new Date(Date.now()+2000).toISOString()"},
         "instructions": [
             "Wrap the RPC object in the tool's request field. The operation selector is method.",
@@ -38,12 +39,22 @@ def game_contract():
             "Compute it after any earlier awaited calls; never hard-code a timestamp or extend it by minutes.",
             "For act, construct fresh RPC and ActionBatch deadline_at values immediately before dispatch; "
             "the pilot action deadline and duration are at most 2000 ms.",
+            "Choose your target from permitted observations. After reasoning, call observe again and submit "
+            "the chosen action immediately in the same functions.exec invocation. An observation must be at most "
+            "2000 ms old at action acceptance; copying IDs from an earlier model turn usually fails this check.",
+            "Recheck the chosen target against the refreshed public state. If it is unsafe or no longer permitted, "
+            "stop instead of silently choosing another target. The local call may populate transport fields but "
+            "must not plan a new action for you.",
             "For capabilities and observe, action, target_request_id and after are explicitly null.",
             "An act request carries an ActionBatch in action; target_request_id and after stay null.",
             "Copy observation_id, state_revision as expected_state_revision, capability_digest and control_revision from a fresh observation.",
             "Set the batch seq to last_action_seq+1 (use 1 when null), and use the supplied lease_id and scope.",
             "Use the ActionBatch schema for the remaining required fields. Targets must come from permitted observations.",
+            "ActionBatch recorded_at is current UTC, mode is structured, events is [], keymap_digest is null, "
+            "and is_example is false for the real game. move_to also requires tolerance; look_at has no tolerance field.",
             "Poll action_status with target_request_id equal to the batch request_id and action=null; never replay an uncertain action.",
+            "After a terminal receipt, wait at least 500 ms before observe if needed to avoid a coalesced older "
+            "snapshot. Confirm last_action_seq, state_revision, position/orientation and released controls.",
             "Schema availability does not grant a capability. Respect the runtime capabilities and the pilot's action limits."
         ]}).decode()
 
@@ -63,6 +74,8 @@ def prompt(scope, lease_id):
         "move is available, stop and explain. No helpers. At most two act calls. Each action must "
         "have a deadline and duration no greater than 2000 ms, and release_at_end=true. Use fresh "
         "observation IDs, revisions, capability digest and next sequence for each ActionBatch. "
+        "After choosing a target, refresh observe and submit the chosen action in one functions.exec invocation; "
+        "observations expire for action acceptance after 2000 ms. Recheck the target against the refreshed state. "
         "Poll action_status for an accepted/executing action; never replay an uncertain action. "
         "Observe after each action and report the actual position and orientation changes, including "
         "failures. Finish promptly; the trial allows at most six model requests and 90 seconds. "
@@ -75,7 +88,7 @@ def require_profile(plan, config, lease_id):
     require(plan.purpose == PURPOSE and plan.role == "executor" and plan.depth == 0 and
             plan.parent_job_id is None and plan.helper_limit == 0 and plan.prompt == prompt(scope, lease_id) and
             plan.budget_mode == "per_dispatch" and plan.auth_mode == "chatgpt_oauth" and
-            plan.provider == "openai" and plan.model == "gpt-5.6-luna" and plan.hard_timeout_s <= 90 and
+            plan.provider == "openai" and plan.model in {"gpt-5.6-luna", "gpt-6-luna"} and plan.hard_timeout_s <= 90 and
             plan.bootstrap_digest is not None and plan.ingress_policy is not None and
             plan.config_overrides.get("developer_instructions") == INSTRUCTIONS and
             config.max_requests == MAX_REQUESTS and config.max_handlers == 1 and

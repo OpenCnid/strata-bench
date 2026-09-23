@@ -9,7 +9,7 @@ from mcbench.storage import CAS, Fault, Principal, canonical, digest
 
 
 def policy():
-    source = Path(__file__).resolve().parents[1] / "configs/operator/live-validation.json"
+    source = Path(__file__).resolve().parents[1] / "configs/operator/legacy/live-validation-d11.json"
     return ExecutionAuthorization.model_validate_json(source.read_text(encoding="utf-8"))
 
 

@@ -41,7 +41,7 @@ def gateway(database, cas, tmp_path, example, provider):
     def put(value):
         return cas.put(Principal("operator", "operator"), "operator", "operator", canonical(value))
     basis = EstimateBasis.model_validate(json.loads((Path(__file__).resolve().parents[1] /
-        "configs/operator/live-validation.json").read_text())["accounting_basis"])
+        "configs/operator/legacy/live-validation-d11.json").read_text())["accounting_basis"])
     price = put(basis.model_dump())
     exposure = FiniteExposure.model_validate({"schema": "strata/FiniteInferenceExposure/1",
         "basis_digest": basis.fingerprint(), "max_input_tokens": 1050000,

@@ -158,8 +158,8 @@ def run_native_trial(args, *, pilot=None):
     cas = CAS(db, args.objects)
     auth = Authorizations(db)
     before = auth.status(args.authorization)
-    require(before["authorization"]["schema"] == "strata/ExecutionAuthorization/2" and
-            before["authorization"]["decision_id"] == "D11" and
+    require((before["authorization"]["schema"], before["authorization"]["decision_id"]) in {
+                ("strata/ExecutionAuthorization/2", "D11"), ("strata/ExecutionAuthorization/3", "D17")} and
             db.connection.execute("SELECT 1 FROM authorization_migrations WHERE id=?",
                                   (args.authorization,)).fetchone(), "ORIGINAL_ACCOUNTING_REQUIRED")
     (output / "accounting-before.json").write_bytes(canonical(before))
@@ -204,7 +204,7 @@ def run_native_trial(args, *, pilot=None):
         config["cli_auth_credentials_store"] = "file"
         require(args.catalog is not None and args.tool_projections is not None,
                 "REVIEWED_NATIVE_CATALOG_REQUIRED")
-        from mcbench.native_catalog import install_no_patch_catalog, NO_PATCH_POLICY
+        from mcbench.native_catalog import install_no_patch_catalog
         from mcbench.native_tool_projection import pin_tool_projection
         catalog = install_no_patch_catalog(args.catalog, profile / "model-catalog.json",
             expected_sha256=file_hash(args.catalog), model=previous.model)
@@ -251,7 +251,7 @@ def run_native_trial(args, *, pilot=None):
             "auth_mode": "chatgpt_oauth", "budget_mode": "per_dispatch",
             "accounting_basis_digest": basis.fingerprint(), "broker_policy": previous.broker_policy,
             "bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"],
-            "tool_catalog_policy": NO_PATCH_POLICY,
+            "tool_catalog_policy": catalog["policy"],
             "ingress_policy": INGRESS_POLICY, "gateway_config_digest": gateway_config.profile_fingerprint(),
             "config_overrides": config, "environment": {"PATH": previous.environment["PATH"],
             "TMP": str(temporary), "TEMP": str(temporary)}, "prompt": PROMPT,
@@ -274,7 +274,7 @@ def run_native_trial(args, *, pilot=None):
         (output / "tls.json").write_bytes(canonical(tls))
         price_evidence = put(cas, {"schema": "strata/PublishedExposureBasis/1", "is_example": False,
             "basis": basis.model_dump(), "source_kind": "published_model_API_limits",
-            "sources": basis.price_sources, "observed_date": "2026-09-20",
+            "sources": basis.price_sources, "observed_date": basis.price_date,
             "meaning": "conservative API-equivalent exposure, not an OAuth invoice or measured token limit"})
         checks = {}
         prerequisites = {"native_tool_boundary": [transfer_ref], "all_request_reservations": [transfer_ref],

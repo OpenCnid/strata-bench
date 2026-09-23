@@ -266,7 +266,7 @@ def test_unknown_accounting_stops_before_any_game_launch(tmp_path, monkeypatch):
         authority = install(auth, approved)
         NativeExec(db, cas, authorization_id=approved.authorization_id)
         auth.budgets.create_account("old", dict.fromkeys(DIMENSIONS, None), "c1", "a1", authority, category="development")
-        plan = SimpleNamespace(campaign_id="c1", agent_id="a1", epoch=1, role="executor")
+        plan = SimpleNamespace(campaign_id="c1", agent_id="a1", epoch=1, role="executor", model="gpt-5.6-luna")
         record = ledger(plan, "old-request", parent=None, calls=1, spend=755400,
                         pricing=put(cas, approved.accounting_basis.model_dump()))
         auth.budgets.post("old", record)

@@ -12,6 +12,7 @@ from .storage import canonical, reject_links, require
 
 POLICY = "native-selected-model-startup-catalog/1"
 NO_PATCH_POLICY = "native-selected-model-without-apply-patch/1"
+LUNA6_BROKER_POLICY = "native-luna6-broker-tools/1"
 MAX_BYTES = 2 * 1024 * 1024
 
 
@@ -52,7 +53,10 @@ def install_catalog(source, target, *, expected_sha256, model):
 def install_no_patch_catalog(source, target, *, expected_sha256, model):
     """Explicit capability restriction; preserve all other selected provider fields.
 
-    Native conformance must prove null disables dispatch, not just discovery.
+    GPT-6 Luna additionally disables its declared experimental clock and async
+    user-question tools. This preserves the existing broker capability surface;
+    the different policy and changed fields are recorded in the launch pins.
+    Native conformance must prove restrictions, not just metadata changes.
     This is deliberately distinct from the unchanged catalog snapshot policy.
     """
     source, target = Path(source), Path(target)
@@ -66,14 +70,22 @@ def install_no_patch_catalog(source, target, *, expected_sha256, model):
     selected = value["models"][0]
     require(selected.get("apply_patch_tool_type") == "freeform", "MODEL_CATALOG_TOOL_TYPE")
     selected["apply_patch_tool_type"] = None
+    policy = NO_PATCH_POLICY
+    changes = {"apply_patch_tool_type": {"from": "freeform", "to": None}}
+    if model == "gpt-6-luna":
+        experimental = selected.get("experimental_supported_tools")
+        require(experimental == ["send_user_message_async", "clock"], "MODEL_CATALOG_EXPERIMENTAL_TOOLS")
+        changes["experimental_supported_tools"] = {"from": experimental, "to": []}
+        selected["experimental_supported_tools"] = []
+        policy = LUNA6_BROKER_POLICY
     raw = canonical(value)
     with target.open("xb") as stream:
         stream.write(raw)
-    return {"schema": "strata/NativeModelCatalogRestriction/1", "policy": NO_PATCH_POLICY,
+    return {"schema": "strata/NativeModelCatalogRestriction/1", "policy": policy,
         "model": model, "source_sha256": expected_sha256,
         "original_selected_sha256": hashlib.sha256(original).hexdigest(),
         "selected_sha256": hashlib.sha256(raw).hexdigest(),
-        "changed_fields": {"apply_patch_tool_type": {"from": "freeform", "to": None}},
+        "changed_fields": changes,
         "config_overrides": {"model_catalog_json": str(target)},
         "static_files": [str(target)], "production_qualified": False}
 
@@ -92,3 +104,8 @@ def require_no_patch_catalog(plan):
     require(isinstance(row, dict) and row.get("slug") == plan.model and
             "apply_patch_tool_type" in row and row["apply_patch_tool_type"] is None,
             "MODEL_CATALOG_TOOL_TYPE")
+    if plan.model == "gpt-6-luna":
+        require(plan.tool_catalog_policy == LUNA6_BROKER_POLICY and
+                row.get("experimental_supported_tools") == [], "MODEL_CATALOG_EXPERIMENTAL_TOOLS")
+    else:
+        require(plan.tool_catalog_policy == NO_PATCH_POLICY, "MODEL_CATALOG_TOOL_POLICY")

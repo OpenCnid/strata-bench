@@ -135,7 +135,7 @@ class NativeOAuthTransport(_ResponsesTransport):
         self.filter = _SecretFilter((c._token, c._account))
 
     def _qualify(self, attempt, reserve):
-        require(attempt.provider == "openai" and reserve.model_identity == "gpt-5.6-luna",
+        require(attempt.provider == "openai" and reserve.model_identity in {"gpt-5.6-luna", "gpt-6-luna"},
                 "OAUTH_PROVIDER_SCOPE")
         proof = strict_json(self.gate._private_ref(self.qualification_ref, 65536))
         if proof.get("schema") == "strata/NativePilotPermit/1":

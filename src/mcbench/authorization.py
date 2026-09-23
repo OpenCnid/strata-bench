@@ -39,6 +39,15 @@ class ExecutionAuthorization(LegacyExecutionAuthorization):
     first_trial_max_microusd: Positive
 
 
+class ModelExecutionAuthorization(ExecutionAuthorization):
+    """D17 selects a fresh model generation on the existing allowance."""
+    schema_: Literal["strata/ExecutionAuthorization/3"] = Field(alias="schema")
+    decision_id: Literal["D17"]
+    previous_authorization_digest: Digest
+    generation_id: Literal["gpt-6-luna-2026-09-23"]
+    retention_policy: Literal["fresh_initial_artifacts_no_cross_model_learning"]
+
+
 class MigrationAudit(Strict):
     schema_: Literal["strata/AuthorizationMigrationAudit/1"] = Field(alias="schema")
     authorization_id: Id
@@ -55,6 +64,8 @@ class MigrationAudit(Strict):
 
 def parse_authorization(raw):
     body = json.loads(raw) if isinstance(raw, str) else raw
+    if body.get("schema", body.get("schema_")) == "strata/ExecutionAuthorization/3":
+        return ModelExecutionAuthorization.model_validate(body)
     cls = (ExecutionAuthorization if body.get("schema", body.get("schema_")) ==
            "strata/ExecutionAuthorization/2" else LegacyExecutionAuthorization)
     return cls.model_validate(body)
@@ -206,6 +217,66 @@ class Authorizations:
         require(row["account"] in {r["id"] for r in ancestors} and
                 ancestors[0]["category"] in policy.includes, "UNAUTHORIZED_BUDGET_ACCOUNT")
         return policy
+
+    def switch_model(self, authorization: ModelExecutionAuthorization, *, snapshot_digest, decision_ref, cas):
+        """Archive the predecessor and change only model identity/pricing; never reset budgets."""
+        require(isinstance(authorization, ModelExecutionAuthorization) and cas.database is self.db,
+                "MODEL_CHANGE_REQUIRED")
+        from .storage import Principal
+        visibility = self.db.connection.execute(
+            "SELECT visibility FROM objects WHERE namespace='operator' AND ref=?", (decision_ref,)).fetchone()
+        require(visibility is not None and visibility[0] == "operator", "MODEL_CHANGE_DECISION_REQUIRED")
+        decision = cas.json(Principal("operator", "operator"), "operator", decision_ref)
+        target = digest(authorization.model_dump())
+        require(decision == {"schema": "strata/ModelSelectionDecision/1", "decision_id": "D17",
+            "authorization_id": authorization.authorization_id, "user_authorized": True,
+            "source_digest": authorization.previous_authorization_digest, "target_digest": target,
+            "snapshot_digest": snapshot_digest, "store_path_digest": digest(str(self.db.path)),
+            "model": "gpt-6-luna", "new_allowance": False, "clears_unknown_usage": False,
+            "rearms_consumed_trials": False}, "MODEL_CHANGE_DECISION_REQUIRED")
+        with self.db.transaction() as db:
+            row = db.execute("SELECT * FROM execution_authorizations WHERE id=?",
+                             (authorization.authorization_id,)).fetchone()
+            require(row is not None, "ORIGINAL_ACCOUNTING_REQUIRED")
+            prior = parse_authorization(row["body"])
+            require(digest(prior.model_dump()) == row["digest"], "MODEL_CHANGE_SOURCE_CHANGED")
+            db.execute("CREATE TABLE IF NOT EXISTS authorization_model_changes ("
+                "id TEXT PRIMARY KEY, source_digest TEXT NOT NULL, source_body TEXT NOT NULL, "
+                "target_digest TEXT NOT NULL, target_body TEXT NOT NULL, snapshot_digest TEXT NOT NULL, "
+                "decision_ref TEXT NOT NULL)")
+            existing = db.execute("SELECT * FROM authorization_model_changes WHERE id=?",
+                                  (authorization.authorization_id,)).fetchone()
+            if existing:
+                require(row["digest"] == target == existing["target_digest"] and
+                        existing["snapshot_digest"] == snapshot_digest and existing["decision_ref"] == decision_ref,
+                        "MODEL_CHANGE_CONFLICT")
+                return row["account"]
+            require(type(prior) is ExecutionAuthorization and prior.decision_id == "D11" and
+                    row["digest"] == authorization.previous_authorization_digest,
+                    "MODEL_CHANGE_SOURCE_CHANGED")
+            for name in ExecutionAuthorization.model_fields:
+                if name not in {"schema_", "decision_id", "models", "accounting_basis"}:
+                    require(getattr(prior, name) == getattr(authorization, name), "MODEL_CHANGE_SCOPE")
+            require(prior.models == ["gpt-5.6-luna"] and authorization.models == ["gpt-6-luna"] and
+                    authorization.accounting_basis.model == "gpt-6-luna", "MODEL_CHANGE_SCOPE")
+            require(self.snapshot() == snapshot_digest, "MODEL_CHANGE_SNAPSHOT_CHANGED")
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
+                require(db.execute("SELECT 1 FROM native_jobs WHERE state IN "
+                    "('PREPARED','STARTING','RUNNING','STOPPING') OR "
+                    "(state='UNSETTLED' AND (ended IS NULL OR returncode IS NULL)) LIMIT 1").fetchone() is None,
+                    "MODEL_CHANGE_ACTIVE_JOB")
+            limits = json.loads(db.execute("SELECT limits FROM accounts WHERE id=?", (row["account"],)).fetchone()[0])
+            require(limits["spend_microusd"] == prior.total_spend_microusd, "MODEL_CHANGE_SCOPE")
+            body = canonical(authorization.model_dump()).decode()
+            db.execute("INSERT INTO authorization_model_changes VALUES(?,?,?,?,?,?,?)", (
+                authorization.authorization_id, row["digest"], row["body"], target, body, snapshot_digest, decision_ref))
+            db.execute("UPDATE execution_authorizations SET digest=?,body=? WHERE id=?",
+                       (target, body, authorization.authorization_id))
+            self.db.event(db, "execution.model_selected", {"decision_id": "D17", "source_digest": row["digest"],
+                "target_digest": target, "generation_id": authorization.generation_id, "decision_ref": decision_ref,
+                "snapshot_digest": snapshot_digest, "account": row["account"], "new_allowance": False})
+            require(self.snapshot() == snapshot_digest, "MODEL_CHANGE_ACCOUNTING_CHANGED")
+        return row["account"]
 
     def status(self, authorization_id):
         row = self.db.connection.execute("SELECT * FROM execution_authorizations WHERE id=?",

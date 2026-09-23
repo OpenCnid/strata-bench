@@ -9,16 +9,19 @@ from mcbench.storage import digest, require
 from mcbench.vanilla_persistence import verify_snapshot
 
 
-def inspect_retention(db, cas, bundle, native, intent):
+def inspect_retention(db, cas, bundle, native, intent, *, previous=None):
     plan = intent["plan"]
     if plan["schema"] == "strata/M0NativeGameSmoke/1":
         require("retention_source" not in plan and "run/retention-input.json" not in bundle.files,
                 "NATIVE_GAME_RETENTION_PROFILE")
         return {"preregistered": False, "complete_checkpoint": False}
+    recovery = plan["schema"] in {"strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}
     require(plan["schema"] in {"strata/M0NativeGameSmoke/2", "strata/M0NativeGameSmoke/3",
-                              "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"},
+                              "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+            or recovery and previous is not None,
             "NATIVE_GAME_RETENTION_PROFILE")
-    anchor = plan["retention_source"]["sha256"]
+    require(recovery == (previous is not None), "NATIVE_GAME_RETENTION_PROFILE")
+    anchor = previous["input_sha256"] if recovery else plan["retention_source"]["sha256"]
     retention = GameRetention({"path": str(bundle.path("run/retention-input.json")), "sha256": anchor})
     retention.check_scope(native.model_dump())
     retention.check_identity(**{k: getattr(native, k) for k in
@@ -86,7 +89,7 @@ def inspect_retention(db, cas, bundle, native, intent):
     result = {"preregistered": True, "component_ref": report["component_ref"], "input_sha256": anchor,
             "source_epoch": native.epoch, "retained_files": len(files), "costs_preserved": True,
             "complete_checkpoint": False}
-    if plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
+    if plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}:
         require(c.pack_lock == plan["pack"]["lock"], "NATIVE_GAME_RETENTION_INPUT")
         result["pack_lock_ref"] = c.pack_lock
         if plan["schema"] == "strata/M0NativeGameSmoke/5":

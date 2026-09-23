@@ -9,6 +9,7 @@ import json
 import math
 import os
 from collections import Counter
+from contextlib import ExitStack
 from pathlib import Path, PureWindowsPath
 from typing import Literal
 
@@ -66,6 +67,11 @@ class NativeGameEvidencePlan(Strict):
     agent_id: Id
     epoch: Positive
     job_id: Id
+
+
+class NativeGameRecoveryEvidencePlan(NativeGameEvidencePlan):
+    schema_: Literal["strata/NativeGameEvidencePlan/2"] = Field(alias="schema")
+    previous: NativeGameEvidencePlan
 
 
 def windows(value):
@@ -205,14 +211,20 @@ def model_usage(db, cas, native, source):
             "calls": calls, "closed_envelopes": len(source["participants"])}
 
 
-def worker_evidence(db, source, plan, config):
-    require([r[0] for r in db.execute("SELECT epoch FROM epochs ORDER BY epoch")] == [plan.epoch],
-            "NATIVE_GAME_EVIDENCE_SCOPE")
+def worker_evidence(db, source, plan, config, *, previous=None):
+    opening, prefix = 0, 0
+    if previous is None:
+        require([r[0] for r in db.execute("SELECT epoch FROM epochs ORDER BY epoch")] == [plan.epoch],
+                "NATIVE_GAME_EVIDENCE_SCOPE")
+    else:
+        from .native_game_continuation import worker_history
+        retained_history = worker_history(db, previous, plan.epoch)
+        opening, prefix = retained_history["opening_primitive_events"], retained_history["worker_events"]
     rows = db.execute("SELECT * FROM events ORDER BY cursor").fetchall()
     require([r["cursor"] for r in rows] == list(range(1, len(rows) + 1)), "NATIVE_GAME_EVENT_GAP")
     observations, acks, charge_traces, accounting = {}, {}, [], []
     ack_order = []
-    for row in rows:
+    for row in rows[prefix:]:
         body = strict_json(row["body"])
         if row["kind"] == "observation_delivery":
             observation = Observation.model_validate(body)
@@ -238,7 +250,9 @@ def worker_evidence(db, source, plan, config):
     counters = dict(db.execute("SELECT name,value FROM counters"))
     require(all(type(v) is int and v >= 0 for v in counters.values()), "NATIVE_GAME_COUNTER_MISMATCH")
     actions, primitives = [], 0
-    action_rows = db.execute("SELECT * FROM actions ORDER BY seq").fetchall()
+    action_rows = db.execute("SELECT * FROM actions WHERE epoch=? ORDER BY seq", (plan.epoch,)).fetchall()
+    require(previous is not None or len(action_rows) == db.execute("SELECT COUNT(*) FROM actions").fetchone()[0],
+            "NATIVE_GAME_EVIDENCE_SCOPE")
     require(action_rows and len(action_rows) <= 10000, "NATIVE_GAME_ACTION_MISSING")
     for index, row in enumerate(action_rows, 1):
         batch_raw, terminal = strict_json(row["request"]), strict_json(row["ack"])
@@ -273,7 +287,7 @@ def worker_evidence(db, source, plan, config):
                         "primitive_events": ack.emitted_events, "request_digest": digest(batch_raw),
                         "receipt_digest": digest(terminal), "result_observation_id": ack.result_observation_id})
     require(set(acks) == {a["request_id"] for a in actions}
-            and counters.get("primitive_events") == primitives <= config["primitive_limit"]
+            and counters.get("primitive_events") == opening + primitives <= config["primitive_limit"]
             and counters.get(f"{plan.epoch}:action") == len(actions)
             and counters.get(f"{plan.epoch}:ack") == len(ack_order)
             and counters.get(f"{plan.epoch}:observation") == len(observations), "NATIVE_GAME_COUNTER_MISMATCH")
@@ -336,7 +350,7 @@ def worker_evidence(db, source, plan, config):
     trace_verified = False
     if cap.get("primitive_accounting") is not None or accounting or charge_traces:
         require(cap.get("primitive_accounting") == {"policy": PRIMITIVE_POLICY, "emission_confirmation": False}
-                and len(accounting) == 1 and accounting[0][1].opening_primitive_events == 0,
+                and len(accounting) == 1 and accounting[0][1].opening_primitive_events == opening,
                 "NATIVE_GAME_PRIMITIVE_POLICY")
         charged, last_mono = Counter(), -1
         for index, (cursor, charge) in enumerate(charge_traces, 1):
@@ -344,7 +358,7 @@ def worker_evidence(db, source, plan, config):
             history = acks.get(charge.request_id, [])
             charged[charge.request_id] += 1
             require(action is not None and history and accounting[0][0] < history[0][0] < cursor < history[-1][0]
-                    and charge.charge_seq == index and charge.action_charge_seq == charged[charge.request_id]
+                    and charge.charge_seq == opening + index and charge.action_charge_seq == charged[charge.request_id]
                     and charge.action_seq == action["action_seq"] and charge.request_digest == action["request_digest"]
                     and last_mono <= charge.mono_ms <= history[-1][1]["completed_mono_ms"],
                     "NATIVE_GAME_PRIMITIVE_BINDING")
@@ -352,7 +366,9 @@ def worker_evidence(db, source, plan, config):
         require(len(charge_traces) == primitives and all(charged[a["request_id"]] == a["primitive_events"]
                 for a in actions), "NATIVE_GAME_PRIMITIVE_INCOMPLETE")
         trace_verified = True
-    return {"actions": actions, "primitive_events": primitives, "game_calls": len(seen_calls),
+    return {**({"opening_primitive_events": opening, "cumulative_primitive_events": opening + primitives,
+                "retained_history": retained_history} if previous is not None else {}),
+            "actions": actions, "primitive_events": primitives, "game_calls": len(seen_calls),
             "observations": len(observations), "returned_observations": len(returned_observations),
             "request_preimages_verified": request_preimages,
             "request_preimages_complete": request_preimages == len(seen_calls),
@@ -360,8 +376,13 @@ def worker_evidence(db, source, plan, config):
             "capability_digest": cap["digest"]}, cap, list(observations.values())
 
 
-def stop_evidence(db, bundle, native, plan):
+def stop_evidence(db, bundle, native, plan, *, previous=None):
     rows = db.execute("SELECT * FROM native_worker_bindings").fetchall()
+    if previous is not None:
+        old = list(previous.execute("SELECT * FROM native_worker_bindings ORDER BY job"))
+        require([tuple(r) for r in db.execute("SELECT * FROM native_worker_bindings WHERE job!=? ORDER BY job",
+                                             (plan.job_id,))] == [tuple(r) for r in old], "RECOVERY_NATIVE_HISTORY_CHANGED")
+        rows = [r for r in rows if r["job"] == plan.job_id]
     require(len(rows) == 1 and rows[0]["job"] == plan.job_id, "NATIVE_GAME_STOP_SCOPE")
     row = rows[0]
     require(strict_json(row["scope"]) == {k: getattr(plan, k) for k in SCOPE}
@@ -407,7 +428,7 @@ def worker_runtime_evidence(bundle, intent, cap):
     plan = intent["plan"]
     result = bundle.json("run/result.json")
     pinned = plan["schema"] in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4",
-                               "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/2"}
+                               "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}
     if not pinned:
         require("worker_runtime" not in plan and "worker_runtime" not in result
                 and "run/worker-runtime.json" not in bundle.files, "NATIVE_GAME_WORKER_PROFILE")
@@ -539,13 +560,14 @@ def saved_player_evidence(bundle, observations):
             "orientation_matches": True, "complete_checkpoint": False}
 
 
-def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
+def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *, previous=None):
     """Join retained pack bytes and both launches; archived OS paths remain data."""
     from mcbench.provisioning import VanillaLaunchProfile
     from mcbench.records import PackLock
     plan = intent["plan"]
-    restored = plan["schema"] == "strata/M0NativeGameSmoke/5"
-    require(plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+    recovery = plan["schema"] == "strata/M0NativeGameRecovery/3"
+    restored = recovery or plan["schema"] == "strata/M0NativeGameSmoke/5"
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
             and server_plan["schema"] == ("strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4")
             and server_plan["pack"] == plan["pack"], "NATIVE_GAME_PACK_BINDING")
     binding = plan["pack"]
@@ -566,13 +588,19 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
     if restored:
         from mcbench.vanilla_persistence import verify_snapshot
         source = binding["restoration"]
-        baseline = verify_snapshot(bundle.path("run/baseline/manifest.json").parent, source["sha256"])
+        archived = "restoration-source" if recovery else "baseline"
+        baseline = verify_snapshot(bundle.path(f"run/{archived}/manifest.json").parent, source["sha256"])
         require(set(source) == {"snapshot", "sha256"} and baseline["schema"] == "strata/StoppedVanillaSnapshot/2"
                 and baseline["installed_inventory"] == inventory
                 and baseline["pack"] == {"lock": binding["lock"], "request_id": binding["request_id"],
                                          "inventory_digest": lock.installed_root_digest}
-                and not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in baseline["files"]),
+                and (recovery or not any(p.startswith("world/playerdata/") and p.endswith(".dat") for p in baseline["files"])),
                 "NATIVE_GAME_PACK_BASELINE")
+        if recovery:
+            require(previous is not None and source["sha256"]
+                    == previous.json("run/server/result.json")["stopped_snapshot"]["manifest_sha256"]
+                    and bundle.read("run/restoration-source/manifest.json")
+                    == previous.read("run/server/stopped-instance/manifest.json"), "RECOVERY_SOURCE_CHANGED")
     for role, value in (("client", worker), ("server", launched_server)):
         require(value["lock"] == binding["lock"] and value["request_id"] == binding["request_id"]
                 and value["launch_profile"] == lock.launch_profile and value["inventory_digest"] == lock.installed_root_digest
@@ -603,7 +631,8 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
             == windows(plan["output"]) / "worker-config.json"
             and server["pack_launch_digest"] == digest(launched_server), "NATIVE_GAME_PACK_CONFIGURATION")
     receipt = result["sealed_worker_receipt"]
-    require(receipt["schema"] == "strata/HeldPackWorker/1" and receipt["lock"] == binding["lock"]
+    require(receipt["schema"] == ("strata/HeldPackWorker/2" if recovery else "strata/HeldPackWorker/1")
+            and receipt["lock"] == binding["lock"]
             and receipt["launch_profile"] == lock.launch_profile and receipt["configuration_sha256"] == digest(config)
             and receipt["held_through_owned_stop"] is True and receipt["campaign_admission"] is False
             and receipt["isolation_qualified"] is False and receipt["server_launch_digest"] is None
@@ -620,6 +649,10 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server):
 
 def inspect_native_game(plan: NativeGameEvidencePlan):
     bundle = EvidenceBundle(plan.bundle, plan.seal_sha256, inventory_extension=bootstrap_inventory)
+    previous = prior_report = recovery = None
+    if isinstance(plan, NativeGameRecoveryEvidencePlan):
+        from .native_game_continuation import parent_evidence
+        previous, prior_report = parent_evidence(plan, bundle)
     additional = len(bundle.files) - len(bundle.primary_files)
     custody = {"direct_manifest_inventory": "fail" if additional else "pass",
                "direct_files": len(bundle.primary_files), "transitive_bootstrap_files": additional,
@@ -630,7 +663,13 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             and intent.get("authentic_game") is True and intent.get("shared_desktop_input") is False
             and config.get("server_kind") == "vanilla", "NATIVE_GAME_PROFILE_UNSUPPORTED")
     same_scope(config, plan)
-    with bundle.database("run/native/synthetic.sqlite") as db, bundle.database("run/worker/actions.sqlite") as worker:
+    recovery_profile = intent["plan"]["schema"] in {"strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}
+    require(recovery_profile == (previous is not None), "RECOVERY_SOURCE_REQUIRED")
+    with ExitStack() as readers:
+        db = readers.enter_context(bundle.database("run/native/synthetic.sqlite"))
+        worker = readers.enter_context(bundle.database("run/worker/actions.sqlite"))
+        old_db = readers.enter_context(previous.database("run/native/synthetic.sqlite")) if previous else None
+        old_worker = readers.enter_context(previous.database("run/worker/actions.sqlite")) if previous else None
         cas = EvidenceCAS(db, bundle, "run/native/objects")
         native, source, _ = inspect_native_source(db, cas, plan.job_id, simulation=True)
         same_scope(native.model_dump(), plan)
@@ -642,17 +681,34 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
                 and row["role"] == native.role and row["parent"] is None
                 and (row["campaign"], row["agent"], row["epoch"]) == (plan.campaign_id, plan.agent_id, plan.epoch),
                 "NATIVE_GAME_JOB_MISMATCH")
-        require(db.execute("SELECT COUNT(*) FROM native_jobs").fetchone()[0] == 1, "NATIVE_GAME_JOB_MISMATCH")
+        if previous:
+            from .native_game_continuation import cumulative_usage, native_history, restored_state, source_record
+            recovery = native_history(db, old_db, native, source)
+            source_record(bundle, previous, plan, old_worker, prior_report["retention"])
+        else:
+            require(db.execute("SELECT COUNT(*) FROM native_jobs").fetchone()[0] == 1, "NATIVE_GAME_JOB_MISMATCH")
         model = model_usage(db, cas, native, source)
-        game, cap, observations = worker_evidence(worker, source, plan, config)
-        stop = stop_evidence(db, bundle, native, plan)
+        if previous:
+            model["opening_totals"] = prior_report["model"]["totals"]
+            model["cumulative_totals"] = cumulative_usage(db, old_db, native, model, prior_report["model"])
+        game, cap, observations = worker_evidence(worker, source, plan, config, previous=old_worker)
+        stop = stop_evidence(db, bundle, native, plan, previous=old_db)
         pins = source_evidence(bundle, native, intent, cap)
         saved = saved_player_evidence(bundle, observations)
         from .native_game_retention import inspect_retention, inspect_stopped_components
-        retention = inspect_retention(db, cas, bundle, native, intent)
+        retention = inspect_retention(db, cas, bundle, native, intent,
+                                      previous=prior_report["retention"] if previous else None)
+        if previous:
+            recovery.update(restored_state(bundle, previous, plan, db, cas, native, source, retention, prior_report["retention"]))
         started, ended = row["started"], row["ended"]
         require(all(type(v) in (int, float) and math.isfinite(v) for v in (started, ended))
                 and 0 < started <= ended, "NATIVE_GAME_CLOCK_INVALID")
+        if previous:
+            old_end = old_db.execute("SELECT ended FROM native_jobs WHERE id=?", (plan.previous.job_id,)).fetchone()[0]
+            require(started >= old_end, "RECOVERY_CLOCK_REVERSED")
+            recovery.update(source_seal_sha256=plan.previous.seal_sha256,
+                source_report_digest=digest(prior_report), native_interruption_observed_s=started - old_end,
+                interruption_active_time_qualified=False)
         tools = source["broker_calls"]
         require(all(type(c["elapsed_ns"]) is int and c["elapsed_ns"] >= 0 for c in tools),
                 "NATIVE_GAME_CLOCK_INVALID")
@@ -663,8 +719,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             and all(result.get(name) == {"returncode": 0} for name in ("worker-preflight", "worker-driver", "server-driver")),
             "NATIVE_GAME_OUTER_STOP_UNCERTAIN")
     server_plan = bundle.json("run/server/plan.json")
-    if intent["plan"]["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}:
-        pins["sealed_pack_launch"] = sealed_pack_evidence(bundle, intent, result, config, server_plan, server)
+    if intent["plan"]["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}:
+        pins["sealed_pack_launch"] = sealed_pack_evidence(bundle, intent, result, config, server_plan, server, previous=previous)
     retention = inspect_stopped_components(bundle, retention, server, server_plan, result)
     require(server == result.get("server_result") and server.get("plan_digest") == digest(server_plan)
             and server.get("target") == "vanilla" and server.get("status") == "stopped_unqualified"
@@ -681,10 +737,15 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             <= server["started_unix"] + server["elapsed_s"] + .25, "NATIVE_GAME_CLOCK_INVALID")
     # Cross-check old summaries, but all totals above came from independent inputs.
     expected = result.get("fixture_model_costs", {}).get("committed_and_reserved", {})
-    require(all(expected.get(k) == model["totals"][k] for k in ("input_tokens", "output_tokens", "model_calls"))
-            and expected.get("spend_microusd") == model["totals"]["amount"], "NATIVE_GAME_SUMMARY_CONFLICT")
+    totals = model["cumulative_totals"] if previous else model["totals"]
+    require(all(expected.get(k) == totals[k] for k in ("input_tokens", "output_tokens", "model_calls"))
+            and expected.get("spend_microusd") == totals["amount"], "NATIVE_GAME_SUMMARY_CONFLICT")
     bundle.verify()
-    return {"schema": "strata/NativeGameEvidenceReport/1", "policy": POLICY, "visibility": "evaluator",
+    if previous:
+        previous.verify()
+    return {"schema": "strata/NativeGameEvidenceReport/2" if previous else "strata/NativeGameEvidenceReport/1",
+            "policy": "sealed-native-vanilla-recovery-evidence-join/1" if previous else POLICY, "visibility": "evaluator",
+            **({"recovery": recovery} if previous else {}),
             "reconciliation": "pass", "seal_sha256": plan.seal_sha256,
             "custody": custody,
             **{k: getattr(plan, k) for k in (*SCOPE, "job_id")},
@@ -713,6 +774,18 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
                      "complete_joint_game_agent_checkpoint_and_recovery"]}
 
 
+def private_report_output(value, plan):
+    output = Path(value).absolute()
+    reject_links(output)
+    output = output.resolve()
+    reject_links(output)
+    roots = [Path(plan.bundle).resolve(), Path(__file__).resolve().parents[3]]
+    if isinstance(plan, NativeGameRecoveryEvidencePlan):
+        roots.append(Path(plan.previous.bundle).resolve())
+    require(not output.exists() and all(not output.is_relative_to(root) for root in roots), "EVIDENCE_OUTPUT_PRIVATE")
+    return output
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", type=Path, required=True)
@@ -720,11 +793,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
     reject_links(args.plan)
     require(args.plan.stat().st_size <= 65536, "EVIDENCE_INPUT_SIZE")
-    plan = NativeGameEvidencePlan.model_validate(strict_json(args.plan.read_bytes()))
-    output = args.output.absolute()
-    reject_links(output)
-    require(not output.exists() and not output.is_relative_to(Path(plan.bundle).absolute())
-            and not output.is_relative_to(Path(__file__).resolve().parents[3]), "EVIDENCE_OUTPUT_PRIVATE")
+    body = strict_json(args.plan.read_bytes())
+    model = NativeGameRecoveryEvidencePlan if body.get("schema") == "strata/NativeGameEvidencePlan/2" else NativeGameEvidencePlan
+    plan = model.model_validate(body)
+    output = private_report_output(args.output, plan)
     report = inspect_native_game(plan)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("xb") as stream:

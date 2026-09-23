@@ -1,7 +1,6 @@
 """Continue the scripted M0 native/game path from its sealed stopped components."""
 
 import json
-import math
 import os
 from pathlib import Path
 import shutil
@@ -16,31 +15,8 @@ from mcbench.vanilla_persistence import layout, verify_snapshot
 from strata_evaluator.evidence_bundle import EvidenceBundle, EvidenceCAS
 from strata_evaluator.native_game_evidence import bootstrap_inventory
 from strata_evaluator.native_game_retention import inspect_retention
-from strata_evaluator.saved_blocks import NbtReader, field, unpack_chunk
-
-
-def player_matches(player, state):
-    """Compare only own visible state; raw saved NBT stays operator-side."""
-    positions, rotations = field(player, "Pos", 9), field(player, "Rotation", 9)
-    require(positions[0] == 6 and len(positions[1]) == 3 and rotations[0] == 5
-            and len(rotations[1]) == 2, "GAME_RECOVERY_PLAYER")
-    position, rotation = ([t.value for t in value[1]] for value in (positions, rotations))
-    require(all(math.isfinite(v) for v in position + rotation), "GAME_RECOVERY_PLAYER")
-    items = field(player, "Inventory", 9)
-    require(items[0] == 10, "GAME_RECOVERY_PLAYER")
-    inventory = {}
-    for item in items[1]:
-        slot = field(item.value, "Slot", 1)
-        slot = slot + 36 if 0 <= slot <= 8 else 45 if slot == -106 else 108 - slot if 100 <= slot <= 103 else slot
-        require(5 <= slot <= 45 and slot not in inventory, "GAME_RECOVERY_PLAYER")
-        inventory[slot] = (field(item.value, "id", 8), field(item.value, "Count", 1))
-    observed = {i["slot"]: (i["item_id"], i["count"]) for i in state["inventory"] if i["count"]}
-    yaw = (180 - math.degrees(state["yaw"]) + 180) % 360 - 180
-    return (state["connected"] and state["dimension"] == field(player, "Dimension", 8)
-        and state["health"] == field(player, "Health", 5) and state["food"] == field(player, "foodLevel", 3)
-        and inventory == observed and abs((rotation[0] - yaw + 180) % 360 - 180) <= .01
-        and abs(rotation[1] + math.degrees(state["pitch"])) <= .01
-        and all(abs(position[i] - state["position"][axis]) <= .01 for i, axis in enumerate(("x", "y", "z"))))
+from strata_evaluator.saved_blocks import NbtReader, unpack_chunk
+from strata_evaluator.native_game_continuation import player_matches
 
 
 class GameRecovery:

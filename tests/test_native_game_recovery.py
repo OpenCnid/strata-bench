@@ -31,6 +31,23 @@ def test_saved_own_state_matches_hotbar_armor_and_offhand(saved):
     assert player_matches(*saved)
 
 
+@pytest.mark.parametrize("element_kind", [0, 10])
+def test_empty_saved_inventory_accepts_vanilla_end_or_compound_list(saved, element_kind):
+    player, state = deepcopy(saved)
+    player["Inventory"] = Tag(9, (element_kind, ()))
+    state["inventory"] = []
+    assert player_matches(player, state)
+    state["inventory"] = [{"slot": 36, "item_id": "minecraft:stick", "count": 1}]
+    assert not player_matches(player, state)
+
+
+def test_end_typed_inventory_with_an_element_is_invalid(saved):
+    player, state = deepcopy(saved)
+    player["Inventory"] = Tag(9, (0, player["Inventory"].value[1]))
+    with pytest.raises(Fault, match="GAME_RECOVERY_PLAYER"):
+        player_matches(player, state)
+
+
 @pytest.mark.parametrize("change", ["position", "rotation", "health", "food", "inventory", "dimension", "connection"])
 def test_restored_state_mismatch_cannot_start_native(saved, change):
     player, state = saved

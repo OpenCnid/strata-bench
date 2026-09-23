@@ -214,6 +214,20 @@ def test_pilot_rejects_d12_before_opening_any_path():
         run_native_trial(SimpleNamespace(metering_trial="D12"), pilot={})
 
 
+def test_pilot_contract_probe_requires_exact_native_fixture_dependencies():
+    from native_mcp_identity_probe import run
+    with pytest.raises(Fault, match="PILOT_CONTRACT_PROFILE_REQUIRED"):
+        run(None, None, piloting_contract=True)
+
+
+def test_old_canary_preflight_cannot_stand_in_for_public_contract_read(tmp_path):
+    from native_oauth_conformance import inspect_preflight
+    (tmp_path / "result.json").write_bytes(canonical({"is_example": True, "checks": {"old_canary": True}}))
+    (tmp_path / "manifest.json").write_bytes(canonical({}))
+    with pytest.raises(Fault, match="PREFLIGHT_SCOPE_MISMATCH"):
+        inspect_preflight(tmp_path, None, None, piloting=True)
+
+
 @pytest.mark.parametrize("state,code,reason,completed", [
     ("FINALIZED", 0, "native_exit", True), ("FINALIZED", 1, "native_exit", False),
     ("UNSETTLED", 0, "runtime_hard_timeout", False)])

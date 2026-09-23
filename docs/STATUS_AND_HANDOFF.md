@@ -1,6 +1,11 @@
 # M0 implementation handoff
 
-**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 102 focused checks but has not had a new native or live-model trial. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](verification/2026-09-23-d15-pilot.md).
+**D16 consumed (2026-09-23):** the corrected native LLM/Mineflayer pilot made six settled model requests ($0.010514 API-equivalent), then exited 1 without forwarding a game request. Its three valid request envelopes used deadlines 14.767, 59.765 and 23,834.266 seconds ahead of broker entry; the existing maximum is 5.25 seconds. The public instructions omitted that maximum and the error was ambiguous. All 53 owned processes stopped, every original accounting row and D12/D15 remained unchanged, and combined exposure is $0.773794 including the old $0.7554 hold. The follow-up source correction publishes the timing window and supplies safe corrective feedback; live behavior remains unverified. D14 isolation deferral and M0/G0-only scope remain. See [D16 diagnosis](verification/2026-09-23-d16-pilot.md).
+
+**Latest source/native verification (2026-09-23):** 153 distinct focused source cases pass after correcting six new test timestamps to required UTC Z form. The changed native deadline-feedback case passes 16/16 with three scripted requests, one valid synthetic worker observation, zero helpers and clean closure. The real preflight consumer accepts its exact current pins. This does not prove corrected live piloting. Native cases 01–03 and both failed live pilots remain retained; m0-pilot-01 and m0-pilot-02 are used instances.
+
+
+**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 104 distinct focused checks and the native public-contract check; the subsequent D16 trial failed on the omitted deadline window. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](verification/2026-09-23-d15-pilot.md).
 
 
 **Current user direction — D14:** defer full sandbox/gameplay/helper isolation qualification to M1/G1 and prioritize correct observations, bounded action effects and authentic LLM piloting for M0. The user explicitly confirmed this on September 22; do not request it again or expand sandbox work as an M0 prerequisite. Keep development evidence isolation-unqualified. Original model accounting/no-replay/D12 restrictions remain separate and unchanged. This current direction supersedes isolation-first next actions below.
@@ -91,7 +96,7 @@ or reclassify synthetic replies as authentic model qualification.
 
 The original $10 total API-equivalent allowance remains authoritative at
 C:/Users/Darian/.strata/operator/provisioning/controller.sqlite. It retains
-$0.7554 unresolved plus $0.007880 settled ($0.763280 combined), eight actual
+$0.7554 unresolved plus $0.018394 settled ($0.773794 combined), fourteen actual
 requests, uncertainty and consumed D12/D15. Read live SQLite with WAL-aware
 read-only access; historical immutable reads require frozen-WAL verification.
 There is no new allowance or general model admission.

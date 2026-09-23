@@ -69,7 +69,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None):
+        game_recovery=None, piloting_contract=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -94,6 +94,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
+    require(not piloting_contract or skills_mode and bootstrap_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
+                                                     activation_source, inherited_helper, game_probe)),
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
     require(activation_source is None or bootstrap_mode and ingress_mode and tool_projections is not None and
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, skills_mode, inherited_helper)),
@@ -118,7 +122,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
@@ -130,7 +134,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     activation = ActivationProbe(activation_source, output) if activation_source else None
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
-    patch_test = no_patch_catalog is not None and activation is None and game_probe is None
+    patch_test = no_patch_catalog is not None and activation is None and game_probe is None and not piloting_contract
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
     request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
@@ -168,7 +172,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             item = {"id": "message-" + operation, "type": "message", "role": "assistant",
                 "status": "completed", "content": [{"type": "output_text",
                 "text": "Synthetic identity probe finished.", "annotations": []}]}
-            if step == 0:
+            if piloting_contract:
+                from native_pilot_contract_probe import response
+                item = response(agent, step, operation)
+            elif step == 0:
                 args = {"note": agent}
                 if agent != "/root":
                     args.update(threadId=root_id, _meta={"threadId": root_id})
@@ -474,13 +481,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "helper_limit": 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "helper_limit": 0 if piloting_contract else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "purpose": "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
-            "prompt": ("Exercise one bounded look action through your scoped game tool and one clean-context helper. "
+            "prompt": ("Read the public game contract and exercise the scripted request-format check. No helpers."
+                       if piloting_contract else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
                        "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
@@ -786,6 +795,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["interruption"] = interrupt_probe.report(provider, db)
         result["checks"].update(result["interruption"]["checks"])
         result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
+    if piloting_contract:
+        from native_pilot_contract_probe import report
+        result["checks"] = report(db, cas, plan, result, provider, worker_calls)
+        result["scope"] = "development_piloting_public_contract"
+        result["isolation_qualified"] = False
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}
@@ -832,6 +846,7 @@ def main():
         root / "tools/native_oauth_conformance.py", root / "src/mcbench/native_piloting.py",
         root / "src/mcbench/pilot_budget.py",
         root / "tools/native_pilot_trial.py", root / "tools/native_pilot_report.py",
+        root / "tools/native_pilot_contract_probe.py",
         root / "tools/m0_native_game.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},

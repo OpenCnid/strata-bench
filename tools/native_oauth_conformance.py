@@ -75,6 +75,13 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
                 "native_oauth_headers_all_requests", "oauth_secrets_absent_from_context_and_journal",
                 "exact_root_helper_tool_catalogs", "no_unauthorized_loopback", "private_file_not_in_requests",
                 "ancestor_instructions_not_in_requests", "direct_shell_dispatch_denied"}
+    if piloting:
+        required = {"public_contract_read", "malformed_calls_rejected", "deadline_window_rejected", "valid_observation_forwarded_once",
+                    "gateway_all_requests_settled_and_fenced", "native_oauth_headers_all_requests",
+                    "oauth_secrets_absent_from_context_and_journal", "every_request_projection_checked",
+                    "native_completed", "zero_helpers", "three_settled_fixture_requests"}
+        require(result.get("scope") == "development_piloting_public_contract" and
+                result.get("isolation_qualified") is False, "PREFLIGHT_SCOPE_MISMATCH")
     require(result.get("is_example") is True and result.get("production_qualified") is False and
             required <= set(result.get("checks", {})) and all(result["checks"].values()) and
             result.get("closure", {}).get("state") == "FINALIZED" and
@@ -84,7 +91,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
             set(manifest["source_sha256"]), "PREFLIGHT_SOURCE_UNPINNED")
     if piloting:
         require({"src/mcbench/native_piloting.py", "src/mcbench/pilot_budget.py", "tools/native_pilot_trial.py",
-                 "tools/native_pilot_report.py", "tools/m0_native_game.py"} <=
+                 "tools/native_pilot_report.py", "tools/native_pilot_contract_probe.py", "tools/m0_native_game.py"} <=
                 set(manifest["source_sha256"]), "PREFLIGHT_SOURCE_UNPINNED")
     for path, sha in manifest["source_sha256"].items():
         require(file_hash(ROOT / safe_relative(path)) == sha, "PREFLIGHT_SOURCE_CHANGED")
@@ -96,6 +103,9 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
     finally:
         db.close()
     from mcbench.native_tool_projection import read_tool_projection
+    if piloting:
+        require(source.purpose == "development_piloting" and source.helper_limit == 0,
+                "PREFLIGHT_SCOPE_MISMATCH")
     require(result.get("tool_projection", {}).get("expected") == {
         role: digest(blocks) for role, blocks in read_tool_projection(cas, plan).items()},
         "PREFLIGHT_TOOL_PROJECTION_MISMATCH")
@@ -128,7 +138,7 @@ def run(args):
 def run_native_trial(args, *, pilot=None):
     """Shared native lifecycle. The separate M0 driver supplies a real worker.
 
-    Ordinary accounting admission remains required, except the explicit D15 pilot.
+    Ordinary accounting admission remains required, except explicit D15/D16 pilots.
     The one-use D12 branch remains receipt-only.
     """
     from mcbench import native_piloting

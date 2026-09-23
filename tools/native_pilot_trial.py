@@ -1,4 +1,4 @@
-"""M0 live-piloting adapter, with explicit operator D15 decision input."""
+"""M0 live-piloting adapter, with explicit one-run operator decision input."""
 
 import json
 from pathlib import Path
@@ -20,8 +20,9 @@ def check_inputs(inputs):
         path = Path(inputs[key])
         reject_links(path)
         require(path.is_absolute() and path.exists() and not path.resolve().is_relative_to(ROOT), "PILOT_PRIVATE_INPUT")
+    from mcbench.pilot_budget import DECISIONS
     require(inputs["authorization"] == "validation-2026-09-18" and
-            inputs["job_id"] == inputs["authorization"] + ":m0-pilot-01", "PILOT_INPUTS")
+            inputs["job_id"] in {job for job, _ in DECISIONS.values()}, "PILOT_INPUTS")
     # WAL-aware read-only access, before Java, worker, credentials or model startup.
     db = sqlite3.connect(Path(inputs["database"]).as_uri() + "?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
@@ -45,6 +46,7 @@ def check_inputs(inputs):
             from mcbench.pilot_budget import check_decision
             decision = json.loads(path.read_bytes())
             check_decision(db, decision)
+            require(decision["job_id"] == inputs["job_id"], "PILOT_INPUTS")
         require(not unknown or decision is not None, "PILOT_ACCOUNTING_BLOCKED")
         require(totals["spend_microusd"] + MAX_SPEND <= policy.total_spend_microusd, "ALLOWANCE_UNAVAILABLE")
         return {"authorization_digest": row["digest"], "committed_and_reserved": totals,

@@ -7,7 +7,7 @@ import pytest
 
 from mcbench.budgets import DIMENSIONS
 from mcbench.native_piloting import MAX_SPEND, MAX_REQUESTS, PURPOSE
-from mcbench.pilot_budget import JOB, decision_body, install
+from mcbench.pilot_budget import DECISIONS, JOB, decision_body, install
 from mcbench.storage import Fault, canonical
 from test_metering_trial import uncertain_rows
 import test_metering_trial as metering_tests
@@ -101,3 +101,51 @@ def test_reinstall_and_general_dispatch_remain_denied(pilot_trial):
     with pytest.raises(Fault, match="METERING_UNKNOWN"):
         t.budgets.post("old-account", t.reserve(t.plan, "unrelated"), envelope=True)
     assert not t.budgets.status(t.authority)["dispatch_allowed"]
+
+
+@pytest.fixture
+def corrected_trial(pilot_trial):
+    """Synthetic closed D15 history; no provider or game execution."""
+    t = pilot_trial
+    db = t.db.connection
+    amount = dict.fromkeys(DIMENSIONS, 0) | {"spend_microusd": 6422, "model_calls": 6}
+    db.execute("INSERT INTO operations VALUES('settled-d15','old-account',NULL,'model',?,?,0)",
+               (canonical(amount).decode(), canonical(amount).decode()))
+    db.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)",
+        (JOB, "c1", "a1", 1, "executor", None, "synthetic", canonical(t.plan.model_dump()).decode(), "FINALIZED"))
+    db.execute("CREATE TABLE inference_attempts (request TEXT, state TEXT)")
+    db.executemany("INSERT INTO inference_attempts VALUES(?,'SETTLED')",
+                   [(canonical({"runtime_job_id": JOB}).decode(),)] * 6)
+    job = DECISIONS["D16"][0]
+    t.plan = t.plan.model_copy(update={"job_id": job, "account": job+":account", "operation_id": job+":envelope"})
+    t.budgets.create_account(t.plan.account, dict.fromkeys(DIMENSIONS, None) |
+        {"spend_microusd": MAX_SPEND, "model_calls": MAX_REQUESTS}, "c1", "a1", t.authority, category="development")
+    t.root = t.root.model_copy(update={"operation_id": t.plan.operation_id})
+    t.decision = decision_body(db, "D16")
+    return t
+
+
+def test_d16_preserves_closed_prior_run_and_is_single_use(corrected_trial):
+    t = corrected_trial
+    before = list(t.db.connection.execute("SELECT * FROM native_jobs"))
+    assert t.decision["combined_exposure_microusd"] == 1763280
+    t.authorize()
+    assert list(t.db.connection.execute("SELECT * FROM native_jobs")) == before
+    assert uncertain_rows(t.db.connection, t.authority) == t.retained
+    with pytest.raises(Fault, match="PILOT_ALREADY_ATTEMPTED"):
+        t.authorize()
+
+
+@pytest.mark.parametrize("case", ["running", "unsettled", "wrong_job", "new_cost"])
+def test_d16_requires_exact_approved_history(corrected_trial, case):
+    t = corrected_trial
+    if case == "running":
+        t.db.connection.execute("UPDATE native_jobs SET state='RUNNING'")
+    elif case == "unsettled":
+        t.db.connection.execute("UPDATE inference_attempts SET state='UNKNOWN' WHERE rowid=1")
+    elif case == "wrong_job":
+        t.plan = t.plan.model_copy(update={"job_id": JOB})
+    else:
+        t.db.connection.execute("DELETE FROM operations WHERE id='settled-d15'")
+    with pytest.raises(Fault, match="PILOT_PRIOR_RUN_UNSETTLED|PILOT_BUDGET_SCOPE|PILOT_RETAINED_HOLDS_CHANGED"):
+        t.authorize()

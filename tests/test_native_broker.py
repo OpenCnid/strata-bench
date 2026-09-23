@@ -267,6 +267,25 @@ def test_bad_game_arguments_return_public_schema_without_rejected_input(broker):
     assert b.db.connection.execute("SELECT count(*) FROM broker_game_calls").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("offset,accepted", [(-1, False), (0, False), (2, True), (5.25, True), (5.251, False), (60, False)])
+def test_game_deadline_window_feedback_and_no_forward_on_rejection(broker, offset, accepted):
+    from datetime import datetime, timezone
+    b, _, _ = broker
+    calls = []
+    body = request() | {"deadline_at": datetime.fromtimestamp(100 + offset, timezone.utc).isoformat().replace("+00:00", "Z")}
+    result = respond(b, {"jsonrpc": "2.0", "method": "tools/call", "params": {
+        "name": "game", "_meta": meta(), "arguments": {"request": body}}},
+        game_transport=lambda r: calls.append(r) or {"status": "ok"})
+    assert len(calls) == int(accepted)
+    if not accepted:
+        value = json.loads(result["content"][0]["text"])
+        assert result["isError"] and value["code"] == "DEADLINE_EXCEEDED"
+        assert value["maximum_future_ms"] == 5250
+        assert "Date.now()+2000" in value["guidance"]
+        assert body["deadline_at"] not in result["content"][0]["text"]
+        assert not inspect_game_requests(b.db.connection, "runtime")
+
+
 @pytest.mark.parametrize("url", ["http://localhost:123/v1/game", "http://127.0.0.1:123/admin",
     "https://127.0.0.1:123/v1/game", "http://127.0.0.1:123/v1/game?url=elsewhere",
     "http://user:pass@127.0.0.1:123/v1/game"])

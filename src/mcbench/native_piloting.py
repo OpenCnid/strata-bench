@@ -24,13 +24,20 @@ GAME_CONTRACT_PATH = "initial/game/contract.json"
 
 def game_contract():
     """Public wire documentation only; no coordinates, targets or evaluator data."""
-    from .broker import GameCall
+    from .broker import GAME_DEADLINE_MAX_S, GameCall
     return canonical({"schema": "strata/PublicGameInstructions/1",
         "tool": "strata_broker.game", "arguments_schema": GameCall.model_json_schema(),
+        "timing": {"maximum_request_future_ms": int(GAME_DEADLINE_MAX_S * 1000),
+            "pilot_maximum_action_ms": 2000,
+            "deadline_expression": "new Date(Date.now()+2000).toISOString()"},
         "instructions": [
             "Wrap the RPC object in the tool's request field. The operation selector is method.",
             "Use schema=strata/GameRequest/1, a unique request_id, and the supplied campaign_id, agent_id and epoch.",
-            "deadline_at is an absolute future UTC ISO timestamp, not a duration. Construct it immediately before calling.",
+            "deadline_at is an absolute UTC ISO timestamp: future and at most 5250 ms ahead of broker dispatch.",
+            "Use functions.exec to compute new Date(Date.now()+2000).toISOString() immediately before awaiting the game tool. "
+            "Compute it after any earlier awaited calls; never hard-code a timestamp or extend it by minutes.",
+            "For act, construct fresh RPC and ActionBatch deadline_at values immediately before dispatch; "
+            "the pilot action deadline and duration are at most 2000 ms.",
             "For capabilities and observe, action, target_request_id and after are explicitly null.",
             "An act request carries an ActionBatch in action; target_request_id and after stay null.",
             "Copy observation_id, state_revision as expected_state_revision, capability_digest and control_revision from a fresh observation.",
@@ -47,6 +54,8 @@ def prompt(scope, lease_id):
     return (
         "Pilot this Minecraft avatar using the scoped game tool. First read " + GAME_CONTRACT_PATH +
         " through strata_broker.artifact_read; it documents the exact request envelope and action schema. "
+        "Construct deadline_at in functions.exec with new Date(Date.now()+2000).toISOString() immediately "
+        "before each awaited game call; the broker rejects deadlines more than 5250 ms ahead. "
         "Do not guess argument names. Inspect capabilities and a fresh "
         "observation first. Choose a visible nearby landmark, turn toward it, then walk one to two "
         "blocks toward it on safe observed ground and stop. Use look_at and move_to only. Choose "

@@ -23,6 +23,7 @@ POLICY = "native-stdio-projected-artifacts-executor-game/1"
 NATIVE_METADATA_VERSION = CODEX_VERSION.removeprefix("codex-cli ")
 MAX_TEXT = 256 * 1024
 GAME_REQUEST_POLICY = "broker-durable-game-request/1"
+GAME_DEADLINE_MAX_S = 5.25
 
 
 def install_game_requests(db):
@@ -362,7 +363,8 @@ class NativeBroker:
         require(g.role == "executor" and game_transport is not None, "BROKER_GAME_FORBIDDEN")
         r = value.request
         deadline = datetime.fromisoformat(r.deadline_at.replace("Z", "+00:00")).timestamp()
-        require(self.clock() < deadline <= self.clock() + 5.25, "DEADLINE_EXCEEDED")
+        now = self.clock()
+        require(now < deadline <= now + GAME_DEADLINE_MAX_S, "DEADLINE_EXCEEDED")
         require(r.campaign_id == g.campaign_id and r.agent_id == g.agent_id and r.epoch == g.epoch,
                 "BROKER_SCOPE")
         if r.action:

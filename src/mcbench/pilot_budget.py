@@ -1,4 +1,4 @@
-"""D15: one bounded pilot, retaining D12 and every original unknown hold."""
+"""Distinct D15/D16 one-run approvals, retaining all original costs and holds."""
 
 import json
 import time
@@ -11,24 +11,34 @@ from .storage import Principal, canonical, digest, require
 AUTHORIZATION = "validation-2026-09-18"
 JOB = AUTHORIZATION + ":m0-pilot-01"
 POLICY = "one-pilot-retain-unknown-holds/1"
+DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 763280)}
 
 
-def decision_body(db):
+def decision_body(db, decision_id="D15"):
+    require(isinstance(decision_id, str) and decision_id in DECISIONS, "PILOT_DECISION_REQUIRED")
+    job, prior = DECISIONS[decision_id]
     row = db.execute("SELECT * FROM execution_authorizations WHERE id=?", (AUTHORIZATION,)).fetchone()
     require(row is not None, "PILOT_DECISION_REQUIRED")
     totals, unknown = Budgets.totals(db, row["account"])
-    require(unknown and totals["spend_microusd"] == 756858, "PILOT_RETAINED_HOLDS_CHANGED")
-    return {"schema": "strata/PilotBudgetDecision/1", "decision_id": "D15", "policy": POLICY,
-        "authorization_id": AUTHORIZATION, "authorization_digest": row["digest"], "job_id": JOB,
+    require(unknown and totals["spend_microusd"] == prior, "PILOT_RETAINED_HOLDS_CHANGED")
+    if decision_id == "D16":
+        previous = db.execute("SELECT state FROM native_jobs WHERE id=?", (JOB,)).fetchone()
+        require(previous is not None and previous[0] == "FINALIZED" and
+                db.execute("SELECT count(*) FROM inference_attempts WHERE "
+                    "json_extract(request,'$.runtime_job_id')=? AND state='SETTLED'", (JOB,)).fetchone()[0] == 6,
+                "PILOT_PRIOR_RUN_UNSETTLED")
+    return {"schema": "strata/PilotBudgetDecision/1", "decision_id": decision_id, "policy": POLICY,
+        "authorization_id": AUTHORIZATION, "authorization_digest": row["digest"], "job_id": job,
         "maximum_microusd": MAX_SPEND, "max_requests": MAX_REQUESTS, "hard_timeout_s": 90,
-        "helper_limit": 0, "prior_exposure_microusd": 756858, "combined_exposure_microusd": 1756858,
+        "helper_limit": 0, "prior_exposure_microusd": prior, "combined_exposure_microusd": prior + MAX_SPEND,
         "retained_digest": digest(uncertain_rows(db, row["account"])), "user_authorized": True}
 
 
 def check_decision(db, decision):
-    require(decision == decision_body(db), "PILOT_DECISION_REQUIRED")
+    require(isinstance(decision, dict) and decision == decision_body(db, decision.get("decision_id")),
+            "PILOT_DECISION_REQUIRED")
     if db.execute("SELECT 1 FROM sqlite_master WHERE name='pilot_trials'").fetchone():
-        require(db.execute("SELECT 1 FROM pilot_trials WHERE job=?", (JOB,)).fetchone() is None,
+        require(db.execute("SELECT 1 FROM pilot_trials WHERE job=?", (decision["job_id"],)).fetchone() is None,
                 "PILOT_ALREADY_ATTEMPTED")
 
 
@@ -39,20 +49,22 @@ def install(database, cas, plan, reserve, decision):
     require(cas.database is database, "PILOT_DECISION_REQUIRED")
     check_decision(database.connection, decision)
     ref = cas.put(Principal("operator", "operator"), "operator", "operator", canonical(decision))
+    job = decision["job_id"]
     with database.transaction() as db:
         check_decision(db, decision)
         policy = auth.check(AUTHORIZATION, plan.account, plan.provider, plan.auth_mode, plan.model)
-        require(plan.job_id == JOB and plan.account == JOB + ":account" and
-                plan.operation_id == JOB + ":envelope" and plan.purpose == PURPOSE and
+        require(plan.job_id == job and plan.account == job + ":account" and
+                plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
                 plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
                 plan.hard_timeout_s <= 90 and plan.budget_mode == "per_dispatch" and
                 plan.model == "gpt-5.6-luna" and plan.auth_mode == "chatgpt_oauth" and
                 plan.provider == "openai" and reserve.operation_id == plan.operation_id and
                 reserve.parent_operation_id is None and reserve.kind == "model" and
                 reserve.usage.model_calls == MAX_REQUESTS and reserve.usage.spend_microusd == MAX_SPEND and
-                MAX_SPEND <= policy.first_trial_max_microusd and 1756858 <= policy.total_spend_microusd,
+                MAX_SPEND <= policy.first_trial_max_microusd and
+                decision["combined_exposure_microusd"] <= policy.total_spend_microusd,
                 "PILOT_BUDGET_SCOPE")
-        require(db.execute("SELECT 1 FROM native_jobs WHERE id=?", (JOB,)).fetchone() is None,
+        require(db.execute("SELECT 1 FROM native_jobs WHERE id=?", (job,)).fetchone() is None,
                 "PILOT_ALREADY_ATTEMPTED")
         chain = Budgets.ancestors(db, plan.account)
         authority = db.execute("SELECT account FROM execution_authorizations WHERE id=?", (AUTHORIZATION,)).fetchone()[0]
@@ -67,7 +79,7 @@ def install(database, cas, plan, reserve, decision):
             "basis_digest": plan.accounting_basis_digest, "expires_unix": time.time() + 600}
         db.execute("CREATE TABLE IF NOT EXISTS pilot_trials (job TEXT PRIMARY KEY, account TEXT UNIQUE NOT NULL, "
                    "body TEXT NOT NULL, state TEXT NOT NULL, requests INTEGER NOT NULL)")
-        db.execute("INSERT INTO pilot_trials VALUES(?,?,?,'READY',0)", (JOB, plan.account, canonical(body).decode()))
+        db.execute("INSERT INTO pilot_trials VALUES(?,?,?,'READY',0)", (job, plan.account, canonical(body).decode()))
         database.event(db, "pilot.budget_authorized", body)
         return body
 

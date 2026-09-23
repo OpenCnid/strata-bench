@@ -39,13 +39,21 @@ class ClientPreparationV2(ClientPreparation):
     jvm_resource_policy: Literal["hotspot-active-processors4/1"]
 
 
-def check_resource_arguments(raw):
+class ClientPreparationV3(ClientPreparationV2):
+    schema_: Literal["strata/PrivateReferenceClientPreparation/3"] = Field(alias="schema")
+    jvm_resource_policy: Literal["hotspot-processors4-heap512-6144mib/1"]
+
+
+def check_resource_arguments(raw, policy="hotspot-active-processors4/1"):
     """Verify the selected quoted argument-file form without reporting secrets.
 
     This checks a launch input, not OS CPU reservation or shutdown qualification.
-    Keep the heap and all game arguments in the separately pinned template.
+    Legacy CPU4 keeps its template-pinned heap. The new candidate also requires
+    one exact initial/maximum heap pair; neither policy proves OS reservation.
     """
     try:
+        require(policy in {"hotspot-active-processors4/1", "hotspot-processors4-heap512-6144mib/1"},
+                "REFERENCE_CLIENT_RESOURCE_POLICY")
         lines = raw.decode("utf-8").splitlines()
         require(0 < len(lines) <= 256, "REFERENCE_CLIENT_RESOURCE_ARGUMENTS")
         args = [json.loads(line) for line in lines]
@@ -55,6 +63,7 @@ def check_resource_arguments(raw):
         require(args.count("cpw.mods.bootstraplauncher.BootstrapLauncher") == 1,
                 "REFERENCE_CLIENT_RESOURCE_ARGUMENTS")
         end, cursor, processor_args = args.index("cpw.mods.bootstraplauncher.BootstrapLauncher"), 0, []
+        heap_args = []
         operands = {"-cp", "-classpath", "--class-path", "-p", "--module-path",
                     "--add-modules", "--add-opens", "--add-exports"}
         while cursor < end:
@@ -67,11 +76,19 @@ def check_resource_arguments(raw):
                                     "-XX:ActiveProcessorCount=")), "REFERENCE_CLIENT_RESOURCE_ARGUMENTS")
             if arg.startswith("-XX:ActiveProcessorCount="):
                 processor_args.append(arg)
+            if arg.startswith(("-Xms", "-Xmx")):
+                heap_args.append(arg)
             cursor += 1
         require(processor_args == ["-XX:ActiveProcessorCount=4"], "REFERENCE_CLIENT_RESOURCE_ARGUMENTS")
+        if policy == "hotspot-processors4-heap512-6144mib/1":
+            require(sorted(heap_args) == ["-Xms512m", "-Xmx6144m"], "REFERENCE_CLIENT_HEAP_ARGUMENTS")
+    except Fault:
+        raise
     except (UnicodeError, ValueError, TypeError):
         raise Fault("REFERENCE_CLIENT_RESOURCE_ARGUMENTS") from None
-    return {"policy": "hotspot-active-processors4/1", "reported_processors_argument": 4,
+    return {"policy": policy, "reported_processors_argument": 4,
+            **({"initial_heap_mib": 512, "maximum_heap_mib": 6144}
+               if policy == "hotspot-processors4-heap512-6144mib/1" else {}),
             "argument_bytes_verified": True, "os_reservation": False, "shutdown_qualified": False}
 
 
@@ -90,7 +107,7 @@ def read_preparation(pin):
     require(len(raw) == pin.bytes and hashlib.sha256(raw).hexdigest() == pin.sha256,
             "REFERENCE_CLIENT_PREPARATION_CHANGED")
     try:
-        preparation = TypeAdapter(ClientPreparation | ClientPreparationV2).validate_python(strict_json(raw))
+        preparation = TypeAdapter(ClientPreparation | ClientPreparationV2 | ClientPreparationV3).validate_python(strict_json(raw))
     except ValueError:
         raise Fault("REFERENCE_CLIENT_PREPARATION_INVALID") from None
     require(preparation.session_receipt.bytes <= 8192 and preparation.session_arguments.bytes <= 65536,
@@ -140,7 +157,8 @@ def validate_preparation(preparation, binding_digest, driver_digest, required_ms
                         "files": [arguments.model_dump()]}):
             check_file(Path(arguments.path), arguments)
             if isinstance(preparation, ClientPreparationV2):
-                resource = check_resource_arguments(read_private_preparation(arguments.path, 65536))
+                resource = check_resource_arguments(read_private_preparation(arguments.path, 65536),
+                                                    preparation.jvm_resource_policy)
     except IntegrityError as error:
         code = ("REFERENCE_CLIENT_ARGUMENTS_CHANGED" if error.args == ("BOOTSTRAP_FILE_CHANGED",)
                 else "REFERENCE_CLIENT_ARGUMENTS_UNAVAILABLE")

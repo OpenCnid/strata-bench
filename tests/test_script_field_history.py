@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from mcbench.storage import Fault
 from strata_evaluator.setup_control import startup_prefix
-from strata_evaluator.setup_history import POLICY_V4
+from strata_evaluator.setup_history import POLICY_V4, POLICY_V5
 from strata_evaluator.telemetry_auth import inspect_authenticated_spool
 from test_team_map_history import team_history  # noqa: F401
 from test_global_setup_history import globals_history  # noqa: F401
@@ -17,18 +17,20 @@ from test_craft_reference import reference  # noqa: F401
 from test_setup_control import source
 
 
-@pytest.fixture
-def fields_history(team_history):  # noqa: F811
+@pytest.fixture(params=[4, 5])
+def fields_history(team_history, request):  # noqa: F811
     events = team_history[2]
-    events[0]["payload_schema"] = "strata/ServerStarted/12"
-    events[0]["payload"].update(module="strata-forge1192-telemetry/0.3.11")
-    events[0]["payload"]["setup_history_support"].update(policy=POLICY_V4, script_field_hooks_verified=True)
+    version = request.param
+    policy = POLICY_V4 if version == 4 else POLICY_V5
+    events[0]["payload_schema"] = f"strata/ServerStarted/{version + 8}"
+    events[0]["payload"].update(module=f"strata-forge1192-telemetry/0.3.{version + 7}")
+    events[0]["payload"]["setup_history_support"].update(policy=policy, script_field_hooks_verified=True)
     for event in events:
         if event["kind"] == "setup_history":
-            event["payload_schema"] = "strata/NativeSetupHistory/4"
-            event["payload"]["policy"] = POLICY_V4
+            event["payload_schema"] = f"strata/NativeSetupHistory/{version}"
+            event["payload"]["policy"] = policy
             event["payload"]["attempts"].update(team_script_field_write=0, script_reflection_overflow=0)
-    team_history[1]["required_history_policy"] = POLICY_V4
+    team_history[1]["required_history_policy"] = policy
     return team_history
 
 
@@ -38,11 +40,11 @@ def test_reverted_script_fields_taint_otherwise_valid_private_craft(fields_histo
         if event["kind"] == "setup_history" and event["payload"]["phase"] != "startup":
             event["payload"]["attempts"]["team_script_field_write"] = writes
     folder, authority, path, boot = source(fields_history, tmp_path)
-    assert startup_prefix(folder, authority, boot)["history"]["policy"] == POLICY_V4
+    assert startup_prefix(folder, authority, boot)["history"]["policy"] == fields_history[1]["required_history_policy"]
     report = inspect_authenticated_spool(path, Path(authority.key_file).with_name("authority.json"))
     assert ("observed:team_script_field_write" in report["setup_history"]["reasons"]) == bool(writes)
     candidate = fields_history[0].inspect("i", path)
-    assert candidate["required_history_policy"] == POLICY_V4
+    assert candidate["required_history_policy"] == fields_history[1]["required_history_policy"]
     assert candidate["candidate_complete"] is (writes == 0)
     assert not candidate["scoring_eligible"] and not candidate["native_setup_continuity_qualified"]
     if writes:
@@ -105,3 +107,18 @@ def test_unresolved_deep_reflection_taints_candidate(fields_history, tmp_path):
     candidate = fields_history[0].inspect("i", path)
     assert "observed:script_reflection_overflow" in candidate["native_mutation_history"]["reasons"]
     assert not candidate["candidate_complete"]
+
+
+def test_rank_owner_policy_cannot_be_relabelled_as_its_predecessor(fields_history, tmp_path):
+    events = fields_history[2]
+    events[0]["payload"]["setup_history_support"]["policy"] = (
+        POLICY_V4 if fields_history[1]["required_history_policy"] == POLICY_V5
+        else "native-e9e-setup-mutation-watch/3")
+    _, authority, path, _ = source(fields_history, tmp_path)
+    with pytest.raises((Fault, ValidationError)):
+        inspect_authenticated_spool(path, Path(authority.key_file).with_name("authority.json"))
+
+
+def test_actual_java_signer_carries_versioned_rank_owner_contract(fields_history, tmp_path):
+    from test_setup_facts import test_actual_java_signer_carries_native_point_contract_without_a_game
+    test_actual_java_signer_carries_native_point_contract_without_a_game(fields_history, tmp_path)

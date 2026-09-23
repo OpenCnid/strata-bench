@@ -7,7 +7,7 @@ import java.util.TreeMap;
 
 /** Bounded sticky observations, with no game-state writes or raw command data. */
 public final class SetupHistory {
-    public static final String POLICY = "native-e9e-setup-mutation-watch/4";
+    public static final String POLICY = "native-e9e-setup-mutation-watch/5";
     static final String[] ROUTES = {"command_attempt", "actor_mode_change", "operator_add",
         "operator_remove", "operator_reload", "allow_cheats", "world_mode", "world_difficulty",
         "team_deserialize", "party_change", "team_create", "team_reload", "native_stop_command", "global_mode_write", "team_map_write", "team_script_field_write", "script_reflection_overflow"};

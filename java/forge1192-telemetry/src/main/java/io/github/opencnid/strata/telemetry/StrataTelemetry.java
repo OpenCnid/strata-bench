@@ -70,7 +70,7 @@ public final class StrataTelemetry {
             spool = new EventSpool(config);
             SetupHistory.activate();
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.11");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.12");
             boot.addProperty("clock_policy", ServerClock.POLICY);
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
@@ -88,7 +88,7 @@ public final class StrataTelemetry {
             boot.add("setup_capture_support",SetupCapture.support());
             boot.add("setup_history_support",SetupHistory.support());
             boot.addProperty("telemetry_transport", config.broker() == null ? "private-file/1" : "windows-owned-pipe/1");
-            emit("server_started", "strata/ServerStarted/12", boot, new JsonArray());
+            emit("server_started", "strata/ServerStarted/13", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();
@@ -200,7 +200,7 @@ public final class StrataTelemetry {
         try {
             if (kind.equals("setup_snapshot")) {
                 var transaction = payload.get("transaction_id");
-                spool.publish(ticks, "setup_history", "strata/NativeSetupHistory/4",
+                spool.publish(ticks, "setup_history", "strata/NativeSetupHistory/5",
                     SetupHistory.capture(payload.get("phase").getAsString(),
                         transaction.isJsonNull() ? null : transaction.getAsString()), actors);
             }
@@ -214,7 +214,7 @@ public final class StrataTelemetry {
         try {
             CraftCapture.close();
             emit("server_clock", "strata/ServerClock/1", clock.stop(), new JsonArray());
-            emit("setup_history", "strata/NativeSetupHistory/4", SetupHistory.close(), new JsonArray());
+            emit("setup_history", "strata/NativeSetupHistory/5", SetupHistory.close(), new JsonArray());
             emit("server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());
         } finally {
             try { spool.close(); }

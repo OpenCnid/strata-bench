@@ -17,6 +17,7 @@ class ObservedGlobalMapTest {
         SetupHistory.activate();
         try {
             ScriptFieldHistoryChecks.check();
+            TeamRankOwnershipChecks.check();
             List<Consumer<Map<String,Object>>> writes=List.of(
                 m->m.put("packmode","normal"), m->m.putIfAbsent("packmode","normal"),
                 m->m.putAll(Map.of("packmode","normal")), m->m.remove("packmode"),

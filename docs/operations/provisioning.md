@@ -1,5 +1,20 @@
 # Private pack provisioning
 
+Compose initial E9E roles from explicit reviewed source and FileEntry plans:
+
+```text
+mcbench pack prepare-e9e-roles COMPOSITION_PLAN DESTINATION --request E9E_REQUEST --store STORE
+```
+
+`E9ERoleComposition/1` names the original acquisition receipt, private source,
+component-notice and exclusion reports, both roles' exact source/file entries
+and preserved directories. Both plans must validate before copying. All CAS
+notice references resolve in that acquisition namespace. Failed partial output
+is retained and cannot be reused. Actual [paired roles](../verification/2026-09-24-e9e-initial-roles.md)
+pass initial expert setup checks; this command deliberately leaves ACQUIRED
+unchanged. Materialize a fresh controlled working instance for initialization
+and cold-restart/effective-setting checks before final inventory/seal admission.
+
 Prepare the E9E client software after importing reproduced SRG artifacts:
 
 ```text

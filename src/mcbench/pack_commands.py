@@ -167,6 +167,15 @@ def import_forge_runtime(derivation: str, request: Request, store: Store, simula
         emit(service.import_forge_runtime(request, derivation))
 
 
+@pack_app.command("prepare-e9e-roles")
+def prepare_e9e_roles(plan: Path, destination: Path, request: Request, store: Store, simulation: bool = False):
+    """Compose initial private E9E roles; no effective-config or sealed-profile claim."""
+    from .forge_runtime import read_input
+    from .inference_transport import strict_json
+    with provider(store, simulation) as service:
+        emit(service.prepare_e9e_roles(request, strict_json(read_input(plan, 32 * 1024**2)), destination))
+
+
 @pack_app.command("prepare-forge-client")
 def prepare_forge_client(installer: Path, launcher_metadata: Path, base_root: Path, library_root: Path,
                          artifacts: str, destination: Path, request: Request, store: Store,

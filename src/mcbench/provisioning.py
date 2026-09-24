@@ -516,6 +516,25 @@ class PackProvider:
                     "files": [entry.model_dump() for entry in entries], "complete_role_qualified": False}
         return {"evidence": self._put(request_id, evidence), **evidence}
 
+    def prepare_e9e_roles(self, request_id, plan, destination: Path):
+        """Compose initial roles while leaving effective inventory/sealing unpromoted."""
+        from .role_composition import E9ERoleComposition, prepare_roles
+        plan = E9ERoleComposition.model_validate(plan)
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] == "ACQUIRED", "INVALID_TRANSITION")
+        require(plan.request_id == request_id and plan.acquisition_receipt == row["receipt"], "SCOPE_MISMATCH")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination), "UNSAFE_PATH")
+        for ref in [*plan.source_reports, plan.component_notices, plan.exclusions]:
+            self._json(request_id, ref)
+        # CAS notice references must resolve in this acquisition namespace.
+        for ref in {x.entry.license_ref for r in plan.roles for x in r.files}:
+            if ref.startswith("cas:sha256:"):
+                self._json(request_id, ref)
+        result = prepare_roles(plan, destination)
+        result.update(request_id=request_id, is_example=self.simulation, acquisition_receipt=row["receipt"],
+                      plan_ref=self._put(request_id, plan.model_dump()))
+        return {"evidence": self._put(request_id, result), **result}
+
     def prepare_forge_client(self, request_id, vanilla_request, installer: Path, launcher_metadata: Path,
                              base_root: Path, library_root: Path, artifacts_ref, destination: Path):
         """Compose Forge software with original sealed base and reproduced SRG."""

@@ -8,7 +8,7 @@ from mcbench.storage import Fault
 
 @pytest.mark.parametrize("change", [None, "repeated_reads", "pid", "truncated", "missing", "unknown", "quota", "refused", "foreign_hash"])
 def test_journal_requires_exact_scope_and_complete_bounded_records(tmp_path, change):
-    report = {"policy": "synthetic", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+    report = {"policy": "e9e1270-runtime-data-snapshot/1", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
               "inputs": [{"name": n, "sha256": "c" * 64} for n in
                          ("whitelist.txt", "blacklist.txt", "contributorRevolvers.json")]}
     lines = ["STRATA_FIXED_DATA_READY/1 " + "b" * 64,
@@ -39,3 +39,29 @@ def test_journal_requires_exact_scope_and_complete_bounded_records(tmp_path, cha
         assert result["journal"]["bytes"] == len(raw)
         assert len(result["read_inputs"]) == 3
         assert not result["all_runtime_downloads_qualified"]
+
+
+@pytest.mark.parametrize("change", [None, "missing_added_class", "missing_added_read", "unknown_policy", "legacy_policy"])
+def test_extended_snapshot_requires_both_added_classes_and_bodies(tmp_path, change):
+    from mcbench.runtime_data import ADDED_CLASSES, CLASSES, POLICY, SOURCES
+    report = {"policy": POLICY, "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+              "inputs": [{"name": n, "sha256": "c" * 64} for n in SOURCES]}
+    lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
+             *("STRATA_FIXED_DATA_BOUND/1 " + n + " " + h for n, h in (CLASSES | ADDED_CLASSES).items()),
+             *("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])]
+    if change == "missing_added_class":
+        del lines[4]
+    elif change == "missing_added_read":
+        lines.pop()
+    elif change == "unknown_policy":
+        report["policy"] = "unknown"
+    elif change == "legacy_policy":
+        report["policy"] = "e9e1270-runtime-data-snapshot/1"
+    path = tmp_path / "strata-fixed-17-00000000-0000-0000-0000-000000000000.log"
+    path.write_bytes(("\n".join(lines) + "\n").encode())
+    if change:
+        with pytest.raises(Fault, match="RUNTIME_DATA_EXECUTION"):
+            inspect_runtime_data_journal(path, report, process_id=17)
+    else:
+        result = inspect_runtime_data_journal(path, report, process_id=17)
+        assert len(result["bound_classes"]) == 4 and len(result["read_inputs"]) == 5

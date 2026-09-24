@@ -46,7 +46,7 @@ public final class RuntimeDataFixture {
             try { post.getInputStream(); throw new AssertionError("method accepted"); }
             catch (IOException expected) { checked++; }
         }
-        if (checked != 18) throw new AssertionError();
+        if (checked != 6 * Data.ROUTES.size()) throw new AssertionError();
         System.out.println("FIXED_DATA_FIXTURE_PASS " + checked);
     }
 }

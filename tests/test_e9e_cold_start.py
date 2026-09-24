@@ -14,7 +14,7 @@ from mcbench.storage import Fault
 
 @pytest.mark.parametrize("change", [None, "prefix", "missing_class", "missing_read", "wrong_index", "refused", "raw_class"])
 def test_runtime_data_requires_actual_pinned_class_and_read_evidence(change):
-    report = {"policy": "synthetic", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+    report = {"policy": "e9e1270-runtime-data-snapshot/1", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
               "inputs": [{"name": n, "sha256": "c" * 64} for n in ("whitelist.txt", "blacklist.txt", "contributorRevolvers.json")]}
     lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
         "STRATA_FIXED_DATA_BOUND/1 com/portingdeadmods/cable_facades/CFConfig 1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",

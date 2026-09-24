@@ -163,9 +163,9 @@ def test_new_profile_does_not_bypass_thirteen_evidence_bound_checks(candidate):
         service.seal_template("pack1", candidate[3], proof)
 
 
-@pytest.mark.parametrize("change", [None, "missing_agent", "changed_snapshot", "legacy"])
+@pytest.mark.parametrize("change", [None, "missing_agent", "changed_snapshot", "legacy", "old_snapshot"])
 def test_frozen_data_profile_joins_both_installed_roles_before_seal_and_resolve(candidate, tmp_path, change):
-    from mcbench.runtime_data import AGENT_PATH, REMOTE_MODS, SOURCES, prepare_runtime_data
+    from mcbench.runtime_data import AGENT_PATH, REMOTE_MODS, SOURCES, prepare_runtime_data, validate_snapshot
     from test_runtime_data import jdk
     service, receipt, roles, original, evidence = candidate
     snapshots = []
@@ -175,6 +175,13 @@ def test_frozen_data_profile_joins_both_installed_roles_before_seal_and_resolve(
         snapshots.append({"name": name, "path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
             "commit": "a" * 40, "url": f"https://raw.githubusercontent.com/{repo}/{'a' * 40}/{relative}"})
     report = prepare_runtime_data(snapshots, jdk(), tmp_path / "agent-build")
+    if change == "old_snapshot":
+        # Synthetic historical artifact is readable, but does not freeze the two
+        # newly identified consumers. It must not pass current seal admission.
+        from test_runtime_data import legacy_snapshot
+        report, jar_raw = legacy_snapshot(report, (tmp_path / "agent-build/strata-runtime-data-0.1.0.jar").read_bytes())
+        validate_snapshot(canonical(report), jar_raw)
+        (tmp_path / "agent-build/strata-runtime-data-0.1.0.jar").write_bytes(jar_raw)
     if change == "changed_snapshot":
         report["inputs"][0]["sha256"] = "b" * 64
     profile = FrozenE9ELaunchProfile.model_validate(original.model_dump() | {
@@ -197,7 +204,7 @@ def test_frozen_data_profile_joins_both_installed_roles_before_seal_and_resolve(
         profile = original
     fixture = service, receipt, roles, profile, evidence
     if change:
-        with pytest.raises(Fault):
+        with pytest.raises(Fault, match="FORGE_RUNTIME_DATA_UNPINNED" if change == "old_snapshot" else None):
             seal(fixture)
         assert service.status("pack1")["state"] == "VERIFIED"
         return

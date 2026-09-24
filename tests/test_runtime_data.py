@@ -2,6 +2,7 @@
 
 import hashlib
 import base64
+import io
 import os
 from pathlib import Path
 import shutil
@@ -12,6 +13,49 @@ import pytest
 
 from mcbench.runtime_data import ROOT, SOURCES, prepare_runtime_data, validate_sources, validate_snapshot
 from mcbench.storage import Fault, canonical
+
+
+def legacy_snapshot(report, jar_raw):
+    """Synthetic format-1 archive for readback/admission tests; never executed."""
+    from mcbench.runtime_data import LEGACY_POLICY, LEGACY_SOURCES
+    report = report | {"schema": "strata/RuntimeDataSnapshot/1", "policy": LEGACY_POLICY,
+                      "inputs": [r for r in report["inputs"] if r["name"] in LEGACY_SOURCES]}
+    with zipfile.ZipFile(io.BytesIO(jar_raw)) as archive:
+        entries = {n: archive.read(n) for n in archive.namelist()
+                   if n not in {"strata-fixed/ars-supporters.json", "strata-fixed/supplementaries-credits.json"}}
+    index = "".join(hashlib.sha256(entries["strata-fixed/" + n]).hexdigest() + " " + n + "\n"
+                    for n in sorted(LEGACY_SOURCES)).encode("ascii")
+    entries["strata-fixed/index.txt"] = index
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for name, raw in entries.items():
+            archive.writestr(name, raw)
+    jar_raw = buffer.getvalue()
+    report |= {"index_sha256": hashlib.sha256(index).hexdigest(), "jar_sha256": hashlib.sha256(jar_raw).hexdigest(),
+               "jar_bytes": len(jar_raw), "entries": [
+                   {"path": n, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+                   for n, raw in sorted(entries.items())]}
+    return report, jar_raw
+
+
+@pytest.mark.parametrize("change", [None, "schema", "policy", "legacy"])
+def test_snapshot_versions_remain_readable_without_cross_version_relabelling(built, change):
+    report, jar, _ = built
+    raw = jar.read_bytes()
+    if change in {None, "schema", "policy"}:
+        report, raw = legacy_snapshot(report, raw)
+    if change == "schema":
+        report["schema"] = "strata/RuntimeDataSnapshot/2"
+    elif change == "policy":
+        report["policy"] = "e9e1270-runtime-data-snapshot/2"
+    elif change == "legacy":
+        report["schema"] = "strata/RuntimeDataSnapshot/1"
+        report["policy"] = "e9e1270-runtime-data-snapshot/1"
+    if change:
+        with pytest.raises(Fault, match="RUNTIME_DATA_SNAPSHOT"):
+            validate_snapshot(canonical(report), raw)
+    else:
+        assert validate_snapshot(canonical(report), raw)["schema"] == "strata/RuntimeDataSnapshot/1"
 
 
 def jdk():
@@ -61,6 +105,18 @@ def test_invalid_snapshot_inputs_fail_before_compilation(inputs, tmp_path, chang
     assert not destination.exists()
 
 
+def test_combined_snapshot_cannot_publish_beyond_consumer_expansion_limit(inputs, tmp_path):
+    for row in inputs:
+        raw = b"x" * 900000  # Individually valid, but the five-body aggregate exceeds 4 MiB.
+        Path(row["path"]).write_bytes(raw)
+        row["sha256"] = hashlib.sha256(raw).hexdigest()
+    output = tmp_path / "oversize"
+    with pytest.raises(Fault, match="RUNTIME_DATA_SNAPSHOT"):
+        prepare_runtime_data(inputs, jdk(), output)
+    assert not (output / "preparation.json").exists()
+    assert (output / "strata-runtime-data-0.1.0.jar").is_file()  # Preserve the failed build.
+
+
 @pytest.fixture
 def built(inputs, tmp_path):
     output = tmp_path / "output"
@@ -84,14 +140,14 @@ def test_snapshot_agent_delivers_exact_http_shaped_bytes_without_network(built, 
     result, jar, run = built
     process = run()
     assert process.returncode == 0, process.stderr
-    assert "FIXED_DATA_FIXTURE_PASS 18" in process.stdout
+    assert "FIXED_DATA_FIXTURE_PASS 30" in process.stdout
     assert "STRATA_FIXED_DATA_READY/1 " + result["index_sha256"] in process.stderr
     for row in inputs:
         assert row["name"] + " " + row["sha256"] in process.stdout
     assert result["installed"] is False and result["game_conformance_qualified"] is False
     assert result["all_runtime_downloads_qualified"] is False
     with zipfile.ZipFile(jar) as archive:
-        assert len(archive.namelist()) == 9
+        assert len(archive.namelist()) == 11
         assert all(archive.read("strata-fixed/" + name) == raw for name, raw in validate_sources(inputs)[0].items())
 
 
@@ -162,7 +218,7 @@ def test_journal_survives_absent_console_and_keeps_distinct_processes(built, tmp
     for path in journals:
         lines = path.read_text(encoding="ascii").splitlines()
         assert lines[0] == "STRATA_FIXED_DATA_READY/1 " + report["index_sha256"]
-        assert len(lines) == 10  # Three fixture connections per resource.
+        assert len(lines) == 16  # Three fixture connections per resource.
         assert all(lines.count("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"]) == 3
                    for r in report["inputs"])
 

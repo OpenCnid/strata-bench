@@ -1,12 +1,13 @@
 # Fixed E9E runtime data
 
 Operator-only harness addition for the installed Cable Facades 1.2.2 and
-Immersive Engineering 9.2.4-170 consumers. Their startup downloads affect block
-cover rules and special-revolver registries; hashing installation files does not
-freeze those remote inputs.
+Immersive Engineering 9.2.4-170, Ars Nouveau 3.23.0 and Supplementaries 2.4.20
+consumers. Their startup downloads affect block-cover rules, special-revolver
+registries, named spawned entities and globe/statue variants; hashing installation
+files does not freeze those remote inputs.
 
 `tools/prepare_runtime_data.py` compiles these three Java sources with JDK 17 and
-packages three previously acquired, commit-addressed publisher files. The
+packages five previously acquired, commit-addressed publisher files. The
 preparation receipt pins source/compiler/resource/class/JAR bytes. It does not
 install the result, fetch network content or qualify a complete pack.
 
@@ -20,7 +21,7 @@ reproduction matches the authentic captured class. Cold-start evidence requires
 the post-Forge binding, not just an offline raw-class patch. Other differences
 remain refused. A class mismatch terminates the owned JVM with exit 126;
 throwing a transformer exception alone would allow the original downloader to
-run. For either named target, refusal additionally retains its hash and base64
+run. For each named target, refusal additionally retains its hash and base64
 class bytes in the private startup log when the class is at most 64 KiB. Larger
 classes still halt without a byte capture. Captured bytes are diagnostic evidence,
 never automatic admission or a replacement for the reviewed vendor pin.
@@ -32,20 +33,22 @@ exhausted journal refuses startup or halts the owned JVM; files are never reused
 These records contain only the existing resource/class hashes and bounded class
 diagnostics. They are not signed scoring evidence or isolation qualification.
 The custom `stratafixed` protocol returns HTTP-shaped responses from verified
-memory for exactly three routes. It has no network fallback. Other protocols
+memory for exactly five routes. It has no network fallback. Other protocols
 retain their ordinary JDK behavior. This does not establish network isolation or
 prove that every other mod's runtime input has been frozen.
 
 Private `LaunchProfile/4` binds the same snapshot JAR in both role inventories and
 injects its exact role-relative Java agent argument. `/3` rejects installations
-containing either known remote-data consumer without this binding. A new
+containing a known remote-data consumer without this binding. Snapshot `/2`
+adds the Ars Nouveau and Supplementaries inputs. Historical `/1` receipts remain
+readable, but cannot admit an installed role containing either added consumer. A new
 snapshot is a changed profile; it cannot retroactively recover historical
 download bytes or inherit qualification from an old profile.
 
 JVM fixtures test delivery with all network connections denied, strict routes,
 resource corruption and fail-closed class drift. The bounded cold-start `/2`
-consumer also requires both class-binding records and all three actual read
-records. Agent startup alone cannot pass that check. Authentic Forge loading,
+consumer requires all class-binding and actual-read records for the declared
+snapshot version (four classes/five bodies for `/2`). Agent startup alone cannot pass that check. Authentic Forge loading,
 client/server conformance, unchanged mechanics, owned shutdown and all remaining
 provisioning checks retain their separate evidence requirements.
 

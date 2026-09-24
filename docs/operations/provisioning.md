@@ -378,3 +378,14 @@ Job termination after capture, so this is not clean client save or D13 evidence.
 Retain both audit corrections and all prior profile failures. The remaining
 startup-input review, successor inventory/profile and thirteen-check sealing
 remain separate. [Exact scope and evidence](../verification/2026-09-24-e9e-client-runtime-data.md).
+
+The subsequent startup review identifies two more state-affecting readers:
+Ars Nouveau supporter data names/configures spawned Starbuncles, and
+Supplementaries credits select named globe/statue variants. `RuntimeDataSnapshot/2`
+adds their exact commit-addressed bodies and class pins while preserving the
+original three bodies and vendor parser logic. Current preparation emits `/2`;
+historical `/1` is readable for reconstruction, but refuses seal/launch admission
+when either newly identified mod is installed. Both roles must bind the extended
+snapshot. Expected execution markers now include all four classes and five
+bodies. This does not certify every mod's networking, historical responses or
+isolation. [Review and changed-component evidence](../verification/2026-09-24-e9e-startup-inputs.md).

@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
 
-/** Freeze two inspected URL constants after the JVM verifies the original JAR. */
+/** Freeze inspected URL constants after the JVM verifies the original JAR. */
 public final class Agent implements ClassFileTransformer {
     public static final String PREFIX = "io.github.opencnid.strata.fixed";
     private static final Map<String, String[]> TARGETS = Map.of(
@@ -18,7 +18,13 @@ public final class Agent implements ClassFileTransformer {
             "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092"},
         "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader", new String[]{
             "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
-            "https://raw.githubusercontent.com/BluSunrize/ImmersiveEngineering/gh-pages/contributorRevolvers.json"});
+            "https://raw.githubusercontent.com/BluSunrize/ImmersiveEngineering/gh-pages/contributorRevolvers.json"},
+        "com/hollingsworth/arsnouveau/setup/reward/Rewards", new String[]{
+            "79806bf34b647acc318e0ce0348f24b26fc4ac35d73e6d327976772a341a42a3",
+            "https://raw.githubusercontent.com/baileyholl/Ars-Nouveau/main/supporters.json"},
+        "net/mehvahdjukaar/supplementaries/common/utils/Credits", new String[]{
+            "f1b57b79214f42dbf7693645e62fe2ff15ca5944503b7671cc08948825b38df7",
+            "https://raw.githubusercontent.com/MehVahdJukaar/Supplementaries/master/credits.json"});
 
     public static void premain(String options, Instrumentation instrumentation) throws Exception {
         if (options != null && !options.isEmpty()) throw new IOException("FIXED_DATA_OPTIONS");
@@ -46,7 +52,7 @@ public final class Agent implements ClassFileTransformer {
             // JVM ignores transformer exceptions and otherwise runs the original
             // downloader. A mismatch must terminate this owned JVM instead.
             Data.record("STRATA_FIXED_DATA_REFUSED/1 " + name + " " + Data.sha256(input));
-            // Private startup logs retain only these two named class identities.
+            // Private startup logs retain only these named class identities.
             // Capture bounded evidence before halting; never admit observed bytes.
             if (input.length <= 65536)
                 Data.record("STRATA_FIXED_DATA_CLASS/1 " + name + " "

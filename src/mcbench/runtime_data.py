@@ -1,4 +1,4 @@
-"""Prepare an offline snapshot agent for two exact E9E runtime data consumers.
+"""Prepare an offline snapshot agent for exact E9E runtime data consumers.
 
 Inputs are operator-acquired immutable publisher URLs, not automatic downloads.
 The output remains a new, uninstalled harness addition until profile admission.
@@ -14,19 +14,34 @@ import zipfile
 from .inventory import file_hash
 from .storage import canonical, reject_links, require
 
-POLICY = "e9e1270-runtime-data-snapshot/1"
-SOURCES = {
+LEGACY_POLICY = "e9e1270-runtime-data-snapshot/1"
+POLICY = "e9e1270-runtime-data-snapshot/2"
+LEGACY_SOURCES = {
     "whitelist.txt": ("Porting-Dead-Mods/Cable-Facades", "configs/whitelist.txt"),
     "blacklist.txt": ("Porting-Dead-Mods/Cable-Facades", "configs/blacklist.txt"),
     "contributorRevolvers.json": ("BluSunrize/ImmersiveEngineering", "contributorRevolvers.json"),
+}
+SOURCES = LEGACY_SOURCES | {
+    "ars-supporters.json": ("baileyholl/Ars-Nouveau", "supporters.json"),
+    "supplementaries-credits.json": ("MehVahdJukaar/Supplementaries", "credits.json"),
+}
+CLASSES = {
+    "com/portingdeadmods/cable_facades/CFConfig": "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
+    "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader":
+        "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
+}
+ADDED_CLASSES = {
+    "com/hollingsworth/arsnouveau/setup/reward/Rewards": "79806bf34b647acc318e0ce0348f24b26fc4ac35d73e6d327976772a341a42a3",
+    "net/mehvahdjukaar/supplementaries/common/utils/Credits": "f1b57b79214f42dbf7693645e62fe2ff15ca5944503b7671cc08948825b38df7",
 }
 ROOT = Path(__file__).resolve().parents[2]
 JAVA_ROOT = ROOT / "java/runtime-data/src"
 MANIFEST = ("Manifest-Version: 1.0\r\nPremain-Class: io.github.opencnid.strata.fixed.Agent\r\n"
             "Can-Redefine-Classes: false\r\nCan-Retransform-Classes: false\r\n\r\n").encode("ascii")
 AGENT_PATH = "harness/strata-runtime-data-0.1.0.jar"
+ADDED_REMOTE_MODS = {"mods/ars_nouveau-1.19.2-3.23.0.jar", "mods/supplementaries-1.19.2-2.4.20.jar"}
 REMOTE_MODS = {"mods/cable_facades-1.19.2-Forge-1.2.2.jar",
-               "mods/ImmersiveEngineering-1.19.2-9.2.4-170.jar"}
+               "mods/ImmersiveEngineering-1.19.2-9.2.4-170.jar"} | ADDED_REMOTE_MODS
 CLASS_ENTRIES = {"io/github/opencnid/strata/fixed/" + name for name in
                  ("Agent.class", "Data.class", "stratafixed/Handler.class", "stratafixed/Handler$1.class")}
 
@@ -43,7 +58,7 @@ def _raw(path, maximum):
 
 
 def validate_sources(rows):
-    require(isinstance(rows, list) and len(rows) == 3, "RUNTIME_DATA_SOURCES")
+    require(isinstance(rows, list) and len(rows) == len(SOURCES), "RUNTIME_DATA_SOURCES")
     bodies, checked = {}, []
     for row in rows:
         require(set(row) == {"name", "path", "sha256", "url", "commit"}
@@ -67,24 +82,27 @@ def validate_snapshot(report_raw, jar_raw):
     """Check sealed resource bytes; never follow archived source filesystem paths."""
     from .inference_transport import strict_json
     report = strict_json(report_raw)
-    require(report.get("schema") == "strata/RuntimeDataSnapshot/1" and report.get("policy") == POLICY
+    legacy = report.get("schema") == "strata/RuntimeDataSnapshot/1" and report.get("policy") == LEGACY_POLICY
+    current = report.get("schema") == "strata/RuntimeDataSnapshot/2" and report.get("policy") == POLICY
+    sources = LEGACY_SOURCES if legacy else SOURCES
+    require((legacy or current)
             and report.get("jar_sha256") == hashlib.sha256(jar_raw).hexdigest()
             and report.get("jar_bytes") == len(jar_raw) <= 1024**2, "RUNTIME_DATA_SNAPSHOT")
     with zipfile.ZipFile(io.BytesIO(jar_raw)) as archive:
         names = archive.namelist()
-        require(len(names) == len(set(names)) == 9
+        require(len(names) == len(set(names)) == len(CLASS_ENTRIES) + 2 + len(sources)
                 and set(names) == CLASS_ENTRIES | {"META-INF/MANIFEST.MF", "strata-fixed/index.txt"}
-                    | {"strata-fixed/" + n for n in SOURCES}
+                    | {"strata-fixed/" + n for n in sources}
                 and sum(e.file_size for e in archive.infolist()) <= 4 * 1024**2, "RUNTIME_DATA_SNAPSHOT")
         entries = {n: archive.read(n) for n in names}
     require(entries.get("META-INF/MANIFEST.MF") == MANIFEST
             and report.get("entries") == [{"path": n, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
                                           for n, raw in sorted(entries.items())], "RUNTIME_DATA_SNAPSHOT")
     inputs = report.get("inputs")
-    require(isinstance(inputs, list) and len(inputs) == 3
-            and {r.get("name") for r in inputs} == set(SOURCES), "RUNTIME_DATA_SNAPSHOT")
+    require(isinstance(inputs, list) and len(inputs) == len(sources)
+            and {r.get("name") for r in inputs} == set(sources), "RUNTIME_DATA_SNAPSHOT")
     for row in inputs:
-        repo, path = SOURCES[row["name"]]
+        repo, path = sources[row["name"]]
         require(isinstance(row.get("commit"), str) and re.fullmatch(r"[0-9a-f]{40}", row["commit"])
                 and row.get("url") == f"https://raw.githubusercontent.com/{repo}/{row['commit']}/{path}",
                 "RUNTIME_DATA_ORIGIN")
@@ -92,7 +110,7 @@ def validate_snapshot(report_raw, jar_raw):
         require(raw is not None and hashlib.sha256(raw).hexdigest() == row["sha256"]
                 and len(raw) == row["bytes"], "RUNTIME_DATA_SNAPSHOT")
     index = "".join(hashlib.sha256(entries["strata-fixed/" + n]).hexdigest() + " " + n + "\n"
-                    for n in sorted(SOURCES)).encode("ascii")
+                    for n in sorted(sources)).encode("ascii")
     require(entries.get("strata-fixed/index.txt") == index
             and report.get("index_sha256") == hashlib.sha256(index).hexdigest(), "RUNTIME_DATA_SNAPSHOT")
     return report
@@ -137,13 +155,15 @@ def prepare_runtime_data(rows, javac: Path, destination: Path):
     require(all(file_hash(ROOT / p) == sha for p, sha in source_pins.items()), "SOURCE_CHANGED")
     with zipfile.ZipFile(jar) as archive:
         require({name: archive.read(name) for name in archive.namelist()} == entries, "HASH_MISMATCH")
-    result = {"schema": "strata/RuntimeDataSnapshot/1", "policy": POLICY,
+    result = {"schema": "strata/RuntimeDataSnapshot/2", "policy": POLICY,
         "inputs": checked, "source_pins": source_pins, "javac_sha256": compiler_sha,
         "javac_version": version.stdout.strip(), "jar_sha256": file_hash(jar), "jar_bytes": jar.stat().st_size,
         "index_sha256": hashlib.sha256(index).hexdigest(), "entries": [
             {"path": n, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)} for n, raw in sorted(entries.items())],
         "installed": False, "game_conformance_qualified": False, "all_runtime_downloads_qualified": False,
         "historical_download_bytes_recovered": False, "campaign_admission": False}
+    # More admitted bodies must not create a receipt the bounded consumer rejects.
+    validate_snapshot(canonical(result), _raw(jar, 1024**2))
     with (destination / "preparation.json").open("xb") as stream:
         stream.write(canonical(result))
     return result
@@ -156,11 +176,11 @@ def inspect_runtime_data_log(raw, report):
     lines = [line[line.index("STRATA_FIXED_DATA_"):] for line in raw.decode("utf-8", errors="strict").splitlines()
              if "STRATA_FIXED_DATA_" in line]
     require("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"] in lines, "RUNTIME_DATA_EXECUTION")
-    classes = {
-        "com/portingdeadmods/cable_facades/CFConfig": "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
-        "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader":
-            "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
-    }
+    require(report.get("policy") in {LEGACY_POLICY, POLICY}, "RUNTIME_DATA_EXECUTION")
+    classes = CLASSES if report["policy"] == LEGACY_POLICY else CLASSES | ADDED_CLASSES
+    sources = LEGACY_SOURCES if report["policy"] == LEGACY_POLICY else SOURCES
+    require(len(report["inputs"]) == len(sources) and {r["name"] for r in report["inputs"]} == set(sources),
+            "RUNTIME_DATA_EXECUTION")
     required = {"STRATA_FIXED_DATA_BOUND/1 " + name + " " + sha for name, sha in classes.items()}
     required.add("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"])
     required.update("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])

@@ -24,7 +24,23 @@ public final class Agent implements ClassFileTransformer {
             "https://raw.githubusercontent.com/baileyholl/Ars-Nouveau/main/supporters.json"},
         "net/mehvahdjukaar/supplementaries/common/utils/Credits", new String[]{
             "f1b57b79214f42dbf7693645e62fe2ff15ca5944503b7671cc08948825b38df7",
-            "https://raw.githubusercontent.com/MehVahdJukaar/Supplementaries/master/credits.json"});
+            "https://raw.githubusercontent.com/MehVahdJukaar/Supplementaries/master/credits.json"},
+        "snownee/kiwi/contributor/impl/KiwiTierProvider", new String[]{
+            "16f2505174fcf123aa8d671517d932aa8e7b277313af8075123a2bfa35ec2557",
+            "https://raw.githubusercontent.com/Snownee/Kiwi/master/contributors.json",
+            // Installed RuntimeDistCleaner removes client-only members on server.
+            "3704088d89c1c60f3387a3ea2c4fe73bd613ce45cde6c66d332927be2ac265e8"},
+        "vazkii/quark/base/handler/ContributorRewardHandler$ThreadContributorListLoader", new String[]{
+            "6853ffed6b7763eaea5bad8bbacc7df24704eab1d7e06099a57707bc3ee75338",
+            "https://raw.githubusercontent.com/VazkiiMods/Quark/master/contributors.properties"},
+        "com/buuz135/industrial/IndustrialForegoing", new String[]{
+            "e225e2107cd4ec42fe06f1aa40c520801a6a9b506e01b26a04803a5dd21a9ce1",
+            "https://raw.githubusercontent.com/Buuz135/Industrial-Foregoing/master/contributors.json",
+            // Exact installed-transform reproduction matches the refused capture.
+            "0de36bb1a4fcd62a46f277e64964699a7f0653e24545d44d141ee1fc0b25045d"},
+        "com/buuz135/sushigocrafting/SushiGoCrafting", new String[]{
+            "cc3e4161ef0914297e440a4a757a454cd40b12239c63f4e43ba6697794c59c7c",
+            "https://raw.githubusercontent.com/Buuz135/Industrial-Foregoing/master/contributors.json"});
 
     public static void premain(String options, Instrumentation instrumentation) throws Exception {
         if (options != null && !options.isEmpty()) throw new IOException("FIXED_DATA_OPTIONS");
@@ -68,10 +84,19 @@ public final class Agent implements ClassFileTransformer {
         if (target == null || input.length > 1048576
                 || !(hash.equals(target[0]) || (target.length == 3 && hash.equals(target[2]))))
             throw new IOException("FIXED_DATA_CLASS_PIN");
-        return replaceConstant(input, target[1], target[1].replace("https://", "stratafixed://"));
+        byte[] result = replaceConstant(input, target[1], target[1].replace("https://", "stratafixed://"));
+        // Kiwi selects among three mirrors by locale. All are bound to the same
+        // explicitly selected publisher snapshot; no mirror can fall through.
+        if (name.equals("snownee/kiwi/contributor/impl/KiwiTierProvider")) {
+            for (String url : List.of(
+                    "https://cdn.jsdelivr.net/gh/Snownee/Kiwi@master/contributors.json",
+                    "https://snownee.coding.net/p/test/d/test/git/raw/master/contributors.json"))
+                result = replaceConstant(result, url, url.replace("https://", "stratafixed://"));
+        }
+        return result;
     }
 
-    // Preserve all bytecode, attributes, constants and ordering except one exact
+    // Preserve all bytecode, attributes, constants and ordering except the reviewed exact
     // ASCII URL constant. No vendor classes or signatures are rewritten on disk.
     static byte[] replaceConstant(byte[] input, String from, String to) throws IOException {
         DataInputStream in = new DataInputStream(new ByteArrayInputStream(input));

@@ -9,14 +9,19 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.*;
 import java.util.*;
 
-/** Five immutable resource bodies; no URLs are fetched by this class. */
+/** Eight immutable resource bodies; no URLs are fetched by this class. */
 public final class Data {
     public static final Map<String, String> ROUTES = Map.of(
         "stratafixed://raw.githubusercontent.com/Porting-Dead-Mods/Cable-Facades/refs/heads/1.21.1/configs/whitelist.txt", "whitelist.txt",
         "stratafixed://raw.githubusercontent.com/Porting-Dead-Mods/Cable-Facades/refs/heads/1.21.1/configs/blacklist.txt", "blacklist.txt",
         "stratafixed://raw.githubusercontent.com/BluSunrize/ImmersiveEngineering/gh-pages/contributorRevolvers.json", "contributorRevolvers.json",
         "stratafixed://raw.githubusercontent.com/baileyholl/Ars-Nouveau/main/supporters.json", "ars-supporters.json",
-        "stratafixed://raw.githubusercontent.com/MehVahdJukaar/Supplementaries/master/credits.json", "supplementaries-credits.json");
+        "stratafixed://raw.githubusercontent.com/MehVahdJukaar/Supplementaries/master/credits.json", "supplementaries-credits.json",
+        "stratafixed://raw.githubusercontent.com/Snownee/Kiwi/master/contributors.json", "kiwi-contributors.json",
+        "stratafixed://cdn.jsdelivr.net/gh/Snownee/Kiwi@master/contributors.json", "kiwi-contributors.json",
+        "stratafixed://snownee.coding.net/p/test/d/test/git/raw/master/contributors.json", "kiwi-contributors.json",
+        "stratafixed://raw.githubusercontent.com/VazkiiMods/Quark/master/contributors.properties", "quark-contributors.properties",
+        "stratafixed://raw.githubusercontent.com/Buuz135/Industrial-Foregoing/master/contributors.json", "industrial-contributors.json");
     private static Map<String, byte[]> bodies;
     private static String identity;
     private static FileChannel journal;
@@ -76,9 +81,10 @@ public final class Data {
         String text = new String(raw, StandardCharsets.US_ASCII);
         if (!Arrays.equals(raw, text.getBytes(StandardCharsets.US_ASCII))) throw new IOException("FIXED_DATA_INDEX");
         String[] lines = text.split("\n", -1);
-        if (lines.length != ROUTES.size() + 1 || !lines[ROUTES.size()].isEmpty()) throw new IOException("FIXED_DATA_INDEX");
+        int resourceCount = new HashSet<>(ROUTES.values()).size();
+        if (lines.length != resourceCount + 1 || !lines[resourceCount].isEmpty()) throw new IOException("FIXED_DATA_INDEX");
         Map<String, byte[]> result = new HashMap<>();
-        for (int i = 0; i < ROUTES.size(); i++) {
+        for (int i = 0; i < resourceCount; i++) {
             String[] fields = lines[i].split(" ", -1);
             if (fields.length != 2 || !fields[0].matches("[0-9a-f]{64}")
                 || !ROUTES.containsValue(fields[1]) || result.containsKey(fields[1]))

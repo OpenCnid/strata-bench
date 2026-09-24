@@ -36,8 +36,8 @@ public final class RuntimeDataFixture {
             if (!Arrays.equals(first, second) || !Arrays.equals(first, Data.read(url))) throw new AssertionError();
             if (connection.getContentLengthLong() != first.length) throw new AssertionError();
             System.out.println(Data.ROUTES.get(url) + " " + Data.sha256(first)); checked++;
-            for (String changed : List.of(url + "?changed", url + "#fragment", url.replace(".com/", ".com:443/"),
-                    url.replace("raw.githubusercontent.com", "other.invalid"))) {
+            for (String changed : List.of(url + "?changed", url + "#fragment", url.replace(new URL(url).getHost(), new URL(url).getHost() + ":443"),
+                    url.replace(new URL(url).getHost(), "other.invalid"))) {
                 try { new URL(changed).openStream(); throw new AssertionError("route accepted"); }
                 catch (IOException expected) { checked++; }
             }

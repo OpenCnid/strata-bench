@@ -20,7 +20,9 @@ from .inventory import inventory_directories
 from .pack_policies import reviewed_vendor_paths
 from .pack_worker import validate_server_settings
 from .provisioning import E9ELaunchProfile, FrozenE9ELaunchProfile, validate_launch_environment
-from .runtime_data import ADDED_REMOTE_MODS, AGENT_PATH, POLICY, REMOTE_MODS, validate_snapshot
+from .runtime_data import (
+    ADDED_REMOTE_MODS, AGENT_PATH, EXTENDED_POLICY, POLICY, REMOTE_MODS, REWARD_REMOTE_MODS, validate_snapshot,
+)
 from .storage import reject_links, require, safe_relative
 
 JAVA = "java/bin/java.exe"
@@ -78,6 +80,8 @@ def validate_forge_profile(profile, inventory, read, *, java):
         for role in ("client", "server"):
             report = validate_snapshot(report_raw, installed(role, AGENT_PATH))
             require(not any(r == role and path in ADDED_REMOTE_MODS for r, path in files)
+                    or report["policy"] in {EXTENDED_POLICY, POLICY}, "FORGE_RUNTIME_DATA_UNPINNED")
+            require(not any(r == role and path in REWARD_REMOTE_MODS for r, path in files)
                     or report["policy"] == POLICY, "FORGE_RUNTIME_DATA_UNPINNED")
     else:
         require(not any(path in REMOTE_MODS for _, path in files), "FORGE_RUNTIME_DATA_UNPINNED")

@@ -15,15 +15,21 @@ from .inventory import file_hash
 from .storage import canonical, reject_links, require
 
 LEGACY_POLICY = "e9e1270-runtime-data-snapshot/1"
-POLICY = "e9e1270-runtime-data-snapshot/2"
+EXTENDED_POLICY = "e9e1270-runtime-data-snapshot/2"
+POLICY = "e9e1270-runtime-data-snapshot/3"
 LEGACY_SOURCES = {
     "whitelist.txt": ("Porting-Dead-Mods/Cable-Facades", "configs/whitelist.txt"),
     "blacklist.txt": ("Porting-Dead-Mods/Cable-Facades", "configs/blacklist.txt"),
     "contributorRevolvers.json": ("BluSunrize/ImmersiveEngineering", "contributorRevolvers.json"),
 }
-SOURCES = LEGACY_SOURCES | {
+EXTENDED_SOURCES = LEGACY_SOURCES | {
     "ars-supporters.json": ("baileyholl/Ars-Nouveau", "supporters.json"),
     "supplementaries-credits.json": ("MehVahdJukaar/Supplementaries", "credits.json"),
+}
+SOURCES = EXTENDED_SOURCES | {
+    "kiwi-contributors.json": ("Snownee/Kiwi", "contributors.json"),
+    "quark-contributors.properties": ("VazkiiMods/Quark", "contributors.properties"),
+    "industrial-contributors.json": ("Buuz135/Industrial-Foregoing", "contributors.json"),
 }
 CLASSES = {
     "com/portingdeadmods/cable_facades/CFConfig": "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
@@ -34,14 +40,32 @@ ADDED_CLASSES = {
     "com/hollingsworth/arsnouveau/setup/reward/Rewards": "79806bf34b647acc318e0ce0348f24b26fc4ac35d73e6d327976772a341a42a3",
     "net/mehvahdjukaar/supplementaries/common/utils/Credits": "f1b57b79214f42dbf7693645e62fe2ff15ca5944503b7671cc08948825b38df7",
 }
+REWARD_CLASSES = {
+    "snownee/kiwi/contributor/impl/KiwiTierProvider": "16f2505174fcf123aa8d671517d932aa8e7b277313af8075123a2bfa35ec2557",
+    "vazkii/quark/base/handler/ContributorRewardHandler$ThreadContributorListLoader":
+        "6853ffed6b7763eaea5bad8bbacc7df24704eab1d7e06099a57707bc3ee75338",
+    "com/buuz135/industrial/IndustrialForegoing": "e225e2107cd4ec42fe06f1aa40c520801a6a9b506e01b26a04803a5dd21a9ce1",
+    "com/buuz135/sushigocrafting/SushiGoCrafting": "cc3e4161ef0914297e440a4a757a454cd40b12239c63f4e43ba6697794c59c7c",
+}
+SERVER_REWARD_CLASSES = REWARD_CLASSES | {
+    "snownee/kiwi/contributor/impl/KiwiTierProvider": "3704088d89c1c60f3387a3ea2c4fe73bd613ce45cde6c66d332927be2ac265e8",
+    "com/buuz135/industrial/IndustrialForegoing": "0de36bb1a4fcd62a46f277e64964699a7f0653e24545d44d141ee1fc0b25045d",
+}
+SNAPSHOTS = {
+    LEGACY_POLICY: ("strata/RuntimeDataSnapshot/1", LEGACY_SOURCES, CLASSES),
+    EXTENDED_POLICY: ("strata/RuntimeDataSnapshot/2", EXTENDED_SOURCES, CLASSES | ADDED_CLASSES),
+    POLICY: ("strata/RuntimeDataSnapshot/3", SOURCES, CLASSES | ADDED_CLASSES | REWARD_CLASSES),
+}
 ROOT = Path(__file__).resolve().parents[2]
 JAVA_ROOT = ROOT / "java/runtime-data/src"
 MANIFEST = ("Manifest-Version: 1.0\r\nPremain-Class: io.github.opencnid.strata.fixed.Agent\r\n"
             "Can-Redefine-Classes: false\r\nCan-Retransform-Classes: false\r\n\r\n").encode("ascii")
 AGENT_PATH = "harness/strata-runtime-data-0.1.0.jar"
 ADDED_REMOTE_MODS = {"mods/ars_nouveau-1.19.2-3.23.0.jar", "mods/supplementaries-1.19.2-2.4.20.jar"}
+REWARD_REMOTE_MODS = {"mods/Kiwi-1.19.2-forge-8.3.6.jar", "mods/Quark-3.4-418.jar",
+                      "mods/industrial-foregoing-1.19.2-3.3.2.4-9.jar", "mods/sushigocrafting-1.19.2-0.3.8.jar"}
 REMOTE_MODS = {"mods/cable_facades-1.19.2-Forge-1.2.2.jar",
-               "mods/ImmersiveEngineering-1.19.2-9.2.4-170.jar"} | ADDED_REMOTE_MODS
+               "mods/ImmersiveEngineering-1.19.2-9.2.4-170.jar"} | ADDED_REMOTE_MODS | REWARD_REMOTE_MODS
 CLASS_ENTRIES = {"io/github/opencnid/strata/fixed/" + name for name in
                  ("Agent.class", "Data.class", "stratafixed/Handler.class", "stratafixed/Handler$1.class")}
 
@@ -82,10 +106,9 @@ def validate_snapshot(report_raw, jar_raw):
     """Check sealed resource bytes; never follow archived source filesystem paths."""
     from .inference_transport import strict_json
     report = strict_json(report_raw)
-    legacy = report.get("schema") == "strata/RuntimeDataSnapshot/1" and report.get("policy") == LEGACY_POLICY
-    current = report.get("schema") == "strata/RuntimeDataSnapshot/2" and report.get("policy") == POLICY
-    sources = LEGACY_SOURCES if legacy else SOURCES
-    require((legacy or current)
+    require(isinstance(report.get("policy"), str) and report["policy"] in SNAPSHOTS, "RUNTIME_DATA_SNAPSHOT")
+    schema, sources, _ = SNAPSHOTS[report["policy"]]
+    require(report.get("schema") == schema
             and report.get("jar_sha256") == hashlib.sha256(jar_raw).hexdigest()
             and report.get("jar_bytes") == len(jar_raw) <= 1024**2, "RUNTIME_DATA_SNAPSHOT")
     with zipfile.ZipFile(io.BytesIO(jar_raw)) as archive:
@@ -155,7 +178,7 @@ def prepare_runtime_data(rows, javac: Path, destination: Path):
     require(all(file_hash(ROOT / p) == sha for p, sha in source_pins.items()), "SOURCE_CHANGED")
     with zipfile.ZipFile(jar) as archive:
         require({name: archive.read(name) for name in archive.namelist()} == entries, "HASH_MISMATCH")
-    result = {"schema": "strata/RuntimeDataSnapshot/2", "policy": POLICY,
+    result = {"schema": "strata/RuntimeDataSnapshot/3", "policy": POLICY,
         "inputs": checked, "source_pins": source_pins, "javac_sha256": compiler_sha,
         "javac_version": version.stdout.strip(), "jar_sha256": file_hash(jar), "jar_bytes": jar.stat().st_size,
         "index_sha256": hashlib.sha256(index).hexdigest(), "entries": [
@@ -169,32 +192,35 @@ def prepare_runtime_data(rows, javac: Path, destination: Path):
     return result
 
 
-def inspect_runtime_data_log(raw, report):
-    """Require both transformed classes and actual reads, not agent startup alone."""
+def inspect_runtime_data_log(raw, report, *, role="server"):
+    """Require the role's exact class forms and actual reads, not startup alone."""
     require(len(raw) <= 16 * 1024**2 and b"STRATA_FIXED_DATA_REFUSED/1" not in raw
             and b"STRATA_FIXED_DATA_JOURNAL_REFUSED/1" not in raw, "RUNTIME_DATA_EXECUTION")
     lines = [line[line.index("STRATA_FIXED_DATA_"):] for line in raw.decode("utf-8", errors="strict").splitlines()
              if "STRATA_FIXED_DATA_" in line]
     require("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"] in lines, "RUNTIME_DATA_EXECUTION")
-    require(report.get("policy") in {LEGACY_POLICY, POLICY}, "RUNTIME_DATA_EXECUTION")
-    classes = CLASSES if report["policy"] == LEGACY_POLICY else CLASSES | ADDED_CLASSES
-    sources = LEGACY_SOURCES if report["policy"] == LEGACY_POLICY else SOURCES
+    require(isinstance(report.get("policy"), str) and report["policy"] in SNAPSHOTS, "RUNTIME_DATA_EXECUTION")
+    require(role in {"client", "server"}, "RUNTIME_DATA_ROLE")
+    _, sources, classes = SNAPSHOTS[report["policy"]]
+    if report["policy"] == POLICY and role == "server":
+        classes = classes | SERVER_REWARD_CLASSES
     require(len(report["inputs"]) == len(sources) and {r["name"] for r in report["inputs"]} == set(sources),
             "RUNTIME_DATA_EXECUTION")
     required = {"STRATA_FIXED_DATA_BOUND/1 " + name + " " + sha for name, sha in classes.items()}
     required.add("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"])
     required.update("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])
     require(required == set(lines), "RUNTIME_DATA_EXECUTION")
-    return {"policy": report["policy"], "jar_sha256": report["jar_sha256"],
+    return {**({"role": role} if report["policy"] == POLICY else {}),
+            "policy": report["policy"], "jar_sha256": report["jar_sha256"],
             "index_sha256": report["index_sha256"], "bound_classes": sorted(classes),
             "read_inputs": [{"name": r["name"], "sha256": r["sha256"]} for r in report["inputs"]],
             "all_runtime_downloads_qualified": False}
 
 
-def inspect_runtime_data_journal(path: Path, report, *, process_id: int):
+def inspect_runtime_data_journal(path: Path, report, *, process_id: int, role="server"):
     """Inspect a stopped, privately held process's own bounded agent journal.
 
-    The caller separately binds the process and snapshot artifact. This is not
+    The caller separately binds the process, role and snapshot artifact. This is not
     a signed producer, scoring authority or isolation qualification.
     """
     require(type(process_id) is int and process_id > 0, "RUNTIME_DATA_PROCESS")
@@ -204,7 +230,7 @@ def inspect_runtime_data_journal(path: Path, report, *, process_id: int):
     require(raw.endswith(b"\n") and 0 < len(raw.splitlines()) <= 32
             and all(line.startswith(b"STRATA_FIXED_DATA_") and len(line) < 131072
                     for line in raw.splitlines()), "RUNTIME_DATA_JOURNAL")
-    result = inspect_runtime_data_log(raw, report)
+    result = inspect_runtime_data_log(raw, report, role=role)
     require(raw == _raw(path, 1024**2), "SOURCE_CHANGED")
     return result | {"journal": {"name": path.name, "process_id": process_id,
                                 "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}}

@@ -41,13 +41,19 @@ def test_journal_requires_exact_scope_and_complete_bounded_records(tmp_path, cha
         assert not result["all_runtime_downloads_qualified"]
 
 
+@pytest.mark.parametrize("role", ["server", "client"])
+@pytest.mark.parametrize("version", [2, 3])
 @pytest.mark.parametrize("change", [None, "missing_added_class", "missing_added_read", "unknown_policy", "legacy_policy"])
-def test_extended_snapshot_requires_both_added_classes_and_bodies(tmp_path, change):
-    from mcbench.runtime_data import ADDED_CLASSES, CLASSES, POLICY, SOURCES
-    report = {"policy": POLICY, "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
-              "inputs": [{"name": n, "sha256": "c" * 64} for n in SOURCES]}
+def test_extended_snapshot_requires_all_added_classes_and_bodies(tmp_path, change, version, role):
+    from mcbench.runtime_data import SNAPSHOTS, SERVER_REWARD_CLASSES
+    policy = f"e9e1270-runtime-data-snapshot/{version}"
+    _, sources, classes = SNAPSHOTS[policy]
+    if version == 3 and role == "server":
+        classes = classes | SERVER_REWARD_CLASSES
+    report = {"policy": policy, "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+              "inputs": [{"name": n, "sha256": "c" * 64} for n in sources]}
     lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
-             *("STRATA_FIXED_DATA_BOUND/1 " + n + " " + h for n, h in (CLASSES | ADDED_CLASSES).items()),
+             *("STRATA_FIXED_DATA_BOUND/1 " + n + " " + h for n, h in classes.items()),
              *("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])]
     if change == "missing_added_class":
         del lines[4]
@@ -61,7 +67,26 @@ def test_extended_snapshot_requires_both_added_classes_and_bodies(tmp_path, chan
     path.write_bytes(("\n".join(lines) + "\n").encode())
     if change:
         with pytest.raises(Fault, match="RUNTIME_DATA_EXECUTION"):
-            inspect_runtime_data_journal(path, report, process_id=17)
+            inspect_runtime_data_journal(path, report, process_id=17, role=role)
     else:
-        result = inspect_runtime_data_journal(path, report, process_id=17)
-        assert len(result["bound_classes"]) == 4 and len(result["read_inputs"]) == 5
+        result = inspect_runtime_data_journal(path, report, process_id=17, role=role)
+        assert len(result["bound_classes"]) == len(classes) and len(result["read_inputs"]) == len(sources)
+
+
+@pytest.mark.parametrize("role", ["server", "client", "unknown"])
+def test_reward_journal_rejects_other_role_class_bytes(tmp_path, role):
+    from mcbench.runtime_data import POLICY, SNAPSHOTS, SERVER_REWARD_CLASSES
+    _, sources, classes = SNAPSHOTS[POLICY]
+    # Give the requested client a server journal, and vice versa. Every body
+    # and marker is present, so only the class representation is wrong.
+    if role == "client":
+        classes = classes | SERVER_REWARD_CLASSES
+    report = {"policy": POLICY, "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+              "inputs": [{"name": n, "sha256": "c" * 64} for n in sources]}
+    lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
+             *("STRATA_FIXED_DATA_BOUND/1 " + n + " " + h for n, h in classes.items()),
+             *("STRATA_FIXED_DATA_READ/1 " + n + " " + "c" * 64 for n in sources)]
+    path = tmp_path / "strata-fixed-17-00000000-0000-0000-0000-000000000000.log"
+    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    with pytest.raises(Fault, match="RUNTIME_DATA_ROLE" if role == "unknown" else "RUNTIME_DATA_EXECUTION"):
+        inspect_runtime_data_journal(path, report, process_id=17, role=role)

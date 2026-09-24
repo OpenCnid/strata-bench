@@ -11,12 +11,12 @@ from mcbench.records import (
 from mcbench.authorization import ExecutionAuthorization, ModelExecutionAuthorization
 from mcbench.native import NativeLaunch
 from mcbench.provisioning import (
-    AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
+    AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
 )
 
 
 @pytest.mark.parametrize("model", [ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, AcquisitionReceipt,
-                                  LaunchProfile, VanillaLaunchProfile, ProvisioningCheck, ProvisioningEvidence,
+                                  LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence,
                                   RoleInventoryInput])
 def test_operator_api_schemas_stay_private_and_match_models(model):
     root = Path(__file__).resolve().parents[1] / "schemas/v1"

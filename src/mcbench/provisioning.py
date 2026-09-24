@@ -124,8 +124,17 @@ class VanillaLaunchProfile(LaunchProfile):
     update_policy: Literal["sealed-local-bytes/no-installer/1"]
 
 
+class E9ELaunchProfile(LaunchProfile):
+    schema_: Literal["strata/LaunchProfile/3"] = Field(alias="schema")
+    client_software: Ref
+    backend: Literal["forge_client"]
+    host: Literal["127.0.0.1"]
+    port: Annotated[int, Field(ge=1024, le=65535)]
+    update_policy: Literal["sealed-local-bytes/no-installer/1"]
+
+
 def parse_launch_profile(value):
-    return TypeAdapter(LaunchProfile | VanillaLaunchProfile).validate_python(value)
+    return TypeAdapter(LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile).validate_python(value)
 
 
 def validate_launch_environment(environment: dict[str, str]):
@@ -590,12 +599,20 @@ class PackProvider:
         result.update(schema="strata/VanillaClientSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
 
-    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile, evidence: ProvisioningEvidence):
+    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile,
+                      evidence: ProvisioningEvidence):
         row = self._row(request_id, active=True)
         require(row["state"] in {"VERIFIED", "SEALED"}, "INVALID_TRANSITION")
         require(launch.is_example == evidence.is_example == self.simulation,
                 "EXAMPLE_NOT_EXECUTABLE")
         require(evidence.request_id == request_id, "SCOPE_MISMATCH")
+        if isinstance(launch, E9ELaunchProfile):
+            from .pack_forge import validate_forge_profile
+            require(row["target"] == "e9e", "RELEASE_MISMATCH")
+            validate_forge_profile(launch, self._json(request_id, row["inventory"]),
+                lambda ref: self.cas.read(self.principal, self.namespace(request_id), ref,
+                                          max_bytes=64 * 1024**2),
+                java=parse_acquisition(self._json(request_id, row["receipt"])["receipt"]).java)
         if isinstance(launch, VanillaLaunchProfile):
             from .pack_worker import validate_worker_profile
             require(row["target"] == "vanilla", "RELEASE_MISMATCH")
@@ -629,9 +646,10 @@ class PackProvider:
                     bool(template_path(command.working_directory)), "UNSAFE_PATH")
             validate_launch_environment(command.environment)
             require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
-            executable = Path(command.executable_path)
-            require(executable.is_absolute(), "UNSAFE_PATH")
-            require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
+            if not isinstance(launch, E9ELaunchProfile):
+                executable = Path(command.executable_path)
+                require(executable.is_absolute(), "UNSAFE_PATH")
+                require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
             self._json(request_id, command.reviewed_bootstrap)
         imported = self._json(request_id, row["receipt"])
         receipt = parse_acquisition(imported["receipt"])

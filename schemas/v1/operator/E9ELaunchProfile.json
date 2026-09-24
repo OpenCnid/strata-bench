@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "LaunchCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "executable": {
+          "$ref": "#/$defs/Pin"
+        },
+        "executable_path": {
+          "minLength": 1,
+          "title": "Executable Path",
+          "type": "string"
+        },
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Arguments",
+          "type": "array"
+        },
+        "working_directory": {
+          "title": "Working Directory",
+          "type": "string"
+        },
+        "environment": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Environment",
+          "type": "object"
+        },
+        "reviewed_bootstrap": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Reviewed Bootstrap",
+          "type": "string"
+        }
+      },
+      "required": [
+        "executable",
+        "executable_path",
+        "arguments",
+        "working_directory",
+        "environment",
+        "reviewed_bootstrap"
+      ],
+      "title": "LaunchCommand",
+      "type": "object"
+    },
+    "Pin": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "digest"
+      ],
+      "title": "Pin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/LaunchProfile/3",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "client": {
+      "$ref": "#/$defs/LaunchCommand"
+    },
+    "server": {
+      "$ref": "#/$defs/LaunchCommand"
+    },
+    "client_software": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Client Software",
+      "type": "string"
+    },
+    "backend": {
+      "const": "forge_client",
+      "title": "Backend",
+      "type": "string"
+    },
+    "host": {
+      "const": "127.0.0.1",
+      "title": "Host",
+      "type": "string"
+    },
+    "port": {
+      "maximum": 65535,
+      "minimum": 1024,
+      "title": "Port",
+      "type": "integer"
+    },
+    "update_policy": {
+      "const": "sealed-local-bytes/no-installer/1",
+      "title": "Update Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "client",
+    "server",
+    "client_software",
+    "backend",
+    "host",
+    "port",
+    "update_policy"
+  ],
+  "title": "E9ELaunchProfile",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

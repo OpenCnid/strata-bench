@@ -324,3 +324,24 @@ This does not qualify full joint gameplay: connect the existing native runner
 and inventory-bound capture, then collect the changed-profile evidence. The
 existing development execution/recovery remains narrower. [Actual seal/import,
 source checks and retained failures](../verification/2026-09-22-vanilla-packlock.md).
+
+
+The installed E9E candidate uses private `LaunchProfile/3`, backend `forge_client`,
+a CAS `client_software` receipt, fixed loopback `host`/`port`, and the same
+`sealed-local-bytes/no-installer/1` policy. Java paths are role-relative
+`java/bin/java.exe`; client arguments are produced by `pack_forge.client_template`
+and retain only role-root, bridge and authentication placeholders. Sealing
+validates the exact template, inventory/software correspondence, native module,
+server settings and installed Forge server arguments before the existing thirteen
+checks. Never include credentials or a prior session's argument file in a profile.
+
+After actual sealing/materialization, `resolve_pack_launch(..., role="client",
+forge_invocation=...)` accepts exactly `arguments_path`, `arguments_sha256`,
+`bridge_directory`, `player_name` and compact lowercase `player_uuid`. The
+protected argument file must match the resolved template and authenticated body;
+the bridge directory must be empty and separate from installation/store/checkout.
+Resolution is read-only and returns only the argument-file reference/hash. The
+caller must still authenticate/check lifetime, hold bytes, bind telemetry and the
+process guardian, and own execution/stop. There is no new execution CLI or claim
+that this preflight provides those guarantees. Legacy profiles are unchanged.
+[Executed candidate check, synthetic integration and remaining admission](../verification/2026-09-24-e9e-launch-profile.md).

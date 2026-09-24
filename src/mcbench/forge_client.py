@@ -24,6 +24,7 @@ LOADER_LIBRARIES = [f"net.minecraftforge:{name}:{FORGE}" for name in
                     ("fmlcore", "javafmllanguage", "lowcodelanguage", "mclanguage")]
 LOADER_LIBRARIES.append(f"net.minecraftforge:forge:{FORGE}:universal")
 LAUNCH_POLICY = "e9e1270-installed-client-config/1"
+ROLE_ROOT = "{strata.role_root}"
 
 
 def launch_arguments(root: Path, software, *, server_port: int):
@@ -51,11 +52,28 @@ def launch_arguments(root: Path, software, *, server_port: int):
         path = root / relative
         require(file_hash(path) == row["digest"] and path.stat().st_size == row["bytes"]
                 and path.stat().st_nlink == 1, "FORGE_CLIENT_SOFTWARE_MISMATCH")
-    metadata_path = root / f"versions/{VERSION}/{VERSION}.json"
-    raw = read_input(metadata_path, 1024**2)
-    require(hashlib.sha256(raw).hexdigest() == LAUNCHER_SHA256, "FORGE_LAUNCHER_METADATA_MISMATCH")
-    metadata = strict_json(raw)
-    vanilla, _ = _libraries(strict_json(read_input(root / "versions/1.19.2/1.19.2.json", 1024**2)))
+    reject_links(root / "natives")
+    require((root / "natives").is_dir(), "FORGE_CLIENT_NATIVES")
+    return _arguments(root, software,
+        read_input(root / f"versions/{VERSION}/{VERSION}.json", 1024**2),
+        read_input(root / "versions/1.19.2/1.19.2.json", 1024**2), server_port=server_port)
+
+
+def argument_template(software, launcher_raw, vanilla_raw, *, server_port):
+    """Credential-free, relocatable form; caller binds all input bytes to CAS."""
+    return _arguments(Path(ROLE_ROOT), software, launcher_raw, vanilla_raw, server_port=server_port)
+
+
+def _arguments(root, software, launcher_raw, vanilla_raw, *, server_port):
+    require(type(server_port) is int and 1024 <= server_port <= 65535, "FORGE_CLIENT_PORT")
+    require(software.get("schema") == "strata/ForgeClientSoftware/1"
+            and software.get("policy") == POLICY
+            and software.get("launcher_metadata_sha256") == LAUNCHER_SHA256,
+            "FORGE_CLIENT_SOFTWARE_MISMATCH")
+    require(hashlib.sha256(launcher_raw).hexdigest() == LAUNCHER_SHA256, "FORGE_LAUNCHER_METADATA_MISMATCH")
+    metadata = strict_json(launcher_raw)
+    vanilla, _ = _libraries(strict_json(vanilla_raw))
+    seen = {row["path"].casefold() for row in software["files"]}
     # Re-derive ordering from pinned metadata; a reordered receipt is not a
     # license to change class resolution or select a different native library.
     def identity(name):
@@ -74,8 +92,6 @@ def launch_arguments(root: Path, software, *, server_port: int):
                 "java/bin/java.exe", "assets/log_configs/client-1.12.xml",
                 "versions/1.19.2/1.19.2.json", f"versions/{VERSION}/{VERSION}.json"
             ]) <= seen, "FORGE_RUNTIME_INVENTORY_MISMATCH")
-    reject_links(root / "natives")
-    require((root / "natives").is_dir(), "FORGE_CLIENT_NATIVES")
     substitutions = {"${library_directory}": str(root / "libraries"), "${classpath_separator}": ";",
                      "${version_name}": VERSION}
     resolved = []

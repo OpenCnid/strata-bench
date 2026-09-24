@@ -15,7 +15,7 @@ from typing import Literal
 from .contracts import Digest, Id, Ref, Strict
 from .inventory import file_hash, inventory_directories, scan_layout, template_path
 from .pack_policies import reviewed_vendor_paths
-from .provisioning import TARGETS, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
+from .provisioning import TARGETS, E9ELaunchProfile, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
 from .storage import CAS, Principal, canonical, digest, reject_links, require
 
@@ -66,7 +66,8 @@ def _absolute(value):
     return path
 
 
-def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False, worker_invocation=None):
+def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False, worker_invocation=None,
+                        forge_invocation=None):
     """Resolve an exact sealed command without creating/migrating a store.
 
 The caller must keep the binding private and enforce its own process, input,
@@ -92,11 +93,14 @@ credential, runtime dependency and mutable-world boundaries.
         cas = CAS(SimpleNamespace(connection=connection), objects)
         principal, namespace = Principal("pack-launch", "operator"), "pack:" + binding.request_id
 
-        def read(ref):
+        def read_bytes(ref):
             metadata = connection.execute("SELECT visibility FROM objects WHERE namespace=? AND ref=?",
                                           (namespace, ref)).fetchone()
             require(metadata is not None and metadata[0] == "operator", "FORBIDDEN")
-            return json.loads(cas.read(principal, namespace, ref, max_bytes=64 * 1024**2))
+            return cas.read(principal, namespace, ref, max_bytes=64 * 1024**2)
+
+        def read(ref):
+            return json.loads(read_bytes(ref))
 
         lock = PackLock.model_validate(read(binding.lock))
         require(lock.status == "sealed" and lock.lock_id == binding.request_id
@@ -117,8 +121,14 @@ credential, runtime dependency and mutable-world boundaries.
         require(launch.is_example == simulation, "EXAMPLE_NOT_EXECUTABLE")
         require(worker_invocation is None or role == "client" and isinstance(launch, VanillaLaunchProfile),
                 "WORKER_INVOCATION_UNSUPPORTED")
+        require(forge_invocation is None or role == "client" and isinstance(launch, E9ELaunchProfile),
+                "FORGE_INVOCATION_UNSUPPORTED")
         if isinstance(launch, VanillaLaunchProfile):
             require(row["target"] == "vanilla", "RELEASE_MISMATCH")
+        if isinstance(launch, E9ELaunchProfile):
+            from .pack_forge import validate_forge_profile
+            require(row["target"] == "e9e", "RELEASE_MISMATCH")
+            validate_forge_profile(launch, inventory, read_bytes, java=lock.java)
         command = getattr(launch, role).model_copy(deep=True)
         read(command.reviewed_bootstrap)
         target = row["target"]
@@ -159,12 +169,14 @@ credential, runtime dependency and mutable-world boundaries.
                 else template_path(command.working_directory))
     working_directory = instance / role / relative
     require(working_directory.is_dir(), "AWAITING_ARTIFACT")
-    executable = _absolute(command.executable_path)
+    executable = _absolute(str(instance / role / command.executable_path)
+                           if isinstance(launch, E9ELaunchProfile) else command.executable_path)
     require(executable.stat().st_nlink == 1 and file_hash(executable) == command.executable.digest,
             "HASH_MISMATCH")
     require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
     validate_launch_environment(command.environment)
     command.working_directory = str(working_directory)
+    command.executable_path = str(executable)
     result = {"schema": "strata/ResolvedPackLaunch/1", "is_example": simulation,
             "request_id": binding.request_id, "lock": binding.lock, "target": target,
             "inventory_digest": lock.installed_root_digest, "launch_profile": lock.launch_profile,
@@ -176,4 +188,7 @@ credential, runtime dependency and mutable-world boundaries.
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
         from .pack_worker import resolve_worker_invocation
         result.update(resolve_worker_invocation(launch, worker_invocation, binding))
+    if isinstance(launch, E9ELaunchProfile) and role == "client":
+        from .pack_forge import resolve_forge_invocation
+        result.update(resolve_forge_invocation(launch, forge_invocation, binding, command))
     return result

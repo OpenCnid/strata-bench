@@ -6242,3 +6242,12 @@ D17, D18/D19, old holds and consumed jobs remain. The next fresh-session action 
 exact-profile six-outcome assembly and child dispositions, starting with the
 changed worker's cancellation lineage. Do not rerun the paid pilot or expand
 unrelated M1–M7 work. [Full checkpoint, pins and verification](docs/verification/2026-09-24-session-handoff.md).
+
+### 2026-09-24 — PR binding for the requested stopping checkpoint
+
+[PR #7](https://github.com/OpenCnid/strata-bench/pull/7) contains the60 accumulated
+implementation commits and documentation/test-fixture commit `5ec6749`, plus
+this handoff binding. GitHub reports MERGEABLE/CLEAN with no hosted status checks.
+The user authorized merging to main; verify the actual PR merge and fetched
+ancestry before fresh implementation. The merge preserves history and does not
+change M0 in_progress/G0 fail, the original allowance or the M1–M7 roadmap.

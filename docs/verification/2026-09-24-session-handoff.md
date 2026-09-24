@@ -151,10 +151,14 @@ Python's174 skips remain unrun optional integration cases in this merge check;
 they do not become game or isolation passes. Local logs/procedures are retained
 under `C:/Users/Darian/.strata/evidence/2026-09-24-session-checkpoint-01`.
 
-The PR includes the60 accumulated implementation commits after main's earlier
-`f3b009e` checkpoint, plus this documentation/test-fixture follow-up. PR identity
-is recorded below before merge; hosted checks and actual merged ancestry must
-be verified separately from these local results.
+[PR #7 — Checkpoint M0 LLM gameplay and September 24 handoff](https://github.com/OpenCnid/strata-bench/pull/7)
+includes the60 accumulated implementation commits after main's earlier `f3b009e`
+checkpoint, documentation/test-fixture commit `5ec6749` and this PR-binding
+follow-up. GitHub reported MERGEABLE/CLEAN with no hosted status checks at PR
+creation. The requested merge preserves commit history. The PR's merged state
+and fetched origin/main ancestry are the authoritative merge receipt; verify
+that main contains both `b31d184` and `5ec6749` on resume. These local checks do
+not become hosted CI or G0 passes.
 
 On the next implementation request, fetch origin/main, verify the merged PR and
 actual private authority/process state, then start a fresh branch from updated

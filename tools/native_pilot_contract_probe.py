@@ -5,8 +5,23 @@ import json
 from mcbench.native_piloting import GAME_CONTRACT_PATH, PURPOSE, game_contract
 from mcbench.storage import Principal, require
 
+HELPER_NAME = "/root/pilot_review"
+HELPER_REPLY = "STRATA_SYNTHETIC_HELPER_REVIEW_79c2"
 
-def response(agent, step, operation):
+
+def response(agent, step, operation, *, helper=False, child_done=False):
+    if helper and (agent != "/root" or step >= 2):
+        require((agent == HELPER_NAME and step == 0) or (agent == "/root" and 2 <= step <= 8),
+                "PILOT_CONTRACT_FIXTURE_SEQUENCE")
+        if agent == HELPER_NAME or step >= 4 and child_done:
+            return {"id": "message-"+operation, "type": "message", "role": "assistant", "status": "completed",
+                "content": [{"type": "output_text", "text": HELPER_REPLY if agent == HELPER_NAME else
+                             "Synthetic public contract and helper check finished.", "annotations": []}]}
+        name, arguments = ("spawn_agent", {"task_name": "pilot_review", "fork_turns": "none",
+            "message": "Return the fixed synthetic review marker " + HELPER_REPLY + ". Do not call tools or helpers."}) if step == 2 else (
+                "wait_agent", {"timeout_ms": 10000})
+        return {"id": "tool-"+operation, "type": "function_call", "call_id": "call-"+operation,
+                "namespace": "collaboration", "name": name, "arguments": json.dumps(arguments)}
     require(agent == "/root" and 0 <= step <= 2, "PILOT_CONTRACT_FIXTURE_SEQUENCE")
     if step == 2:
         return {"id": "message-" + operation, "type": "message", "role": "assistant",
@@ -68,7 +83,7 @@ text("PUBLIC_GAME_PAGE_ROUNDTRIP_PASS");'''
             "namespace": "functions", "name": "exec", "input": code}
 
 
-def report(db, cas, plan, result, provider, worker_calls):
+def report(db, cas, plan, result, provider, worker_calls, *, helper=False):
     files = list(db.connection.execute("SELECT namespace,ref,immutable FROM broker_files WHERE path=?",
                                       (GAME_CONTRACT_PATH,)))
     read_events = [json.loads(r[0]) for r in db.connection.execute(
@@ -101,4 +116,26 @@ def report(db, cas, plan, result, provider, worker_calls):
         zero_helpers=plan.purpose == PURPOSE and plan.helper_limit == 0 and
             len(result["participants"]) == 1 and result["participants"][0]["depth"] == 0,
         three_settled_fixture_requests=not provider.errors and len(provider.requests) == 3)
+    if helper:
+        checks.pop("zero_helpers")
+        checks.pop("three_settled_fixture_requests")
+        participants = result["participants"]
+        admissions = result["admissions"]
+        children = [p for p in participants if p["depth"] == 1]
+        checks.update(one_clean_helper=plan.helper_limit == 1 and len(participants) == 2 and len(children) == 1 and
+            children[0]["name"] == HELPER_NAME and children[0]["state"] == "CLOSED",
+            one_helper_request=provider.steps.get(HELPER_NAME) == 1 and not provider.errors,
+            helper_receipt_accounted=bool(children) and sum(a["thread"] == children[0]["thread"] for a in admissions) == 1,
+            both_tool_projections_checked=original["both_projection_roles_checked"],
+            bounded_root_helper_overlap=provider.helper_overlap,
+            helper_result_delivered=HELPER_REPLY in json.dumps(provider.helper_deliveries))
+        result["helper_deliveries"] = provider.helper_deliveries
+        from native_pilot_report import helper_checks
+        root = next(p for p in participants if p["depth"] == 0)
+        reader_checks, evidence = helper_checks(db.connection, cas, plan,
+            [{"thread": row[0]} for row in db.connection.execute(
+                "SELECT thread FROM broker_game_calls WHERE runtime=?", (plan.job_id,))])
+        require(root["name"] == "/root", "PILOT_CONTRACT_FIXTURE_SEQUENCE")
+        checks.update({"reader_"+key: value for key, value in reader_checks.items()})
+        result["helper_reader_evidence"] = evidence
     return checks

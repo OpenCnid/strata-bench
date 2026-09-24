@@ -125,7 +125,8 @@ def run_plan(plan, resources, runtime=None):
         # preparing Java/worker resources. MODEL is only the scripted fixture.
         retention.check_identity(model=pilot_admission["model"] if pilot else "gpt-6-luna" if failure else MODEL,
             dovetail_commit=DOVETAIL_COMMIT, binary_digest=BINARY_SHA256,
-            binary_version=CODEX_VERSION, helper_limit=0 if pilot or failure else 2)
+            binary_version=CODEX_VERSION,
+            helper_limit=(pilot_admission["budget_decision"] or {}).get("helper_limit", 0) if pilot else 0 if failure else 2)
     if version in {"strata/M0NativeGameRecovery/1", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}:
         from native_game_recovery import GameRecovery
         private(plan["recovery_source"]["bundle"])
@@ -207,7 +208,7 @@ def run_plan(plan, resources, runtime=None):
             and worker_config["server_kind"] == "vanilla" and worker_config["host"] == "127.0.0.1",
             "M0_PROFILE_UNSUPPORTED")
     pilot_duration = (pilot_admission["budget_decision"] or {}).get("hard_timeout_s", 90) if pilot else 90
-    require((worker_config["max_wall_ms"] == 360000 if pilot_duration == 180 else
+    require((worker_config["max_wall_ms"] == 360000 if pilot_duration in {180, 240} else
              150000 <= worker_config["max_wall_ms"] <= 240000) and
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")

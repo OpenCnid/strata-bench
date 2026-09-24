@@ -71,6 +71,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
     directory = directory.resolve()
     result = json.loads((directory / "result.json").read_bytes())
     manifest = json.loads((directory / "manifest.json").read_bytes())
+    helper = plan is not None and plan.helper_limit == 1
     required = {"root_and_helper_exact_skill_read", "gateway_all_requests_settled_and_fenced",
                 "native_oauth_headers_all_requests", "oauth_secrets_absent_from_context_and_journal",
                 "exact_root_helper_tool_catalogs", "no_unauthorized_loopback", "private_file_not_in_requests",
@@ -80,7 +81,14 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
                     "gateway_all_requests_settled_and_fenced", "native_oauth_headers_all_requests",
                     "oauth_secrets_absent_from_context_and_journal", "every_request_projection_checked",
                     "native_completed", "zero_helpers", "three_settled_fixture_requests", "observation_page_forwarded"}
-        require(result.get("scope") == "development_piloting_public_contract" and
+        if helper:
+            required -= {"zero_helpers", "three_settled_fixture_requests"}
+            required |= {"one_clean_helper", "one_helper_request", "helper_receipt_accounted",
+                         "both_tool_projections_checked", "helper_result_delivered", "bounded_root_helper_overlap",
+                         "reader_one_clean_helper", "reader_helper_request_settled", "reader_helper_envelope_closed",
+                         "reader_helper_reply_delivered", "reader_root_only_game_calls"}
+        require(result.get("scope") == ("development_piloting_helper_contract" if helper else
+                                        "development_piloting_public_contract") and
                 result.get("isolation_qualified") is False, "PREFLIGHT_SCOPE_MISMATCH")
     require(result.get("is_example") is True and result.get("production_qualified") is False and
             required <= set(result.get("checks", {})) and all(result["checks"].values()) and
@@ -104,7 +112,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
         db.close()
     from mcbench.native_tool_projection import read_tool_projection
     if piloting:
-        require(source.purpose == "development_piloting" and source.helper_limit == 0,
+        require(source.purpose == "development_piloting" and source.helper_limit == plan.helper_limit,
                 "PREFLIGHT_SCOPE_MISMATCH")
     require(result.get("tool_projection", {}).get("expected") == {
         role: digest(blocks) for role, blocks in read_tool_projection(cas, plan).items()},
@@ -126,7 +134,8 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
             "config_contract_digest": digest(normalized_config(plan)),
             "source_manifest": manifest, "observed_result": result,
             "scope": "development_piloting" if piloting else "first_receipt_conformance", "full_T06_qualified": False,
-            "declared_changes": ["fresh private paths and transport capability", "helper limit reduced to zero",
+            "declared_changes": ["fresh private paths and transport capability",
+                                 "one clean-context helper retained" if piloting and plan.helper_limit == 1 else "helper limit reduced to zero",
                                  "scoped real worker grant" if piloting else "worker grant removed",
                                  "provider changes from fixture to fixed OpenAI TLS"]}
 
@@ -239,13 +248,16 @@ def run_native_trial(args, *, pilot=None):
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": job, "profile_digest": "a" * 64, "pricing_ref": pricing, "exposure": exposure,
             "transport_qualification_ref": None, "authorization_id": args.authorization,
-            "max_requests": calls, "max_handlers": 1, "skill_corpus_ref": corpus_ref,
+            "max_requests": calls,
+            "max_handlers": 2 if pilot and (pilot.get("budget_decision") or {}).get("helper_limit") == 1 else 1,
+            "skill_corpus_ref": corpus_ref,
             "request_timeout_s": 60 if pilot else 30})
         account, campaign = job + ":account", "oauth-receipt-d12" if trial else "oauth-first-receipt"
         plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": job,
             "campaign_id": campaign, "agent_id": "a1", "epoch": 1, "role": "executor",
             "purpose": native_piloting.PURPOSE if pilot else "conformance",
-            "parent_job_id": None, "depth": 0, "helper_limit": 0,
+            "parent_job_id": None, "depth": 0,
+            "helper_limit": (pilot.get("budget_decision") or {}).get("helper_limit", 0) if pilot else 0,
             "account": account, "operation_id": job + ":envelope", "workspace": str(workspace),
             "profile_directory": str(profile), "executable": str(args.codex),
             "binary_digest": CODEX_BINARY_SHA256, "binary_version": CODEX_VERSION,
@@ -262,10 +274,10 @@ def run_native_trial(args, *, pilot=None):
         if pilot:
             scope = {k: pilot["descriptor"][k] for k in ("campaign_id", "agent_id", "epoch")}
             plan = plan.model_copy(update=scope | {"prompt": native_piloting.prompt(
-                scope, pilot["lease_id"], calls, plan.hard_timeout_s)})
+                scope, pilot["lease_id"], calls, plan.hard_timeout_s, helper_limit=plan.helper_limit)})
             campaign = plan.campaign_id
         plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
-            cas, plan, json.loads(args.tool_projections.read_bytes()))})
+            cas, plan, json.loads(args.tool_projections.read_bytes()), helper_collaboration=plan.helper_limit == 1)})
         gateway_config.profile_digest = plan.profile_digest()
         if pilot:
             native_piloting.require_profile(plan, gateway_config, pilot["lease_id"])
@@ -370,7 +382,7 @@ def run_native_trial(args, *, pilot=None):
             (output / "pilot-budget.json").write_bytes(canonical(record))
         (output / "admission.json").write_bytes(canonical({"profile_digest": plan.profile_digest(),
             "maximum_microusd": job_amount, "transfer_ref": transfer_ref, "permit_ref": gateway_config.transport_qualification_ref,
-            "no_game_grant": not bool(pilot), "helper_limit": 0, "max_requests": calls, "production_qualified": False,
+            "no_game_grant": not bool(pilot), "helper_limit": plan.helper_limit, "max_requests": calls, "production_qualified": False,
             **({"isolation_qualified": False, "scope_decision": "D14"} if pilot else {})}))
         if worker:
             worker.bind(plan)

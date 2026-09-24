@@ -69,7 +69,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90):
+        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
+        pilot_helper=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -94,7 +95,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
-    require(pilot_timeout_s == 90 or piloting_contract and pilot_timeout_s == 180,
+    require(not pilot_helper or piloting_contract and pilot_timeout_s == 240 and model == "gpt-6-luna",
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
+    require(pilot_timeout_s == 90 or piloting_contract and (pilot_timeout_s == 180 or pilot_helper and pilot_timeout_s == 240),
             "PILOT_CONTRACT_PROFILE_REQUIRED")
     require(not piloting_contract or skills_mode and bootstrap_mode and tool_projections is not None and
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
@@ -151,6 +154,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
+            self.helper_deliveries = []
+            self.helper_started = threading.Event()
+            self.helper_release = threading.Event()
+            self.helper_overlap = False
             self.outputs_by_agent = {}
             self.direct_calls = []
             self.direct_agents = set()
@@ -161,8 +168,21 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         def respond(self, handler, body, index, operation):
             metadata = json.loads(body["client_metadata"]["x-codex-turn-metadata"])
             agent = metadata["agent_name"]
-            require(agent in ({"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
+            if pilot_helper and agent == "/root/pilot_review":
+                self.helper_started.set()
+                require(self.helper_release.wait(20), "PILOT_HELPER_OVERLAP_TIMEOUT")
+            elif pilot_helper and agent == "/root" and self.steps.get(agent, 0) == 3:
+                try:
+                    self.helper_overlap = self.helper_started.wait(20)
+                    require(self.helper_overlap, "PILOT_HELPER_OVERLAP_TIMEOUT")
+                finally:
+                    self.helper_release.set()
+            require(agent in ({"/root", "/root/pilot_review"} if pilot_helper else
+                {"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
                 {"/root", "/root/identity_child"}), "UNEXPECTED_AGENT")
+            if pilot_helper and agent == "/root":
+                self.helper_deliveries.extend(i for i in body.get("input", []) if i.get("type") == "agent_message"
+                    and i.get("author") == "/root/pilot_review" and i.get("recipient") == "/root")
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
             if state_probe:
                 state_probe.observe(agent, body)
@@ -184,7 +204,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "text": "Synthetic identity probe finished.", "annotations": []}]}
             if piloting_contract:
                 from native_pilot_contract_probe import response
-                item = response(agent, step, operation)
+                item = response(agent, step, operation, helper=pilot_helper,
+                                child_done=self.steps.get("/root/pilot_review", 0) == 1)
             elif step == 0:
                 args = {"note": agent}
                 if agent != "/root":
@@ -383,8 +404,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "enforcement_ref": "cas:sha256:" + "a" * 64})
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": "root", "profile_digest": "a" * 64, "pricing_ref": price, "exposure": exposure,
-            "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 4,
-            "max_requests": 12, "request_timeout_s": 60 if piloting_contract else 30})
+            "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 1 if pilot_helper else 4,
+            "max_requests": 16 if pilot_helper else 12, "max_handlers": 2 if pilot_helper else 4,
+            "request_timeout_s": 60 if piloting_contract else 30})
     worker_calls = []
     worker = None
     if broker_mode and game_probe is None:
@@ -496,7 +518,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "helper_limit": 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
             "purpose": "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
@@ -504,14 +526,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
             "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
-                       if piloting_contract else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
+                       if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
+                       if pilot_helper else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
                        "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
-                cas, plan, tool_projections)})
+                cas, plan, tool_projections, helper_collaboration=pilot_helper)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -815,8 +838,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
     if piloting_contract:
         from native_pilot_contract_probe import report
-        result["checks"] = report(db, cas, plan, result, provider, worker_calls)
-        result["scope"] = "development_piloting_public_contract"
+        result["checks"] = report(db, cas, plan, result, provider, worker_calls, helper=pilot_helper)
+        result["scope"] = "development_piloting_helper_contract" if pilot_helper else "development_piloting_public_contract"
         result["isolation_qualified"] = False
     if game_failure:
         result["failure_control"] = game_probe.failure_report(db, cas, plan, provider, result)

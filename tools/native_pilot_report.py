@@ -6,7 +6,67 @@ import math
 from mcbench.broker import inspect_game_requests
 from mcbench.contracts import ActionAck, Observation
 from mcbench.native_gateway import GatewayConfig, require_gateway
-from mcbench.storage import Fault, Principal, canonical
+from mcbench.storage import Fault, Principal, canonical, digest
+
+
+def delivered_helper_reply(item, helper_name):
+    if (item.get("type") != "agent_message" or item.get("author") != helper_name or
+            item.get("recipient") != "/root"):
+        return False
+    prefix = f"Message Type: FINAL_ANSWER\nTask name: /root\nSender: {helper_name}\nPayload:\n"
+    parts = item.get("content", [])
+    if not isinstance(parts, list) or not parts or not isinstance(parts[0], dict):
+        return False
+    text = parts[0].get("text")
+    if parts[0].get("type") != "input_text" or not isinstance(text, str):
+        return False
+    if len(parts) == 1:
+        return text.startswith(prefix) and bool(text[len(prefix):].strip())
+    return (len(parts) == 2 and text == prefix and isinstance(parts[1], dict) and
+            parts[1].get("type") in {"input_text", "encrypted_content"} and
+            isinstance(parts[1].get("text") or parts[1].get("encrypted_content"), str) and
+            bool((parts[1].get("text") or parts[1].get("encrypted_content")).strip()))
+
+
+def helper_checks(db, cas, plan, calls):
+    """Join the actual child admission, settled leaf and delivered native message.
+
+    An empty helper slot or a root-written summary cannot satisfy this case.
+    This verifies the pinned native delivery, not correctness of the advice.
+    """
+    checks = dict.fromkeys(("one_clean_helper", "helper_request_settled", "helper_envelope_closed",
+                           "helper_reply_delivered", "root_only_game_calls"), False)
+    evidence = {"deliveries": []}
+    participants = [dict(r) for r in db.execute("SELECT * FROM native_participants WHERE job=?", (plan.job_id,))]
+    roots = [p for p in participants if p["depth"] == 0]
+    children = [p for p in participants if p["depth"] == 1]
+    if len(participants) != 2 or len(roots) != 1 or len(children) != 1:
+        return checks, evidence
+    root, child = roots[0], children[0]
+    checks["one_clean_helper"] = (root["name"] == "/root" and child["parent"] == root["thread"] and
+        child["name"].rsplit("/", 1)[0] == "/root" and root["state"] == child["state"] == "CLOSED")
+    evidence.update(root_thread=root["thread"], helper_thread=child["thread"], helper_name=child["name"],
+                    helper_initial_context=child["initial_context"], helper_envelope=child["envelope"])
+    checks["root_only_game_calls"] = bool(calls) and all(c["thread"] == root["thread"] for c in calls)
+    rows = list(db.execute("SELECT a.rowid ordinal,a.*,i.state,i.receipt_digest FROM native_request_admissions a "
+        "JOIN inference_attempts i ON i.operation=a.operation WHERE a.job=? AND a.thread=?",
+        (plan.job_id, child["thread"])))
+    checks["helper_request_settled"] = len(rows) == 1 and rows[0]["state"] == "SETTLED" and bool(rows[0]["receipt_digest"])
+    envelope = db.execute("SELECT actual,uncertain,parent,kind FROM operations WHERE id=? AND account=?",
+                          (child["envelope"], plan.account)).fetchone()
+    checks["helper_envelope_closed"] = (envelope is not None and envelope[0] is not None and not envelope[1] and
+        envelope[2] == root["envelope"] == plan.operation_id and envelope[3] == "helper" and
+        all(v == 0 for v in json.loads(envelope[0]).values()))
+    if checks["helper_request_settled"]:
+        evidence["helper_operation"] = rows[0]["operation"]
+        for request in db.execute("SELECT rowid ordinal,raw_ref FROM native_request_admissions "
+                                  "WHERE job=? AND thread=? AND rowid>?", (plan.job_id, root["thread"], rows[0]["ordinal"])):
+            body = cas.json(Principal("operator", "operator"), "operator", request["raw_ref"])
+            for item in body.get("input", []):
+                if delivered_helper_reply(item, child["name"]):
+                    evidence["deliveries"].append({"raw_ref": request["raw_ref"], "message_digest": digest(item)})
+        checks["helper_reply_delivered"] = bool(evidence["deliveries"])
+    return checks, evidence
 
 
 def movement_checks(calls):
@@ -108,6 +168,10 @@ def record_outcome(gate, plan, seal_ref):
         one_executor=len({c["thread"] for c in calls}) == 1,
         native_completed=native is not None and tuple(native) == ("FINALIZED", 0, "native_exit"),
         worker_lane_stopped=stopped is not None and stopped[0] == "STOPPED")
+    helper_evidence = None
+    if plan.helper_limit == 1:
+        extra, helper_evidence = helper_checks(db, gate.cas, plan, calls)
+        checks.update(extra)
     result = {"schema": "strata/NativePilotResult/1", "is_example": gate.simulation,
         "job_id": plan.job_id, "profile_digest": plan.profile_digest(), "scope_decision": "D14",
         "production_qualified": False, "isolation_qualified": False, "G0": "fail",
@@ -115,5 +179,7 @@ def record_outcome(gate, plan, seal_ref):
         "receipt_result": "pass" if all(checks.values()) else "fail", "checks": checks,
         "changes": changes, "game_calls": calls, "attempts": attempts, "valuations": valuations,
         "seal_ref": seal_ref}
+    if helper_evidence is not None:
+        result.update(schema="strata/NativePilotResult/2", helper_evidence=helper_evidence)
     ref = gate.cas.put(Principal("operator", "operator"), "operator", "operator", canonical(result))
     return ref, result

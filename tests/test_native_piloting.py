@@ -275,7 +275,7 @@ def test_native_error_or_timeout_cannot_be_reported_as_clean_completion(database
     db.execute("CREATE TABLE inference_valuations(operation TEXT,body TEXT)")
     db.execute("CREATE TABLE native_worker_bindings(job TEXT,state TEXT)")
     gate = SimpleNamespace(db=database, cas=cas, simulation=True)
-    plan = SimpleNamespace(job_id="pilot", profile_digest=lambda: "a"*64)
+    plan = SimpleNamespace(job_id="pilot", helper_limit=0, profile_digest=lambda: "a"*64)
     _, report = record_outcome(gate, plan, None)
     assert report["checks"]["native_completed"] is completed
     assert report["receipt_result"] == "fail" and not report["isolation_qualified"]

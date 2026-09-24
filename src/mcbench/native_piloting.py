@@ -22,6 +22,7 @@ SESSION_LIMITS = {90, 180}
 MAX_SPEND = 1_000_000
 PRECHECKS = {"scoped_native_tools", "all_request_reservations", "finite_exposure", "verified_tls"}
 GAME_CONTRACT_PATH = "initial/game/contract.json"
+HELPER_REQUESTS, HELPER_TIMEOUT_S = 16, 240
 
 
 def game_contract():
@@ -104,10 +105,22 @@ def game_contract():
         ]}).decode()
 
 
-def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90):
+def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90, *, helper_limit=0):
+    if helper_limit == 1:
+        require(max_requests == HELPER_REQUESTS and hard_timeout_s == HELPER_TIMEOUT_S, "PILOT_SCOPE")
+        base = prompt(scope, lease_id, 12, 180)
+        return base.replace("No helpers. At most two act calls.",
+            "After verifying the actions, use spawn_agent once with fork_turns=none for one independent "
+            "review of your public before/after observations and terminal receipts. Pass only those public "
+            "facts and ask the helper to assess whether they support your movement claims and identify "
+            "any uncertainty. Require a single final text reply with no tools, files, further helpers or "
+            "game access. Keep its task self-contained. The helper has one model response; wait for its "
+            "completion and include its assessment in your final answer. Only you control the avatar. "
+            "At most two act calls.").replace("at most 12 model requests and 180 seconds",
+                "at most 16 combined root/helper model requests and 240 seconds")
     require(set(scope) == {"campaign_id", "agent_id", "epoch"} and
             isinstance(lease_id, str) and 0 < len(lease_id) <= 128 and max_requests in REQUEST_LIMITS and
-            hard_timeout_s in SESSION_LIMITS, "PILOT_SCOPE")
+            hard_timeout_s in SESSION_LIMITS and helper_limit == 0, "PILOT_SCOPE")
     return (
         "Pilot this Minecraft avatar using the scoped game tool. First read " + GAME_CONTRACT_PATH +
         " through strata_broker.artifact_read; it documents the exact request envelope and action schema. "
@@ -144,15 +157,20 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90):
 
 def require_profile(plan, config, lease_id):
     scope = {k: getattr(plan, k) for k in ("campaign_id", "agent_id", "epoch")}
+    helper = plan.helper_limit == 1
+    bounded = ((config.max_requests == HELPER_REQUESTS and plan.hard_timeout_s == HELPER_TIMEOUT_S and
+                plan.model == "gpt-6-luna") if helper else
+               (plan.helper_limit == 0 and config.max_requests in REQUEST_LIMITS and
+                (plan.hard_timeout_s <= 90 or plan.hard_timeout_s == 180)))
     require(plan.purpose == PURPOSE and plan.role == "executor" and plan.depth == 0 and
-            plan.parent_job_id is None and plan.helper_limit == 0 and
-            plan.prompt == prompt(scope, lease_id, config.max_requests, max(90, plan.hard_timeout_s)) and
+            plan.parent_job_id is None and bounded and
+            plan.prompt == prompt(scope, lease_id, config.max_requests, max(90, plan.hard_timeout_s),
+                                  helper_limit=plan.helper_limit) and
             plan.budget_mode == "per_dispatch" and plan.auth_mode == "chatgpt_oauth" and
             plan.provider == "openai" and plan.model in {"gpt-5.6-luna", "gpt-6-luna"} and
-            (plan.hard_timeout_s <= 90 or plan.hard_timeout_s == 180) and
             plan.bootstrap_digest is not None and plan.ingress_policy is not None and
             plan.config_overrides.get("developer_instructions") == INSTRUCTIONS and
-            config.max_requests in REQUEST_LIMITS and config.max_handlers == 1 and
+            config.max_handlers == (2 if helper else 1) and
             config.helper_calls_bound == 1 and config.skill_corpus_ref is not None and
             config.authorization_id is not None and config.job_id == plan.job_id and
             config.profile_digest == plan.profile_digest() and
@@ -225,8 +243,15 @@ def require_permit_for_request(gate, proof, credentials, attempt, reserve):
     plan = NativeLaunch.model_validate_json(row[0])
     config = GatewayConfig.model_validate_json(require_gateway(gate.db.connection, plan, "OPEN")["config"])
     validate_permit(gate, proof, plan, config, account_digest=credentials.account_digest)
-    require(credentials.path == "/v1/responses" and reserve.parent_operation_id == plan.operation_id and
-            reserve.kind == "model" and reserve.campaign_account == "development" and
+    parent, kind = plan.operation_id, "model"
+    if reserve.kind == "helper" and plan.helper_limit == 1:
+        participant = gate.db.connection.execute("SELECT p.envelope,p.depth,p.state FROM native_participants p "
+            "JOIN native_request_admissions a ON a.job=p.job AND a.thread=p.thread "
+            "WHERE a.operation=? AND a.job=? AND a.account=?", (reserve.operation_id, plan.job_id, plan.account)).fetchone()
+        require(participant is not None and participant[1] == 1 and participant[2] == "ACTIVE", "PILOT_UNADMITTED")
+        parent, kind = participant[0], "helper"
+    require(credentials.path == "/v1/responses" and reserve.parent_operation_id == parent and
+            reserve.kind == kind and reserve.campaign_account == "development" and
             attempt.runtime_job_id == plan.job_id, "PILOT_UNADMITTED")
     requests = list(gate.db.connection.execute("SELECT operation FROM native_gateway_requests WHERE job=?",
                                               (plan.job_id,)))

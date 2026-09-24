@@ -25,6 +25,7 @@ DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 76328
              "D18.4": (AUTHORIZATION + ":m0-pilot-07", 795559)}
 LUNA6_DECISIONS = frozenset(DECISIONS) - {"D15", "D16"}
 CONTINUING_POLICY = "fresh-pilot-retain-all-unknown-holds/2"
+HELPER_POLICY = "fresh-pilot-one-helper-retain-all-unknown-holds/3"
 
 
 def decision_job(decision_id):
@@ -66,11 +67,18 @@ def _continuing_decision(db, decision_id, row, totals):
         "retained_digest": digest(uncertain_rows(db, row["account"])), "user_authorized": True}
 
 
-def decision_body(db, decision_id="D15"):
+def decision_body(db, decision_id="D15", *, helper=False):
     job = decision_job(decision_id)
     row = db.execute("SELECT * FROM execution_authorizations WHERE id=?", (AUTHORIZATION,)).fetchone()
     require(row is not None, "PILOT_DECISION_REQUIRED")
     totals, unknown = Budgets.totals(db, row["account"])
+    if helper:
+        require(decision_id not in DECISIONS and int(decision_id.split(".")[1]) >= 6,
+                "PILOT_HELPER_DECISION")
+        return _continuing_decision(db, decision_id, row, totals) | {
+            "schema": "strata/PilotBudgetDecision/2", "policy": HELPER_POLICY,
+            "helper_limit": 1, "helper_calls_bound": 1, "max_inflight": 2,
+            "max_requests": 16, "hard_timeout_s": 240}
     if decision_id not in DECISIONS:
         return _continuing_decision(db, decision_id, row, totals)
     _, prior = DECISIONS[decision_id]
@@ -96,7 +104,8 @@ def decision_body(db, decision_id="D15"):
 
 
 def check_decision(db, decision):
-    require(isinstance(decision, dict) and decision == decision_body(db, decision.get("decision_id")),
+    require(isinstance(decision, dict) and decision == decision_body(db, decision.get("decision_id"),
+            helper=decision.get("schema") == "strata/PilotBudgetDecision/2"),
             "PILOT_DECISION_REQUIRED")
     if db.execute("SELECT 1 FROM sqlite_master WHERE name='pilot_trials'").fetchone():
         require(db.execute("SELECT 1 FROM pilot_trials WHERE job=?", (decision["job_id"],)).fetchone() is None,
@@ -116,7 +125,8 @@ def install(database, cas, plan, reserve, decision):
         policy = auth.check(AUTHORIZATION, plan.account, plan.provider, plan.auth_mode, plan.model)
         require(plan.job_id == job and plan.account == job + ":account" and
                 plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
-                plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
+                plan.role == "executor" and plan.parent_job_id is None and
+                plan.helper_limit == decision["helper_limit"] and
                 plan.hard_timeout_s <= decision["hard_timeout_s"] and plan.budget_mode == "per_dispatch" and
                 plan.model == ("gpt-5.6-luna" if decision["decision_id"] in {"D15", "D16"} else "gpt-6-luna") and
                 plan.auth_mode == "chatgpt_oauth" and
@@ -139,6 +149,8 @@ def install(database, cas, plan, reserve, decision):
             "profile_digest": plan.profile_digest(), "envelope": plan.operation_id,
             "reserve_digest": digest(reserve.model_dump()), "maximum": vector(reserve),
             "basis_digest": plan.accounting_basis_digest, "expires_unix": time.time() + 600}
+        if decision["policy"] == HELPER_POLICY:
+            body.update(helper_policy=HELPER_POLICY, helper_limit=1, helper_calls_bound=1, max_inflight=2)
         db.execute("CREATE TABLE IF NOT EXISTS pilot_trials (job TEXT PRIMARY KEY, account TEXT UNIQUE NOT NULL, "
                    "body TEXT NOT NULL, state TEXT NOT NULL, requests INTEGER NOT NULL)")
         db.execute("INSERT INTO pilot_trials VALUES(?,?,?,'READY',0)", (job, plan.account, canonical(body).decode()))
@@ -161,11 +173,14 @@ def admit(db, account, record, *, envelope):
     require(job is not None, "METERING_UNKNOWN")
     plan = NativeLaunch.model_validate_json(job["plan"])
     require(plan.profile_digest() == body["profile_digest"] and plan.account == account and
-            plan.accounting_basis_digest == body["basis_digest"] and record.kind == "model" and
+            plan.accounting_basis_digest == body["basis_digest"] and
             record.model_identity == plan.model, "METERING_UNKNOWN")
     amount = vector(record)
     require(all(amount[k] is not None and 0 <= amount[k] <= bound for k, bound in body["maximum"].items()),
             "METERING_UNKNOWN")
+    if body.get("helper_policy") == HELPER_POLICY:
+        return _admit_with_helper(db, account, record, body, row, job, plan, envelope=envelope)
+    require(record.kind == "model", "METERING_UNKNOWN")
     if envelope:
         require(row["state"] == "READY" and job["state"] == "PREPARED" and
                 record.operation_id == body["envelope"] and record.parent_operation_id is None and
@@ -179,3 +194,46 @@ def admit(db, account, record, *, envelope):
                 all(c[0] is not None for c in children),
                 "METERING_UNKNOWN")
         db.execute("UPDATE pilot_trials SET requests=requests+1 WHERE account=?", (account,))
+
+
+def _admit_with_helper(db, account, record, body, row, job, plan, *, envelope):
+    """One child envelope, one helper request, at most one pending call per role.
+
+    NativeAdmission separately authenticates child context/lineage before this
+    transaction. Do not count envelopes as calls or refund any unknown leaf.
+    """
+    require(plan.helper_limit == body["helper_limit"] == 1 and body["helper_calls_bound"] == 1 and
+            body["max_inflight"] == 2,
+            "METERING_UNKNOWN")
+    root = body["envelope"]
+    if envelope and record.operation_id == root:
+        require(row["state"] == "READY" and job["state"] == "PREPARED" and record.kind == "model" and
+                record.parent_operation_id is None and digest(record.model_dump()) == body["reserve_digest"],
+                "METERING_UNKNOWN")
+        db.execute("UPDATE pilot_trials SET state='ENVELOPE_RESERVED' WHERE account=?", (account,))
+        return
+    require(row["state"] == "ENVELOPE_RESERVED" and job["state"] == "RUNNING", "METERING_UNKNOWN")
+    children = list(db.execute("SELECT o.* FROM operations o JOIN budget_envelopes e ON e.operation=o.id "
+                              "WHERE o.account=? AND o.parent=?", (account, root)))
+    require(len(children) <= 1 and all(c["kind"] == "helper" for c in children), "METERING_UNKNOWN")
+    leaves = list(db.execute("SELECT o.* FROM operations o LEFT JOIN budget_envelopes e ON e.operation=o.id "
+                            "WHERE o.account=? AND e.operation IS NULL", (account,)))
+    require(len(leaves) == row["requests"] < body["maximum"]["model_calls"] and
+            all(not c["uncertain"] for c in leaves), "METERING_UNKNOWN")
+    pending = [c for c in leaves if c["actual"] is None]
+    require(record.usage.model_calls == 1, "METERING_UNKNOWN")
+    if envelope:
+        require(not children and record.kind == "helper" and record.parent_operation_id == root and
+                all(c["kind"] == "model" for c in pending) and len(pending) <= 1 and
+                re.fullmatch(r"child:[a-f0-9]{64}", record.operation_id) is not None, "METERING_UNKNOWN")
+        return  # The enclosing job's ordinary exposure check also bounds this envelope.
+    if record.parent_operation_id == root:
+        require(record.kind == "model", "METERING_UNKNOWN")
+    else:
+        require(len(children) == 1 and record.kind == "helper" and
+                record.parent_operation_id == children[0]["id"] and
+                children[0]["actual"] is None and not children[0]["uncertain"] and
+                not any(c["parent"] == children[0]["id"] for c in leaves), "METERING_UNKNOWN")
+    require(len(pending) < body["max_inflight"] and not any(c["kind"] == record.kind for c in pending),
+            "METERING_UNKNOWN")
+    db.execute("UPDATE pilot_trials SET requests=requests+1 WHERE account=?", (account,))

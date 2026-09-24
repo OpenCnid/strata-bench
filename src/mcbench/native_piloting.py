@@ -42,6 +42,14 @@ def game_contract():
             "Compute it after any earlier awaited calls; never hard-code a timestamp or extend it by minutes.",
             "For act, construct fresh RPC and ActionBatch deadline_at values immediately before dispatch; "
             "the pilot action deadline and duration are at most 2000 ms.",
+            "duration_ms is the maximum execution time, not a requested rotation speed or a hold interval. "
+            "Mineflayer turns smoothly; a shorter duration can cancel a valid turn before it finishes. "
+            "Use duration_ms=2000 and a fresh two-second deadline for this pilot's turn and walk; "
+            "completed actions release immediately rather than waiting out that allowance.",
+            "A timed-out in-flight action releases controls and fences/disconnects this worker because "
+            "the upstream action may finish late. Treat that as terminal for this pilot: do not replay it. "
+            "A disconnected observation can contain an older captured pose; check connected and age_at_send_ms "
+            "before treating it as evidence of an action's effect.",
             "Choose your target from permitted observations. After reasoning, call observe again and submit "
             "the chosen action immediately in the same functions.exec invocation. An observation must be at most "
             "2000 ms old at action acceptance; copying IDs from an earlier model turn usually fails this check.",
@@ -89,7 +97,10 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS):
         "a special landmark is not required. Choose the target coordinates yourself from observations; "
         "do not invent hidden terrain. If no safe walk is available after the turn, stop and explain. "
         "No helpers. At most two act calls. Each action must "
-        "have a deadline and duration no greater than 2000 ms, and release_at_end=true. Use fresh "
+        "have a deadline and duration no greater than 2000 ms, and release_at_end=true. "
+        "Use the full 2000-ms duration allowance for each action; it is an execution timeout, not "
+        "a rotation speed or hold time, and completion releases controls immediately. A shorter allowance "
+        "can cancel smooth rotation and disconnect the worker. Stop if that happens. Use fresh "
         "observation IDs, revisions, capability digest and next sequence for each ActionBatch. "
         "After choosing a target, refresh observe and submit the chosen action in one functions.exec invocation; "
         "observations expire for action acceptance after 2000 ms. Recheck the target against the refreshed state. "

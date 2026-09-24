@@ -359,7 +359,10 @@ Cold-start `/2` accepts `--runtime-data` pointing to the retained preparation
 receipt and holds it and the installed JAR through the owned run. It requires
 both pinned class transformations and all three actual read records. The first
 changed authentic boot **failed** because Forge transformed the class before
-instrumentation; do not accept its observed hash without inspecting the bytes,
-reuse its used instance or treat agent startup as a qualified freeze. Snapshot
+instrumentation. A fresh bounded capture and exact installed EventBus transformer
+reproduction now explain the single access-flag change; only that reviewed hash
+is additionally admitted. Cold-start evidence requires the post-Forge binding.
+Do not reuse a used instance as a fresh baseline or treat agent startup as a qualified freeze. Snapshot
 preparation does not replace other mod-input review or the thirteen provisioning
-checks. [Source, actual failure and next required action](../verification/2026-09-24-e9e-runtime-data.md).
+checks. [Original failure](../verification/2026-09-24-e9e-runtime-data.md) and
+[class-loading diagnosis and changed verification](../verification/2026-09-24-e9e-class-loading.md).

@@ -18,7 +18,8 @@ public final class RuntimeDataFixture {
             return;
         }
         if (args.length > 0 && args[0].equals("drift")) {
-            new Agent().transform(null, "com/portingdeadmods/cable_facades/CFConfig", null, null, new byte[10]);
+            new Agent().transform(null, "com/portingdeadmods/cable_facades/CFConfig", null, null,
+                new byte[args.length > 1 ? Integer.parseInt(args[1]) : 10]);
             throw new AssertionError("did not halt");
         }
         int checked = 0;

@@ -12,7 +12,10 @@ public final class Agent implements ClassFileTransformer {
     private static final Map<String, String[]> TARGETS = Map.of(
         "com/portingdeadmods/cable_facades/CFConfig", new String[]{
             "601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d",
-            "https://raw.githubusercontent.com/Porting-Dead-Mods/Cable-Facades/refs/heads/1.21.1/configs/"},
+            "https://raw.githubusercontent.com/Porting-Dead-Mods/Cable-Facades/refs/heads/1.21.1/configs/",
+            // EventBus 6.0.3 makes the annotated onLoad callback public. Exact
+            // vendor-transform reproduction changes only byte 8925 (8 -> 9).
+            "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092"},
         "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader", new String[]{
             "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
             "https://raw.githubusercontent.com/BluSunrize/ImmersiveEngineering/gh-pages/contributorRevolvers.json"});
@@ -42,6 +45,11 @@ public final class Agent implements ClassFileTransformer {
             // JVM ignores transformer exceptions and otherwise runs the original
             // downloader. A mismatch must terminate this owned JVM instead.
             System.err.println("STRATA_FIXED_DATA_REFUSED/1 " + name + " " + Data.sha256(input));
+            // Private startup logs retain only these two named class identities.
+            // Capture bounded evidence before halting; never admit observed bytes.
+            if (input.length <= 65536)
+                System.err.println("STRATA_FIXED_DATA_CLASS/1 " + name + " "
+                    + Data.sha256(input) + " " + Base64.getEncoder().encodeToString(input));
             Runtime.getRuntime().halt(126);
             throw new AssertionError("unreachable");
         }
@@ -49,7 +57,9 @@ public final class Agent implements ClassFileTransformer {
 
     public static byte[] patch(String name, byte[] input) throws IOException {
         String[] target = TARGETS.get(name);
-        if (target == null || input.length > 1048576 || !Data.sha256(input).equals(target[0]))
+        String hash = Data.sha256(input);
+        if (target == null || input.length > 1048576
+                || !(hash.equals(target[0]) || (target.length == 3 && hash.equals(target[2]))))
             throw new IOException("FIXED_DATA_CLASS_PIN");
         return replaceConstant(input, target[1], target[1].replace("https://", "stratafixed://"));
     }

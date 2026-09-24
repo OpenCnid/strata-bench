@@ -336,7 +336,7 @@ def inspect_runtime_data_log(raw, report):
              if "STRATA_FIXED_DATA_" in line]
     require("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"] in lines, "RUNTIME_DATA_EXECUTION")
     classes = {
-        "com/portingdeadmods/cable_facades/CFConfig": "601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d",
+        "com/portingdeadmods/cable_facades/CFConfig": "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
         "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader":
             "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
     }

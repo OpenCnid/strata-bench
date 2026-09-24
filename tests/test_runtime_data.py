@@ -1,6 +1,7 @@
 """Real isolated JVMs with synthetic snapshot bodies; no game or network."""
 
 import hashlib
+import base64
 import os
 from pathlib import Path
 import shutil
@@ -125,6 +126,11 @@ def test_agent_refuses_corrupt_resources_and_never_falls_back_to_original_downlo
     else:
         process = run("drift")
         assert process.returncode == 126 and "STRATA_FIXED_DATA_REFUSED/1" in process.stderr
+        captured = next(line for line in process.stderr.splitlines() if line.startswith("STRATA_FIXED_DATA_CLASS/1 "))
+        _, name, digest, encoded = captured.split()
+        raw = base64.b64decode(encoded, validate=True)
+        assert name == "com/portingdeadmods/cable_facades/CFConfig"
+        assert raw == bytes(10) and hashlib.sha256(raw).hexdigest() == digest
     assert "FIXED_DATA_FIXTURE_PASS" not in process.stdout
 
 
@@ -136,3 +142,11 @@ def test_preparation_does_not_replace_existing_output(inputs, tmp_path):
     with pytest.raises(Fault, match="DESTINATION_EXISTS"):
         prepare_runtime_data(inputs, jdk(), output)
     assert sentinel.read_text() == "prior evidence"
+
+
+def test_refusal_capture_is_bounded_and_still_halts(built):
+    _, _, run = built
+    process = run("drift", "65537")
+    assert process.returncode == 126
+    assert "STRATA_FIXED_DATA_REFUSED/1" in process.stderr
+    assert "STRATA_FIXED_DATA_CLASS/1" not in process.stderr

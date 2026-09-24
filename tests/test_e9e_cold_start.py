@@ -12,12 +12,12 @@ from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault
 
 
-@pytest.mark.parametrize("change", [None, "prefix", "missing_class", "missing_read", "wrong_index", "refused"])
+@pytest.mark.parametrize("change", [None, "prefix", "missing_class", "missing_read", "wrong_index", "refused", "raw_class"])
 def test_runtime_data_requires_actual_pinned_class_and_read_evidence(change):
     report = {"policy": "synthetic", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
               "inputs": [{"name": n, "sha256": "c" * 64} for n in ("whitelist.txt", "blacklist.txt", "contributorRevolvers.json")]}
     lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
-        "STRATA_FIXED_DATA_BOUND/1 com/portingdeadmods/cable_facades/CFConfig 601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d",
+        "STRATA_FIXED_DATA_BOUND/1 com/portingdeadmods/cable_facades/CFConfig 1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
         "STRATA_FIXED_DATA_BOUND/1 blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
         *("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])]
     if change == "prefix":
@@ -30,6 +30,8 @@ def test_runtime_data_requires_actual_pinned_class_and_read_evidence(change):
         lines[0] += "changed"
     elif change == "refused":
         lines.append("STRATA_FIXED_DATA_REFUSED/1")
+    elif change == "raw_class":
+        lines[1] = lines[1].rsplit(" ", 1)[0] + " 601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d"
     raw = ("\n".join(lines) + "\n").encode()
     if change in {None, "prefix"}:
         result = cold.inspect_runtime_data_log(raw, report)

@@ -81,6 +81,33 @@ public final class Agent implements ClassFileTransformer {
                 methods[0]++;
                 final String onEntry = entry, onEnd = end;
                 return new MethodVisitor(Opcodes.ASM9, original) {
+                    @Override public void visitVarInsn(int opcode, int variable) {
+                        // The exact doTick body never reassigns its receiver.
+                        // Check this before retaining slot zero in dead-local
+                        // frames for the added normal-return UUID read.
+                        if ("avatar".equals(onEnd) && variable == 0 && opcode != Opcodes.ALOAD)
+                            throw new IllegalArgumentException("VANILLA_CLOCK_RECEIVER_CHANGED");
+                        super.visitVarInsn(opcode, variable);
+                    }
+                    @Override public void visitIincInsn(int variable, int increment) {
+                        if ("avatar".equals(onEnd) && variable == 0)
+                            throw new IllegalArgumentException("VANILLA_CLOCK_RECEIVER_CHANGED");
+                        super.visitIincInsn(variable, increment);
+                    }
+                    @Override public void visitFrame(int type, int nLocal, Object[] local,
+                                                      int nStack, Object[] stack) {
+                        if ("avatar".equals(onEnd)) {
+                            if (type != Opcodes.F_NEW || (nLocal > 0 &&
+                                !name.equals(local[0]) && !Opcodes.TOP.equals(local[0])))
+                                throw new IllegalArgumentException("VANILLA_CLOCK_RECEIVER_FRAME");
+                            // Mojang's final return frame drops all locals.
+                            // Loading this at that return makes slot zero live.
+                            Object[] retained = nLocal == 0 ? new Object[] {name}
+                                : java.util.Arrays.copyOf(local, nLocal);
+                            retained[0] = name;
+                            super.visitFrame(type, retained.length, retained, nStack, stack);
+                        } else super.visitFrame(type, nLocal, local, nStack, stack);
+                    }
                     @Override public void visitCode() {
                         super.visitCode();
                         if (onEntry != null) super.visitMethodInsn(Opcodes.INVOKESTATIC, CLOCK, onEntry, "()V", false);
@@ -97,7 +124,7 @@ public final class Agent implements ClassFileTransformer {
                     }
                 };
             }
-        }, 0);
+        }, ClassReader.EXPAND_FRAMES);
         if (methods[0] != (name.equals("agh") ? 1 : 3)) throw new IOException("VANILLA_CLOCK_METHOD_PIN");
         return writer.toByteArray();
     }

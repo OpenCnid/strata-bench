@@ -131,6 +131,15 @@ def test_real_java_clock_state_machine_and_pinned_class_patch(compiled):
     assert result.stdout.strip() == b"clock-and-patches-pass"
 
 
+def test_actual_player_and_server_methods_pass_jvm_verification_without_game_start(compiled):
+    directory, jar, _, server, classes = compiled
+    result = subprocess.run([shutil.which("java"), "-Xverify:all", "-cp", os.pathsep.join(map(str,
+        (classes, jar, directory / "agent/classes"))), "ActualClassVerifyTest", str(server)],
+        capture_output=True, timeout=30)
+    assert result.returncode == 0, result.stderr.decode()
+    assert b"no game initialization" in result.stdout
+
+
 def test_actual_agent_bootstrap_callback_visibility_and_terminal_reader(compiled, tmp_path):
     _, jar, receipt, _, classes = compiled
     output, config = tmp_path / "clock.jsonl", tmp_path / "clock.config"

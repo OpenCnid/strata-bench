@@ -109,7 +109,16 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90, *, hel
     if helper_limit == 1:
         require(max_requests == HELPER_REQUESTS and hard_timeout_s == HELPER_TIMEOUT_S, "PILOT_SCOPE")
         base = prompt(scope, lease_id, 12, 180)
-        return base.replace("No helpers. At most two act calls.",
+        return ("<request_budget>\n"
+            "The 16-request cap includes your final response and the helper's one response. "
+            "Reserve the last four combined requests for helper spawning, its response, one completion "
+            "wait and your final answer. Batch related observation/page reads and bounded status polling "
+            "within functions.exec when possible, recomputing each request deadline after earlier waits. "
+            "Retain the existing freshness, action deadlines and no-replay rules. Use one bounded wait "
+            "for helper completion instead of repeated short status polls. After receiving its final "
+            "reply, produce your final answer directly from the recorded public evidence. "
+            "If the remaining budget cannot support a step, report the incomplete outcome honestly.\n"
+            "</request_budget>\n" + base.replace("No helpers. At most two act calls.",
             "After verifying the actions, use spawn_agent once with fork_turns=none for one independent "
             "review of your public before/after observations and terminal receipts. Pass only those public "
             "facts and ask the helper to assess whether they support your movement claims and identify "
@@ -117,7 +126,7 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90, *, hel
             "game access. Keep its task self-contained. The helper has one model response; wait for its "
             "completion and include its assessment in your final answer. Only you control the avatar. "
             "At most two act calls.").replace("at most 12 model requests and 180 seconds",
-                "at most 16 combined root/helper model requests and 240 seconds")
+                "at most 16 combined root/helper model requests and 240 seconds"))
     require(set(scope) == {"campaign_id", "agent_id", "epoch"} and
             isinstance(lease_id, str) and 0 < len(lease_id) <= 128 and max_requests in REQUEST_LIMITS and
             hard_timeout_s in SESSION_LIMITS and helper_limit == 0, "PILOT_SCOPE")

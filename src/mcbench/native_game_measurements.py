@@ -37,7 +37,7 @@ def inspect_timing(path, clock, health):
     for seq, (event, kind) in enumerate(zip(events, TIMING_KINDS), 1):
         require(set(event) == {"seq", "kind", "mono_ns", "unix"}
                 and type(event["seq"]) is int and event["seq"] == seq and event["kind"] == kind
-                and type(event["mono_ns"]) is int and event["mono_ns"] > previous
+                and type(event["mono_ns"]) is int and event["mono_ns"] >= previous
                 and type(event["unix"]) in (int, float) and math.isfinite(event["unix"]) and event["unix"] > 0,
                 "NATIVE_TIMING_ORDER")
         previous = event["mono_ns"]
@@ -75,9 +75,9 @@ def bind_clock_overlay(base, clock, worker, job_id, runtime_files):
     return {"schema": "strata/DevelopmentServer/6", "base": base, "clock": dict(clock)}
 
 
-def read_json(path):
+def read_json(path, *, maximum=8 * 1024**2):
     reject_links(path)
-    require(path.is_file() and path.stat().st_size <= 8 * 1024**2, "NATIVE_MEASUREMENT_INPUT")
+    require(path.is_file() and path.stat().st_size <= maximum, "NATIVE_MEASUREMENT_INPUT")
     return strict_json(path.read_bytes())
 
 
@@ -86,7 +86,8 @@ def inspect_measurements(output, server_plan, worker, server, stored_health, job
     output = Path(output)
     require(set(server_plan) == {"schema", "base", "clock"}
             and server_plan["schema"] == "strata/DevelopmentServer/6", "NATIVE_MEASUREMENT_PROFILE")
-    runtime = read_json(output / "worker-runtime.json")
+    from .worker_bundle import MANIFEST_LIMIT
+    runtime = read_json(output / "worker-runtime.json", maximum=MANIFEST_LIMIT)
     # The held runtime receipt is the membership authority, not an installed
     # checkout or a plausible module name from a caller's environment.
     runtime_files = runtime["inventory"]["files"]

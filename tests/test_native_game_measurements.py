@@ -103,6 +103,23 @@ def test_recomputes_and_joins_one_body_without_adding_overlapping_intervals(capt
     assert timing["native_harness_including_thinking_ns"] == 1_000_000_000
 
 
+def test_runtime_manifest_uses_held_bundle_limit_without_enlarging_other_inputs(capture):
+    import json
+    from mcbench.native_game_measurements import read_json
+    output = capture[0]
+    path = output / "worker-runtime.json"
+    runtime = json.loads(path.read_bytes())
+    runtime["source_inventory_fixture_padding"] = "x" * (8 * 1024**2)
+    write(path, runtime)
+    assert inspect(capture)["saved_player_uuid"] == UUID
+    with pytest.raises(Fault, match="NATIVE_MEASUREMENT_INPUT"):
+        read_json(path)
+    runtime["source_inventory_fixture_padding"] *= 2
+    write(path, runtime)
+    with pytest.raises(Fault, match="NATIVE_MEASUREMENT_INPUT"):
+        inspect(capture)
+
+
 @pytest.mark.parametrize("case", ["scope", "job", "health_module", "hash", "epoch", "extra", "unsealed"])
 def test_overlay_refuses_incomplete_or_foreign_profile(capture, case):
     _, plan, config, _, _ = capture
@@ -226,3 +243,18 @@ def test_timing_uses_monotonic_order_and_retains_full_exposure(capture, case):
     else:
         with pytest.raises(Fault):
             inspect_timing(path, server["vanilla_clock"], health)
+
+
+def test_adjacent_timing_marks_can_share_one_clock_quantum(capture):
+    import json
+    output, _, _, server, health = capture
+    path = output / "pilot-timing.jsonl"
+    events = [json.loads(line) for line in path.read_bytes().splitlines()]
+    for current, preceding in ((4, 3), (8, 7)):
+        events[current]["mono_ns"] = events[preceding]["mono_ns"]
+    path.write_bytes(b"".join(canonical(e) + b"\n" for e in events))
+    report = inspect_timing(path, server["vanilla_clock"], health)
+    assert report["events"] == events
+    assert sum(s["elapsed_ns"] == 0 for s in report["segments"]) == 2
+    assert sum(s["elapsed_ns"] for s in report["segments"]) == report["wrapper_ns"]
+    assert report["native_harness_including_thinking_ns"] == events[5]["mono_ns"] - events[4]["mono_ns"]

@@ -15,6 +15,15 @@ Narrow authentic vanilla and separate Forge checks have passed. Exact E9E's
 Mineflayer handshake failed, and fallback evidence remains a separate backend
 qualification. G1–G5 are not_run.
 
+The implemented development harness gives GPT-6 Luna filtered observations and
+typed game tools. The model chooses its targets and actions; Mineflayer executes
+the bounded motor commands and returns observations and receipts. A separate
+helper can review public evidence. Authentic pilots have turned and walked with
+joined model costs and saved-player evidence. Test scripts prepare fixtures and
+check outcomes; scripted-provider tests are labeled separately. See the
+[connected pilot evidence](docs/verification/2026-09-24-instrumented-player.md).
+This is a short integration slice, not autonomous expert-pack completion.
+
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
 - [Current status](docs/STATUS.md): M0 closure gaps and evidence index
 - [Specification](SPEC.md): complete target contract and acceptance gates

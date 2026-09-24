@@ -11,6 +11,12 @@ no-argument entry/return callbacks and a UUID callback at the normal return of
 exit126; an ignored transformer exception must not permit unmeasured execution.
 The observer neither reads hidden world state nor chooses/dispatches actions.
 
+The player callback needs the receiver even where the original final-return
+frame drops every local. Expand the original frames and retain slot zero;
+reject receiver reassignment. The actual-class JVM regression forces method
+verification without initializing game classes. Loading a class alone is not
+sufficient evidence because JVM method verification may be deferred.
+
 Mojang's bundler parents its game loader to the platform loader. The agent thus
 extracts its byte-bound callback-only JAR to a fresh private output path and
 adds that JAR to bootstrap search. Agent/ASM classes stay in their app-loader
@@ -31,7 +37,9 @@ changed argument vector and composite launch identity. It does not mutate or
 mislabel the original sealed PackLock. The stopped reader checks the complete
 series against that scope/module and the JVM identity observed while alive.
 
-The authentic headless case proves server callback production and normal-stop
-capture only. Connected avatar mapping, native root/helper cost/time joins,
-measurement overhead and capacity/isolation qualification remain separate.
-See [verification](../../docs/verification/2026-09-24-vanilla-clocks.md).
+The authentic connected case records server and avatar callbacks, stopped-player
+mapping and root/helper cost/time reconstruction. Its model request-cap exit
+remains failed; complete successful-pilot qualification stays separate from
+measurement verification. Overhead and capacity/isolation remain unqualified.
+See [connected verification](../../docs/verification/2026-09-24-instrumented-player.md)
+and the retained [headless evidence](../../docs/verification/2026-09-24-vanilla-clocks.md).

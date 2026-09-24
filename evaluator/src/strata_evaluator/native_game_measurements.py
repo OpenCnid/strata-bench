@@ -119,8 +119,10 @@ def inspect_reconciled_pilot(bundle):
     intent = bundle.json("run/intent.json")
     result = bundle.json("run/result.json")
     config = bundle.json("run/worker-config.json")
-    require(result.get("logs_complete") is True and result.get("forced_worker_cleanup") is False
-            and result.get("forced_server_cleanup") is False, "NATIVE_MEASUREMENT_STOP")
+    # The producer writes forced-cleanup fields only when cleanup was forced.
+    # Missing means no reported force; owned-process/stop proofs below remain required.
+    require(result.get("logs_complete") is True and result.get("forced_worker_cleanup", False) is False
+            and result.get("forced_server_cleanup", False) is False, "NATIVE_MEASUREMENT_STOP")
     with bundle.database("controller.sqlite") as db, bundle.database("run/worker/actions.sqlite") as worker:
         native, source, _ = inspect_native_source(db, EvidenceCAS(db, bundle, "objects"),
                                                 intent["plan"]["pilot"]["job_id"], simulation=False)

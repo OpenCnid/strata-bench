@@ -419,3 +419,12 @@ def test_reconciliation_cli_cannot_replace_its_evidence(tmp_path):
     from strata_evaluator.native_game_measurements import main
     with pytest.raises(Fault, match="EVIDENCE_READ_ONLY"):
         main(["--bundle", str(tmp_path), "--seal", "a" * 64, "--output", str(tmp_path / "seal.json")])
+
+
+@pytest.mark.parametrize("flag", [True, None, 0])
+def test_reconciled_pilot_rejects_reported_or_malformed_force_flags(completed_cost_bundle, flag):
+    from strata_evaluator.native_game_measurements import inspect_reconciled_pilot
+    build, result, _, _, _ = completed_cost_bundle
+    result.update(logs_complete=True, forced_worker_cleanup=flag)
+    with pytest.raises(Fault, match="NATIVE_MEASUREMENT_STOP"):
+        inspect_reconciled_pilot(build())

@@ -15,6 +15,7 @@ from pydantic import Field
 
 from .contracts import Digest, Strict
 from .forge_client import ROLE_ROOT, VERSION, argument_template
+from .forge_assets import POLICY as ASSET_CACHE_POLICY, SkinCachePin
 from .inference_transport import strict_json
 from .inventory import inventory_directories
 from .pack_policies import reviewed_vendor_paths
@@ -40,6 +41,7 @@ class ForgeClientInvocation(Strict):
     # Binds the expected authenticated body; these are private operator inputs.
     player_name: str = Field(pattern=r"^[A-Za-z0-9_]{1,16}$")
     player_uuid: str = Field(pattern=r"^[0-9a-f]{32}$")
+    skin_cache: list[SkinCachePin] = Field(default_factory=list, max_length=16)
 
 
 def client_template(software, launcher_raw, vanilla_raw, *, server_port, frozen=False):
@@ -175,8 +177,12 @@ def resolve_forge_invocation(profile, value, binding, command):
             require(re.fullmatch(r"[A-Za-z0-9_.=-]{16,16384}", got) is not None, "FORGE_SESSION_ARGUMENTS")
         else:
             require(got == substitutions.get(want, want), "FORGE_SESSION_ARGUMENTS")
-    return {"schema": "strata/ResolvedPackLaunch/3",
+    result = {"schema": "strata/ResolvedPackLaunch/3",
             "launch": command.model_dump() | {"arguments": ["@" + str(arguments)]},
             "session_arguments_sha256": invocation.arguments_sha256,
             "bridge_directory": str(bridge), "backend": profile.backend,
             "update_policy": profile.update_policy, "session_authentication_qualified": False}
+    if invocation.skin_cache:
+        result.update(schema="strata/ResolvedPackLaunch/4", asset_cache_policy=ASSET_CACHE_POLICY,
+                      skin_cache=[pin.model_dump() for pin in invocation.skin_cache])
+    return result

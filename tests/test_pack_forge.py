@@ -112,6 +112,16 @@ def test_full_seal_materialize_resolve_relocates_every_path_without_credentials(
     assert next_result["session_arguments_sha256"] != result["session_arguments_sha256"]
 
 
+def test_explicit_runtime_skin_pin_is_bound_in_distinct_resolved_profile(pack):
+    binding, call, _, _ = pack
+    pin = {"path": "skins/aa/" + "a" * 40, "sha256": "b" * 64, "bytes": 979}
+    result = resolve_pack_launch(binding, "client", simulation=True, forge_invocation=call | {"skin_cache": [pin]})
+    assert result["schema"] == "strata/ResolvedPackLaunch/4"
+    assert result["asset_cache_policy"] == "forge-pinned-skin-cache/1" and result["skin_cache"] == [pin]
+    assert not result["campaign_admission"] and not result["session_authentication_qualified"]
+    assert TOKEN not in json.dumps(result)
+
+
 @pytest.mark.parametrize("change", ["extra_arg", "old_java", "java_pin", "cwd", "classpath", "server_args",
                                    "port", "software", "environment", "win_args", "settings", "bridge_module",
                                    "java_version"])

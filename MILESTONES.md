@@ -6269,3 +6269,17 @@ change M0 in_progress/G0 fail, the original allowance or the M1–M7 roadmap.
 - 2026-09-24: read-only final coverage assembly verifies seven retained bundles, five historical mechanics reports/references, ten mayapple saved files,609 D13 manifest files and original Forge pair04 audit-source identities. Strict reader rejects an unlisted historical bytecode cache; a new exact original-seal projection verifies all329 named negative-control files without changing the source or relaxing the reader. Retain checker list-format/original-failed-goal assertion corrections. All318 M0 child IDs have explicit dispositions; wider statuses,51 M1–M7 rows,13 record examples and the prior append-only log remain. M0 verified/G0 pass only for the named D14 six-outcome development feasibility slice; full test/gate failures and G1–G5 not_run remain. No M1–M7 work or further experiment selected.
 
 - 2026-09-24: final documentation QA passes24/24, full Ruff and whitespace/local-link/fence checks. All369 original IDs plus new M0.2k.3,318 child statuses,51 later-milestone rows, F/N/feature and T/G1–G5 rows,13 canonical examples, normative SPEC body and prior log are preserved. Updated AGENTS, BUILD_PLAN, README, SPEC status header, status/handoff and pilot runbook to the completed D14 slice. Initial QA header-selector error is retained and corrected without changing the archived G0 row. Production source is unchanged; no broad suites repeated. Original40 authority tables and holds remain unchanged, no Java remains. Private final-qa-03.json / g0-gate.json and the [final assembly](docs/verification/2026-09-24-g0-assembly.md) record closure. M0 verified/G0 pass; no later work selected.
+
+### 2026-09-24 — M0 closure publication
+
+The user requested a PR and merge. [PR #8](https://github.com/OpenCnid/strata-bench/pull/8)
+publishes the documentation/evidence closure from `codex/m0-g0-final-assembly`;
+initial commit `7bd5f03` contains only the11 reviewed Markdown files. Their bytes
+matched the final24/24 QA snapshot before staging. The original base remains
+`f8daedc`; GitHub initially reports MERGEABLE/CLEAN and no hosted status checks.
+The publication check compares the complete branch against that fixed base,
+including this append-only PR binding, and records its result outside the public
+checkout in `2026-09-24-g0-publication-01/publication-qa.json`. Merge authorization
+is explicit; verify the final PR head and resulting origin/main ancestry.
+M0/G0's D14 scope, retained failures, all budget holds and M1–M7 remain unchanged;
+this publication performs no game or inference execution.

@@ -1,43 +1,40 @@
 # Strata current status
 
-**September 24 checkpoint: M0 in_progress; G0 fail; G1–G5 not_run.**
-The user requested a source/documentation merge and a fresh session. No additional
-experiment is selected for this stopping task. M1–M7 remains intact.
+**September 24 closure: M0 verified; G0 pass for the D14 development feasibility
+slice; G1–G5 not_run.** The [final assembly](verification/2026-09-24-g0-assembly.md)
+records all six required outcomes, exact profile bindings and remaining
+qualification boundaries. All51 M1–M7 ledger rows remain unchanged.
 
-The working development harness lets GPT-6 Luna choose actions from filtered
-observations and pilot an authentic Minecraft character through Mineflayer.
-Live15 passed turn/walk/helper play. Live18 verified a rejected sequence followed
-by a corrected turn, but failed its two-action goal because no walk occurred.
-Scripts prepare fixtures, execute bounded motors and audit results; scripted
-providers are separately labeled.
+The development harness lets GPT-6 Luna choose actions from filtered observations
+and pilot an authentic Minecraft character through Mineflayer. Live15 passed
+turn/walk/helper play. Live18 verified a rejected sequence followed by a corrected
+turn and complete action/cost/clock joins; its original two-action goal still
+fails because no walk occurred. Scripted conformance and providers remain labeled.
 
-| Area | Current evidence | Remaining scope |
+| Area | Accepted G0 evidence | Remaining qualification |
 |---|---|---|
-| Native host/helper | Actual model-selected play, helper delivery and distinct receipts | Full helper/worker isolation is deferred by D14 to M1/G1 |
-| Vanilla/E9E provisioning | Official locks, sealed vanilla and separate Forge fallback | Exact E9E Mineflayer incompatibility stays unsupported |
-| Mechanics | Selected vanilla operations and server-verified modded block/recipe/machine | Final exact-profile assembly; no pack-completion claim |
-| Cancel/reconnect | Authentic retained trajectories and source lineage | Explicit minor 12 worker cancellation disposition |
-| Private milestone | Connected positive craft and negative controls | Named D14 development scope only, no protected/scientific scoring claim |
-| Costs/time/evidence | Live18 independent combined audit 19/19 | Assemble all six outcomes and remaining child dispositions before G0 closure |
+| Native host/helper | Actual model-selected play, delivered helper and settled receipts | Full helper/worker isolation at M1/G1 |
+| Vanilla/E9E provisioning | Official locked vanilla and sealed E9E Forge launch | Exact E9E Mineflayer stays unsupported |
+| Mechanics | Selected vanilla operations and separate modded block, expert recipe and machine | Full API/pack conformance; historical profiles do not qualify every latest operation |
+| Cancel/reconnect | Fresh minor12 dig cancellation, release, fencing, next epoch, deduplication and saved-state join:48/48 | Full T05/G1; canonical faults, checkpoints and soaks at G2 |
+| Private milestone | Connected development craft scorer and negative controls | Protected/scientific scoring and isolation remain unqualified |
+| Costs/time/evidence | Live18 combined audit19/19; zero-inference conformance charges and measured intervals | Complete campaign clocks, overhead and capacity |
 
-Live18 settled11 requests for **$0.009696 API-equivalent**, including its helper.
-All 54 owned processes stopped normally. Original total charged-or-reserved
-exposure is **$4.887796/$10**, with the old $0.7554 hold and four full $1 unresolved
-job envelopes preserved. D18/D19 continuing authority remains valid; there is no
-pending per-run approval and no new allowance. Recheck durable state before any
-future dispatch. Shared-desktop input stays paused.
+The fresh cancellation check required no production code repair or model call.
+Its first route-selector failure is retained; the changed dig selector uses only
+public observations. The independent audit verifies48/48 and all owned processes
+stop normally. The [318-child crosswalk](verification/2026-09-24-g0-child-dispositions.md)
+carries wider contracts at their existing statuses with explicit later gates.
 
-Start with the [fresh-session handoff](STATUS_AND_HANDOFF.md), then the
-[six-item ledger checklist](../MILESTONES.md#m0-closure-checklist--spec-161).
-The [dated checkpoint](verification/2026-09-24-session-handoff.md) records exact
-private pins, source/merge verification and retained limitations.
+WAL-aware read-only comparison keeps all40 authority tables unchanged from stopped
+live18. Exposure remains **$4.887796/$10**, including the old $0.7554 hold and four
+full $1 unresolved job envelopes. All20 native gateways are closed; consumed
+decisions stay consumed. D18/D19 authority persists without replay, refund or new
+allowance. No further experiment is selected; shared-desktop input stays paused.
 
-Evidence: [successful LLM/helper play](verification/2026-09-24-native-wire-report-bounds.md),
-[latest accepted/refused-action join](verification/2026-09-24-action-refusal-evidence.md),
-[private scorer controls](verification/2026-09-24-development-milestone.md),
-[sealed E9E fallback](verification/2026-09-24-sealed-forge-bootstrap.md), and
-[cancellation lineage](verification/2026-09-24-pilot-outcomes.md).
-
-Earlier chronology is retained in [historical status](STATUS_HISTORY_2026-09-24.md)
-and the ledger's append-only log. Historical next actions and budget figures do
-not override this checkpoint.
+See the [current handoff](STATUS_AND_HANDOFF.md),
+[ledger checklist](../MILESTONES.md#m0-closure-checklist--spec-161), and
+[final evidence assembly](verification/2026-09-24-g0-assembly.md).
+The [merged checkpoint](verification/2026-09-24-session-handoff.md),
+[historical status](STATUS_HISTORY_2026-09-24.md) and append-only ledger retain
+earlier results and instructions; their next actions are superseded.

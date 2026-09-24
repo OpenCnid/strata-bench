@@ -9,8 +9,8 @@ native Codex loop, with typed `mcgame` commands to a persistent game worker.
 Mineflayer is the first backend; the separately identified Forge extension is
 the authorized development fallback for exact E9E compatibility work.
 
-**Status: implementation in progress. M0 is incomplete and G0 fails.** The active
-work is M0/G0 only; the complete later roadmap remains in SPEC and MILESTONES.
+**Status: M0 verified; G0 passes the D14 development feasibility slice.** The
+complete later roadmap remains in SPEC and MILESTONES; this task starts no M1–M7 work.
 Narrow authentic vanilla and separate Forge checks have passed. Exact E9E's
 Mineflayer handshake failed, and fallback evidence remains a separate backend
 qualification. G1–G5 are not_run.
@@ -24,12 +24,13 @@ check outcomes; scripted-provider tests are labeled separately. See the
 [latest reconciled pilot evidence](docs/verification/2026-09-24-action-refusal-evidence.md).
 Live15 passed actual turn/walk/helper play. Live18 later verified a refused
 sequence and model-corrected turn with complete evidence, while retaining its
-failed two-action goal. Next assemble exact G0 profiles and child dispositions.
+failed two-action goal. The [final G0 assembly](docs/verification/2026-09-24-g0-assembly.md)
+records all six outcomes, exact profile bindings and 318 child dispositions.
 This is a short integration slice, not autonomous expert-pack completion.
 [September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md).
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
-- [Current status](docs/STATUS.md): M0 closure gaps and evidence index
+- [Current status](docs/STATUS.md): M0 closure and remaining qualification boundaries
 - [Specification](SPEC.md): complete target contract and acceptance gates
 - [Milestone ledger](MILESTONES.md): coverage, decisions, failures and evidence
 - [Project instructions](AGENTS.md): implementation and verification process
@@ -41,7 +42,7 @@ Bounded sealed recovery restores player state and root notes, rejects stale
 access and preserves usage; reusable verification reconstructs both epochs.
 Model replies are scripted. The [changed normal-stop case](docs/verification/2026-09-22-native-companions.md)
 now passes native completion, worker drain, server stop/capture and independent
-evidence reconstruction. All prior failures remain; full G0 qualification is open.
+evidence reconstruction. All prior failures remain; full recovery qualification stays open at G2.
 
 ## What is implemented
 
@@ -59,7 +60,8 @@ Authentic evidence includes selected vanilla mechanics and separate Forge modded
 block, machine processing/collection and expert furnace crafting. The approved
 [D13 shutdown policy](docs/verification/2026-09-21-d13-shutdown.md) now allows
 1,000 ms and has a passing 568.994-ms sample; all old 500-ms failures remain
-recorded. Final exact-profile assembly and child dispositions keep G0 open.
+recorded. The changed minor12 worker's cancellation/reconnect audit passes48/48;
+the final assembly closes G0 for its explicitly named development profiles.
 Full gameplay/helper isolation is deferred to M1/G1 under D14; selected private
 development scorer and measured clock/save joins are already evidenced.
 Complete campaign clocks, capacity and canonical recovery remain unqualified.

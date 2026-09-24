@@ -1,22 +1,20 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
-**September24 checkpoint (v0.2.183):** M0 remains in_progress, G0 fail,
-G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md) and
-[dated checkpoint](docs/verification/2026-09-24-session-handoff.md) supersede
-historical next actions and exposure figures below. Actual LLM turn/walk/helper
-play is established in its named profile; live18 independently reconciles its
-refused/corrected action, locks, saved player, costs and clocks while retaining
-a failed two-action goal. Next assemble exact G0 profiles and remaining child
-dispositions, especially changed-worker cancellation lineage. D14, D17, D18/D19,
-the original allowance and every M1–M7 contract remain unchanged. This is a
-status/handoff revision, not a product or acceptance-threshold change.
+**September24 M0 closure (v0.2.184):** M0 verified; G0 pass for the named D14
+development feasibility slice; G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md)
+and [final assembly](docs/verification/2026-09-24-g0-assembly.md) supersede historical
+next actions and exposure figures below. The assembly joins all six outcomes,
+exact profile bindings, changed minor12 cancellation/reconnect48/48, and318 child
+dispositions. Live18's original failed two-action goal and all earlier failures
+remain failed. D14, D17, D18/D19, the original allowance and every M1–M7 contract
+remain unchanged. This is a status revision, not a product or acceptance-threshold change.
 
 **Current authority:** gameplay model `gpt-6-luna`; exposure$4.887796/$10 includes
 all unresolved reservations. Fresh bounded M0 jobs remain authorized under
 D18/D19, with no replay/refund. The latest used profile is16 model requests
 including one helper,240 native seconds and at most$1; it is consumed and not a
 rerunnable command. Earlier90-second/zero-helper profiles below are historical
-decisions. No game/model experiment is selected during this stopping task.
+decisions. M0 is closed; no further game/model experiment is selected.
 
 **Historical contract and implementation notes:** dated notes below retain
 their original context. Their old pending actions or unverified claims do not

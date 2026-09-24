@@ -156,10 +156,24 @@ def player_matches(player, state):
     inventory = {}
     for item in items[1]:
         slot = field(item.value, "Slot", 1)
+        # Player NBT uses a different namespace from protocol window slots.
+        # In particular NBT 36 must not alias hotbar slot 0 after conversion.
+        require(0 <= slot <= 35 or 100 <= slot <= 103 or slot == -106, "GAME_RECOVERY_PLAYER")
         slot = slot + 36 if 0 <= slot <= 8 else 45 if slot == -106 else 108 - slot if 100 <= slot <= 103 else slot
         require(5 <= slot <= 45 and slot not in inventory, "GAME_RECOVERY_PLAYER")
-        inventory[slot] = (field(item.value, "id", 8), field(item.value, "Count", 1))
-    observed = {i["slot"]: (i["item_id"], i["count"]) for i in state["inventory"] if i["count"]}
+        item_id, count = field(item.value, "id", 8), field(item.value, "Count", 1)
+        require(re.fullmatch(r"[a-z0-9_.-]+:[a-z0-9_./-]+", item_id) is not None
+                and item_id != "minecraft:air" and 1 <= count <= 127, "GAME_RECOVERY_PLAYER")
+        inventory[slot] = (item_id, count)
+    observed, seen = {}, set()
+    for item in state["inventory"]:
+        slot, count = item["slot"], item["count"]
+        require(type(slot) is int and 0 <= slot <= 45 and slot not in seen
+                and type(count) is int and 0 <= count <= 127, "GAME_RECOVERY_PLAYER")
+        seen.add(slot)
+        if count:
+            require(5 <= slot <= 45, "GAME_RECOVERY_PLAYER")
+            observed[slot] = (item["item_id"], count)
     yaw = (180 - math.degrees(state["yaw"]) + 180) % 360 - 180
     return (state["connected"] and state["dimension"] == field(player, "Dimension", 8)
         and state["health"] == field(player, "Health", 5) and state["food"] == field(player, "foodLevel", 3)

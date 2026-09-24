@@ -87,6 +87,10 @@ def admit_retained_unknowns(db, account, record, *, envelope):
     """Called only inside the reservation transaction. Default remains block."""
     from .budgets import vector
     from .native import NativeLaunch
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='pilot_trials'").fetchone() and db.execute(
+            "SELECT 1 FROM pilot_trials WHERE account=?", (account,)).fetchone():
+        from .pilot_budget import admit
+        return admit(db, account, record, envelope=envelope)
     require(db.execute("SELECT 1 FROM sqlite_master WHERE name='metering_trials'").fetchone(),
             "METERING_UNKNOWN")
     row = db.execute("SELECT * FROM metering_trials WHERE account=?", (account,)).fetchone()

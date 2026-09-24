@@ -13,7 +13,13 @@ import ssl
 import time
 from urllib.parse import urlsplit
 
-from .inference_transport import BUFFERED_SSE_POLICY, _ResponsesTransport, strict_json
+from .inference_transport import (
+    BUFFERED_SSE_POLICY,
+    MAX_REQUEST_TIMEOUT_S,
+    NATIVE_RESPONSE_BYTES,
+    _ResponsesTransport,
+    strict_json,
+)
 from .native_ingress import NativeIngress, active_binding
 from .storage import require
 
@@ -108,6 +114,7 @@ class NativeOAuthTransport(_ResponsesTransport):
     """Production HTTPS adapter, closed until private exact-profile evidence exists."""
 
     buffered_sse_policy = BUFFERED_SSE_POLICY
+    response_limit = NATIVE_RESPONSE_BYTES
 
     def __init__(self, dispatches, credentials, qualification_ref, *, deadline_s=30):
         require(not dispatches.simulation, "OAUTH_LIVE_STORE_REQUIRED")
@@ -117,7 +124,8 @@ class NativeOAuthTransport(_ResponsesTransport):
     def _init(self, dispatches, credentials, deadline_s):
         require(isinstance(credentials, NativeOAuthRequest) and not credentials._closed,
                 "OAUTH_CREDENTIAL_REQUIRED")
-        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
+        require(type(deadline_s) in {int, float} and 0 < deadline_s <= MAX_REQUEST_TIMEOUT_S,
+                "TRANSPORT_DEADLINE")
         require(credentials.path in PATHS, "INGRESS_ROUTE")
         self.gate, self.credentials, self.deadline_s = dispatches, credentials, deadline_s
         self._init_lifetime()
@@ -135,9 +143,13 @@ class NativeOAuthTransport(_ResponsesTransport):
         self.filter = _SecretFilter((c._token, c._account))
 
     def _qualify(self, attempt, reserve):
-        require(attempt.provider == "openai" and reserve.model_identity == "gpt-5.6-luna",
+        require(attempt.provider == "openai" and reserve.model_identity in {"gpt-5.6-luna", "gpt-6-luna"},
                 "OAUTH_PROVIDER_SCOPE")
         proof = strict_json(self.gate._private_ref(self.qualification_ref, 65536))
+        if proof.get("schema") == "strata/NativePilotPermit/1":
+            from .native_piloting import require_permit_for_request
+            require_permit_for_request(self.gate, proof, self.credentials, attempt, reserve)
+            return
         if proof.get("schema") == "strata/NativeOAuthConformancePermit/1":
             from .native_conformance import require_permit_for_request
             require_permit_for_request(self.gate, proof, self.credentials, attempt, reserve)

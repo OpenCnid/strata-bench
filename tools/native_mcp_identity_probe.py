@@ -69,7 +69,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None):
+        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
+        pilot_helper=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -94,6 +95,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
+    require(not pilot_helper or piloting_contract and pilot_timeout_s == 240 and model == "gpt-6-luna",
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
+    require(pilot_timeout_s == 90 or piloting_contract and (pilot_timeout_s == 180 or pilot_helper and pilot_timeout_s == 240),
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
+    require(not piloting_contract or skills_mode and bootstrap_mode and tool_projections is not None and
+            no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
+                                                     activation_source, inherited_helper, game_probe)),
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
     require(activation_source is None or bootstrap_mode and ingress_mode and tool_projections is not None and
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, skills_mode, inherited_helper)),
@@ -115,10 +124,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      gateway_mode, activation_source, inherited_helper)),
             "GAME_PINNED_BOOTSTRAP_REQUIRED")
+    if game_failure:
+        from native_game_failure_probe import GameTransportFailureProbe
+        require(isinstance(game_probe, GameTransportFailureProbe) and oauth_mode and
+                game_retention is None and game_recovery is None and model == "gpt-6-luna",
+                "GAME_FAILURE_PROFILE_REQUIRED")
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
@@ -130,16 +144,20 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     activation = ActivationProbe(activation_source, output) if activation_source else None
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
-    patch_test = no_patch_catalog is not None and activation is None and game_probe is None
+    patch_test = no_patch_catalog is not None and activation is None and game_probe is None and not piloting_contract
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
-    request_limit = 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
+    request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
     canaries = Canaries(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
     class Provider(LocalProvider):
         def __init__(self, *args, **kwargs):
             self.steps, self.identities, self.outputs = {}, [], []
+            self.helper_deliveries = []
+            self.helper_started = threading.Event()
+            self.helper_release = threading.Event()
+            self.helper_overlap = False
             self.outputs_by_agent = {}
             self.direct_calls = []
             self.direct_agents = set()
@@ -150,8 +168,21 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         def respond(self, handler, body, index, operation):
             metadata = json.loads(body["client_metadata"]["x-codex-turn-metadata"])
             agent = metadata["agent_name"]
-            require(agent in ({"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
+            if pilot_helper and agent == "/root/pilot_review":
+                self.helper_started.set()
+                require(self.helper_release.wait(20), "PILOT_HELPER_OVERLAP_TIMEOUT")
+            elif pilot_helper and agent == "/root" and self.steps.get(agent, 0) == 3:
+                try:
+                    self.helper_overlap = self.helper_started.wait(20)
+                    require(self.helper_overlap, "PILOT_HELPER_OVERLAP_TIMEOUT")
+                finally:
+                    self.helper_release.set()
+            require(agent in ({"/root", "/root/pilot_review"} if pilot_helper else
+                {"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
                 {"/root", "/root/identity_child"}), "UNEXPECTED_AGENT")
+            if pilot_helper and agent == "/root":
+                self.helper_deliveries.extend(i for i in body.get("input", []) if i.get("type") == "agent_message"
+                    and i.get("author") == "/root/pilot_review" and i.get("recipient") == "/root")
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
             if state_probe:
                 state_probe.observe(agent, body)
@@ -162,13 +193,20 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
+            if game_failure and step > 0:
+                require(agent == "/root" and step == 1, "GAME_FAILURE_PROFILE_REQUIRED")
+                game_probe.truncate(handler, operation, model, self.outputs)
             extra_items = []
             self.steps[agent] = step + 1
             root_id = next(i["thread_id"] for i in self.identities if i["agent"] == "/root")
             item = {"id": "message-" + operation, "type": "message", "role": "assistant",
                 "status": "completed", "content": [{"type": "output_text",
                 "text": "Synthetic identity probe finished.", "annotations": []}]}
-            if step == 0:
+            if piloting_contract:
+                from native_pilot_contract_probe import response
+                item = response(agent, step, operation, helper=pilot_helper,
+                                child_done=self.steps.get("/root/pilot_review", 0) == 1)
+            elif step == 0:
                 args = {"note": agent}
                 if agent != "/root":
                     args.update(threadId=root_id, _meta={"threadId": root_id})
@@ -316,6 +354,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             handler.send_response(200)
             handler.send_header("Content-Type", "text/event-stream")
             handler.end_headers()
+            if pilot_helper and agent == "/root" and step == 0:
+                # Exercise wire framing beyond the historical 256-KiB limit;
+                # comments add no model output, token usage or gameplay policy.
+                handler.wfile.write(b":" + b"native-wire-fixture " * 28000 + b"\n\n")
             handler.wfile.write(sse("response.created", response={
                 **response, "status": "in_progress", "output": []}))
             handler.wfile.write(sse("response.output_item.done", output_index=0, item=item))
@@ -343,7 +385,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
             game_probe.scope["agent_id"] if game_probe else "a1", "project",
             category="development")
-    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit,
+    require(model in {"gpt-5.6-luna", "gpt-6-luna"}, "MODEL_POLICY")
+    provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit, model=model,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
                         helper_requests=8 if interrupt_mode else 5 if state_mode else 4,
                         fixture_input_reserve=10000 if activation else 100000)
@@ -353,8 +396,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         from mcbench.native_gateway import GatewayConfig, NativeGateway
         gateway = NativeGateway(db.path, cas.root, simulation=True,
             fixture_upstream=f"http://127.0.0.1:{provider.upstream.server_port}")
+        basis_path = "configs/operator/live-validation.json" if model == "gpt-6-luna" else "configs/operator/legacy/live-validation-d11.json"
         basis = EstimateBasis.model_validate(json.loads((Path(__file__).resolve().parents[1] /
-            "configs/operator/live-validation.json").read_bytes())["accounting_basis"])
+            basis_path).read_bytes())["accounting_basis"])
+        require(basis.model == model, "PRICE_MODEL_MISMATCH")
         price = put(cas, basis.model_dump())
         exposure = FiniteExposure.model_validate({"schema": "strata/FiniteInferenceExposure/1",
             "basis_digest": basis.fingerprint(), "max_input_tokens": basis.context_window_tokens,
@@ -363,8 +408,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "enforcement_ref": "cas:sha256:" + "a" * 64})
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": "root", "profile_digest": "a" * 64, "pricing_ref": price, "exposure": exposure,
-            "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 4,
-            "max_requests": 12})
+            "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 1 if pilot_helper else 4,
+            "max_requests": 16 if pilot_helper else 12, "max_handlers": 2 if pilot_helper else 4,
+            "request_timeout_s": 60 if piloting_contract else 30})
     worker_calls = []
     worker = None
     if broker_mode and game_probe is None:
@@ -379,7 +425,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 worker_calls.append(r)
                 raw = json.dumps({"schema": "strata/GameResponse/1", "status": "ok",
                     "request_id": r["request_id"], "result": {"is_example": True,
-                    "visible_control": "STRATA_SCOPED_GAME_CONTROL"}}).encode()
+                    "visible_control": "STRATA_SCOPED_GAME_CONTROL",
+                    **({"state": {"next_cursor": "synthetic-public-page", "truncated": True}}
+                       if piloting_contract and r["method"] == "observe" else {})}}).encode()
                 self.send_response(200)
                 self.send_header("Content-Length", str(len(raw)))
                 self.end_headers()
@@ -447,13 +495,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         bootstrap = {}
         catalog = None
         if no_patch_catalog is not None:
-            from mcbench.native_catalog import install_no_patch_catalog, NO_PATCH_POLICY
+            from mcbench.native_catalog import install_no_patch_catalog
             from mcbench.inventory import file_hash
             catalog = install_no_patch_catalog(no_patch_catalog, output / "restricted-model-catalog.json",
                 expected_sha256=file_hash(no_patch_catalog), model=plan.model)
             (output / "catalog-restriction.json").write_text(json.dumps(catalog, indent=2), encoding="utf-8")
             config.update(catalog["config_overrides"])
-            bootstrap["tool_catalog_policy"] = NO_PATCH_POLICY
+            bootstrap["tool_catalog_policy"] = catalog["policy"]
         if bootstrap_mode:
             from mcbench.native_bootstrap import prepare_bundle
             (output / "broker.json").write_text(json.dumps({"schema": "strata/SealedBrokerConfig/1",
@@ -474,20 +522,23 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
-            "helper_limit": 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
+            "purpose": "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": POLICY if admission_mode else None,
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
-            **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
-            "prompt": ("Exercise one bounded look action through your scoped game tool and one clean-context helper. "
+            **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
+            "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
+                       if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
+                       if pilot_helper else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
                        "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
-                cas, plan, tool_projections)})
+                cas, plan, tool_projections, helper_collaboration=pilot_helper)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -628,7 +679,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "all_envelopes_closed": db.connection.execute("SELECT count(*) FROM budget_envelopes e "
                     "JOIN operations o ON e.operation=o.id WHERE o.actual IS NULL OR o.uncertain=1").fetchone()[0] == 0,
                 "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"]
-                    == (7 if gateway_mode else 14) * len(provider.requests),
+                    # Fixture: 10 input, 2 cached, 4 output; unclassified writes
+                    # use the conservative write rate, rounded per request.
+                    == ({"gpt-5.6-luna": 7, "gpt-6-luna": 4}[model] if gateway_mode else 14)
+                    * len(provider.requests),
             })
             if plan.tool_projection_ref is not None:
                 from mcbench.native_tool_projection import read_tool_projection
@@ -786,6 +840,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["interruption"] = interrupt_probe.report(provider, db)
         result["checks"].update(result["interruption"]["checks"])
         result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
+    if piloting_contract:
+        from native_pilot_contract_probe import report
+        result["checks"] = report(db, cas, plan, result, provider, worker_calls, helper=pilot_helper)
+        result["scope"] = "development_piloting_helper_contract" if pilot_helper else "development_piloting_public_contract"
+        result["isolation_qualified"] = False
+    if game_failure:
+        result["failure_control"] = game_probe.failure_report(db, cas, plan, provider, result)
+        result["scope"] = "scripted_transport_failure_with_authentic_game"
+        result["isolation_qualified"] = False
     db.close()
     (output / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     return {k: v for k, v in result.items() if k != "outputs"}
@@ -829,7 +892,11 @@ def main():
         root / "src/mcbench/native_ingress.py", root / "src/mcbench/native_oauth.py",
         root / "src/mcbench/inference_transport.py", root / "src/mcbench/native_gateway.py",
         root / "src/mcbench/native_skills.py", root / "src/mcbench/native_conformance.py",
-        root / "tools/native_oauth_conformance.py"]
+        root / "tools/native_oauth_conformance.py", root / "src/mcbench/native_piloting.py",
+        root / "src/mcbench/pilot_budget.py",
+        root / "tools/native_pilot_trial.py", root / "tools/native_pilot_report.py",
+        root / "tools/native_pilot_contract_probe.py",
+        root / "tools/m0_native_game.py"]
     (output / "manifest.json").write_text(json.dumps({"binary_sha256": BINARY_SHA256,
         "source_sha256": {p.relative_to(root).as_posix(): file_hash(p) for p in paths},
         "production_qualified": False}, indent=2), encoding="utf-8")

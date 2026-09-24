@@ -314,7 +314,7 @@ export class ForgeLane implements GameLane {
     requireThat(this.journal.counter('primitive_events')+minimum <= this.primitiveLimit, 'BUDGET_EXHAUSTED');
     const remaining = Date.parse(b.deadline_at)-Date.now();
     requireThat(remaining > 0 && remaining <= 30250 && mono() < this.deadline, 'DEADLINE_EXCEEDED');
-    const ack = this.write(() => {const ack = this.ack(b, 'accepted'); this.journal.accept(b, ack); return ack;});
+    const ack = this.write(() => this.journal.accept(b, () => this.ack(b, 'accepted')));
     const timer = setTimeout(() => this.background(this.fence('DEADLINE_EXCEEDED')),
       Math.min(remaining,b.duration_ms,this.deadline-mono()));
     const active: Active = {batch:b,timer,sent:false,nativeTerminal:false,finishing:null,interrupt:null};

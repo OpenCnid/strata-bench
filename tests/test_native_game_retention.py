@@ -78,6 +78,69 @@ def test_registration_before_jobs_is_durable_draft_and_no_budget_mutation(packag
     assert database.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("changed", [None, "runtime", "worker", "capability", "agent", "qualified"])
+def test_declared_worker_binding_cannot_silently_retain_a_previous_runtime(package, changed):
+    body, save, _ = package
+    runtime = {"path": "C:/held/runtime.json", "sha256": "c" * 64}
+    worker, capability = "d" * 64, "e" * 64
+    declared = {"schema": "strata/M0WorkerCapabilityReference/1", "track": "structured-actions/v1",
+        "worker_runtime": runtime, "backend_implementation_sha256": worker, "import_capability_digest": capability,
+        "actual_game_capabilities_collected_at_launch": True, "campaign_admission": False,
+        "full_conformance_qualified": False}
+    if changed == "runtime":
+        declared["worker_runtime"] = runtime | {"sha256": "f" * 64}
+    elif changed == "worker":
+        declared["backend_implementation_sha256"] = "f" * 64
+    elif changed == "capability":
+        declared["import_capability_digest"] = "f" * 64
+    elif changed == "qualified":
+        declared["full_conformance_qualified"] = True
+    raw = canonical(declared).decode()
+    ref = "cas:sha256:" + hashlib.sha256(raw.encode()).hexdigest()
+    body["objects"][ref] = raw
+    body["campaign"]["backend"]["capability_manifest"] = ref
+    if changed != "agent":
+        body["agent"]["capability_profile"] = ref
+    retention = GameRetention(save())
+    if changed:
+        with pytest.raises(Fault, match="RETENTION_WORKER_MISMATCH"):
+            retention.check_worker_binding(runtime, worker, capability_digest=capability)
+    else:
+        retention.check_worker_binding(runtime, worker)
+        retention.check_worker_binding(runtime, worker, capability_digest=capability)
+
+
+@pytest.mark.parametrize("registered,authorized", [("gpt-6-luna", "gpt-6-luna"),
+    ("gpt-5.6-luna", "gpt-6-luna"), ("gpt-6-luna", "gpt-5.6-luna")])
+@pytest.mark.parametrize("version", [1, 2])
+def test_pilot_launcher_uses_authorized_model_before_pack_or_output(package, tmp_path, monkeypatch,
+                                                                  registered, authorized, version):
+    import m0_native_game
+    import native_pilot_trial
+    from contextlib import ExitStack
+    body, save, _ = package
+    body["agent"].update(requested_model=registered, helper_limit=0,
+                         runtime={"version": CODEX_VERSION, "digest": m0_native_game.BINARY_SHA256})
+    source = save()
+    # Only authorization admission is synthetic; exercise the real driver and
+    # real sealed-retention identity check. Pack setup must not precede it.
+    monkeypatch.setattr(native_pilot_trial, "check_inputs", lambda _: {"model": authorized, "budget_decision": None})
+    def stop_before_pack(_):
+        raise RuntimeError("IDENTITY_ACCEPTED_BEFORE_PACK")
+    monkeypatch.setattr(m0_native_game, "parse_pack_binding", stop_before_pack)
+    output = tmp_path / "unused-output"
+    plan = {"schema": f"strata/M0NativePilot/{version}", "pilot": {}, "retention_source": source,
+            "output": str(output), "pack": {}}
+    with ExitStack() as resources:
+        if registered == authorized:
+            with pytest.raises(RuntimeError, match="IDENTITY_ACCEPTED_BEFORE_PACK"):
+                m0_native_game.run_plan(plan, resources)
+        else:
+            with pytest.raises(Fault, match="RETENTION_INPUT_PROFILE"):
+                m0_native_game.run_plan(plan, resources)
+    assert not output.exists()
+
+
 @pytest.mark.parametrize("case,code", [
     ("hash", "RETENTION_INPUT_CHANGED"), ("extra", "RETENTION_INPUT_INVALID"),
     ("duplicate", "RETENTION_INPUT_INVALID"), ("scope", "RETENTION_INPUT_SCOPE"),
@@ -282,7 +345,8 @@ def test_missing_server_capture_has_typed_failure(tmp_path, server):
         paired_components(tmp_path, {"status": "fail", "server_result": server}, "a" * 64, {})
 
 
-@pytest.mark.parametrize("case", ["valid", "wrong-plan", "world-changed", "joint-changed"])
+@pytest.mark.parametrize("case", ["valid", "wrong-plan", "world-changed", "joint-changed",
+                                 "player-copy-changed", "player-copy-same-size", "player-copy-missing", "no-player", "two-players"])
 def test_stopped_world_and_native_component_join(archived_retention, installed, case):
     from mcbench.storage import digest
     from mcbench.vanilla_persistence import VanillaPersistence
@@ -294,6 +358,16 @@ def test_stopped_world_and_native_component_join(archived_retention, installed, 
     server_plan = {"schema": "strata/DevelopmentServer/2"}
     target = root / "run/server/stopped-instance"
     target.parent.mkdir()
+    players = installed / "world/playerdata"
+    players.mkdir()
+    if case != "no-player":
+        (players / "11111111-1111-1111-1111-111111111111.dat").write_bytes(b"synthetic saved player")
+    if case == "two-players":
+        (players / "22222222-2222-2222-2222-222222222222.dat").write_bytes(b"synthetic sibling")
+    if case != "player-copy-missing":
+        (root / "run/player-after.dat").write_bytes(
+            b"different player" if case == "player-copy-changed" else
+            b"x" * len(b"synthetic saved player") if case == "player-copy-same-size" else b"synthetic saved player")
     service = VanillaPersistence(installed)
     try:
         snapshot = service.capture(target, stopped(), plan_digest=digest(server_plan))
@@ -326,6 +400,7 @@ def test_stopped_world_and_native_component_join(archived_retention, installed, 
                                           server_plan, {"joint_components": joint})
     if case == "valid":
         assert inspect()["stopped_world_captured"] and not inspect()["complete_checkpoint"]
+        assert inspect()["saved_player_bound_to_snapshot"]
     else:
         with pytest.raises(Fault):
             inspect()

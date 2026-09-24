@@ -1,6 +1,7 @@
 """Synthetic stream rules; actual token/pipe/JVM controls remain separate."""
 
 import copy
+import base64
 import hashlib
 import json
 import time
@@ -35,6 +36,7 @@ def sink(reference, tmp_path):  # noqa: F811
     broker.settings = {"max_events": 10, "max_bytes": 65536}
     broker.count, broker.bytes, broker.previous = 0, 0, "0" * 64
     broker.boot, broker.last_tick, broker.stopped, broker.output = None, -1, False, None
+    broker.history_policy = None
     receipts, states = [], []
     broker.pipe = SimpleNamespace(send=receipts.append)
     broker._record = lambda state, **values: states.append((state, values))
@@ -70,28 +72,89 @@ def test_operator_signs_exact_event_and_acknowledges_only_durable_sequence(sink)
 
 
 @pytest.mark.parametrize("transport", ["windows-owned-pipe/1", "private-file/1"])
-def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport):
+@pytest.mark.parametrize("version", [8, 9, 10, 11, 12, 13, 14])
+def test_history_module_preserves_pipe_identity_gate_before_claim(sink, transport, version):
     from strata_evaluator.setup_facts import PINS, POLICY as POINT_POLICY
-    from strata_evaluator.setup_history import POLICY, ROUTES
+    from strata_evaluator.setup_history import HISTORY_MODELS, HISTORY_SCHEMAS
     broker, first, identity, key, receipts, _ = sink
-    first["payload_schema"] = "strata/ServerStarted/8"
-    first["payload"].update(module="strata-forge1192-telemetry/0.3.7", telemetry_transport=transport,
+    policy = f"native-e9e-setup-mutation-watch/{max(1, version - 8)}"
+    first["payload_schema"] = f"strata/ServerStarted/{version}"
+    first["payload"].update(module=f"strata-forge1192-telemetry/0.3.{version - 1}", telemetry_transport=transport,
         setup_capture_policy=POINT_POLICY, setup_capture_support={"status": "supported", "artifacts": PINS},
-        setup_history_support={"policy": POLICY, "vanilla_hooks_verified": True,
+        setup_history_support={"policy": policy, "vanilla_hooks_verified": True,
             "team_hooks_verified": True, "all_mutation_routes_covered": False})
+    for threshold, name in ((10, "global_map_hooks_verified"), (11, "team_map_hooks_verified"),
+                            (12, "script_field_hooks_verified")):
+        if version >= threshold:
+            first["payload"]["setup_history_support"][name] = True
+    if version >= 9:
+        from strata_evaluator.telemetry_clocks import POLICY as CLOCK_POLICY
+        first["payload"]["clock_policy"] = CLOCK_POLICY
     if transport == "private-file/1":
         with pytest.raises(Fault, match="TELEMETRY_PIPE_TRANSPORT"):
             broker._event(canonical(first) + b"\n", identity, key)
         assert not receipts and not Path(broker.authority.key_file + ".claimed").exists()
     else:
         broker._event(canonical(first) + b"\n", identity, key)
-        history = first | {"kind": "setup_history", "payload_schema": "strata/NativeSetupHistory/1",
+        history = first | {"kind": "setup_history", "payload_schema": HISTORY_SCHEMAS[policy],
             "seq": 2, "server_event_seq": 2, "server_tick": 1,
-            "payload": {"policy": POLICY, "phase": "startup", "transaction_id": None,
-                        "attempts": dict.fromkeys(sorted(ROUTES), 0), "off_thread_attempts": 0,
+            "payload": {"policy": policy, "phase": "startup", "transaction_id": None,
+                        "attempts": dict.fromkeys(sorted(HISTORY_MODELS[policy].routes), 0), "off_thread_attempts": 0,
                         "overflowed": False}}
         broker._event(canonical(history) + b"\n", identity, key)
         assert broker.count == 2 and len(receipts) == 2
+        with SpoolVerifier(broker.authority.model_dump(by_alias=True)) as verifier:
+            raw_events = [verifier.verify(line) for line in next(broker.spool.glob("*.jsonl")).read_bytes().splitlines(keepends=True)]
+        assert raw_events[-1] == canonical(history) + b"\n"
+
+
+@pytest.mark.parametrize("change", ["schema", "policy", "missing-route", "extra-route", "bool-counter"])
+def test_history_drift_or_malformed_payload_never_receives_a_signature_or_ack(sink, change):
+    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 14)
+    broker, _, identity, key, receipts, _ = sink
+    path = next(broker.spool.glob("*.jsonl"))
+    before = path.read_bytes()
+    history = json.loads(base64.b64decode(json.loads(before.splitlines()[-1])["event_base64"]))
+    history["seq"] = history["server_event_seq"] = 3
+    if change == "schema":
+        history["payload_schema"] = "strata/NativeSetupHistory/1"
+    elif change == "policy":
+        history["payload"]["policy"] = "native-e9e-setup-mutation-watch/3"
+    elif change == "missing-route":
+        del history["payload"]["attempts"]["team_script_field_write"]
+    elif change == "extra-route":
+        history["payload"]["attempts"]["invented"] = 0
+    elif change == "bool-counter":
+        history["payload"]["attempts"]["team_script_field_write"] = False
+    with pytest.raises((Fault, ValueError)):
+        broker._event(canonical(history) + b"\n", identity, key)
+    assert broker.count == 2 and len(receipts) == 2 and path.read_bytes() == before
+
+
+def test_history_requires_support_from_the_bound_startup(sink):
+    from strata_evaluator.setup_history import POLICY, ROUTES
+    broker, first, identity, key, receipts, _ = sink
+    broker._event(canonical(first) + b"\n", identity, key)
+    history = first | {"kind": "setup_history", "payload_schema": "strata/NativeSetupHistory/1",
+        "seq": 2, "server_event_seq": 2,
+        "payload": {"policy": POLICY, "phase": "startup", "transaction_id": None,
+                    "attempts": dict.fromkeys(ROUTES, 0), "off_thread_attempts": 0, "overflowed": False}}
+    with pytest.raises(Fault, match="TELEMETRY_PIPE_HISTORY_SCOPE"):
+        broker._event(canonical(history) + b"\n", identity, key)
+    assert broker.count == 1 and len(receipts) == 1
+
+
+def test_versioned_history_still_allows_only_one_terminal_stop(sink):
+    test_history_module_preserves_pipe_identity_gate_before_claim(sink, "windows-owned-pipe/1", 14)
+    broker, first, identity, key, receipts, _ = sink
+    stop = first | {"kind": "server_stopped", "payload_schema": "strata/ServerStopped/1",
+        "seq": 3, "server_event_seq": 3, "server_tick": 2, "payload": {}}
+    broker._event(canonical(stop) + b"\n", identity, key)
+    assert broker.stopped and broker.count == 3 and len(receipts) == 3
+    stop["seq"] = stop["server_event_seq"] = 4
+    with pytest.raises(Fault, match="TELEMETRY_PIPE_EVENT_SCOPE"):
+        broker._event(canonical(stop) + b"\n", identity, key)
+    assert broker.count == 3 and len(receipts) == 3
 
 
 @pytest.mark.parametrize("change", ["pid", "world", "module", "port", "campaign", "sequence", "visibility",

@@ -3,14 +3,14 @@ import { digest } from './protocol.js';
 import { hashFile, implementationPins } from './capability_pins.js';
 import { MENU_CLOSE_POLICY } from './menu_close.js';
 import { BODY_REVISION_POLICY } from './body_revision.js';
-import { PRIMITIVE_ACCOUNTING_POLICY } from './journal.js';
+import { ACTION_ADMISSION_POLICY, PRIMITIVE_ACCOUNTING_POLICY } from './journal.js';
 
 const sourcePins = implementationPins();
 const schemaPins = Object.fromEntries(['ActionBatch','ActionAck','Observation','RpcRequest']
   .map(name => [name, hashFile(new URL(`../../../../schemas/v1/public/${name}.json`, import.meta.url))]));
 
 export const capabilityManifest = {
-  schema: 'strata/Capabilities/1', contract_minor: 11, profile: 'vanilla-development/1', track: 'structured-actions/v1',
+  schema: 'strata/Capabilities/1', contract_minor: 12, profile: 'vanilla-development/1', track: 'structured-actions/v1',
   backend: 'mineflayer', minecraft: '1.19.2', node: '24.19.0', mineflayer: '4.39.0',
   implementation_digest: digest(sourcePins), schema_digest: digest(schemaPins),
   dependency_lock_digest: hashFile(new URL('../../package-lock.json', import.meta.url)),
@@ -39,6 +39,7 @@ export const capabilityManifest = {
   limits: {movement_ms: 30000, action_ms: 10000, observation_age_ms: 2000},
   release: {policy: 'confirmed-local-release/2', timeout_ms: 250, fence_on_stop_all: true},
   primitive_accounting: {policy:PRIMITIVE_ACCOUNTING_POLICY, emission_confirmation:false},
+  action_admission: {policy:ACTION_ADMISSION_POLICY, recorded_refusals:['OUT_OF_ORDER']},
   conformance: 'unverified', campaign_admission: false,
 };
 export const capabilityDigest = digest(capabilityManifest);

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def policy():
     return ExecutionAuthorization.model_validate_json(
-        (ROOT / "configs/operator/live-validation.json").read_text(encoding="utf-8")
+        (ROOT / "configs/operator/legacy/live-validation-d11.json").read_text(encoding="utf-8")
     )
 
 

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
+export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
 
 /** Private, synchronous FULL journal. Nothing dispatches before acceptance is committed. */
 export class Journal {
@@ -78,13 +79,30 @@ export class Journal {
     if (!row) throw new Fault('ACTION_UNKNOWN');
     return JSON.parse(row.ack) as ActionAck;
   }
-  accept(batch: ActionBatch, ack: ActionAck): void {
-    this.transaction(() => {
-      requireThat(batch.seq === this.counter(`${this.epoch}:action`) + 1, 'OUT_OF_ORDER');
+  accept(batch: ActionBatch, makeAck: () => ActionAck): ActionAck {
+    const result = this.transaction(() => {
+      const expected = this.counter(`${this.epoch}:action`) + 1;
+      if (batch.seq !== expected) {
+        // Commit a private pre-intent refusal before returning the public error.
+        // This records a known zero-dispatch outcome, unlike a missing receipt.
+        this.event('action_refusal', {schema:'strata/ActionSequenceRefusal/1', policy:ACTION_ADMISSION_POLICY,
+          campaign_id:batch.campaign_id, agent_id:batch.agent_id, epoch:batch.epoch,
+          request_id:batch.request_id, request_digest:digest(batch), action_seq:batch.seq,
+          expected_action_seq:expected, ack_counter:this.counter(`${this.epoch}:ack`),
+          primitive_events:this.counter('primitive_events'), code:'OUT_OF_ORDER',
+          recorded_at:utc(), mono_ms:mono()});
+        return null;
+      }
+      // Allocate the receipt inside the same transaction as its durable intent.
+      // Refusals and failed inserts must not consume an unrecorded ack sequence.
+      const ack = makeAck();
       this.db.prepare('INSERT INTO actions VALUES (?,?,?,?,?,?)').run(batch.request_id, batch.epoch,
         batch.seq, digest(batch), JSON.stringify(batch), JSON.stringify(ack));
       this.counter(`${this.epoch}:action`, 1); this.event('ack', ack);
+      return ack;
     });
+    requireThat(result !== null, 'OUT_OF_ORDER');
+    return result;
   }
   update(ack: ActionAck): void {
     this.transaction(() => {

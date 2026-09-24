@@ -90,10 +90,11 @@ def test_changed_pack_commands_settings_or_stop_proof_do_not_reconcile(archive, 
         inspect(archive)
 
 
-def test_sealed_native_plan_rejects_literal_command_overrides_before_composition(tmp_path, monkeypatch):
+@pytest.mark.parametrize("schema", ["strata/M0NativeGameSmoke/4", "strata/M0NativeGameFailure/1"])
+def test_sealed_native_plan_rejects_literal_command_overrides_before_composition(tmp_path, monkeypatch, schema):
     import m0_native_game as runner
     path = tmp_path / "plan.json"
-    body = {"schema": "strata/M0NativeGameSmoke/4", "output": "unused", "pack": {},
+    body = {"schema": schema, "output": "unused", "pack": {},
         "worker_invocation": {}, "worker_runtime": {}, "codex": "unused", "tool_projections": "unused",
         "model_catalog": "unused", "retention_source": {}, "worker_config": "unreviewed"}
     path.write_bytes(canonical(body))
@@ -102,15 +103,20 @@ def test_sealed_native_plan_rejects_literal_command_overrides_before_composition
         runner.run(path)
 
 
-@pytest.mark.parametrize("change", [None, "future-observation", "wrong-scope", "changed-save", "invented-prior-save"])
+@pytest.mark.parametrize("change", [None, "future-observation", "wrong-scope", "changed-save", "invented-prior-save",
+                                    "health", "food", "dimension", "inventory"])
 def test_fresh_player_join_uses_initial_scope_and_final_saved_state(example, monkeypatch, change):
     import strata_evaluator.native_game_evidence as module
+    from strata_evaluator.saved_blocks import Tag
     initial = example("Observation") | {"seq": 1}
     initial["state"] |= {"connected": True, "yaw": 0., "pitch": 0., "position": {"x": 1., "y": 65., "z": 2.}}
     latest = deepcopy(initial) | {"seq": 2}
     latest["state"]["yaw"] = 1.
-    saved = {"Rotation": (5, [SimpleNamespace(value=180-math.degrees(1.)), SimpleNamespace(value=0.)]),
-             "Pos": (6, [SimpleNamespace(value=n) for n in (1.,65.,2.)])}
+    latest["state"]["inventory"] = []
+    saved = {"Rotation": Tag(9, (5, [Tag(5, 180-math.degrees(1.)), Tag(5, 0.)])),
+             "Pos": Tag(9, (6, [Tag(6, n) for n in (1.,65.,2.)])),
+             "Health": Tag(5, latest["state"]["health"]), "foodLevel": Tag(3, latest["state"]["food"]),
+             "Dimension": Tag(8, latest["state"]["dimension"]), "Inventory": Tag(9, (0, ()))}
     bodies = {"run/intent.json": {"plan": {"schema": "strata/M0NativeGameSmoke/4"}},
               "run/initial-observation.json": {"status": "ok", "result": initial}}
     files = set(bodies) | {"run/player-after.dat"}
@@ -119,14 +125,19 @@ def test_fresh_player_join_uses_initial_scope_and_final_saved_state(example, mon
     elif change == "wrong-scope":
         initial["epoch"] += 1
     elif change == "changed-save":
-        saved["Pos"][1][0].value = 99.
+        saved["Pos"] = Tag(9, (6, [Tag(6, n) for n in (99.,65.,2.)]))
     elif change == "invented-prior-save":
         files.add("run/player-before.dat")
+    elif change in {"health", "food"}:
+        latest["state"][change] -= 1
+    elif change == "dimension":
+        latest["state"]["dimension"] = "minecraft:the_nether"
+    elif change == "inventory":
+        latest["state"]["inventory"] = [{"slot": 36, "item_id": "minecraft:stick", "count": 1}]
     # Only the packet/save join is under test; binary NBT parsing has its own
     # source cases and is not represented by this synthetic decoder.
     monkeypatch.setattr(module,"unpack_chunk",lambda *_: b"synthetic")
     monkeypatch.setattr(module,"NbtReader",lambda _: SimpleNamespace(root=lambda: saved))
-    monkeypatch.setattr(module,"field",lambda value,key,_kind: value[key])
     bundle = SimpleNamespace(files=files, json=lambda name: bodies[name], read=lambda _: b"synthetic")
     if change:
         with pytest.raises(Fault, match="NATIVE_GAME_SAVED_PLAYER"):

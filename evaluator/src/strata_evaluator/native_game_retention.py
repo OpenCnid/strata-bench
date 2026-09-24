@@ -112,6 +112,16 @@ def inspect_stopped_components(bundle, retention, server, server_plan, result):
     stopped = verify_snapshot(bundle.path("run/server/stopped-instance/manifest.json").parent,
                               snapshot["manifest_sha256"])
     require(stopped["server_plan_digest"] == digest(server_plan), "NATIVE_GAME_RETENTION_INPUT")
+    # A separately sealed player copy is not evidence of what this world saved.
+    # The bounded native slice has exactly one body; bind its copied bytes to
+    # the verified stopped-world inventory before claiming a joined component.
+    players = [name for name in stopped["files"]
+               if name.startswith("world/playerdata/") and name.endswith(".dat")]
+    copied_player = bundle.files.get("run/player-after.dat")
+    require(len(players) == 1 and copied_player is not None
+            and stopped["files"][players[0]]["disposition"] == "state"
+            and all(stopped["files"][players[0]][key] == getattr(copied_player, key)
+                    for key in ("sha256", "bytes")), "NATIVE_GAME_SNAPSHOT_PLAYER_MISMATCH")
     if sealed:
         lock = bundle.json("run/pack-lock.json")
         require(stopped["schema"] == "strata/StoppedVanillaSnapshot/2"
@@ -128,5 +138,6 @@ def inspect_stopped_components(bundle, retention, server, server_plan, result):
     require(bundle.json("run/joint-components.json") == result["joint_components"] == joint,
             "NATIVE_GAME_RETENTION_COMPONENT")
     return retention | {"stopped_world_captured": True, "snapshot_sha256": snapshot["manifest_sha256"],
+        "saved_player_bound_to_snapshot": True,
         "state_files": sum(e["disposition"] == "state" for e in stopped["files"].values()),
         "clean_save_proven": False, "writer_custody_qualified": False}

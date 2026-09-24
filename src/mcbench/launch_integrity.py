@@ -7,7 +7,8 @@ access. Native tool restrictions and protected ingress remain separate gates.
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+import re
 import stat
 
 
@@ -92,8 +93,36 @@ def read_manifest(path, expected):
     raw = safe(path).read_bytes()
     check(len(raw) <= 8 * 1024**2 and hashlib.sha256(raw).hexdigest() == expected, "BOOTSTRAP_DIGEST")
     value = json.loads(raw)
-    check(value.get("schema") == "strata/NativeBootstrap/1", "BOOTSTRAP_SCHEMA")
+    check(value.get("schema") in {"strata/NativeBootstrap/1", "strata/NativeBootstrap/2"}, "BOOTSTRAP_SCHEMA")
+    native_companion_inventory(value)
     return value
+
+
+def native_companion_inventory(manifest):
+    """Validate the archived dependency binding without opening archived paths."""
+    if manifest.get("schema") == "strata/NativeBootstrap/1":
+        check("native_companions" not in manifest, "BOOTSTRAP_COMPANION_DOWNGRADE")
+        return None  # Legacy evidence never acquires retroactive dependency pins.
+    check(manifest.get("schema") == "strata/NativeBootstrap/2", "BOOTSTRAP_SCHEMA")
+    companions = manifest.get("native_companions")
+    names = {"codex-code-mode-host.exe", "codex-command-runner.exe", "codex-windows-sandbox-setup.exe"}
+    check(isinstance(companions, dict) and set(companions) == names
+          and all(isinstance(sha, str) and re.fullmatch("[a-f0-9]{64}", sha) for sha in companions.values()),
+          "BOOTSTRAP_COMPANION_PINS")
+    check(isinstance(manifest.get("native_executable"), str), "BOOTSTRAP_COMPANION_PATH")
+    executable = PureWindowsPath(manifest["native_executable"].removeprefix("\\\\?\\"))
+    check(executable.is_absolute(), "BOOTSTRAP_COMPANION_PATH")
+    inventory = manifest.get("inventory")
+    check(isinstance(inventory, dict) and isinstance(inventory.get("files"), list),
+          "BOOTSTRAP_COMPANION_INVENTORY")
+    check(all(isinstance(e, dict) and isinstance(e.get("path"), str) for e in inventory["files"]),
+          "BOOTSTRAP_COMPANION_INVENTORY")
+    for name, sha in companions.items():
+        entries = [e for e in inventory["files"] if
+                   PureWindowsPath(e["path"].removeprefix("\\\\?\\")) == executable.parent / name]
+        check(len(entries) == 1 and entries[0].get("sha256") == sha and type(entries[0].get("bytes")) is int
+              and 0 < entries[0]["bytes"] <= 512 * 1024**2, "BOOTSTRAP_COMPANION_UNPINNED")
+    return dict(companions)
 
 
 class FileLease:

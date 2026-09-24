@@ -7,10 +7,10 @@ import java.util.TreeMap;
 
 /** Bounded sticky observations, with no game-state writes or raw command data. */
 public final class SetupHistory {
-    public static final String POLICY = "native-e9e-setup-mutation-watch/1";
+    public static final String POLICY = "native-e9e-setup-mutation-watch/6";
     static final String[] ROUTES = {"command_attempt", "actor_mode_change", "operator_add",
         "operator_remove", "operator_reload", "allow_cheats", "world_mode", "world_difficulty",
-        "team_deserialize", "party_change", "team_create", "team_reload", "native_stop_command"};
+        "team_deserialize", "party_change", "team_create", "team_reload", "native_stop_command", "global_mode_write", "team_map_write", "team_script_field_write", "script_reflection_overflow", "script_handle_unresolved"};
     private static Monitor monitor;
     private static boolean used;
 
@@ -43,7 +43,16 @@ public final class SetupHistory {
             "net.minecraft.server.commands.StopCommand"));
         result.addProperty("team_hooks_verified", marked("dev.ftb.mods.ftbteams.data.Team",
             "dev.ftb.mods.ftbteams.data.PartyTeam", "dev.ftb.mods.ftbteams.data.TeamManager"));
-        // Public mutable FTB fields/maps and KubeJS GLOBAL are not mediated by these hooks.
+        boolean global=false;
+        try {
+            global=Class.forName("dev.latvian.mods.kubejs.BuiltinKubeJSPlugin").getField("GLOBAL").get(null)
+                instanceof ObservedGlobalMap;
+        } catch(ReflectiveOperationException ignored) {}
+        result.addProperty("global_map_hooks_verified", global);
+        result.addProperty("team_map_hooks_verified", TeamMapSupport.verified());
+        result.addProperty("script_field_hooks_verified", marked("dev.latvian.mods.rhino.JavaMembers",
+            "dev.latvian.mods.rhino.MemberBox"));
+        // Native/mod writes, native handle calls and pre-activation history remain unqualified.
         result.addProperty("all_mutation_routes_covered", false); return result;
     }
     private static boolean marked(String... names) {

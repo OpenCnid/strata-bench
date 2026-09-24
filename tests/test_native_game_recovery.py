@@ -31,6 +31,62 @@ def test_saved_own_state_matches_hotbar_armor_and_offhand(saved):
     assert player_matches(*saved)
 
 
+@pytest.mark.parametrize("slot", [-128, -1, 36, 40, 44, 45, 99, 104, 127])
+def test_saved_protocol_slot_aliases_are_not_valid_nbt_slots(saved, slot):
+    player, state = saved
+    player["Inventory"].value[1][0].value["Slot"] = Tag(1, slot)
+    state["inventory"][0]["slot"] = slot
+    with pytest.raises(Fault, match="GAME_RECOVERY_PLAYER"):
+        player_matches(player, state)
+
+
+@pytest.mark.parametrize("change", ["same", "different", "empty"])
+def test_duplicate_observed_slots_cannot_be_collapsed(saved, change):
+    player, state = saved
+    duplicate = dict(state["inventory"][0])
+    if change == "different":
+        duplicate["count"] += 1
+    elif change == "empty":
+        duplicate.update(count=0, item_id=None)
+    state["inventory"].append(duplicate)
+    with pytest.raises(Fault, match="GAME_RECOVERY_PLAYER"):
+        player_matches(player, state)
+
+
+@pytest.mark.parametrize("change", ["zero", "negative", "air", "invalid-id", "duplicate-nbt", "craft-grid"])
+def test_saved_inventory_requires_valid_unique_occupied_slots(saved, change):
+    player, state = saved
+    item = player["Inventory"].value[1][0].value
+    if change in {"zero", "negative"}:
+        item["Count"] = Tag(1, 0 if change == "zero" else -1)
+    elif change in {"air", "invalid-id"}:
+        item["id"] = Tag(8, "minecraft:air" if change == "air" else "INVALID")
+    elif change == "duplicate-nbt":
+        player["Inventory"] = Tag(9, (10, player["Inventory"].value[1] + (Tag(10, item),)))
+    else:
+        state["inventory"].append({"slot": 1, "item_id": "minecraft:stick", "count": 1})
+    with pytest.raises(Fault, match="GAME_RECOVERY_PLAYER"):
+        player_matches(player, state)
+
+
+def test_empty_protocol_slots_do_not_create_saved_items(saved):
+    player, state = saved
+    state["inventory"] += [{"slot": slot, "item_id": None, "count": 0}
+                           for slot in range(46) if slot not in {36, 5, 45}]
+    assert player_matches(player, state)
+
+
+def test_hotbar_storage_armor_and_offhand_boundaries_have_distinct_slots(saved):
+    player, state = saved
+    slots = [(0, 36), (8, 44), (9, 9), (35, 35), (100, 8), (103, 5), (-106, 45)]
+    player["Inventory"] = Tag(9, (10, tuple(Tag(10, {
+        "Slot": Tag(1, nbt_slot), "id": Tag(8, "minecraft:stone"), "Count": Tag(1, index+1)})
+        for index, (nbt_slot, _) in enumerate(slots))))
+    state["inventory"] = list(reversed([{"slot": packet_slot, "item_id": "minecraft:stone", "count": index+1}
+                                       for index, (_, packet_slot) in enumerate(slots)]))
+    assert player_matches(player, state)
+
+
 @pytest.mark.parametrize("element_kind", [0, 10])
 def test_empty_saved_inventory_accepts_vanilla_end_or_compound_list(saved, element_kind):
     player, state = deepcopy(saved)
@@ -170,6 +226,10 @@ def test_recovery_three_accepts_only_the_explicit_sealed_plan(tmp_path, monkeypa
     path = tmp_path / "plan.json"
     path.write_bytes(canonical(plan))
     calls = []
+    # This test isolates plan shape/composition; dependency admission has its own
+    # missing/changed-file tests and actual native/game evidence.
+    monkeypatch.setattr(runner, "file_hash", lambda _path: runner.BINARY_SHA256)
+    monkeypatch.setattr(runner, "native_companion_paths", lambda _path: [])
     monkeypatch.setattr(runner, "run_plan", lambda body, _resources: calls.append(body))
     if change:
         with pytest.raises(Fault, match="M0_PLAN_INVALID"):

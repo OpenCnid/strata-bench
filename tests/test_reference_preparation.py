@@ -176,3 +176,56 @@ def test_v2_preparation_rechecks_resource_input_under_argument_lease(prepared):
     report = module.validate_preparation(read, "a" * 64, "b" * 64, 915000)
     assert report["jvm_resource_input"]["reported_processors_argument"] == 4
     assert not report["authentication_verified"]
+
+
+@pytest.mark.parametrize("change", [None, "old-heap", "missing-min", "missing-max", "duplicate-min",
+                                    "duplicate-max", "after-main", "operand", "unknown-policy"])
+def test_explicit_heap_candidate_rejects_missing_overridden_or_ineffective_flags(change):
+    args = ["-XX:ActiveProcessorCount=4", "-Xms512m", "-Xmx6144m",
+            "cpw.mods.bootstraplauncher.BootstrapLauncher", "--accessToken", "synthetic-secret"]
+    policy = "hotspot-processors4-heap512-6144mib/1"
+    if change == "old-heap":
+        args[2] = "-Xmx3072m"
+    elif change in {"missing-min", "missing-max"}:
+        args.remove("-Xms512m" if change == "missing-min" else "-Xmx6144m")
+    elif change in {"duplicate-min", "duplicate-max"}:
+        args.insert(0, "-Xms512m" if change == "duplicate-min" else "-Xmx6144m")
+    elif change == "after-main":
+        args.remove("-Xmx6144m")
+        args.append("-Xmx6144m")
+    elif change == "operand":
+        args.insert(2, "-cp")
+    elif change == "unknown-policy":
+        policy = "invented-resource-policy"
+    if change:
+        with pytest.raises(Fault, match="REFERENCE_CLIENT_(HEAP_ARGUMENTS|RESOURCE_POLICY)") as error:
+            module.check_resource_arguments(argument_file(args), policy)
+        assert "synthetic-secret" not in str(error.value)
+    else:
+        report = module.check_resource_arguments(argument_file(args), policy)
+        assert report["initial_heap_mib"] == 512 and report["maximum_heap_mib"] == 6144
+        assert report["reported_processors_argument"] == 4 and not report["shutdown_qualified"]
+        assert "synthetic-secret" not in json.dumps(report)
+
+
+def test_v3_preparation_joins_explicit_heap_to_session_bytes(prepared):
+    value, proof = prepared
+    args = Path(value.session_arguments.path)
+    args.write_bytes(argument_file(["-XX:ActiveProcessorCount=4", "-Xms512m", "-Xmx6144m",
+                                    "cpw.mods.bootstraplauncher.BootstrapLauncher"]))
+    receipt = Path(value.session_receipt.path)
+    receipt.write_bytes(canonical(json.loads(receipt.read_bytes()) | {"argfile_sha256": pin(args)["sha256"]}))
+    body = value.model_dump(by_alias=True) | {
+        "schema": "strata/PrivateReferenceClientPreparation/3",
+        "jvm_resource_policy": "hotspot-processors4-heap512-6144mib/1",
+        "session_arguments": pin(args), "session_receipt": pin(receipt)}
+    proof.write_bytes(canonical(body))
+    read = module.read_preparation(PrivateFile.model_validate(pin(proof)))
+    assert isinstance(read, module.ClientPreparationV3)
+    report = module.validate_preparation(read, "a" * 64, "b" * 64, 915000)
+    assert report["jvm_resource_input"]["maximum_heap_mib"] == 6144
+    assert not report["authentication_verified"]
+    # A coherent but weaker old schema cannot carry the new policy label.
+    proof.write_bytes(canonical(body | {"schema": "strata/PrivateReferenceClientPreparation/2"}))
+    with pytest.raises(Fault, match="REFERENCE_CLIENT_PREPARATION_INVALID"):
+        module.read_preparation(PrivateFile.model_validate(pin(proof)))

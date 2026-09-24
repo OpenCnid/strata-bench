@@ -47,6 +47,29 @@ def request():
         "method": "observe", "action": None, "target_request_id": None, "after": None}
 
 
+def test_public_pilot_pagination_reaches_worker_once_and_cannot_expand_methods(broker):
+    from mcbench.native_piloting import game_contract, PURPOSE
+    b, _, _ = broker
+    b.db.connection.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)",
+        ("runtime", "c1", "a1", 1, "executor", None, "a"*64, json.dumps({"purpose": PURPOSE}), "RUNNING"))
+    doc = json.loads(game_contract())
+    page = request() | {"method": doc["pagination"]["method"], "cursor": "delivered-page"}
+    forwarded = []
+    def transport(r):
+        forwarded.append(r.model_dump())
+        return {"status": "ok", "request_id": r.request_id, "result": {"is_example": True}}
+    first = b.call("game", {"request": page}, meta(), game_transport=transport)
+    assert b.call("game", {"request": page}, meta(), game_transport=transport) == first
+    assert len(forwarded) == 1 and forwarded[0]["method"] == "observe.page"
+    assert inspect_game_requests(b.db.connection, "runtime")[("root", "game-one")]["cursor"] == "delivered-page"
+    with pytest.raises(ValidationError, match="spatial cursor"):
+        b.call("game", {"request": page | {"method": "observe"}}, meta(), game_transport=transport)
+    with pytest.raises(Fault, match="PILOT_GAME_METHOD"):
+        b.call("game", {"request": request() | {"request_id": "not-allowed", "method": "wait_events", "after": 0}},
+               meta(), game_transport=transport)
+    assert len(forwarded) == 1
+
+
 def test_scoped_projection_and_drafts_survive_restart(broker):
     b, _, _ = broker
     assert b.call("artifact_read", {"path": "docs/allowed.md"}, meta())["text"] == "Allowed corpus."
@@ -252,6 +275,38 @@ def test_stdio_bounded_catalog_metadata_and_redacted_errors(broker):
     output = io.BytesIO()
     serve(b, io.BytesIO(b"x" * (384 * 1024 + 2)), output)
     assert not output.getvalue()
+
+
+def test_bad_game_arguments_return_public_schema_without_rejected_input(broker):
+    from mcbench.broker import GameCall
+    b, _, _ = broker
+    result = respond(b, {"jsonrpc": "2.0", "method": "tools/call", "params": {
+        "name": "game", "_meta": meta(), "arguments": {"request": {"DO_NOT_ECHO": "secret"}}}})
+    raw = result["content"][0]["text"]
+    assert result["isError"] and "DO_NOT_ECHO" not in raw and '"secret"' not in raw
+    value = json.loads(raw)
+    assert value["code"] == "BROKER_ARGUMENTS_INVALID"
+    assert value["expected_arguments_schema"] == GameCall.model_json_schema()
+    assert b.db.connection.execute("SELECT count(*) FROM broker_game_calls").fetchone()[0] == 0
+
+
+@pytest.mark.parametrize("offset,accepted", [(-1, False), (0, False), (2, True), (5.25, True), (5.251, False), (60, False)])
+def test_game_deadline_window_feedback_and_no_forward_on_rejection(broker, offset, accepted):
+    from datetime import datetime, timezone
+    b, _, _ = broker
+    calls = []
+    body = request() | {"deadline_at": datetime.fromtimestamp(100 + offset, timezone.utc).isoformat().replace("+00:00", "Z")}
+    result = respond(b, {"jsonrpc": "2.0", "method": "tools/call", "params": {
+        "name": "game", "_meta": meta(), "arguments": {"request": body}}},
+        game_transport=lambda r: calls.append(r) or {"status": "ok"})
+    assert len(calls) == int(accepted)
+    if not accepted:
+        value = json.loads(result["content"][0]["text"])
+        assert result["isError"] and value["code"] == "DEADLINE_EXCEEDED"
+        assert value["maximum_future_ms"] == 5250
+        assert "Date.now()+2000" in value["guidance"]
+        assert body["deadline_at"] not in result["content"][0]["text"]
+        assert not inspect_game_requests(b.db.connection, "runtime")
 
 
 @pytest.mark.parametrize("url", ["http://localhost:123/v1/game", "http://127.0.0.1:123/admin",

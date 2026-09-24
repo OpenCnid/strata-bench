@@ -13,9 +13,9 @@ from types import SimpleNamespace
 from typing import Literal
 
 from .contracts import Digest, Id, Ref, Strict
-from .inventory import file_hash, scan_tree, template_path
+from .inventory import file_hash, inventory_directories, scan_layout, template_path
 from .pack_policies import reviewed_vendor_paths
-from .provisioning import TARGETS, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
+from .provisioning import TARGETS, E9ELaunchProfile, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
 from .storage import CAS, Principal, canonical, digest, reject_links, require
 
@@ -33,7 +33,7 @@ class VanillaWorldSource(Strict):
 
 
 class WorkerProfileBaseline(VanillaWorldSource):
-    policy: Literal["vanilla1192-worker-profile-baseline/1"]
+    policy: Literal["vanilla1192-worker-profile-baseline/1", "vanilla1192-worker-profile-baseline/2"]
     source_request_id: Id
     source_lock: Ref
 
@@ -66,7 +66,8 @@ def _absolute(value):
     return path
 
 
-def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False, worker_invocation=None):
+def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=False, worker_invocation=None,
+                        forge_invocation=None):
     """Resolve an exact sealed command without creating/migrating a store.
 
 The caller must keep the binding private and enforce its own process, input,
@@ -92,11 +93,14 @@ credential, runtime dependency and mutable-world boundaries.
         cas = CAS(SimpleNamespace(connection=connection), objects)
         principal, namespace = Principal("pack-launch", "operator"), "pack:" + binding.request_id
 
-        def read(ref):
+        def read_bytes(ref):
             metadata = connection.execute("SELECT visibility FROM objects WHERE namespace=? AND ref=?",
                                           (namespace, ref)).fetchone()
             require(metadata is not None and metadata[0] == "operator", "FORBIDDEN")
-            return json.loads(cas.read(principal, namespace, ref, max_bytes=64 * 1024**2))
+            return cas.read(principal, namespace, ref, max_bytes=64 * 1024**2)
+
+        def read(ref):
+            return json.loads(read_bytes(ref))
 
         lock = PackLock.model_validate(read(binding.lock))
         require(lock.status == "sealed" and lock.lock_id == binding.request_id
@@ -106,7 +110,7 @@ credential, runtime dependency and mutable-world boundaries.
                 and lock.loader.model_dump() == TARGETS[row["target"]]["loader"], "RELEASE_MISMATCH")
         require(lock.resolved_inventory == row["inventory"], "PACK_BINDING_MISMATCH")
         inventory = read(lock.resolved_inventory)
-        require(inventory.get("schema") == "strata/InstalledInventory/1"
+        require(inventory.get("schema") in {"strata/InstalledInventory/1", "strata/InstalledInventory/2"}
                 and inventory.get("is_example") is simulation
                 and digest(inventory) == lock.installed_root_digest, "CORRUPT_EVIDENCE")
         report = read(lock.acquisition_report)
@@ -117,8 +121,14 @@ credential, runtime dependency and mutable-world boundaries.
         require(launch.is_example == simulation, "EXAMPLE_NOT_EXECUTABLE")
         require(worker_invocation is None or role == "client" and isinstance(launch, VanillaLaunchProfile),
                 "WORKER_INVOCATION_UNSUPPORTED")
+        require(forge_invocation is None or role == "client" and isinstance(launch, E9ELaunchProfile),
+                "FORGE_INVOCATION_UNSUPPORTED")
         if isinstance(launch, VanillaLaunchProfile):
             require(row["target"] == "vanilla", "RELEASE_MISMATCH")
+        if isinstance(launch, E9ELaunchProfile):
+            from .pack_forge import validate_forge_profile
+            require(row["target"] == "e9e", "RELEASE_MISMATCH")
+            validate_forge_profile(launch, inventory, read_bytes, java=lock.java)
         command = getattr(launch, role).model_copy(deep=True)
         read(command.reviewed_bootstrap)
         target = row["target"]
@@ -143,6 +153,7 @@ credential, runtime dependency and mutable-world boundaries.
     require(marker.is_file() and marker.stat().st_nlink == 1 and marker.stat().st_size < 4096
             and marker.read_bytes() == canonical(expected_marker), "PACK_BINDING_MISMATCH")
     reviewed = reviewed_vendor_paths(target)
+    directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
     entries = [FileEntry.model_validate(entry) for entry in inventory["files"]]
     require({entry.role for entry in entries} == {"client", "server"}, "ROLE_MISMATCH")
     for selected in ("client", "server"):
@@ -152,23 +163,25 @@ credential, runtime dependency and mutable-world boundaries.
             continue
         declared = sorted(({"path": entry.path, "digest": entry.digest, "bytes": entry.bytes}
                            for entry in entries if entry.role == selected), key=lambda e: e["path"])
-        require(scan_tree(root, reviewed_world_paths=reviewed) == declared, "MATERIALIZATION_CHANGED")
-        # Empty added directories also change the installation; scan_tree hashes files.
-        expected_dirs = {p.as_posix() for entry in declared for p in Path(entry["path"]).parents
-                         if str(p) != "."}
-        actual_dirs = {str((Path(current) / name).relative_to(root).as_posix())
-                       for current, dirs, _ in os.walk(root) for name in dirs}
-        require(actual_dirs == expected_dirs, "MATERIALIZATION_CHANGED")
+        require(scan_layout(root, reviewed_world_paths=reviewed)
+                == {"files": declared, "directories": directories[selected]}, "MATERIALIZATION_CHANGED")
     relative = (Path(".") if command.working_directory == "."
                 else template_path(command.working_directory))
     working_directory = instance / role / relative
     require(working_directory.is_dir(), "AWAITING_ARTIFACT")
-    executable = _absolute(command.executable_path)
+    executable = _absolute(str(instance / role / command.executable_path)
+                           if isinstance(launch, E9ELaunchProfile) else command.executable_path)
     require(executable.stat().st_nlink == 1 and file_hash(executable) == command.executable.digest,
             "HASH_MISMATCH")
     require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
     validate_launch_environment(command.environment)
     command.working_directory = str(working_directory)
+    command.executable_path = str(executable)
+    if isinstance(launch, E9ELaunchProfile) and role == "server":
+        from .forge_client import ROLE_ROOT
+        from .pack_forge import _path
+        root = _path(str(instance / role))
+        command.arguments = [arg.replace(ROLE_ROOT, str(root)) for arg in command.arguments]
     result = {"schema": "strata/ResolvedPackLaunch/1", "is_example": simulation,
             "request_id": binding.request_id, "lock": binding.lock, "target": target,
             "inventory_digest": lock.installed_root_digest, "launch_profile": lock.launch_profile,
@@ -180,4 +193,7 @@ credential, runtime dependency and mutable-world boundaries.
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
         from .pack_worker import resolve_worker_invocation
         result.update(resolve_worker_invocation(launch, worker_invocation, binding))
+    if isinstance(launch, E9ELaunchProfile) and role == "client":
+        from .pack_forge import resolve_forge_invocation
+        result.update(resolve_forge_invocation(launch, forge_invocation, binding, command))
     return result

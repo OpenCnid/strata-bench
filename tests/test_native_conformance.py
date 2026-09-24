@@ -38,7 +38,7 @@ def permit(gateway, tmp_path):
         "config_overrides": g.plan.config_overrides | {"developer_instructions": INSTRUCTIONS}})
     cfg.profile_digest = plan.profile_digest()
     policy = ExecutionAuthorization.model_validate_json((Path(__file__).resolve().parents[1] /
-        "configs/operator/live-validation.json").read_text())
+        "configs/operator/legacy/live-validation-d11.json").read_text())
     data = {}
     for check in PRECHECKS:
         data[check] = canonical({"schema": "strata/NativePreDispatchEvidence/1", "is_example": False,

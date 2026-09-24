@@ -64,7 +64,9 @@ def wait(predicate, seconds, code):
 
 
 @pytest.mark.parametrize("hang", [False, True])
-def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang):
+@pytest.mark.parametrize("failure", [None, "gameplay", "accounting", "report"])
+def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang, failure):
+    from m0_native_game import finish_native_worker, cleanup_native_worker
     node = Path(shutil.which("node") or "C:/Program Files/nodejs/node.exe").resolve()
     assert node.is_file(), "pinned Node required for owned-process test"
     root = Path(__file__).resolve().parents[1]
@@ -94,13 +96,30 @@ def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_fai
         wait(lambda: (tmp_path / "ready").exists() or process.poll() is not None, 5, "FIXTURE_START")
         assert process.poll() is None
         config = SCOPE | {"state_directory": str(state)}
+        result = {}
+        def finish():
+            if failure == "report":
+                result["status"] = "fail"
+                try:
+                    raise Fault("ARTIFACT_QUOTA")
+                finally:
+                    cleanup_native_worker(process, config, tmp_path, wait, True, result)
+            finish_native_worker(process, config, tmp_path, wait, True,
+                                 {"model_selected_movement": failure is None}, result,
+                                 closure_error="METERING_UNKNOWN" if failure == "accounting" else None)
         if hang:
-            with pytest.raises(Fault, match="WORKER_STOP_PROCESS"):
-                stop_owned_worker(process, config, tmp_path, wait)
+            with pytest.raises(Fault, match="ARTIFACT_QUOTA" if failure == "report" else "WORKER_STOP_PROCESS"):
+                finish()
             failure = json.loads((state / "supervisor-stop-2.json").read_bytes())
             assert failure["forced"] and failure["status"] == "fail" and process.poll() != 0
         else:
-            report = stop_owned_worker(process, config, tmp_path, wait)
+            if failure:
+                code = "ARTIFACT_QUOTA" if failure == "report" else "PILOT_NATIVE_CLOSURE" if failure == "accounting" else "NATIVE_GAME_CHECK_FAILED"
+                with pytest.raises(Fault, match=code):
+                    finish()
+            else:
+                finish()
+            report = result["worker_stop"]
             assert report["receipt"]["status"] == "pass" and report["owner_elapsed_ms"] < 5000
             assert report["owned_processes"]["active_processes"] == 0 and process.poll() == 0
         before = (tmp_path / "worker-stop-intent.json").read_bytes()

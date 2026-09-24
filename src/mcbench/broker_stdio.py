@@ -82,6 +82,18 @@ def respond(broker, request, game_transport=None):
         except (Fault, ValidationError) as error:
             # ValidationError contains rejected arguments; never echo them.
             code = error.code if isinstance(error, Fault) else "BROKER_ARGUMENTS_INVALID"
+            if isinstance(error, ValidationError) and params.get("name") == "game":
+                # Return the public contract, never rejected values or error locations
+                # (extra-field names can themselves contain sensitive user input).
+                code = canonical({"code": code, "expected_arguments_schema":
+                                  ARGUMENTS["game"].model_json_schema()}).decode()
+            elif code == "DEADLINE_EXCEEDED" and params.get("name") == "game":
+                from .broker import GAME_DEADLINE_MAX_S
+                code = canonical({"code": code, "maximum_future_ms": int(GAME_DEADLINE_MAX_S * 1000),
+                    "guidance": "The request deadline must be future and within maximum_future_ms of dispatch. "
+                    "In functions.exec compute new Date(Date.now()+2000).toISOString() immediately before "
+                    "awaiting the game tool. Do not hard-code a timestamp or extend it by minutes. "
+                    "For an uncertain action, query action_status; do not replay it."}).decode()
             return {"isError": True, "content": [{"type": "text", "text": code}]}
     if method == "ping":
         return {}

@@ -77,6 +77,27 @@ def authorization_status(authorization_id: str, store: Annotated[Path, typer.Opt
         database.close()
 
 
+@authorization_app.command("switch-model")
+def switch_authorized_model(file: Annotated[Path, typer.Option()],
+                            decision: Annotated[Path, typer.Option()],
+                            snapshot_digest: Annotated[str, typer.Option()],
+                            store: Annotated[Path, typer.Option()]):
+    """Apply D17's model selection without changing the original allowance or holds."""
+    from .authorization import ModelExecutionAuthorization
+    from .storage import Principal
+    require((store / "controller.sqlite").is_file(), "STORE_MISSING")
+    database = Database(store / "controller.sqlite")
+    try:
+        policy = ModelExecutionAuthorization.model_validate_json(file.read_bytes())
+        cas = CAS(database, store / "objects")
+        ref = cas.put(Principal("operator", "operator"), "operator", "operator", decision.read_bytes())
+        service = Authorizations(database)
+        service.switch_model(policy, snapshot_digest=snapshot_digest, decision_ref=ref, cas=cas)
+        emit(service.status(policy.authorization_id))
+    finally:
+        database.close()
+
+
 @campaign_app.command("validate")
 def validate(config: Annotated[Path, typer.Option()], agents: Annotated[Path, typer.Option()]):
     """Validate roster, identities, schedules and account uniqueness without starting work."""

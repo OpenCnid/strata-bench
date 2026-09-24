@@ -3,7 +3,23 @@
   "minVersion": "0.8",
   "package": "io.github.opencnid.strata.telemetry.mixin",
   "compatibilityLevel": "JAVA_17",
-  "server": ["CraftClickMixin", "GameModeHistoryMixin", "OperatorHistoryMixin", "PlayerListHistoryMixin",
-    "WorldHistoryMixin", "TeamHistoryMixin", "PartyHistoryMixin", "TeamManagerHistoryMixin", "StopHistoryMixin"],
-  "injectors": {"defaultRequire": 1}
+  "server": [
+    "CraftClickMixin",
+    "GameModeHistoryMixin",
+    "OperatorHistoryMixin",
+    "PlayerListHistoryMixin",
+    "WorldHistoryMixin",
+    "TeamHistoryMixin",
+    "PartyHistoryMixin",
+    "TeamManagerHistoryMixin",
+    "StopHistoryMixin",
+    "GlobalHistoryMixin",
+    "TeamRanksHistoryMixin",
+    "TeamMapsHistoryMixin",
+    "ScriptFieldsHistoryMixin",
+    "ScriptMethodsHistoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

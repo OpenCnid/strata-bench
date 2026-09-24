@@ -1,8 +1,32 @@
 # Initial validation: budget and native boundary
 
-Updated September 21, 2026. Operator-only. This is the continuation contract for
+**Current accounting after D19.11 (2026-09-24):** pilot18 is consumed and FINALIZED with eleven settled requests/$0.009696 API-equivalent (root$0.009194, helper$0.000502). Total exposure$4.887796/$10 preserves the original$0.7554 hold and all four full$1 failed envelopes. No unresolved amount is released or replayed. The original two-action goal fails, but independent19/19 audit verifies the exact refusal/corrected turn and complete cost/clock/source/pack/saved-player joins. All54 owned processes terminate normally. D18/D19 continuing authorization remains valid, no reapproval pending. Next exact G0 profile/child audit; no paid replay is needed for this settled result. [Evidence](../verification/2026-09-24-action-refusal-evidence.md). Earlier figures below are historical.
+
+**Current accounting (2026-09-24):** D19.9 and D19.10 are consumed and finalized;30 new requests settle for$0.028933 API-equivalent. Total exposure$4.878100/$10 preserves the original$0.7554 hold and all four full$1 failed envelopes. The Java-failed first attempt creates no native job/request; its changed fresh successor consumes D19.9. Live16b exits at the16-request cap after turn/walk/helper; live17 exits normally after14requests but fails the two-action goal. D18/D19 continuing authorization remains valid, with no reapproval pending. No new run is selected until the remaining named G0 evidence gap is established. [Exact evidence](../verification/2026-09-24-instrumented-player.md). Earlier figures below are historical.
+
+**Verified bounded LLM pilot (2026-09-23):** D19.5 / m0-pilot-12 passes all nine pilot checks. GPT-6 Luna selects its own targets, completes a 101.25-degree turn and a 1.072751-block walk, ending 0.072751 blocks from its chosen destination. Two completed actions/18 primitives, released controls, unchanged health and matching saved Minecraft player state verify the actual loop. Eleven model calls settle for $0.009298; native finishes normally in115.935726s, all53 processes terminate, worker drain30.9416ms. Total exposure $2.831942 / $10, all old holds preserved. Public coordinate guidance passes53 focused tests and native14 17/17; M0.1d.9c verified for this named zero-helper development profile. Do not repeat it unchanged. Next revalidate and exercise the already implemented script-handle control M0.2c.3b.3c.7 for private setup/scoring, then continue remaining G0 profile/recovery/clock/cost gaps. M0 remains in_progress/G0 fail; D14 isolation deferral and M1–M7 remain. [Evidence](../verification/2026-09-23-support-coordinate-pilot.md).
+
+**Latest M0.1d.9c result (2026-09-23):** the 180-second native / 360000-ms worker / 440-second server profile is implemented; 225 distinct focused tests and native12/13 17/17 checks pass. D19.3 settles eight real calls and a 30.9-degree turn, then stops before walking. Revised pagination instructions lead into fresh D19.4: all nine calls settle, native finishes normally in 96.464657 seconds, and the model submits both actions. Its 108.45-degree turn completes; the walk fails `PATH_BLOCKED` with zero movement because its target occupies a different negative-coordinate cell from its cited support. Saved player state matches; all 53 processes in each run are terminal with normal worker drain. Exposure is $2.822644 / $10, all old holds retained. Next fix public coordinate construction and exact target rechecks before fresh native/D19.5 testing; no unchanged replay or additional permission. M0.1d.9c in_progress/G0 fail; M1–M7 unchanged. [Evidence](../verification/2026-09-23-bounded-session-pilot.md).
+
+**Current D19 exception (2026-09-23):** the user explicitly authorized distinct new M0 pilots with all unresolved amounts reserved. The original $10 allowance and settled costs remain. The old $0.7554 hold and full $1 D18.4 envelope remain reserved; do not add its child reservations twice. A fresh D19.n decision requires sequential fresh identity, terminal native predecessors, closed/fenced gateways, no in-flight requests, current authority/hold fingerprints and enough original capacity for the complete next $1 envelope. A new unknown stops that job; it does not permanently block a later separately admitted job retaining the additional hold. D15–D18.4 history, general dispatch restrictions and no-replay remain. This explicit user decision supersedes global fresh-pilot blocks in historical paragraphs below.
+
+**Current M0 piloting result (2026-09-23):** D18.3 completed the first actual GPT-6 Luna-selected Mineflayer turn (71.55 degrees, one primitive, released controls). The distinct D18.4 / m0-pilot-07 used the corrected 12-request cap but failed on request five: HTTP 200, incomplete stream, no terminal usage receipt. Four requests settled for $0.002896; request six was refused before dispatch with METERING_UNKNOWN. All 53 processes are terminal; worker forced cleanup remains a failure. Original committed/reserved exposure is $1.795559, including the retained old hold and unresolved new $1 job envelope. New paid dispatch is blocked by this new uncertainty, not pending user approval; no replay or refund. Follow-up diagnostics and drain-before-accounting-failure fixes pass 173 focused cases; authentic changed failure-path integration remains unverified. Continue independent M0 scorer/setup and clock/save work. All seven used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](../verification/2026-09-23-first-model-action.md).
+
+**D18 — continuing execution approval (2026-09-23):** the user stated, “I approve all runs and authorize the spend.” This authorizes necessary M0/G0 implementation and validation runs within the original $10 total API-equivalent allowance; no further per-run user confirmation is required within that scope. It creates no new allowance and does not release the old $0.7554 unknown hold or permit blind replay. Every run remains bounded and individually accounted; any new unknown usage stops further admission. The first run, m0-pilot-03, has finished: six settled GPT-6 Luna requests cost $0.004677; capabilities and observation reached Mineflayer, but the model selected no actions. Combined exposure is $0.778471 including the unchanged hold. The used job cannot replay; continuing approval remains active. M1–M7 and shared-desktop input remain outside scope.
+
+**D17 — gameplay model selection (2026-09-23):** the user explicitly selected `gpt-6-luna` instead of `gpt-5.6-luna`. Use a fresh model generation and initial artifacts; retain 5.6 results under their original identity. The original $10 allowance, $0.773794 exposure, $0.7554 unresolved hold and consumed D12/D15/D16 trials remain. Source migration binds the new published pricing basis to the same budget account and archives the predecessor authorization; it does not reprice old requests, clear uncertainty or authorize another one-use trial. The durable selection is activated; 261 focused source cases and native scripted compatibility 16/16 pass. Actual GPT-6 Luna piloting remains unverified. See [D17 verification](../verification/2026-09-23-gpt6-luna.md).
+
+**D16 consumed (2026-09-23):** the corrected native LLM/Mineflayer pilot made six settled model requests ($0.010514 API-equivalent), then exited 1 without forwarding a game request. Its three valid request envelopes used deadlines 14.767, 59.765 and 23,834.266 seconds ahead of broker entry; the existing maximum is 5.25 seconds. The public instructions omitted that maximum and the error was ambiguous. All 53 owned processes stopped, every original accounting row and D12/D15 remained unchanged, and combined exposure is $0.773794 including the old $0.7554 hold. The follow-up source correction publishes the timing window and supplies safe corrective feedback; live behavior remains unverified. D14 isolation deferral and M0/G0-only scope remain. See [D16 diagnosis](../verification/2026-09-23-d16-pilot.md).
+
+**Latest source/native verification (2026-09-23):** 153 distinct focused source cases pass after correcting six new test timestamps to required UTC Z form. The changed native deadline-feedback case passes 16/16 with three scripted requests, one valid synthetic worker observation, zero helpers and clean closure. The real preflight consumer accepts its exact current pins. This does not prove corrected live piloting. Native cases 01–03 and both failed live pilots remain retained; m0-pilot-01 and m0-pilot-02 are used instances.
+
+
+**D15 consumed (2026-09-23):** the approved native LLM/Mineflayer pilot completed six settled model requests costing $0.006422, but failed before any game request was forwarded. The model guessed malformed request envelopes; native exit was 1 after the six-request cap. All 53 owned processes are terminal, old accounting rows and D12 are unchanged, and combined original exposure is $0.763280. The public-contract documentation/error-feedback correction passes 104 distinct focused checks and native public-contract conformance; the subsequent D16 trial failed on the omitted deadline window. Preserve the failed used instance and sealed evidence; no automatic replay. See [D15 evidence](../verification/2026-09-23-d15-pilot.md).
+
+
+Updated September 22, 2026. Operator-only. This is the continuation contract for
 M0.1c.1c.2 and M0.1c.2b.2, not an executable authorization or qualification.
-Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12 in MILESTONES.md.
+Authority: SPEC sections 4.1, 6, 15–16; decisions D04/D11/D12/D14 in MILESTONES.md.
 Coverage: F03/F04/F07/F11/F16, N01/N02/N04/N06, C06/C12/C20,
 partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
 
@@ -19,19 +43,23 @@ partial T01/T04/T06/T07/T12 and G0 items 1/6. All remaining gates stay open.
   remains unknown; D12's separately authorized bounded receipt request is now
   consumed. Neither permits another trial or implies that $10 funds later
   soaks or the confirmatory study.
-- No user-supplied VM is required. Engineer the smallest enforceable boundary
-  on available hardware; keep the user's ordinary desktop usable.
+- D14 explicitly defers full sandbox/isolation qualification to M1/G1 and
+  prioritizes M0 observation/action correctness and actual LLM piloting. Use the
+  existing scoped controls and label development runs isolation-unqualified.
+  No user-supplied VM or sandbox setup is requested. This scope change does not
+  clear unknown model usage, reuse D12 or increase the allowance.
 
 ## Versioned estimated accounting: implemented source foundation
 
 The [authorization](../../src/mcbench/authorization.py), [estimate basis](../../src/mcbench/accounting.py)
 and [configuration](../../configs/operator/live-validation.json) now implement
-`ExecutionAuthorization/2` with explicit migration. The existing dispatch gate,
+`ExecutionAuthorization/3` for D17 model selection, retaining the explicit D11
+version-2 migration and its predecessor. The existing dispatch gate,
 wire transport and native supervisor now enforce versioned estimate bounds and
 valuations. [D11 verification](../verification/2026-09-20-estimated-accounting.md)
 records the actual private migration and focused source/synthetic evidence.
 The original authority resides in `.strata/operator/provisioning/controller.sqlite`;
-read it before dispatch and do not install another allowance. The first actual OAuth request still holds $0.7554 once. D12's distinct request settled offline at $0.001458 from a completed captured receipt, preserving the original native delivery failure. Current total is $0.756858, two actual requests, one valuation, uncertainty true. D12 is consumed; general admission remains blocked. Full reply/exposure and isolation qualification remain incomplete; no reset or replay.
+read it before dispatch and do not install another allowance. The first actual OAuth request still holds $0.7554 once. D12's distinct request settled offline at $0.001458 from a completed captured receipt, preserving the original native delivery failure. After D16, current total is $0.773794: the original unknown hold plus thirteen settled valuations across fourteen actual requests. Uncertainty remains true solely from the retained original request. D12, D15 and D16 are consumed; general admission remains blocked. Full reply/exposure and isolation qualification remain incomplete; no reset or replay.
 
 The [durable pre-dispatch denial extension](../verification/2026-09-21-native-activation-exec.md) now records known budget refusals without a receipt or charge. A rejected operation cannot replay; missing legacy proof blocks closure/export. This never clears the original ambiguous OAuth request or authorizes another trial.
 
@@ -144,3 +172,7 @@ samples. Read the durable allowance first. No additional user permission is
 needed for a trial already within the existing authorization, but no amount of
 documentation substitutes for actual finite-exposure and isolation evidence.
 Do not expand into soaks, team runs or scientific claims before their gates.
+
+D14 supersedes earlier full-isolation prerequisites in this document for M0
+development piloting only. It does not change model request/receipt accounting
+or authorize protected-scoring, scientific-validity or G1 claims.

@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 from pydantic import Field, TypeAdapter
 
 from .contracts import Digest, Id, Ref, Strict, UInt
-from .inventory import file_hash, inspect_archive, scan_tree, template_path
+from .inventory import directory_layout, file_hash, inspect_archive, inventory_directories, scan_layout, template_path
 from .pack_policies import reviewed_vendor_paths
 from .records import FileEntry, PackLock, Pin
 from .storage import Principal, canonical, digest, reject_links, require
@@ -79,6 +79,7 @@ class RoleInventoryInput(Strict):
     root: str
     # Exact per-file provenance. No blanket inferred origin or silent exclusions.
     files: Annotated[list[FileEntry], Field(min_length=1, max_length=200000)]
+    extra_directories: Annotated[list[str], Field(max_length=12000)] = Field(default_factory=list)
     provenance_evidence: Ref
     exclusions_evidence: Ref
 
@@ -123,8 +124,22 @@ class VanillaLaunchProfile(LaunchProfile):
     update_policy: Literal["sealed-local-bytes/no-installer/1"]
 
 
+class E9ELaunchProfile(LaunchProfile):
+    schema_: Literal["strata/LaunchProfile/3"] = Field(alias="schema")
+    client_software: Ref
+    backend: Literal["forge_client"]
+    host: Literal["127.0.0.1"]
+    port: Annotated[int, Field(ge=1024, le=65535)]
+    update_policy: Literal["sealed-local-bytes/no-installer/1"]
+
+
+class FrozenE9ELaunchProfile(E9ELaunchProfile):
+    schema_: Literal["strata/LaunchProfile/4"] = Field(alias="schema")
+    runtime_data: Ref
+
+
 def parse_launch_profile(value):
-    return TypeAdapter(LaunchProfile | VanillaLaunchProfile).validate_python(value)
+    return TypeAdapter(LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile | FrozenE9ELaunchProfile).validate_python(value)
 
 
 def validate_launch_environment(environment: dict[str, str]):
@@ -323,7 +338,8 @@ class PackProvider:
         row = self._row(request_id, active=True)
         require(row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
         require(len(roles) == 2 and {r.role for r in roles} == {"client", "server"}, "ROLE_MISMATCH")
-        entries, role_evidence, prepared = [], [], []
+        entries, role_evidence, prepared, directories = [], [], [], {}
+        has_extra_directories = False
         reviewed = reviewed_vendor_paths(row["target"])
         for role in sorted(roles, key=lambda r: r.role):
             root = Path(role.root)
@@ -331,10 +347,15 @@ class PackProvider:
             require(not self.cas.root.is_relative_to(root), "UNSAFE_PATH")
             self._json(request_id, role.provenance_evidence)
             self._json(request_id, role.exclusions_evidence)
-            scanned = scan_tree(root, max_bytes=self.quota, reviewed_world_paths=reviewed)
+            scanned = scan_layout(root, max_bytes=self.quota, reviewed_world_paths=reviewed)
             declared = sorted(role.files, key=lambda f: f.path)
-            require(len(declared) == len(scanned), "INCOMPLETE_INVENTORY")
-            for actual, entry in zip(scanned, declared, strict=True):
+            directories[role.role] = directory_layout((e.path for e in declared), role.extra_directories,
+                                                       reviewed_world_paths=reviewed)
+            require(scanned["directories"] == directories[role.role], "INCOMPLETE_INVENTORY")
+            has_extra_directories |= directories[role.role] != directory_layout(
+                (e.path for e in declared), reviewed_world_paths=reviewed)
+            require(len(declared) == len(scanned["files"]), "INCOMPLETE_INVENTORY")
+            for actual, entry in zip(scanned["files"], declared, strict=True):
                 require(entry.role == role.role and entry.layer in {"resolved", "harness"},
                         "ROLE_MISMATCH")
                 template_path(entry.path, reviewed_world_paths=reviewed)
@@ -353,12 +374,14 @@ class PackProvider:
                 entries.append(entry.model_dump())
             # A stopped-source contract plus a second complete scan catches changed,
             # added or removed files while copying; no partially frozen template.
-            require(scan_tree(root, max_bytes=self.quota, reviewed_world_paths=reviewed) == scanned,
+            require(scan_layout(root, max_bytes=self.quota, reviewed_world_paths=reviewed) == scanned,
                     "SOURCE_CHANGED")
             role_evidence.append({"role": role.role, "provenance": role.provenance_evidence,
                                   "exclusions": role.exclusions_evidence})
         inventory = {"schema": "strata/InstalledInventory/1", "is_example": self.simulation,
                      "files": entries, "role_evidence": role_evidence}
+        if has_extra_directories:
+            inventory.update(schema="strata/InstalledInventory/2", directories=directories)
         ref = self._put(request_id, inventory)
         with self.db.transaction() as db:
             current = db.execute("SELECT state,inventory FROM provisioning WHERE id=?",
@@ -402,6 +425,66 @@ class PackProvider:
                    "source_verification": source}
         return raw, version_raw, binding
 
+    def prepare_e9e_content(self, request_id, captures: dict[str, Path],
+                            mod_roots: dict[str, Path], excluded_harness: dict, destination: Path):
+        """Join exact vendor content to this request's durable official acquisition."""
+        from .e9e_content import prepare_content
+        from .forge_runtime import read_input
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED", "SEALED"},
+                "INVALID_TRANSITION")
+        imported = self._json(request_id, row["receipt"])
+        receipt = parse_acquisition(imported["receipt"])
+        require(receipt.target == "e9e" and receipt.request_id == request_id and
+                receipt.is_example == self.simulation, "E9E_ACQUISITION_MISMATCH")
+        require({d.role for d in receipt.distributions} == {"client", "server"} and
+                len(imported["distributions"]) == 2, "ROLE_MISMATCH")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        archives = {}
+        for distribution in receipt.distributions:
+            official_origin(distribution.origin, "e9e", distribution.role, distribution.file_id)
+            sources = [d for d in imported["distributions"] if d["role"] == distribution.role]
+            require(len(sources) == 1 and sources[0]["ref"] == "cas:sha256:" + distribution.sha256,
+                    "E9E_ACQUISITION_MISMATCH")
+            archives[distribution.role] = self.cas.read(self.principal, self.namespace(request_id),
+                                                       sources[0]["ref"], max_bytes=64 * 1024**2)
+        require(set(captures) == {"client", "server"}, "ROLE_MISMATCH")
+        raw_captures = {role: read_input(path, 2 * 1024**2) for role, path in captures.items()}
+        result = prepare_content(archives, raw_captures, mod_roots, excluded_harness, destination)
+        result.update(is_example=self.simulation, request_id=request_id, acquisition_receipt=row["receipt"])
+        result["capture_refs"] = {role: self.cas.put(self.principal, self.namespace(request_id), "operator", raw,
+            quota_bytes=self.quota, max_object_bytes=2 * 1024**2) for role, raw in raw_captures.items()}
+        return {"evidence": self._put(request_id, result), **result}
+
+    def derive_forge_runtime(self, request_id, vanilla_request, installer: Path,
+                             libraries: dict[str, Path], java_root: Path, destination: Path):
+        """Reproduce required SRG outputs with an inventory-bound Java runtime."""
+        from .forge_derivation import derive, prepare_inputs
+        from .forge_runtime import read_input
+        from .inference_transport import strict_json
+        row = self._row(request_id, active=True)
+        base = self._row(vanilla_request, active=True)
+        require(not self.simulation and row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}
+                and base["target"] == "vanilla" and base["state"] == "SEALED", "INVALID_TRANSITION")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        _, version_raw, binding = self._vanilla_distribution(vanilla_request, "client")
+        acquisition = parse_acquisition(self._json(vanilla_request, base["receipt"])["receipt"])
+        manifest_raw = self.cas.read(self.principal, self.namespace(vanilla_request),
+                                    acquisition.vanilla_manifest, max_bytes=4 * 1024**2)
+        inventory = self._json(vanilla_request, base["inventory"])
+        java_files = sorted(({"path": r["path"][5:], "digest": r["digest"], "bytes": r["bytes"]}
+                             for r in inventory["files"] if r["role"] == "client" and r["path"].startswith("java/")),
+                            key=lambda r: r["path"])
+        plan = prepare_inputs(read_input(installer, 16 * 1024**2), manifest_raw, version_raw, libraries)
+        plan["base_binding"] = binding | {"inventory": base["inventory"], "sealed": base["sealed"]}
+        result = derive(plan, java_root, java_files, destination)
+        result.update(request_id=request_id, acquisition_receipt=row["receipt"],
+                      vanilla_request=vanilla_request, base_inventory=base["inventory"], base_lock=base["sealed"])
+        result["plan_ref"] = self._put(request_id, strict_json(read_input(destination / "plan.json", 4 * 1024**2)))
+        return {"evidence": self._put(request_id, result), **result}
+
     def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
         """Join exact installed server payloads to the durable acquired distribution."""
         from .vanilla_runtime import prepare_server
@@ -411,6 +494,105 @@ class PackProvider:
         result = prepare_server(raw, root, destination)
         result.update(schema="strata/VanillaServerSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
+
+    def import_forge_runtime(self, request_id, derivation_ref):
+        """Consume an existing exact reproduction without rerunning processors."""
+        from .forge_derivation import POLICY
+        from .forge_runtime import INSTALLER_SHA256, MC
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
+        result = self._json(request_id, derivation_ref)
+        require(result.get("schema") == "strata/ForgeDerivedRuntime/1" and result.get("policy") == POLICY
+                and result.get("request_id") == request_id and result.get("acquisition_receipt") == row["receipt"]
+                and result.get("installed_outputs_reproduced") is True
+                and result.get("installer_sha256") == INSTALLER_SHA256
+                and result.get("plan_ref") == "cas:sha256:" + result.get("plan_sha256", ""), "FORGE_DERIVATION_UNQUALIFIED")
+        plan = self._json(request_id, result["plan_ref"])
+        require(plan.get("policy") == POLICY and plan.get("installer_sha256") == INSTALLER_SHA256
+                and len(result.get("processes", [])) == 4 and all(
+                    isinstance(r, dict) and r.get("result") == "pass" and r.get("exit_code") == 0
+                    and isinstance(r.get("process_accounting"), dict)
+                    and r["process_accounting"].get("active_processes") == 0
+                    for r in result["processes"]), "FORGE_DERIVATION_UNQUALIFIED")
+        outputs = result.get("derived", [])
+        require(len(outputs) == 2 and {r.get("role") for r in outputs} == {"client", "server"}, "ROLE_MISMATCH")
+        entries = []
+        # Both outputs must still match before either artifact is imported.
+        for output in outputs:
+            role = output["role"]
+            path = f"libraries/net/minecraft/{role}/{MC}/{role}-{MC}-srg.jar"
+            expected = plan["roles"][role]["installed_comparison"]["srg"]
+            require(type(output.get("bytes")) is int and 0 < output["bytes"] <= 128 * 1024**2
+                    and output.get("runtime_path") == plan["roles"][role]["runtime_path"] == path and
+                    all(output.get(k) == expected[k] for k in ("sha256", "bytes")), "FORGE_DERIVATION_UNQUALIFIED")
+            source = Path(output["path"])
+            require(source.is_absolute() and source.is_file() and source.stat().st_nlink == 1
+                    and source.stat().st_size == output["bytes"] and file_hash(source) == output["sha256"], "SOURCE_CHANGED")
+            entries.append(FileEntry(path=path, digest=output["sha256"], bytes=output["bytes"], role=role,
+                layer="resolved", origin=f"strata:derived:{derivation_ref}#{role}-srg",
+                project_id=None, file_id=None, license_ref="https://www.minecraft.net/en-us/eula"))
+        for output in outputs:
+            self.cas.put_file(self.principal, self.namespace(request_id), "operator", Path(output["path"]),
+                              output["sha256"], quota_bytes=self.quota, max_object_bytes=128 * 1024**2)
+        evidence = {"schema": "strata/ForgeRuntimeArtifacts/1", "is_example": self.simulation,
+                    "request_id": request_id, "derivation": derivation_ref,
+                    "files": [entry.model_dump() for entry in entries], "complete_role_qualified": False}
+        return {"evidence": self._put(request_id, evidence), **evidence}
+
+    def prepare_e9e_roles(self, request_id, plan, destination: Path):
+        """Compose initial roles while leaving effective inventory/sealing unpromoted."""
+        from .role_composition import E9ERoleComposition, prepare_roles
+        plan = E9ERoleComposition.model_validate(plan)
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] == "ACQUIRED", "INVALID_TRANSITION")
+        require(plan.request_id == request_id and plan.acquisition_receipt == row["receipt"], "SCOPE_MISMATCH")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination), "UNSAFE_PATH")
+        for ref in [*plan.source_reports, plan.component_notices, plan.exclusions]:
+            self._json(request_id, ref)
+        # CAS notice references must resolve in this acquisition namespace.
+        for ref in {x.entry.license_ref for r in plan.roles for x in r.files}:
+            if ref.startswith("cas:sha256:"):
+                self._json(request_id, ref)
+        result = prepare_roles(plan, destination)
+        result.update(request_id=request_id, is_example=self.simulation, acquisition_receipt=row["receipt"],
+                      plan_ref=self._put(request_id, plan.model_dump()))
+        return {"evidence": self._put(request_id, result), **result}
+
+    def prepare_forge_client(self, request_id, vanilla_request, installer: Path, launcher_metadata: Path,
+                             base_root: Path, library_root: Path, artifacts_ref, destination: Path):
+        """Compose Forge software with original sealed base and reproduced SRG."""
+        from .forge_client import prepare_client
+        from .forge_runtime import read_input
+        row = self._row(request_id, active=True)
+        base = self._row(vanilla_request, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}
+                and base["target"] == "vanilla" and base["state"] == "SEALED", "INVALID_TRANSITION")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination), "UNSAFE_PATH")
+        artifacts = self._json(request_id, artifacts_ref)
+        require(artifacts.get("schema") == "strata/ForgeRuntimeArtifacts/1" and
+                artifacts.get("request_id") == request_id and artifacts.get("is_example") == self.simulation,
+                "FORGE_DERIVATION_UNQUALIFIED")
+        derivation = self._json(request_id, artifacts["derivation"])
+        require(derivation.get("schema") == "strata/ForgeDerivedRuntime/1" and
+                derivation.get("request_id") == request_id and derivation.get("acquisition_receipt") == row["receipt"]
+                and derivation.get("base_inventory") == base["inventory"] and derivation.get("base_lock") == base["sealed"]
+                and derivation.get("installed_outputs_reproduced") is True, "FORGE_DERIVATION_UNQUALIFIED")
+        client = [r for r in artifacts["files"] if r["role"] == "client"]
+        produced = [r for r in derivation["derived"] if r["role"] == "client"]
+        require(len(client) == len(produced) == 1 and client[0]["digest"] == produced[0]["sha256"]
+                and client[0]["bytes"] == produced[0]["bytes"] and client[0]["path"] == produced[0]["runtime_path"],
+                "FORGE_DERIVATION_UNQUALIFIED")
+        srg = self.cas.read(self.principal, self.namespace(request_id), "cas:sha256:" + client[0]["digest"],
+                            max_bytes=128 * 1024**2)
+        _, version_raw, binding = self._vanilla_distribution(vanilla_request, "client")
+        inventory = self._json(vanilla_request, base["inventory"])
+        files = [r for r in inventory["files"] if r["role"] == "client"]
+        report = prepare_client(read_input(installer, 16 * 1024**2), version_raw,
+            read_input(launcher_metadata, 2 * 1024**2), base_root, files, library_root, srg, client[0], destination)
+        report.update(request_id=request_id, is_example=self.simulation, acquisition_receipt=row["receipt"],
+            derived_artifacts=artifacts_ref, base_binding=binding | {"inventory": base["inventory"], "lock": base["sealed"]},
+            inherited_license_namespace=self.namespace(vanilla_request))
+        return {"evidence": self._put(request_id, report), **report}
 
     def prepare_vanilla_client(self, request_id, assets: Path, library_roots: list[Path], destination: Path):
         """Prepare the exact acquired Windows client and its metadata-selected inputs."""
@@ -422,12 +604,20 @@ class PackProvider:
         result.update(schema="strata/VanillaClientSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
 
-    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile, evidence: ProvisioningEvidence):
+    def seal_template(self, request_id, launch: LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile,
+                      evidence: ProvisioningEvidence):
         row = self._row(request_id, active=True)
         require(row["state"] in {"VERIFIED", "SEALED"}, "INVALID_TRANSITION")
         require(launch.is_example == evidence.is_example == self.simulation,
                 "EXAMPLE_NOT_EXECUTABLE")
         require(evidence.request_id == request_id, "SCOPE_MISMATCH")
+        if isinstance(launch, E9ELaunchProfile):
+            from .pack_forge import validate_forge_profile
+            require(row["target"] == "e9e", "RELEASE_MISMATCH")
+            validate_forge_profile(launch, self._json(request_id, row["inventory"]),
+                lambda ref: self.cas.read(self.principal, self.namespace(request_id), ref,
+                                          max_bytes=64 * 1024**2),
+                java=parse_acquisition(self._json(request_id, row["receipt"])["receipt"]).java)
         if isinstance(launch, VanillaLaunchProfile):
             from .pack_worker import validate_worker_profile
             require(row["target"] == "vanilla", "RELEASE_MISMATCH")
@@ -461,9 +651,10 @@ class PackProvider:
                     bool(template_path(command.working_directory)), "UNSAFE_PATH")
             validate_launch_environment(command.environment)
             require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
-            executable = Path(command.executable_path)
-            require(executable.is_absolute(), "UNSAFE_PATH")
-            require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
+            if not isinstance(launch, E9ELaunchProfile):
+                executable = Path(command.executable_path)
+                require(executable.is_absolute(), "UNSAFE_PATH")
+                require(file_hash(executable) == command.executable.digest, "HASH_MISMATCH")
             self._json(request_id, command.reviewed_bootstrap)
         imported = self._json(request_id, row["receipt"])
         receipt = parse_acquisition(imported["receipt"])
@@ -507,14 +698,19 @@ class PackProvider:
         require(lock.is_example == self.simulation, "EXAMPLE_NOT_EXECUTABLE")
         inventory = self._json(request_id, lock.resolved_inventory)
         require(digest(inventory) == lock.installed_root_digest, "CORRUPT_EVIDENCE")
+        reviewed = reviewed_vendor_paths(row["target"])
+        directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
         destination = destination.absolute()
         reject_links(destination)
         require(not destination.exists(), "DESTINATION_EXISTS")
         require(not destination.is_relative_to(self.cas.root), "UNSAFE_PATH")
         destination.parent.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(prefix=".strata-instance-", dir=destination.parent))
-        reviewed = reviewed_vendor_paths(row["target"])
         try:
+            for role, paths in directories.items():
+                (staging / role).mkdir()
+                for relative in paths:
+                    (staging / role / relative).mkdir(parents=True, exist_ok=True)
             for entry in inventory["files"]:
                 relative = template_path(entry["path"], reviewed_world_paths=reviewed)
                 if entry["path"] in reviewed:

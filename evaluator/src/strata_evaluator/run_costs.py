@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
+from mcbench.worker_health import inspect_worker_health
 
 from mcbench.contracts import ActionAck, ActionBatch, Digest, Id, Strict, UInt
 from mcbench.native_game import GameActionReceipt, GameAuthority, GameIdentity
@@ -121,6 +122,7 @@ def _inspect_costs(plan: CostJoin, epochs):
         for table, limit in (("actions", 10000), ("events", 100000), ("counters", 1000)):
             require(db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] <= limit, "COST_DATABASE_QUOTA")
         event_rows = db.execute("SELECT cursor,kind,body FROM events ORDER BY cursor").fetchall()
+        worker_health = [inspect_worker_health(db, plan.campaign_id, plan.agent_id, epoch) for epoch in epochs]
         require([r[0] for r in event_rows] == list(range(1, len(event_rows) + 1)), "COST_EVENT_GAP")
         bindings = [decode(row[2]) for row in event_rows if row[1] == 'native_binding']
         require([b["epoch"] for b in bindings] == epochs, "COST_BINDING_AMBIGUOUS")
@@ -252,11 +254,14 @@ def _inspect_costs(plan: CostJoin, epochs):
             "sampled_server_wall_ns": telemetry["sampled_wall_ns"],
             "avatar_ticks_at_last_sample": telemetry["avatar_ticks_at_last_sample"],
             "last_server_tick": telemetry["last_server_tick"],
+            "worker_health": worker_health,
             "complete_project_accounting": False, "scoring_eligible": False, "gate_result": "not_run",
             "unresolved": ["authenticated_ingress_and_isolation", "qualified_profile_and_role_locks",
                            "avatar_identity_mapping", "startup_and_unsampled_clock_intervals",
                            "root_helper_retry_inference_join", "campaign_and_restart_aggregation"]}
     # Private comparison state is never serialized into the result.
+    if "terminal_clock" in telemetry:
+        report["terminal_clock"] = telemetry["terminal_clock"]
     native_bytes = native_path.read_bytes()
     require(hashlib.sha256(native_bytes).hexdigest() == plan.native_journal.sha256, "COST_INPUT_CHANGED")
     return report, {"actions": {r[0]: r for r in action_rows}, "events": event_rows,

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from mcbench.pack_baseline import POLICY, profile_documents, verify_profile_baseline
+from mcbench.pack_baseline import POLICY, LIFETIME_POLICY, profile_documents, verify_profile_baseline
 from mcbench.pack_launch import PackLaunchBinding, RestoredPackLaunchBinding, parse_pack_binding, resolve_pack_launch
 from mcbench.pack_restore import archive_restoration, baseline_record, restore_pack_instance
 from mcbench.pack_worker import HeldPackWorker
@@ -28,7 +28,7 @@ source = restore.source
 
 
 @pytest.fixture
-def successor(source, inputs, tmp_path):
+def successor(source, inputs, tmp_path, request):
     old, reference, service = source
     original = service.status(old.request_id)
     old_lock = service._json(old.request_id, old.lock)
@@ -56,6 +56,9 @@ def successor(source, inputs, tmp_path):
     profile.worker_runtime.path, profile.worker_runtime.sha256 = runtime["manifest"], runtime["sha256"]
     profile.client.executable_path = body["node"]
     profile.client.arguments = [body["worker"], "{strata.worker_config}", "--operator-stop"]
+    policy = getattr(request, "param", POLICY)
+    if policy == LIFETIME_POLICY:
+        profile.worker_settings.max_wall_ms = 360000
     identity = {"is_example": False, "request_id": "pack2", "inventory_digest": digest(inventory),
                 "receipt_digest": acquired[11:], "launch_profile_digest": digest(profile.model_dump())}
     proof = ProvisioningEvidence.model_validate({"schema": "strata/ProvisioningEvidence/1", **identity,
@@ -65,10 +68,11 @@ def successor(source, inputs, tmp_path):
     lock = service.seal_template("pack2", profile, proof)
     fresh = PackLaunchBinding(store=old.store, request_id="pack2", lock=lock, instance=str(tmp_path / "new-template"))
     service.materialize("pack2", Path(fresh.instance))
-    imported = reference | {"policy": POLICY, "source_lock": old.lock, "source_request_id": old.request_id}
+    imported = reference | {"policy": policy, "source_lock": old.lock, "source_request_id": old.request_id}
     return old, fresh, imported, service, inventory
 
 
+@pytest.mark.parametrize("successor", [POLICY, LIFETIME_POLICY], indirect=True)
 def test_new_baseline_preserves_source_identity_and_durable_history(successor, tmp_path, monkeypatch):
     old, fresh, reference, service, inventory = successor
     before = rows(service)
@@ -194,3 +198,25 @@ def test_retired_source_authority_refuses_before_copy(successor, tmp_path):
     with pytest.raises(Fault, match="PACK_BASELINE_AUTHORITY"):
         restore_pack_instance(fresh, reference, tmp_path / "forbidden")
     assert not (tmp_path / "forbidden.preparing").exists()
+
+
+@pytest.mark.parametrize("successor", [LIFETIME_POLICY], indirect=True)
+@pytest.mark.parametrize("change", ["legacy-policy", "too-long", "shorter", "primitive-limit", "server"])
+def test_lifetime_baseline_only_changes_declared_worker_lifetime(successor, change):
+    _, fresh, reference, _, inventory = successor
+    binding = RestoredPackLaunchBinding(**fresh.model_dump(), restoration=reference)
+    documents = deepcopy(profile_documents(binding))
+    world = verify_snapshot(Path(reference["snapshot"]), reference["sha256"])
+    target = documents["target_profile"]
+    if change == "legacy-policy":
+        binding.restoration.policy = POLICY
+    elif change in {"too-long", "shorter"}:
+        target["worker_settings"]["max_wall_ms"] = 360001 if change == "too-long" else 90000
+    elif change == "primitive-limit":
+        target["worker_settings"]["primitive_limit"] += 1
+    else:
+        target["server"]["arguments"].append("--changed")
+    documents["target_lock"]["launch_profile"] = "cas:sha256:" + digest(target)
+    binding.lock = "cas:sha256:" + digest(documents["target_lock"])
+    with pytest.raises(Fault, match="PACK_BASELINE_PROFILE_CHANGED"):
+        verify_profile_baseline(binding, world, inventory, documents, Path(reference["snapshot"]))

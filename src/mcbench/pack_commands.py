@@ -34,6 +34,22 @@ def emit(value):
     typer.echo(json.dumps(value, indent=2))
 
 
+@pack_app.command("prepare-forge-server-libraries")
+def prepare_forge_server_libraries(installer: Path, bundle: Path, manifest: Path,
+                                  version: Path, root: Path, destination: Path):
+    """Prepare exact E9E Forge server software; no installer/game execution or seal."""
+    from .forge_runtime import prepare_server_libraries, read_input
+    try:
+        emit(prepare_server_libraries(
+            read_input(installer, 16 * 1024**2), read_input(bundle, 512 * 1024**2),
+            read_input(manifest, 4 * 1024**2), read_input(version, 2 * 1024**2),
+            root, destination))
+    except Fault as error:
+        emit({"status": "blocked", "code": error.code, "started": False,
+              "partial_destination_may_exist": destination.exists()})
+        raise typer.Exit(2) from None
+
+
 @pack_app.command("inspect-npm-runtime")
 def inspect_npm_runtime(root: Path, cache: Path, generated_shims: Path):
     """Compare installed dependencies with retained tarballs and reviewed npm shim output.
@@ -118,6 +134,56 @@ def prepare_vanilla_server(root: Path, destination: Path, request: Request, stor
     """Verify acquired/installed server payloads and prepare a new private software copy."""
     with provider(store, simulation) as service:
         emit(service.prepare_vanilla_server(request, root, destination))
+
+
+@pack_app.command("prepare-e9e-content")
+def prepare_e9e_content(client_mods: Path, server_mods: Path, client_capture: Path,
+                        server_capture: Path, harness_exclusions: Path, destination: Path,
+                        request: Request, store: Store, simulation: bool = False):
+    """Prepare initial vendor content for both roles from acquired archives and pinned intake."""
+    from .forge_runtime import read_input
+    from .inference_transport import strict_json
+    with provider(store, simulation) as service:
+        emit(service.prepare_e9e_content(request,
+            {"client": client_capture, "server": server_capture},
+            {"client": client_mods, "server": server_mods},
+            strict_json(read_input(harness_exclusions, 65536)), destination))
+
+
+@pack_app.command("derive-forge-runtime")
+def derive_forge_runtime(installer: Path, client_libraries: Path, server_libraries: Path,
+                         java_root: Path, destination: Path, request: Request, store: Store,
+                         vanilla_request: Annotated[str, typer.Option()]):
+    """Reproduce both required SRG files with fixed offline processors; no installer/game."""
+    with provider(store, False) as service:
+        emit(service.derive_forge_runtime(request, vanilla_request, installer,
+            {"client": client_libraries, "server": server_libraries}, java_root, destination))
+
+
+@pack_app.command("import-forge-runtime")
+def import_forge_runtime(derivation: str, request: Request, store: Store, simulation: bool = False):
+    """Import both exact reproduced SRG files for role assembly, without execution."""
+    with provider(store, simulation) as service:
+        emit(service.import_forge_runtime(request, derivation))
+
+
+@pack_app.command("prepare-e9e-roles")
+def prepare_e9e_roles(plan: Path, destination: Path, request: Request, store: Store, simulation: bool = False):
+    """Compose initial private E9E roles; no effective-config or sealed-profile claim."""
+    from .forge_runtime import read_input
+    from .inference_transport import strict_json
+    with provider(store, simulation) as service:
+        emit(service.prepare_e9e_roles(request, strict_json(read_input(plan, 32 * 1024**2)), destination))
+
+
+@pack_app.command("prepare-forge-client")
+def prepare_forge_client(installer: Path, launcher_metadata: Path, base_root: Path, library_root: Path,
+                         artifacts: str, destination: Path, request: Request, store: Store,
+                         vanilla_request: Annotated[str, typer.Option()], simulation: bool = False):
+    """Compose exact client software from sealed vanilla and acquired Forge artifacts."""
+    with provider(store, simulation) as service:
+        emit(service.prepare_forge_client(request, vanilla_request, installer, launcher_metadata,
+                                          base_root, library_root, artifacts, destination))
 
 
 @pack_app.command("prepare-vanilla-client")

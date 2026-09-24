@@ -153,3 +153,20 @@ def test_support_source_completeness_is_bound_to_held_manifest(cas, supporting, 
     native_skills.read_skill_corpus(cas, ref)
     with pytest.raises(Fault, match="SKILL_BODY_UNPINNED"):
         native_skills.validate_skill_bootstrap(cas, ref, plan)
+
+
+def test_pilot_receives_public_request_contract_before_game_calls(broker, corpus, monkeypatch):
+    from mcbench.broker import GameCall
+    from mcbench.native_piloting import PURPOSE, GAME_CONTRACT_PATH
+    b, _, _ = broker
+    plan = SimpleNamespace(job_id=b.runtime_id, profile_digest=lambda: b.profile_digest, purpose=PURPOSE)
+    grant = b._grant(b.db.connection, "root")[0]
+    monkeypatch.setattr(native_skills, "NativeBroker", lambda *args: b)
+    native_skills.project_initial_skills(b.db, b.cas, plan, grant, corpus[0])
+    doc = json.loads(b.call("artifact_read", {"path": GAME_CONTRACT_PATH}, meta())["text"])
+    assert doc["arguments_schema"] == GameCall.model_json_schema()
+    assert 'method' in doc["arguments_schema"]["$defs"]["RpcRequest"]["required"]
+    with pytest.raises(Fault, match="BROKER_WRITE_FORBIDDEN"):
+        b.call("artifact_write", {"path": GAME_CONTRACT_PATH, "text": "replace", "expected_ref": None}, meta())
+    with pytest.raises(Fault, match="BROKER_FORBIDDEN"):
+        b.call("artifact_read", {"path": GAME_CONTRACT_PATH}, meta("child"))

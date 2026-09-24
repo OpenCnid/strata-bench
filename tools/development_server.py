@@ -22,6 +22,7 @@ from mcbench.provisioning import LaunchCommand, validate_launch_environment
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import Fault, digest, reject_links, require
 from mcbench.vanilla_persistence import POLICY, PACK_POLICY, VanillaPersistence
+from mcbench.vanilla_clock import ClockLaunch
 
 
 def outside(path):
@@ -50,7 +51,15 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("plan", type=Path)
     options = parser.parse_args(argv)
-    plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
+    recorded_plan = json.loads(outside(options.plan).read_text(encoding="utf-8"))
+    clock_value = None
+    plan = recorded_plan
+    if recorded_plan.get("schema") == "strata/DevelopmentServer/6":
+        require(set(recorded_plan) == {"schema", "base", "clock"}, "SCHEMA_UNSUPPORTED")
+        plan, clock_value = recorded_plan["base"], recorded_plan["clock"]
+        require(plan.get("schema") in {"strata/DevelopmentServer/2", "strata/DevelopmentServer/4",
+                                       "strata/DevelopmentServer/5"} and plan.get("target") == "vanilla",
+                "VANILLA_CLOCK_LAUNCH")
     capture = plan.get("schema") in {"strata/DevelopmentServer/2", "strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
     sealed = plan.get("schema") in {"strata/DevelopmentServer/3", "strata/DevelopmentServer/4", "strata/DevelopmentServer/5"}
     require(set(plan) == {"schema", "pack" if sealed else "launch", "evidence", "max_wall_s", "target"} | ({"persistence_policy"} if capture else set()),
@@ -91,7 +100,7 @@ def main(argv=None):
         require(all(not evidence.is_relative_to(path) and not path.is_relative_to(evidence)
                     for path in (outside(pack.store), outside(pack.instance))), "UNSAFE_PATH")
     evidence.mkdir(parents=True, exist_ok=False)
-    (evidence / "plan.json").write_text(json.dumps(plan, indent=2), encoding="utf-8")
+    (evidence / "plan.json").write_text(json.dumps(recorded_plan, indent=2), encoding="utf-8")
     if binding:
         (evidence / "pack-launch.json").write_text(json.dumps(binding, indent=2), encoding="utf-8")
     require(shutil.disk_usage(root).free >= 5 * 1024**3, "DISK_RESERVE_LOW")
@@ -113,17 +122,23 @@ def main(argv=None):
     threads = []
     persistence = (VanillaPersistence(root, pack=pack if sealed else None,
                                      resolved=binding if sealed else None) if capture else None)
+    clock = None
     try:
+        if clock_value is not None:
+            clock = ClockLaunch(clock_value, evidence, root, launch)
+            (evidence / "clock-launch.json").write_text(json.dumps(clock.binding, indent=2), encoding="utf-8")
         stamp("spawn_requested")
         # Bypass the venv executable redirector for this explicitly tracked
         # profile: the base bootstrap waits for Job assignment before children.
-        proc = ManagedProcess([str(exe), *launch.arguments], root, launch.environment, "",
+        proc = ManagedProcess([str(exe), *(clock.arguments if clock else launch.arguments)], root, launch.environment, "",
                               interactive=True, bootstrap_python=Path(sys._base_executable) if capture else None)
     except BaseException:
         if persistence:
             persistence.close()
+        if clock:
+            clock.close()
         raise
-    result = {"schema": "strata/DevelopmentServerResult/1", "plan_digest": digest(plan),
+    result = {"schema": "strata/DevelopmentServerResult/1", "plan_digest": digest(recorded_plan),
               "target": plan["target"], "started_unix": time.time(), "ready": False,
               "stop_sent": False, "forced_stop": False, "exit_code": None,
               "gate_result": "not_run", "campaign_admission": False,
@@ -159,11 +174,13 @@ def main(argv=None):
         while proc.poll() is None:
             if capture:
                 proc.job.observe_members()
+                if clock:
+                    clock.observe(proc)
             now = time.monotonic()
             if ready.is_set() and not result["ready"]:
                 result["ready"] = True
                 stamp("ready")
-                (evidence / "ready.json").write_text(json.dumps({"plan_digest": digest(plan),
+                (evidence / "ready.json").write_text(json.dumps({"plan_digest": digest(recorded_plan),
                     "ready_unix": time.time(), "campaign_admission": False}), encoding="utf-8")
                 print(json.dumps({"status": "server_ready", "evidence": str(evidence),
                                   "campaign_admission": False}), flush=True)
@@ -216,9 +233,11 @@ def main(argv=None):
                     capture_started = time.monotonic()
                     stamp("snapshot_started")
                     result["stopped_snapshot"] = persistence.capture(evidence / "stopped-instance", proc,
-                                                                     plan_digest=digest(plan))
+                                                                     plan_digest=digest(recorded_plan))
                     stamp("snapshot_captured")
                     result["snapshot_elapsed_s"] = time.monotonic() - capture_started
+                if clock:
+                    result["vanilla_clock"] = clock.finish(proc)
         except (OSError, Fault, IntegrityError) as error:
             result["status"] = "fail"
             result["error"] = error.code if isinstance(error, Fault) else (
@@ -226,6 +245,8 @@ def main(argv=None):
         finally:
             if persistence:
                 persistence.close()
+            if clock:
+                clock.close()
             proc.close()
         if capture:
             result["total_elapsed_s"] = time.monotonic() - started

@@ -1,5 +1,129 @@
 # Private pack provisioning
 
+The original E9E request now has a VERIFIED directory-bound installed inventory
+(`20cad14f2d8ed7a4675685608e22bfa5e6fdbcb36510c464d6d4d11667fc4c81`).
+Reuse that exact admitted pair and retained source/runtime dispositions. Do not
+repeat preparation/import or treat VERIFIED as SEALED. Next bind the executable
+E9E launch profile and all thirteen existing provisioning checks to its exact
+inventory and receipt before seal/materialization. Preserve the five historical
+config findings and client ZIP drift. [Actual admission, scope and evidence](../verification/2026-09-24-e9e-final-inventory.md).
+
+Final role inventory inputs accept `extra_directories` for empty vendor/native paths.
+Declare those explicitly; verification rejects missing or unlisted directories
+before importing either role. Extra paths produce `InstalledInventory/2` with
+complete sorted role directory lists; file-only /1 inventories retain their
+identity. Materialization and launch use the same exact layout. Existing vanilla
+capture/restore also preserves pinned software directories. This does not bypass
+E9E initialization, effective-setting or seal checks. [Verification and scope](../verification/2026-09-24-inventory-directories.md).
+
+A separate operator-only development profile checks the already installed E9E
+server without rerunning ServerStarter or a Forge installer:
+
+```text
+python tools/e9e_cold_start.py FRESH_VERIFIED_SERVER_COPY FRESH_PRIVATE_EVIDENCE --campaign INSTANCE_ID --epoch 1 --initial
+python tools/e9e_cold_start.py SAME_NORMALLY_STOPPED_SERVER FRESH_PRIVATE_EVIDENCE_2 --campaign INSTANCE_ID --epoch 2
+```
+
+The caller must independently verify the complete copied role against its pinned
+preparation before the first call. `e9e1270-installed-forge-cold-start/1` fixes the
+reviewed Forge argument-file, Java and telemetry module hashes, loopback online
+port 25603, 2G/5G heap and four processors. It holds Java/mod/library/script bytes,
+uses a fresh private signed telemetry authority, binds the observed Java process
+to the owned Job Object, samples selected config values and the expert furnace
+recipe, and sends only the operator stop command. Bounds are 300 seconds before
+stop, 10 seconds after bound startup with readiness required, 120 seconds for normal drain and a
+425-second outer watchdog. Retain failed output; never reuse an authority or
+restart an uncertain prior process. These are provisioning observations, not an
+LLM policy, gameplay tool, sealed PackLock or scoring/save/isolation qualification.
+Preserve effective-file failures and qualify their exact role/consumer disposition.
+
+For the prepared client, `mcbench.forge_client.launch_arguments(root, software,
+server_port=25604)` resolves the credential-free argument list. Bind `software`
+to the retained `ForgeClientSoftware/1` preparation receipt first; the resolver
+rehashes its installed files and re-derives classpath/module ordering from pinned
+metadata. The fixed client profile uses its own Java, assets, libraries, native
+directory and game directory, four processors and 512/6144 MiB heap. Authentication
+and protected argument-file creation stay with the existing private session
+preparer. This function never starts Java or exposes a gameplay action.
+
+The `e9e1270-installed-client-config/1` observation uses the existing one-shot
+client config exporter on a noninput desktop. Separate server, client software
+and client mod/script leases retain the existing 1 GiB limit per group. Fresh
+client plans distinguish first start and cold restart; only loopback port 25604
+is used. Bounds are 300 seconds for server startup, 420 seconds per client,
+120 seconds for normal server drain and a 1280-second server watchdog. Client
+Job termination after capture is explicit and does not prove a clean client
+save or D13 shutdown conformance. Preserve failed scopes and all role-specific
+findings; complete effective-inventory and seal admission remain separate.
+
+Compose initial E9E roles from explicit reviewed source and FileEntry plans:
+
+```text
+mcbench pack prepare-e9e-roles COMPOSITION_PLAN DESTINATION --request E9E_REQUEST --store STORE
+```
+
+`E9ERoleComposition/1` names the original acquisition receipt, private source,
+component-notice and exclusion reports, both roles' exact source/file entries
+and preserved directories. Both plans must validate before copying. All CAS
+notice references resolve in that acquisition namespace. Failed partial output
+is retained and cannot be reused. Actual [paired roles](../verification/2026-09-24-e9e-initial-roles.md)
+pass initial expert setup checks; this command deliberately leaves ACQUIRED
+unchanged. Materialize a fresh controlled working instance for initialization
+and cold-restart/effective-setting checks before final inventory/seal admission.
+
+Prepare the E9E client software after importing reproduced SRG artifacts:
+
+```text
+mcbench pack prepare-forge-client INSTALLER LAUNCHER_METADATA SEALED_VANILLA_CLIENT LIBRARIES DERIVED_ARTIFACTS_REF DESTINATION --request E9E_REQUEST --vanilla-request SEALED_VANILLA_REQUEST --store STORE
+```
+
+This consumes the original sealed vanilla Java/assets and selected libraries,
+exact Forge metadata and the acquired client SRG, checking all bindings before
+copying into fresh output. It records the classpath/module order, additional
+loader files and explicit superseded libraries. It does not copy launcher
+account state or start a process. Preserve failures; existing destinations
+cannot be reused. [Actual preparation](../verification/2026-09-24-forge-client-software.md)
+is qualified as software only. Combine vendor, harness/effective settings,
+license dispositions and server software before complete role/seal admission.
+
+The required client/server SRG JARs use two operator commands:
+
+```text
+mcbench pack derive-forge-runtime INSTALLER CLIENT_LIBRARIES SERVER_LIBRARIES JAVA_ROOT DESTINATION --request E9E_REQUEST --vanilla-request SEALED_VANILLA_REQUEST --store STORE
+mcbench pack import-forge-runtime DERIVATION_CAS_REF --request E9E_REQUEST --store STORE
+```
+
+Derivation runs only pinned offline mapping processors with a sealed Java
+inventory and fixed resource bounds. It retains partial output on failure and
+requires a fresh destination. Import consumes existing reproduced bytes and
+checks both roles before writing artifacts; do not rerun a successful derivation
+for import. The SRG JAR is required at runtime, so the earlier 103-file server
+library subset is incomplete without this artifact. [Actual evidence and
+limits](../verification/2026-09-24-forge-derived-runtime.md). Full role assembly,
+license review and seal admission remain separate.
+
+The operator command
+`mcbench pack prepare-e9e-content CLIENT_MODS SERVER_MODS CLIENT_CAPTURE SERVER_CAPTURE HARNESS_EXCLUSIONS DESTINATION --request REQUEST --store STORE`
+prepares both roles' initial vendor content from the original ACQUIRED E9E
+request. The capture inputs are the exact retained pre-game mod receipts;
+the exclusion JSON maps client/server to exact added Strata JAR path/digest/bytes
+rows. Mod roots name only the respective mods directories. The destination
+must be fresh. It retains source filename encodings, publisher server exclusions,
+reviewed initial JEI data and empty vendor directories. Its private evidence
+and original capture bytes enter the same operator namespace; provisioning
+state remains unchanged. This is input to full role assembly, not an installer,
+generated/effective configuration, license pass or seal. [Actual verification](../verification/2026-09-23-e9e-vendor-content.md).
+
+For the exact E9E 1.27.0 / Forge 43.4.23 server library component, use
+`mcbench pack prepare-forge-server-libraries INSTALLER BUNDLE MANIFEST VERSION ROOT DESTINATION`.
+Inputs are retained official Forge/Mojang artifacts; ROOT names only the
+stopped installation's libraries directory and DESTINATION must not exist.
+The command verifies publisher expectations before copying software and emits
+private `ForgeServerLibraries/1` evidence. Four named files (including the separately required SRG runtime JAR)
+are inventoried/excluded. No installer, game, acquisition-state update or
+PackLock seal occurs; retain the output for complete role assembly and license
+review. Partial outputs cannot be reused. [Actual verification and limits](../verification/2026-09-23-forge-server-software.md).
+
 This operator-only workflow implements source import, inventory verification,
 sealing and fresh materialization. It does not install Minecraft, accept terms,
 start a game, or certify a release gate. Keep the store, installations, receipts,
@@ -200,3 +324,68 @@ This does not qualify full joint gameplay: connect the existing native runner
 and inventory-bound capture, then collect the changed-profile evidence. The
 existing development execution/recovery remains narrower. [Actual seal/import,
 source checks and retained failures](../verification/2026-09-22-vanilla-packlock.md).
+
+
+The installed E9E candidate uses private `LaunchProfile/3`, backend `forge_client`,
+a CAS `client_software` receipt, fixed loopback `host`/`port`, and the same
+`sealed-local-bytes/no-installer/1` policy. Java paths are role-relative
+`java/bin/java.exe`; client arguments are produced by `pack_forge.client_template`
+and retain only role-root, bridge and authentication placeholders. Sealing
+validates the exact template, inventory/software correspondence, native module,
+server settings and installed Forge server arguments before the existing thirteen
+checks. Never include credentials or a prior session's argument file in a profile.
+
+After actual sealing/materialization, `resolve_pack_launch(..., role="client",
+forge_invocation=...)` accepts exactly `arguments_path`, `arguments_sha256`,
+`bridge_directory`, `player_name` and compact lowercase `player_uuid`. The
+protected argument file must match the resolved template and authenticated body;
+the bridge directory must be empty and separate from installation/store/checkout.
+Resolution is read-only and returns only the argument-file reference/hash. The
+caller must still authenticate/check lifetime, hold bytes, bind telemetry and the
+process guardian, and own execution/stop. There is no new execution CLI or claim
+that this preflight provides those guarantees. Legacy profiles are unchanged.
+[Executed candidate check, synthetic integration and remaining admission](../verification/2026-09-24-e9e-launch-profile.md).
+
+
+The actual E9E `/3` candidate is now refused because two installed mods fetch
+unversioned gameplay data during startup. Private `LaunchProfile/4` adds a
+`runtime_data` CAS receipt. Both role inventories must contain the same verified
+`harness/strata-runtime-data-0.1.0.jar`; both commands prepend its exact
+role-root-relative `-javaagent` argument. This is a new profile, preserving the
+original VERIFIED inventory. Prepare snapshots with `tools/prepare_runtime_data.py`
+from previously acquired commit-addressed files; no automatic fetch occurs there.
+
+Cold-start `/2` accepts `--runtime-data` pointing to the retained preparation
+receipt and holds it and the installed JAR through the owned run. It requires
+both pinned class transformations and all three actual read records. The first
+changed authentic boot **failed** because Forge transformed the class before
+instrumentation. A fresh bounded capture and exact installed EventBus transformer
+reproduction now explain the single access-flag change; only that reviewed hash
+is additionally admitted. Cold-start evidence requires the post-Forge binding.
+Do not reuse a used instance as a fresh baseline or treat agent startup as a qualified freeze. Snapshot
+preparation does not replace other mod-input review or the thirteen provisioning
+checks. [Original failure](../verification/2026-09-24-e9e-runtime-data.md) and
+[class-loading diagnosis and changed verification](../verification/2026-09-24-e9e-class-loading.md).
+
+The current snapshot agent additionally retains a bounded, forced-to-disk journal
+in the private instance's `logs` directory. This preserves early markers for
+non-input client launches without console handles. Bind its PID to the owned
+process and its content to the held snapshot artifact through
+`inspect_runtime_data_journal`; repeated exact-body reads are valid, while missing,
+foreign, truncated or unbounded records reject. Client loading/restart and a
+cold server restart now qualify this named mechanism. Clients use explicit owned
+Job termination after capture, so this is not clean client save or D13 evidence.
+Retain both audit corrections and all prior profile failures. The remaining
+startup-input review, successor inventory/profile and thirteen-check sealing
+remain separate. [Exact scope and evidence](../verification/2026-09-24-e9e-client-runtime-data.md).
+
+The subsequent startup review identifies two more state-affecting readers:
+Ars Nouveau supporter data names/configures spawned Starbuncles, and
+Supplementaries credits select named globe/statue variants. `RuntimeDataSnapshot/2`
+adds their exact commit-addressed bodies and class pins while preserving the
+original three bodies and vendor parser logic. Current preparation emits `/2`;
+historical `/1` is readable for reconstruction, but refuses seal/launch admission
+when either newly identified mod is installed. Both roles must bind the extended
+snapshot. Expected execution markers now include all four classes and five
+bodies. This does not certify every mod's networking, historical responses or
+isolation. [Review and changed-component evidence](../verification/2026-09-24-e9e-startup-inputs.md).

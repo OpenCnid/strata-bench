@@ -9,13 +9,15 @@ import os
 from pathlib import Path
 import shutil
 
-from .inventory import file_hash
+from .inventory import file_hash, inventory_directories
 from .launch_integrity import FileLease, safe, snapshot
 from .pack_launch import (
     PackLaunchBinding, RestoredPackLaunchBinding, WorkerProfileBaseline, _absolute, parse_world_source, resolve_pack_launch,
 )
 from .storage import canonical, digest, require
-from .vanilla_persistence import disposition, layout, template_files, verify_snapshot, write_new
+from .vanilla_persistence import (
+    disposition, layout, template_directory_layout, template_files, verify_snapshot, write_new,
+)
 
 POLICY = "vanilla1192-sealed-stopped-world-restore/1"
 
@@ -47,11 +49,13 @@ def restoration_marker(binding, world):
 def restored_layout(root, world):
     """Require exactly the saved state plus sealed software and a new empty lock."""
     template = template_files(world["installed_inventory"], world["pack"])
-    inventory, entries, directories = layout(root, template=template)
+    template_dirs = template_directory_layout(world["installed_inventory"])
+    inventory, entries, directories = layout(root, template=template, template_directories=template_dirs)
     expected = {p: e for p, e in world["files"].items() if e["disposition"] in {"state", "immutable"}}
     expected["world/session.lock"] = {"bytes": 0, "sha256": digest_bytes(b""),
                                        "disposition": "transient_session_lock"}
     expected_dirs = {p.as_posix() for name in expected for p in Path(name).parents if str(p) != "."}
+    expected_dirs.update(template_dirs)
     expected_dirs.update(p for p in world["directories"] if p == "world" or p.startswith("world/"))
     require(entries == expected and set(directories) == expected_dirs, "PACK_RESTORE_CHANGED")
     return inventory, entries, directories
@@ -117,7 +121,8 @@ def restore_pack_instance(fresh, source, destination):
     require(digest_bytes(raw) == resolved["inventory_digest"], "PACK_RESTORE_SOURCE")
     world = load_restoration(binding, inventory)
     template = template_files(inventory, world["pack"])
-    layout(template_root / "server", template=template, initial=True)
+    layout(template_root / "server", template=template,
+           template_directories=template_directory_layout(inventory), initial=True)
     staging = target.with_name(target.name + ".preparing")
     require(not staging.exists(), "PACK_RESTORE_TARGET")
     require(shutil.disk_usage(target.parent).free >= 5 * 1024**3 + world["state_bytes"]
@@ -129,6 +134,9 @@ def restore_pack_instance(fresh, source, destination):
         resolve_pack_launch(fresh, "server")
         require(load_restoration(binding, inventory) == world, "PACK_RESTORE_SOURCE")
         staging.mkdir()
+        for role, directories in inventory_directories(inventory).items():
+            for directory in directories:
+                (staging / role / directory).mkdir(parents=True, exist_ok=True)
         for entry in inventory["files"]:
             name, role = entry["path"], entry["role"]
             require(role in {"client", "server"}, "PACK_RESTORE_TEMPLATE")

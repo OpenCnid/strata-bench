@@ -53,7 +53,7 @@ def ledger(plan, operation, *, parent, calls, spend, pricing, inputs=100000, out
         "usage": {"input_tokens": inputs, "cached_input_tokens": 0,
             "output_tokens": outputs, "reasoning_tokens": 0, "model_calls": calls,
             "primitive_events": 0, "avatar_ticks": 0, "wall_ms": 0, "spend_microusd": spend},
-        "metering": "estimated", "pricing_ref": pricing, "model_identity": MODEL,
+        "metering": "estimated", "pricing_ref": pricing, "model_identity": plan.model,
         "raw_usage_ref": None, "reason": "synthetic finite provider fixture; no USD expenditure"})
 
 
@@ -72,7 +72,8 @@ class LocalProvider:
 
     def __init__(self, database_path, objects, scenario, *, wire=False, max_requests=MAX_REQUESTS,
                  estimate_basis=None, oauth_fixture=False, gateway_fixture=False, helper_requests=4,
-                 fixture_input_reserve=100000):
+                 fixture_input_reserve=100000, model=MODEL):
+        self.model = model
         require(type(max_requests) is int and 1 <= max_requests <= 32, "REQUEST_LIMIT")
         require(type(helper_requests) is int and 1 <= helper_requests <= max_requests,
                 "HELPER_REQUEST_LIMIT")
@@ -207,7 +208,7 @@ class LocalProvider:
                     raw = self.rfile.read(length)
                     require(len(raw) == length, "TRUNCATED_REQUEST")
                     body = json.loads(raw)
-                    require(body.get("model") == MODEL, "MODEL_POLICY")
+                    require(body.get("model") == provider.model, "MODEL_POLICY")
                     with provider.lock:
                         index = len(provider.requests)
                         require(index < provider.max_requests, "REQUEST_COUNT")
@@ -355,7 +356,7 @@ class LocalProvider:
                         receipt = BudgetLedger.model_validate_json(saved[0])
                         media = db.connection.execute("SELECT media_type FROM objects WHERE "
                             "namespace='operator' AND ref=?", (receipt.raw_usage_ref,)).fetchone()[0]
-                        parser = ResponsesUsage(MODEL, media)
+                        parser = ResponsesUsage(provider.model, media, max_bytes=transport.response_limit)
                         parser.feed(cas.read(OPERATOR, "operator", receipt.raw_usage_ref))
                         event = parser.finish()["event"]
                         provider.receipts.append((operation, event, receipt))
@@ -395,7 +396,7 @@ class LocalProvider:
                  "reasoning_tokens": 0, "spend_microusd": 14, "model_calls": 1}
         if self.scenario == "retry" and index == 0:
             data = canonical({"error": {"message": "synthetic transient failure"},
-                "id": event, "model": MODEL, "status": "failed",
+                "id": event, "model": self.model, "status": "failed",
                 "usage": {"input_tokens": 10, "output_tokens": 0, "total_tokens": 10,
                     "input_tokens_details": {"cached_tokens": 2},
                     "output_tokens_details": {"reasoning_tokens": 0}}})
@@ -427,7 +428,7 @@ class LocalProvider:
                      "output_tokens_details": {"reasoning_tokens": 0},
                      "total_tokens": usage["input_tokens"] + usage["output_tokens"]}
         response = {"id": event, "object": "response", "created_at": 1,
-                    "status": "completed", "model": MODEL, "output": [item], "usage": api_usage}
+                    "status": "completed", "model": self.model, "output": [item], "usage": api_usage}
         prefix = sse("response.created", response={**response, "status": "in_progress", "output": []})
         prefix += sse("response.output_item.done", output_index=0, item=item)
         tail = sse("response.completed", response=response)
@@ -491,7 +492,7 @@ def plan_for(binary, directory, provider, job, parent=None, scenario="success"):
         "operation_id": job + ":envelope", "workspace": str(directory / (job + "-workspace")),
         "profile_directory": str(directory / (job + "-profile")), "executable": str(binary),
         "binary_digest": BINARY_SHA256, "binary_version": CODEX_VERSION,
-        "dovetail_commit": DOVETAIL_COMMIT, "model": MODEL, "provider": "strata_local_fixture",
+        "dovetail_commit": DOVETAIL_COMMIT, "model": provider.model, "provider": "strata_local_fixture",
         "auth_mode": "api_key", "budget_mode": "per_dispatch", "config_overrides": config,
         "environment": {"PATH": str(binary.parent) + os.pathsep + str(Path(os.environ["SystemRoot"]) / "System32"),
             "TEMP": str(directory / (job + "-tmp")), "TMP": str(directory / (job + "-tmp"))},

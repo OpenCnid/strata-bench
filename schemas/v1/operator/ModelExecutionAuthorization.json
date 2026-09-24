@@ -1,0 +1,310 @@
+{
+  "$defs": {
+    "EstimateBasis": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "strata/ApiEquivalentEstimateBasis/1",
+          "title": "Schema",
+          "type": "string"
+        },
+        "kind": {
+          "const": "api_equivalent_estimate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "provider": {
+          "const": "openai",
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "enum": [
+            "gpt-5.6-luna",
+            "gpt-6-luna"
+          ],
+          "title": "Model",
+          "type": "string"
+        },
+        "currency": {
+          "const": "USD",
+          "title": "Currency",
+          "type": "string"
+        },
+        "price_sources": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Price Sources",
+          "type": "array"
+        },
+        "price_date": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Price Date",
+          "type": "string"
+        },
+        "reference_tier": {
+          "enum": [
+            "standard",
+            "fast",
+            "flex",
+            "batch"
+          ],
+          "title": "Reference Tier",
+          "type": "string"
+        },
+        "tier_policy": {
+          "const": "fixed_api_equivalent_not_subscription_tier",
+          "title": "Tier Policy",
+          "type": "string"
+        },
+        "regional_processing": {
+          "const": "none",
+          "title": "Regional Processing",
+          "type": "string"
+        },
+        "short_context": {
+          "$ref": "#/$defs/TokenRates"
+        },
+        "long_context": {
+          "$ref": "#/$defs/TokenRates"
+        },
+        "long_context_above_input_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Long Context Above Input Tokens",
+          "type": "integer"
+        },
+        "context_window_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Context Window Tokens",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "cache_write_policy": {
+          "const": "explicit_subset_or_all_uncached_upper_bound",
+          "title": "Cache Write Policy",
+          "type": "string"
+        },
+        "reasoning_policy": {
+          "const": "included_in_output",
+          "title": "Reasoning Policy",
+          "type": "string"
+        },
+        "unknown_categories": {
+          "const": "block",
+          "title": "Unknown Categories",
+          "type": "string"
+        },
+        "tool_charges": {
+          "const": "unsupported_block",
+          "title": "Tool Charges",
+          "type": "string"
+        },
+        "rounding": {
+          "const": "ceil_per_request_microusd",
+          "title": "Rounding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema",
+        "kind",
+        "provider",
+        "model",
+        "currency",
+        "price_sources",
+        "price_date",
+        "reference_tier",
+        "tier_policy",
+        "regional_processing",
+        "short_context",
+        "long_context",
+        "long_context_above_input_tokens",
+        "context_window_tokens",
+        "max_output_tokens",
+        "cache_write_policy",
+        "reasoning_policy",
+        "unknown_categories",
+        "tool_charges",
+        "rounding"
+      ],
+      "title": "EstimateBasis",
+      "type": "object"
+    },
+    "TokenRates": {
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Input",
+          "type": "integer"
+        },
+        "cached_input": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Cached Input",
+          "type": "integer"
+        },
+        "cache_write": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Cache Write",
+          "type": "integer"
+        },
+        "output": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Output",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input",
+        "cached_input",
+        "cache_write",
+        "output"
+      ],
+      "title": "TokenRates",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "D17 selects a fresh model generation on the existing allowance.",
+  "properties": {
+    "schema": {
+      "const": "strata/ExecutionAuthorization/3",
+      "title": "Schema",
+      "type": "string"
+    },
+    "authorization_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "decision_id": {
+      "const": "D17",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "provider": {
+      "const": "openai",
+      "title": "Provider",
+      "type": "string"
+    },
+    "auth_mode": {
+      "enum": [
+        "chatgpt_oauth",
+        "api_key"
+      ],
+      "title": "Auth Mode",
+      "type": "string"
+    },
+    "models": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Models",
+      "type": "array"
+    },
+    "total_spend_microusd": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Total Spend Microusd",
+      "type": "integer"
+    },
+    "currency": {
+      "const": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "scope": {
+      "const": "live_validation",
+      "title": "Scope",
+      "type": "string"
+    },
+    "includes": {
+      "items": {
+        "enum": [
+          "development",
+          "training",
+          "evaluation"
+        ],
+        "type": "string"
+      },
+      "title": "Includes",
+      "type": "array"
+    },
+    "unknown_metering": {
+      "const": "block",
+      "title": "Unknown Metering",
+      "type": "string"
+    },
+    "original_decision_id": {
+      "const": "D04",
+      "title": "Original Decision Id",
+      "type": "string"
+    },
+    "legacy_authorization_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Legacy Authorization Digest",
+      "type": "string"
+    },
+    "accounting_basis": {
+      "$ref": "#/$defs/EstimateBasis"
+    },
+    "first_trial_max_microusd": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "First Trial Max Microusd",
+      "type": "integer"
+    },
+    "previous_authorization_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Previous Authorization Digest",
+      "type": "string"
+    },
+    "generation_id": {
+      "const": "gpt-6-luna-2026-09-23",
+      "title": "Generation Id",
+      "type": "string"
+    },
+    "retention_policy": {
+      "const": "fresh_initial_artifacts_no_cross_model_learning",
+      "title": "Retention Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "authorization_id",
+    "decision_id",
+    "provider",
+    "auth_mode",
+    "models",
+    "total_spend_microusd",
+    "currency",
+    "scope",
+    "includes",
+    "unknown_metering",
+    "original_decision_id",
+    "legacy_authorization_digest",
+    "accounting_basis",
+    "first_trial_max_microusd",
+    "previous_authorization_digest",
+    "generation_id",
+    "retention_policy"
+  ],
+  "title": "ModelExecutionAuthorization",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

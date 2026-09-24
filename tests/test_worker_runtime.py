@@ -141,6 +141,9 @@ def test_runner_keeps_runtime_held_during_owned_cleanup_even_on_error(prepared, 
             raise RuntimeError("synthetic native failure")
         return {"status": "synthetic"}
 
+    # Isolate worker lease lifetime from the separately tested native preflight.
+    monkeypatch.setattr(runner, "file_hash", lambda _path: runner.BINARY_SHA256)
+    monkeypatch.setattr(runner, "native_companion_paths", lambda _path: [])
     monkeypatch.setattr(runner, "run_plan", body)
     if fail:
         with pytest.raises(RuntimeError, match="synthetic native failure"):

@@ -12,14 +12,36 @@ import json
 import socket
 import threading
 import time
+import uuid
 from urllib.parse import urlsplit
 
 from .accounting import EstimateBasis, TokenUsage, UsageValuation
 from .records import BudgetLedger
-from .storage import Principal, require
+from .storage import Fault, Principal, require
 
 MAX_RESPONSE_BYTES = 256 * 1024
+NATIVE_RESPONSE_BYTES = 8 * 1024**2
+NATIVE_WIRE_POLICY = "native-bounded-receipt-wire/2"
+MAX_REQUEST_TIMEOUT_S = 60
 BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
+DELIVERY_POLICY = "durable-settled-receipt-before-delivery/1"
+
+
+def transport_failure_code(error, *, cancelled=False):
+    """Stable diagnosis without exception messages, URLs, headers or credentials."""
+    if cancelled:
+        return "TRANSPORT_CANCELLED"
+    if isinstance(error, Fault):
+        return error.code
+    if isinstance(error, TimeoutError):
+        return "TRANSPORT_TIMEOUT"
+    if isinstance(error, http.client.IncompleteRead):
+        return "TRANSPORT_TRUNCATED_BODY"
+    if isinstance(error, http.client.HTTPException):
+        return "TRANSPORT_HTTP_ERROR"
+    if isinstance(error, OSError):
+        return "TRANSPORT_IO_ERROR"
+    return "TRANSPORT_INTERNAL_ERROR"
 
 
 def strict_json(raw):
@@ -43,7 +65,9 @@ def count(value):
 class ResponsesUsage:
     """Incremental bounded SSE/JSON receipt capture, never a turn-total estimate."""
 
-    def __init__(self, model, content_type):
+    def __init__(self, model, content_type, *, max_bytes=MAX_RESPONSE_BYTES):
+        require(max_bytes in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES}, "RESPONSE_BOUND")
+        self.max_bytes = max_bytes
         require(content_type in {"text/event-stream", "application/json"}, "RESPONSE_CONTENT_TYPE")
         self.model, self.content_type = model, content_type
         self.raw = bytearray()
@@ -53,7 +77,7 @@ class ResponsesUsage:
         self.receipt = None
 
     def feed(self, chunk):
-        require(isinstance(chunk, bytes) and len(self.raw) + len(chunk) <= MAX_RESPONSE_BYTES,
+        require(isinstance(chunk, bytes) and len(self.raw) + len(chunk) <= self.max_bytes,
                 "RESPONSE_SIZE")
         self.raw.extend(chunk)
         if self.content_type == "application/json":
@@ -147,11 +171,13 @@ class RejectedResponseCapture:
 
     content_type = "application/octet-stream"
 
-    def __init__(self):
+    def __init__(self, *, max_bytes=MAX_RESPONSE_BYTES):
+        require(max_bytes in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES}, "RESPONSE_BOUND")
+        self.max_bytes = max_bytes
         self.raw = bytearray()
 
     def feed(self, chunk):
-        require(len(self.raw) + len(chunk) <= MAX_RESPONSE_BYTES, "RESPONSE_SIZE")
+        require(len(self.raw) + len(chunk) <= self.max_bytes, "RESPONSE_SIZE")
         self.raw.extend(chunk)
 
     def finish(self):
@@ -165,6 +191,8 @@ class _ResponsesTransport:
     retry, transform billing evidence or block indefinitely. Ingress closes/fences
     every writer before sealing a native job. This class owns the upstream socket.
     """
+
+    response_limit = MAX_RESPONSE_BYTES
 
     def _preflight(self, attempt, reserve):
         pass
@@ -209,7 +237,20 @@ class _ResponsesTransport:
             rates = {key: count(price.get(key)) for key in (
                 "input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")}
 
+        from .storage_capacity import reserve as reserve_space, release
+        principal = Principal(self.gate.namespace, "operator")
+        space_token = None
+        if self.gate.db.connection.execute("SELECT 1 FROM inference_attempts WHERE operation=?",
+                                           (reserve.operation_id,)).fetchone() is None:
+            space_token = "receipt:" + uuid.uuid4().hex
+            reserve_space(self.gate.cas, principal, self.gate.namespace, space_token, self.response_limit)
+        delivery = []
+        forwarded = False
+
         def forward():
+            nonlocal forwarded
+            require(space_token is not None, "ARTIFACT_RESERVATION_INVALID")
+            forwarded = True
             started = time.monotonic()
             deadline = started + self.deadline_s
             require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
@@ -218,16 +259,19 @@ class _ResponsesTransport:
             connection, path, headers = self._request()
             capture = None
             raw_ref = None
+            phase = "connect"
             try:
                 connection.connect()
                 sock = connection.sock
                 with self.connection_lock:
                     self.active_socket = sock
                 require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
+                phase = "send_request"
                 connection.request("POST", path, body=body, headers=headers)
                 remaining = deadline - time.monotonic()
                 require(remaining > 0, "TRANSPORT_DEADLINE")
                 sock.settimeout(remaining)
+                phase = "response_headers"
                 response = connection.getresponse()
                 media = response.getheader("Content-Type", "").split(";", 1)[0].strip().lower()
                 # Preserve safe diagnostic metadata even when the wire format is
@@ -245,11 +289,11 @@ class _ResponsesTransport:
                 supported = media in {"application/json", "text/event-stream"}
                 buffered_sse = (not supported and response.status == 200 and
                                 getattr(self, "buffered_sse_policy", None) == BUFFERED_SSE_POLICY)
-                capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream") if (
-                    supported or buffered_sse) else RejectedResponseCapture()
-                if supported:
-                    on_headers(response.status, media)
+                capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream",
+                    max_bytes=self.response_limit) if (supported or buffered_sse) else RejectedResponseCapture(
+                        max_bytes=self.response_limit)
                 while not response.isclosed():
+                    phase = "response_body"
                     remaining = deadline - time.monotonic()
                     require(remaining > 0, "TRANSPORT_DEADLINE")
                     sock.settimeout(remaining)
@@ -259,13 +303,11 @@ class _ResponsesTransport:
                     safe = self._filter(chunk)
                     if safe:
                         capture.feed(safe)
-                        if supported:
-                            on_chunk(safe)
+                phase = "receipt_validation"
                 safe = self._filter(b"", final=True)
                 if safe:
                     capture.feed(safe)
-                    if supported:
-                        on_chunk(safe)
+                phase = "receipt_validation"
                 observed = capture.finish()
                 if buffered_sse:
                     # Only the fixed native adapter opts in. Withhold the entire
@@ -276,8 +318,7 @@ class _ResponsesTransport:
                             "operation_id": reserve.operation_id, "policy": BUFFERED_SSE_POLICY,
                             "raw_sha256": hashlib.sha256(capture.raw).hexdigest(),
                             "simulation": self.gate.simulation})
-                    on_headers(200, "text/event-stream")
-                    on_chunk(bytes(capture.raw))
+                phase = "receipt_recording"
                 event = observed.pop("event")
                 writes = observed.pop("cache_write_tokens", None)
                 # Cached input and reasoning output are subsets, never added twice.
@@ -292,7 +333,7 @@ class _ResponsesTransport:
                              rates["cached_microusd_per_token"] + observed["output_tokens"] *
                              rates["output_microusd_per_token"])
                 count(spend)
-                raw_ref = self._save(capture, reserve.operation_id)
+                raw_ref = self._save(capture, reserve.operation_id, space_token)
                 event_id = "wire-" + hashlib.sha256(reserve.operation_id.encode()).hexdigest()
                 receipt = BudgetLedger.model_validate(reserve.model_dump() | {
                     "posting": "settle", "source_event_id": event_id + ":settle",
@@ -300,6 +341,8 @@ class _ResponsesTransport:
                     "metering": "estimated" if basis else "reported",
                     "raw_usage_ref": raw_ref, "usage": reserve.usage.model_dump() | observed |
                     {"spend_microusd": spend, "wall_ms": int((time.monotonic() - started) * 1000)}})
+                delivery.append((response.status, "text/event-stream" if buffered_sse else media,
+                                 bytes(capture.raw)))
                 if basis:
                     valuation = UsageValuation.model_validate({"schema": "strata/UsageValuation/1",
                         "kind": "api_equivalent_estimate", "basis_digest": basis.fingerprint(),
@@ -307,23 +350,57 @@ class _ResponsesTransport:
                         "token_evidence": "synthetic_fixture" if self.gate.simulation else "provider_reported"})
                     return event, receipt, valuation
                 return event, receipt
+            except Exception as error:
+                with self.gate.db.transaction() as db:
+                    self.gate.db.event(db, "inference.transport_failure", {
+                        "operation_id": reserve.operation_id, "phase": phase,
+                        "reason": transport_failure_code(error, cancelled=self.cancelled.is_set()),
+                        "elapsed_ms": int((time.monotonic() - started) * 1000),
+                        "deadline_ms": int(self.deadline_s * 1000),
+                        "captured_bytes": len(capture.raw) if capture is not None else 0,
+                        "simulation": self.gate.simulation})
+                raise
             finally:
                 connection.close()
                 with self.connection_lock:
                     self.active_socket = None
                 if capture is not None and raw_ref is None:
                     # Retain even malformed/partial usage; no zero-cost settlement.
-                    self._save(capture, reserve.operation_id)
+                    self._save(capture, reserve.operation_id, space_token)
 
-        return self.gate.execute(account, attempt, reserve, forward)
+        try:
+            result = self.gate.execute(account, attempt, reserve, forward)
+        finally:
+            if space_token is not None and not forwarded:
+                release(self.gate.cas, self.gate.namespace, space_token)
+        # Idempotent status reads never redeliver output. A delivery failure does
+        # not erase a known durable cost or replay a settled provider request.
+        if delivery:
+            require(result["state"] == "SETTLED", "RECEIPT_NOT_SETTLED")
+            status, media, wire = delivery[0]
+            try:
+                on_headers(status, media)
+                on_chunk(wire)
+            except Exception as error:
+                with self.gate.db.transaction() as db:
+                    self.gate.db.event(db, "inference.delivery_failure", {
+                        "operation_id": reserve.operation_id, "policy": DELIVERY_POLICY,
+                        "reason": transport_failure_code(error, cancelled=self.cancelled.is_set()),
+                        "receipt_settled": True, "simulation": self.gate.simulation})
+                raise
+        return result
 
-    def _save(self, capture, operation):
+    def _save(self, capture, operation, space_token):
         ref = self.gate.cas.put(Principal(self.gate.namespace, "operator"), self.gate.namespace,
-                                "operator", bytes(capture.raw), media_type=capture.content_type)
+                                "operator", bytes(capture.raw), media_type=capture.content_type, reservation=space_token,
+                                max_object_bytes=self.response_limit)
         with self.gate.db.transaction() as db:
             self.gate.db.event(db, "inference.wire_capture", {"operation_id": operation,
                 "raw_usage_ref": ref,
-                "bytes": len(capture.raw), "simulation": self.gate.simulation})
+                "bytes": len(capture.raw), "simulation": self.gate.simulation,
+                "maximum_bytes": self.response_limit,
+                "wire_policy": NATIVE_WIRE_POLICY if self.response_limit == NATIVE_RESPONSE_BYTES else
+                    "bounded-response-wire/1"})
         return ref
 
 
@@ -338,7 +415,8 @@ class SyntheticResponsesTransport(_ResponsesTransport):
                 url.username is None and url.password is None and not url.query and
                 not url.fragment and url.path in {"/v1/responses", "/v1/responses/compact"},
                 "SYNTHETIC_ENDPOINT_REQUIRED")
-        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
+        require(type(deadline_s) in {int, float} and 0 < deadline_s <= MAX_REQUEST_TIMEOUT_S,
+                "TRANSPORT_DEADLINE")
         self.gate, self.url, self.deadline_s = dispatches, url, deadline_s
         self._init_lifetime()
 

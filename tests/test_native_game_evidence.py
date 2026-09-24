@@ -107,13 +107,16 @@ def test_legacy_deep_files_need_an_unbroken_transitive_hash_chain(tmp_path, tamp
         assert bundle.read(deep) == b"pinned before launch"
 
 
-def worker_fixture(example, *, traced=False):
+def worker_fixture(example, *, traced=False, refused=False):
     """Small independently constructed worker/broker join, not copied run data."""
     scope = {"is_example": False, "campaign_id": "c1", "agent_id": "a1", "epoch": 1}
     cap = {"schema": "strata/Capabilities/1", "backend": "mineflayer",
            "profile": "vanilla-development/1", "keybindings": False}
     if traced:
         cap["primitive_accounting"] = {"policy": "durable-pre-dispatch-charge/1", "emission_confirmation": False}
+    if refused:
+        assert traced
+        cap["action_admission"] = {"policy": "atomic-acceptance-sequence-refusal/1", "recorded_refusals": ["OUT_OF_ORDER"]}
     cap_digest = digest(cap)
     cap.update(digest=cap_digest, epoch=1, lease_id="lease1")
     before = example("Observation") | scope | {"capability_digest": cap_digest}
@@ -141,6 +144,13 @@ def worker_fixture(example, *, traced=False):
             "emission_confirmed": False}))
         events.insert(0, ("primitive_accounting", {"schema": "strata/MineflayerPrimitiveAccounting/1",
             "policy": "durable-pre-dispatch-charge/1", **event_scope, "opening_primitive_events": 0}))
+    if refused:
+        rejected = batch | {"seq": 3, "request_id": "bad-sequence"}
+        events.insert(2, ("action_refusal", {"schema": "strata/ActionSequenceRefusal/1",
+            "policy": "atomic-acceptance-sequence-refusal/1", **event_scope,
+            "request_id": rejected["request_id"], "request_digest": digest(rejected), "action_seq": 3,
+            "expected_action_seq": 1, "ack_counter": 0, "primitive_events": 0, "code": "OUT_OF_ORDER",
+            "recorded_at": "2026-09-18T12:00:01Z", "mono_ms": 10001}))
     for kind, value in events:
         db.execute("INSERT INTO events(kind,body) VALUES(?,?)", (kind, canonical(value)))
     db.executemany("INSERT INTO counters VALUES(?,?)", [("primitive_events", 1),
@@ -160,6 +170,20 @@ def worker_fixture(example, *, traced=False):
             source["game_calls"][-1].update(request_body=request, fingerprint=digest(request))
         source["broker_calls"].append({"state": "RETURNED", "result_digest": digest(response),
                                       "body": canonical({"tool": "game", "thread": "root"})})
+    if refused:
+        for index, (method, code) in enumerate((("act", "OUT_OF_ORDER"), ("action_status", "ACTION_UNKNOWN")), 2):
+            request = RpcRequest.model_validate({"schema": "strata/GameRequest/1", "request_id": f"error-{index}",
+                "campaign_id": "c1", "agent_id": "a1", "epoch": 1, "deadline_at": "2026-09-18T12:00:03Z",
+                "method": method, "action": rejected if method == "act" else None,
+                "target_request_id": "wrong-outer-id" if method == "action_status" else None,
+                "after": None}).model_dump()
+            response = {"schema": "strata/GameResponse/1", "status": "error", "error": {
+                "code": code, "message": code, "retryable": False, "retry_after_ms": None,
+                "request_id": request["request_id"], "expected_epoch": 1, "details_ref": None}}
+            source["game_calls"].insert(index, {"runtime": "job", "thread": "root", "request": request["request_id"],
+                "result": canonical(response), "request_body": request, "fingerprint": digest(request)})
+            source["broker_calls"].append({"state": "RETURNED", "result_digest": digest(response),
+                                          "body": canonical({"tool": "game", "thread": "root"})})
     plan = NativeGameEvidencePlan.model_validate({"schema": "strata/NativeGameEvidencePlan/1",
         "bundle": "unused", "seal_sha256": "a" * 64, "campaign_id": "c1", "agent_id": "a1", "epoch": 1, "job_id": "job"})
     return db, source, plan, {"lease_id": "lease1", "primitive_limit": 10}
@@ -182,6 +206,65 @@ def test_new_worker_trace_joins_exact_broker_requests_and_charges_without_claimi
         result, _, _ = worker_evidence(db, source, plan, config)
         assert result["request_preimages_verified"] == 5 and result["request_preimages_complete"]
         assert result["primitive_trace_verified"] and not result["primitive_charges_confirm_emission"]
+    finally:
+        db.close()
+
+
+def test_refused_attempt_and_unknown_status_read_do_not_hide_one_completed_action(example):
+    db, source, plan, config = worker_fixture(example, traced=True, refused=True)
+    try:
+        report, _, _ = worker_evidence(db, source, plan, config, allow_recorded_refusals=True)
+        assert report["known_attempts_reconciled"] and not report["gameplay_success_qualified"]
+        assert len(report["actions"]) == 1 and report["primitive_events"] == 1 and report["game_calls"] == 7
+        assert len(report["recorded_refusals"]) == len(report["read_errors"]) == 1
+        assert report["recorded_refusals"][0]["accepted"] is False
+        assert report["recorded_refusals"][0]["primitive_events"] == 0
+        with pytest.raises(Fault, match="NATIVE_GAME_REFUSAL_PROFILE"):
+            worker_evidence(db, source, plan, config)
+    finally:
+        db.close()
+
+
+@pytest.mark.parametrize("case", ["missing", "orphan", "digest", "sequence", "ack_count", "primitives",
+                                  "observation_time", "foreign", "unknown_code", "error_identity", "status_target"])
+def test_refusal_join_rejects_missing_proof_and_uncertain_or_inconsistent_outcomes(example, case):
+    db, source, plan, config = worker_fixture(example, traced=True, refused=True)
+    try:
+        if case == "missing":
+            db.execute("UPDATE events SET kind='public_signal' WHERE kind='action_refusal'")
+        elif case == "orphan":
+            source["game_calls"].pop(2)
+        elif case in {"unknown_code", "error_identity"}:
+            call = source["game_calls"][2]
+            response = json.loads(call["result"])
+            if case == "unknown_code":
+                response["error"].update(code="INTERNAL_ERROR", message="INTERNAL_ERROR")
+            else:
+                response["error"]["request_id"] = "foreign-call"
+            old = digest(json.loads(call["result"]))
+            call["result"] = canonical(response)
+            next(c for c in source["broker_calls"] if c["result_digest"] == old)["result_digest"] = digest(response)
+        elif case == "status_target":
+            call = source["game_calls"][3]
+            call["request_body"]["target_request_id"] = "request1"
+            call["fingerprint"] = digest(call["request_body"])
+        else:
+            value = json.loads(db.execute("SELECT body FROM events WHERE kind='action_refusal'").fetchone()[0])
+            value.update({"digest": {"request_digest": "f" * 64}, "sequence": {"expected_action_seq": 3},
+                "ack_count": {"ack_counter": 1}, "primitives": {"primitive_events": 1},
+                "observation_time": {"mono_ms": 0}, "foreign": {"agent_id": "foreign"}}[case])
+            db.execute("UPDATE events SET body=? WHERE kind='action_refusal'", (canonical(value),))
+        with pytest.raises(Fault):
+            worker_evidence(db, source, plan, config, allow_recorded_refusals=True)
+    finally:
+        db.close()
+
+
+def test_missing_admission_policy_is_not_inferred_from_absence_of_refusals(example):
+    db, source, plan, config = worker_fixture(example, traced=True)
+    try:
+        with pytest.raises(Fault, match="NATIVE_GAME_REFUSAL_PROFILE"):
+            worker_evidence(db, source, plan, config, allow_recorded_refusals=True)
     finally:
         db.close()
 

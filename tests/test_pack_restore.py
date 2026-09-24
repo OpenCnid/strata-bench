@@ -27,7 +27,7 @@ sealed_installation = persistence.sealed_installation
 
 
 @pytest.fixture
-def source(candidate, sealed_installation, installed, tmp_path):
+def source(candidate, sealed_installation, installed, tmp_path, request):
     _, profile, _, _, _ = candidate
     base = tmp_path / "restoration-fixture"
     base.mkdir()
@@ -50,6 +50,10 @@ def source(candidate, sealed_installation, installed, tmp_path):
                         "license_ref": "synthetic", "layer": "resolved"} for e in scan_tree(path)]
         roles.append(RoleInventoryInput.model_validate({"role": role, "root": str(path), "files": entries,
             "provenance_evidence": evidence, "exclusions_evidence": evidence}))
+        if getattr(request, "param", False):
+            roles[-1].extra_directories = ["natives/empty"] if role == "client" else ["java/empty", "libraries/empty"]
+            for name in roles[-1].extra_directories:
+                (path / name).mkdir(parents=True)
     inventory = service.verify_inventory("pack1", roles)
     profile.server.executable_path = str(external / "bin/java.exe")
     profile.server.executable.digest = file_hash(external / "bin/java.exe")
@@ -70,6 +74,36 @@ def source(candidate, sealed_installation, installed, tmp_path):
     reference = {"snapshot": str(tmp_path / "snapshot"), "sha256": receipt["manifest_sha256"]}
     yield fresh, reference, service
     db.close()
+
+
+@pytest.mark.parametrize("source", [True], indirect=True)
+def test_directory_bound_template_capture_restore_and_recapture(source, tmp_path):
+    fresh, reference, service = source
+    before = rows(service)
+    target = tmp_path / "restored-dirs"
+    binding = restore_pack_instance(fresh, reference, target)
+    for name in ("client/natives/empty", "server/java/empty", "server/libraries/empty"):
+        assert (target / name).is_dir()
+    resolved = resolve_pack_launch(binding, "server")
+    capture = VanillaPersistence(target / "server", pack=binding, resolved=resolved)
+    try:
+        receipt = capture.capture(tmp_path / "recaptured-dirs", persistence.stopped(), plan_digest="b" * 64)
+        body = verify_snapshot(Path(receipt["path"]), receipt["manifest_sha256"])
+        assert body["installed_inventory"]["schema"] == "strata/InstalledInventory/2"
+        assert {"java/empty", "libraries/empty"} <= set(body["directories"])
+        body["directories"].remove("java/empty")
+        (Path(receipt["path"]) / "manifest.json").write_bytes(canonical(body))
+        with pytest.raises(Fault, match="VANILLA_TEMPLATE_CHANGED"):
+            verify_snapshot(Path(receipt["path"]), digest(body))
+        (target / "server/java/empty").rmdir()
+        with pytest.raises(Fault, match="VANILLA_TEMPLATE_CHANGED"):
+            capture.capture(tmp_path / "missing-dir-capture", persistence.stopped(), plan_digest="c" * 64)
+        assert not (tmp_path / "missing-dir-capture").exists()
+    finally:
+        capture.close()
+    with pytest.raises(Fault, match="VANILLA_TEMPLATE_CHANGED"):
+        resolve_pack_launch(binding, "server")
+    assert rows(service) == before
 
 
 def test_restoration_is_exact_new_instance_and_connects_held_worker_and_recapture(source, tmp_path, monkeypatch):

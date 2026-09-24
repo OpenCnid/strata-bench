@@ -114,6 +114,20 @@ class GameRetention:
                 and helper_limit == self.agent.helper_limit and self.agent.helper_depth == 2,
                 "RETENTION_INPUT_PROFILE")
 
+    def check_worker_binding(self, reference, worker_sha256, *, capability_digest=None):
+        """Bind declared development identity to the worker actually selected."""
+        ref = self.config.backend.capability_manifest
+        body = strict_json(self.body["objects"][ref])
+        require(self.agent.capability_profile == ref and body.get("schema") == "strata/M0WorkerCapabilityReference/1"
+                and body.get("track") == "structured-actions/v1"
+                and body.get("worker_runtime") == reference
+                and body.get("backend_implementation_sha256") == worker_sha256
+                and body.get("actual_game_capabilities_collected_at_launch") is True
+                and body.get("campaign_admission") is False and body.get("full_conformance_qualified") is False,
+                "RETENTION_WORKER_MISMATCH")
+        if capability_digest is not None:
+            require(body.get("import_capability_digest") == capability_digest, "RETENTION_WORKER_MISMATCH")
+
     def register(self, runtime, plan):
         require(runtime.simulation is True and plan.role == "executor" and plan.purpose == "conformance",
                 "RETENTION_INPUT_PROFILE")

@@ -1,5 +1,43 @@
 # Private development scoring
 
+## Connected D14 milestone report
+
+The operator-only command below connects an authenticated, history-bound craft
+reference to the existing private development scorer:
+
+```text
+python -m strata_evaluator.development_milestone --database <private-reference-db>
+  --instance <sealed-instance> --spool <complete-authenticated-spool>
+  --output <new-private-report.json>
+```
+
+Use a reference sealed as `PrivateCraftReferencePlan/3`, including its exact
+native team mapping and history policy. The command recomputes the existing
+import checks before every publication. It accepts neither a caller-provided
+success flag nor a saved inspection as a substitute for the signed source.
+Only accepted resource witnesses become derived `CraftEvent/1` records; the
+signed header, actor, transaction, recipe, consumed ingredients and output are
+preserved. Source digests identify the sealed plan, authority, spool and import.
+They are file/content digests, not fabricated CAS object references.
+
+The scorer uses a distinct `m0dev-` instance namespace. Identical restart or
+report-write retry cannot count the craft twice; source/report conflicts fail
+and retain the prior result. The output is create-exclusive, and paths inside
+the game or authority directory are rejected. No command, report or predicate is
+added to gameplay/helper tools or the gameplay package.
+
+`PrivateDevelopmentMilestone/1` records the development predicate result,
+derived events, rejected witnesses and declared mutation history. In its derived
+event, `valid_setup=true` means the sealed development candidate checks passed.
+It does **not** certify full setup authority. The original import remains
+unchanged and unscorable. The report retains `scoring_eligible=false`,
+`scoring_authority_qualified=false`, `isolation_qualified=false`, no scientific
+claim and no campaign admission. D14 defers full isolation qualification; this
+command cannot promote a development result into an authoritative benchmark
+score or a G1 pass.
+
+## Existing scorer and source registration
+
 The evaluator package and its database stay outside gameplay-agent and helper
 access. `Scorer` accepts registered development event schemas; raw Forge
 callbacks, configuration snapshots and resource witnesses cannot earn credit.
@@ -31,6 +69,17 @@ the database transaction. Historical unbound state fails
 `SCORER_UNBOUND_HISTORY`; preserve the database for a separately qualified
 migration. Do not delete state or start a replacement scientific instance to
 conceal the missing provenance.
+
+Telemetry 0.3.11 / startup12 adds the separately versioned
+`native-e9e-setup-mutation-watch/4` history requirement. Its seventeen routes
+include script-origin FTB field writes and bounded reflection-inspection
+overflow. The pinned Rhino direct-field and reflective-invocation hooks must
+both be present. Any observed field write remains disqualifying after restore;
+missing hooks, schema/module mismatch, rollback or an altered sealed requirement
+reject admission or candidate credit. Policies1–3 keep their original meanings.
+These hooks do not establish coverage for arbitrary native/mod field writes,
+method handles, pre-activation changes or complete custody. See the
+[field-write control](../verification/2026-09-23-script-field-history.md).
 
 Outputs always retain `scoring_authority_qualified=false`. This interface does
 not admit a campaign or supply authenticated ingress, sealed setup/team
@@ -101,12 +150,46 @@ readable without retroactive history credit. Public mutable FTB fields/maps,
 KubeJS globals and other direct writes remain uncovered, so clear observed
 history still earns no score. [Implementation and exact limits](../verification/2026-09-21-setup-history.md).
 
+Telemetry 0.3.9 / startup 10 / NativeSetupHistory/2 adds a separate runtime
+check of the observed KubeJS GLOBAL map and a fourteenth sticky route for writes
+to its three pack-mode keys, including map methods and retained collection
+views. The inherited callback clock contract remains mandatory. Reflection,
+direct FTB state, pre-activation changes, custody and mechanical parity remain
+unqualified. Keep complete-history and scoring flags false. The changed-profile
+headless roundtrip qualifies only its observed route; it does not qualify an
+unchanged pack. [Current source and authentic evidence](../verification/2026-09-23-global-history.md).
+
+Telemetry 0.3.10 / startup 11 / NativeSetupHistory/3 additionally observes the
+FTB rank, player, team and name-cache maps. Require its runtime map-support bit
+and fifteen-route history. Linked maps preserve insertion order; initial lazy
+name-cache population is excluded before the returned map is armed. Direct
+scalar fields and reflection remain uncovered, so this does not enable scoring
+or full continuity. [Source and control evidence](../verification/2026-09-23-team-map-history.md).
+
 Use `PrivateCraftReferencePlan/3` for a history-required protected craft.
 Alongside the version-2 native roster, explicitly register
-`required_history_policy: native-e9e-setup-mutation-watch/1`. Participant
+`required_history_policy: native-e9e-setup-mutation-watch/1`, `/2`, `/3` or `/4`, matching
+the selected module and sealed requirement exactly. Participant
 readiness requires a complete authenticated clear startup/history prefix whose
 native identity matches the owned server. Import requires the complete history;
 an older valid point-only stream fails with `CRAFT_NATIVE_HISTORY_MISSING`.
 Version-3 inspections retain this requirement. Do not upgrade consumed older
 plans or infer complete route coverage from clear counters. [Admission contract
 and integration evidence](../verification/2026-09-21-protected-craft-history.md).
+
+`PrivateReferenceLaunch/7` is the separate headless operator grant/revoke
+diagnostic. Its `setup_control` declares policy `private-operator-roundtrip/1`,
+purpose `negative_control`, the registered `agent_id`, `actor_uuid`, exact
+`player_name` and `operator_level: 4`. The setup seal must include supporting
+roles `operator-roster` and `profile-cache`, pointing respectively to the game
+directory's `ops.json` and `usercache.json`. The roster starts empty, and the
+cache must bind the exact target throughout the bounded reference. Arbitrary
+command text and participant fields are rejected.
+
+The ordinary private `reference_launch` CLI owns startup, one grant/revoke and
+normal stop. It preserves the actual intermediate operator file before any
+revocation, then joins the final empty roster to permanently tainted signed
+history. Uncertain effects or writes consume the reference without replay.
+Do not use the private clone as a clean gameplay baseline or interpret this
+negative control as full setup/scoring qualification. Version-6 world-mode
+behavior remains unchanged. [Control contract and evidence](../verification/2026-09-22-operator-control.md).

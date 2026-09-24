@@ -36,6 +36,27 @@ def wire_tools(role):
     return {"type": "additional_tools", "id": "at_synthetic", "role": "developer", "tools": namespaces}
 
 
+def test_v2_helper_catalog_is_explicitly_pinned_and_v1_stays_strict(admitted):
+    _, gate, _, original, _, _, _ = admitted
+    plan = original.model_copy(update={"purpose": "development_piloting", "helper_limit": 1, "model": "gpt-6-luna"})
+    body = {"input": [wire_tools("executor")]}
+    projection = request_projection(body, "helper", helper_collaboration=True)
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SHAPE"):
+        request_projection(body, "helper")
+    reviewed = {"executor": projection, "helper": projection}
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SHAPE"):
+        pin_tool_projection(gate.cas, plan, reviewed)
+    plan.tool_projection_ref = pin_tool_projection(gate.cas, plan, reviewed, helper_collaboration=True)
+    assert require_tool_projection(gate.cas, plan, body, "helper") == digest(projection)
+    changed = copy.deepcopy(body)
+    changed["input"][0]["tools"][1]["tools"][0]["description"] += " altered"
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_MISMATCH"):
+        require_tool_projection(gate.cas, plan, changed, "helper")
+    for updates in ({"helper_limit": 2}, {"helper_limit": 0}, {"purpose": "campaign"}, {"model": "gpt-5.6-luna"}):
+        with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+            read_tool_projection(gate.cas, plan.model_copy(update=updates))
+
+
 @pytest.fixture
 def pinned(admitted):
     admission, gate, _, plan, request, prepare, put = admitted

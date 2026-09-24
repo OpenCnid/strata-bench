@@ -10,25 +10,70 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
-## Resuming this checkpoint
+## Resuming the September 24 checkpoint
 
-The active implementation objective is **M0 and all six G0 items only**. Preserve the complete M1–M7 roadmap, but do not advance unrelated later work. Read [current status](docs/STATUS.md), [the handoff](docs/STATUS_AND_HANDOFF.md), the ledger's current position and applicable SPEC contracts before selecting work. The [September 22 checkpoint report](docs/verification/2026-09-22-session-handoff.md) records the implementation merge, actual checks and retained failures. Fetch origin, verify the actual PR/main and private accounting/process state, preserve existing changes, and start a fresh branch from updated main. A merged checkpoint does not close M0 or G0.
+The implementation objective is **M0 and all six G0 outcomes only**, with D14
+deferring full isolation qualification to M1/G1. **M0 is in_progress, G0 fail.**
+The user requested a documentation/source PR, merge to main and fresh session;
+that checkpoint does not close the milestone. Preserve the complete M1–M7
+roadmap and do not advance unrelated later work.
 
-**Immediate deliverable: M0.1d.8c's connected normal completion.** The reusable native/game verifier and bounded sealed execution/recovery already work in their documented scripted-provider scopes. Do not restart M0.1d.1 or its accounting matrix. The controlled worker runtime and successor vanilla PackLock are already prepared and sealed. The first new-baseline attempt failed before Java/native startup because capture rejected its scope; the source fix and capture regression are committed. Revalidate the existing prepared profile/instance, then run one changed native/vanilla completion-to-stop case with fresh output/scope. Retain the failed attempt. The instance was verified unchanged and unused by any game process; do not rebuild the installation or regenerate the unchanged worker bundle just to resume.
+Read [current status](docs/STATUS.md), [the current handoff](docs/STATUS_AND_HANDOFF.md),
+the ledger's current position and applicable SPEC contracts before selecting work.
+The [September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md)
+records current source, actual evidence, private pins and merge checks. Fetch
+origin, verify the actual PR/main and private accounting/process state, preserve
+existing changes, and start a fresh branch from updated main. Older dated reports
+and archived handoff text preserve history; their next actions are superseded.
 
-After that bounded result, prioritize the connected private scorer/setup controls, enforceable gameplay/helper isolation, authoritative clocks/save custody and remaining applicable recovery/E9E profile requirements. Assess progress against all six [G0 outcomes](SPEC.md#161-first-runnable-vertical-slice-g0), not the number of child items, schemas or passing local tests. Implement producers and consumers together when an evidence gap requires a change. New generic scaffolding or another verification layer needs a concrete dependency on a still-missing G0 outcome. Do not expand normal-stop work once its required bounded result is established; continue the remaining acceptance work.
+**Immediate deliverable:** the final exact-profile six-outcome G0 assembly and
+explicit disposition of remaining children, beginning with minor 12 worker
+cancellation/reconnect lineage. M0.2c.1d.2's actual accepted/refused-action join
+passes19/19: live18 proves a zero-input refusal then the model's corrected turn,
+complete source/worker/pack/saved-player/cost/clock joins and normal stop. Its
+original two-action goal fails because there was no walk. Live15 already passed
+actual turn/walk/helper play. Neither result substitutes for the other's scope.
 
-Run focused verification for changes and required merge checks. Repeat a live trial only after a relevant implementation/profile change or to resolve a named evidence gap, retaining prior results. Do not launch Minecraft merely to inspect a checkpoint, rerun an unchanged successful recovery pair, or repeat unchanged broad/paid test matrices. Dated reports and the append-only ledger preserve superseded next actions; this handoff selects current work.
+Do not restart M0.1d.1, normal-stop case 04, installer selection, the successful
+helper trial, or unchanged recovery/accounting matrices. Run focused verification
+for changes and required merge checks. Select a live trial only after a relevant
+implementation/profile change or to resolve a named missing G0 outcome, retaining
+prior results. Do not seek a lucky paid rerun. New scaffolding needs a concrete
+missing G0 dependency. Full T05/isolation belongs to G1; complete canonical
+recovery/fault/soaks to G2. Preserve all IDs and wider contract gaps without
+silently promoting them or expanding this M0 task.
 
-D01–D13 carry forward. D11 clarifies the original **$10 total API-equivalent estimated experimental allowance**, including helpers/retries; it is not a new allowance, OAuth invoice or exact subscription conversion. Recheck durable authority in `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite` before spending. The user confirms no outside Strata experiments. Unknown requests retain reservations and are never blindly replayed.
+Strata is an LLM gameplay harness: the model chooses actions from filtered
+observations, Mineflayer executes bounded motors, and the harness records results.
+Fixture scripts and scripted-provider tests are separately labeled. Exact E9E's
+Mineflayer incompatibility remains; its Forge fallback is a separate identity.
 
-**D12 is consumed.** Its sole distinct request settled offline at $0.001458; the older $0.7554 unresolved hold remains ($0.756858 combined). Original native reply delivery failed; changed transport /2 has source/local-HTTP evidence only. General model admission remains blocked by the old hold. No replay, rearming, refund or fresh allowance. Continue independent M0 source and authorized scripted-provider integration while this admission is blocked. See [validation admission](docs/operations/validation-admission.md).
+**Continuing authority:** D01–D19 persist. D17 selects `gpt-6-luna`. D18 authorizes
+necessary bounded M0 runs within the original **$10 total API-equivalent allowance**
+(including helpers/retries), and D19 permits fresh sequential jobs with **all
+unresolved amounts reserved**. At the checkpoint exposure is $4.887796: preserve
+the old $0.7554 hold and four full $1 failed-job envelopes without double charging
+settled children. Recheck `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite`
+using WAL-aware read-only access before spending. Prior jobs must be terminal/fenced
+and the complete new reservation must fit. New uncertainty stops its own job;
+never replay, refund, rearm a consumed decision or create a new allowance. No
+per-run reapproval is pending. D12 and all used pilots, including D19.11, remain
+consumed; offline settlement is distinct from old failed native reply delivery.
+The user confirms no outside Strata experiments. This is not an exact OAuth bill.
 
-**D13 explicitly authorizes the new 1,000-ms Java tree policy.** Its authentic 568.994-ms normal-stop sample passes that policy. Preserve all old 500-ms failures and other required fault cases; do not resume 500-ms optimization or ask for that same authorization again. Normal worker/server drain intervals and authoritative save/clock qualification remain distinct requirements.
+**D14 remains explicit:** full sandbox/gameplay/helper isolation qualification is
+deferred to M1/G1. Do not expand isolation-first work as an M0 prerequisite or
+ask for the same decision again. Keep filtered affordances, scoped tool identity,
+credential handling and no-replay controls; label development evidence
+isolation-unqualified with no protected-scoring/scientific/G1 claim. Separate
+folders, conversations or desktops are not proof of isolation. Shared-desktop
+input stays paused. D05 sign-in, Java entitlement and EULA approval already exist.
 
-Isolation protects benchmark validity. Gameplay/tools/helpers must not reach hidden criteria, raw server/world state, admin interfaces, credentials or sibling/probe artifacts. Qualify the smallest enforceable boundary on available hardware; a user-supplied VM or exact OAuth-dollar billing proof is not a prerequisite by itself. Tool restrictions require explicit capability identity/conformance; separate folders, conversations and desktops alone do not establish the boundary. Failed isolation blocks affected model runs and release claims, not independent source development. Keep shared-desktop input paused. D05 sign-in, Java entitlement and EULA authorization already exist; do not ask again.
-
-The user requested the September 22 stopping checkpoint and a fresh session. Both requested merges prepare that transition; they do not declare M0/G0 complete. On the fresh implementation task, use the [current handoff](docs/STATUS_AND_HANDOFF.md) and existing private pins, not historical one-use scripts or a new design/SPEC-writing exercise. Ask only for genuinely missing inputs after checking durable state and existing authorization.
+**D13 remains explicit:** the new Java tree policy is 1,000ms with an authentic
+568.994ms passing normal-stop sample. Preserve every historical 500ms failure and
+other fault requirement; do not restart 500ms optimization or ask again. Normal
+process drain, authoritative campaign clocks and full save custody are separate
+claims. Ask only for genuinely missing inputs after checking durable state.
 
 ## Start each task with coverage
 

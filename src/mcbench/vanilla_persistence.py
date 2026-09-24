@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .launch_integrity import FileLease, safe, snapshot
 from .inference_transport import strict_json
+from .inventory import inventory_directories
 from .records import FileEntry
 from .storage import canonical, digest, reject_links, require, safe_relative
 
@@ -32,7 +33,7 @@ SECRET_NAMES = {".git", ".codex", ".ssh", ".aws", "auth.json", "credentials.json
 def template_files(inventory, pack):
     require(isinstance(pack, dict) and set(pack) == {"lock", "inventory_digest", "request_id"}
             and isinstance(pack["lock"], str) and re.fullmatch(r"cas:sha256:[0-9a-f]{64}", pack["lock"])
-            and inventory.get("schema") == "strata/InstalledInventory/1"
+            and inventory.get("schema") in {"strata/InstalledInventory/1", "strata/InstalledInventory/2"}
             and inventory.get("is_example") is False and digest(inventory) == pack["inventory_digest"],
             "VANILLA_TEMPLATE_CHANGED")
     entries = [FileEntry.model_validate(entry) for entry in inventory["files"]]
@@ -46,6 +47,15 @@ def template_files(inventory, pack):
         # java directory or arbitrary new executable/state root.
         require(disposition(path, result) in {"state", "immutable"}, "VANILLA_TEMPLATE_CHANGED")
     return result
+
+
+def template_directory_layout(inventory):
+    directories = inventory_directories(inventory)["server"]
+    # Empty paths extend the pinned software layout, never the allowed runtime
+    # state roots or the vanilla persistence profile.
+    require(all(safe_relative(p).parts[0] in {"java", "libraries", "versions"} for p in directories),
+            "VANILLA_PERSISTENCE_LAYOUT_UNSUPPORTED")
+    return directories
 
 
 def disposition(path, template=None):
@@ -67,7 +77,7 @@ def disposition(path, template=None):
     require(False, "VANILLA_PERSISTENCE_LAYOUT_UNSUPPORTED")
 
 
-def layout(root, *, template=None, initial=False):
+def layout(root, *, template=None, template_directories=(), initial=False):
     root = safe(root)
     inventory = snapshot([], [root])
     entries = {}
@@ -94,16 +104,18 @@ def layout(root, *, template=None, initial=False):
         if path.is_dir():
             relative = path.relative_to(root).as_posix()
             parts = safe_relative(relative).parts
-            java_directory = template is not None and parts[0] == "java" and any(
-                p.startswith(relative + "/") for p in template)
+            java_directory = template is not None and parts[0] == "java" and (
+                relative in template_directories or any(p.startswith(relative + "/") for p in template))
             require((parts[0] in {"libraries", "versions", "logs", "world"} or java_directory)
                     and (parts[0] != "world" or len(parts) == 1 or parts[1] in WORLD_ROOTS),
                     "VANILLA_PERSISTENCE_LAYOUT_UNSUPPORTED")
             require(not {p.casefold() for p in parts} & SECRET_NAMES, "SECRET_IN_SNAPSHOT")
             directories.append(relative)
             require(len(directories) <= 12000, "VANILLA_PERSISTENCE_QUOTA")
+    require(set(template_directories) <= set(directories), "VANILLA_TEMPLATE_CHANGED")
     if initial:
         expected_dirs = {p.as_posix() for name in template for p in Path(name).parents if str(p) != "."}
+        expected_dirs.update(template_directories)
         require(set(directories) == expected_dirs, "VANILLA_TEMPLATE_CHANGED")
     return inventory, entries, sorted(directories)
 
@@ -137,6 +149,7 @@ def verify_snapshot(destination, expected_manifest_sha256):
             and all(body[k] is False for k in ("clean_save_proven", "complete_checkpoint", "dispatch_authorized",
                                              "writer_custody_qualified")), "VANILLA_CAPTURE_MANIFEST")
     template = template_files(body["installed_inventory"], body["pack"]) if sealed else None
+    template_directories = template_directory_layout(body["installed_inventory"]) if sealed else []
     require(isinstance(body["files"], dict) and 0 < len(body["files"]) <= 12000, "VANILLA_CAPTURE_MANIFEST")
     require(MUTABLE | {"world/level.dat", "world/session.lock", *PINNED_JARS} <= body["files"].keys()
             and isinstance(body["server_plan_digest"], str)
@@ -168,10 +181,11 @@ def verify_snapshot(destination, expected_manifest_sha256):
             and owned["job"]["active_processes"] == owned["job"]["terminated_processes"] == 0
             and 0 < owned["job"]["total_processes"] == owned["held"]["held_processes"]
             == owned["held"]["signaled_processes"] <= 256, "VANILLA_STOP_UNPROVEN")
+    require(set(template_directories) <= set(body["directories"]), "VANILLA_TEMPLATE_CHANGED")
     for relative in body["directories"]:
         parts = safe_relative(relative).parts
-        java_directory = template is not None and parts[0] == "java" and any(
-            p.startswith(relative + "/") for p in template)
+        java_directory = template is not None and parts[0] == "java" and (
+            relative in template_directories or any(p.startswith(relative + "/") for p in template))
         require((parts[0] in {"libraries", "versions", "logs", "world"} or java_directory)
                 and (parts[0] != "world" or len(parts) == 1 or parts[1] in WORLD_ROOTS),
                 "VANILLA_PERSISTENCE_LAYOUT_UNSUPPORTED")
@@ -201,6 +215,7 @@ class VanillaPersistence:
     def __init__(self, root, *, pack=None, resolved=None):
         self.root, self.lease = safe(root), None
         self.pack = self.installed_inventory = self.template = None
+        self.template_directories = []
         if pack is not None:
             require(resolved is not None and resolved["lock"] == pack.lock and resolved["target"] == "vanilla"
                     and resolved["request_id"] == pack.request_id and resolved["role"] == "server"
@@ -212,6 +227,7 @@ class VanillaPersistence:
             self.pack = {k: resolved[k] for k in ("lock", "inventory_digest", "request_id")}
             self.installed_inventory = strict_json(raw)
             self.template = template_files(self.installed_inventory, self.pack)
+            self.template_directories = template_directory_layout(self.installed_inventory)
         else:
             require(resolved is None, "VANILLA_TEMPLATE_CHANGED")
         from .pack_launch import RestoredPackLaunchBinding, restoration_scope
@@ -222,7 +238,8 @@ class VanillaPersistence:
                     and resolved.get("restoration") == pack.restoration.model_dump(), "VANILLA_TEMPLATE_CHANGED")
             inventory, entries, _ = restored_layout(self.root, world)
         else:
-            inventory, entries, _ = layout(self.root, template=self.template, initial=self.pack is not None)
+            inventory, entries, _ = layout(self.root, template=self.template,
+                template_directories=self.template_directories, initial=self.pack is not None)
         self.immutable = {p: e for p, e in entries.items() if e["disposition"] == "immutable"}
         selected = [e for e in inventory["files"] if Path(e["path"]).relative_to(self.root).as_posix() in self.immutable]
         roots = [self.root / "libraries", self.root / "versions"]
@@ -258,7 +275,8 @@ class VanillaPersistence:
         require(isinstance(plan_digest, str) and re.fullmatch("[0-9a-f]{64}", plan_digest), "VANILLA_CAPTURE_SCOPE")
         stopped = self.terminal_processes(process)
         self.lease.recheck()
-        inventory, entries, directories = layout(self.root, template=self.template)
+        inventory, entries, directories = layout(self.root, template=self.template,
+                                                 template_directories=self.template_directories)
         require({p: e for p, e in entries.items() if e["disposition"] == "immutable"} == self.immutable,
                 "VANILLA_PIN_MISMATCH")
         states = {p: e for p, e in entries.items() if e["disposition"] == "state"}
@@ -285,7 +303,8 @@ class VanillaPersistence:
                     os.fsync(output.fileno())
                 require(size == entry["bytes"] and sha.hexdigest() == entry["sha256"], "VANILLA_CAPTURE_CHANGED")
             lease.recheck()
-            require(layout(self.root, template=self.template)[1:] == (entries, directories), "VANILLA_CAPTURE_CHANGED")
+            require(layout(self.root, template=self.template, template_directories=self.template_directories)[1:]
+                    == (entries, directories), "VANILLA_CAPTURE_CHANGED")
             require(self.terminal_processes(process) == stopped, "VANILLA_STOP_UNPROVEN")
             manifest = {"schema": "strata/StoppedVanillaSnapshot/1", "policy": POLICY,
                 "minecraft": "1.19.2", "server_plan_digest": plan_digest,

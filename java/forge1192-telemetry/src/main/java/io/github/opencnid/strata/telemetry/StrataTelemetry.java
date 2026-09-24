@@ -35,6 +35,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 public final class StrataTelemetry {
     private EventSpool spool;
     private TelemetryConfig config;
+    private ServerClock clock;
     private long ticks, lastSample, lastSampleTick, tickStart, workNanos;
     private final Map<UUID, Long> avatarTicks = new HashMap<>();
 
@@ -42,6 +43,7 @@ public final class StrataTelemetry {
         DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientConfigExport::install);
         MinecraftForge.EVENT_BUS.addListener(this::started);
         MinecraftForge.EVENT_BUS.addListener(this::tick);
+        MinecraftForge.EVENT_BUS.addListener(this::playerTick);
         MinecraftForge.EVENT_BUS.addListener(this::crafted);
         MinecraftForge.EVENT_BUS.addListener(this::stopped);
         MinecraftForge.EVENT_BUS.addListener(this::command);
@@ -62,12 +64,14 @@ public final class StrataTelemetry {
         if (!event.getServer().isDedicatedServer()) return;
         String path = System.getenv("STRATA_TELEMETRY_CONFIG");
         if (path == null) return;
+        clock = new ServerClock();
         try {
             config = TelemetryConfig.read(Path.of(path), FMLPaths.GAMEDIR.get());
             spool = new EventSpool(config);
             SetupHistory.activate();
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.7");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.13");
+            boot.addProperty("clock_policy", ServerClock.POLICY);
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
@@ -84,7 +88,7 @@ public final class StrataTelemetry {
             boot.add("setup_capture_support",SetupCapture.support());
             boot.add("setup_history_support",SetupHistory.support());
             boot.addProperty("telemetry_transport", config.broker() == null ? "private-file/1" : "windows-owned-pipe/1");
-            emit("server_started", "strata/ServerStarted/8", boot, new JsonArray());
+            emit("server_started", "strata/ServerStarted/14", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             lastSample = System.nanoTime();
@@ -120,6 +124,7 @@ public final class StrataTelemetry {
         if (spool == null) return;
         try { spool.healthy(); } catch (IOException error) { throw failed(error); }
         if (event.phase == TickEvent.Phase.START) {
+            clock.startTick();
             tickStart = System.nanoTime();
             return;
         }
@@ -135,6 +140,7 @@ public final class StrataTelemetry {
         }
         long now = System.nanoTime();
         if (tickStart != 0) workNanos += now - tickStart;
+        clock.endTick();
         MinecraftServer server = event.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             avatarTicks.merge(player.getUUID(), 1L, Long::sum);
@@ -156,6 +162,12 @@ public final class StrataTelemetry {
         lastSample = now;
         lastSampleTick = ticks;
         workNanos = 0;
+    }
+
+    private void playerTick(TickEvent.PlayerTickEvent event) {
+        if (spool != null && event.phase == TickEvent.Phase.END && event.player instanceof ServerPlayer player) {
+            clock.avatarTick(player.getUUID());
+        }
     }
 
     private void crafted(PlayerEvent.ItemCraftedEvent event) {
@@ -188,7 +200,7 @@ public final class StrataTelemetry {
         try {
             if (kind.equals("setup_snapshot")) {
                 var transaction = payload.get("transaction_id");
-                spool.publish(ticks, "setup_history", "strata/NativeSetupHistory/1",
+                spool.publish(ticks, "setup_history", "strata/NativeSetupHistory/6",
                     SetupHistory.capture(payload.get("phase").getAsString(),
                         transaction.isJsonNull() ? null : transaction.getAsString()), actors);
             }
@@ -201,7 +213,8 @@ public final class StrataTelemetry {
         if (spool == null) return;
         try {
             CraftCapture.close();
-            emit("setup_history", "strata/NativeSetupHistory/1", SetupHistory.close(), new JsonArray());
+            emit("server_clock", "strata/ServerClock/1", clock.stop(), new JsonArray());
+            emit("setup_history", "strata/NativeSetupHistory/6", SetupHistory.close(), new JsonArray());
             emit("server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());
         } finally {
             try { spool.close(); }

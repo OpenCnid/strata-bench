@@ -8,6 +8,29 @@ from pathlib import Path
 
 CODEX_VERSION = "codex-cli 0.154.0-alpha.6.2"
 DOVETAIL_COMMIT = "15c306ccfef28eb5f616fadcd5fd8eac0663e361"
+# Official rust-v0.154.0-alpha.6.2 Windows x64 release artifacts. The CLI
+# executable alone does not contain its code-mode execution host.
+CODEX_COMPANION_PINS = {
+    "codex-code-mode-host.exe": "0dd178def204eca52efc690c86bbc2f66cce492b502587b89b12f2fe3bb4bc81",
+    "codex-command-runner.exe": "7766665be04450649622771101425f4635b3f9adc37b669242ca4b9fbec78df1",
+    "codex-windows-sandbox-setup.exe": "ffacc2a0010f6df93965758526bc2b9f4d92734853a3925964e18a1ab1bc6d35",
+}
+
+
+def native_companion_paths(executable):
+    """Fail before game/native dispatch; never discover or substitute newer bytes."""
+    from .inventory import file_hash
+    from .storage import reject_links, require
+    binary = Path(executable)
+    require(binary.is_absolute(), "RUNTIME_PIN_MISMATCH")
+    paths = []
+    for name, expected in CODEX_COMPANION_PINS.items():
+        path = binary.parent / name
+        reject_links(path)
+        require(path.is_file(), "NATIVE_COMPANION_MISSING")
+        require(file_hash(path) == expected, "NATIVE_COMPANION_CHANGED")
+        paths.append(path)
+    return paths
 
 
 def inspect_codex(executable: str | None = None) -> dict:

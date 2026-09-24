@@ -19,6 +19,7 @@ from mcbench.storage import canonical, require, safe_relative
 from .craft_reference import private_path, write_new
 from .private_pipe import PrivatePipe
 from .telemetry import KINDS, PAYLOADS, LAUNCH_STARTUP_MODELS
+from .setup_history import HISTORY_MODELS, HISTORY_SCHEMAS
 from .telemetry_auth import MAX_RECORD, MAX_WIRE_RECORD, POLICY, private_read
 from .windows_writer import WindowsSecurity
 
@@ -62,6 +63,7 @@ class TelemetryPipeBroker:
         self.closing = threading.Event()
         self.count, self.bytes, self.previous = 0, 0, "0" * 64
         self.boot, self.last_tick, self.stopped = None, -1, False
+        self.history_policy = None
         self.output = None
         self.body = {"schema": "strata/PrivateTelemetryPipeResult/1", "status": "intent",
                      "authority_digest": authority.fingerprint(), "scoring_eligible": False,
@@ -140,19 +142,27 @@ class TelemetryPipeBroker:
                 and event.server_tick >= self.last_tick and not event.evidence_refs,
                 "TELEMETRY_PIPE_EVENT_SCOPE")
         if self.count:
-            require(event.kind != "server_started" and KINDS.get(event.kind) == event.payload_schema,
-                    "TELEMETRY_PIPE_EVENT_SCOPE")
-            PAYLOADS[event.kind].model_validate(event.payload)
+            require(event.kind != "server_started", "TELEMETRY_PIPE_EVENT_SCOPE")
+            if event.kind == "setup_history":
+                require(self.history_policy is not None
+                        and event.payload_schema == HISTORY_SCHEMAS[self.history_policy],
+                        "TELEMETRY_PIPE_HISTORY_SCOPE")
+                HISTORY_MODELS[self.history_policy].model_validate(event.payload)
+            else:
+                require(KINDS.get(event.kind) == event.payload_schema, "TELEMETRY_PIPE_EVENT_SCOPE")
+                PAYLOADS[event.kind].model_validate(event.payload)
         if self.count == 0:
             require(event.kind == "server_started" and event.server_tick == 0
                     and event.payload_schema in LAUNCH_STARTUP_MODELS,
                     "TELEMETRY_PIPE_FIRST_EVENT")
             model = LAUNCH_STARTUP_MODELS[event.payload_schema]
             payload = model.model_validate(event.payload)
-            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8"}
+            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14"}
                     or payload.telemetry_transport == "windows-owned-pipe/1", "TELEMETRY_PIPE_TRANSPORT")
             from .reference_launch import bind_identity
             binding = bind_identity(self.plan, self.setup, payload.launch_identity, identity)
+            support = getattr(payload, "setup_history_support", None)
+            self.history_policy = support.policy if support is not None else None
             self.boot = event.server_boot_id
             safe_relative(self.boot)
             claim = f"{POLICY}\nclaim\n{self.authority.fingerprint()}\n{self.authority.challenge}\n{self.boot}\n"

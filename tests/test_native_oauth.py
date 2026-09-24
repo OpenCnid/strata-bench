@@ -46,6 +46,21 @@ def wire(**updates):
     return test_inference_transport.stream(test_inference_transport.response(model="gpt-5.6-luna", **updates))
 
 
+def test_extended_deadline_accepts_slow_local_response_without_replay(oauth, provider):
+    gate, (attempt, reserve, raw, _), c, _, _ = oauth
+    endpoint, requests = provider(wire(), delay=31, media="application/octet-stream")
+    delivered = []
+    for invalid in (0, 61, True, float("inf")):
+        with pytest.raises(Fault, match="TRANSPORT_DEADLINE"):
+            SyntheticOAuthTransport(gate, c, endpoint, deadline_s=invalid)
+    adapter = SyntheticOAuthTransport(gate, c, endpoint, deadline_s=60)
+    start = time.monotonic()
+    assert adapter.execute("a1", attempt, reserve, raw, on_headers=lambda *args: None,
+                           on_chunk=delivered.append)["state"] == "SETTLED"
+    assert time.monotonic() - start >= 30
+    assert delivered == [wire()] and len(requests) == 1 and c._closed
+
+
 @pytest.mark.parametrize("case", ["valid", "truncated", "missing", "wrong_model", "html", "error_status"])
 def test_native_unknown_media_is_withheld_until_complete_receipt(oauth, provider, case):
     gate, (attempt, reserve, raw, _), c, _, _ = oauth

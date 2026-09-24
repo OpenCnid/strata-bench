@@ -19,18 +19,20 @@ from mcbench.accounting import EstimateBasis, UsageValuation
 from mcbench.budgets import Budgets
 from mcbench.contracts import ActionAck, ActionBatch, Digest, Id, Observation, Positive, RpcRequest, Strict, UInt, Utc
 from mcbench.inference_dispatch import DispatchBound, EstimateDispatchBound, InferenceAttempt
-from mcbench.inference_transport import ResponsesUsage, strict_json
+from mcbench.inference_transport import MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES, NATIVE_WIRE_POLICY, ResponsesUsage, strict_json
 from mcbench.native_export import OPERATOR, inspect_native_source
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import canonical, digest, reject_links, require, safe_relative
+from mcbench.worker_health import health_required, inspect_worker_health
 
 from .evidence_bundle import EvidenceBundle, EvidenceCAS
 from .saved_blocks import NbtReader, field, unpack_chunk
 
-POLICY = "sealed-native-vanilla-evidence-join/1"
+POLICY = "sealed-native-vanilla-evidence-join/2"
 SCOPE = ("campaign_id", "agent_id", "epoch")
 TERMINAL = {"completed", "emitted", "failed", "cancelled", "rejected", "unknown"}
 PRIMITIVE_POLICY = "durable-pre-dispatch-charge/1"
+ADMISSION_POLICY = "atomic-acceptance-sequence-refusal/1"
 
 
 class PrimitiveAccounting(Strict):
@@ -57,6 +59,23 @@ class PrimitiveCharge(Strict):
     recorded_at: Utc
     mono_ms: UInt
     emission_confirmed: Literal[False]
+
+
+class ActionSequenceRefusal(Strict):
+    schema_: Literal["strata/ActionSequenceRefusal/1"] = Field(alias="schema")
+    policy: Literal["atomic-acceptance-sequence-refusal/1"]
+    campaign_id: Id
+    agent_id: Id
+    epoch: Positive
+    request_id: Id
+    request_digest: Digest
+    action_seq: Positive
+    expected_action_seq: Positive
+    ack_counter: UInt
+    primitive_events: UInt
+    code: Literal["OUT_OF_ORDER"]
+    recorded_at: Utc
+    mono_ms: UInt
 
 
 class NativeGameEvidencePlan(Strict):
@@ -88,7 +107,7 @@ def bootstrap_inventory(bundle):
     original = windows(bundle.json("run/intent.json")["plan"]["output"])
     require(original.is_absolute(), "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     bootstrap = bundle.json("run/native/broker-runtime.manifest.json")
-    require(bootstrap.get("schema") == "strata/NativeBootstrap/1"
+    require(bootstrap.get("schema") in {"strata/NativeBootstrap/1", "strata/NativeBootstrap/2"}
             and bootstrap["inventory"].get("schema") == "strata/LaunchFileInventory/1",
             "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     entries = bootstrap["inventory"]["files"]
@@ -118,9 +137,11 @@ def one_event(db, kind, key, value):
     return rows[0]
 
 
-def model_usage(db, cas, native, source):
+def model_usage(db, cas, native, source, *, simulation=True):
     """Reparse wire receipts and reconcile each distinct request exactly once."""
-    require(native.provider == "strata_local_fixture", "NATIVE_GAME_PROFILE_UNSUPPORTED")
+    require(type(simulation) is bool and (native.provider == "strata_local_fixture" if simulation else
+        native.provider == "openai" and native.auth_mode == "chatgpt_oauth"
+        and native.purpose == "development_piloting"), "NATIVE_GAME_PROFILE_UNSUPPORTED")
     receipts = {r["record"]["operation_id"]: r["record"] for r in source["ledger"]
                 if r["record"]["posting"] == "settle"}
     totals = Counter()
@@ -137,10 +158,14 @@ def model_usage(db, cas, native, source):
         for key in ("campaign_id", "agent_id", "epoch", "operation_id", "parent_operation_id",
                     "campaign_account", "kind", "pricing_ref", "model_identity"):
             require(receipt[key] == reserve[key], "NATIVE_GAME_RECEIPT_SCOPE")
-        raw = cas.read(OPERATOR, "operator", receipt["raw_usage_ref"], max_bytes=256 * 1024)
+        _, capture = one_event(db, "inference.wire_capture", "operation_id", admission["operation"])
+        response_bound = capture.get("maximum_bytes", MAX_RESPONSE_BYTES)
+        require(type(response_bound) is int and response_bound in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES},
+                "NATIVE_GAME_CAPTURE_MISMATCH")
+        raw = cas.read(OPERATOR, "operator", receipt["raw_usage_ref"], max_bytes=response_bound)
         media = db.execute("SELECT media_type FROM objects WHERE namespace='operator' AND ref=?",
                            (receipt["raw_usage_ref"],)).fetchone()[0]
-        parser = ResponsesUsage(native.model, media)
+        parser = ResponsesUsage(native.model, media, max_bytes=response_bound)
         parser.feed(raw)
         measured = parser.finish()
         require(measured["event"] not in provider_events, "NATIVE_GAME_RECEIPT_DUPLICATE")
@@ -150,7 +175,7 @@ def model_usage(db, cas, native, source):
         bound_body = strict_json(cas.read(OPERATOR, "operator", request.bound_ref, max_bytes=65536))
         bound_type = EstimateDispatchBound if bound_body.get("schema") == "strata/InferenceDispatchBound/2" else DispatchBound
         bound = bound_type.model_validate(bound_body)
-        require(bound.is_example is True and bound.runtime_job_id == native.job_id
+        require(bound.is_example is simulation and bound.runtime_job_id == native.job_id
                 and bound.profile_digest == native.profile_digest()
                 and bound.request_digest == request.request_digest
                 and bound.reservation_digest == digest(reserve)
@@ -164,7 +189,8 @@ def model_usage(db, cas, native, source):
         if isinstance(bound, EstimateDispatchBound):
             basis = EstimateBasis.model_validate(price)
             value = UsageValuation.model_validate(valuation)
-            require(value.kind == "api_equivalent_estimate" and value.token_evidence == "synthetic_fixture"
+            require(value.kind == "api_equivalent_estimate"
+                    and value.token_evidence == ("synthetic_fixture" if simulation else "provider_reported")
                     and value.basis_digest == basis.fingerprint()
                     and value.raw_usage_ref == receipt["raw_usage_ref"]
                     and value.usage.model == native.model
@@ -174,10 +200,10 @@ def model_usage(db, cas, native, source):
                     and value.amount_microusd == basis.estimate(value.usage)
                     and receipt["metering"] == "estimated", "NATIVE_GAME_VALUATION_MISMATCH")
             amount = value.amount_microusd
-            unit = "api_equivalent_estimate_of_synthetic_tokens"
+            unit = "api_equivalent_estimate_of_synthetic_tokens" if simulation else "api_equivalent_estimate"
             fingerprint["valuation"] = value.model_dump()
         else:
-            require(valuation is None and receipt["metering"] == "reported"
+            require(simulation and valuation is None and receipt["metering"] == "reported"
                     and price.get("schema") == "strata/SyntheticTokenPricing/1"
                     and price.get("is_example") is True, "NATIVE_GAME_PRICING")
             keys = ("input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")
@@ -191,9 +217,12 @@ def model_usage(db, cas, native, source):
                 and digest(fingerprint) == attempt["receipt_digest"]
                 and digest({"provider": request.provider, "event": measured["event"]}) == attempt["provider_event"],
                 "NATIVE_GAME_RECEIPT_MISMATCH")
-        _, capture = one_event(db, "inference.wire_capture", "operation_id", admission["operation"])
-        require(capture == {"operation_id": admission["operation"], "raw_usage_ref": receipt["raw_usage_ref"],
-                            "bytes": len(raw), "simulation": True}, "NATIVE_GAME_CAPTURE_MISMATCH")
+        expected_capture = {"operation_id": admission["operation"], "raw_usage_ref": receipt["raw_usage_ref"],
+                            "bytes": len(raw), "simulation": simulation}
+        if "maximum_bytes" in capture:
+            expected_capture.update(maximum_bytes=response_bound, wire_policy=NATIVE_WIRE_POLICY
+                if response_bound == NATIVE_RESPONSE_BYTES else "bounded-response-wire/1")
+        require(capture == expected_capture, "NATIVE_GAME_CAPTURE_MISMATCH")
         units.add(unit)
         usage = {k: measured[k] for k in ("input_tokens", "cached_input_tokens", "output_tokens", "model_calls")}
         usage.update(amount=amount, request_wall_ms=receipt["usage"]["wall_ms"])
@@ -205,13 +234,13 @@ def model_usage(db, cas, native, source):
     aggregate = Budgets.exposures(db)[native.operation_id]
     require(all(aggregate[k] == totals[k] for k in ("input_tokens", "output_tokens", "model_calls"))
             and aggregate["spend_microusd"] == totals["amount"], "NATIVE_GAME_ACCOUNTING_MISMATCH")
-    return {"model_evidence": "scripted_provider", "unit": next(iter(units)),
-            "real_model_requests": 0, "actual_charge_microusd": None,
+    return {"model_evidence": "scripted_provider" if simulation else "actual_native_oauth", "unit": next(iter(units)),
+            "real_model_requests": 0 if simulation else len(calls), "actual_charge_microusd": None,
             "totals": dict(totals), "participants": {k: dict(v) for k, v in sorted(by_thread.items())},
             "calls": calls, "closed_envelopes": len(source["participants"])}
 
 
-def worker_evidence(db, source, plan, config, *, previous=None):
+def worker_evidence(db, source, plan, config, *, previous=None, allow_recorded_refusals=False):
     opening, prefix = 0, 0
     if previous is None:
         require([r[0] for r in db.execute("SELECT epoch FROM epochs ORDER BY epoch")] == [plan.epoch],
@@ -223,6 +252,7 @@ def worker_evidence(db, source, plan, config, *, previous=None):
     rows = db.execute("SELECT * FROM events ORDER BY cursor").fetchall()
     require([r["cursor"] for r in rows] == list(range(1, len(rows) + 1)), "NATIVE_GAME_EVENT_GAP")
     observations, acks, charge_traces, accounting = {}, {}, [], []
+    refusals = []
     ack_order = []
     for row in rows[prefix:]:
         body = strict_json(row["body"])
@@ -244,8 +274,14 @@ def worker_evidence(db, source, plan, config, *, previous=None):
             parsed = model.model_validate(body)
             same_scope(body, plan)
             (accounting if row["kind"] == "primitive_accounting" else charge_traces).append((row["cursor"], parsed))
+        elif row["kind"] == "action_refusal":
+            require(allow_recorded_refusals, "NATIVE_GAME_REFUSAL_PROFILE")
+            parsed = ActionSequenceRefusal.model_validate(body)
+            same_scope(body, plan)
+            refusals.append((row["cursor"], parsed))
         else:
-            require(row["kind"] == "public_signal", "NATIVE_GAME_EVENT_KIND")
+            require(row["kind"] in {"public_signal", "worker_health_start", "worker_health_window"},
+                    "NATIVE_GAME_EVENT_KIND")
     require(ack_order == list(range(1, len(ack_order) + 1)), "NATIVE_GAME_ACK_SEQUENCE")
     counters = dict(db.execute("SELECT name,value FROM counters"))
     require(all(type(v) is int and v >= 0 for v in counters.values()), "NATIVE_GAME_COUNTER_MISMATCH")
@@ -295,24 +331,66 @@ def worker_evidence(db, source, plan, config, *, previous=None):
     seen_calls, returned_acks, returned_observations, capabilities = set(), [], [], []
     request_preimages = 0
     actions_by_id = {a["request_id"]: a for a in actions}
+    returned_refusals, read_errors = [], []
     for call in source["game_calls"]:
         require(call["runtime"] == plan.job_id and call["thread"] == root and call["request"] not in seen_calls,
                 "NATIVE_GAME_BROKER_SCOPE")
         seen_calls.add(call["request"])
         response = strict_json(call["result"])
-        require(response.get("schema") == "strata/GameResponse/1" and response.get("status") == "ok"
-                and response.get("request_id") == call["request"], "NATIVE_GAME_RESPONSE_INVALID")
+        require(response.get("schema") == "strata/GameResponse/1", "NATIVE_GAME_RESPONSE_INVALID")
         matches = [c for c in source["broker_calls"] if c["state"] == "RETURNED"
                    and c["result_digest"] == digest(response)
                    and strict_json(c["body"])["thread"] == root
                    and strict_json(c["body"])["tool"] == "game"]
         require(matches, "NATIVE_GAME_BROKER_RESULT_MISSING")
-        value = response["result"]
+        request = None
         if "request_body" in call:
             request = RpcRequest.model_validate(call["request_body"])
             same_scope(request.model_dump(), plan)
             require(request.request_id == call["request"]
                     and digest(request.model_dump()) == call["fingerprint"], "NATIVE_GAME_REQUEST_MISMATCH")
+            request_preimages += 1
+        if response.get("status") == "error":
+            require(allow_recorded_refusals and request is not None, "NATIVE_GAME_REFUSAL_PROFILE")
+            error = response.get("error", {})
+            code = error.get("code")
+            require(response == {"schema": "strata/GameResponse/1", "status": "error", "error": {
+                "code": code, "message": code, "retryable": False, "retry_after_ms": None,
+                "request_id": call["request"], "expected_epoch": plan.epoch, "details_ref": None}},
+                "NATIVE_GAME_RESPONSE_INVALID")
+            if request.method == "act" and code == "OUT_OF_ORDER":
+                batch = request.action
+                matches = [(cursor, refusal) for cursor, refusal in refusals
+                    if cursor not in {r["cursor"] for r in returned_refusals}
+                    and refusal.request_digest == digest(batch.model_dump())
+                    and refusal.request_id == batch.request_id and refusal.action_seq == batch.seq]
+                require(matches, "NATIVE_GAME_REFUSAL_MISSING")
+                cursor, refusal = matches[0]
+                observed = observations.get(batch.observation_id)
+                require(batch.lease_id == config["lease_id"] and not batch.is_example
+                        and batch.mode == "structured" and observed is not None and observed[0] < cursor
+                        and observed[1]["state_revision"] == batch.expected_state_revision
+                        and observed[1]["control_revision"] == batch.control_revision
+                        and observed[1]["capability_digest"] == batch.capability_digest
+                        and observed[1]["captured_mono_ms"] <= refusal.mono_ms,
+                        "NATIVE_GAME_REFUSAL_BINDING")
+                same_scope(batch.model_dump(), plan)
+                returned_refusals.append({"cursor": cursor, "rpc_request_id": call["request"],
+                    "request_digest": refusal.request_digest, "request_id": refusal.request_id,
+                    "action_seq": refusal.action_seq, "code": refusal.code,
+                    "accepted": False, "primitive_events": 0})
+            elif request.method == "action_status" and code == "ACTION_UNKNOWN":
+                require(db.execute("SELECT 1 FROM actions WHERE request_id=?", (request.target_request_id,)).fetchone()
+                        is None, "NATIVE_GAME_REFUSAL_BINDING")
+                read_errors.append({"rpc_request_id": call["request"], "method": request.method,
+                                    "target_request_id": request.target_request_id, "code": code})
+            else:
+                require(False, "NATIVE_GAME_ACTION_UNCERTAIN")
+            continue
+        require(response.get("status") == "ok" and response.get("request_id") == call["request"],
+                "NATIVE_GAME_RESPONSE_INVALID")
+        value = response["result"]
+        if request is not None:
             if request.method == "act":
                 action = actions_by_id.get(request.action.request_id)
                 require(action is not None and action["request_digest"] == digest(request.action.model_dump())
@@ -326,7 +404,6 @@ def worker_evidence(db, source, plan, config, *, previous=None):
                             "wait_events": "mcbench/Observation/1", "capabilities": "strata/Capabilities/1"}
                 require(request.method in expected and value.get("schema") == expected[request.method],
                         "NATIVE_GAME_REQUEST_MISMATCH")
-            request_preimages += 1
         if value.get("schema") == "mcbench/Observation/1":
             require(value.get("observation_id") in observations
                     and observations[value["observation_id"]][1] == value, "NATIVE_GAME_OBSERVATION_BINDING")
@@ -366,8 +443,24 @@ def worker_evidence(db, source, plan, config, *, previous=None):
         require(len(charge_traces) == primitives and all(charged[a["request_id"]] == a["primitive_events"]
                 for a in actions), "NATIVE_GAME_PRIMITIVE_INCOMPLETE")
         trace_verified = True
+    if allow_recorded_refusals:
+        require(cap.get("action_admission") == {"policy": ADMISSION_POLICY, "recorded_refusals": ["OUT_OF_ORDER"]}
+                and trace_verified and request_preimages == len(seen_calls), "NATIVE_GAME_REFUSAL_PROFILE")
+        require(len(returned_refusals) == len(refusals), "NATIVE_GAME_REFUSAL_INCOMPLETE")
+        for cursor, refusal in refusals:
+            prior_actions = sum(history[0][0] < cursor for history in acks.values())
+            prior_acks = sum(c < cursor for history in acks.values() for c, _ in history)
+            prior_charges = sum(c < cursor for c, _ in charge_traces)
+            require(refusal.expected_action_seq == prior_actions + 1
+                    and refusal.action_seq != refusal.expected_action_seq
+                    and refusal.ack_counter == prior_acks and refusal.primitive_events == opening + prior_charges
+                    and accounting[0][0] < cursor,
+                    "NATIVE_GAME_REFUSAL_BINDING")
     return {**({"opening_primitive_events": opening, "cumulative_primitive_events": opening + primitives,
                 "retained_history": retained_history} if previous is not None else {}),
+            **({"admission_policy": ADMISSION_POLICY, "recorded_refusals": returned_refusals,
+                "read_errors": read_errors, "known_attempts_reconciled": True,
+                "gameplay_success_qualified": False} if allow_recorded_refusals else {}),
             "actions": actions, "primitive_events": primitives, "game_calls": len(seen_calls),
             "observations": len(observations), "returned_observations": len(returned_observations),
             "request_preimages_verified": request_preimages,
@@ -376,8 +469,11 @@ def worker_evidence(db, source, plan, config, *, previous=None):
             "capability_digest": cap["digest"]}, cap, list(observations.values())
 
 
-def stop_evidence(db, bundle, native, plan, *, previous=None):
+def stop_evidence(db, bundle, native, plan, *, previous=None, select_job=False):
     rows = db.execute("SELECT * FROM native_worker_bindings").fetchall()
+    if select_job:
+        require(previous is None, "NATIVE_GAME_STOP_SCOPE")
+        rows = [r for r in rows if r["job"] == plan.job_id]
     if previous is not None:
         old = list(previous.execute("SELECT * FROM native_worker_bindings ORDER BY job"))
         require([tuple(r) for r in db.execute("SELECT * FROM native_worker_bindings WHERE job!=? ORDER BY job",
@@ -428,7 +524,8 @@ def worker_runtime_evidence(bundle, intent, cap):
     plan = intent["plan"]
     result = bundle.json("run/result.json")
     pinned = plan["schema"] in {"strata/M0NativeGameSmoke/3", "strata/M0NativeGameSmoke/4",
-                               "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3"}
+                               "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/2", "strata/M0NativeGameRecovery/3",
+                               "strata/M0NativePilot/2"}
     if not pinned:
         require("worker_runtime" not in plan and "worker_runtime" not in result
                 and "run/worker-runtime.json" not in bundle.files, "NATIVE_GAME_WORKER_PROFILE")
@@ -487,12 +584,14 @@ def worker_runtime_evidence(bundle, intent, cap):
 
 
 def source_evidence(bundle, native, intent, cap):
-    pins = bundle.json("source-pins.json")
+    source_root = "run/" if intent["plan"]["schema"] == "strata/M0NativePilot/2" else ""
+    require(source_root + "source-pins.json" in bundle.files, "NATIVE_GAME_SOURCE_PINS")
+    pins = bundle.json(source_root + "source-pins.json")
     require(isinstance(pins, dict) and pins and isinstance(intent.get("source_pins"), dict), "NATIVE_GAME_SOURCE_PINS")
     for name, sha in pins.items():
         safe_relative(name)
-        require(bundle.files.get("source/" + name) is not None
-                and bundle.files["source/" + name].sha256 == sha, "NATIVE_GAME_SOURCE_PINS")
+        require(bundle.files.get(source_root + "source/" + name) is not None
+                and bundle.files[source_root + "source/" + name].sha256 == sha, "NATIVE_GAME_SOURCE_PINS")
     require(all(pins.get(k) == v for k, v in intent["source_pins"].items()), "NATIVE_GAME_SOURCE_PINS")
     modules = {PureWindowsPath(k).name: v for k, v in pins.items()
                if k.startswith("backends/mineflayer/dist/src/") and k.count("/") == 4 and k.endswith(".js")}
@@ -500,10 +599,15 @@ def source_evidence(bundle, native, intent, cap):
     require(bundle.files["run/native/broker-runtime.manifest.json"].sha256 == native.bootstrap_digest,
             "NATIVE_GAME_BOOTSTRAP_MISMATCH")
     bootstrap = bundle.json("run/native/broker-runtime.manifest.json")
-    require(bootstrap.get("schema") == "strata/NativeBootstrap/1", "NATIVE_GAME_BOOTSTRAP_MISMATCH")
+    from mcbench.launch_integrity import native_companion_inventory
+    companion_pins = native_companion_inventory(bootstrap)
     # Map archived Windows paths lexically; never follow them into current installs.
     original = windows(intent["plan"]["output"])
-    external = []
+    expected_external = {windows(native.executable): native.binary_digest}
+    if companion_pins is not None:
+        expected_external.update({windows(native.executable).parent / name: sha
+                                  for name, sha in companion_pins.items()})
+    external = {}
     for entry in bootstrap["inventory"]["files"]:
         old_path = windows(entry["path"])
         if old_path.is_relative_to(original):
@@ -512,13 +616,13 @@ def source_evidence(bundle, native, intent, cap):
             require(actual is not None and actual.sha256 == entry["sha256"] and actual.bytes == entry["bytes"],
                     "NATIVE_GAME_BOOTSTRAP_MISMATCH")
         else:
-            require(old_path == windows(native.executable) and entry["sha256"] == native.binary_digest,
+            require(old_path not in external and expected_external.get(old_path) == entry["sha256"],
                     "NATIVE_GAME_EXTERNAL_PIN")
-            external.append(entry["sha256"])
-    require(external == [native.binary_digest], "NATIVE_GAME_EXTERNAL_PIN")
-    lock = bundle.files.get("source/backends/mineflayer/package-lock.json")
+            external[old_path] = entry["sha256"]
+    require(external == expected_external, "NATIVE_GAME_EXTERNAL_PIN")
+    lock = bundle.files.get(source_root + "source/backends/mineflayer/package-lock.json")
     schema_names = ("ActionBatch", "ActionAck", "Observation", "RpcRequest")
-    schemas = {name: bundle.files.get(f"source/schemas/v1/public/{name}.json") for name in schema_names}
+    schemas = {name: bundle.files.get(f"{source_root}source/schemas/v1/public/{name}.json") for name in schema_names}
     dependency_bytes_verified = lock is not None and all(schemas.values())
     if lock is not None or any(schemas.values()):
         require(dependency_bytes_verified and lock.sha256 == cap["dependency_lock_digest"]
@@ -532,13 +636,26 @@ def source_evidence(bundle, native, intent, cap):
             "worker_schema_digest": cap["schema_digest"], "pack_lock_qualified": False,
             "dependency_lock_and_schema_bytes_verified": dependency_bytes_verified,
             "external_executable_archived": False,
+            **({"native_companions": companion_pins, "external_companion_bytes_archived": False}
+               if companion_pins is not None else {}),
             "worker_runtime": worker_runtime_evidence(bundle, intent, cap)}
 
 
 def saved_player_evidence(bundle, observations):
-    after = NbtReader(unpack_chunk(bundle.read("run/player-after.dat"), 1)).root()
+    schema = bundle.json("run/intent.json")["plan"]["schema"]
+    player_path = "run/player-after.dat"
+    if schema == "strata/M0NativePilot/2":
+        from mcbench.vanilla_persistence import verify_snapshot
+        server = bundle.json("run/server/result.json")
+        snapshot = verify_snapshot(bundle.path("run/server/stopped-instance/manifest.json").parent,
+                                   server["stopped_snapshot"]["manifest_sha256"])
+        players = [name for name in snapshot["files"] if name.startswith("world/playerdata/") and name.endswith(".dat")]
+        require(len(players) == 1 and snapshot["files"][players[0]]["disposition"] == "state", "NATIVE_GAME_SAVED_PLAYER")
+        player_path = "run/server/stopped-instance/state/" + players[0]
+    after = NbtReader(unpack_chunk(bundle.read(player_path), 1)).root()
     rotation_after = field(after, "Rotation", 9)
-    sealed = bundle.json("run/intent.json")["plan"]["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5"}
+    sealed = schema in {
+        "strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativePilot/2"}
     if sealed:
         require("run/player-before.dat" not in bundle.files, "NATIVE_GAME_SAVED_PLAYER")
         response = bundle.json("run/initial-observation.json")
@@ -568,9 +685,13 @@ def saved_player_evidence(bundle, observations):
             and yaw_error <= .01 and pitch_error <= .01
             and all(abs(position[i] - latest["position"][axis]) <= .01 for i, axis in enumerate(("x", "y", "z"))),
             "NATIVE_GAME_SAVED_PLAYER")
+    from .native_game_continuation import player_matches
+    require(player_matches(after, latest), "NATIVE_GAME_SAVED_PLAYER")
     changed = initial_rotation != rotation if sealed else rotations[0] != rotations[1]
     return {"orientation_changed": changed, "position_matches": True,
-            "orientation_matches": True, "complete_checkpoint": False}
+            "orientation_matches": True, "dimension_matches": True,
+            "health_matches": True, "food_matches": True, "inventory_slots_items_counts_match": True,
+            "item_metadata_compared": False, "complete_checkpoint": False}
 
 
 def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *, previous=None):
@@ -579,8 +700,14 @@ def sealed_pack_evidence(bundle, intent, result, config, server_plan, server, *,
     from mcbench.records import PackLock
     plan = intent["plan"]
     recovery = plan["schema"] == "strata/M0NativeGameRecovery/3"
-    restored = recovery or plan["schema"] == "strata/M0NativeGameSmoke/5"
-    require(plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    pilot = plan["schema"] == "strata/M0NativePilot/2"
+    if pilot:
+        require(server_plan["schema"] == "strata/DevelopmentServer/6"
+                and server_plan["clock"] == plan["clock"], "NATIVE_GAME_PACK_BINDING")
+        server_plan = server_plan["base"]
+    restored = recovery or pilot or plan["schema"] == "strata/M0NativeGameSmoke/5"
+    require(plan["schema"] in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3",
+                              "strata/M0NativePilot/2"}
             and server_plan["schema"] == ("strata/DevelopmentServer/5" if restored else "strata/DevelopmentServer/4")
             and server_plan["pack"] == plan["pack"], "NATIVE_GAME_PACK_BINDING")
     binding = plan["pack"]
@@ -719,6 +846,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
         game, cap, observations = worker_evidence(worker, source, plan, config, previous=old_worker)
         stop = stop_evidence(db, bundle, native, plan, previous=old_db)
         pins = source_evidence(bundle, native, intent, cap)
+        worker_health = inspect_worker_health(worker, plan.campaign_id, plan.agent_id, plan.epoch,
+            required=health_required(bundle.json("source-pins.json")))
         saved = saved_player_evidence(bundle, observations)
         from .native_game_retention import inspect_retention, inspect_stopped_components
         retention = inspect_retention(db, cas, bundle, native, intent,
@@ -738,6 +867,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
         require(all(type(c["elapsed_ns"]) is int and c["elapsed_ns"] >= 0 for c in tools),
                 "NATIVE_GAME_CLOCK_INVALID")
     result, server = bundle.json("run/result.json"), bundle.json("run/server/result.json")
+    if "worker_health" in result:
+        require(result["worker_health"] == worker_health, "NATIVE_GAME_WORKER_HEALTH_CONFLICT")
     require(result.get("schema") == "strata/M0NativeGameResult/1" and result.get("status") == "pass"
             and result.get("logs_complete") is True and not result.get("forced_worker_cleanup")
             and not result.get("forced_server_cleanup")
@@ -774,8 +905,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
     bundle.verify()
     if previous:
         previous.verify()
-    return {"schema": "strata/NativeGameEvidenceReport/2" if previous else "strata/NativeGameEvidenceReport/1",
-            "policy": "sealed-native-vanilla-recovery-evidence-join/1" if previous else POLICY, "visibility": "evaluator",
+    return {"schema": "strata/NativeGameEvidenceReport/4" if previous else "strata/NativeGameEvidenceReport/3",
+            "policy": "sealed-native-vanilla-recovery-evidence-join/2" if previous else POLICY, "visibility": "evaluator",
             **({"recovery": recovery} if previous else {}),
             "reconciliation": "pass", "seal_sha256": plan.seal_sha256,
             "custody": custody,
@@ -783,6 +914,7 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             "evidence_kind": "authentic_game_with_scripted_inference", "model": model, "game": game,
             "stop": stop | {"server": "stopped_unqualified"}, "pins": pins, "saved_player": saved,
             "retention": retention,
+            "worker_health": worker_health,
             "clocks": {"native_observed_wall_s": ended - started,
                        "native_wall_basis": "recorded_unix_lifecycle_difference",
                        "outer_observed_wall_s": result["elapsed_s"], "server_observed_wall_s": server["elapsed_s"],
@@ -790,7 +922,9 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
                        "provider_request_wall_ms_sum": model["totals"]["request_wall_ms"],
                        "overlapping_intervals_are_not_added": True,
                        "server_ticks": None, "avatar_ticks": None, "active_wall_s": None,
-                       "server_tps": None, "server_mspt": None, "worker_event_loop_lag": None},
+                       "server_tps": None, "server_mspt": None,
+                       "worker_event_loop_lag": None if worker_health is None else {
+                           "source": "worker_health.windows", "unit": "ns", "aggregated_p95": None}},
             "scoring_eligible": False, "production_qualified": False, "G0": "fail",
             "complete_project_accounting": False,
             "gaps": ["authentic_model_reasoning_and_reply_qualification", "full_runtime_and_helper_isolation",

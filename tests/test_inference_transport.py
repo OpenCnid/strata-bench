@@ -1,6 +1,7 @@
 """Actual local HTTP transport with synthetic rates/receipts; no external provider."""
 
 import hashlib
+import json
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -142,7 +143,7 @@ def test_actual_http_single_forward_and_wire_receipt(fixture_gateway, provider):
     transport = SyntheticResponsesTransport(gate, endpoint)
     delivered, headers = [], []
     def header(status, media):
-        assert gate.status(reserve.operation_id)["state"] == "DISPATCHING"
+        assert gate.status(reserve.operation_id)["state"] == "SETTLED"
         headers.append((status, media))
     for _ in range(2):
         result = transport.execute("a1", attempt, reserve, request,
@@ -157,7 +158,7 @@ def test_actual_http_single_forward_and_wire_receipt(fixture_gateway, provider):
     assert gate.cas.read(Principal("operator", "operator"), "operator", receipt.raw_usage_ref) == wire
 
 
-@pytest.mark.parametrize("mode", ["missing", "truncated", "redirect", "timeout", "writer_failure"])
+@pytest.mark.parametrize("mode", ["missing", "truncated", "redirect", "timeout"])
 def test_transport_fault_never_retries_or_refunds(fixture_gateway, provider, mode):
     gate, attempt, reserve, request = fixture_gateway
     wire = stream(response(usage=None)) if mode == "missing" else stream(response())
@@ -169,15 +170,30 @@ def test_transport_fault_never_retries_or_refunds(fixture_gateway, provider, mod
     transport = SyntheticResponsesTransport(gate, endpoint, deadline_s=0.05 if mode == "timeout" else 3)
     def write(chunk):
         if mode == "writer_failure":
-            raise BrokenPipeError("synthetic client disconnected")
+            raise BrokenPipeError("synthetic-secret-do-not-record")
     with pytest.raises((Fault, TimeoutError, BrokenPipeError)):
         transport.execute("a1", attempt, reserve, request, on_headers=lambda *_: None, on_chunk=write)
     assert len(requests) == 1
     assert gate.status(reserve.operation_id)["state"] == "UNSETTLED"
     assert gate.budgets.status("a1")["uncertain"]
     assert gate.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == 1000
+    audit = json.loads(gate.db.connection.execute(
+        "SELECT body FROM outbox WHERE kind='inference.transport_failure'").fetchone()[0])
+    reason, phase = {
+        "missing": ("AUTHORITATIVE_USAGE_REQUIRED", "response_body"),
+        "truncated": ("TRUNCATED_EVENT_STREAM", "receipt_validation"),
+        "redirect": ("REDIRECT_REJECTED", "response_headers"),
+        "timeout": ("TRANSPORT_TIMEOUT", "response_body"),
+        "writer_failure": ("TRANSPORT_IO_ERROR", "deliver_body"),
+    }[mode]
+    assert audit["reason"] == reason and audit["phase"] == phase
+    assert audit["deadline_ms"] == (50 if mode == "timeout" else 3000)
+    assert 0 <= audit["elapsed_ms"] < 4000 and audit["captured_bytes"] <= len(wire)
+    assert "synthetic-secret-do-not-record" not in json.dumps(audit)
+    assert set(audit) == {"operation_id", "phase", "reason", "elapsed_ms", "deadline_ms", "captured_bytes", "simulation"}
     transport.execute("a1", attempt, reserve, request, on_headers=lambda *_: None, on_chunk=write)
     assert len(requests) == 1
+    assert gate.db.connection.execute("SELECT count(*) FROM outbox WHERE kind='inference.transport_failure'").fetchone()[0] == 1
 
 
 @pytest.mark.parametrize("endpoint", ["https://api.openai.com/v1/responses",

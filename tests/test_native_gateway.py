@@ -41,7 +41,7 @@ def gateway(database, cas, tmp_path, example, provider):
     def put(value):
         return cas.put(Principal("operator", "operator"), "operator", "operator", canonical(value))
     basis = EstimateBasis.model_validate(json.loads((Path(__file__).resolve().parents[1] /
-        "configs/operator/live-validation.json").read_text())["accounting_basis"])
+        "configs/operator/legacy/live-validation-d11.json").read_text())["accounting_basis"])
     price = put(basis.model_dump())
     exposure = FiniteExposure.model_validate({"schema": "strata/FiniteInferenceExposure/1",
         "basis_digest": basis.fingerprint(), "max_input_tokens": 1050000,
@@ -156,8 +156,12 @@ def test_gateway_rejects_before_provider(gateway, headers, route):
 def test_missing_receipt_keeps_hold_and_blocks_next_request(gateway, provider):
     endpoint, calls = provider(b'data: {"type":"response.created"}\n\n')
     gateway.service.fixture_upstream = endpoint.removesuffix("/v1/responses")
-    assert gateway.post()[0] == 200
-    assert gateway.post()[0] == 403
+    # Receipt-before-delivery rejects an incomplete response before forwarding
+    # its headers/body; the provider request still retains its uncertain hold.
+    first_status, first_raw = gateway.post()
+    assert first_status == 403 and b"response.created" not in first_raw
+    status, raw = gateway.post()
+    assert status == 403 and json.loads(raw)["error"]["code"] == "METERING_UNKNOWN"
     assert len(calls) == 1
     db = gateway.gate.db.connection
     assert db.execute("SELECT state FROM inference_attempts").fetchone()[0] == "UNSETTLED"
@@ -212,3 +216,30 @@ def test_no_rebind_or_config_alias_mutation(gateway):
     assert gateway.service.config.max_requests == 6
     with pytest.raises(Fault, match="GATEWAY_ALREADY_BOUND"):
         gateway.service.bind(gateway.plan, gateway.cfg)
+
+
+def test_request_cap_returns_typed_error_without_dispatch_or_charge(gateway, provider):
+    g = gateway
+    upstreams = []
+    for ordinal in range(6):
+        wire = test_inference_transport.stream(test_inference_transport.response(
+            model=g.plan.model, id=f"response-{ordinal}"))
+        endpoint, calls = provider(wire)
+        upstreams.append(calls)
+        g.service.fixture_upstream = endpoint.removesuffix("/v1/responses")
+        raw = canonical({"model": g.plan.model, "input": [{"role": "user", "content": str(ordinal)}],
+            "client_metadata": {"x-codex-turn-metadata": json.dumps({"session_id": "root", "thread_id": "root",
+                "turn_id": f"turn-{ordinal}", "agent_name": "/root", "parent_thread_id": None,
+                "thread_source": "user"})}})
+        assert g.post(raw=raw) == (200, wire)
+    before = g.gate.budgets.status("a1")
+    status, raw = g.post()
+    assert status == 403
+    assert json.loads(raw)["error"]["code"] == "GATEWAY_REQUEST_LIMIT"
+    assert sum(map(len, upstreams)) == 6
+    db = g.gate.db.connection
+    assert db.execute("SELECT count(*) FROM inference_attempts").fetchone()[0] == 6
+    assert db.execute("SELECT count(*) FROM native_gateway_requests").fetchone()[0] == 6
+    assert g.gate.budgets.status("a1") == before
+    audit = json.loads(db.execute("SELECT body FROM outbox WHERE kind='native.gateway_refused'").fetchone()[0])
+    assert audit == {"job": "job", "reason": "GATEWAY_REQUEST_LIMIT", "max_requests": 6}

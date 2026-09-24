@@ -41,7 +41,7 @@ class NativeLaunch(Strict):
     agent_id: Id
     epoch: Positive
     role: Literal["executor", "helper"]
-    purpose: Literal["campaign", "conformance"] = "campaign"
+    purpose: Literal["campaign", "conformance", "development_piloting"] = "campaign"
     parent_job_id: Id | None
     depth: UInt
     helper_limit: Annotated[int, Field(ge=0, le=32)] = 2
@@ -65,7 +65,7 @@ class NativeLaunch(Strict):
     ingress_policy: Literal["native-job-http-header/1"] | None = None
     gateway_config_digest: Digest | None = None
     tool_projection_ref: Ref | None = None
-    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1"] | None = None
+    tool_catalog_policy: Literal["native-selected-model-without-apply-patch/1", "native-luna6-broker-tools/1"] | None = None
     # Exclude absent extension fields so historical plan/source hashes survive.
     skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
@@ -171,6 +171,10 @@ class NativeExec:
         require(plan.qualification_ref is not None, "RUNTIME_UNQUALIFIED")
         proof = self.cas.json(Principal("operator", "operator"), self.namespace,
                               plan.qualification_ref)
+        if plan.purpose == "development_piloting":
+            from .native_piloting import validate_runtime_admission
+            validate_runtime_admission(self, proof, plan)
+            return
         require(proof.get("schema") == "strata/RuntimeQualification/1" and
                 proof.get("is_example") is False and proof.get("profile_digest") ==
                 plan.profile_digest() and proof.get("expires_unix", 0) > time.time() and
@@ -207,7 +211,7 @@ class NativeExec:
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
         require(reserve.kind == ("helper" if plan.role == "helper" else "model"), "OPERATION_LINEAGE")
-        if plan.purpose == "conformance":
+        if plan.purpose in {"conformance", "development_piloting"}:
             require(reserve.campaign_account == "development", "CONFORMANCE_ACCOUNT_REQUIRED")
         require(reserve.usage.spend_microusd is not None and reserve.usage.spend_microusd > 0,
                 "SPENDING_CEILING_REQUIRED")
@@ -265,6 +269,10 @@ class NativeExec:
             require(fixture_argv is None, "FORBIDDEN")
             require(plan.binary_version == CODEX_VERSION and plan.dovetail_commit == DOVETAIL_COMMIT,
                     "RUNTIME_PIN_MISMATCH")
+            if plan.broker_policy is not None:
+                from .launch_integrity import read_manifest
+                require(read_manifest(plan.bootstrap_manifest, plan.bootstrap_digest)["schema"] ==
+                        "strata/NativeBootstrap/2", "NATIVE_COMPANION_PINS_REQUIRED")
             require(callable(self.revoke_game), "REVOCATION_REQUIRED")
             self._proof(plan)
             policy = self.authorizations.check(self.authorization_id, plan.account, plan.provider,

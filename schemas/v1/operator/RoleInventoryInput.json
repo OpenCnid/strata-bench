@@ -116,6 +116,14 @@
       "title": "Files",
       "type": "array"
     },
+    "extra_directories": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12000,
+      "title": "Extra Directories",
+      "type": "array"
+    },
     "provenance_evidence": {
       "pattern": "^cas:sha256:[0-9a-f]{64}$",
       "title": "Provenance Evidence",

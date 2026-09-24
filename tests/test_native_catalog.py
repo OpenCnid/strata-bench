@@ -54,7 +54,8 @@ def test_no_patch_catalog_changes_only_declared_capability(tmp_path):
     assert json.loads(target.read_bytes()) == {"models": [row | {"apply_patch_tool_type": None}]}
     assert result["policy"] == NO_PATCH_POLICY and result["production_qualified"] is False
     assert result["changed_fields"] == {"apply_patch_tool_type": {"from": "freeform", "to": None}}
-    plan = SimpleNamespace(model="gpt-5.6-luna", config_overrides=result["config_overrides"])
+    plan = SimpleNamespace(model="gpt-5.6-luna", config_overrides=result["config_overrides"],
+                           tool_catalog_policy=result["policy"])
     require_no_patch_catalog(plan)
     target.write_bytes(raw)
     with pytest.raises(Fault, match="MODEL_CATALOG_TOOL_TYPE"):
@@ -72,4 +73,41 @@ def test_restriction_rejects_unknown_or_already_changed_source(tmp_path, patch_t
     source.write_bytes(raw)
     with pytest.raises(Fault, match="MODEL_CATALOG_TOOL_TYPE"):
         install_no_patch_catalog(source, target, expected_sha256=hashlib.sha256(raw).hexdigest(), model="luna")
+    assert not target.exists()
+
+
+def test_luna6_restriction_preserves_model_and_enforces_same_broker_surface(tmp_path):
+    from types import SimpleNamespace
+    from mcbench.native_catalog import install_no_patch_catalog, LUNA6_BROKER_POLICY, require_no_patch_catalog
+    row = {"slug": "gpt-6-luna", "apply_patch_tool_type": "freeform",
+        "experimental_supported_tools": ["send_user_message_async", "clock"],
+        "context_window": 272000, "base_instructions": "provider instructions", "multi_agent_version": "v2"}
+    source, target = tmp_path / "source.json", tmp_path / "target.json"
+    raw = canonical({"models": [row]})
+    source.write_bytes(raw)
+    pin = install_no_patch_catalog(source, target, expected_sha256=hashlib.sha256(raw).hexdigest(),
+                                   model="gpt-6-luna")
+    restricted = row | {"apply_patch_tool_type": None, "experimental_supported_tools": []}
+    assert json.loads(target.read_bytes()) == {"models": [restricted]}
+    assert pin["policy"] == LUNA6_BROKER_POLICY
+    assert pin["changed_fields"]["experimental_supported_tools"] == {
+        "from": ["send_user_message_async", "clock"], "to": []}
+    plan = SimpleNamespace(model="gpt-6-luna", config_overrides=pin["config_overrides"],
+                           tool_catalog_policy=pin["policy"])
+    require_no_patch_catalog(plan)
+    for tools in (["clock"], ["send_user_message_async"], None):
+        target.write_bytes(canonical({"models": [restricted | {"experimental_supported_tools": tools}]}))
+        with pytest.raises(Fault, match="MODEL_CATALOG_EXPERIMENTAL_TOOLS"):
+            require_no_patch_catalog(plan)
+
+
+@pytest.mark.parametrize("experimental", [None, [], ["clock"], ["send_user_message_async", "clock", "shell"]])
+def test_luna6_rejects_unreviewed_provider_tool_changes(tmp_path, experimental):
+    from mcbench.native_catalog import install_no_patch_catalog
+    source, target = tmp_path / "source.json", tmp_path / "target.json"
+    raw = canonical({"models": [{"slug": "gpt-6-luna", "apply_patch_tool_type": "freeform",
+                                "experimental_supported_tools": experimental}]})
+    source.write_bytes(raw)
+    with pytest.raises(Fault, match="MODEL_CATALOG_EXPERIMENTAL_TOOLS"):
+        install_no_patch_catalog(source, target, expected_sha256=hashlib.sha256(raw).hexdigest(), model="gpt-6-luna")
     assert not target.exists()

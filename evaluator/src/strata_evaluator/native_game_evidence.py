@@ -23,6 +23,7 @@ from mcbench.inference_transport import ResponsesUsage, strict_json
 from mcbench.native_export import OPERATOR, inspect_native_source
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import canonical, digest, reject_links, require, safe_relative
+from mcbench.worker_health import health_required, inspect_worker_health
 
 from .evidence_bundle import EvidenceBundle, EvidenceCAS
 from .saved_blocks import NbtReader, field, unpack_chunk
@@ -245,7 +246,8 @@ def worker_evidence(db, source, plan, config, *, previous=None):
             same_scope(body, plan)
             (accounting if row["kind"] == "primitive_accounting" else charge_traces).append((row["cursor"], parsed))
         else:
-            require(row["kind"] == "public_signal", "NATIVE_GAME_EVENT_KIND")
+            require(row["kind"] in {"public_signal", "worker_health_start", "worker_health_window"},
+                    "NATIVE_GAME_EVENT_KIND")
     require(ack_order == list(range(1, len(ack_order) + 1)), "NATIVE_GAME_ACK_SEQUENCE")
     counters = dict(db.execute("SELECT name,value FROM counters"))
     require(all(type(v) is int and v >= 0 for v in counters.values()), "NATIVE_GAME_COUNTER_MISMATCH")
@@ -730,6 +732,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
         game, cap, observations = worker_evidence(worker, source, plan, config, previous=old_worker)
         stop = stop_evidence(db, bundle, native, plan, previous=old_db)
         pins = source_evidence(bundle, native, intent, cap)
+        worker_health = inspect_worker_health(worker, plan.campaign_id, plan.agent_id, plan.epoch,
+            required=health_required(bundle.json("source-pins.json")))
         saved = saved_player_evidence(bundle, observations)
         from .native_game_retention import inspect_retention, inspect_stopped_components
         retention = inspect_retention(db, cas, bundle, native, intent,
@@ -749,6 +753,8 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
         require(all(type(c["elapsed_ns"]) is int and c["elapsed_ns"] >= 0 for c in tools),
                 "NATIVE_GAME_CLOCK_INVALID")
     result, server = bundle.json("run/result.json"), bundle.json("run/server/result.json")
+    if "worker_health" in result:
+        require(result["worker_health"] == worker_health, "NATIVE_GAME_WORKER_HEALTH_CONFLICT")
     require(result.get("schema") == "strata/M0NativeGameResult/1" and result.get("status") == "pass"
             and result.get("logs_complete") is True and not result.get("forced_worker_cleanup")
             and not result.get("forced_server_cleanup")
@@ -794,6 +800,7 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
             "evidence_kind": "authentic_game_with_scripted_inference", "model": model, "game": game,
             "stop": stop | {"server": "stopped_unqualified"}, "pins": pins, "saved_player": saved,
             "retention": retention,
+            "worker_health": worker_health,
             "clocks": {"native_observed_wall_s": ended - started,
                        "native_wall_basis": "recorded_unix_lifecycle_difference",
                        "outer_observed_wall_s": result["elapsed_s"], "server_observed_wall_s": server["elapsed_s"],
@@ -801,7 +808,9 @@ def inspect_native_game(plan: NativeGameEvidencePlan):
                        "provider_request_wall_ms_sum": model["totals"]["request_wall_ms"],
                        "overlapping_intervals_are_not_added": True,
                        "server_ticks": None, "avatar_ticks": None, "active_wall_s": None,
-                       "server_tps": None, "server_mspt": None, "worker_event_loop_lag": None},
+                       "server_tps": None, "server_mspt": None,
+                       "worker_event_loop_lag": None if worker_health is None else {
+                           "source": "worker_health.windows", "unit": "ns", "aggregated_p95": None}},
             "scoring_eligible": False, "production_qualified": False, "G0": "fail",
             "complete_project_accounting": False,
             "gaps": ["authentic_model_reasoning_and_reply_qualification", "full_runtime_and_helper_isolation",

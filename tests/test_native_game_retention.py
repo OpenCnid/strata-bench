@@ -91,7 +91,7 @@ def test_pilot_launcher_uses_authorized_model_before_pack_or_output(package, tmp
     source = save()
     # Only authorization admission is synthetic; exercise the real driver and
     # real sealed-retention identity check. Pack setup must not precede it.
-    monkeypatch.setattr(native_pilot_trial, "check_inputs", lambda _: {"model": authorized})
+    monkeypatch.setattr(native_pilot_trial, "check_inputs", lambda _: {"model": authorized, "budget_decision": None})
     def stop_before_pack(_):
         raise RuntimeError("IDENTITY_ACCEPTED_BEFORE_PACK")
     monkeypatch.setattr(m0_native_game, "parse_pack_binding", stop_before_pack)

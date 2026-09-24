@@ -35,6 +35,7 @@ from mcbench.pack_worker import HeldPackWorker, WorkerInvocation
 from mcbench.vanilla_persistence import PACK_POLICY
 from mcbench.worker_stop import stop_owned_worker
 from mcbench.runtime import native_companion_paths
+from mcbench.worker_health import health_required, inspect_worker_health
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -473,6 +474,14 @@ def run_plan(plan, resources, runtime=None):
                 actions = [{"batch": json.loads(r[0]), "ack": json.loads(r[1])}
                            for r in db.execute("SELECT request,ack FROM actions ORDER BY seq")]
                 counters = dict(db.execute("SELECT name,value FROM counters"))
+                try:
+                    required_health = (health_required(e["path"] for e in runtime.inventory["files"]) if runtime
+                                       else (ROOT / "backends/mineflayer/dist/src/worker_health.js").is_file())
+                    result["worker_health"] = inspect_worker_health(db, worker_config["campaign_id"],
+                        worker_config["agent_id"], worker_config["epoch"], required=required_health)
+                except Exception as error:
+                    result["worker_health_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+                    result["status"] = "fail"
             db.close()
             result["worker_journal"] = {"actions": actions, "counters": counters,
                                         "sha256": file_hash(journal)}

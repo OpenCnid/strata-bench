@@ -12,14 +12,23 @@ import { serve } from './server.js';
 import { ForgeProcessGuard, SupervisorEvidence, type ForgeGuardReady } from './forge_guard.js';
 import { WorkerStartup, WORKER_STARTUP_MS, WORKER_STARTUP_POLICY } from './worker_startup.js';
 import { OPERATOR_STOP_ARGUMENT, WorkerControl } from './worker_control.js';
+import { WorkerHealth } from './worker_health.js';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
 async function child(c: WorkerConfig, token: string, initialized:()=>void, guard?: ForgeGuardReady): Promise<void> {
   const journal = new Journal(c.state_directory, c.epoch);
-  const {lane,capabilities} = await workerLane(c,journal,guard).catch(error => {journal.close(); throw error;});
+  let healthFailed = false;
+  let requestStop: (() => void) | undefined;
+  let metrics: WorkerHealth;
+  try {
+    metrics = new WorkerHealth(journal,c,() => {healthFailed = true; requestStop?.();});
+  } catch (error) {journal.close(); throw error;}
+  const {lane,capabilities} = await workerLane(c,journal,guard).catch(error => {
+    try {metrics.close();} finally {journal.close();} throw error;
+  });
   const server = await serve(lane,token,capabilities).catch(async error => {
-    try {await lane.close();} finally {journal.close();} throw error;
+    try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}} throw error;
   });
   const address = server.address(); requireThat(address && typeof address !== 'string', 'INTERNAL_ERROR');
   const beat = setInterval(() => process.send?.({kind: 'alive', health: lane.health()}), 100);
@@ -33,11 +42,16 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   const stop = () => {
     shutdown ??= (async () => {
       clearInterval(beat); clearInterval(disk); server.close();
-      let code = 0;
+      let code = healthFailed ? 1 : 0;
       try { await lane.close(); } catch { code = 1; }
-      finally { journal.close(); process.exit(code); }
+      finally {
+        try {metrics.close();} catch {code = 1;}
+        journal.close(); process.exit(code);
+      }
     })();
   };
+  requestStop = stop;
+  if (healthFailed) {stop(); return;}
   process.once('disconnect', stop); process.once('SIGINT', stop); process.once('SIGTERM', stop);
   process.on('message', m => {if (m === 'renew') void Promise.resolve(lane.renewLease()).catch(stop); else if (m === 'stop') stop();});
   initialized();

@@ -16,6 +16,7 @@ from .records import PackLock
 from .storage import CAS, Principal, digest, require
 
 POLICY = "vanilla1192-worker-profile-baseline/1"
+LIFETIME_POLICY = "vanilla1192-worker-profile-baseline/2"
 
 
 def profile_documents(binding):
@@ -54,7 +55,7 @@ def profile_documents(binding):
 def verify_profile_baseline(binding, world, inventory, documents, source_root):
     """Shared live/offline validation; no archived absolute path is followed."""
     source = binding.restoration
-    require(isinstance(source, WorkerProfileBaseline) and source.policy == POLICY,
+    require(isinstance(source, WorkerProfileBaseline) and source.policy in {POLICY, LIFETIME_POLICY},
             "PACK_BASELINE_POLICY")
     require(source.source_request_id != binding.request_id and source.source_lock != binding.lock,
             "PACK_BASELINE_IDENTITY")
@@ -73,11 +74,17 @@ def verify_profile_baseline(binding, world, inventory, documents, source_root):
     old_lock, old = parsed["source"]
     new_lock, new = parsed["target"]
     changed_lock_fields = {"lock_id", "launch_profile", "acquisition_report", "sealed_at"}
+    lifetime = source.policy == LIFETIME_POLICY
+    excluded = {"client", "worker_runtime"} | ({"worker_settings"} if lifetime else set())
+    require((old.worker_settings.model_dump(exclude={"max_wall_ms"}) ==
+             new.worker_settings.model_dump(exclude={"max_wall_ms"}) and
+             old.worker_settings.max_wall_ms < new.worker_settings.max_wall_ms == 360000)
+            if lifetime else old.worker_runtime.sha256 != new.worker_runtime.sha256,
+            "PACK_BASELINE_PROFILE_CHANGED")
     require(old_lock.model_dump(exclude=changed_lock_fields) == new_lock.model_dump(exclude=changed_lock_fields)
-            and old.model_dump(exclude={"client", "worker_runtime"}) == new.model_dump(exclude={"client", "worker_runtime"})
+            and old.model_dump(exclude=excluded) == new.model_dump(exclude=excluded)
             and old.client.model_dump(exclude={"executable_path", "arguments", "reviewed_bootstrap"})
-            == new.client.model_dump(exclude={"executable_path", "arguments", "reviewed_bootstrap"})
-            and old.worker_runtime.sha256 != new.worker_runtime.sha256, "PACK_BASELINE_PROFILE_CHANGED")
+            == new.client.model_dump(exclude={"executable_path", "arguments", "reviewed_bootstrap"}), "PACK_BASELINE_PROFILE_CHANGED")
     require(world["schema"] == "strata/StoppedVanillaSnapshot/2" and world["installed_inventory"] == inventory
             and world["pack"] == {"lock": source.source_lock, "request_id": source.source_request_id,
                                   "inventory_digest": digest(inventory)}, "PACK_BASELINE_SOURCE")
@@ -87,6 +94,6 @@ def verify_profile_baseline(binding, world, inventory, documents, source_root):
                     for p in world["files"]), "PACK_BASELINE_PLAYER_STATE")
     require(strict_json((Path(source_root) / "state/usercache.json").read_bytes()) == [],
             "PACK_BASELINE_PLAYER_STATE")
-    return {"policy": POLICY, "source_lock": source.source_lock, "target_lock": binding.lock,
+    return {"policy": source.policy, "source_lock": source.source_lock, "target_lock": binding.lock,
             "snapshot_sha256": source.sha256, "same_installed_inventory": True, "same_server_profile": True,
             "new_campaign_baseline": True, "complete_checkpoint": False, "dispatch_authorized": False}

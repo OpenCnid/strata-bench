@@ -33,7 +33,7 @@ class VanillaWorldSource(Strict):
 
 
 class WorkerProfileBaseline(VanillaWorldSource):
-    policy: Literal["vanilla1192-worker-profile-baseline/1"]
+    policy: Literal["vanilla1192-worker-profile-baseline/1", "vanilla1192-worker-profile-baseline/2"]
     source_request_id: Id
     source_lock: Ref
 

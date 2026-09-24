@@ -322,3 +322,15 @@ def test_unknown_accounting_stops_before_any_game_launch(tmp_path, monkeypatch):
         assert db.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
     finally:
         db.close()
+
+
+@pytest.mark.parametrize("duration", [90, 180])
+def test_session_duration_requires_matching_public_profile(pilot, duration):
+    _, _, plan, config, _ = pilot
+    scope = {k: getattr(plan, k) for k in ("campaign_id", "agent_id", "epoch")}
+    plan = plan.model_copy(update={"hard_timeout_s": duration, "prompt": prompt(scope, "lease-1", 6, duration)})
+    config.profile_digest = plan.profile_digest()
+    require_profile(plan, config, "lease-1")
+    wrong = 180 if duration == 90 else 90
+    with pytest.raises(Fault, match="PILOT_SCOPE"):
+        require_profile(plan.model_copy(update={"prompt": prompt(scope, "lease-1", 6, wrong)}), config, "lease-1")

@@ -206,7 +206,9 @@ def run_plan(plan, resources, runtime=None):
     require(server_plan["target"] == "vanilla" and worker_config["schema"] == "strata/DevelopmentWorker/1"
             and worker_config["server_kind"] == "vanilla" and worker_config["host"] == "127.0.0.1",
             "M0_PROFILE_UNSUPPORTED")
-    require(150000 <= worker_config["max_wall_ms"] <= 240000 and
+    pilot_duration = (pilot_admission["budget_decision"] or {}).get("hard_timeout_s", 90) if pilot else 90
+    require((worker_config["max_wall_ms"] == 360000 if pilot_duration == 180 else
+             150000 <= worker_config["max_wall_ms"] <= 240000) and
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")
     require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")

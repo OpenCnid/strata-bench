@@ -69,7 +69,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
-        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False):
+        game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -94,6 +94,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(not oauth_mode or ingress_mode, "OAUTH_INGRESS_REQUIRED")
     require(not gateway_mode or oauth_mode and not inherited_helper, "GATEWAY_OAUTH_REQUIRED")
     require(not skills_mode or gateway_mode, "SKILLS_GATEWAY_REQUIRED")
+    require(pilot_timeout_s == 90 or piloting_contract and pilot_timeout_s == 180,
+            "PILOT_CONTRACT_PROFILE_REQUIRED")
     require(not piloting_contract or skills_mode and bootstrap_mode and tool_projections is not None and
             no_patch_catalog is not None and not any((canary_mode, state_mode, retirement_mode, interrupt_mode,
                                                      activation_source, inherited_helper, game_probe)),
@@ -500,7 +502,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
-            **bootstrap, "hard_timeout_s": 90 if bootstrap_mode else 45,
+            **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
             "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."

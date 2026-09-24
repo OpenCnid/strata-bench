@@ -18,6 +18,7 @@ PURPOSE = "development_piloting"
 SCHEMA = "strata/NativePilotPermit/1"
 MAX_REQUESTS = 6
 REQUEST_LIMITS = {6, 12}
+SESSION_LIMITS = {90, 180}
 MAX_SPEND = 1_000_000
 PRECHECKS = {"scoped_native_tools", "all_request_reservations", "finite_exposure", "verified_tls"}
 GAME_CONTRACT_PATH = "initial/game/contract.json"
@@ -60,6 +61,11 @@ def game_contract():
             "Observations are paged: state.truncated=true and state.next_cursor mean more captured visible cells "
             "are available. Request method=observe.page with cursor=state.next_cursor to read the next page. A missing cell "
             "is unknown, not air or proof that ground is absent. Read additional pages when needed to assess a route.",
+            "After turning, a fresh observe starts at page one again. If that page does not establish a safe walk, "
+            "continue reading its next_cursor pages before concluding that no safe route is available. "
+            "You may fetch and collect pages in a bounded functions.exec call; choose the target yourself from "
+            "the returned cells. If time or an expired cursor prevents completing this inspection, report "
+            "incomplete observation rather than claiming the terrain has no safe route.",
             "A cursor reads the same captured region; it does not refresh its age. For an action, request a new "
             "observe with cursor=null, then promptly read any needed pages of that new capture. Recheck your "
             "chosen target and use the latest delivered observation references without changing your chosen action.",
@@ -79,9 +85,10 @@ def game_contract():
         ]}).decode()
 
 
-def prompt(scope, lease_id, max_requests=MAX_REQUESTS):
+def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90):
     require(set(scope) == {"campaign_id", "agent_id", "epoch"} and
-            isinstance(lease_id, str) and 0 < len(lease_id) <= 128 and max_requests in REQUEST_LIMITS, "PILOT_SCOPE")
+            isinstance(lease_id, str) and 0 < len(lease_id) <= 128 and max_requests in REQUEST_LIMITS and
+            hard_timeout_s in SESSION_LIMITS, "PILOT_SCOPE")
     return (
         "Pilot this Minecraft avatar using the scoped game tool. First read " + GAME_CONTRACT_PATH +
         " through strata_broker.artifact_read; it documents the exact request envelope and action schema. "
@@ -95,7 +102,10 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS):
         "this turn before deciding on the walk. Then choose a visible ground tile one to two blocks away "
         "on safe level ground and walk to it with move_to. Any suitable observed tile can be the walk target; "
         "a special landmark is not required. Choose the target coordinates yourself from observations; "
-        "do not invent hidden terrain. If no safe walk is available after the turn, stop and explain. "
+        "do not invent hidden terrain. The post-turn observe returns page one again: if it does not establish "
+        "a safe route and next_cursor is present, read further pages before deciding to stop. "
+        "Stop and explain if the inspected map has no safe route or if your observation remains incomplete "
+        "when the time/request budget expires; distinguish these cases. "
         "No helpers. At most two act calls. Each action must "
         "have a deadline and duration no greater than 2000 ms, and release_at_end=true. "
         "Use the full 2000-ms duration allowance for each action; it is an execution timeout, not "
@@ -106,7 +116,7 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS):
         "observations expire for action acceptance after 2000 ms. Recheck the target against the refreshed state. "
         "Poll action_status for an accepted/executing action; never replay an uncertain action. "
         "Observe after each action and report the actual position and orientation changes, including "
-        f"failures. Finish promptly; the trial allows at most {max_requests} model requests and 90 seconds. "
+        f"failures. Finish promptly; the trial allows at most {max_requests} model requests and {hard_timeout_s} seconds. "
         "The public game scope is " + canonical(scope).decode() + "; lease_id=" + json.dumps(lease_id) + "."
     )
 
@@ -115,9 +125,10 @@ def require_profile(plan, config, lease_id):
     scope = {k: getattr(plan, k) for k in ("campaign_id", "agent_id", "epoch")}
     require(plan.purpose == PURPOSE and plan.role == "executor" and plan.depth == 0 and
             plan.parent_job_id is None and plan.helper_limit == 0 and
-            plan.prompt == prompt(scope, lease_id, config.max_requests) and
+            plan.prompt == prompt(scope, lease_id, config.max_requests, max(90, plan.hard_timeout_s)) and
             plan.budget_mode == "per_dispatch" and plan.auth_mode == "chatgpt_oauth" and
-            plan.provider == "openai" and plan.model in {"gpt-5.6-luna", "gpt-6-luna"} and plan.hard_timeout_s <= 90 and
+            plan.provider == "openai" and plan.model in {"gpt-5.6-luna", "gpt-6-luna"} and
+            (plan.hard_timeout_s <= 90 or plan.hard_timeout_s == 180) and
             plan.bootstrap_digest is not None and plan.ingress_policy is not None and
             plan.config_overrides.get("developer_instructions") == INSTRUCTIONS and
             config.max_requests in REQUEST_LIMITS and config.max_handlers == 1 and

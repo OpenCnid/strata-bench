@@ -257,10 +257,12 @@ def run_native_trial(args, *, pilot=None):
             "ingress_policy": INGRESS_POLICY, "gateway_config_digest": gateway_config.profile_fingerprint(),
             "config_overrides": config, "environment": {"PATH": previous.environment["PATH"],
             "TMP": str(temporary), "TEMP": str(temporary)}, "prompt": PROMPT,
-            "hard_timeout_s": 90, "output_limit_bytes": previous.output_limit_bytes, "qualification_ref": None})
+            "hard_timeout_s": (pilot.get("budget_decision") or {}).get("hard_timeout_s", 90) if pilot else 90,
+            "output_limit_bytes": previous.output_limit_bytes, "qualification_ref": None})
         if pilot:
             scope = {k: pilot["descriptor"][k] for k in ("campaign_id", "agent_id", "epoch")}
-            plan = plan.model_copy(update=scope | {"prompt": native_piloting.prompt(scope, pilot["lease_id"], calls)})
+            plan = plan.model_copy(update=scope | {"prompt": native_piloting.prompt(
+                scope, pilot["lease_id"], calls, plan.hard_timeout_s)})
             campaign = plan.campaign_id
         plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
             cas, plan, json.loads(args.tool_projections.read_bytes()))})

@@ -196,3 +196,23 @@ def test_d19_rejects_unfenced_stale_overbudget_and_reused_admission(retained_pil
         t.authorize()
     if change != "changed-hold":
         assert prior.uncertain_rows(db, t.authority) == t.retained_all
+
+
+@pytest.mark.parametrize("luna6", ["D18.4"], indirect=True)
+def test_longer_successor_keeps_legacy_bounds_and_requires_own_decision(retained_pilot):
+    t = retained_pilot
+    assert t.decision["hard_timeout_s"] == 90
+    t.plan = t.plan.model_copy(update={"hard_timeout_s": 180})
+    with pytest.raises(Fault, match="PILOT_BUDGET_SCOPE"):
+        t.authorize()
+    db = t.db.connection
+    for decision_id in ("D19.1", "D19.2"):
+        assert decision_body(db, decision_id)["hard_timeout_s"] == 90
+        job = decision_job(decision_id)
+        db.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,?,NULL,NULL)",
+            (job, "fixture", "a1", 1, "executor", None, "synthetic", "{}", "FINALIZED", time.time()))
+        db.execute("INSERT INTO native_gateways VALUES(?,'CLOSED','fixture-fence')", (job,))
+    decision = decision_body(db, "D19.3")
+    assert decision["hard_timeout_s"] == 180 and decision["max_requests"] == 12
+    assert decision["prior_exposure_microusd"] == t.decision["prior_exposure_microusd"]
+    assert prior.uncertain_rows(db, t.authority) == t.retained_all

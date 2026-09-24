@@ -61,7 +61,7 @@ def _continuing_decision(db, decision_id, row, totals):
     return {"schema": "strata/PilotBudgetDecision/1", "decision_id": decision_id,
         "policy": CONTINUING_POLICY, "authorization_id": AUTHORIZATION,
         "authorization_digest": row["digest"], "job_id": decision_job(decision_id),
-        "maximum_microusd": MAX_SPEND, "max_requests": 12, "hard_timeout_s": 90,
+        "maximum_microusd": MAX_SPEND, "max_requests": 12, "hard_timeout_s": 180 if number >= 10 else 90,
         "helper_limit": 0, "prior_exposure_microusd": prior, "combined_exposure_microusd": prior + MAX_SPEND,
         "retained_digest": digest(uncertain_rows(db, row["account"])), "user_authorized": True}
 
@@ -117,7 +117,7 @@ def install(database, cas, plan, reserve, decision):
         require(plan.job_id == job and plan.account == job + ":account" and
                 plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
                 plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
-                plan.hard_timeout_s <= 90 and plan.budget_mode == "per_dispatch" and
+                plan.hard_timeout_s <= decision["hard_timeout_s"] and plan.budget_mode == "per_dispatch" and
                 plan.model == ("gpt-5.6-luna" if decision["decision_id"] in {"D15", "D16"} else "gpt-6-luna") and
                 plan.auth_mode == "chatgpt_oauth" and
                 plan.provider == "openai" and reserve.operation_id == plan.operation_id and

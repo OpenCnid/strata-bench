@@ -129,6 +129,11 @@ def inspect_reconciled_pilot(bundle):
         game, cap, observations = worker_evidence(worker, source, native, config, allow_recorded_refusals=True)
         stop = stop_evidence(db, bundle, native, native, select_job=True)
         pins = source_evidence(bundle, native, intent, cap)
+        from mcbench.native_game_retention import GameRetention
+        retention = GameRetention({"path": str(bundle.path("run/retention-input.json")),
+                                   "sha256": intent["plan"]["retention_source"]["sha256"]})
+        retention.check_worker_binding(intent["plan"]["worker_runtime"],
+            bundle.files["run/source/backends/mineflayer/dist/src/worker.js"].sha256, capability_digest=cap["digest"])
         saved = saved_player_evidence(bundle, observations)
         player_path = f"run/server/stopped-instance/state/world/playerdata/{report['measurements']['saved_player_uuid']}.dat"
         require(file_hash(bundle.path(player_path)) == report["measurements"]["saved_player_sha256"],
@@ -137,6 +142,7 @@ def inspect_reconciled_pilot(bundle):
                                     bundle.json("run/server/result.json"))
     bundle.verify()
     return report | {"schema": "strata/ReconciledNativePilot/1", "action_evidence_reconciled": True,
+        "declared_worker_identity_matches": True,
         "game": game, "saved_player": saved, "stop": stop, "locks": pins, "pack": pack}
 
 
@@ -151,6 +157,7 @@ def main(argv=None):
     parser.add_argument("--seal", required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
+    require(not args.output.resolve().is_relative_to(args.bundle.resolve()), "EVIDENCE_READ_ONLY")
     report = inspect_reconciled_pilot(EvidenceBundle(args.bundle, args.seal))
     receipt = write_report(args.output, report)
     print(json.dumps({"status": "reconciled", "visibility": "evaluator", "G0": "fail", **receipt}))

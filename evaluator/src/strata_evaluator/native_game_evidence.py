@@ -380,7 +380,8 @@ def worker_evidence(db, source, plan, config, *, previous=None, allow_recorded_r
                     "action_seq": refusal.action_seq, "code": refusal.code,
                     "accepted": False, "primitive_events": 0})
             elif request.method == "action_status" and code == "ACTION_UNKNOWN":
-                require(request.target_request_id not in actions_by_id, "NATIVE_GAME_REFUSAL_BINDING")
+                require(db.execute("SELECT 1 FROM actions WHERE request_id=?", (request.target_request_id,)).fetchone()
+                        is None, "NATIVE_GAME_REFUSAL_BINDING")
                 read_errors.append({"rpc_request_id": call["request"], "method": request.method,
                                     "target_request_id": request.target_request_id, "code": code})
             else:

@@ -413,3 +413,9 @@ def test_failed_pilot_source_capture_never_publishes_a_complete_manifest(tmp_pat
     with pytest.raises(Fault):
         archive_pilot_sources(output, {name: "0" * 64}, tmp_path, tmp_path)
     assert not (output / "source-pins.json").exists()
+
+
+def test_reconciliation_cli_cannot_replace_its_evidence(tmp_path):
+    from strata_evaluator.native_game_measurements import main
+    with pytest.raises(Fault, match="EVIDENCE_READ_ONLY"):
+        main(["--bundle", str(tmp_path), "--seal", "a" * 64, "--output", str(tmp_path / "seal.json")])

@@ -78,6 +78,38 @@ def test_registration_before_jobs_is_durable_draft_and_no_budget_mutation(packag
     assert database.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
 
 
+@pytest.mark.parametrize("changed", [None, "runtime", "worker", "capability", "agent", "qualified"])
+def test_declared_worker_binding_cannot_silently_retain_a_previous_runtime(package, changed):
+    body, save, _ = package
+    runtime = {"path": "C:/held/runtime.json", "sha256": "c" * 64}
+    worker, capability = "d" * 64, "e" * 64
+    declared = {"schema": "strata/M0WorkerCapabilityReference/1", "track": "structured-actions/v1",
+        "worker_runtime": runtime, "backend_implementation_sha256": worker, "import_capability_digest": capability,
+        "actual_game_capabilities_collected_at_launch": True, "campaign_admission": False,
+        "full_conformance_qualified": False}
+    if changed == "runtime":
+        declared["worker_runtime"] = runtime | {"sha256": "f" * 64}
+    elif changed == "worker":
+        declared["backend_implementation_sha256"] = "f" * 64
+    elif changed == "capability":
+        declared["import_capability_digest"] = "f" * 64
+    elif changed == "qualified":
+        declared["full_conformance_qualified"] = True
+    raw = canonical(declared).decode()
+    ref = "cas:sha256:" + hashlib.sha256(raw.encode()).hexdigest()
+    body["objects"][ref] = raw
+    body["campaign"]["backend"]["capability_manifest"] = ref
+    if changed != "agent":
+        body["agent"]["capability_profile"] = ref
+    retention = GameRetention(save())
+    if changed:
+        with pytest.raises(Fault, match="RETENTION_WORKER_MISMATCH"):
+            retention.check_worker_binding(runtime, worker, capability_digest=capability)
+    else:
+        retention.check_worker_binding(runtime, worker)
+        retention.check_worker_binding(runtime, worker, capability_digest=capability)
+
+
 @pytest.mark.parametrize("registered,authorized", [("gpt-6-luna", "gpt-6-luna"),
     ("gpt-5.6-luna", "gpt-6-luna"), ("gpt-6-luna", "gpt-5.6-luna")])
 @pytest.mark.parametrize("version", [1, 2])

@@ -44,3 +44,39 @@ live17 archive, failed gameplay goal, receipt gap and all unresolved reservation
 remain unchanged. Exposure at this checkpoint is$4.878100/$10; no new model run
 has yet occurred. Next prepare a fresh held runtime/profile and current native
 preflight, then exercise the connected profile under continuing D18/D19 authority.
+
+## Prepared worker and identity correction
+
+The new held worker imports in2.672s with all three owned processes terminal:
+11,724files/654,086,943bytes, manifest
+`146c1a067bc2535c135432a9e79f4a21923a90f47c8306b8c797035dfe2cbce6`.
+Its archive seal is
+`db83bb6b1a07c74664edef858ddd6c9d064160ee4098d9168a7a3eb690ac2d9a`.
+Native preflight10 passes27/27 with six synthetic requests and normal finalization
+in20.524s; seal
+`fe0a7c88879212644514f9ed9af79d19e14babd79d86350f9a5fa276d305c044`.
+No inference charge or game run occurs in these preparations.
+
+The successor lock is
+`cas:sha256:5487245831247e59eb26d1154d033f29ab296bc59fcb0ac20d98145105394d8d`,
+request `vanilla-1192-refusal-20260924`. It reuses the original player-free
+baseline and official installation; only objects/outbox/provisioning append,
+all prior rows and37 other authority tables remain unchanged. It does not
+declare the changed runtime's game behavior qualified.
+
+Preparation review found that the copied retention capability reference still
+declared an older worker path/hash/import capability. Actual runtime evidence
+was retained separately, but that stale declaration cannot certify the intended
+system identity. The instrumented driver now checks declared runtime and entry
+bytes before launch, then checks the actual observation capability digest before
+model dispatch. The offline joined reader performs the same checks. Six focused
+binding cases pass (0.38s), and the report CLI's evidence-overwrite denial passes
+(0.46s). One current Forge/JVM at-most-once fixture passes (1.981s, synthetic game
+effects). These bring distinct focused source coverage to198 Python/39 Node
+cases; earlier cases were not rerun unnecessarily. Native preflight11 is required
+for this changed Python source; the already prepared Node bundle remains valid.
+
+The corrected stopped-player reader independently matches live17's orientation,
+position, dimension, health, food and inventory. This component result does not
+retroactively supply its missing refusal/source records or correct its old
+declared worker identity. Its original archive and failures remain unchanged.

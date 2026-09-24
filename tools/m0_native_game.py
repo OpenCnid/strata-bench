@@ -179,6 +179,8 @@ def run_plan(plan, resources, runtime=None):
         prepared = resources.enter_context(HeldPackWorker(pack, invocation.model_dump()))
         require(prepared.resolved["worker_runtime"] == plan["worker_runtime"], "M0_PACK_RUNTIME_MISMATCH")
         runtime = prepared.runtime
+        if version == "strata/M0NativePilot/2":
+            retention.check_worker_binding(plan["worker_runtime"], file_hash(Path(runtime.body["worker"])))
         if sealed_recovery:
             recovery.check_worker_runtime(runtime.reference)
         worker_config = prepared.resolved["worker_configuration"]
@@ -414,6 +416,9 @@ def run_plan(plan, resources, runtime=None):
             time.sleep(.6)
         print(json.dumps({"status": "native_game_ready", "elapsed_s": round(time.monotonic()-started, 3)}), flush=True)
         mark_timing("avatar_ready")
+        if version == "strata/M0NativePilot/2":
+            retention.check_worker_binding(plan["worker_runtime"], file_hash(Path(runtime.body["worker"])),
+                                           capability_digest=observed["result"]["capability_digest"])
         if recovery:
             result["recovery_start"] = recovery.verify_start(descriptor, observed)
             write(output / "recovery-start.json", result["recovery_start"])

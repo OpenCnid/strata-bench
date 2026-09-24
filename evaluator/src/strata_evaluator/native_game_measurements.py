@@ -9,7 +9,7 @@ from .evidence_bundle import EvidenceCAS
 from .native_game_evidence import model_usage
 
 
-def inspect_native_measurements(bundle):
+def _inspect_recorded_measurements(bundle):
     intent = bundle.json("run/intent.json")
     plan = intent["plan"]
     require(plan["schema"] == "strata/M0NativePilot/2" and intent["model_provider"] == "native_oauth"
@@ -24,8 +24,8 @@ def inspect_native_measurements(bundle):
             "NATIVE_MEASUREMENT_SCOPE")
     result = bundle.json("run/result.json")
     server = bundle.json("run/server/result.json")
-    require(result["server_result"] == server and result["status"] == "pass"
-            and result["native_worker_journal_join"] is True, "NATIVE_MEASUREMENT_STOP")
+    require(result["server_result"] == server and result["status"] in {"pass", "fail"}
+            and type(result["native_worker_journal_join"]) is bool, "NATIVE_MEASUREMENT_STOP")
     with bundle.database("run/worker/actions.sqlite") as db:
         report = inspect_measurements(bundle.path("run/result.json").parent, server_plan, config,
             server, result["worker_health"], plan["pilot"]["job_id"], db)
@@ -36,13 +36,19 @@ def inspect_native_measurements(bundle):
             "model_costs_reconciled": False, "G0": "fail"}
 
 
-def inspect_instrumented_pilot(bundle):
+def inspect_native_measurements(bundle):
+    result = bundle.json("run/result.json")
+    require(result["status"] == "pass" and result["native_worker_journal_join"] is True,
+            "NATIVE_MEASUREMENT_STOP")
+    return _inspect_recorded_measurements(bundle)
+
+
+def _join_completed_costs(bundle, measured):
     """Join independently reconstructed measurements to actual distinct costs.
 
     The archive must include scoped broker workspace CAS bytes as well as model
     receipts. Missing private inputs are errors, never inferred zero costs.
     """
-    measured = inspect_native_measurements(bundle)
     plan = bundle.json("run/intent.json")["plan"]
     scope = measured["measurements"]
     with bundle.database("controller.sqlite") as db:
@@ -56,7 +62,8 @@ def inspect_instrumented_pilot(bundle):
         require(result["is_example"] is False and result["model_evidence"] == "actual_native_oauth"
                 and result["job_id"] == native.job_id and result["profile_digest"] == native.profile_digest()
                 and len(result["attempts"]) == costs["real_model_requests"]
-                and result["checks"] and all(v is True for v in result["checks"].values())
+                and isinstance(result["checks"], dict) and result["checks"].get("native_completed") is True
+                and all(type(v) is bool for v in result["checks"].values())
                 and sorted(result["valuations"], key=lambda v: v["raw_usage_ref"]) ==
                     sorted((a["valuation"] for a in source["attempts"]), key=lambda v: v["raw_usage_ref"]),
                 "NATIVE_MEASUREMENT_COSTS")
@@ -71,3 +78,29 @@ def inspect_instrumented_pilot(bundle):
         "model": costs, "tool_execution": tool_costs, "native_source_digest": digest(source),
         "native_profile_digest": native.profile_digest(), "scientific_qualified": False,
         "complete_G0_qualification": False}
+
+
+def inspect_instrumented_pilot(bundle):
+    """Preserve the strict successful-pilot admission contract."""
+    measured = inspect_native_measurements(bundle)
+    report = _join_completed_costs(bundle, measured)
+    require(all(v is True for v in bundle.json("run/native/result.json")["checks"].values()),
+            "NATIVE_MEASUREMENT_COSTS")
+    return report
+
+
+def inspect_completed_pilot_costs(bundle):
+    """Reconstruct normal-completion costs even when the recorded goal failed.
+
+    A settled native job and complete stopped measurements are still required.
+    Gameplay checks and the action join are retained as recorded outcomes, not
+    independently certified here. Unknown usage and incomplete stops still fail.
+    """
+    report = _join_completed_costs(bundle, _inspect_recorded_measurements(bundle))
+    result = bundle.json("run/result.json")
+    native = bundle.json("run/native/result.json")
+    return report | {"schema": "strata/CompletedNativePilotCosts/1",
+        "outcome": {"run_status": result["status"], "native_checks": native["checks"],
+            "worker_action_join_recorded": result["native_worker_journal_join"],
+            "run_result_digest": digest(result), "native_result_digest": digest(native)},
+        "gameplay_success_qualified": False, "action_effects_reconciled": False}

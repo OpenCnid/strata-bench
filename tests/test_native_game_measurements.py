@@ -258,3 +258,120 @@ def test_adjacent_timing_marks_can_share_one_clock_quantum(capture):
     assert sum(s["elapsed_ns"] == 0 for s in report["segments"]) == 2
     assert sum(s["elapsed_ns"] for s in report["segments"]) == report["wrapper_ns"]
     assert report["native_harness_including_thinking_ns"] == events[5]["mono_ns"] - events[4]["mono_ns"]
+
+
+@pytest.fixture
+def completed_cost_bundle(capture, monkeypatch):
+    """Synthetic cost boundary; real clock/snapshot/health readers run normally."""
+    from types import SimpleNamespace
+    from strata_evaluator import native_game_measurements as reader
+    from strata_evaluator.evidence_bundle import EvidenceBundle
+    from test_native_game_evidence import seal
+
+    output, plan, config, server, health = capture
+    with sqlite3.connect(output.parent / "controller.sqlite") as db:
+        db.execute("CREATE TABLE synthetic_boundary (value TEXT)")
+    (output / "native").mkdir()
+    write(output / "intent.json", {"model_provider": "native_oauth", "isolation_qualified": False,
+        "plan": {"schema": "strata/M0NativePilot/2", "clock": plan["clock"], "pack": plan["base"]["pack"],
+            "worker_invocation": config, "worker_runtime": {"sha256": hashlib.sha256(
+                (output / "worker-runtime.json").read_bytes()).hexdigest()}, "pilot": {"job_id": SCOPE["run_id"]}}})
+    write(output / "server-plan.json", plan)
+    result = {"server_result": server, "worker_health": health, "status": "fail",
+              "native_worker_journal_join": False, "measurements": inspect(capture)}
+    native = SimpleNamespace(**config, job_id=SCOPE["run_id"], profile_digest=lambda: "synthetic-profile")
+    valuation = {"raw_usage_ref": "synthetic-receipt"}
+    source = {"returncode": 0, "attempts": [{"valuation": valuation}],
+              "broker_calls": [{"elapsed_ns": 123}]}
+    recorded = {"is_example": False, "model_evidence": "actual_native_oauth", "job_id": native.job_id,
+        "profile_digest": native.profile_digest(), "attempts": ["synthetic"], "valuations": [valuation],
+        "checks": {"native_completed": True, "walk_observed": False}}
+
+    def source_reader(_db, _cas, job, *, simulation):
+        assert job == native.job_id and simulation is False
+        return native, source, None
+
+    def cost_reader(_db, _cas, selected, actual_source, *, simulation):
+        assert selected is native and actual_source is source and simulation is False
+        return {"real_model_requests": 1, "synthetic_test_boundary": True}
+
+    monkeypatch.setattr(reader, "inspect_native_source", source_reader)
+    monkeypatch.setattr(reader, "model_usage", cost_reader)
+
+    def bundle():
+        write(output / "result.json", result)
+        write(output / "native/result.json", recorded)
+        return EvidenceBundle(output.parent, seal(output.parent))
+
+    return bundle, result, recorded, native, source
+
+
+def test_completed_costs_keep_failed_gameplay_and_strict_success_reader(completed_cost_bundle):
+    from strata_evaluator.native_game_measurements import inspect_completed_pilot_costs, inspect_instrumented_pilot
+    build, result, recorded, _, _ = completed_cost_bundle
+    bundle = build()
+    report = inspect_completed_pilot_costs(bundle)
+    assert report["schema"] == "strata/CompletedNativePilotCosts/1"
+    assert report["model_costs_reconciled"] and report["tool_execution"]["sum_call_ns"] == 123
+    assert report["outcome"] == {"run_status": "fail", "native_checks": recorded["checks"],
+        "worker_action_join_recorded": False, "run_result_digest": digest(result),
+        "native_result_digest": digest(recorded)}
+    assert not report["gameplay_success_qualified"] and not report["action_effects_reconciled"]
+    assert not report["complete_G0_qualification"] and report["G0"] == "fail"
+    with pytest.raises(Fault, match="NATIVE_MEASUREMENT_STOP"):
+        inspect_instrumented_pilot(bundle)
+    bundle.verify()
+
+
+@pytest.mark.parametrize("case", ["returncode", "scope", "native_check", "nonboolean_check", "valuations",
+                                  "attempts", "duration", "boolean_duration", "unknown_usage", "status", "join"])
+def test_completed_costs_do_not_waive_uncertainty_or_invalid_bindings(completed_cost_bundle, monkeypatch, case):
+    from strata_evaluator import native_game_measurements as reader
+    build, result, recorded, native, source = completed_cost_bundle
+    if case == "returncode":
+        source["returncode"] = 1
+    elif case == "scope":
+        native.agent_id = "foreign"
+    elif case == "native_check":
+        recorded["checks"]["native_completed"] = False
+    elif case == "nonboolean_check":
+        recorded["checks"]["walk_observed"] = 0
+    elif case == "valuations":
+        recorded["valuations"] = []
+    elif case == "attempts":
+        recorded["attempts"] = []
+    elif case in {"duration", "boolean_duration"}:
+        source["broker_calls"][0]["elapsed_ns"] = -1 if case == "duration" else True
+    elif case == "unknown_usage":
+        def unknown(*args, **kwargs):
+            raise Fault("METERING_UNKNOWN")
+        monkeypatch.setattr(reader, "model_usage", unknown)
+    elif case == "status":
+        result["status"] = "unknown"
+    else:
+        result["native_worker_journal_join"] = 0
+    with pytest.raises(Fault):
+        reader.inspect_completed_pilot_costs(build())
+
+
+def test_successful_wrapper_still_requires_every_gameplay_check(completed_cost_bundle):
+    from strata_evaluator.native_game_measurements import inspect_instrumented_pilot
+    build, result, _, _, _ = completed_cost_bundle
+    result.update(status="pass", native_worker_journal_join=True)
+    with pytest.raises(Fault, match="NATIVE_MEASUREMENT_COSTS"):
+        inspect_instrumented_pilot(build())
+
+
+def test_successful_wrapper_preserves_its_schema_and_cost_join(completed_cost_bundle):
+    from strata_evaluator.native_game_measurements import inspect_completed_pilot_costs, inspect_instrumented_pilot
+    build, result, recorded, _, _ = completed_cost_bundle
+    result.update(status="pass", native_worker_journal_join=True)
+    recorded["checks"]["walk_observed"] = True
+    bundle = build()
+    strict = inspect_instrumented_pilot(bundle)
+    costs = inspect_completed_pilot_costs(bundle)
+    assert strict["schema"] == "strata/InstrumentedNativePilotEvidence/1"
+    assert strict["model_costs_reconciled"] and strict["model"] == costs["model"]
+    assert strict["measurements"] == costs["measurements"]
+    assert costs["outcome"]["run_status"] == "pass"
+    assert not costs["gameplay_success_qualified"]  # Costs alone never certify behavior.

@@ -78,12 +78,16 @@ export class Journal {
     if (!row) throw new Fault('ACTION_UNKNOWN');
     return JSON.parse(row.ack) as ActionAck;
   }
-  accept(batch: ActionBatch, ack: ActionAck): void {
-    this.transaction(() => {
+  accept(batch: ActionBatch, makeAck: () => ActionAck): ActionAck {
+    return this.transaction(() => {
       requireThat(batch.seq === this.counter(`${this.epoch}:action`) + 1, 'OUT_OF_ORDER');
+      // Allocate the receipt inside the same transaction as its durable intent.
+      // Refusals and failed inserts must not consume an unrecorded ack sequence.
+      const ack = makeAck();
       this.db.prepare('INSERT INTO actions VALUES (?,?,?,?,?,?)').run(batch.request_id, batch.epoch,
         batch.seq, digest(batch), JSON.stringify(batch), JSON.stringify(ack));
       this.counter(`${this.epoch}:action`, 1); this.event('ack', ack);
+      return ack;
     });
   }
   update(ack: ActionAck): void {

@@ -182,8 +182,7 @@ export class ActionLane {
     requireThat(this.journal.counter('primitive_events') + minimum <= this.primitiveLimit, 'BUDGET_EXHAUSTED');
     const remaining = Date.parse(b.deadline_at) - Date.now();
     requireThat(remaining > 0 && remaining <= 30250 && mono() < this.deadline, 'DEADLINE_EXCEEDED');
-    const ack = this.ack(b, 'accepted');
-    this.journal.accept(b, ack);
+    const ack = this.journal.accept(b, () => this.ack(b, 'accepted'));
     const timer = setTimeout(() => this.background(this.cancel(b.request_id, 'DEADLINE_EXCEEDED')),
       Math.min(b.duration_ms, remaining, this.deadline - mono()));
     this.lastRelease = false;

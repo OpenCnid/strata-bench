@@ -516,6 +516,42 @@ class PackProvider:
                     "files": [entry.model_dump() for entry in entries], "complete_role_qualified": False}
         return {"evidence": self._put(request_id, evidence), **evidence}
 
+    def prepare_forge_client(self, request_id, vanilla_request, installer: Path, launcher_metadata: Path,
+                             base_root: Path, library_root: Path, artifacts_ref, destination: Path):
+        """Compose Forge software with original sealed base and reproduced SRG."""
+        from .forge_client import prepare_client
+        from .forge_runtime import read_input
+        row = self._row(request_id, active=True)
+        base = self._row(vanilla_request, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}
+                and base["target"] == "vanilla" and base["state"] == "SEALED", "INVALID_TRANSITION")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination), "UNSAFE_PATH")
+        artifacts = self._json(request_id, artifacts_ref)
+        require(artifacts.get("schema") == "strata/ForgeRuntimeArtifacts/1" and
+                artifacts.get("request_id") == request_id and artifacts.get("is_example") == self.simulation,
+                "FORGE_DERIVATION_UNQUALIFIED")
+        derivation = self._json(request_id, artifacts["derivation"])
+        require(derivation.get("schema") == "strata/ForgeDerivedRuntime/1" and
+                derivation.get("request_id") == request_id and derivation.get("acquisition_receipt") == row["receipt"]
+                and derivation.get("base_inventory") == base["inventory"] and derivation.get("base_lock") == base["sealed"]
+                and derivation.get("installed_outputs_reproduced") is True, "FORGE_DERIVATION_UNQUALIFIED")
+        client = [r for r in artifacts["files"] if r["role"] == "client"]
+        produced = [r for r in derivation["derived"] if r["role"] == "client"]
+        require(len(client) == len(produced) == 1 and client[0]["digest"] == produced[0]["sha256"]
+                and client[0]["bytes"] == produced[0]["bytes"] and client[0]["path"] == produced[0]["runtime_path"],
+                "FORGE_DERIVATION_UNQUALIFIED")
+        srg = self.cas.read(self.principal, self.namespace(request_id), "cas:sha256:" + client[0]["digest"],
+                            max_bytes=128 * 1024**2)
+        _, version_raw, binding = self._vanilla_distribution(vanilla_request, "client")
+        inventory = self._json(vanilla_request, base["inventory"])
+        files = [r for r in inventory["files"] if r["role"] == "client"]
+        report = prepare_client(read_input(installer, 16 * 1024**2), version_raw,
+            read_input(launcher_metadata, 2 * 1024**2), base_root, files, library_root, srg, client[0], destination)
+        report.update(request_id=request_id, is_example=self.simulation, acquisition_receipt=row["receipt"],
+            derived_artifacts=artifacts_ref, base_binding=binding | {"inventory": base["inventory"], "lock": base["sealed"]},
+            inherited_license_namespace=self.namespace(vanilla_request))
+        return {"evidence": self._put(request_id, report), **report}
+
     def prepare_vanilla_client(self, request_id, assets: Path, library_roots: list[Path], destination: Path):
         """Prepare the exact acquired Windows client and its metadata-selected inputs."""
         from .vanilla_client import prepare_client

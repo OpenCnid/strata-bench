@@ -1,5 +1,20 @@
 # Private pack provisioning
 
+Prepare the E9E client software after importing reproduced SRG artifacts:
+
+```text
+mcbench pack prepare-forge-client INSTALLER LAUNCHER_METADATA SEALED_VANILLA_CLIENT LIBRARIES DERIVED_ARTIFACTS_REF DESTINATION --request E9E_REQUEST --vanilla-request SEALED_VANILLA_REQUEST --store STORE
+```
+
+This consumes the original sealed vanilla Java/assets and selected libraries,
+exact Forge metadata and the acquired client SRG, checking all bindings before
+copying into fresh output. It records the classpath/module order, additional
+loader files and explicit superseded libraries. It does not copy launcher
+account state or start a process. Preserve failures; existing destinations
+cannot be reused. [Actual preparation](../verification/2026-09-24-forge-client-software.md)
+is qualified as software only. Combine vendor, harness/effective settings,
+license dispositions and server software before complete role/seal admission.
+
 The required client/server SRG JARs use two operator commands:
 
 ```text

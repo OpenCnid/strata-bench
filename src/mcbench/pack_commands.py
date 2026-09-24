@@ -167,6 +167,16 @@ def import_forge_runtime(derivation: str, request: Request, store: Store, simula
         emit(service.import_forge_runtime(request, derivation))
 
 
+@pack_app.command("prepare-forge-client")
+def prepare_forge_client(installer: Path, launcher_metadata: Path, base_root: Path, library_root: Path,
+                         artifacts: str, destination: Path, request: Request, store: Store,
+                         vanilla_request: Annotated[str, typer.Option()], simulation: bool = False):
+    """Compose exact client software from sealed vanilla and acquired Forge artifacts."""
+    with provider(store, simulation) as service:
+        emit(service.prepare_forge_client(request, vanilla_request, installer, launcher_metadata,
+                                          base_root, library_root, artifacts, destination))
+
+
 @pack_app.command("prepare-vanilla-client")
 def prepare_vanilla_client(assets: Path, destination: Path, request: Request, store: Store,
                            library_root: Annotated[list[Path], typer.Option("--library-root")],

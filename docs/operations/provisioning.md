@@ -8,6 +8,27 @@ identity. Materialization and launch use the same exact layout. Existing vanilla
 capture/restore also preserves pinned software directories. This does not bypass
 E9E initialization, effective-setting or seal checks. [Verification and scope](../verification/2026-09-24-inventory-directories.md).
 
+A separate operator-only development profile checks the already installed E9E
+server without rerunning ServerStarter or a Forge installer:
+
+```text
+python tools/e9e_cold_start.py FRESH_VERIFIED_SERVER_COPY FRESH_PRIVATE_EVIDENCE --campaign INSTANCE_ID --epoch 1 --initial
+python tools/e9e_cold_start.py SAME_NORMALLY_STOPPED_SERVER FRESH_PRIVATE_EVIDENCE_2 --campaign INSTANCE_ID --epoch 2
+```
+
+The caller must independently verify the complete copied role against its pinned
+preparation before the first call. `e9e1270-installed-forge-cold-start/1` fixes the
+reviewed Forge argument-file, Java and telemetry module hashes, loopback online
+port 25603, 2G/5G heap and four processors. It holds Java/mod/library/script bytes,
+uses a fresh private signed telemetry authority, binds the observed Java process
+to the owned Job Object, samples selected config values and the expert furnace
+recipe, and sends only the operator stop command. Bounds are 300 seconds before
+stop, 10 seconds after bound startup with readiness required, 120 seconds for normal drain and a
+425-second outer watchdog. Retain failed output; never reuse an authority or
+restart an uncertain prior process. These are provisioning observations, not an
+LLM policy, gameplay tool, sealed PackLock or scoring/save/isolation qualification.
+Preserve effective-file failures and qualify their exact role/consumer disposition.
+
 Compose initial E9E roles from explicit reviewed source and FileEntry plans:
 
 ```text

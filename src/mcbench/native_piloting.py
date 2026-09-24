@@ -31,6 +31,14 @@ def game_contract():
         "tool": "strata_broker.game", "arguments_schema": GameCall.model_json_schema(),
         "pagination": {"method": "observe.page", "cursor_field": "cursor",
             "cursor_source": "result.state.next_cursor", "fresh_capture_method": "observe"},
+        "level_walk_coordinates": {
+            "selected_support": "s is the integer position of a support block you chose from delivered observations",
+            "feet_target_expression": "({x:s.x+0.5,y:s.y+1,z:s.z+0.5})",
+            "target_cell_expression": "({x:Math.floor(target.x),y:Math.floor(target.y),z:Math.floor(target.z)})",
+            "support_cell": "(cell.x,cell.y-1,cell.z)",
+            "body_cell": "(cell.x,cell.y,cell.z)",
+            "head_cell": "(cell.x,cell.y+1,cell.z)",
+            "horizontal_distance_expression": "Math.hypot(target.x-position.x,target.z-position.z)"},
         "timing": {"maximum_request_future_ms": int(GAME_DEADLINE_MAX_S * 1000),
             "pilot_maximum_action_ms": 2000,
             "maximum_observation_age_ms": 2000, "snapshot_coalescing_ms": 500,
@@ -78,6 +86,17 @@ def game_contract():
             "move_to targets the avatar's feet position. For level walking, the support block's top must be "
             "at the current feet height, with passable body and head space. Block positions are cell coordinates; "
             "the horizontal center is x+0.5,z+0.5. Only already delivered cells are available to the local planner.",
+            "Choose a support block first, retain its exact integer position s, and compute the feet target "
+            "with the level_walk_coordinates expression. Add 0.5 for either sign of x/z. Use Math.floor "
+            "to recover the target cell; truncation toward zero is wrong for negative coordinates. "
+            "Verify that the cell below that exact target is your chosen support, rather than citing a "
+            "different nearby block. Check that the computed horizontal distance is one to two blocks "
+            "and the feet height is unchanged; your current support tile gives zero displacement.",
+            "Immediately before walking, look up the exact support, body and head cell coordinates in "
+            "the refreshed observation and its needed pages. Confirm supporting ground and passable body/head "
+            "space. An absent support cell remains unknown even when the target's body and head cells are air. "
+            "The local call may calculate coordinates and validate your already chosen tile, but selection "
+            "of a new destination belongs in your reasoning after reading the observations.",
             "Poll action_status with target_request_id equal to the batch request_id and action=null; never replay an uncertain action.",
             "After a terminal receipt, wait at least 500 ms before observe if needed to avoid a coalesced older "
             "snapshot. Confirm last_action_seq, state_revision, position/orientation and released controls.",
@@ -101,7 +120,9 @@ def prompt(scope, lease_id, max_requests=MAX_REQUESTS, hard_timeout_s=90):
         "First choose an off-axis visible point and turn toward it in place using look_at. Complete and verify "
         "this turn before deciding on the walk. Then choose a visible ground tile one to two blocks away "
         "on safe level ground and walk to it with move_to. Any suitable observed tile can be the walk target; "
-        "a special landmark is not required. Choose the target coordinates yourself from observations; "
+        "a special landmark is not required. Choose a support block yourself from observations and compute "
+        "its top-center using level_walk_coordinates in the contract. Check its actual distance from your "
+        "current feet position and verify the exact target's support/body/head cells after refreshing; "
         "do not invent hidden terrain. The post-turn observe returns page one again: if it does not establish "
         "a safe route and next_cursor is present, read further pages before deciding to stop. "
         "Stop and explain if the inspected map has no safe route or if your observation remains incomplete "

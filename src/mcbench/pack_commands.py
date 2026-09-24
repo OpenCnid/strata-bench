@@ -150,6 +150,23 @@ def prepare_e9e_content(client_mods: Path, server_mods: Path, client_capture: Pa
             strict_json(read_input(harness_exclusions, 65536)), destination))
 
 
+@pack_app.command("derive-forge-runtime")
+def derive_forge_runtime(installer: Path, client_libraries: Path, server_libraries: Path,
+                         java_root: Path, destination: Path, request: Request, store: Store,
+                         vanilla_request: Annotated[str, typer.Option()]):
+    """Reproduce both required SRG files with fixed offline processors; no installer/game."""
+    with provider(store, False) as service:
+        emit(service.derive_forge_runtime(request, vanilla_request, installer,
+            {"client": client_libraries, "server": server_libraries}, java_root, destination))
+
+
+@pack_app.command("import-forge-runtime")
+def import_forge_runtime(derivation: str, request: Request, store: Store, simulation: bool = False):
+    """Import both exact reproduced SRG files for role assembly, without execution."""
+    with provider(store, simulation) as service:
+        emit(service.import_forge_runtime(request, derivation))
+
+
 @pack_app.command("prepare-vanilla-client")
 def prepare_vanilla_client(assets: Path, destination: Path, request: Request, store: Store,
                            library_root: Annotated[list[Path], typer.Option("--library-root")],

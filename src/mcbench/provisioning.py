@@ -434,6 +434,34 @@ class PackProvider:
             quota_bytes=self.quota, max_object_bytes=2 * 1024**2) for role, raw in raw_captures.items()}
         return {"evidence": self._put(request_id, result), **result}
 
+    def derive_forge_runtime(self, request_id, vanilla_request, installer: Path,
+                             libraries: dict[str, Path], java_root: Path, destination: Path):
+        """Reproduce required SRG outputs with an inventory-bound Java runtime."""
+        from .forge_derivation import derive, prepare_inputs
+        from .forge_runtime import read_input
+        from .inference_transport import strict_json
+        row = self._row(request_id, active=True)
+        base = self._row(vanilla_request, active=True)
+        require(not self.simulation and row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}
+                and base["target"] == "vanilla" and base["state"] == "SEALED", "INVALID_TRANSITION")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        _, version_raw, binding = self._vanilla_distribution(vanilla_request, "client")
+        acquisition = parse_acquisition(self._json(vanilla_request, base["receipt"])["receipt"])
+        manifest_raw = self.cas.read(self.principal, self.namespace(vanilla_request),
+                                    acquisition.vanilla_manifest, max_bytes=4 * 1024**2)
+        inventory = self._json(vanilla_request, base["inventory"])
+        java_files = sorted(({"path": r["path"][5:], "digest": r["digest"], "bytes": r["bytes"]}
+                             for r in inventory["files"] if r["role"] == "client" and r["path"].startswith("java/")),
+                            key=lambda r: r["path"])
+        plan = prepare_inputs(read_input(installer, 16 * 1024**2), manifest_raw, version_raw, libraries)
+        plan["base_binding"] = binding | {"inventory": base["inventory"], "sealed": base["sealed"]}
+        result = derive(plan, java_root, java_files, destination)
+        result.update(request_id=request_id, acquisition_receipt=row["receipt"],
+                      vanilla_request=vanilla_request, base_inventory=base["inventory"], base_lock=base["sealed"])
+        result["plan_ref"] = self._put(request_id, strict_json(read_input(destination / "plan.json", 4 * 1024**2)))
+        return {"evidence": self._put(request_id, result), **result}
+
     def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
         """Join exact installed server payloads to the durable acquired distribution."""
         from .vanilla_runtime import prepare_server
@@ -443,6 +471,50 @@ class PackProvider:
         result = prepare_server(raw, root, destination)
         result.update(schema="strata/VanillaServerSoftware/1", **binding)
         return {"evidence": self._put(request_id, result), **result}
+
+    def import_forge_runtime(self, request_id, derivation_ref):
+        """Consume an existing exact reproduction without rerunning processors."""
+        from .forge_derivation import POLICY
+        from .forge_runtime import INSTALLER_SHA256, MC
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
+        result = self._json(request_id, derivation_ref)
+        require(result.get("schema") == "strata/ForgeDerivedRuntime/1" and result.get("policy") == POLICY
+                and result.get("request_id") == request_id and result.get("acquisition_receipt") == row["receipt"]
+                and result.get("installed_outputs_reproduced") is True
+                and result.get("installer_sha256") == INSTALLER_SHA256
+                and result.get("plan_ref") == "cas:sha256:" + result.get("plan_sha256", ""), "FORGE_DERIVATION_UNQUALIFIED")
+        plan = self._json(request_id, result["plan_ref"])
+        require(plan.get("policy") == POLICY and plan.get("installer_sha256") == INSTALLER_SHA256
+                and len(result.get("processes", [])) == 4 and all(
+                    isinstance(r, dict) and r.get("result") == "pass" and r.get("exit_code") == 0
+                    and isinstance(r.get("process_accounting"), dict)
+                    and r["process_accounting"].get("active_processes") == 0
+                    for r in result["processes"]), "FORGE_DERIVATION_UNQUALIFIED")
+        outputs = result.get("derived", [])
+        require(len(outputs) == 2 and {r.get("role") for r in outputs} == {"client", "server"}, "ROLE_MISMATCH")
+        entries = []
+        # Both outputs must still match before either artifact is imported.
+        for output in outputs:
+            role = output["role"]
+            path = f"libraries/net/minecraft/{role}/{MC}/{role}-{MC}-srg.jar"
+            expected = plan["roles"][role]["installed_comparison"]["srg"]
+            require(type(output.get("bytes")) is int and 0 < output["bytes"] <= 128 * 1024**2
+                    and output.get("runtime_path") == plan["roles"][role]["runtime_path"] == path and
+                    all(output.get(k) == expected[k] for k in ("sha256", "bytes")), "FORGE_DERIVATION_UNQUALIFIED")
+            source = Path(output["path"])
+            require(source.is_absolute() and source.is_file() and source.stat().st_nlink == 1
+                    and source.stat().st_size == output["bytes"] and file_hash(source) == output["sha256"], "SOURCE_CHANGED")
+            entries.append(FileEntry(path=path, digest=output["sha256"], bytes=output["bytes"], role=role,
+                layer="resolved", origin=f"strata:derived:{derivation_ref}#{role}-srg",
+                project_id=None, file_id=None, license_ref="https://www.minecraft.net/en-us/eula"))
+        for output in outputs:
+            self.cas.put_file(self.principal, self.namespace(request_id), "operator", Path(output["path"]),
+                              output["sha256"], quota_bytes=self.quota, max_object_bytes=128 * 1024**2)
+        evidence = {"schema": "strata/ForgeRuntimeArtifacts/1", "is_example": self.simulation,
+                    "request_id": request_id, "derivation": derivation_ref,
+                    "files": [entry.model_dump() for entry in entries], "complete_role_qualified": False}
+        return {"evidence": self._put(request_id, evidence), **evidence}
 
     def prepare_vanilla_client(self, request_id, assets: Path, library_roots: list[Path], destination: Path):
         """Prepare the exact acquired Windows client and its metadata-selected inputs."""

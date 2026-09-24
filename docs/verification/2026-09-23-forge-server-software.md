@@ -1,5 +1,11 @@
 # Exact E9E Forge server software preparation
 
+**September 24 correction:** the SRG JAR below is runtime-required. Its original
+exclusion records missing provenance in this partial subset, not permission to
+omit it from a complete role. [M0.3a.4c](2026-09-24-forge-derived-runtime.md)
+now reproduces and imports both roles' SRG bytes. Preserve this original
+103-file result and its four exclusions as history.
+
 M0.3a.4a is **verified** for software preparation: the operator command derives
 and copies 103 files (146,083,419 bytes) from exact publisher sources, retaining
 four explicitly excluded installer intermediates. Ten independent integration

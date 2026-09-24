@@ -1,7 +1,8 @@
 """Prepare pinned E9E server libraries without running Forge or an installer.
 
 Only software bytes with publisher metadata/archive joins are copied. Four
-installer intermediates are inventoried and excluded explicitly. This is an
+files are excluded from this subset. The SRG JAR is runtime-required and must
+be supplied by the separate verified forge_derivation producer. This is an
 input to role preparation, not complete provisioning or a licensing assertion.
 """
 
@@ -27,6 +28,7 @@ SERVER = f"net/minecraft/server/{MC}/server-{MC}"
 FORGE_DIR = f"net/minecraftforge/forge/{FORGE}"
 EXCLUSIONS = {
     MCP + "-mappings-merged.txt": "installer_merged_mapping_intermediate",
+    # Retain the original evidence label; it does not mean runtime-unnecessary.
     SERVER + "-srg.jar": "installer_renaming_intermediate",
     SERVER + "-slim.jar.cache": "installer_split_cache",
     SERVER + "-extra.jar.cache": "installer_split_cache",

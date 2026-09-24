@@ -1,5 +1,21 @@
 # Private pack provisioning
 
+The required client/server SRG JARs use two operator commands:
+
+```text
+mcbench pack derive-forge-runtime INSTALLER CLIENT_LIBRARIES SERVER_LIBRARIES JAVA_ROOT DESTINATION --request E9E_REQUEST --vanilla-request SEALED_VANILLA_REQUEST --store STORE
+mcbench pack import-forge-runtime DERIVATION_CAS_REF --request E9E_REQUEST --store STORE
+```
+
+Derivation runs only pinned offline mapping processors with a sealed Java
+inventory and fixed resource bounds. It retains partial output on failure and
+requires a fresh destination. Import consumes existing reproduced bytes and
+checks both roles before writing artifacts; do not rerun a successful derivation
+for import. The SRG JAR is required at runtime, so the earlier 103-file server
+library subset is incomplete without this artifact. [Actual evidence and
+limits](../verification/2026-09-24-forge-derived-runtime.md). Full role assembly,
+license review and seal admission remain separate.
+
 The operator command
 `mcbench pack prepare-e9e-content CLIENT_MODS SERVER_MODS CLIENT_CAPTURE SERVER_CAPTURE HARNESS_EXCLUSIONS DESTINATION --request REQUEST --store STORE`
 prepares both roles' initial vendor content from the original ACQUIRED E9E
@@ -17,7 +33,7 @@ For the exact E9E 1.27.0 / Forge 43.4.23 server library component, use
 Inputs are retained official Forge/Mojang artifacts; ROOT names only the
 stopped installation's libraries directory and DESTINATION must not exist.
 The command verifies publisher expectations before copying software and emits
-private `ForgeServerLibraries/1` evidence. Four named installer intermediates
+private `ForgeServerLibraries/1` evidence. Four named files (including the separately required SRG runtime JAR)
 are inventoried/excluded. No installer, game, acquisition-state update or
 PackLock seal occurs; retain the output for complete role assembly and license
 review. Partial outputs cannot be reused. [Actual verification and limits](../verification/2026-09-23-forge-server-software.md).

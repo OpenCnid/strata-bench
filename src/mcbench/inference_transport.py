@@ -12,6 +12,7 @@ import json
 import socket
 import threading
 import time
+import uuid
 from urllib.parse import urlsplit
 
 from .accounting import EstimateBasis, TokenUsage, UsageValuation
@@ -21,6 +22,7 @@ from .storage import Fault, Principal, require
 MAX_RESPONSE_BYTES = 256 * 1024
 MAX_REQUEST_TIMEOUT_S = 60
 BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
+DELIVERY_POLICY = "durable-settled-receipt-before-delivery/1"
 
 
 def transport_failure_code(error, *, cancelled=False):
@@ -227,7 +229,20 @@ class _ResponsesTransport:
             rates = {key: count(price.get(key)) for key in (
                 "input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")}
 
+        from .storage_capacity import reserve as reserve_space, release
+        principal = Principal(self.gate.namespace, "operator")
+        space_token = None
+        if self.gate.db.connection.execute("SELECT 1 FROM inference_attempts WHERE operation=?",
+                                           (reserve.operation_id,)).fetchone() is None:
+            space_token = "receipt:" + uuid.uuid4().hex
+            reserve_space(self.gate.cas, principal, self.gate.namespace, space_token, MAX_RESPONSE_BYTES)
+        delivery = []
+        forwarded = False
+
         def forward():
+            nonlocal forwarded
+            require(space_token is not None, "ARTIFACT_RESERVATION_INVALID")
+            forwarded = True
             started = time.monotonic()
             deadline = started + self.deadline_s
             require(not self.cancelled.is_set(), "TRANSPORT_CANCELLED")
@@ -268,9 +283,6 @@ class _ResponsesTransport:
                                 getattr(self, "buffered_sse_policy", None) == BUFFERED_SSE_POLICY)
                 capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream") if (
                     supported or buffered_sse) else RejectedResponseCapture()
-                if supported:
-                    phase = "deliver_headers"
-                    on_headers(response.status, media)
                 while not response.isclosed():
                     phase = "response_body"
                     remaining = deadline - time.monotonic()
@@ -282,16 +294,10 @@ class _ResponsesTransport:
                     safe = self._filter(chunk)
                     if safe:
                         capture.feed(safe)
-                        if supported:
-                            phase = "deliver_body"
-                            on_chunk(safe)
                 phase = "receipt_validation"
                 safe = self._filter(b"", final=True)
                 if safe:
                     capture.feed(safe)
-                    if supported:
-                        phase = "deliver_body"
-                        on_chunk(safe)
                 phase = "receipt_validation"
                 observed = capture.finish()
                 if buffered_sse:
@@ -303,10 +309,6 @@ class _ResponsesTransport:
                             "operation_id": reserve.operation_id, "policy": BUFFERED_SSE_POLICY,
                             "raw_sha256": hashlib.sha256(capture.raw).hexdigest(),
                             "simulation": self.gate.simulation})
-                    phase = "deliver_headers"
-                    on_headers(200, "text/event-stream")
-                    phase = "deliver_body"
-                    on_chunk(bytes(capture.raw))
                 phase = "receipt_recording"
                 event = observed.pop("event")
                 writes = observed.pop("cache_write_tokens", None)
@@ -322,7 +324,7 @@ class _ResponsesTransport:
                              rates["cached_microusd_per_token"] + observed["output_tokens"] *
                              rates["output_microusd_per_token"])
                 count(spend)
-                raw_ref = self._save(capture, reserve.operation_id)
+                raw_ref = self._save(capture, reserve.operation_id, space_token)
                 event_id = "wire-" + hashlib.sha256(reserve.operation_id.encode()).hexdigest()
                 receipt = BudgetLedger.model_validate(reserve.model_dump() | {
                     "posting": "settle", "source_event_id": event_id + ":settle",
@@ -330,6 +332,8 @@ class _ResponsesTransport:
                     "metering": "estimated" if basis else "reported",
                     "raw_usage_ref": raw_ref, "usage": reserve.usage.model_dump() | observed |
                     {"spend_microusd": spend, "wall_ms": int((time.monotonic() - started) * 1000)}})
+                delivery.append((response.status, "text/event-stream" if buffered_sse else media,
+                                 bytes(capture.raw)))
                 if basis:
                     valuation = UsageValuation.model_validate({"schema": "strata/UsageValuation/1",
                         "kind": "api_equivalent_estimate", "basis_digest": basis.fingerprint(),
@@ -353,13 +357,33 @@ class _ResponsesTransport:
                     self.active_socket = None
                 if capture is not None and raw_ref is None:
                     # Retain even malformed/partial usage; no zero-cost settlement.
-                    self._save(capture, reserve.operation_id)
+                    self._save(capture, reserve.operation_id, space_token)
 
-        return self.gate.execute(account, attempt, reserve, forward)
+        try:
+            result = self.gate.execute(account, attempt, reserve, forward)
+        finally:
+            if space_token is not None and not forwarded:
+                release(self.gate.cas, self.gate.namespace, space_token)
+        # Idempotent status reads never redeliver output. A delivery failure does
+        # not erase a known durable cost or replay a settled provider request.
+        if delivery:
+            require(result["state"] == "SETTLED", "RECEIPT_NOT_SETTLED")
+            status, media, wire = delivery[0]
+            try:
+                on_headers(status, media)
+                on_chunk(wire)
+            except Exception as error:
+                with self.gate.db.transaction() as db:
+                    self.gate.db.event(db, "inference.delivery_failure", {
+                        "operation_id": reserve.operation_id, "policy": DELIVERY_POLICY,
+                        "reason": transport_failure_code(error, cancelled=self.cancelled.is_set()),
+                        "receipt_settled": True, "simulation": self.gate.simulation})
+                raise
+        return result
 
-    def _save(self, capture, operation):
+    def _save(self, capture, operation, space_token):
         ref = self.gate.cas.put(Principal(self.gate.namespace, "operator"), self.gate.namespace,
-                                "operator", bytes(capture.raw), media_type=capture.content_type)
+                                "operator", bytes(capture.raw), media_type=capture.content_type, reservation=space_token)
         with self.gate.db.transaction() as db:
             self.gate.db.event(db, "inference.wire_capture", {"operation_id": operation,
                 "raw_usage_ref": ref,

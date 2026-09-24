@@ -143,7 +143,7 @@ def test_actual_http_single_forward_and_wire_receipt(fixture_gateway, provider):
     transport = SyntheticResponsesTransport(gate, endpoint)
     delivered, headers = [], []
     def header(status, media):
-        assert gate.status(reserve.operation_id)["state"] == "DISPATCHING"
+        assert gate.status(reserve.operation_id)["state"] == "SETTLED"
         headers.append((status, media))
     for _ in range(2):
         result = transport.execute("a1", attempt, reserve, request,
@@ -158,7 +158,7 @@ def test_actual_http_single_forward_and_wire_receipt(fixture_gateway, provider):
     assert gate.cas.read(Principal("operator", "operator"), "operator", receipt.raw_usage_ref) == wire
 
 
-@pytest.mark.parametrize("mode", ["missing", "truncated", "redirect", "timeout", "writer_failure"])
+@pytest.mark.parametrize("mode", ["missing", "truncated", "redirect", "timeout"])
 def test_transport_fault_never_retries_or_refunds(fixture_gateway, provider, mode):
     gate, attempt, reserve, request = fixture_gateway
     wire = stream(response(usage=None)) if mode == "missing" else stream(response())

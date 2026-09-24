@@ -156,13 +156,21 @@ class CAS:
         require(not write or principal.role != "helper", "FORBIDDEN")
 
     def put(self, principal, namespace, visibility, data: bytes, media_type="application/json",
-            quota_bytes=20 * 1024 * 1024, max_object_bytes=256 * 1024):
+            quota_bytes=None, max_object_bytes=256 * 1024, reservation=None):
+        from .storage_capacity import consume, held, quota
+        if quota_bytes is None:
+            quota_bytes = quota(principal, namespace, visibility)
+        if namespace == "operator" and visibility == "operator":
+            quota_bytes = min(quota_bytes, quota(principal, namespace, visibility))
         require(visibility in {"agent", "operator", "evaluator"}, "FORBIDDEN")
         self.authorize(principal, namespace, visibility, write=True)
         require(len(data) <= max_object_bytes, "ARTIFACT_QUOTA")
         ref = "cas:sha256:" + hashlib.sha256(data).hexdigest()
         path = self._path(ref)
         with self.database.transaction() as db:
+            if reservation is not None:
+                require(visibility == "operator", "FORBIDDEN")
+                consume(db, principal, namespace, reservation, len(data), ref)
             old = db.execute("SELECT * FROM objects WHERE namespace=? AND ref=?",
                              (namespace, ref)).fetchone()
             if old:
@@ -171,7 +179,7 @@ class CAS:
             else:
                 size = db.execute("SELECT COALESCE(SUM(bytes),0) FROM objects WHERE namespace=?",
                                   (namespace,)).fetchone()[0]
-                require(size + len(data) <= quota_bytes, "ARTIFACT_QUOTA")
+                require(size + held(db, namespace) + len(data) <= quota_bytes, "ARTIFACT_QUOTA")
             # Reserve under the DB writer lock BEFORE writing bytes. Rejected quota
             # requests must not accumulate unreferenced blobs and exhaust the disk.
             # Flush before inserting the reference. Crash orphans remain operator-only.
@@ -241,6 +249,9 @@ class CAS:
         raw file import does not request reinterpretation of retained JSON/text.
         """
         require(principal.role == "operator" and visibility == "operator", "FORBIDDEN")
+        if namespace == "operator":
+            from .storage_capacity import OPERATOR_QUOTA
+            quota_bytes = min(quota_bytes, OPERATOR_QUOTA)
         source = source.absolute()
         reject_links(source)
         require(source.is_file(), "AWAITING_ARTIFACT")
@@ -257,7 +268,8 @@ class CAS:
             else:
                 used = db.execute("SELECT COALESCE(SUM(bytes),0) FROM objects WHERE namespace=?",
                                   (namespace,)).fetchone()[0]
-                require(used + size <= quota_bytes, "ARTIFACT_QUOTA")
+                from .storage_capacity import held
+                require(used + held(db, namespace) + size <= quota_bytes, "ARTIFACT_QUOTA")
             fd, temporary = tempfile.mkstemp(dir=self.root, prefix=".asset-")
             try:
                 hasher, copied = hashlib.sha256(), 0

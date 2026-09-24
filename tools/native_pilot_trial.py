@@ -52,9 +52,14 @@ def check_inputs(inputs):
         require(totals["spend_microusd"] + MAX_SPEND <= policy.total_spend_microusd, "ALLOWANCE_UNAVAILABLE")
         require(len(policy.models) == 1 and policy.models[0] == policy.accounting_basis.model,
                 "PILOT_MODEL_AUTHORITY")
+        from mcbench.storage_capacity import OPERATOR_QUOTA, available
+        # Declare 48 MiB of startup headroom for request frames, receipts and
+        # broker/export metadata. Each dispatch additionally reserves its receipt
+        # atomically; this check alone is not a whole-run capacity reservation.
+        storage = available(db, Path(inputs["objects"]), "operator", 48 * 1024**2, OPERATOR_QUOTA)
         return {"authorization_digest": row["digest"], "model": policy.models[0], "committed_and_reserved": totals,
                 "additional_maximum_microusd": MAX_SPEND, "isolation_qualified": False,
-                "budget_decision": decision}
+                "budget_decision": decision, "storage_admission": storage}
     finally:
         db.close()
 

@@ -16,7 +16,7 @@ import sys
 import threading
 import time
 import uuid
-from contextlib import ExitStack
+from contextlib import ExitStack, closing
 from datetime import datetime, timezone
 
 from mcbench.broker_stdio import WorkerTransport
@@ -36,6 +36,7 @@ from mcbench.vanilla_persistence import PACK_POLICY
 from mcbench.worker_stop import stop_owned_worker
 from mcbench.runtime import native_companion_paths
 from mcbench.worker_health import health_required, inspect_worker_health
+from mcbench.native_game_measurements import bind_clock_overlay, inspect_measurements
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -84,7 +85,7 @@ def cleanup_native_worker(worker, config, output, wait, operator_stop, result):
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
-    pilot = version == "strata/M0NativePilot/1"
+    pilot = version in {"strata/M0NativePilot/1", "strata/M0NativePilot/2"}
     failure = version == "strata/M0NativeGameFailure/1"
     if pilot:
         from native_pilot_trial import check_inputs
@@ -95,7 +96,8 @@ def run(plan_path):
         require(set(plan) == {"schema", "output", "pack", "worker_invocation", "worker_runtime", "codex",
                               "tool_projections", "model_catalog",
                               "recovery_source" if version == "strata/M0NativeGameRecovery/3" else "retention_source"}
-                | ({"pilot"} if pilot else set()), "M0_PLAN_INVALID")
+                | ({"pilot"} if pilot else set())
+                | ({"clock"} if version == "strata/M0NativePilot/2" else set()), "M0_PLAN_INVALID")
         require(file_hash(Path(plan["codex"])) == BINARY_SHA256, "RUNTIME_PIN_MISMATCH")
         native_companion_paths(plan["codex"])
         with ExitStack() as resources:
@@ -124,7 +126,7 @@ def run(plan_path):
 
 def run_plan(plan, resources, runtime=None):
     version = plan["schema"]
-    pilot = version == "strata/M0NativePilot/1"
+    pilot = version in {"strata/M0NativePilot/1", "strata/M0NativePilot/2"}
     failure = version == "strata/M0NativeGameFailure/1"
     if pilot:
         from native_pilot_trial import check_inputs
@@ -245,6 +247,18 @@ def run_plan(plan, resources, runtime=None):
         (output / "worker").mkdir()
         worker_config["state_directory"] = str(output / "worker")
     server_plan["evidence"] = str(output / "server")
+    if version == "strata/M0NativePilot/2":
+        server_plan = bind_clock_overlay(server_plan, plan["clock"], worker_config,
+            plan["pilot"]["job_id"], runtime.inventory["files"])
+        # Keep the selected bytes in the run, independently of their original
+        # operator path. The server holds/rechecks that original module too.
+        agent = private(plan["clock"]["agent_path"])
+        require(agent.stat().st_size <= 1024**2 and file_hash(agent) == plan["clock"]["agent_sha256"],
+                "VANILLA_CLOCK_AGENT_PIN")
+        with (output / "vanilla-clock-agent.jar").open("xb") as stream:
+            stream.write(agent.read_bytes())
+        require(file_hash(output / "vanilla-clock-agent.jar") == plan["clock"]["agent_sha256"],
+                "VANILLA_CLOCK_AGENT_PIN")
     if not sealed:
         write(output / "worker-config.json", worker_config)
     write(output / "server-plan.json", server_plan)
@@ -289,6 +303,23 @@ def run_plan(plan, resources, runtime=None):
         result.update(schema="strata/M0NativeGameFailureResult/1", fault_case="truncated-response-after-observation/1",
                       isolation_qualified=False, complete_checkpoint=False)
     started = time.monotonic()
+    timing = []
+
+    def mark_timing(kind):
+        if version == "strata/M0NativePilot/2":
+            event = {"seq": len(timing) + 1, "kind": kind,
+                     "mono_ns": time.monotonic_ns(), "unix": time.time()}
+            try:
+                with (output / "pilot-timing.jsonl").open("ab" if timing else "xb") as stream:
+                    stream.write(canonical(event) + b"\n")
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                timing.append(event)
+            except Exception as error:
+                # A timing-storage failure must not bypass owned cleanup.
+                result["timing_error"] = type(error).__name__
+
+    mark_timing("run_started")
 
     def close_owned(name):
         if name not in closed:
@@ -343,11 +374,13 @@ def run_plan(plan, resources, runtime=None):
         require(loader.poll() == 0, "WORKER_PREFLIGHT_FAILED")
         if sealed_recovery:
             recovery.restore_worker(prepared, output)
+        mark_timing("server_launch_requested")
         server = launch("server-driver", [sys.executable, "-X", "utf8", str(ROOT / "tools/development_server.py"),
                                            str(output / "server-plan.json")])
         wait(lambda: (output / "server/ready.json").exists() or server.poll() is not None,
              80 if sealed else 60, "SERVER_START_TIMEOUT")
         require(server.poll() is None, "SERVER_EARLY_EXIT")
+        mark_timing("worker_launch_requested")
         worker = launch("worker-driver", worker_command(output / "worker-config.json"))
         grant_path = output / "worker" / f"grant-{worker_config['epoch']}.json"
         wait(lambda: grant_path.exists() or worker.poll() is not None, 30, "WORKER_START_TIMEOUT")
@@ -374,6 +407,7 @@ def run_plan(plan, resources, runtime=None):
             require(worker.poll() is None and time.monotonic() < deadline, "GAME_CONNECT_TIMEOUT")
             time.sleep(.6)
         print(json.dumps({"status": "native_game_ready", "elapsed_s": round(time.monotonic()-started, 3)}), flush=True)
+        mark_timing("avatar_ready")
         if recovery:
             result["recovery_start"] = recovery.verify_start(descriptor, observed)
             write(output / "recovery-start.json", result["recovery_start"])
@@ -384,7 +418,12 @@ def run_plan(plan, resources, runtime=None):
             recovery.copy_native(native)
         if pilot:
             from native_pilot_trial import run_trial
-            native_result = run_trial(plan, native, descriptor, worker_config["lease_id"])
+            mark_timing("native_started")
+            require("timing_error" not in result, "NATIVE_TIMING_UNAVAILABLE")
+            try:
+                native_result = run_trial(plan, native, descriptor, worker_config["lease_id"])
+            finally:
+                mark_timing("native_finished")
         else:
             if failure:
                 from native_game_failure_probe import GameTransportFailureProbe
@@ -410,6 +449,7 @@ def run_plan(plan, resources, runtime=None):
             result["native_retention_unavailable_reason"] = "UNSETTLED_RESPONSE"
         elif retention and not pilot:
             result["native_retention"] = native_result["retention"]
+        mark_timing("worker_close_requested")
         finish_native_worker(worker, worker_config, output, wait,
                              runtime is not None and runtime.operator_stop, native_result["checks"], result,
                              closure_error=native_result["closure_error"] if pilot else native_result["closure"].get("closure_error"))
@@ -422,11 +462,13 @@ def run_plan(plan, resources, runtime=None):
         worker = processes.get("worker-driver")
         cleanup_native_worker(worker, worker_config, output, wait,
                               runtime is not None and runtime.operator_stop, result)
+        mark_timing("worker_closed")
         server = processes.get("server-driver")
         if server and server.poll() is None:
             try:
                 if (output / "server").is_dir():
                     if "worker_stop" in result:
+                        mark_timing("server_stop_requested")
                         boundary = {"schema": "strata/WorkerServerStopBoundary/1",
                             "worker_stop_request_id": result["worker_stop"]["intent"]["request"]["request_id"],
                             "requested_mono_ns": time.monotonic_ns(), "requested_unix": time.time()}
@@ -465,6 +507,7 @@ def run_plan(plan, resources, runtime=None):
         if not result["logs_complete"] or any(process.poll() != 0 for process in processes.values()):
             result["status"] = "fail"
         saved = output / "server/result.json"
+        mark_timing("server_closed")
         result["server_result"] = json.loads(saved.read_bytes()) if saved.exists() else None
         if not result["server_result"] or result["server_result"]["status"] != "stopped_unqualified":
             result["status"] = "fail"
@@ -534,6 +577,17 @@ def run_plan(plan, resources, runtime=None):
             except Exception as error:
                 result["status"] = "fail"
                 result["worker_runtime_error"] = error.code if isinstance(error, Fault) else str(error)
+        if version == "strata/M0NativePilot/2":
+            try:
+                mark_timing("run_finished")
+                with closing(sqlite3.connect(journal.as_uri()+"?mode=ro", uri=True)) as measurement_db:
+                    result["measurements"] = inspect_measurements(output, server_plan, worker_config,
+                        result["server_result"], result.get("worker_health"), plan["pilot"]["job_id"], measurement_db)
+            except Exception as error:
+                result["status"] = "fail"
+                result["measurement_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+        if "timing_error" in result:
+            result["status"] = "fail"
         write(output / "result.json", result)
     return result
 

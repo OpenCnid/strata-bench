@@ -19,7 +19,7 @@ from mcbench.accounting import EstimateBasis, UsageValuation
 from mcbench.budgets import Budgets
 from mcbench.contracts import ActionAck, ActionBatch, Digest, Id, Observation, Positive, RpcRequest, Strict, UInt, Utc
 from mcbench.inference_dispatch import DispatchBound, EstimateDispatchBound, InferenceAttempt
-from mcbench.inference_transport import ResponsesUsage, strict_json
+from mcbench.inference_transport import MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES, NATIVE_WIRE_POLICY, ResponsesUsage, strict_json
 from mcbench.native_export import OPERATOR, inspect_native_source
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import canonical, digest, reject_links, require, safe_relative
@@ -119,9 +119,11 @@ def one_event(db, kind, key, value):
     return rows[0]
 
 
-def model_usage(db, cas, native, source):
+def model_usage(db, cas, native, source, *, simulation=True):
     """Reparse wire receipts and reconcile each distinct request exactly once."""
-    require(native.provider == "strata_local_fixture", "NATIVE_GAME_PROFILE_UNSUPPORTED")
+    require(type(simulation) is bool and (native.provider == "strata_local_fixture" if simulation else
+        native.provider == "openai" and native.auth_mode == "chatgpt_oauth"
+        and native.purpose == "development_piloting"), "NATIVE_GAME_PROFILE_UNSUPPORTED")
     receipts = {r["record"]["operation_id"]: r["record"] for r in source["ledger"]
                 if r["record"]["posting"] == "settle"}
     totals = Counter()
@@ -138,10 +140,14 @@ def model_usage(db, cas, native, source):
         for key in ("campaign_id", "agent_id", "epoch", "operation_id", "parent_operation_id",
                     "campaign_account", "kind", "pricing_ref", "model_identity"):
             require(receipt[key] == reserve[key], "NATIVE_GAME_RECEIPT_SCOPE")
-        raw = cas.read(OPERATOR, "operator", receipt["raw_usage_ref"], max_bytes=256 * 1024)
+        _, capture = one_event(db, "inference.wire_capture", "operation_id", admission["operation"])
+        response_bound = capture.get("maximum_bytes", MAX_RESPONSE_BYTES)
+        require(type(response_bound) is int and response_bound in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES},
+                "NATIVE_GAME_CAPTURE_MISMATCH")
+        raw = cas.read(OPERATOR, "operator", receipt["raw_usage_ref"], max_bytes=response_bound)
         media = db.execute("SELECT media_type FROM objects WHERE namespace='operator' AND ref=?",
                            (receipt["raw_usage_ref"],)).fetchone()[0]
-        parser = ResponsesUsage(native.model, media)
+        parser = ResponsesUsage(native.model, media, max_bytes=response_bound)
         parser.feed(raw)
         measured = parser.finish()
         require(measured["event"] not in provider_events, "NATIVE_GAME_RECEIPT_DUPLICATE")
@@ -151,7 +157,7 @@ def model_usage(db, cas, native, source):
         bound_body = strict_json(cas.read(OPERATOR, "operator", request.bound_ref, max_bytes=65536))
         bound_type = EstimateDispatchBound if bound_body.get("schema") == "strata/InferenceDispatchBound/2" else DispatchBound
         bound = bound_type.model_validate(bound_body)
-        require(bound.is_example is True and bound.runtime_job_id == native.job_id
+        require(bound.is_example is simulation and bound.runtime_job_id == native.job_id
                 and bound.profile_digest == native.profile_digest()
                 and bound.request_digest == request.request_digest
                 and bound.reservation_digest == digest(reserve)
@@ -165,7 +171,8 @@ def model_usage(db, cas, native, source):
         if isinstance(bound, EstimateDispatchBound):
             basis = EstimateBasis.model_validate(price)
             value = UsageValuation.model_validate(valuation)
-            require(value.kind == "api_equivalent_estimate" and value.token_evidence == "synthetic_fixture"
+            require(value.kind == "api_equivalent_estimate"
+                    and value.token_evidence == ("synthetic_fixture" if simulation else "provider_reported")
                     and value.basis_digest == basis.fingerprint()
                     and value.raw_usage_ref == receipt["raw_usage_ref"]
                     and value.usage.model == native.model
@@ -175,10 +182,10 @@ def model_usage(db, cas, native, source):
                     and value.amount_microusd == basis.estimate(value.usage)
                     and receipt["metering"] == "estimated", "NATIVE_GAME_VALUATION_MISMATCH")
             amount = value.amount_microusd
-            unit = "api_equivalent_estimate_of_synthetic_tokens"
+            unit = "api_equivalent_estimate_of_synthetic_tokens" if simulation else "api_equivalent_estimate"
             fingerprint["valuation"] = value.model_dump()
         else:
-            require(valuation is None and receipt["metering"] == "reported"
+            require(simulation and valuation is None and receipt["metering"] == "reported"
                     and price.get("schema") == "strata/SyntheticTokenPricing/1"
                     and price.get("is_example") is True, "NATIVE_GAME_PRICING")
             keys = ("input_microusd_per_token", "cached_microusd_per_token", "output_microusd_per_token")
@@ -192,9 +199,12 @@ def model_usage(db, cas, native, source):
                 and digest(fingerprint) == attempt["receipt_digest"]
                 and digest({"provider": request.provider, "event": measured["event"]}) == attempt["provider_event"],
                 "NATIVE_GAME_RECEIPT_MISMATCH")
-        _, capture = one_event(db, "inference.wire_capture", "operation_id", admission["operation"])
-        require(capture == {"operation_id": admission["operation"], "raw_usage_ref": receipt["raw_usage_ref"],
-                            "bytes": len(raw), "simulation": True}, "NATIVE_GAME_CAPTURE_MISMATCH")
+        expected_capture = {"operation_id": admission["operation"], "raw_usage_ref": receipt["raw_usage_ref"],
+                            "bytes": len(raw), "simulation": simulation}
+        if "maximum_bytes" in capture:
+            expected_capture.update(maximum_bytes=response_bound, wire_policy=NATIVE_WIRE_POLICY
+                if response_bound == NATIVE_RESPONSE_BYTES else "bounded-response-wire/1")
+        require(capture == expected_capture, "NATIVE_GAME_CAPTURE_MISMATCH")
         units.add(unit)
         usage = {k: measured[k] for k in ("input_tokens", "cached_input_tokens", "output_tokens", "model_calls")}
         usage.update(amount=amount, request_wall_ms=receipt["usage"]["wall_ms"])
@@ -206,8 +216,8 @@ def model_usage(db, cas, native, source):
     aggregate = Budgets.exposures(db)[native.operation_id]
     require(all(aggregate[k] == totals[k] for k in ("input_tokens", "output_tokens", "model_calls"))
             and aggregate["spend_microusd"] == totals["amount"], "NATIVE_GAME_ACCOUNTING_MISMATCH")
-    return {"model_evidence": "scripted_provider", "unit": next(iter(units)),
-            "real_model_requests": 0, "actual_charge_microusd": None,
+    return {"model_evidence": "scripted_provider" if simulation else "actual_native_oauth", "unit": next(iter(units)),
+            "real_model_requests": 0 if simulation else len(calls), "actual_charge_microusd": None,
             "totals": dict(totals), "participants": {k: dict(v) for k, v in sorted(by_thread.items())},
             "calls": calls, "closed_envelopes": len(source["participants"])}
 

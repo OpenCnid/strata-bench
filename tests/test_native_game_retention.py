@@ -80,8 +80,9 @@ def test_registration_before_jobs_is_durable_draft_and_no_budget_mutation(packag
 
 @pytest.mark.parametrize("registered,authorized", [("gpt-6-luna", "gpt-6-luna"),
     ("gpt-5.6-luna", "gpt-6-luna"), ("gpt-6-luna", "gpt-5.6-luna")])
+@pytest.mark.parametrize("version", [1, 2])
 def test_pilot_launcher_uses_authorized_model_before_pack_or_output(package, tmp_path, monkeypatch,
-                                                                  registered, authorized):
+                                                                  registered, authorized, version):
     import m0_native_game
     import native_pilot_trial
     from contextlib import ExitStack
@@ -96,7 +97,7 @@ def test_pilot_launcher_uses_authorized_model_before_pack_or_output(package, tmp
         raise RuntimeError("IDENTITY_ACCEPTED_BEFORE_PACK")
     monkeypatch.setattr(m0_native_game, "parse_pack_binding", stop_before_pack)
     output = tmp_path / "unused-output"
-    plan = {"schema": "strata/M0NativePilot/1", "pilot": {}, "retention_source": source,
+    plan = {"schema": f"strata/M0NativePilot/{version}", "pilot": {}, "retention_source": source,
             "output": str(output), "pack": {}}
     with ExitStack() as resources:
         if registered == authorized:

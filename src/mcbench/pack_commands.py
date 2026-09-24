@@ -136,6 +136,20 @@ def prepare_vanilla_server(root: Path, destination: Path, request: Request, stor
         emit(service.prepare_vanilla_server(request, root, destination))
 
 
+@pack_app.command("prepare-e9e-content")
+def prepare_e9e_content(client_mods: Path, server_mods: Path, client_capture: Path,
+                        server_capture: Path, harness_exclusions: Path, destination: Path,
+                        request: Request, store: Store, simulation: bool = False):
+    """Prepare initial vendor content for both roles from acquired archives and pinned intake."""
+    from .forge_runtime import read_input
+    from .inference_transport import strict_json
+    with provider(store, simulation) as service:
+        emit(service.prepare_e9e_content(request,
+            {"client": client_capture, "server": server_capture},
+            {"client": client_mods, "server": server_mods},
+            strict_json(read_input(harness_exclusions, 65536)), destination))
+
+
 @pack_app.command("prepare-vanilla-client")
 def prepare_vanilla_client(assets: Path, destination: Path, request: Request, store: Store,
                            library_root: Annotated[list[Path], typer.Option("--library-root")],

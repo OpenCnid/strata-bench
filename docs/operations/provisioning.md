@@ -1,5 +1,17 @@
 # Private pack provisioning
 
+The operator command
+`mcbench pack prepare-e9e-content CLIENT_MODS SERVER_MODS CLIENT_CAPTURE SERVER_CAPTURE HARNESS_EXCLUSIONS DESTINATION --request REQUEST --store STORE`
+prepares both roles' initial vendor content from the original ACQUIRED E9E
+request. The capture inputs are the exact retained pre-game mod receipts;
+the exclusion JSON maps client/server to exact added Strata JAR path/digest/bytes
+rows. Mod roots name only the respective mods directories. The destination
+must be fresh. It retains source filename encodings, publisher server exclusions,
+reviewed initial JEI data and empty vendor directories. Its private evidence
+and original capture bytes enter the same operator namespace; provisioning
+state remains unchanged. This is input to full role assembly, not an installer,
+generated/effective configuration, license pass or seal. [Actual verification](../verification/2026-09-23-e9e-vendor-content.md).
+
 For the exact E9E 1.27.0 / Forge 43.4.23 server library component, use
 `mcbench pack prepare-forge-server-libraries INSTALLER BUNDLE MANIFEST VERSION ROOT DESTINATION`.
 Inputs are retained official Forge/Mojang artifacts; ROOT names only the

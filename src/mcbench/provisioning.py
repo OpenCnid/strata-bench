@@ -402,6 +402,38 @@ class PackProvider:
                    "source_verification": source}
         return raw, version_raw, binding
 
+    def prepare_e9e_content(self, request_id, captures: dict[str, Path],
+                            mod_roots: dict[str, Path], excluded_harness: dict, destination: Path):
+        """Join exact vendor content to this request's durable official acquisition."""
+        from .e9e_content import prepare_content
+        from .forge_runtime import read_input
+        row = self._row(request_id, active=True)
+        require(row["target"] == "e9e" and row["state"] in {"ACQUIRED", "VERIFIED", "SEALED"},
+                "INVALID_TRANSITION")
+        imported = self._json(request_id, row["receipt"])
+        receipt = parse_acquisition(imported["receipt"])
+        require(receipt.target == "e9e" and receipt.request_id == request_id and
+                receipt.is_example == self.simulation, "E9E_ACQUISITION_MISMATCH")
+        require({d.role for d in receipt.distributions} == {"client", "server"} and
+                len(imported["distributions"]) == 2, "ROLE_MISMATCH")
+        require(not destination.is_relative_to(self.cas.root) and not self.cas.root.is_relative_to(destination),
+                "UNSAFE_PATH")
+        archives = {}
+        for distribution in receipt.distributions:
+            official_origin(distribution.origin, "e9e", distribution.role, distribution.file_id)
+            sources = [d for d in imported["distributions"] if d["role"] == distribution.role]
+            require(len(sources) == 1 and sources[0]["ref"] == "cas:sha256:" + distribution.sha256,
+                    "E9E_ACQUISITION_MISMATCH")
+            archives[distribution.role] = self.cas.read(self.principal, self.namespace(request_id),
+                                                       sources[0]["ref"], max_bytes=64 * 1024**2)
+        require(set(captures) == {"client", "server"}, "ROLE_MISMATCH")
+        raw_captures = {role: read_input(path, 2 * 1024**2) for role, path in captures.items()}
+        result = prepare_content(archives, raw_captures, mod_roots, excluded_harness, destination)
+        result.update(is_example=self.simulation, request_id=request_id, acquisition_receipt=row["receipt"])
+        result["capture_refs"] = {role: self.cas.put(self.principal, self.namespace(request_id), "operator", raw,
+            quota_bytes=self.quota, max_object_bytes=2 * 1024**2) for role, raw in raw_captures.items()}
+        return {"evidence": self._put(request_id, result), **result}
+
     def prepare_vanilla_server(self, request_id, root: Path, destination: Path):
         """Join exact installed server payloads to the durable acquired distribution."""
         from .vanilla_runtime import prepare_server

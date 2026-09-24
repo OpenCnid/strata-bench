@@ -177,6 +177,11 @@ credential, runtime dependency and mutable-world boundaries.
     validate_launch_environment(command.environment)
     command.working_directory = str(working_directory)
     command.executable_path = str(executable)
+    if isinstance(launch, E9ELaunchProfile) and role == "server":
+        from .forge_client import ROLE_ROOT
+        from .pack_forge import _path
+        root = _path(str(instance / role))
+        command.arguments = [arg.replace(ROLE_ROOT, str(root)) for arg in command.arguments]
     result = {"schema": "strata/ResolvedPackLaunch/1", "is_example": simulation,
             "request_id": binding.request_id, "lock": binding.lock, "target": target,
             "inventory_digest": lock.installed_root_digest, "launch_profile": lock.launch_profile,

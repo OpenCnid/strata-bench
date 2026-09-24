@@ -18,6 +18,7 @@ from mcbench.inventory import file_hash
 from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.pack_modes import inspect_e9e_mode
 from mcbench.processes import ManagedProcess
+from mcbench.runtime_data import AGENT_PATH, validate_snapshot
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import canonical, require
 from strata_evaluator.reference_launch import bind_identity, first_start
@@ -95,8 +96,13 @@ def validate(root, output, *, initial):
     return root, output
 
 
-def run(root, output, *, campaign, epoch, initial):
+def run(root, output, *, campaign, epoch, initial, runtime_data=None):
     root, output = validate(root, output, initial=initial)
+    data_report = None
+    if runtime_data is not None:
+        safe(runtime_data)
+        data_report = validate_snapshot(Path(runtime_data).read_bytes(), (root / AGENT_PATH).read_bytes())
+    profile = "e9e1270-installed-forge-cold-start/2" if data_report else PROFILE
     output.mkdir()
     authority = issue_authority(
         output / "authority", root, instance_id=campaign, campaign_id=campaign, epoch=epoch
@@ -121,6 +127,8 @@ def run(root, output, *, campaign, epoch, initial):
     )
     exe = root / "java/bin/java.exe"
     argv = [str(exe), "-XX:ActiveProcessorCount=4", "-Xms2G", "-Xmx5G", "@" + ARGS, "nogui"]
+    if data_report:
+        argv.insert(1, "-javaagent:" + str(root / AGENT_PATH))
     environment = {k: os.environ[k] for k in ("SystemRoot", "WINDIR") if k in os.environ}
     environment.update(
         JAVA_HOME=str(root / "java"),
@@ -139,13 +147,14 @@ def run(root, output, *, campaign, epoch, initial):
             Path(authority.key_file),
             Path(sys._base_executable),
             Path(__file__).resolve().parents[1] / "src/mcbench/process_bootstrap.py",
+            *([Path(runtime_data), root / AGENT_PATH] if data_report else []),
         ],
         trees,
     )
     write(
         output / "launch.json",
         {
-            "profile": PROFILE,
+            "profile": profile,
             "argv": argv,
             "cwd": str(root),
             "environment": environment,
@@ -159,7 +168,7 @@ def run(root, output, *, campaign, epoch, initial):
     )
     result = {
         "schema": "strata/E9EColdStartResult/1",
-        "profile": PROFILE,
+        "profile": profile,
         "status": "fail",
         "initial": initial,
         "campaign_admission": False,
@@ -287,6 +296,8 @@ def run(root, output, *, campaign, epoch, initial):
                 and not deadline.is_set(),
                 "INITIALIZATION_LIFECYCLE",
             )
+            if data_report:
+                result["runtime_data"] = inspect_runtime_data_log((output / "stderr.log").read_bytes(), data_report)
             lease.recheck()
             files = list(spool.glob("*.authenticated.jsonl"))
             require(len(files) == 1, "INITIALIZATION_SPOOL")
@@ -318,6 +329,26 @@ def run(root, output, *, campaign, epoch, initial):
     return result
 
 
+def inspect_runtime_data_log(raw, report):
+    """Require both transformed classes and actual reads, not agent startup alone."""
+    require(len(raw) <= 16 * 1024**2 and b"STRATA_FIXED_DATA_REFUSED/1" not in raw, "RUNTIME_DATA_EXECUTION")
+    lines = [line[line.index("STRATA_FIXED_DATA_"):] for line in raw.decode("utf-8", errors="strict").splitlines()
+             if "STRATA_FIXED_DATA_" in line]
+    require("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"] in lines, "RUNTIME_DATA_EXECUTION")
+    classes = {
+        "com/portingdeadmods/cable_facades/CFConfig": "601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d",
+        "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader":
+            "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
+    }
+    required = {"STRATA_FIXED_DATA_BOUND/1 " + name + " " + sha for name, sha in classes.items()}
+    required.update("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])
+    require(required <= set(lines), "RUNTIME_DATA_EXECUTION")
+    return {"policy": report["policy"], "jar_sha256": report["jar_sha256"],
+            "index_sha256": report["index_sha256"], "bound_classes": sorted(classes),
+            "read_inputs": [{"name": r["name"], "sha256": r["sha256"]} for r in report["inputs"]],
+            "all_runtime_downloads_qualified": False}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", type=Path)
@@ -325,7 +356,8 @@ if __name__ == "__main__":
     parser.add_argument("--campaign", required=True)
     parser.add_argument("--epoch", type=int, required=True)
     parser.add_argument("--initial", action="store_true")
+    parser.add_argument("--runtime-data", type=Path)
     args = parser.parse_args()
     print(
-        run(args.root, args.output, campaign=args.campaign, epoch=args.epoch, initial=args.initial)
+        run(args.root, args.output, campaign=args.campaign, epoch=args.epoch, initial=args.initial, runtime_data=args.runtime_data)
     )

@@ -11,9 +11,9 @@ from pydantic import ValidationError
 from mcbench import forge_client as client, pack_forge as forge
 from mcbench.inventory import scan_layout
 from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
-from mcbench.provisioning import E9ELaunchProfile, parse_launch_profile
+from mcbench.provisioning import E9ELaunchProfile, FrozenE9ELaunchProfile, parse_launch_profile
 from mcbench.records import FileEntry, Pin
-from mcbench.storage import CAS, Database, Fault
+from mcbench.storage import CAS, Database, Fault, canonical
 from test_forge_client import inputs  # noqa: F401 -- shared synthetic software fixture
 from test_provisioning import prepare_fixture, seal
 from test_pack_launch import rows
@@ -161,6 +161,57 @@ def test_new_profile_does_not_bypass_thirteen_evidence_bound_checks(candidate):
     del proof.checks["expert_recipe"]
     with pytest.raises(Fault, match="PROVISIONING_UNVERIFIED"):
         service.seal_template("pack1", candidate[3], proof)
+
+
+@pytest.mark.parametrize("change", [None, "missing_agent", "changed_snapshot", "legacy"])
+def test_frozen_data_profile_joins_both_installed_roles_before_seal_and_resolve(candidate, tmp_path, change):
+    from mcbench.runtime_data import AGENT_PATH, REMOTE_MODS, SOURCES, prepare_runtime_data
+    from test_runtime_data import jdk
+    service, receipt, roles, original, evidence = candidate
+    snapshots = []
+    for name, (repo, relative) in SOURCES.items():
+        path = tmp_path / name
+        path.write_bytes(b"synthetic snapshot\n")
+        snapshots.append({"name": name, "path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "commit": "a" * 40, "url": f"https://raw.githubusercontent.com/{repo}/{'a' * 40}/{relative}"})
+    report = prepare_runtime_data(snapshots, jdk(), tmp_path / "agent-build")
+    if change == "changed_snapshot":
+        report["inputs"][0]["sha256"] = "b" * 64
+    profile = FrozenE9ELaunchProfile.model_validate(original.model_dump() | {
+        "schema": "strata/LaunchProfile/4", "runtime_data": service._put("pack1", report)})
+    for role in roles:
+        root = Path(role.root)
+        (root / "harness").mkdir()
+        if change != "missing_agent" or role.role != "client":
+            shutil.copyfile(tmp_path / "agent-build/strata-runtime-data-0.1.0.jar", root / AGENT_PATH)
+        for name in REMOTE_MODS:
+            (root / name).write_bytes(b"synthetic mod with runtime inputs")
+        layout = scan_layout(root)
+        role.files = [FileEntry.model_validate(r | {"role": role.role, "origin": "synthetic",
+            "license_ref": "synthetic", "layer": "resolved", "project_id": None, "file_id": None})
+            for r in layout["files"]]
+        role.extra_directories = layout["directories"]
+        command = getattr(profile, role.role)
+        command.arguments = [*forge.agent_arguments(True), *command.arguments]
+    if change == "legacy":
+        profile = original
+    fixture = service, receipt, roles, profile, evidence
+    if change:
+        with pytest.raises(Fault):
+            seal(fixture)
+        assert service.status("pack1")["state"] == "VERIFIED"
+        return
+    lock, _ = seal(fixture)
+    instance = tmp_path / "frozen-instance"
+    service.materialize("pack1", instance)
+    binding = PackLaunchBinding(store=str(service.cas.root.parent), request_id="pack1", lock=lock, instance=str(instance))
+    call = invocation(profile, binding, tmp_path, "frozen")
+    resolved = resolve_pack_launch(binding, "client", simulation=True, forge_invocation=call)
+    server = resolve_pack_launch(binding, "server", simulation=True)
+    assert server["launch"]["arguments"][0] == "-javaagent:" + str(instance / "server" / AGENT_PATH)
+    assert str(instance / "client" / AGENT_PATH).replace("\\", "\\\\").encode() in Path(call["arguments_path"]).read_bytes()
+    assert resolved["lock"] == lock and isinstance(parse_launch_profile(profile.model_dump()), FrozenE9ELaunchProfile)
+    assert TOKEN.encode() not in canonical(resolved)
 
 
 @pytest.mark.parametrize("change", ["missing", "server_role", "worker", "bridge_occupied", "bridge_inside",

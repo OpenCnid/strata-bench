@@ -345,3 +345,21 @@ caller must still authenticate/check lifetime, hold bytes, bind telemetry and th
 process guardian, and own execution/stop. There is no new execution CLI or claim
 that this preflight provides those guarantees. Legacy profiles are unchanged.
 [Executed candidate check, synthetic integration and remaining admission](../verification/2026-09-24-e9e-launch-profile.md).
+
+
+The actual E9E `/3` candidate is now refused because two installed mods fetch
+unversioned gameplay data during startup. Private `LaunchProfile/4` adds a
+`runtime_data` CAS receipt. Both role inventories must contain the same verified
+`harness/strata-runtime-data-0.1.0.jar`; both commands prepend its exact
+role-root-relative `-javaagent` argument. This is a new profile, preserving the
+original VERIFIED inventory. Prepare snapshots with `tools/prepare_runtime_data.py`
+from previously acquired commit-addressed files; no automatic fetch occurs there.
+
+Cold-start `/2` accepts `--runtime-data` pointing to the retained preparation
+receipt and holds it and the installed JAR through the owned run. It requires
+both pinned class transformations and all three actual read records. The first
+changed authentic boot **failed** because Forge transformed the class before
+instrumentation; do not accept its observed hash without inspecting the bytes,
+reuse its used instance or treat agent startup as a qualified freeze. Snapshot
+preparation does not replace other mod-input review or the thirteen provisioning
+checks. [Source, actual failure and next required action](../verification/2026-09-24-e9e-runtime-data.md).

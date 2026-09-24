@@ -133,8 +133,13 @@ class E9ELaunchProfile(LaunchProfile):
     update_policy: Literal["sealed-local-bytes/no-installer/1"]
 
 
+class FrozenE9ELaunchProfile(E9ELaunchProfile):
+    schema_: Literal["strata/LaunchProfile/4"] = Field(alias="schema")
+    runtime_data: Ref
+
+
 def parse_launch_profile(value):
-    return TypeAdapter(LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile).validate_python(value)
+    return TypeAdapter(LaunchProfile | VanillaLaunchProfile | E9ELaunchProfile | FrozenE9ELaunchProfile).validate_python(value)
 
 
 def validate_launch_environment(environment: dict[str, str]):

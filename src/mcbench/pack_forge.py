@@ -19,7 +19,8 @@ from .inference_transport import strict_json
 from .inventory import inventory_directories
 from .pack_policies import reviewed_vendor_paths
 from .pack_worker import validate_server_settings
-from .provisioning import E9ELaunchProfile, validate_launch_environment
+from .provisioning import E9ELaunchProfile, FrozenE9ELaunchProfile, validate_launch_environment
+from .runtime_data import AGENT_PATH, REMOTE_MODS, validate_snapshot
 from .storage import reject_links, require, safe_relative
 
 JAVA = "java/bin/java.exe"
@@ -39,14 +40,19 @@ class ForgeClientInvocation(Strict):
     player_uuid: str = Field(pattern=r"^[0-9a-f]{32}$")
 
 
-def client_template(software, launcher_raw, vanilla_raw, *, server_port):
-    return ["-Dstrata.gameBridgeDirectory=" + BRIDGE, "-Dstrata.awaitGameAuthority=true",
+def client_template(software, launcher_raw, vanilla_raw, *, server_port, frozen=False):
+    return [*agent_arguments(frozen), "-Dstrata.gameBridgeDirectory=" + BRIDGE, "-Dstrata.awaitGameAuthority=true",
             *argument_template(software, launcher_raw, vanilla_raw, server_port=server_port)]
+
+
+def agent_arguments(frozen):
+    return ["-javaagent:" + str(Path(ROLE_ROOT) / AGENT_PATH)] if frozen else []
 
 
 def validate_forge_profile(profile, inventory, read, *, java):
     """Bind both commands and the complete prepared client software to CAS bytes."""
-    profile = E9ELaunchProfile.model_validate(profile.model_dump())
+    frozen = isinstance(profile, FrozenE9ELaunchProfile)
+    profile = (FrozenE9ELaunchProfile if frozen else E9ELaunchProfile).model_validate(profile.model_dump())
     require(profile.client.executable == profile.server.executable == java, "FORGE_JAVA_PIN_MISMATCH")
     require(inventory.get("schema") in {"strata/InstalledInventory/1", "strata/InstalledInventory/2"}
             and inventory.get("is_example") is profile.is_example, "FORGE_PROFILE_MISMATCH")
@@ -67,6 +73,13 @@ def validate_forge_profile(profile, inventory, read, *, java):
         require(len(raw) == row["bytes"], "HASH_MISMATCH")
         return raw
 
+    if frozen:
+        report_raw = blob(profile.runtime_data)
+        for role in ("client", "server"):
+            validate_snapshot(report_raw, installed(role, AGENT_PATH))
+    else:
+        require(not any(path in REMOTE_MODS for _, path in files), "FORGE_RUNTIME_DATA_UNPINNED")
+
     software = strict_json(blob(profile.client_software))
     require(software.get("is_example") is profile.is_example
             and isinstance(software.get("files"), list) and 0 < len(software["files"]) <= 21000,
@@ -83,8 +96,8 @@ def validate_forge_profile(profile, inventory, read, *, java):
     directories = inventory_directories(inventory, reviewed_world_paths=reviewed_vendor_paths("e9e"))
     require("natives" in directories["client"], "FORGE_CLIENT_NATIVES")
     expected = client_template(software, installed("client", f"versions/{VERSION}/{VERSION}.json"),
-        installed("client", "versions/1.19.2/1.19.2.json"), server_port=profile.port)
-    require(profile.client.arguments == expected and profile.server.arguments == SERVER_ARGS,
+        installed("client", "versions/1.19.2/1.19.2.json"), server_port=profile.port, frozen=frozen)
+    require(profile.client.arguments == expected and profile.server.arguments == [*agent_arguments(frozen), *SERVER_ARGS],
             "FORGE_LAUNCH_COMMAND_MISMATCH")
     for role in ("client", "server"):
         command = getattr(profile, role)

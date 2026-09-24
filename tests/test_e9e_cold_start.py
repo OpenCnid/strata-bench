@@ -12,6 +12,34 @@ from mcbench.processes import ManagedProcess
 from mcbench.storage import Fault
 
 
+@pytest.mark.parametrize("change", [None, "prefix", "missing_class", "missing_read", "wrong_index", "refused"])
+def test_runtime_data_requires_actual_pinned_class_and_read_evidence(change):
+    report = {"policy": "synthetic", "jar_sha256": "a" * 64, "index_sha256": "b" * 64,
+              "inputs": [{"name": n, "sha256": "c" * 64} for n in ("whitelist.txt", "blacklist.txt", "contributorRevolvers.json")]}
+    lines = ["STRATA_FIXED_DATA_READY/1 " + report["index_sha256"],
+        "STRATA_FIXED_DATA_BOUND/1 com/portingdeadmods/cable_facades/CFConfig 601b70c83a14debbb5e4679196a319c1a31eab4d4b008cd33b1feca2551bda0d",
+        "STRATA_FIXED_DATA_BOUND/1 blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
+        *("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])]
+    if change == "prefix":
+        lines = ["[thread/INFO] [STDERR]: " + line for line in lines]
+    elif change == "missing_class":
+        del lines[1]
+    elif change == "missing_read":
+        lines.pop()
+    elif change == "wrong_index":
+        lines[0] += "changed"
+    elif change == "refused":
+        lines.append("STRATA_FIXED_DATA_REFUSED/1")
+    raw = ("\n".join(lines) + "\n").encode()
+    if change in {None, "prefix"}:
+        result = cold.inspect_runtime_data_log(raw, report)
+        assert len(result["bound_classes"]) == 2 and len(result["read_inputs"]) == 3
+        assert result["all_runtime_downloads_qualified"] is False
+    else:
+        with pytest.raises(Fault, match="RUNTIME_DATA_EXECUTION"):
+            cold.inspect_runtime_data_log(raw, report)
+
+
 @pytest.fixture
 def inputs(tmp_path, monkeypatch):
     root, output = tmp_path / "game", tmp_path / "evidence"

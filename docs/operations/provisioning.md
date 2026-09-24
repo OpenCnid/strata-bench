@@ -1,5 +1,13 @@
 # Private pack provisioning
 
+The original E9E request now has a VERIFIED directory-bound installed inventory
+(`20cad14f2d8ed7a4675685608e22bfa5e6fdbcb36510c464d6d4d11667fc4c81`).
+Reuse that exact admitted pair and retained source/runtime dispositions. Do not
+repeat preparation/import or treat VERIFIED as SEALED. Next bind the executable
+E9E launch profile and all thirteen existing provisioning checks to its exact
+inventory and receipt before seal/materialization. Preserve the five historical
+config findings and client ZIP drift. [Actual admission, scope and evidence](../verification/2026-09-24-e9e-final-inventory.md).
+
 Final role inventory inputs accept `extra_directories` for empty vendor/native paths.
 Declare those explicitly; verification rejects missing or unlisted directories
 before importing either role. Extra paths produce `InstalledInventory/2` with

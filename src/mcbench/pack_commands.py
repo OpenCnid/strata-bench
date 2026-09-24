@@ -34,6 +34,22 @@ def emit(value):
     typer.echo(json.dumps(value, indent=2))
 
 
+@pack_app.command("prepare-forge-server-libraries")
+def prepare_forge_server_libraries(installer: Path, bundle: Path, manifest: Path,
+                                  version: Path, root: Path, destination: Path):
+    """Prepare exact E9E Forge server software; no installer/game execution or seal."""
+    from .forge_runtime import prepare_server_libraries, read_input
+    try:
+        emit(prepare_server_libraries(
+            read_input(installer, 16 * 1024**2), read_input(bundle, 512 * 1024**2),
+            read_input(manifest, 4 * 1024**2), read_input(version, 2 * 1024**2),
+            root, destination))
+    except Fault as error:
+        emit({"status": "blocked", "code": error.code, "started": False,
+              "partial_destination_may_exist": destination.exists()})
+        raise typer.Exit(2) from None
+
+
 @pack_app.command("inspect-npm-runtime")
 def inspect_npm_runtime(root: Path, cache: Path, generated_shims: Path):
     """Compare installed dependencies with retained tarballs and reviewed npm shim output.

@@ -1,5 +1,15 @@
 # Private pack provisioning
 
+For the exact E9E 1.27.0 / Forge 43.4.23 server library component, use
+`mcbench pack prepare-forge-server-libraries INSTALLER BUNDLE MANIFEST VERSION ROOT DESTINATION`.
+Inputs are retained official Forge/Mojang artifacts; ROOT names only the
+stopped installation's libraries directory and DESTINATION must not exist.
+The command verifies publisher expectations before copying software and emits
+private `ForgeServerLibraries/1` evidence. Four named installer intermediates
+are inventoried/excluded. No installer, game, acquisition-state update or
+PackLock seal occurs; retain the output for complete role assembly and license
+review. Partial outputs cannot be reused. [Actual verification and limits](../verification/2026-09-23-forge-server-software.md).
+
 This operator-only workflow implements source import, inventory verification,
 sealing and fresh materialization. It does not install Minecraft, accept terms,
 start a game, or certify a release gate. Keep the store, installations, receipts,

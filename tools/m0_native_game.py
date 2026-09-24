@@ -279,6 +279,12 @@ def run_plan(plan, resources, runtime=None):
     worker_root = Path(runtime.body["root"]) if runtime else ROOT
     source_pins.update({p.relative_to(worker_root).as_posix(): file_hash(p)
                        for p in (worker_root / "backends/mineflayer/dist/src").iterdir() if p.suffix == ".js"})
+    if version == "strata/M0NativePilot/2":
+        from mcbench.native_game_measurements import archive_pilot_sources
+        source_pins.update({name: file_hash(worker_root / name) for name in (
+            "backends/mineflayer/package-lock.json", *[f"schemas/v1/public/{name}.json"
+                for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest")])})
+        archive_pilot_sources(output, source_pins, ROOT, worker_root)
     write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
         "model_provider": "native_oauth" if pilot else "synthetic", "real_model_requests": None if pilot else 0,
         "isolation_qualified": False, "authentic_game": True,

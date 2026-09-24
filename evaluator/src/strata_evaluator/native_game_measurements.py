@@ -104,3 +104,57 @@ def inspect_completed_pilot_costs(bundle):
             "worker_action_join_recorded": result["native_worker_journal_join"],
             "run_result_digest": digest(result), "native_result_digest": digest(native)},
         "gameplay_success_qualified": False, "action_effects_reconciled": False}
+
+
+def inspect_reconciled_pilot(bundle):
+    """Join known action outcomes, saved state, locks and settled measured costs.
+
+    Requires the explicit refusal policy. Legacy absence of refusal evidence,
+    ambiguous effects and incomplete acknowledgments cannot qualify this join.
+    The original two-action goal result remains an independently recorded value.
+    """
+    from .native_game_evidence import (saved_player_evidence, sealed_pack_evidence, source_evidence,
+                                       stop_evidence, worker_evidence)
+    report = inspect_completed_pilot_costs(bundle)
+    intent = bundle.json("run/intent.json")
+    result = bundle.json("run/result.json")
+    config = bundle.json("run/worker-config.json")
+    require(result.get("logs_complete") is True and result.get("forced_worker_cleanup") is False
+            and result.get("forced_server_cleanup") is False, "NATIVE_MEASUREMENT_STOP")
+    with bundle.database("controller.sqlite") as db, bundle.database("run/worker/actions.sqlite") as worker:
+        native, source, _ = inspect_native_source(db, EvidenceCAS(db, bundle, "objects"),
+                                                intent["plan"]["pilot"]["job_id"], simulation=False)
+        require(digest(source) == report["native_source_digest"]
+                and native.profile_digest() == report["native_profile_digest"], "NATIVE_MEASUREMENT_CHANGED")
+        game, cap, observations = worker_evidence(worker, source, native, config, allow_recorded_refusals=True)
+        stop = stop_evidence(db, bundle, native, native, select_job=True)
+        pins = source_evidence(bundle, native, intent, cap)
+        saved = saved_player_evidence(bundle, observations)
+        player_path = f"run/server/stopped-instance/state/world/playerdata/{report['measurements']['saved_player_uuid']}.dat"
+        require(file_hash(bundle.path(player_path)) == report["measurements"]["saved_player_sha256"],
+                "NATIVE_GAME_SAVED_PLAYER")
+        pack = sealed_pack_evidence(bundle, intent, result, config, bundle.json("run/server-plan.json"),
+                                    bundle.json("run/server/result.json"))
+    bundle.verify()
+    return report | {"schema": "strata/ReconciledNativePilot/1", "action_evidence_reconciled": True,
+        "game": game, "saved_player": saved, "stop": stop, "locks": pins, "pack": pack}
+
+
+def main(argv=None):
+    import argparse
+    import json
+    from pathlib import Path
+    from .cli import write_report
+    from .evidence_bundle import EvidenceBundle
+    parser = argparse.ArgumentParser(description="Reconcile a sealed private instrumented pilot; no launch or inference.")
+    parser.add_argument("--bundle", type=Path, required=True)
+    parser.add_argument("--seal", required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(argv)
+    report = inspect_reconciled_pilot(EvidenceBundle(args.bundle, args.seal))
+    receipt = write_report(args.output, report)
+    print(json.dumps({"status": "reconciled", "visibility": "evaluator", "G0": "fail", **receipt}))
+
+
+if __name__ == "__main__":
+    main()

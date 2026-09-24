@@ -8,8 +8,8 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { ActionLane, RELEASE_TIMEOUT_MS, type Backend, type PrimitiveEmitter } from '../src/actions.js';
-import { Journal } from '../src/journal.js';
-import { type Action, type ActionBatch, Fault, mono } from '../src/protocol.js';
+import { ACTION_ADMISSION_POLICY, Journal } from '../src/journal.js';
+import { type Action, type ActionBatch, Fault, mono, digest } from '../src/protocol.js';
 import { SpatialPages, type Snapshot } from '../src/pagination.js';
 import { serve } from '../src/server.js';
 import { EventEmitter } from 'node:events';
@@ -91,7 +91,8 @@ test('acceptance is durable, a lost receipt is queried, and duplicate IDs never 
 test('refused sequence leaves receipts contiguous when the next model action is valid', async t => {
   const f = fixture(t);
   f.backend.task = async (_signal, emit) => {emit();};
-  assert.throws(() => f.lane.act(f.batch('refused', 3)), /OUT_OF_ORDER/);
+  const refused = f.batch('refused', 3);
+  assert.throws(() => f.lane.act(refused), /OUT_OF_ORDER/);
   assert.equal(f.journal.counter('1:ack'), 0);
   assert.equal(f.journal.counter('1:action'), 0);
   assert.equal(f.journal.counter('primitive_events'), 0);
@@ -107,6 +108,14 @@ test('refused sequence leaves receipts contiguous when the next model action is 
   assert.equal(f.journal.counter('primitive_events'), 1);
   const read = new DatabaseSync(join(f.dir, 'actions.sqlite'), {readOnly:true});
   try {
+    const rejected = read.prepare("SELECT body FROM events WHERE kind='action_refusal'").all();
+    assert.equal(rejected.length, 1);
+    const proof = JSON.parse(rejected[0]!.body as string);
+    assert.deepEqual({...proof,recorded_at:null,mono_ms:null}, {
+      schema:'strata/ActionSequenceRefusal/1',policy:ACTION_ADMISSION_POLICY,
+      campaign_id:'c',agent_id:'a',epoch:1,request_id:'refused',request_digest:digest(refused),
+      action_seq:3,expected_action_seq:1,ack_counter:0,primitive_events:0,code:'OUT_OF_ORDER',
+      recorded_at:null,mono_ms:null});
     const receipts = read.prepare("SELECT body FROM events WHERE kind='ack' ORDER BY cursor").all()
       .map(row => JSON.parse(row.body as string));
     assert.deepEqual(receipts.map(a => [a.seq, a.status, a.request_id]),
@@ -129,6 +138,23 @@ test('failed durable acceptance rolls back receipt allocation before any dispatc
   assert.equal(f.backend.dispatched, 0);
   assert.equal(f.journal.counter('primitive_events'), 0);
   f.journal.event = original;
+});
+
+test('failed refusal storage cannot return a proved sequence refusal', async t => {
+  const f = fixture(t);
+  const original = f.journal.event.bind(f.journal);
+  f.journal.event = (kind, body) => {
+    if (kind === 'action_refusal') throw new Error('injected refusal storage failure');
+    original(kind, body);
+  };
+  assert.throws(() => f.lane.act(f.batch('refused', 3)), /injected refusal storage failure/);
+  f.journal.event = original;
+  await delay(20);
+  assert.equal(f.backend.dispatched, 0);
+  assert.equal(f.journal.counter('1:ack'), 0);
+  const read = new DatabaseSync(join(f.dir, 'actions.sqlite'), {readOnly:true});
+  try {assert.equal(read.prepare("SELECT COUNT(*) AS n FROM events WHERE kind='action_refusal'").get()!.n, 0);}
+  finally {read.close();}
 });
 
 test('idle heartbeat preserves action authority but actual body changes and age still reject', async t => {

@@ -7,13 +7,14 @@ offline use, a verified evidence bundle); archived absolute paths are data.
 
 import hashlib
 import math
+import os
 from pathlib import Path, PureWindowsPath
 import re
 import zipfile
 
 from .inference_transport import strict_json
 from .inventory import file_hash
-from .storage import digest, reject_links, require
+from .storage import canonical, digest, reject_links, require, safe_relative
 from .vanilla_clock import inspect_vanilla_clock
 from .vanilla_persistence import verify_snapshot
 from .worker_health import health_required, inspect_worker_health
@@ -23,6 +24,35 @@ POLICY = "native-vanilla-callback-resource-join/1"
 TIMING_KINDS = ("run_started", "server_launch_requested", "worker_launch_requested", "avatar_ready",
                 "native_started", "native_finished", "worker_close_requested", "worker_closed",
                 "server_stop_requested", "server_closed", "run_finished")
+
+
+def archive_pilot_sources(output, pins, repository, worker_root):
+    """Retain only declared source/dependency bytes before any game dispatch."""
+    output, repository, worker_root = Path(output), Path(repository), Path(worker_root)
+    require(isinstance(pins, dict) and 0 < len(pins) <= 1024, "NATIVE_GAME_SOURCE_PINS")
+    total = 0
+    for name, expected in sorted(pins.items()):
+        relative = safe_relative(name)
+        require(name.startswith(("src/mcbench/", "tools/", "backends/mineflayer/dist/src/", "schemas/v1/public/"))
+                or name == "backends/mineflayer/package-lock.json", "NATIVE_GAME_SOURCE_PINS")
+        root = repository if name.startswith(("src/", "tools/")) else worker_root
+        source = root.joinpath(*relative.parts)
+        reject_links(source)
+        require(source.is_file() and source.stat().st_size <= 8 * 1024**2, "NATIVE_GAME_SOURCE_PINS")
+        raw = source.read_bytes()
+        total += len(raw)
+        require(total <= 32 * 1024**2 and hashlib.sha256(raw).hexdigest() == expected, "NATIVE_GAME_SOURCE_PINS")
+        target = output / "source" / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        reject_links(target)
+        with target.open("xb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+    with (output / "source-pins.json").open("xb") as stream:
+        stream.write(canonical(pins))
+        stream.flush()
+        os.fsync(stream.fileno())
 
 
 def inspect_timing(path, clock, health):

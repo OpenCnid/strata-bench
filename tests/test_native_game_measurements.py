@@ -375,3 +375,41 @@ def test_successful_wrapper_preserves_its_schema_and_cost_join(completed_cost_bu
     assert strict["measurements"] == costs["measurements"]
     assert costs["outcome"]["run_status"] == "pass"
     assert not costs["gameplay_success_qualified"]  # Costs alone never certify behavior.
+
+
+def test_pilot_source_capture_uses_declared_held_worker_bytes_and_keeps_credentials_out(tmp_path):
+    import json
+    from mcbench.native_game_measurements import archive_pilot_sources
+    repository, worker, output = (tmp_path / name for name in ("repository", "worker", "output"))
+    output.mkdir()
+    python_name, js_name = "src/mcbench/fixture.py", "backends/mineflayer/dist/src/fixture.js"
+    pins = {}
+    for root, name, raw in ((repository, python_name, b"python fixture"), (worker, js_name, b"held worker fixture")):
+        target = root / name
+        target.parent.mkdir(parents=True)
+        target.write_bytes(raw)
+        pins[name] = hashlib.sha256(raw).hexdigest()
+    decoy = repository / js_name
+    decoy.parent.mkdir(parents=True)
+    decoy.write_bytes(b"unheld checkout version")
+    (worker / "auth.json").write_bytes(b"synthetic secret must not be copied")
+    archive_pilot_sources(output, pins, repository, worker)
+    assert json.loads((output / "source-pins.json").read_bytes()) == pins
+    assert (output / "source" / js_name).read_bytes() == b"held worker fixture"
+    assert not (output / "source/auth.json").exists()
+    with pytest.raises(FileExistsError):
+        archive_pilot_sources(output, pins, repository, worker)
+
+
+@pytest.mark.parametrize("case", ["hash", "traversal", "unlisted"])
+def test_failed_pilot_source_capture_never_publishes_a_complete_manifest(tmp_path, case):
+    from mcbench.native_game_measurements import archive_pilot_sources
+    output = tmp_path / "out"
+    output.mkdir()
+    source = tmp_path / "tools/fixture.py"
+    source.parent.mkdir()
+    source.write_bytes(b"fixture")
+    name = {"hash": "tools/fixture.py", "traversal": "tools/../secret", "unlisted": "auth.json"}[case]
+    with pytest.raises(Fault):
+        archive_pilot_sources(output, {name: "0" * 64}, tmp_path, tmp_path)
+    assert not (output / "source-pins.json").exists()

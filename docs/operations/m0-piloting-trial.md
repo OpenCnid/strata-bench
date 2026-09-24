@@ -1,5 +1,17 @@
 # M0 development piloting trial
 
+**September24 checkpoint:** D19.11/live18 is consumed and stopped. The latest
+used helper profile was16 total requests, one helper,240 native seconds,
+360000ms worker lifetime,440 server seconds and at most$1 from the original$10.
+Exposure is$4.887796 with all unknown holds reserved. Independent combined
+audit19/19 passes; the two-action gameplay goal fails (corrected turn, no walk).
+D18/D19 continuing authority remains valid without per-run reapproval. Follow
+[the current handoff](../STATUS_AND_HANDOFF.md) and
+[exact evidence](../verification/2026-09-24-action-refusal-evidence.md); do not
+execute historical one-use scripts or revive old90-second/zero-helper proposals.
+Older limits, figures and pending actions below are historical. This stopping
+checkpoint selects no new game/model experiment.
+
 **D19 current policy (2026-09-23):** “Proceed with all unresolved amounts reserved.” Continuing D18 approval plus D19 permits fresh sequential M0 development pilots within the original $10 while retaining all prior settled consumption and unresolved envelopes. Before m0-pilot-08, exposure is $1.795559; reserving its complete $1 permits at most $2.795559 combined exposure. Prior gateways must be closed/fenced and native jobs terminal. Each new run has twelve requests, zero helpers, a 90-second native limit and at most two bounded model-selected actions. A new unknown stops its own job; a later distinct job needs a fresh decision binding the updated exposure/holds. No replay or refund. New pilots explicitly use a 60-second per-response transport window; old 30-second configurations and evidence remain unchanged. Historical global admission blocks below are superseded only for this authorized scope.
 
 **Current M0 piloting result (2026-09-23):** D18.3 completed the first actual GPT-6 Luna-selected Mineflayer turn (71.55 degrees, one primitive, released controls). The distinct D18.4 / m0-pilot-07 used the corrected 12-request cap but failed on request five: HTTP 200, incomplete stream, no terminal usage receipt. Four requests settled for $0.002896; request six was refused before dispatch with METERING_UNKNOWN. All 53 processes are terminal; worker forced cleanup remains a failure. Original committed/reserved exposure is $1.795559, including the retained old hold and unresolved new $1 job envelope. New paid dispatch is blocked by this new uncertainty, not pending user approval; no replay or refund. Follow-up diagnostics and drain-before-accounting-failure fixes pass 173 focused cases; authentic changed failure-path integration remains unverified. Continue independent M0 scorer/setup and clock/save work. All seven used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](../verification/2026-09-23-first-model-action.md).

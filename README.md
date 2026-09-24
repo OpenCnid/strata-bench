@@ -21,8 +21,12 @@ the bounded motor commands and returns observations and receipts. A separate
 helper can review public evidence. Authentic pilots have turned and walked with
 joined model costs and saved-player evidence. Test scripts prepare fixtures and
 check outcomes; scripted-provider tests are labeled separately. See the
-[connected pilot evidence](docs/verification/2026-09-24-instrumented-player.md).
+[latest reconciled pilot evidence](docs/verification/2026-09-24-action-refusal-evidence.md).
+Live15 passed actual turn/walk/helper play. Live18 later verified a refused
+sequence and model-corrected turn with complete evidence, while retaining its
+failed two-action goal. Next assemble exact G0 profiles and child dispositions.
 This is a short integration slice, not autonomous expert-pack completion.
+[September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md).
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
 - [Current status](docs/STATUS.md): M0 closure gaps and evidence index
@@ -46,17 +50,19 @@ evidence reconstruction. All prior failures remain; full G0 qualification is ope
 | Python operator services | Strict records, storage/journals, grants, controller state, budgets/clocks, checkpoints, artifacts and communication | Integrated production lifecycle, isolation and complete restoration |
 | TypeScript worker and CLI | Filtered observations, scoped actions, durable action lane, cancellation, fencing and process supervision | Complete vanilla/modded mechanics and reliability |
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
-| Native Codex adapter | Actual pinned CLI/plugin/root/helper, skill/supporting-file reads, learned activation/export and connected vanilla smoke with scripted replies | Live-model game integration, full helper/isolation and authentic joint recovery qualification |
-| Inference accounting | D11 estimates/migration, nested envelopes, distinct requests, deduplicated receipts and uncertain holds; one authentic D12 receipt reconciled offline | Original unknown hold blocks general admission; native reply delivery failed and changed transport remains live-unqualified |
-| Restricted native broker candidate | Pinned caller/tool projections, scoped artifact writes, executor-only real worker forwarding and clean helper admission | Full runtime/file/process/network conformance and live-model game qualification; raw canary failures remain |
-| Evaluator source | Private telemetry, saved-state/resource witnesses, campaign/source-bound scorers and synthetic controls/probes/reporting | Authenticated source/setup/team admission, authoritative live scoring, matched experiments and confirmation |
+| Native Codex adapter | Pinned CLI/Dovetail, actual GPT-6 Luna gameplay, delivered helper reply and accounting; scripted recovery separately retained | Full helper/isolation and authentic joint recovery qualification |
+| Inference accounting | Actual root/helper receipts, nested envelopes, deduplication and retained uncertainty; D18/D19 fresh-job admission | General campaign admission and exact subscription billing unqualified; no refund or replay of unknown requests |
+| Restricted native broker candidate | Pinned tool projection, scoped artifacts, actual executor-only game forwarding and clean-context helper delivery | Full runtime/file/process/network conformance deferred under D14; raw canary failures remain |
+| Evaluator source | Private development craft milestone and controls; joined action/refusal, source/lock, stopped player, costs and clocks | Full setup/scientific scoring authority, isolation, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded
 block, machine processing/collection and expert furnace crafting. The approved
 [D13 shutdown policy](docs/verification/2026-09-21-d13-shutdown.md) now allows
 1,000 ms and has a passing 568.994-ms sample; all old 500-ms failures remain
-recorded. Private scorer/setup controls, full isolation, authoritative clock/save
-evidence and remaining profile/recovery qualification still block G0.
+recorded. Final exact-profile assembly and child dispositions keep G0 open.
+Full gameplay/helper isolation is deferred to M1/G1 under D14; selected private
+development scorer and measured clock/save joins are already evidenced.
+Complete campaign clocks, capacity and canonical recovery remain unqualified.
 Separate-desktop rendering preserves desktop usability but does not establish
 filesystem/process/network isolation.
 
@@ -80,7 +86,8 @@ npm test --prefix backends/mineflayer
 ```
 
 Cross-language process tests require the pinned JVM and generated test classpath;
-without the opt-in environment they may skip. The checkpoint ran them enabled:
+without the opt-in environment they may skip. Historical checkpoints ran selected
+JVM fixtures enabled; September 24 merge checks record their actual skips separately:
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot'
@@ -104,13 +111,22 @@ npm test --prefix backends/mineflayer
 The Windows writer tests also require the existing local sandbox identity/group
 named above; those commands resolve them and do not create accounts.
 
+Use this checkout's synchronized `.venv` for the isolated Python guard. Its
+`-I` invocation ignores `PYTHONPATH`; borrowing another worktree's interpreter
+can load that worktree's editable package and correctly fail source-identity
+checks. Verify the import before enabling those fixtures:
+
+```powershell
+.venv\Scripts\python.exe -I -c "import mcbench.forge_guard; print(mcbench.forge_guard.__file__)"
+```
+
 Obtain the FTB Library artifact from the official exact pack outside this repo;
 its hash is enforced. No game or modpack binaries are distributed here. See the
 [Forge build runbook](docs/operations/forge-telemetry.md) and
 [settings extension runbook](docs/operations/forge-client-settings.md) for build
 inputs and limitations. A clean-machine build has not been qualified.
 
-See the [session checkpoint verification](docs/verification/2026-09-22-session-handoff.md)
+See the [session checkpoint verification](docs/verification/2026-09-24-session-handoff.md)
 for current merge checks and the historical baseline. These are local contract,
 process and fixture checks; they do not substitute for real integration gates.
 
@@ -123,15 +139,17 @@ documents, private logs, credentials or sealed instances. The allowlisted
 sanitized keybinding skill; packaging alone is not runtime isolation.
 
 Game installations, account caches, raw runs and private evaluator instances
-stay in separate protected storage. The authorized validation configuration is
-Codex OAuth / `gpt-5.6-luna`, with the original **$10 aggregate API-equivalent
-estimated usage allowance**, including helpers/retries (D04 clarified by D11).
-The user confirms no outside experiments. D11 migration preserves the original
-authority. Two actual requests now account for $0.7554 held plus $0.001458
-settled ($0.756858 combined); D12 is consumed and general admission remains
-blocked. Native reply delivery failed despite successful offline receipt recovery.
-This is not an OAuth bill or exact subscription-quota conversion. A VM is optional; an enforceable game,
-evaluator and credential boundary remains required. See the
+stay outside this public repository. D17 selects Codex OAuth / `gpt-6-luna`.
+The original **$10 aggregate API-equivalent allowance** includes helpers/retries;
+exposure is **$4.887796**, preserving the old $0.7554 hold and four full $1 failed-job
+envelopes. D18/D19 authorize necessary bounded fresh M0 jobs with all unknown
+amounts reserved and prior jobs terminal/fenced. Recheck durable authority before
+spend. D12 and used pilots stay consumed; no replay, refund or new allowance.
+These estimates are not an exact OAuth bill or subscription conversion.
+
+D14 defers full isolation qualification to M1/G1; development evidence remains
+isolation-unqualified and cannot establish protected scoring or scientific
+validity. Shared-desktop input remains paused. See the
 [validation admission contract](docs/operations/validation-admission.md).
 
 Operational entry points: [provisioning](docs/operations/provisioning.md),

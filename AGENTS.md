@@ -1,15 +1,5 @@
 # Strata project instructions
 
-**Current M0 piloting result (2026-09-23):** D18.3 completed the first actual GPT-6 Luna-selected Mineflayer turn (71.55 degrees, one primitive, released controls). The distinct D18.4 / m0-pilot-07 used the corrected 12-request cap but failed on request five: HTTP 200, incomplete stream, no terminal usage receipt. Four requests settled for $0.002896; request six was refused before dispatch with METERING_UNKNOWN. All 53 processes are terminal; worker forced cleanup remains a failure. Original committed/reserved exposure is $1.795559, including the retained old hold and unresolved new $1 job envelope. New paid dispatch is blocked by this new uncertainty, not pending user approval; no replay or refund. Follow-up diagnostics and drain-before-accounting-failure fixes pass 173 focused cases; authentic changed failure-path integration remains unverified. Continue independent M0 scorer/setup and clock/save work. All seven used pilots remain retained; M0 in_progress/G0 fail. [Exact evidence and limits](docs/verification/2026-09-23-first-model-action.md).
-
-**D18 — continuing execution approval (2026-09-23):** the user stated, “I approve all runs and authorize the spend.” This authorizes necessary M0/G0 implementation and validation runs within the original $10 total API-equivalent allowance; no further per-run user confirmation is required within that scope. It creates no new allowance and does not release the old $0.7554 unknown hold or permit blind replay. Every run remains bounded and individually accounted; any new unknown usage stops further admission. The first run, m0-pilot-03, has finished: six settled GPT-6 Luna requests cost $0.004677; capabilities and observation reached Mineflayer, but the model selected no actions. Combined exposure is $0.778471 including the unchanged hold. The used job cannot replay; continuing approval remains active. M1–M7 and shared-desktop input remain outside scope.
-
-**Prepared GPT-6 Luna pilot (2026-09-23):** the outer launcher now binds the authorized model before game setup; operator exports match D17. 148 focused Python cases, TypeScript build and native scripted case05 (16/16) pass. A fresh m0-pilot-03 baseline and explicit unapproved D18 proposal are sealed; actual-driver refusal preserves all 39 original authority tables. No real model/game run occurred. D18 has since been approved below its original total allowance; M0 remains in_progress and G0 fail. [Preparation and next action](docs/verification/2026-09-23-luna6-pilot-preparation.md).
-
-**D17 — gameplay model selection (2026-09-23):** the user explicitly selected `gpt-6-luna` instead of `gpt-5.6-luna`. Use a fresh model generation and initial artifacts; retain 5.6 results under their original identity. The original $10 allowance, $0.773794 exposure, $0.7554 unresolved hold and consumed D12/D15/D16 trials remain. Source migration binds the new published pricing basis to the same budget account and archives the predecessor authorization; it does not reprice old requests, clear uncertainty or authorize another one-use trial. The durable selection is activated; 261 focused source cases and native scripted compatibility 16/16 pass. Actual GPT-6 Luna piloting remains unverified. See [D17 verification](docs/verification/2026-09-23-gpt6-luna.md).
-
-**D16 consumed (2026-09-23):** the corrected native LLM/Mineflayer pilot made six settled model requests ($0.010514 API-equivalent), then exited 1 without forwarding a game request. Its three valid request envelopes used deadlines 14.767, 59.765 and 23,834.266 seconds ahead of broker entry; the existing maximum is 5.25 seconds. The public instructions omitted that maximum and the error was ambiguous. All 53 owned processes stopped, every original accounting row and D12/D15 remained unchanged, and combined exposure is $0.773794 including the old $0.7554 hold. The follow-up source correction publishes the timing window and supplies safe corrective feedback; live behavior remains unverified. D14 isolation deferral and M0/G0-only scope remain. See [D16 diagnosis](docs/verification/2026-09-23-d16-pilot.md).
-
 ## Purpose and authority
 
 Build **Strata**, the Minecraft adaptation benchmark described in [SPEC.md](SPEC.md), in the public **strata-bench** repository. Preserve its complete feature set, experimental integrity, and verification gates. Deliver the scope of the current user request; these instructions do not authorize starting the entire roadmap, installing Minecraft, spending inference credits, or running experiments during a documentation task.
@@ -20,29 +10,70 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
-## Resuming this checkpoint
+## Resuming the September 24 checkpoint
 
-The active implementation objective is **M0 and all six G0 items only, with D14 deferring isolation qualification to M1/G1**. Preserve the complete M1–M7 roadmap, but do not advance unrelated later work. Read [current status](docs/STATUS.md), [the handoff](docs/STATUS_AND_HANDOFF.md), the ledger's current position and applicable SPEC contracts before selecting work. The [September 22 checkpoint report](docs/verification/2026-09-22-session-handoff.md) records the implementation merge, actual checks and retained failures. Fetch origin, verify the actual PR/main and private accounting/process state, preserve existing changes, and start a fresh branch from updated main. A merged checkpoint does not close M0 or G0.
+The implementation objective is **M0 and all six G0 outcomes only**, with D14
+deferring full isolation qualification to M1/G1. **M0 is in_progress, G0 fail.**
+The user requested a documentation/source PR, merge to main and fresh session;
+that checkpoint does not close the milestone. Preserve the complete M1–M7
+roadmap and do not advance unrelated later work.
 
-**The bounded M0.1d.8c normal-completion result is established.** The reusable native/game verifier and sealed recovery remain available in their documented scripted-provider scopes. Case04 passes native completion, normal worker drain, normal server stop/capture and independent reconstruction. `NativeBootstrap/2` pins all three companion executables after retained attempts 02/03 exposed removed/missing runtime dependencies. Preserve every failure and original accounting. [Exact current evidence](docs/verification/2026-09-22-native-companions.md). Do not restart M0.1d.1, repeat its accounting matrix, rebuild the unchanged worker/template, or expand normal-stop work without a new applicable evidence gap.
+Read [current status](docs/STATUS.md), [the current handoff](docs/STATUS_AND_HANDOFF.md),
+the ledger's current position and applicable SPEC contracts before selecting work.
+The [September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md)
+records current source, actual evidence, private pins and merge checks. Fetch
+origin, verify the actual PR/main and private accounting/process state, preserve
+existing changes, and start a fresh branch from updated main. Older dated reports
+and archived handoff text preserve history; their next actions are superseded.
 
-**Immediate work (D14):** correct structured observations, actual bounded input/action effects and authentic LLM piloting. Resolve the existing model-request accounting/transport admission gap without replay or refund. Defer sandbox and full gameplay/helper isolation qualification to M1/G1; do not keep expanding that work as an M0 prerequisite. Other required M0 scorer, time/save, recovery and E9E results remain traceable, with piloting first. Assess progress against all six [G0 outcomes](SPEC.md#161-first-runnable-vertical-slice-g0), not the number of child items, schemas or passing local tests. Implement producers and consumers together when an evidence gap requires a change. New generic scaffolding or another verification layer needs a concrete dependency on a still-missing G0 outcome. Normal lifecycle timestamps do not establish authoritative ticks, active wall time, clean save or complete checkpoints.
+**Immediate deliverable:** the final exact-profile six-outcome G0 assembly and
+explicit disposition of remaining children, beginning with minor 12 worker
+cancellation/reconnect lineage. M0.2c.1d.2's actual accepted/refused-action join
+passes19/19: live18 proves a zero-input refusal then the model's corrected turn,
+complete source/worker/pack/saved-player/cost/clock joins and normal stop. Its
+original two-action goal fails because there was no walk. Live15 already passed
+actual turn/walk/helper play. Neither result substitutes for the other's scope.
 
-Run focused verification for changes and required merge checks. Repeat a live trial only after a relevant implementation/profile change or to resolve a named evidence gap, retaining prior results. Do not launch Minecraft merely to inspect a checkpoint, rerun an unchanged successful recovery pair, or repeat unchanged broad/paid test matrices. Dated reports and the append-only ledger preserve superseded next actions; this handoff selects current work.
+Do not restart M0.1d.1, normal-stop case 04, installer selection, the successful
+helper trial, or unchanged recovery/accounting matrices. Run focused verification
+for changes and required merge checks. Select a live trial only after a relevant
+implementation/profile change or to resolve a named missing G0 outcome, retaining
+prior results. Do not seek a lucky paid rerun. New scaffolding needs a concrete
+missing G0 dependency. Full T05/isolation belongs to G1; complete canonical
+recovery/fault/soaks to G2. Preserve all IDs and wider contract gaps without
+silently promoting them or expanding this M0 task.
 
-D01–D18 carry forward. D11 clarifies the original **$10 total API-equivalent estimated experimental allowance**, including helpers/retries; it is not a new allowance, OAuth invoice or exact subscription conversion. Recheck durable authority in `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite` before spending. The user confirms no outside Strata experiments. Unknown requests retain reservations and are never blindly replayed.
+Strata is an LLM gameplay harness: the model chooses actions from filtered
+observations, Mineflayer executes bounded motors, and the harness records results.
+Fixture scripts and scripted-provider tests are separately labeled. Exact E9E's
+Mineflayer incompatibility remains; its Forge fallback is a separate identity.
 
-**D12 is consumed.** Its sole distinct request settled offline at $0.001458; the older $0.7554 unresolved hold remains ($0.756858 combined). Original native reply delivery failed; changed transport /2 subsequently delivered the twelve actual settled D15/D16 model replies. General model admission remains blocked by the old hold; both D15/D16 pilot exceptions are now consumed. No replay, rearming, refund or fresh allowance. Continue independent M0 source and authorized scripted-provider integration while this admission is blocked. See [validation admission](docs/operations/validation-admission.md).
+**Continuing authority:** D01–D19 persist. D17 selects `gpt-6-luna`. D18 authorizes
+necessary bounded M0 runs within the original **$10 total API-equivalent allowance**
+(including helpers/retries), and D19 permits fresh sequential jobs with **all
+unresolved amounts reserved**. At the checkpoint exposure is $4.887796: preserve
+the old $0.7554 hold and four full $1 failed-job envelopes without double charging
+settled children. Recheck `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite`
+using WAL-aware read-only access before spending. Prior jobs must be terminal/fenced
+and the complete new reservation must fit. New uncertainty stops its own job;
+never replay, refund, rearm a consumed decision or create a new allowance. No
+per-run reapproval is pending. D12 and all used pilots, including D19.11, remain
+consumed; offline settlement is distinct from old failed native reply delivery.
+The user confirms no outside Strata experiments. This is not an exact OAuth bill.
 
-**D15 is consumed:** the user-approved single pilot made six settled requests, costing $0.006422. It failed on malformed model game-tool arguments; no action reached Mineflayer. Old holds/D12 remain unchanged ($0.763280 combined exposure). The public request-contract correction passes its changed native compatibility check (15/15, three scripted requests, zero helpers). The m0-pilot-02 instance was used by D16; retain both used instances and D16’s deadline-window failure. Do not replay D15 or reuse its played instance as a fresh baseline. [Evidence](docs/verification/2026-09-23-d15-pilot.md).
+**D14 remains explicit:** full sandbox/gameplay/helper isolation qualification is
+deferred to M1/G1. Do not expand isolation-first work as an M0 prerequisite or
+ask for the same decision again. Keep filtered affordances, scoped tool identity,
+credential handling and no-replay controls; label development evidence
+isolation-unqualified with no protected-scoring/scientific/G1 claim. Separate
+folders, conversations or desktops are not proof of isolation. Shared-desktop
+input stays paused. D05 sign-in, Java entitlement and EULA approval already exist.
 
-**D13 explicitly authorizes the new 1,000-ms Java tree policy.** Its authentic 568.994-ms normal-stop sample passes that policy. Preserve all old 500-ms failures and other required fault cases; do not resume 500-ms optimization or ask for that same authorization again. Normal worker/server drain intervals and authoritative save/clock qualification remain distinct requirements.
-
-Isolation protects benchmark validity. Gameplay/tools/helpers must not reach hidden criteria, raw server/world state, admin interfaces, credentials or sibling/probe artifacts. D14 defers complete boundary qualification to M1/G1 and prioritizes M0 development piloting; a user-supplied VM or exact OAuth-dollar billing proof is not a prerequisite by itself. Tool restrictions require explicit capability identity/conformance; separate folders, conversations and desktops alone do not establish the boundary. Under D14, incomplete isolation qualification does not by itself block M0 development piloting; label that evidence isolation-unqualified and make no protected-scoring, scientific-validity or G1 release claim. This does not clear the separate existing model-accounting hold. Keep shared-desktop input paused. D05 sign-in, Java entitlement and EULA authorization already exist; do not ask again.
-
-**D14 is explicit and persists:** the user answered “Yes—defer isolation and focus on piloting” on September 22. Record this changed scope; never relabel an isolation failure as a pass or ask for the same scope authorization again.
-
-The user requested the September 22 stopping checkpoint and a fresh session. Both requested merges prepare that transition; they do not declare M0/G0 complete. On the fresh implementation task, use the [current handoff](docs/STATUS_AND_HANDOFF.md) and existing private pins, not historical one-use scripts or a new design/SPEC-writing exercise. Ask only for genuinely missing inputs after checking durable state and existing authorization.
+**D13 remains explicit:** the new Java tree policy is 1,000ms with an authentic
+568.994ms passing normal-stop sample. Preserve every historical 500ms failure and
+other fault requirement; do not restart 500ms optimization or ask again. Normal
+process drain, authoritative campaign clocks and full save custody are separate
+claims. Ask only for genuinely missing inputs after checking durable state.
 
 ## Start each task with coverage
 

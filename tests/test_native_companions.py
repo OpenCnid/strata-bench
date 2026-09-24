@@ -134,17 +134,19 @@ def test_offline_source_reconstruction_binds_external_companions(monkeypatch, ch
     bootstrap_name = "run/native/broker-runtime.manifest.json"
     bundle = SimpleNamespace(json=lambda name: {"source-pins.json": source,
         bootstrap_name: manifest}[name], files={"source/" + next(iter(source)): SimpleNamespace(sha256="c" * 64),
+        "source-pins.json": SimpleNamespace(sha256=digest(source)),
         bootstrap_name: SimpleNamespace(sha256="d" * 64)})
     native = SimpleNamespace(executable=binary, binary_digest="a" * 64, bootstrap_digest="d" * 64,
                              profile_digest=lambda: "e" * 64, dovetail_commit="f" * 40)
     cap = {"implementation_digest": digest({"worker.js": "c" * 64}),
            "dependency_lock_digest": "1" * 64, "schema_digest": "2" * 64}
     monkeypatch.setattr(evidence, "worker_runtime_evidence", lambda *_: {})
+    intent = {"source_pins": source, "plan": {"schema": "strata/M0NativeGameSmoke/5", "output": "C:/run"}}
     if change in {"missing", "duplicate", "extra", "changed"}:
         with pytest.raises((Fault, IntegrityError), match="BOOTSTRAP_COMPANION|NATIVE_GAME_EXTERNAL_PIN"):
-            evidence.source_evidence(bundle, native, {"source_pins": source, "plan": {"output": "C:/run"}}, cap)
+            evidence.source_evidence(bundle, native, intent, cap)
     else:
-        result = evidence.source_evidence(bundle, native, {"source_pins": source, "plan": {"output": "C:/run"}}, cap)
+        result = evidence.source_evidence(bundle, native, intent, cap)
         assert result.get("native_companions") == (None if change == "legacy" else pins)
 
 

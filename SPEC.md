@@ -1,5 +1,28 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**September24 checkpoint (v0.2.183):** M0 remains in_progress, G0 fail,
+G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md) and
+[dated checkpoint](docs/verification/2026-09-24-session-handoff.md) supersede
+historical next actions and exposure figures below. Actual LLM turn/walk/helper
+play is established in its named profile; live18 independently reconciles its
+refused/corrected action, locks, saved player, costs and clocks while retaining
+a failed two-action goal. Next assemble exact G0 profiles and remaining child
+dispositions, especially changed-worker cancellation lineage. D14, D17, D18/D19,
+the original allowance and every M1–M7 contract remain unchanged. This is a
+status/handoff revision, not a product or acceptance-threshold change.
+
+**Current authority:** gameplay model `gpt-6-luna`; exposure$4.887796/$10 includes
+all unresolved reservations. Fresh bounded M0 jobs remain authorized under
+D18/D19, with no replay/refund. The latest used profile is16 model requests
+including one helper,240 native seconds and at most$1; it is consumed and not a
+rerunnable command. Earlier90-second/zero-helper profiles below are historical
+decisions. No game/model experiment is selected during this stopping task.
+
+**Historical contract and implementation notes:** dated notes below retain
+their original context. Their old pending actions or unverified claims do not
+override the current ledger; normative contracts and decisions remain binding
+as subsequently amended.
+
 **M0.2c.1d.2 refusal evidence (2026-09-24).** Mineflayer minor12 declares `atomic-acceptance-sequence-refusal/1`: commit the scoped batch digest, expected action sequence and current acknowledgment/primitive counters before returning a known sequence refusal, without accepting an intent or dispatching input. Private consumers must join every such record to its exact RPC and preceding journal state; absence of an action is not proof of refusal. Preserve read-only status errors separately and reject ambiguous mutation outcomes. Instrumented pilots retain their declared source/worker/schema/lock bytes before launch and bind final public state to the actual stopped player. Recorded gameplay failure remains distinct from complete cost/action evidence. The declared worker capability reference must match the selected runtime and entry bytes before launch and the observed capability digest before inference; the offline consumer verifies the same binding. [Implementation and qualification](docs/verification/2026-09-24-action-refusal-evidence.md).
 
 **M0.2c.1d.2 recorded outcomes (2026-09-24).** Allocate an accepted action receipt inside the same transaction as its intent, after sequence admission; refusals and failed writes cannot consume an unrecorded acknowledgment sequence. Reconstruct settled normal-completion costs independently of goal success, retaining original checks/status/digests and explicit non-qualification of gameplay/action effects. The strict successful-pilot reader remains strict; unknown usage and incomplete stopped measurements still reject. This is bounded G0 item4/6 work, not a new gameplay affordance, acceptance waiver or change to later recovery/isolation gates. [Evidence](docs/verification/2026-09-24-pilot-outcomes.md).
@@ -41,7 +64,7 @@ The changed M0 pilot transport profile allows 60 seconds per model request, with
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.182, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-24 (atomic action acceptance and recorded failed-goal cost reconstruction). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.183, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-24 (fresh-session authority/evidence reconciliation; contracts unchanged). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 

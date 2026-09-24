@@ -356,17 +356,20 @@ def test_simulated_workflow_reads_all_proofs_and_sources_through_private_cas(dat
 def test_actual_process_operation_lock_excludes_other_controller_and_releases(database, tmp_path, crash):
     ready = tmp_path / "lock-ready"
     code = """
-import sys
+import os, sys
 from pathlib import Path
 from mcbench.storage import Database
 from mcbench.control_lock import profile_operation
 database = Database(Path(sys.argv[1]))
 with profile_operation(database, 'synthetic-profile-1'):
-    Path(sys.argv[2]).write_text('ready')
+    Path(sys.argv[2]).write_text(str(os.getpid()))
     sys.stdin.readline()
 database.close()
 """
-    process = subprocess.Popen([sys.executable, "-c", code, str(database.path), str(ready)],
+    # Kill/wait for the lock owner itself, not a Windows venv redirector whose
+    # interpreter child can briefly outlive it. Keep this test's import paths.
+    code = f"import sys\nsys.path[:0] = {sys.path!r}\n" + code
+    process = subprocess.Popen([sys._base_executable, "-I", "-c", code, str(database.path), str(ready)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
     try:
@@ -374,6 +377,7 @@ database.close()
         while not ready.exists() and time.monotonic() < expires and process.poll() is None:
             time.sleep(0.02)
         assert ready.exists() and process.poll() is None
+        assert int(ready.read_text()) == process.pid
         with pytest.raises(Fault, match="SETTINGS_BUSY"), profile_operation(database, "synthetic-profile-1"):
             pytest.fail("second controller acquired an active profile operation")
         with profile_operation(database, "independent-profile"):

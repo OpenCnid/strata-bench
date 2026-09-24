@@ -156,7 +156,10 @@ def test_gateway_rejects_before_provider(gateway, headers, route):
 def test_missing_receipt_keeps_hold_and_blocks_next_request(gateway, provider):
     endpoint, calls = provider(b'data: {"type":"response.created"}\n\n')
     gateway.service.fixture_upstream = endpoint.removesuffix("/v1/responses")
-    assert gateway.post()[0] == 200
+    # Receipt-before-delivery rejects an incomplete response before forwarding
+    # its headers/body; the provider request still retains its uncertain hold.
+    first_status, first_raw = gateway.post()
+    assert first_status == 403 and b"response.created" not in first_raw
     status, raw = gateway.post()
     assert status == 403 and json.loads(raw)["error"]["code"] == "METERING_UNKNOWN"
     assert len(calls) == 1

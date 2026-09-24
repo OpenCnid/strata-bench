@@ -1,5 +1,7 @@
 # M0 implementation handoff
 
+**Verified script-handle control (2026-09-23):** M0.2c.3b.3c.7 passes 44/44 authentic audit checks with module 0.3.13/startup14/history6. Six reflection-acquired handle calls leave six sticky unresolved attempts after actual team lookup is restored; clear startup, signed source, replay refusal and normal six-server/ten-outer-process termination are verified. The first direct-class-load attempt remains failed/sealed. Original 18,225 files and all 39 accounting tables are unchanged; no model/player activity and exposure remains $2.831942/$10. The D19.5 actual-model turn/walk pass remains verified. Next connect the existing positive craft and negative controls to the private scorer/report and resolve remaining provenance/profile/recovery/clock/cost gaps; do not repeat either successful control or pilot unchanged. Full isolation stays deferred under D14, M0 in_progress/G0 fail, M1–M7 unchanged. [Evidence](verification/2026-09-23-script-handle-history.md).
+
 **Verified bounded LLM pilot (2026-09-23):** D19.5 / m0-pilot-12 passes all nine pilot checks. GPT-6 Luna selects its own targets, completes a 101.25-degree turn and a 1.072751-block walk, ending 0.072751 blocks from its chosen destination. Two completed actions/18 primitives, released controls, unchanged health and matching saved Minecraft player state verify the actual loop. Eleven model calls settle for $0.009298; native finishes normally in115.935726s, all53 processes terminate, worker drain30.9416ms. Total exposure $2.831942 / $10, all old holds preserved. Public coordinate guidance passes53 focused tests and native14 17/17; M0.1d.9c verified for this named zero-helper development profile. Do not repeat it unchanged. Next revalidate and exercise the already implemented script-handle control M0.2c.3b.3c.7 for private setup/scoring, then continue remaining G0 profile/recovery/clock/cost gaps. M0 remains in_progress/G0 fail; D14 isolation deferral and M1–M7 remain. [Evidence](verification/2026-09-23-support-coordinate-pilot.md).
 
 **Latest M0.1d.9c result (2026-09-23):** the 180-second native / 360000-ms worker / 440-second server profile is implemented; 225 distinct focused tests and native12/13 17/17 checks pass. D19.3 settles eight real calls and a 30.9-degree turn, then stops before walking. Revised pagination instructions lead into fresh D19.4: all nine calls settle, native finishes normally in 96.464657 seconds, and the model submits both actions. Its 108.45-degree turn completes; the walk fails `PATH_BLOCKED` with zero movement because its target occupies a different negative-coordinate cell from its cited support. Saved player state matches; all 53 processes in each run are terminal with normal worker drain. Exposure is $2.822644 / $10, all old holds retained. Next fix public coordinate construction and exact target rechecks before fresh native/D19.5 testing; no unchanged replay or additional permission. M0.1d.9c in_progress/G0 fail; M1–M7 unchanged. [Evidence](verification/2026-09-23-bounded-session-pilot.md).
@@ -110,8 +112,11 @@ team/direct-mutation authority are still required.
    fallback qualification. Mineflayer/E9E remains incompatible. Finally audit all
    six SPEC 16.1 items together; a vanilla-only or local-test pass cannot close G0.
 
-General model admission retains the original hold; fresh bounded admission is now also blocked by D18.4's new unresolved request. Continue independent
-M0 implementation and authorized scripted-provider game integration. Do not
+General model admission retains the original hold. D18/D19 authorize distinct
+bounded M0 development pilots while all unresolved amounts remain reserved and
+the entire new envelope fits the original allowance. D19.5 already verifies the
+actual zero-helper turn/walk loop; do not repeat it unchanged. Continue remaining
+M0 implementation and necessary game integration. Do not
 replay an ambiguous request, reuse D12, replace the allowance, assume a refund,
 or reclassify synthetic replies as authentic model qualification.
 
@@ -132,9 +137,11 @@ or reclassify synthetic replies as authentic model qualification.
 
 The original $10 total API-equivalent allowance remains authoritative at
 C:/Users/Darian/.strata/operator/provisioning/controller.sqlite. It retains
-$0.7554 original unresolved hold, $0.043055 cumulative settled valuations, and
-the new unresolved D18.4 request/job envelope: $1.795559 committed/reserved,
-43 actual requests and 41 valuations. D12 and all seven pilot jobs are used. Read live SQLite with WAL-aware
+$0.7554 original unresolved hold and the full D18.4/D19.2 $1 job envelopes:
+$2.831942 committed/reserved, 89 actual requests and 86 valuations totaling
+$0.086184. Settled children within held envelopes are not added again. D12 and
+all twelve pilot jobs are used. Continuing D18/D19 approval is active; no new
+per-run permission is pending. Read live SQLite with WAL-aware
 read-only access; historical immutable reads require frozen-WAL verification.
 There is no new allowance or general model admission.
 

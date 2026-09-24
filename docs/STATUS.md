@@ -1,5 +1,7 @@
 # Strata current status
 
+**Verified script-handle control (2026-09-23):** M0.2c.3b.3c.7 passes 44/44 authentic audit checks with module 0.3.13/startup14/history6. Six reflection-acquired handle calls leave six sticky unresolved attempts after actual team lookup is restored; clear startup, signed source, replay refusal and normal six-server/ten-outer-process termination are verified. The first direct-class-load attempt remains failed/sealed. Original 18,225 files and all 39 accounting tables are unchanged; no model/player activity and exposure remains $2.831942/$10. The D19.5 actual-model turn/walk pass remains verified. Next connect the existing positive craft and negative controls to the private scorer/report and resolve remaining provenance/profile/recovery/clock/cost gaps; do not repeat either successful control or pilot unchanged. Full isolation stays deferred under D14, M0 in_progress/G0 fail, M1–M7 unchanged. [Evidence](verification/2026-09-23-script-handle-history.md).
+
 **Verified bounded LLM pilot (2026-09-23):** D19.5 / m0-pilot-12 passes all nine pilot checks. GPT-6 Luna selects its own targets, completes a 101.25-degree turn and a 1.072751-block walk, ending 0.072751 blocks from its chosen destination. Two completed actions/18 primitives, released controls, unchanged health and matching saved Minecraft player state verify the actual loop. Eleven model calls settle for $0.009298; native finishes normally in115.935726s, all53 processes terminate, worker drain30.9416ms. Total exposure $2.831942 / $10, all old holds preserved. Public coordinate guidance passes53 focused tests and native14 17/17; M0.1d.9c verified for this named zero-helper development profile. Do not repeat it unchanged. Next revalidate and exercise the already implemented script-handle control M0.2c.3b.3c.7 for private setup/scoring, then continue remaining G0 profile/recovery/clock/cost gaps. M0 remains in_progress/G0 fail; D14 isolation deferral and M1–M7 remain. [Evidence](verification/2026-09-23-support-coordinate-pilot.md).
 
 **Latest M0.1d.9c result (2026-09-23):** the 180-second native / 360000-ms worker / 440-second server profile is implemented; 225 distinct focused tests and native12/13 17/17 checks pass. D19.3 settles eight real calls and a 30.9-degree turn, then stops before walking. Revised pagination instructions lead into fresh D19.4: all nine calls settle, native finishes normally in 96.464657 seconds, and the model submits both actions. Its 108.45-degree turn completes; the walk fails `PATH_BLOCKED` with zero movement because its target occupies a different negative-coordinate cell from its cited support. Saved player state matches; all 53 processes in each run are terminal with normal worker drain. Exposure is $2.822644 / $10, all old holds retained. Next fix public coordinate construction and exact target rechecks before fresh native/D19.5 testing; no unchanged replay or additional permission. M0.1d.9c in_progress/G0 fail; M1–M7 unchanged. [Evidence](verification/2026-09-23-bounded-session-pilot.md).
@@ -84,12 +86,12 @@ Do not restart the completed verifier/accounting matrix or expand M1–M7.
 
 | SPEC 16.1 item | Current evidence | Remaining closure |
 |---|---|---|
-| 1. Native host, bounded action, isolated helper | Actual Dovetail/root/helper/broker and real vanilla scripted action; D18.3 also proves an actual GPT-6 Luna-selected turn; bounded recovery retains state/costs | Complete turn/walk pilot and joined model/root/helper receipts; D19 permits fresh pilots retaining all unknown holds, while new uncertainty stops its own job. Full isolation qualification deferred to M1/G1 under D14 |
+| 1. Native host, bounded action, isolated helper | Actual Dovetail/root/helper/broker and real vanilla scripted action; D19.5 verifies actual GPT-6 Luna-selected turn/walk, two actions/18 primitives, saved-player corroboration and eleven settled requests; bounded recovery retains state/costs | Complete remaining joined model/root/helper qualification; do not repeat the successful zero-helper pilot unchanged. D19 preserves every unknown hold. Full isolation qualification deferred to M1/G1 under D14 |
 | 2. Authentic locked installations | Official vanilla/E9E boots; vanilla inventory/runtime and original plus controlled-worker PackLocks sealed | Full qualified profiles, E9E role/config provenance and seal; retain five effective-file failures and Mineflayer incompatibility |
 | 3. Ordinary and expert mechanics | Selected vanilla mine/walk/inventory/craft/container and separate Forge modded block, processing/collection and expert furnace witnesses | Joined profile/reference qualification under the other required rows; no Mineflayer/E9E pass |
 | 4. Bound/cancel, stop, reconnect without duplicate mutation | Selected vanilla/Forge cancellation and bounded sealed recovery; D13 sample passes 568.994/1,000 ms | Remaining applicable fault cases, full containment and canonical recovery |
-| 5. Private server-verified milestone | Private signed telemetry/resource witnesses; world-mode, operator and KubeJS global-mode roundtrip controls | Authentic score provenance, setup/team/ingress authority and complete positive/negative controls; full nonleakage qualification deferred to M1/G1 under D14 |
-| 6. Complete costs, time and evidence | Single-run and two-epoch reconstruction; sealed pair preserves 13 scripted calls/182 fixture units/two primitives | Complete qualified root/helper/model costs, authoritative active time/ticks, save/custody and profile joins |
+| 5. Private server-verified milestone | Private signed telemetry/resource witnesses; world-mode/operator/global/map/field controls, positive history5 craft 46/46, and history6 handle control 44/44 with six retained unresolved invocations | Authentic score provenance, setup/team/ingress authority and complete positive/negative controls; full nonleakage qualification deferred to M1/G1 under D14 |
+| 6. Complete costs, time and evidence | Single-run and two-epoch reconstruction; sealed pair preserves 13 scripted calls/182 fixture units/two primitives; D19.5 joins eleven actual model receipts, two actions/18 primitives and stopped-player state | Complete qualified root/helper/model costs, authoritative active time/ticks, save/custody and profile joins |
 
 Implementation, synthetic checks and authentic integration remain separate
 evidence classes. The source checkpoint passes 2,822 Python cases (three native
@@ -98,9 +100,12 @@ close G0. [Actual verification](verification/2026-09-22-session-handoff.md#execu
 
 ## Constraints and retained failures
 
-- Original **$10 API-equivalent total**: **$1.795559 committed/reserved**,
-  including the old hold and D18.4 unresolved job envelope; 43 actual requests
-  and 41 valuations. General admission and new paid dispatch stay blocked. No refund, replay, D12 reuse or fresh allowance.
+- Original **$10 API-equivalent total**: **$2.831942 committed/reserved**,
+  including the old $0.7554 hold and the full D18.4/D19.2 $1 envelopes;
+  89 actual requests and 86 valuations ($0.086184 settled). Envelope children
+  are not added again. D18/D19 authorize necessary distinct bounded M0 pilots
+  while all unresolved amounts remain reserved; no per-run approval is pending.
+  General campaign admission remains unchanged. No refund, replay, D12 reuse or fresh allowance.
   [Admission contract](operations/validation-admission.md).
 - **D13 is 1,000 ms.** Its 568.994-ms sample passes. Preserve the old 500-ms
   failures: 501.995, 503.5059, 507.6092, 503.6561, 510.8433, 508.2221, 500.1327,

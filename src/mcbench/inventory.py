@@ -35,8 +35,70 @@ def file_hash(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def scan_tree(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
-              reviewed_world_paths=None) -> list[dict]:
+def directory_layout(files, extra_directories=(), *, reviewed_world_paths=None):
+    """Portable complete directory closure, including explicitly empty paths."""
+    reviewed = reviewed_world_paths or {}
+    names, kinds, directories = {}, {}, set()
+
+    def add(name, is_directory):
+        template_path(name, reviewed_world_paths=reviewed)
+        folded = name.casefold()
+        require(folded not in names or names[folded] == name and kinds[folded] == is_directory,
+                "PATH_COLLISION")
+        names[folded], kinds[folded] = name, is_directory
+        if is_directory:
+            require(name not in reviewed or reviewed[name] is None, "VENDOR_CONTENT_MISMATCH")
+            directories.add(name)
+            require(len(directories) <= 200000, "ARTIFACT_QUOTA")
+
+    seen_files, seen_extras = set(), set()
+    for name in files:
+        require(name not in seen_files, "PATH_COLLISION")
+        seen_files.add(name)
+        add(name, False)
+        for parent in safe_relative(name).parents:
+            if str(parent) != ".":
+                add(parent.as_posix(), True)
+    for name in extra_directories:
+        template_path(name, reviewed_world_paths=reviewed)
+        require(name not in seen_extras, "PATH_COLLISION")
+        seen_extras.add(name)
+        add(name, True)
+        for parent in safe_relative(name).parents:
+            if str(parent) != ".":
+                add(parent.as_posix(), True)
+    return sorted(directories)
+
+
+def inventory_directories(inventory, *, reviewed_world_paths=None):
+    """Read legacy file-parent layout or the exact directory-bound /2 layout."""
+    schema = inventory.get("schema")
+    require(schema in {"strata/InstalledInventory/1", "strata/InstalledInventory/2"}, "INVALID_INVENTORY")
+    explicit = inventory.get("directories")
+    if schema.endswith("/1"):
+        require("directories" not in inventory, "INVALID_INVENTORY")
+    else:
+        require(isinstance(explicit, dict) and set(explicit) == {"client", "server"}, "INVALID_INVENTORY")
+    require({e["role"] for e in inventory["files"]} == {"client", "server"}, "ROLE_MISMATCH")
+    result = {}
+    for role in ("client", "server"):
+        extra = explicit[role] if explicit is not None else []
+        require(isinstance(extra, list) and len(extra) <= 200000
+                and all(isinstance(p, str) for p in extra), "INVALID_INVENTORY")
+        result[role] = directory_layout((e["path"] for e in inventory["files"] if e["role"] == role),
+                                       extra, reviewed_world_paths=reviewed_world_paths)
+        if explicit is not None:
+            require(extra == result[role], "INCOMPLETE_INVENTORY")
+    return result
+
+
+def scan_tree(root: Path, **kwargs) -> list[dict]:
+    """Compatibility file-only view; use scan_layout to bind directories too."""
+    return scan_layout(root, **kwargs)["files"]
+
+
+def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
+                reviewed_world_paths=None) -> dict:
     """Inventory ALL files of an already prepared dedicated, stopped installation.
 
     Nothing is silently excluded. Clean source trees must be prepared separately;
@@ -47,7 +109,7 @@ def scan_tree(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
     reject_links(root)
     require(root.is_dir(), "AWAITING_ARTIFACT")
     reviewed_world_paths = reviewed_world_paths or {}
-    entries, seen, total = [], set(), 0
+    entries, directory_entries, seen, total = [], [], set(), 0
     for current, directories, files in os.walk(root, followlinks=False):
         for name in sorted(directories + files):
             path = Path(current) / name
@@ -61,6 +123,9 @@ def scan_tree(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
             if relative in reviewed_world_paths:
                 require(stat.S_ISDIR(info.st_mode) == (reviewed_world_paths[relative] is None),
                         "VENDOR_CONTENT_MISMATCH")
+            if stat.S_ISDIR(info.st_mode):
+                directory_entries.append(relative)
+                require(len(directory_entries) <= 200000, "ARTIFACT_QUOTA")
             if stat.S_ISREG(info.st_mode):
                 # Shared writable hardlinks defeat both snapshot independence and
                 # safe source auditing. Copies are inexpensive compared with that risk.
@@ -73,7 +138,7 @@ def scan_tree(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
                 entries.append({"path": relative, "digest": sha,
                                 "bytes": info.st_size})
     require(bool(entries), "EMPTY_INVENTORY")
-    return sorted(entries, key=lambda e: e["path"])
+    return {"files": sorted(entries, key=lambda e: e["path"]), "directories": sorted(directory_entries)}
 
 
 def inspect_archive(path: Path, *, max_members=200000, max_expanded_bytes=64 * 1024**3,

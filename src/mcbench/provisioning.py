@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 from pydantic import Field, TypeAdapter
 
 from .contracts import Digest, Id, Ref, Strict, UInt
-from .inventory import file_hash, inspect_archive, scan_tree, template_path
+from .inventory import directory_layout, file_hash, inspect_archive, inventory_directories, scan_layout, template_path
 from .pack_policies import reviewed_vendor_paths
 from .records import FileEntry, PackLock, Pin
 from .storage import Principal, canonical, digest, reject_links, require
@@ -79,6 +79,7 @@ class RoleInventoryInput(Strict):
     root: str
     # Exact per-file provenance. No blanket inferred origin or silent exclusions.
     files: Annotated[list[FileEntry], Field(min_length=1, max_length=200000)]
+    extra_directories: Annotated[list[str], Field(max_length=12000)] = Field(default_factory=list)
     provenance_evidence: Ref
     exclusions_evidence: Ref
 
@@ -323,7 +324,8 @@ class PackProvider:
         row = self._row(request_id, active=True)
         require(row["state"] in {"ACQUIRED", "VERIFIED"}, "INVALID_TRANSITION")
         require(len(roles) == 2 and {r.role for r in roles} == {"client", "server"}, "ROLE_MISMATCH")
-        entries, role_evidence, prepared = [], [], []
+        entries, role_evidence, prepared, directories = [], [], [], {}
+        has_extra_directories = False
         reviewed = reviewed_vendor_paths(row["target"])
         for role in sorted(roles, key=lambda r: r.role):
             root = Path(role.root)
@@ -331,10 +333,15 @@ class PackProvider:
             require(not self.cas.root.is_relative_to(root), "UNSAFE_PATH")
             self._json(request_id, role.provenance_evidence)
             self._json(request_id, role.exclusions_evidence)
-            scanned = scan_tree(root, max_bytes=self.quota, reviewed_world_paths=reviewed)
+            scanned = scan_layout(root, max_bytes=self.quota, reviewed_world_paths=reviewed)
             declared = sorted(role.files, key=lambda f: f.path)
-            require(len(declared) == len(scanned), "INCOMPLETE_INVENTORY")
-            for actual, entry in zip(scanned, declared, strict=True):
+            directories[role.role] = directory_layout((e.path for e in declared), role.extra_directories,
+                                                       reviewed_world_paths=reviewed)
+            require(scanned["directories"] == directories[role.role], "INCOMPLETE_INVENTORY")
+            has_extra_directories |= directories[role.role] != directory_layout(
+                (e.path for e in declared), reviewed_world_paths=reviewed)
+            require(len(declared) == len(scanned["files"]), "INCOMPLETE_INVENTORY")
+            for actual, entry in zip(scanned["files"], declared, strict=True):
                 require(entry.role == role.role and entry.layer in {"resolved", "harness"},
                         "ROLE_MISMATCH")
                 template_path(entry.path, reviewed_world_paths=reviewed)
@@ -353,12 +360,14 @@ class PackProvider:
                 entries.append(entry.model_dump())
             # A stopped-source contract plus a second complete scan catches changed,
             # added or removed files while copying; no partially frozen template.
-            require(scan_tree(root, max_bytes=self.quota, reviewed_world_paths=reviewed) == scanned,
+            require(scan_layout(root, max_bytes=self.quota, reviewed_world_paths=reviewed) == scanned,
                     "SOURCE_CHANGED")
             role_evidence.append({"role": role.role, "provenance": role.provenance_evidence,
                                   "exclusions": role.exclusions_evidence})
         inventory = {"schema": "strata/InstalledInventory/1", "is_example": self.simulation,
                      "files": entries, "role_evidence": role_evidence}
+        if has_extra_directories:
+            inventory.update(schema="strata/InstalledInventory/2", directories=directories)
         ref = self._put(request_id, inventory)
         with self.db.transaction() as db:
             current = db.execute("SELECT state,inventory FROM provisioning WHERE id=?",
@@ -666,14 +675,19 @@ class PackProvider:
         require(lock.is_example == self.simulation, "EXAMPLE_NOT_EXECUTABLE")
         inventory = self._json(request_id, lock.resolved_inventory)
         require(digest(inventory) == lock.installed_root_digest, "CORRUPT_EVIDENCE")
+        reviewed = reviewed_vendor_paths(row["target"])
+        directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
         destination = destination.absolute()
         reject_links(destination)
         require(not destination.exists(), "DESTINATION_EXISTS")
         require(not destination.is_relative_to(self.cas.root), "UNSAFE_PATH")
         destination.parent.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(prefix=".strata-instance-", dir=destination.parent))
-        reviewed = reviewed_vendor_paths(row["target"])
         try:
+            for role, paths in directories.items():
+                (staging / role).mkdir()
+                for relative in paths:
+                    (staging / role / relative).mkdir(parents=True, exist_ok=True)
             for entry in inventory["files"]:
                 relative = template_path(entry["path"], reviewed_world_paths=reviewed)
                 if entry["path"] in reviewed:

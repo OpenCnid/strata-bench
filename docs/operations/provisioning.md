@@ -1,5 +1,13 @@
 # Private pack provisioning
 
+Final role inventory inputs accept `extra_directories` for empty vendor/native paths.
+Declare those explicitly; verification rejects missing or unlisted directories
+before importing either role. Extra paths produce `InstalledInventory/2` with
+complete sorted role directory lists; file-only /1 inventories retain their
+identity. Materialization and launch use the same exact layout. Existing vanilla
+capture/restore also preserves pinned software directories. This does not bypass
+E9E initialization, effective-setting or seal checks. [Verification and scope](../verification/2026-09-24-inventory-directories.md).
+
 Compose initial E9E roles from explicit reviewed source and FileEntry plans:
 
 ```text

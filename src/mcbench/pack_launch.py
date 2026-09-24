@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from typing import Literal
 
 from .contracts import Digest, Id, Ref, Strict
-from .inventory import file_hash, scan_tree, template_path
+from .inventory import file_hash, inventory_directories, scan_layout, template_path
 from .pack_policies import reviewed_vendor_paths
 from .provisioning import TARGETS, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
@@ -106,7 +106,7 @@ credential, runtime dependency and mutable-world boundaries.
                 and lock.loader.model_dump() == TARGETS[row["target"]]["loader"], "RELEASE_MISMATCH")
         require(lock.resolved_inventory == row["inventory"], "PACK_BINDING_MISMATCH")
         inventory = read(lock.resolved_inventory)
-        require(inventory.get("schema") == "strata/InstalledInventory/1"
+        require(inventory.get("schema") in {"strata/InstalledInventory/1", "strata/InstalledInventory/2"}
                 and inventory.get("is_example") is simulation
                 and digest(inventory) == lock.installed_root_digest, "CORRUPT_EVIDENCE")
         report = read(lock.acquisition_report)
@@ -143,6 +143,7 @@ credential, runtime dependency and mutable-world boundaries.
     require(marker.is_file() and marker.stat().st_nlink == 1 and marker.stat().st_size < 4096
             and marker.read_bytes() == canonical(expected_marker), "PACK_BINDING_MISMATCH")
     reviewed = reviewed_vendor_paths(target)
+    directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
     entries = [FileEntry.model_validate(entry) for entry in inventory["files"]]
     require({entry.role for entry in entries} == {"client", "server"}, "ROLE_MISMATCH")
     for selected in ("client", "server"):
@@ -152,13 +153,8 @@ credential, runtime dependency and mutable-world boundaries.
             continue
         declared = sorted(({"path": entry.path, "digest": entry.digest, "bytes": entry.bytes}
                            for entry in entries if entry.role == selected), key=lambda e: e["path"])
-        require(scan_tree(root, reviewed_world_paths=reviewed) == declared, "MATERIALIZATION_CHANGED")
-        # Empty added directories also change the installation; scan_tree hashes files.
-        expected_dirs = {p.as_posix() for entry in declared for p in Path(entry["path"]).parents
-                         if str(p) != "."}
-        actual_dirs = {str((Path(current) / name).relative_to(root).as_posix())
-                       for current, dirs, _ in os.walk(root) for name in dirs}
-        require(actual_dirs == expected_dirs, "MATERIALIZATION_CHANGED")
+        require(scan_layout(root, reviewed_world_paths=reviewed)
+                == {"files": declared, "directories": directories[selected]}, "MATERIALIZATION_CHANGED")
     relative = (Path(".") if command.working_directory == "."
                 else template_path(command.working_directory))
     working_directory = instance / role / relative

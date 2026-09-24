@@ -1,5 +1,43 @@
 # Private development scoring
 
+## Connected D14 milestone report
+
+The operator-only command below connects an authenticated, history-bound craft
+reference to the existing private development scorer:
+
+```text
+python -m strata_evaluator.development_milestone --database <private-reference-db>
+  --instance <sealed-instance> --spool <complete-authenticated-spool>
+  --output <new-private-report.json>
+```
+
+Use a reference sealed as `PrivateCraftReferencePlan/3`, including its exact
+native team mapping and history policy. The command recomputes the existing
+import checks before every publication. It accepts neither a caller-provided
+success flag nor a saved inspection as a substitute for the signed source.
+Only accepted resource witnesses become derived `CraftEvent/1` records; the
+signed header, actor, transaction, recipe, consumed ingredients and output are
+preserved. Source digests identify the sealed plan, authority, spool and import.
+They are file/content digests, not fabricated CAS object references.
+
+The scorer uses a distinct `m0dev-` instance namespace. Identical restart or
+report-write retry cannot count the craft twice; source/report conflicts fail
+and retain the prior result. The output is create-exclusive, and paths inside
+the game or authority directory are rejected. No command, report or predicate is
+added to gameplay/helper tools or the gameplay package.
+
+`PrivateDevelopmentMilestone/1` records the development predicate result,
+derived events, rejected witnesses and declared mutation history. In its derived
+event, `valid_setup=true` means the sealed development candidate checks passed.
+It does **not** certify full setup authority. The original import remains
+unchanged and unscorable. The report retains `scoring_eligible=false`,
+`scoring_authority_qualified=false`, `isolation_qualified=false`, no scientific
+claim and no campaign admission. D14 defers full isolation qualification; this
+command cannot promote a development result into an authoritative benchmark
+score or a G1 pass.
+
+## Existing scorer and source registration
+
 The evaluator package and its database stay outside gameplay-agent and helper
 access. `Scorer` accepts registered development event schemas; raw Forge
 callbacks, configuration snapshots and resource witnesses cannot earn credit.

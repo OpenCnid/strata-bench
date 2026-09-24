@@ -318,7 +318,8 @@ class InferenceDispatches:
                 receipt.metering in {"reported", "estimated"} and receipt.raw_usage_ref is not None and
                 receipt.usage.spend_microusd is not None and
                 receipt.usage.model_calls in (0, 1), "AUTHORITATIVE_USAGE_REQUIRED")
-        self._private_ref(receipt.raw_usage_ref, 256 * 1024)
+        from .inference_transport import NATIVE_RESPONSE_BYTES
+        self._private_ref(receipt.raw_usage_ref, NATIVE_RESPONSE_BYTES)
         fingerprint_body = {"provider_event_id": provider_event_id, "receipt": receipt.model_dump()}
         if valuation is not None:
             valuation = UsageValuation.model_validate(valuation)

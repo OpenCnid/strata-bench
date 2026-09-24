@@ -64,9 +64,9 @@ def wait(predicate, seconds, code):
 
 
 @pytest.mark.parametrize("hang", [False, True])
-@pytest.mark.parametrize("failure", [None, "gameplay", "accounting"])
+@pytest.mark.parametrize("failure", [None, "gameplay", "accounting", "report"])
 def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_failure(tmp_path, hang, failure):
-    from m0_native_game import finish_native_worker
+    from m0_native_game import finish_native_worker, cleanup_native_worker
     node = Path(shutil.which("node") or "C:/Program Files/nodejs/node.exe").resolve()
     assert node.is_file(), "pinned Node required for owned-process test"
     root = Path(__file__).resolve().parents[1]
@@ -98,17 +98,23 @@ def test_owned_operator_pipe_drains_real_synthetic_child_or_retains_deadline_fai
         config = SCOPE | {"state_directory": str(state)}
         result = {}
         def finish():
+            if failure == "report":
+                result["status"] = "fail"
+                try:
+                    raise Fault("ARTIFACT_QUOTA")
+                finally:
+                    cleanup_native_worker(process, config, tmp_path, wait, True, result)
             finish_native_worker(process, config, tmp_path, wait, True,
                                  {"model_selected_movement": failure is None}, result,
                                  closure_error="METERING_UNKNOWN" if failure == "accounting" else None)
         if hang:
-            with pytest.raises(Fault, match="WORKER_STOP_PROCESS"):
+            with pytest.raises(Fault, match="ARTIFACT_QUOTA" if failure == "report" else "WORKER_STOP_PROCESS"):
                 finish()
             failure = json.loads((state / "supervisor-stop-2.json").read_bytes())
             assert failure["forced"] and failure["status"] == "fail" and process.poll() != 0
         else:
             if failure:
-                code = "PILOT_NATIVE_CLOSURE" if failure == "accounting" else "NATIVE_GAME_CHECK_FAILED"
+                code = "ARTIFACT_QUOTA" if failure == "report" else "PILOT_NATIVE_CLOSURE" if failure == "accounting" else "NATIVE_GAME_CHECK_FAILED"
                 with pytest.raises(Fault, match=code):
                     finish()
             else:

@@ -6,7 +6,7 @@ This read-only retirement gate never cancels, replays or infers a missing result
 
 import re
 
-from .inference_transport import MAX_RESPONSE_BYTES, strict_json
+from .inference_transport import NATIVE_RESPONSE_BYTES, strict_json
 from .native_retirement import _CompletedResponse, private_bytes
 from .records import BudgetLedger
 from .storage import canonical, require
@@ -95,7 +95,7 @@ def require_native_cells_drained(db, cas, plan, thread):
             "AND json_extract(body,'$.posting')='settle'", (row["operation"],)).fetchall()
         require(len(receipts) == 1, "NATIVE_CELL_SOURCE_RECEIPT")
         receipt = BudgetLedger.model_validate_json(receipts[0][0])
-        raw, media = private_bytes(db, cas, receipt.raw_usage_ref, MAX_RESPONSE_BYTES)
+        raw, media = private_bytes(db, cas, receipt.raw_usage_ref, NATIVE_RESPONSE_BYTES)
         parser = _CompletedResponse(plan.model, media)
         parser.feed(raw)
         parser.finish()

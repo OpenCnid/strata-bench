@@ -6,6 +6,7 @@ Credentials never enter result files, prompts, command lines or printed output.
 """
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -31,6 +32,18 @@ from native_dispatch_probe import ledger, put, wait_job
 
 ROOT = Path(__file__).resolve().parents[1]
 OPERATOR = Principal("operator", "operator")
+
+
+@contextmanager
+def final_report_journal(db, output):
+    """A failed report publication must still export the journal and close SQLite."""
+    try:
+        yield
+    finally:
+        try:
+            db.export_journal(output / "journal.jsonl")
+        finally:
+            db.close()
 
 
 def normalized_config(plan):
@@ -87,6 +100,7 @@ def inspect_preflight(directory, plan, cas, *, piloting=False):
                          "both_tool_projections_checked", "helper_result_delivered", "bounded_root_helper_overlap",
                          "reader_one_clean_helper", "reader_helper_request_settled", "reader_helper_envelope_closed",
                          "reader_helper_reply_delivered", "reader_root_only_game_calls"}
+            required.add("large_native_wire_receipt_persisted")
         require(result.get("scope") == ("development_piloting_helper_contract" if helper else
                                         "development_piloting_public_contract") and
                 result.get("isolation_qualified") is False, "PREFLIGHT_SCOPE_MISMATCH")
@@ -393,21 +407,20 @@ def run_native_trial(args, *, pilot=None):
         for active in list(runtime.live):
             runtime.interrupt(active, "conformance_cleanup")
         seal = gateway.close(runtime)
-        if plan and db.connection.execute("SELECT 1 FROM native_jobs WHERE id=?", (plan.job_id,)).fetchone():
-            closure_error = None
-            try:
-                runtime.close_dispatch_budget(plan.job_id, seal)
-            except Fault as error:
-                closure_error = error.code  # Unknown costs retain their existing holds.
-            if pilot:
-                from native_pilot_report import record_outcome as pilot_outcome
-                ref, result = pilot_outcome(gate, plan, seal)
-            else:
-                ref, result = record_outcome(gate, plan, seal)
-            result.update(result_ref=ref, closure_error=closure_error, runtime=runtime.status(plan.job_id))
-            (output / "result.json").write_bytes(canonical(result))
-            db.export_journal(output / "journal.jsonl")
-        db.close()
+        with final_report_journal(db, output):
+            if plan and db.connection.execute("SELECT 1 FROM native_jobs WHERE id=?", (plan.job_id,)).fetchone():
+                closure_error = None
+                try:
+                    runtime.close_dispatch_budget(plan.job_id, seal)
+                except Fault as error:
+                    closure_error = error.code  # Unknown costs retain their existing holds.
+                if pilot:
+                    from native_pilot_report import record_outcome as pilot_outcome
+                    ref, result = pilot_outcome(gate, plan, seal)
+                else:
+                    ref, result = record_outcome(gate, plan, seal)
+                result.update(result_ref=ref, closure_error=closure_error, runtime=runtime.status(plan.job_id))
+                (output / "result.json").write_bytes(canonical(result))
     return {"result": result["receipt_result"], "profile_digest": plan.profile_digest(),
             "attempts": result["attempts"], "valuations": result["valuations"],
             "closure_error": result["closure_error"], "production_qualified": False}

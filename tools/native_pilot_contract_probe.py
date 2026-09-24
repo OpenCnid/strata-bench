@@ -137,5 +137,12 @@ def report(db, cas, plan, result, provider, worker_calls, *, helper=False):
                 "SELECT thread FROM broker_game_calls WHERE runtime=?", (plan.job_id,))])
         require(root["name"] == "/root", "PILOT_CONTRACT_FIXTURE_SEQUENCE")
         checks.update({"reader_"+key: value for key, value in reader_checks.items()})
+        from mcbench.inference_transport import NATIVE_RESPONSE_BYTES
+        captures = [json.loads(row[0]) for row in db.connection.execute(
+            "SELECT body FROM outbox WHERE kind='inference.wire_capture'")]
+        checks["large_native_wire_receipt_persisted"] = any(
+            256 * 1024 < item["bytes"] <= NATIVE_RESPONSE_BYTES and
+            len(cas.read(Principal("operator", "operator"), "operator", item["raw_usage_ref"])) ==
+                item["bytes"] for item in captures)
         result["helper_reader_evidence"] = evidence
     return checks

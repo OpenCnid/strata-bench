@@ -8,6 +8,8 @@ from mcbench.contracts import ActionAck, Observation
 from mcbench.native_gateway import GatewayConfig, require_gateway
 from mcbench.storage import Fault, Principal, canonical, digest
 
+MAX_PILOT_REPORT_BYTES = 32 * 1024**2
+
 
 def delivered_helper_reply(item, helper_name):
     if (item.get("type") != "agent_message" or item.get("author") != helper_name or
@@ -181,5 +183,6 @@ def record_outcome(gate, plan, seal_ref):
         "seal_ref": seal_ref}
     if helper_evidence is not None:
         result.update(schema="strata/NativePilotResult/2", helper_evidence=helper_evidence)
-    ref = gate.cas.put(Principal("operator", "operator"), "operator", "operator", canonical(result))
+    ref = gate.cas.put(Principal("operator", "operator"), "operator", "operator", canonical(result),
+                      max_object_bytes=MAX_PILOT_REPORT_BYTES)
     return ref, result

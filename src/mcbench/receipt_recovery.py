@@ -10,7 +10,7 @@ import math
 
 from .accounting import EstimateBasis, TokenUsage, UsageValuation
 from .inference_dispatch import InferenceAttempt
-from .inference_transport import ResponsesUsage
+from .inference_transport import NATIVE_RESPONSE_BYTES, ResponsesUsage
 from .native import NativeLaunch
 from .native_gateway import require_gateway_seal
 from .native_usage import POLICY as USAGE_POLICY
@@ -47,9 +47,9 @@ def reconcile_captured_sse(gate, operation, seal_ref):
             events[0]["body"].get("status") == 200 and events[0]["body"].get("identity_encoding") is True,
             "RECEIPT_RECOVERY_CAPTURE_REQUIRED")
     capture = events[1]["body"]
-    raw = gate._private_ref(capture["raw_usage_ref"], 256 * 1024)
+    raw = gate._private_ref(capture["raw_usage_ref"], NATIVE_RESPONSE_BYTES)
     require(len(raw) == capture["bytes"] and raw.startswith(b"event:"), "RECEIPT_RECOVERY_CAPTURE_REQUIRED")
-    parser = ResponsesUsage(reserve.model_identity, "text/event-stream")
+    parser = ResponsesUsage(reserve.model_identity, "text/event-stream", max_bytes=NATIVE_RESPONSE_BYTES)
     parser.feed(raw)
     observed = parser.finish()
     provider_event = observed.pop("event")

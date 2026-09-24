@@ -354,6 +354,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             handler.send_response(200)
             handler.send_header("Content-Type", "text/event-stream")
             handler.end_headers()
+            if pilot_helper and agent == "/root" and step == 0:
+                # Exercise wire framing beyond the historical 256-KiB limit;
+                # comments add no model output, token usage or gameplay policy.
+                handler.wfile.write(b":" + b"native-wire-fixture " * 28000 + b"\n\n")
             handler.wfile.write(sse("response.created", response={
                 **response, "status": "in_progress", "output": []}))
             handler.wfile.write(sse("response.output_item.done", output_index=0, item=item))

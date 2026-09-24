@@ -356,7 +356,7 @@ class LocalProvider:
                         receipt = BudgetLedger.model_validate_json(saved[0])
                         media = db.connection.execute("SELECT media_type FROM objects WHERE "
                             "namespace='operator' AND ref=?", (receipt.raw_usage_ref,)).fetchone()[0]
-                        parser = ResponsesUsage(provider.model, media)
+                        parser = ResponsesUsage(provider.model, media, max_bytes=transport.response_limit)
                         parser.feed(cas.read(OPERATOR, "operator", receipt.raw_usage_ref))
                         event = parser.finish()["event"]
                         provider.receipts.append((operation, event, receipt))

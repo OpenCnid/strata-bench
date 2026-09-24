@@ -64,6 +64,22 @@ def finish_native_worker(worker, config, output, wait, operator_stop, checks, re
     require(all(checks.values()), "NATIVE_GAME_CHECK_FAILED")
 
 
+def cleanup_native_worker(worker, config, output, wait, operator_stop, result):
+    """Report/serialization faults cannot bypass the existing owned drain path."""
+    if worker is None or worker.poll() is not None:
+        return
+    if operator_stop and "worker_stop" not in result:
+        try:
+            result["worker_stop"] = stop_owned_worker(worker, config, output, wait)
+        except Exception as error:
+            result["status"] = "fail"
+            result["worker_cleanup_error"] = error.code if isinstance(error, Fault) else type(error).__name__
+    if worker.poll() is None:
+        result["status"] = "fail"
+        result["forced_worker_cleanup"] = True
+        worker.stop()
+
+
 def run(plan_path):
     plan = json.loads(private(plan_path).read_bytes())
     version = plan.get("schema")
@@ -403,9 +419,8 @@ def run_plan(plan, resources, runtime=None):
         # Revoke via the native binding first. Forced outer cleanup is a failure,
         # never substituted for a successful scoped stop or clean world save.
         worker = processes.get("worker-driver")
-        if worker and worker.poll() is None:
-            result["forced_worker_cleanup"] = True
-            worker.stop()
+        cleanup_native_worker(worker, worker_config, output, wait,
+                              runtime is not None and runtime.operator_stop, result)
         server = processes.get("server-driver")
         if server and server.poll() is None:
             try:

@@ -16,6 +16,7 @@ from urllib.parse import urlsplit
 from .inference_transport import (
     BUFFERED_SSE_POLICY,
     MAX_REQUEST_TIMEOUT_S,
+    NATIVE_RESPONSE_BYTES,
     _ResponsesTransport,
     strict_json,
 )
@@ -113,6 +114,7 @@ class NativeOAuthTransport(_ResponsesTransport):
     """Production HTTPS adapter, closed until private exact-profile evidence exists."""
 
     buffered_sse_policy = BUFFERED_SSE_POLICY
+    response_limit = NATIVE_RESPONSE_BYTES
 
     def __init__(self, dispatches, credentials, qualification_ref, *, deadline_s=30):
         require(not dispatches.simulation, "OAUTH_LIVE_STORE_REQUIRED")

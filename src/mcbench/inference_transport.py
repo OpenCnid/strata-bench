@@ -20,6 +20,8 @@ from .records import BudgetLedger
 from .storage import Fault, Principal, require
 
 MAX_RESPONSE_BYTES = 256 * 1024
+NATIVE_RESPONSE_BYTES = 8 * 1024**2
+NATIVE_WIRE_POLICY = "native-bounded-receipt-wire/2"
 MAX_REQUEST_TIMEOUT_S = 60
 BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
 DELIVERY_POLICY = "durable-settled-receipt-before-delivery/1"
@@ -63,7 +65,9 @@ def count(value):
 class ResponsesUsage:
     """Incremental bounded SSE/JSON receipt capture, never a turn-total estimate."""
 
-    def __init__(self, model, content_type):
+    def __init__(self, model, content_type, *, max_bytes=MAX_RESPONSE_BYTES):
+        require(max_bytes in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES}, "RESPONSE_BOUND")
+        self.max_bytes = max_bytes
         require(content_type in {"text/event-stream", "application/json"}, "RESPONSE_CONTENT_TYPE")
         self.model, self.content_type = model, content_type
         self.raw = bytearray()
@@ -73,7 +77,7 @@ class ResponsesUsage:
         self.receipt = None
 
     def feed(self, chunk):
-        require(isinstance(chunk, bytes) and len(self.raw) + len(chunk) <= MAX_RESPONSE_BYTES,
+        require(isinstance(chunk, bytes) and len(self.raw) + len(chunk) <= self.max_bytes,
                 "RESPONSE_SIZE")
         self.raw.extend(chunk)
         if self.content_type == "application/json":
@@ -167,11 +171,13 @@ class RejectedResponseCapture:
 
     content_type = "application/octet-stream"
 
-    def __init__(self):
+    def __init__(self, *, max_bytes=MAX_RESPONSE_BYTES):
+        require(max_bytes in {MAX_RESPONSE_BYTES, NATIVE_RESPONSE_BYTES}, "RESPONSE_BOUND")
+        self.max_bytes = max_bytes
         self.raw = bytearray()
 
     def feed(self, chunk):
-        require(len(self.raw) + len(chunk) <= MAX_RESPONSE_BYTES, "RESPONSE_SIZE")
+        require(len(self.raw) + len(chunk) <= self.max_bytes, "RESPONSE_SIZE")
         self.raw.extend(chunk)
 
     def finish(self):
@@ -185,6 +191,8 @@ class _ResponsesTransport:
     retry, transform billing evidence or block indefinitely. Ingress closes/fences
     every writer before sealing a native job. This class owns the upstream socket.
     """
+
+    response_limit = MAX_RESPONSE_BYTES
 
     def _preflight(self, attempt, reserve):
         pass
@@ -235,7 +243,7 @@ class _ResponsesTransport:
         if self.gate.db.connection.execute("SELECT 1 FROM inference_attempts WHERE operation=?",
                                            (reserve.operation_id,)).fetchone() is None:
             space_token = "receipt:" + uuid.uuid4().hex
-            reserve_space(self.gate.cas, principal, self.gate.namespace, space_token, MAX_RESPONSE_BYTES)
+            reserve_space(self.gate.cas, principal, self.gate.namespace, space_token, self.response_limit)
         delivery = []
         forwarded = False
 
@@ -281,8 +289,9 @@ class _ResponsesTransport:
                 supported = media in {"application/json", "text/event-stream"}
                 buffered_sse = (not supported and response.status == 200 and
                                 getattr(self, "buffered_sse_policy", None) == BUFFERED_SSE_POLICY)
-                capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream") if (
-                    supported or buffered_sse) else RejectedResponseCapture()
+                capture = ResponsesUsage(reserve.model_identity, media if supported else "text/event-stream",
+                    max_bytes=self.response_limit) if (supported or buffered_sse) else RejectedResponseCapture(
+                        max_bytes=self.response_limit)
                 while not response.isclosed():
                     phase = "response_body"
                     remaining = deadline - time.monotonic()
@@ -383,11 +392,15 @@ class _ResponsesTransport:
 
     def _save(self, capture, operation, space_token):
         ref = self.gate.cas.put(Principal(self.gate.namespace, "operator"), self.gate.namespace,
-                                "operator", bytes(capture.raw), media_type=capture.content_type, reservation=space_token)
+                                "operator", bytes(capture.raw), media_type=capture.content_type, reservation=space_token,
+                                max_object_bytes=self.response_limit)
         with self.gate.db.transaction() as db:
             self.gate.db.event(db, "inference.wire_capture", {"operation_id": operation,
                 "raw_usage_ref": ref,
-                "bytes": len(capture.raw), "simulation": self.gate.simulation})
+                "bytes": len(capture.raw), "simulation": self.gate.simulation,
+                "maximum_bytes": self.response_limit,
+                "wire_policy": NATIVE_WIRE_POLICY if self.response_limit == NATIVE_RESPONSE_BYTES else
+                    "bounded-response-wire/1"})
         return ref
 
 

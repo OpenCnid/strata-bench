@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from .contracts import Digest, Id, Strict
-from .inference_transport import MAX_RESPONSE_BYTES, ResponsesUsage, strict_json
+from .inference_transport import NATIVE_RESPONSE_BYTES, ResponsesUsage, strict_json
 from .records import BudgetLedger
 from .storage import Principal, canonical, digest, require
 
@@ -62,7 +62,7 @@ def index_native_tool_calls(db, cas, request, *, body=None):
 
 class _CompletedResponse(ResponsesUsage):
     def __init__(self, model, media):
-        super().__init__(model, media)
+        super().__init__(model, media, max_bytes=NATIVE_RESPONSE_BYTES)
         self.response = None
 
     def _receipt(self, response):
@@ -109,7 +109,7 @@ def _terminal_status(db, cas, plan, participant, fence, proof):
         "AND json_extract(body,'$.posting')='settle'", (proof.issuance_operation,)))
     require(len(receipts) == 1, "RETIREMENT_TOOL_ISSUANCE")
     receipt = BudgetLedger.model_validate_json(receipts[0][0])
-    raw, media = private_bytes(db, cas, receipt.raw_usage_ref, MAX_RESPONSE_BYTES)
+    raw, media = private_bytes(db, cas, receipt.raw_usage_ref, NATIVE_RESPONSE_BYTES)
     captured = _CompletedResponse(plan.model, media)
     captured.feed(raw)
     captured.finish()

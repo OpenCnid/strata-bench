@@ -48,6 +48,7 @@ def inputs(tmp_path, monkeypatch):
     write(base, "versions/1.19.2/1.19.2.jar", jar("vanilla"))
     write(base, "java/bin/java.exe", b"synthetic not executable")
     write(base, "assets/objects/fixture", b"synthetic asset")
+    write(base, "assets/log_configs/client-1.12.xml", b"synthetic log config")
     official = {"_comment_": [], "id": "1.19.2-forge-43.4.23", "inheritsFrom": "1.19.2",
         "time": "2025-03-04T22:54:18+00:00", "releaseTime": "2025-03-04T22:54:18+00:00",
         "mainClass": "cpw.mods.bootstraplauncher.BootstrapLauncher", "logging": {},
@@ -104,6 +105,54 @@ def test_exact_selection_copies_base_and_adds_runtime_without_launcher_state(inp
     assert not any("unrelated" in r["path"] for r in result["files"])
     (inputs["base_root"] / "assets/objects/fixture").write_bytes(b"changed after preparation")
     assert (root / "assets/objects/fixture").read_bytes() == b"synthetic asset"
+
+
+def test_installed_launch_has_no_source_cache_or_credentials(inputs):
+    result = f.prepare_client(**inputs)
+    root = inputs["destination"]
+    (root / "natives").mkdir()
+    args = f.launch_arguments(root, result, server_port=25604)
+    assert args[args.index("-cp") + 1].split(";") == [str(root / p) for p in result["classpath"]]
+    assert args[args.index("-p") + 1].replace("\\", "/") == str(root / result["module_path"][0]).replace("\\", "/")
+    assert args[args.index("--gameDir") + 1] == str(root)
+    assert args[args.index("--accessToken") + 1] == "${auth_access_token}"
+    assert args[-4:] == ["--server", "127.0.0.1", "--port", "25604"]
+    assert "-Xmx6144m" in args and "-XX:ActiveProcessorCount=4" in args
+    assert not any(str(inputs["library_root"]) in arg or str(inputs["base_root"]) in arg for arg in args)
+    assert not any("gameBridge" in arg or "awaitGameAuthority" in arg for arg in args)
+
+
+@pytest.mark.parametrize("change", ["classpath_order", "module", "changed_file", "missing_file",
+                                   "duplicate_file", "escape", "missing_natives", "port", "metadata"])
+def test_installed_launch_rejects_drift_or_unsafe_selection(inputs, change):
+    result = f.prepare_client(**inputs)
+    root = inputs["destination"]
+    (root / "natives").mkdir()
+    port = 25604
+    if change == "classpath_order":
+        result["classpath"].reverse()
+    elif change == "module":
+        result["module_path"] = []
+    elif change == "changed_file":
+        (root / "assets/objects/fixture").write_bytes(b"drift")
+    elif change == "missing_file":
+        (root / "java/bin/java.exe").unlink()
+    elif change == "duplicate_file":
+        result["files"].append(result["files"][0])
+    elif change == "escape":
+        result["files"][0]["path"] = "../outside"
+    elif change == "missing_natives":
+        (root / "natives").rmdir()
+    elif change == "port":
+        port = True
+    else:
+        path = root / f"versions/{f.VERSION}/{f.VERSION}.json"
+        path.write_bytes(path.read_bytes() + b" ")
+        for row in result["files"]:
+            if row["path"] == path.relative_to(root).as_posix():
+                row.update(digest=sha(path.read_bytes()), bytes=path.stat().st_size)
+    with pytest.raises(Fault):
+        f.launch_arguments(root, result, server_port=port)
 
 
 @pytest.mark.parametrize("change", ["installer", "launcher", "base", "base_extra", "library", "generated", "srg", "role", "destination"])

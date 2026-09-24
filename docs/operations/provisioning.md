@@ -29,6 +29,25 @@ restart an uncertain prior process. These are provisioning observations, not an
 LLM policy, gameplay tool, sealed PackLock or scoring/save/isolation qualification.
 Preserve effective-file failures and qualify their exact role/consumer disposition.
 
+For the prepared client, `mcbench.forge_client.launch_arguments(root, software,
+server_port=25604)` resolves the credential-free argument list. Bind `software`
+to the retained `ForgeClientSoftware/1` preparation receipt first; the resolver
+rehashes its installed files and re-derives classpath/module ordering from pinned
+metadata. The fixed client profile uses its own Java, assets, libraries, native
+directory and game directory, four processors and 512/6144 MiB heap. Authentication
+and protected argument-file creation stay with the existing private session
+preparer. This function never starts Java or exposes a gameplay action.
+
+The `e9e1270-installed-client-config/1` observation uses the existing one-shot
+client config exporter on a noninput desktop. Separate server, client software
+and client mod/script leases retain the existing 1 GiB limit per group. Fresh
+client plans distinguish first start and cold restart; only loopback port 25604
+is used. Bounds are 300 seconds for server startup, 420 seconds per client,
+120 seconds for normal server drain and a 1280-second server watchdog. Client
+Job termination after capture is explicit and does not prove a clean client
+save or D13 shutdown conformance. Preserve failed scopes and all role-specific
+findings; complete effective-inventory and seal admission remain separate.
+
 Compose initial E9E roles from explicit reviewed source and FileEntry plans:
 
 ```text

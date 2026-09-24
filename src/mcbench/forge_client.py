@@ -12,7 +12,7 @@ from pathlib import Path
 from .forge_runtime import FORGE, INSTALLER_SHA256, INSTALLER_URL, MC, _coordinate, read_input
 from .inference_transport import strict_json
 from .inventory import file_hash, scan_tree
-from .storage import require, reject_links
+from .storage import require, reject_links, safe_relative
 from .vanilla_client import _libraries, _path
 from .vanilla_runtime import _archive, _license_metadata
 
@@ -23,6 +23,80 @@ MAX_TOTAL = 2 * 1024**3
 LOADER_LIBRARIES = [f"net.minecraftforge:{name}:{FORGE}" for name in
                     ("fmlcore", "javafmllanguage", "lowcodelanguage", "mclanguage")]
 LOADER_LIBRARIES.append(f"net.minecraftforge:forge:{FORGE}:universal")
+LAUNCH_POLICY = "e9e1270-installed-client-config/1"
+
+
+def launch_arguments(root: Path, software, *, server_port: int):
+    """Resolve the prepared software into credential-free Windows arguments.
+
+    The operator must bind ``software`` to its retained preparation receipt and
+    hold the returned installation paths for execution. This read-only resolver
+    neither authenticates nor launches, and does not qualify the complete role.
+    """
+    _path(root)
+    require(root.is_dir() and not any(c in str(root) for c in ';\r\n\x00${}'), "UNSAFE_PATH")
+    require(type(server_port) is int and 1024 <= server_port <= 65535, "FORGE_CLIENT_PORT")
+    require(software.get("schema") == "strata/ForgeClientSoftware/1"
+            and software.get("policy") == POLICY
+            and software.get("launcher_metadata_sha256") == LAUNCHER_SHA256,
+            "FORGE_CLIENT_SOFTWARE_MISMATCH")
+    files = software.get("files")
+    require(isinstance(files, list) and 0 < len(files) <= 21000, "FORGE_CLIENT_SOFTWARE_MISMATCH")
+    seen = set()
+    for row in files:
+        relative = safe_relative(row["path"])
+        require(relative.parts[0] in {"assets", "java", "libraries", "versions"}
+                and row["path"].casefold() not in seen, "FORGE_CLIENT_SOFTWARE_MISMATCH")
+        seen.add(row["path"].casefold())
+        path = root / relative
+        require(file_hash(path) == row["digest"] and path.stat().st_size == row["bytes"]
+                and path.stat().st_nlink == 1, "FORGE_CLIENT_SOFTWARE_MISMATCH")
+    metadata_path = root / f"versions/{VERSION}/{VERSION}.json"
+    raw = read_input(metadata_path, 1024**2)
+    require(hashlib.sha256(raw).hexdigest() == LAUNCHER_SHA256, "FORGE_LAUNCHER_METADATA_MISMATCH")
+    metadata = strict_json(raw)
+    vanilla, _ = _libraries(strict_json(read_input(root / "versions/1.19.2/1.19.2.json", 1024**2)))
+    # Re-derive ordering from pinned metadata; a reordered receipt is not a
+    # license to change class resolution or select a different native library.
+    def identity(name):
+        return tuple(name.split(":")[:2] + name.split(":")[3:])
+    replacements = {identity(row["name"]) for row in metadata["libraries"]}
+    classpath = ["libraries/" + _coordinate(row["name"]) for row in metadata["libraries"]]
+    classpath += [row["path"] for row in vanilla if identity(row["coordinate"]) not in replacements]
+    classpath += [f"versions/{VERSION}/{VERSION}.jar"]
+    jvm = metadata["arguments"]["jvm"]
+    require(jvm.count("-p") == 1, "FORGE_METADATA_INVALID")
+    modules = jvm[jvm.index("-p") + 1].split("${classpath_separator}")
+    require(all(p.startswith("${library_directory}/") for p in modules), "FORGE_METADATA_INVALID")
+    modules = ["libraries/" + p.removeprefix("${library_directory}/") for p in modules]
+    require(software.get("classpath") == classpath and software.get("module_path") == modules
+            and set(p.casefold() for p in classpath + modules + [
+                "java/bin/java.exe", "assets/log_configs/client-1.12.xml",
+                "versions/1.19.2/1.19.2.json", f"versions/{VERSION}/{VERSION}.json"
+            ]) <= seen, "FORGE_RUNTIME_INVENTORY_MISMATCH")
+    reject_links(root / "natives")
+    require((root / "natives").is_dir(), "FORGE_CLIENT_NATIVES")
+    substitutions = {"${library_directory}": str(root / "libraries"), "${classpath_separator}": ";",
+                     "${version_name}": VERSION}
+    resolved = []
+    for arg in jvm:
+        for key, value in substitutions.items():
+            arg = arg.replace(key, value)
+        require("${" not in arg, "FORGE_METADATA_INVALID")
+        resolved.append(arg)
+    return ["-XX:ActiveProcessorCount=4", "-Dmax.bg.threads=1", "-Xms512m", "-Xmx6144m",
+            "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump",
+            "-Dos.name=Windows 10", "-Dos.version=10.0", "-Djava.library.path=" + str(root / "natives"),
+            "-Dminecraft.launcher.brand=strata-operator-installed-bootstrap",
+            "-Dminecraft.launcher.version=development-1", "-cp",
+            ";".join(str(root / p) for p in classpath), *resolved,
+            "-Dlog4j.configurationFile=" + str(root / "assets/log_configs/client-1.12.xml"),
+            metadata["mainClass"], "--username", "${auth_player_name}", "--version", VERSION,
+            "--gameDir", str(root), "--assetsDir", str(root / "assets"), "--assetIndex", "1.19",
+            "--uuid", "${auth_uuid}", "--accessToken", "${auth_access_token}",
+            "--clientId", "", "--xuid", "", "--userType", "msa", "--versionType", "release",
+            "--width", "854", "--height", "480", *metadata["arguments"]["game"],
+            "--server", "127.0.0.1", "--port", str(server_port)]
 
 
 def launcher_metadata(official, raw):

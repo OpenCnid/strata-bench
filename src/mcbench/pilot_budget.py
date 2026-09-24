@@ -6,6 +6,7 @@ The D18 entry below records the first approved run, m0-pilot-03.
 """
 
 import json
+import re
 import time
 
 from .budgets import Budgets, vector
@@ -23,14 +24,56 @@ DECISIONS = {"D15": (JOB, 756858), "D16": (AUTHORIZATION + ":m0-pilot-02", 76328
              "D18.3": (AUTHORIZATION + ":m0-pilot-06", 789908),
              "D18.4": (AUTHORIZATION + ":m0-pilot-07", 795559)}
 LUNA6_DECISIONS = frozenset(DECISIONS) - {"D15", "D16"}
+CONTINUING_POLICY = "fresh-pilot-retain-all-unknown-holds/2"
+
+
+def decision_job(decision_id):
+    """D19 successors are fresh admissions, never reuse of a consumed job."""
+    require(isinstance(decision_id, str), "PILOT_DECISION_REQUIRED")
+    if decision_id in DECISIONS:
+        return DECISIONS[decision_id][0]
+    match = re.fullmatch(r"D19\.([1-9][0-9]{0,2})", decision_id)
+    require(match is not None, "PILOT_DECISION_REQUIRED")
+    return AUTHORIZATION + f":m0-pilot-{7 + int(match[1]):02d}"
+
+
+def _continuing_decision(db, decision_id, row, totals):
+    from .authorization import ModelExecutionAuthorization, parse_authorization
+    policy = parse_authorization(row["body"])
+    require(isinstance(policy, ModelExecutionAuthorization) and policy.models == ["gpt-6-luna"] and
+            policy.accounting_basis.model == "gpt-6-luna", "PILOT_MODEL_AUTHORITY")
+    number = int(decision_id.split(".")[1]) + 7
+    # Finish and fence each preceding job before making a distinct reservation.
+    # An UNSETTLED job is allowed only with its costs/holds still in the ledger.
+    for index in range(1, number):
+        predecessor = AUTHORIZATION + f":m0-pilot-{index:02d}"
+        previous = db.execute("SELECT state,ended FROM native_jobs WHERE id=?", (predecessor,)).fetchone()
+        require(previous is not None and previous[0] in {"FINALIZED", "UNSETTLED"} and
+                previous[1] is not None, "PILOT_PRIOR_RUN_UNSETTLED")
+        fence = db.execute("SELECT state,fence_ref FROM native_gateways WHERE job=?", (predecessor,)).fetchone()
+        require(fence is not None and fence[0] == "CLOSED" and fence[1] is not None,
+                "PILOT_PRIOR_RUN_UNFENCED")
+        require(db.execute("SELECT 1 FROM inference_attempts WHERE json_extract(request,'$.runtime_job_id')=? "
+                           "AND state='DISPATCHING'", (predecessor,)).fetchone() is None,
+                "PILOT_PRIOR_RUN_UNSETTLED")
+    prior = totals["spend_microusd"]
+    require(prior is not None and prior + MAX_SPEND <= policy.total_spend_microusd, "ALLOWANCE_UNAVAILABLE")
+    return {"schema": "strata/PilotBudgetDecision/1", "decision_id": decision_id,
+        "policy": CONTINUING_POLICY, "authorization_id": AUTHORIZATION,
+        "authorization_digest": row["digest"], "job_id": decision_job(decision_id),
+        "maximum_microusd": MAX_SPEND, "max_requests": 12, "hard_timeout_s": 90,
+        "helper_limit": 0, "prior_exposure_microusd": prior, "combined_exposure_microusd": prior + MAX_SPEND,
+        "retained_digest": digest(uncertain_rows(db, row["account"])), "user_authorized": True}
 
 
 def decision_body(db, decision_id="D15"):
-    require(isinstance(decision_id, str) and decision_id in DECISIONS, "PILOT_DECISION_REQUIRED")
-    job, prior = DECISIONS[decision_id]
+    job = decision_job(decision_id)
     row = db.execute("SELECT * FROM execution_authorizations WHERE id=?", (AUTHORIZATION,)).fetchone()
     require(row is not None, "PILOT_DECISION_REQUIRED")
     totals, unknown = Budgets.totals(db, row["account"])
+    if decision_id not in DECISIONS:
+        return _continuing_decision(db, decision_id, row, totals)
+    _, prior = DECISIONS[decision_id]
     require(unknown and totals["spend_microusd"] == prior, "PILOT_RETAINED_HOLDS_CHANGED")
     predecessors = [DECISIONS[key][0] for key in list(DECISIONS)[:list(DECISIONS).index(decision_id)]]
     for predecessor in predecessors:
@@ -75,7 +118,7 @@ def install(database, cas, plan, reserve, decision):
                 plan.operation_id == job + ":envelope" and plan.purpose == PURPOSE and
                 plan.role == "executor" and plan.parent_job_id is None and plan.helper_limit == 0 and
                 plan.hard_timeout_s <= 90 and plan.budget_mode == "per_dispatch" and
-                plan.model == ("gpt-6-luna" if decision["decision_id"] in LUNA6_DECISIONS else "gpt-5.6-luna") and
+                plan.model == ("gpt-5.6-luna" if decision["decision_id"] in {"D15", "D16"} else "gpt-6-luna") and
                 plan.auth_mode == "chatgpt_oauth" and
                 plan.provider == "openai" and reserve.operation_id == plan.operation_id and
                 reserve.parent_operation_id is None and reserve.kind == "model" and

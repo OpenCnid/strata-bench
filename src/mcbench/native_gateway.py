@@ -20,7 +20,7 @@ from pydantic import Field
 from .accounting import EstimateBasis, FiniteExposure
 from .contracts import Digest, Id, Ref, Strict
 from .inference_dispatch import InferenceAttempt, InferenceDispatches
-from .inference_transport import strict_json, transport_failure_code
+from .inference_transport import MAX_REQUEST_TIMEOUT_S, strict_json, transport_failure_code
 from .native_admission import NativeAdmission, context_metadata
 from .native_ingress import NativeIngress, provider_binding
 from .native_oauth import NativeOAuthRequest, NativeOAuthTransport, SyntheticOAuthTransport
@@ -45,7 +45,7 @@ class GatewayConfig(Strict):
     max_requests: Annotated[int, Field(ge=1, le=256)] = 32
     max_handlers: Annotated[int, Field(ge=1, le=16)] = 4
     read_timeout_s: Annotated[int, Field(ge=1, le=10)] = 3
-    request_timeout_s: Annotated[int, Field(ge=1, le=30)] = 30
+    request_timeout_s: Annotated[int, Field(ge=1, le=MAX_REQUEST_TIMEOUT_S)] = 30
 
     def profile_fingerprint(self):
         # Evidence refers to the resulting profile, so refs cannot hash themselves.

@@ -382,7 +382,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": "root", "profile_digest": "a" * 64, "pricing_ref": price, "exposure": exposure,
             "transport_qualification_ref": None, "authorization_id": None, "helper_calls_bound": 4,
-            "max_requests": 12})
+            "max_requests": 12, "request_timeout_s": 60 if piloting_contract else 30})
     worker_calls = []
     worker = None
     if broker_mode and game_probe is None:

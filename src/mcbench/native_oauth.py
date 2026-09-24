@@ -13,7 +13,12 @@ import ssl
 import time
 from urllib.parse import urlsplit
 
-from .inference_transport import BUFFERED_SSE_POLICY, _ResponsesTransport, strict_json
+from .inference_transport import (
+    BUFFERED_SSE_POLICY,
+    MAX_REQUEST_TIMEOUT_S,
+    _ResponsesTransport,
+    strict_json,
+)
 from .native_ingress import NativeIngress, active_binding
 from .storage import require
 
@@ -117,7 +122,8 @@ class NativeOAuthTransport(_ResponsesTransport):
     def _init(self, dispatches, credentials, deadline_s):
         require(isinstance(credentials, NativeOAuthRequest) and not credentials._closed,
                 "OAUTH_CREDENTIAL_REQUIRED")
-        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
+        require(type(deadline_s) in {int, float} and 0 < deadline_s <= MAX_REQUEST_TIMEOUT_S,
+                "TRANSPORT_DEADLINE")
         require(credentials.path in PATHS, "INGRESS_ROUTE")
         self.gate, self.credentials, self.deadline_s = dispatches, credentials, deadline_s
         self._init_lifetime()

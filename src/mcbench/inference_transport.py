@@ -19,6 +19,7 @@ from .records import BudgetLedger
 from .storage import Fault, Principal, require
 
 MAX_RESPONSE_BYTES = 256 * 1024
+MAX_REQUEST_TIMEOUT_S = 60
 BUFFERED_SSE_POLICY = "native-complete-receipt-before-media-normalization/1"
 
 
@@ -377,7 +378,8 @@ class SyntheticResponsesTransport(_ResponsesTransport):
                 url.username is None and url.password is None and not url.query and
                 not url.fragment and url.path in {"/v1/responses", "/v1/responses/compact"},
                 "SYNTHETIC_ENDPOINT_REQUIRED")
-        require(type(deadline_s) in {int, float} and 0 < deadline_s <= 30, "TRANSPORT_DEADLINE")
+        require(type(deadline_s) in {int, float} and 0 < deadline_s <= MAX_REQUEST_TIMEOUT_S,
+                "TRANSPORT_DEADLINE")
         self.gate, self.url, self.deadline_s = dispatches, url, deadline_s
         self._init_lifetime()
 

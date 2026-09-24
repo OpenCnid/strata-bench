@@ -20,9 +20,7 @@ def check_inputs(inputs):
         path = Path(inputs[key])
         reject_links(path)
         require(path.is_absolute() and path.exists() and not path.resolve().is_relative_to(ROOT), "PILOT_PRIVATE_INPUT")
-    from mcbench.pilot_budget import DECISIONS
-    require(inputs["authorization"] == "validation-2026-09-18" and
-            inputs["job_id"] in {job for job, _ in DECISIONS.values()}, "PILOT_INPUTS")
+    require(inputs["authorization"] == "validation-2026-09-18", "PILOT_INPUTS")
     # WAL-aware read-only access, before Java, worker, credentials or model startup.
     db = sqlite3.connect(Path(inputs["database"]).as_uri() + "?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
@@ -48,6 +46,9 @@ def check_inputs(inputs):
             check_decision(db, decision)
             require(decision["job_id"] == inputs["job_id"], "PILOT_INPUTS")
         require(not unknown or decision is not None, "PILOT_ACCOUNTING_BLOCKED")
+        from mcbench.pilot_budget import DECISIONS
+        require(decision is not None or inputs["job_id"] in {job for job, _ in DECISIONS.values()},
+                "PILOT_INPUTS")
         require(totals["spend_microusd"] + MAX_SPEND <= policy.total_spend_microusd, "ALLOWANCE_UNAVAILABLE")
         require(len(policy.models) == 1 and policy.models[0] == policy.accounting_basis.model,
                 "PILOT_MODEL_AUTHORITY")

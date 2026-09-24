@@ -239,7 +239,8 @@ def run_native_trial(args, *, pilot=None):
         gateway_config = GatewayConfig.model_validate({"schema": "strata/NativeGatewayConfig/1",
             "job_id": job, "profile_digest": "a" * 64, "pricing_ref": pricing, "exposure": exposure,
             "transport_qualification_ref": None, "authorization_id": args.authorization,
-            "max_requests": calls, "max_handlers": 1, "skill_corpus_ref": corpus_ref})
+            "max_requests": calls, "max_handlers": 1, "skill_corpus_ref": corpus_ref,
+            "request_timeout_s": 60 if pilot else 30})
         account, campaign = job + ":account", "oauth-receipt-d12" if trial else "oauth-first-receipt"
         plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": job,
             "campaign_id": campaign, "agent_id": "a1", "epoch": 1, "role": "executor",

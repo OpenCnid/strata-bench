@@ -1,8 +1,9 @@
 """Bounded D18 admissions with synthetic continuing approval; no real dispatch."""
 import pytest
+import time
 
 from mcbench.budgets import DIMENSIONS
-from mcbench.pilot_budget import DECISIONS, decision_body, install
+from mcbench.pilot_budget import DECISIONS, decision_body, decision_job, install
 from mcbench.storage import Fault, canonical
 from native_dispatch_probe import ledger, put
 import test_pilot_budget as prior
@@ -115,3 +116,83 @@ def test_continuing_approval_cannot_forget_first_luna_run(luna6, change):
         t.db.connection.execute("DELETE FROM operations WHERE id='settled-d18'")
     with pytest.raises(Fault, match="PILOT_PRIOR_RUN_UNSETTLED|PILOT_RETAINED_HOLDS_CHANGED"):
         t.authorize()
+
+
+@pytest.fixture
+def retained_pilot(luna6):
+    t = luna6
+    db = t.db.connection
+    t.authorize()
+    db.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)",
+        (t.plan.job_id, "c1", "a1", 1, "executor", None, "synthetic", canonical(t.plan.model_dump()).decode(), "PREPARED"))
+    t.budgets.post(t.plan.account, t.root, envelope=True)
+    db.execute("UPDATE native_jobs SET state='RUNNING' WHERE id=?", (t.plan.job_id,))
+    for i in range(4):
+        r = t.reserve(f"before-failure-{i}")
+        t.budgets.post(t.plan.account, r)
+        prior.settle(t, r)
+    r = t.reserve("unknown-fifth")
+    t.budgets.post(t.plan.account, r)
+    t.budgets.hold_uncertain(t.plan.account, r.operation_id, "fixture truncated response")
+    t.budgets.hold_uncertain(t.plan.account, t.plan.operation_id, "fixture incomplete job")
+    db.execute("UPDATE native_jobs SET state='UNSETTLED' WHERE id=?", (t.plan.job_id,))
+    db.execute("UPDATE native_jobs SET ended=?", (time.time(),))
+    db.execute("CREATE TABLE native_gateways (job TEXT PRIMARY KEY,state TEXT,fence_ref TEXT)")
+    db.execute("INSERT INTO native_gateways SELECT id,'CLOSED','fixture-fence' FROM native_jobs")
+    t.retained_all = prior.uncertain_rows(db, t.authority)
+    t.decision = decision_body(db, "D19.1")
+    job = decision_job("D19.1")
+    t.plan = t.plan.model_copy(update={"job_id": job, "account": job+":account", "operation_id": job+":envelope",
+                                     "campaign_id": "fresh-d19-campaign"})
+    t.budgets.create_account(t.plan.account, dict.fromkeys(DIMENSIONS, None) |
+        {"spend_microusd": 1000000, "model_calls": 12}, t.plan.campaign_id, "a1", t.authority, category="development")
+    t.root = t.root.model_copy(update={"operation_id": t.plan.operation_id,
+        "source_event_id": job+":reserve", "ledger_id": job+":ledger", "campaign_id": t.plan.campaign_id})
+    return t
+
+
+@pytest.mark.parametrize("luna6", ["D18.4"], indirect=True)
+def test_d19_retains_full_failed_envelope_and_stops_new_unknown(retained_pilot):
+    t = retained_pilot
+    assert t.decision["prior_exposure_microusd"] == 1795559
+    assert t.decision["combined_exposure_microusd"] == 2795559
+    t.authorize()
+    db = t.db.connection
+    db.execute("INSERT INTO native_jobs VALUES(?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)",
+        (t.plan.job_id, t.plan.campaign_id, "a1", 1, "executor", None, "synthetic", canonical(t.plan.model_dump()).decode(), "PREPARED"))
+    t.budgets.post(t.plan.account, t.root, envelope=True)
+    db.execute("UPDATE native_jobs SET state='RUNNING' WHERE id=?", (t.plan.job_id,))
+    r = t.reserve("new-d19-first")
+    t.budgets.post(t.plan.account, r)
+    assert prior.uncertain_rows(db, t.authority) == t.retained_all
+    assert t.budgets.status(t.authority)["committed_and_reserved"]["spend_microusd"] == 2795559
+    t.budgets.hold_uncertain(t.plan.account, r.operation_id, "fixture second truncation")
+    with pytest.raises(Fault, match="METERING_UNKNOWN"):
+        t.budgets.post(t.plan.account, t.reserve("new-d19-second"))
+    with pytest.raises(Fault, match="PILOT_PRIOR_RUN_UNSETTLED"):
+        decision_body(db, "D19.2")
+
+
+@pytest.mark.parametrize("luna6", ["D18.4"], indirect=True)
+@pytest.mark.parametrize("change", ["running", "unfenced", "changed-hold", "overspend", "replay", "skip"])
+def test_d19_rejects_unfenced_stale_overbudget_and_reused_admission(retained_pilot, change):
+    t = retained_pilot
+    db = t.db.connection
+    if change == "running":
+        db.execute("UPDATE native_jobs SET state='RUNNING' WHERE id=?", (DECISIONS["D18.4"][0],))
+    elif change == "unfenced":
+        db.execute("UPDATE native_gateways SET state='OPEN' WHERE job=?", (DECISIONS["D18.4"][0],))
+    elif change == "changed-hold":
+        db.execute("UPDATE operations SET uncertain=0 WHERE id='old-request'")
+    elif change == "overspend":
+        amount = dict.fromkeys(DIMENSIONS, 0) | {"spend_microusd": 9000000}
+        db.execute("INSERT INTO operations VALUES('outside-cost','old-account',NULL,'model',?,?,0)",
+                   (canonical(amount).decode(), canonical(amount).decode()))
+    elif change == "replay":
+        t.authorize()
+    else:
+        t.decision = t.decision | {"decision_id": "D19.2"}
+    with pytest.raises(Fault, match="PILOT_PRIOR_RUN_UNSETTLED|PILOT_PRIOR_RUN_UNFENCED|PILOT_DECISION_REQUIRED|ALLOWANCE_UNAVAILABLE|PILOT_ALREADY_ATTEMPTED"):
+        t.authorize()
+    if change != "changed-hold":
+        assert prior.uncertain_rows(db, t.authority) == t.retained_all

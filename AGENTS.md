@@ -10,25 +10,26 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
-## Resuming the September 24 checkpoint
+## September 24 M0/G0 closure
 
-The implementation objective is **M0 and all six G0 outcomes only**, with D14
-deferring full isolation qualification to M1/G1. **M0 is in_progress, G0 fail.**
-The user requested a documentation/source PR, merge to main and fresh session;
-that checkpoint does not close the milestone. Preserve the complete M1–M7
-roadmap and do not advance unrelated later work.
+The resumed implementation objective was **M0 and all six G0 outcomes only**,
+with D14 deferring full isolation qualification to M1/G1. **M0 is verified;
+G0 passes the named D14 development slice; G1–G5 remain not_run.** The
+[final assembly](docs/verification/2026-09-24-g0-assembly.md) closes that request.
+Preserve the complete M1–M7 roadmap; this closure does not start later work.
 
 Read [current status](docs/STATUS.md), [the current handoff](docs/STATUS_AND_HANDOFF.md),
 the ledger's current position and applicable SPEC contracts before selecting work.
 The [September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md)
-records current source, actual evidence, private pins and merge checks. Fetch
-origin, verify the actual PR/main and private accounting/process state, preserve
-existing changes, and start a fresh branch from updated main. Older dated reports
-and archived handoff text preserve history; their next actions are superseded.
+records the prior source, actual evidence, private pins and merge checks.
+The resumed branch verified PR7 merged at f8daedc and durable authority unchanged.
+Before any new authorized task, verify actual repository and applicable durable
+state and preserve existing changes. Older dated reports and archived handoff
+text preserve history; their next actions are superseded.
 
-**Immediate deliverable:** the final exact-profile six-outcome G0 assembly and
-explicit disposition of remaining children, beginning with minor 12 worker
-cancellation/reconnect lineage. M0.2c.1d.2's actual accepted/refused-action join
+**Completed deliverable:** all six G0 outcomes and318 explicit child dispositions,
+including minor12 cancellation/reconnect48/48 (M0.2k.3). Its first public-route
+selector failure remains retained. M0.2c.1d.2's actual accepted/refused-action join
 passes19/19: live18 proves a zero-input refusal then the model's corrected turn,
 complete source/worker/pack/saved-player/cost/clock joins and normal stop. Its
 original two-action goal fails because there was no walk. Live15 already passed
@@ -41,7 +42,7 @@ implementation/profile change or to resolve a named missing G0 outcome, retainin
 prior results. Do not seek a lucky paid rerun. New scaffolding needs a concrete
 missing G0 dependency. Full T05/isolation belongs to G1; complete canonical
 recovery/fault/soaks to G2. Preserve all IDs and wider contract gaps without
-silently promoting them or expanding this M0 task.
+silently promoting them or reopening the completed M0 task without a new need.
 
 Strata is an LLM gameplay harness: the model chooses actions from filtered
 observations, Mineflayer executes bounded motors, and the harness records results.

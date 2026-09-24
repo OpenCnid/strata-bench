@@ -2,13 +2,13 @@
 
 Project name: **Strata**. Public repository: **[OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench)** (user decision D03).
 
-Research baseline: 2026-09-17; architecture updated 2026-09-18 by D01. The plan below is supporting design, not current execution instructions. **September 24 checkpoint: M0 in_progress, G0 fail.** The scope remains M0 and all six G0 outcomes; preserve M1–M7 without advancing them. Start with [the current handoff](docs/STATUS_AND_HANDOFF.md), [ledger](MILESTONES.md) and [dated checkpoint](docs/verification/2026-09-24-session-handoff.md).
+Research baseline: 2026-09-17; architecture updated 2026-09-18 by D01. The plan below is supporting design, not current execution instructions. **September 24 closure: M0 verified; G0 pass for the D14 development feasibility slice; G1–G5 not_run.** Preserve M1–M7 without advancing them. Start with [the current handoff](docs/STATUS_AND_HANDOFF.md), [ledger](MILESTONES.md) and [final assembly](docs/verification/2026-09-24-g0-assembly.md).
 
 The implemented harness gives GPT-6 Luna filtered observations and typed commands to a persistent Mineflayer worker. The model chooses actions; local scripts supply fixed motors, fixture setup and checks. Live15 verifies actual turn/walk/helper play. Live18's independent19/19 audit joins a zero-input refusal and corrected turn with source/pack/worker identity, saved player, costs and clocks; its two-action goal still fails because no walk occurred. Exact E9E has a separate development Forge fallback, not a Mineflayer pass.
 
-Next assemble the six exact G0 profiles and remaining child dispositions, starting with cancellation lineage for the changed minor 12 worker. Normal-stop case 04, successful helper play, sealed installations and the accepted/refused join are established in their named scopes; do not repeat them unchanged. D14 defers full isolation to M1/G1; full T05 also remains G1, canonical recovery and soaks G2. These requirements are retained, not waived or completed.
+The six-outcome assembly and 318 child dispositions are complete. The changed minor12 worker passes its authentic cancellation/reconnect audit48/48. Normal-stop case 04, successful helper play, sealed installations and the accepted/refused join retain their named scopes; do not repeat them unchanged. D14 defers full isolation to M1/G1; full T05 also remains G1, canonical recovery and soaks G2. These wider requirements are retained, not waived or completed.
 
-D18/D19 permit necessary bounded fresh M0 runs within the original $10 while all unresolved amounts stay reserved. Exposure is $4.887796, including the old $0.7554 hold and four full $1 failed envelopes. Recheck durable authority before future spend; no per-run permission is pending. D13's 1,000ms Java policy and all historical 500ms failures remain. This stopping task updates documentation and merges source; it runs no game or inference experiment.
+D18/D19 authority preserves the original $10 while all unresolved amounts stay reserved. Exposure is $4.887796, including the old $0.7554 hold and four full $1 failed envelopes. Recheck durable authority before future authorized spend; no per-run permission is pending. D13's 1,000ms Java policy and all historical 500ms failures remain. The M0 closure used no new inference; no further experiment is selected.
 
 ## 1. Recommendation
 

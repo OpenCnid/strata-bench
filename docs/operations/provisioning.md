@@ -366,3 +366,15 @@ Do not reuse a used instance as a fresh baseline or treat agent startup as a qua
 preparation does not replace other mod-input review or the thirteen provisioning
 checks. [Original failure](../verification/2026-09-24-e9e-runtime-data.md) and
 [class-loading diagnosis and changed verification](../verification/2026-09-24-e9e-class-loading.md).
+
+The current snapshot agent additionally retains a bounded, forced-to-disk journal
+in the private instance's `logs` directory. This preserves early markers for
+non-input client launches without console handles. Bind its PID to the owned
+process and its content to the held snapshot artifact through
+`inspect_runtime_data_journal`; repeated exact-body reads are valid, while missing,
+foreign, truncated or unbounded records reject. Client loading/restart and a
+cold server restart now qualify this named mechanism. Clients use explicit owned
+Job termination after capture, so this is not clean client save or D13 evidence.
+Retain both audit corrections and all prior profile failures. The remaining
+startup-input review, successor inventory/profile and thirteen-check sealing
+remain separate. [Exact scope and evidence](../verification/2026-09-24-e9e-client-runtime-data.md).

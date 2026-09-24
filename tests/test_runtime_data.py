@@ -72,10 +72,11 @@ def built(inputs, tmp_path):
     subprocess.run([str(compiler), "--release", "17", "-cp", str(jar), "-d", str(fixture),
         str(ROOT / "tests/fixtures/RuntimeDataFixture.java")], capture_output=True, timeout=30, check=True)
     java = compiler.with_name("java.exe" if os.name == "nt" else "java")
-    def run(*args, target=jar, flags=()):
+    def run(*args, target=jar, flags=(), quiet=False):
         return subprocess.run([str(java), *flags, "-javaagent:" + str(target), "-cp", str(fixture) + os.pathsep + str(target),
             "io.github.opencnid.strata.fixed.RuntimeDataFixture", *args], cwd=tmp_path,
-            capture_output=True, text=True, timeout=15)
+            text=True, timeout=15, **({"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+                                     if quiet else {"capture_output": True}))
     return result, jar, run
 
 
@@ -150,3 +151,34 @@ def test_refusal_capture_is_bounded_and_still_halts(built):
     assert process.returncode == 126
     assert "STRATA_FIXED_DATA_REFUSED/1" in process.stderr
     assert "STRATA_FIXED_DATA_CLASS/1" not in process.stderr
+
+
+def test_journal_survives_absent_console_and_keeps_distinct_processes(built, tmp_path):
+    report, _, run = built
+    for _ in range(2):
+        assert run(quiet=True).returncode == 0
+    journals = list((tmp_path / "logs").glob("strata-fixed-*.log"))
+    assert len(journals) == 2
+    for path in journals:
+        lines = path.read_text(encoding="ascii").splitlines()
+        assert lines[0] == "STRATA_FIXED_DATA_READY/1 " + report["index_sha256"]
+        assert len(lines) == 10  # Three fixture connections per resource.
+        assert all(lines.count("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"]) == 3
+                   for r in report["inputs"])
+
+
+def test_journal_quota_halts_and_preserves_complete_prior_records(built, tmp_path):
+    _, _, run = built
+    process = run("journal-quota")
+    assert process.returncode == 126 and "STRATA_FIXED_DATA_JOURNAL_REFUSED/1" in process.stderr
+    raw = next((tmp_path / "logs").glob("strata-fixed-*.log")).read_bytes()
+    assert raw.endswith(b"\n") and len(raw.splitlines()) == 32
+
+
+def test_journal_path_must_be_a_directory(built, tmp_path):
+    _, _, run = built
+    path = tmp_path / "logs"
+    path.write_text("preserve me", encoding="ascii")
+    process = run()
+    assert process.returncode != 0 and "FIXED_DATA_JOURNAL_PATH" in process.stderr
+    assert path.read_text(encoding="ascii") == "preserve me"

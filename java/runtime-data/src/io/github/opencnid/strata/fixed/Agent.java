@@ -24,13 +24,14 @@ public final class Agent implements ClassFileTransformer {
         if (options != null && !options.isEmpty()) throw new IOException("FIXED_DATA_OPTIONS");
         if (!System.getProperty("java.protocol.handler.pkgs", "").isEmpty())
             throw new IOException("FIXED_DATA_HANDLER_OCCUPIED");
+        Data.startJournal();
         Data.verify();
         for (Class<?> loaded : instrumentation.getAllLoadedClasses())
             if (TARGETS.containsKey(loaded.getName().replace('.', '/')))
                 throw new IOException("FIXED_DATA_ALREADY_LOADED");
         System.setProperty("java.protocol.handler.pkgs", PREFIX);
         instrumentation.addTransformer(new Agent(), false);
-        System.err.println("STRATA_FIXED_DATA_READY/1 " + Data.identity());
+        Data.record("STRATA_FIXED_DATA_READY/1 " + Data.identity());
     }
 
     @Override public byte[] transform(ClassLoader loader, String name, Class<?> redefined,
@@ -39,16 +40,16 @@ public final class Agent implements ClassFileTransformer {
         try {
             if (redefined != null) throw new IOException("FIXED_DATA_REDEFINITION");
             byte[] result = patch(name, input);
-            System.err.println("STRATA_FIXED_DATA_BOUND/1 " + name + " " + Data.sha256(input));
+            Data.record("STRATA_FIXED_DATA_BOUND/1 " + name + " " + Data.sha256(input));
             return result;
         } catch (Exception error) {
             // JVM ignores transformer exceptions and otherwise runs the original
             // downloader. A mismatch must terminate this owned JVM instead.
-            System.err.println("STRATA_FIXED_DATA_REFUSED/1 " + name + " " + Data.sha256(input));
+            Data.record("STRATA_FIXED_DATA_REFUSED/1 " + name + " " + Data.sha256(input));
             // Private startup logs retain only these two named class identities.
             // Capture bounded evidence before halting; never admit observed bytes.
             if (input.length <= 65536)
-                System.err.println("STRATA_FIXED_DATA_CLASS/1 " + name + " "
+                Data.record("STRATA_FIXED_DATA_CLASS/1 " + name + " "
                     + Data.sha256(input) + " " + Base64.getEncoder().encodeToString(input));
             Runtime.getRuntime().halt(126);
             throw new AssertionError("unreachable");

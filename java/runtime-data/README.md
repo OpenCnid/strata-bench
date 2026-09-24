@@ -24,6 +24,13 @@ run. For either named target, refusal additionally retains its hash and base64
 class bytes in the private startup log when the class is at most 64 KiB. Larger
 classes still halt without a byte capture. Captured bytes are diagnostic evidence,
 never automatic admission or a replacement for the reviewed vendor pin.
+Every startup also creates a fresh `logs/strata-fixed-<pid>-<uuid>.log` in the
+operator-owned game instance, so early records survive clients without console
+handles. Writes are serialized and forced to disk, bounded to 32 records,
+128 KiB per record and 1 MiB per journal. An invalid log path, write failure or
+exhausted journal refuses startup or halts the owned JVM; files are never reused.
+These records contain only the existing resource/class hashes and bounded class
+diagnostics. They are not signed scoring evidence or isolation qualification.
 The custom `stratafixed` protocol returns HTTP-shaped responses from verified
 memory for exactly three routes. It has no network fallback. Other protocols
 retain their ordinary JDK behavior. This does not establish network isolation or
@@ -41,3 +48,8 @@ consumer also requires both class-binding records and all three actual read
 records. Agent startup alone cannot pass that check. Authentic Forge loading,
 client/server conformance, unchanged mechanics, owned shutdown and all remaining
 provisioning checks retain their separate evidence requirements.
+
+`mcbench.runtime_data.inspect_runtime_data_journal` checks the stopped process's
+PID in the filename, journal bounds, complete records and exact expected marker
+set. The caller must separately hold the snapshot JAR, bind the real process and
+archive the stopped output; a matching text file alone cannot qualify a run.

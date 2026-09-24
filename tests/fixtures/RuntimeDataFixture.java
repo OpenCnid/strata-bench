@@ -22,6 +22,10 @@ public final class RuntimeDataFixture {
                 new byte[args.length > 1 ? Integer.parseInt(args[1]) : 10]);
             throw new AssertionError("did not halt");
         }
+        if (args.length > 0 && args[0].equals("journal-quota")) {
+            for (int i = 0; i < 33; i++) Data.record("STRATA_FIXED_DATA_TEST/1 " + i);
+            throw new AssertionError("did not halt");
+        }
         int checked = 0;
         for (String url : new TreeSet<>(Data.ROUTES.keySet())) {
             HttpURLConnection connection = (HttpURLConnection)new URL(url).openConnection();

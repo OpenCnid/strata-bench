@@ -2,6 +2,10 @@ package io.github.opencnid.strata.fixed;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.*;
 import java.util.*;
 
@@ -13,6 +17,42 @@ public final class Data {
         "stratafixed://raw.githubusercontent.com/BluSunrize/ImmersiveEngineering/gh-pages/contributorRevolvers.json", "contributorRevolvers.json");
     private static Map<String, byte[]> bodies;
     private static String identity;
+    private static FileChannel journal;
+    private static int journalRecords, journalBytes;
+
+    public static synchronized void startJournal() throws IOException {
+        if (journal != null) throw new IOException("FIXED_DATA_JOURNAL_OCCUPIED");
+        Path directory = Path.of("logs").toAbsolutePath().normalize();
+        for (Path p = directory; p != null; p = p.getParent()) {
+            if (!Files.exists(p, LinkOption.NOFOLLOW_LINKS)) continue;
+            BasicFileAttributes attributes = Files.readAttributes(p, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            if (!attributes.isDirectory() || attributes.isSymbolicLink() || attributes.isOther())
+                throw new IOException("FIXED_DATA_JOURNAL_PATH");
+        }
+        try { Files.createDirectory(directory); } catch (FileAlreadyExistsException expected) {}
+        Path path = directory.resolve("strata-fixed-" + ProcessHandle.current().pid() + "-" + UUID.randomUUID() + ".log");
+        journal = FileChannel.open(path, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS);
+    }
+
+    /** Private, forced-to-disk records also survive a client with no console. */
+    public static synchronized void record(String line) {
+        try {
+            byte[] raw = (line + "\n").getBytes(StandardCharsets.US_ASCII);
+            if (journal == null || !line.startsWith("STRATA_FIXED_DATA_") || line.indexOf('\n') >= 0
+                    || line.indexOf('\r') >= 0 || raw.length > 131072
+                    || journalRecords >= 32 || journalBytes + raw.length > 1048576)
+                throw new IOException("FIXED_DATA_JOURNAL_QUOTA");
+            ByteBuffer buffer = ByteBuffer.wrap(raw);
+            while (buffer.hasRemaining()) journal.write(buffer);
+            journal.force(true);
+            journalRecords++; journalBytes += raw.length;
+            System.err.println(line);
+        } catch (IOException error) {
+            System.err.println("STRATA_FIXED_DATA_JOURNAL_REFUSED/1");
+            Runtime.getRuntime().halt(126);
+            throw new AssertionError("unreachable");
+        }
+    }
 
     public static String sha256(byte[] bytes) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)); }

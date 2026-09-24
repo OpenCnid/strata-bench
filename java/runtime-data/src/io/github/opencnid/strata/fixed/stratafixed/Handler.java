@@ -8,7 +8,7 @@ import java.net.*;
 public final class Handler extends URLStreamHandler {
     @Override protected URLConnection openConnection(URL url) throws IOException {
         byte[] bytes = Data.read(url.toExternalForm());
-        System.err.println("STRATA_FIXED_DATA_READ/1 " + Data.ROUTES.get(url.toExternalForm()) + " " + Data.sha256(bytes));
+        Data.record("STRATA_FIXED_DATA_READ/1 " + Data.ROUTES.get(url.toExternalForm()) + " " + Data.sha256(bytes));
         return new HttpURLConnection(url) {
             @Override public void connect() throws IOException {
                 if (!method.equals("GET") || getDoOutput()) throw new IOException("FIXED_DATA_METHOD");

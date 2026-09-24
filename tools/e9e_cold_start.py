@@ -18,7 +18,7 @@ from mcbench.inventory import file_hash
 from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.pack_modes import inspect_e9e_mode
 from mcbench.processes import ManagedProcess
-from mcbench.runtime_data import AGENT_PATH, validate_snapshot
+from mcbench.runtime_data import AGENT_PATH, inspect_runtime_data_log, validate_snapshot
 from mcbench.server_health import inspect_server_log
 from mcbench.storage import canonical, require
 from strata_evaluator.reference_launch import bind_identity, first_start
@@ -329,24 +329,6 @@ def run(root, output, *, campaign, epoch, initial, runtime_data=None):
     return result
 
 
-def inspect_runtime_data_log(raw, report):
-    """Require both transformed classes and actual reads, not agent startup alone."""
-    require(len(raw) <= 16 * 1024**2 and b"STRATA_FIXED_DATA_REFUSED/1" not in raw, "RUNTIME_DATA_EXECUTION")
-    lines = [line[line.index("STRATA_FIXED_DATA_"):] for line in raw.decode("utf-8", errors="strict").splitlines()
-             if "STRATA_FIXED_DATA_" in line]
-    require("STRATA_FIXED_DATA_READY/1 " + report["index_sha256"] in lines, "RUNTIME_DATA_EXECUTION")
-    classes = {
-        "com/portingdeadmods/cable_facades/CFConfig": "1ab0dee01c531ff6a89fd85aee2109f5e8036d342e0c283e76a9101b0aab8092",
-        "blusunrize/immersiveengineering/ImmersiveEngineering$ThreadContributorSpecialsDownloader":
-            "b47bfd98a885800760e9e7d7c24d60ec2d4e89da6cbc1ed9ad1e82a46283e2fb",
-    }
-    required = {"STRATA_FIXED_DATA_BOUND/1 " + name + " " + sha for name, sha in classes.items()}
-    required.update("STRATA_FIXED_DATA_READ/1 " + r["name"] + " " + r["sha256"] for r in report["inputs"])
-    require(required <= set(lines), "RUNTIME_DATA_EXECUTION")
-    return {"policy": report["policy"], "jar_sha256": report["jar_sha256"],
-            "index_sha256": report["index_sha256"], "bound_classes": sorted(classes),
-            "read_inputs": [{"name": r["name"], "sha256": r["sha256"]} for r in report["inputs"]],
-            "all_runtime_downloads_qualified": False}
 
 
 if __name__ == "__main__":

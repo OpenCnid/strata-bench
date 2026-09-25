@@ -9,6 +9,11 @@ import os
 import re
 import shutil
 from pathlib import Path
+from typing import Literal
+
+from pydantic import Field, model_validator
+
+from .contracts import Strict, Id, Ref, Digest
 
 from .launch_integrity import FileLease, safe, snapshot
 from .inference_transport import strict_json
@@ -18,6 +23,7 @@ from .storage import canonical, digest, reject_links, require, safe_relative
 
 POLICY = "vanilla1192-stopped-instance/1"
 PACK_POLICY = "vanilla1192-sealed-template-stopped-instance/2"
+PROBE_POLICY = "vanilla1192-registered-probe-stopped-instance/1"
 PINNED_JARS = {
     "server.jar": "b26727069ef5f61c704add9a378ac90e3d271fd7876c0bd3dcfbe9fd0bec4d96",
     "versions/1.19.2/server-1.19.2.jar": "d79def2f9aaf06d6b851e568150762b8e7ee24a898a314cf34b210cbd9ea14b6",
@@ -28,6 +34,48 @@ WORLD_ROOTS = {"advancements", "data", "datapacks", "DIM-1", "DIM1", "entities",
                "playerdata", "poi", "region", "stats"}
 SECRET_NAMES = {".git", ".codex", ".ssh", ".aws", "auth.json", "credentials.json", "keys.json",
                 "launcher_accounts.json", "launcher_msa_credentials.bin", "auth-cache", "auth_cache"}
+
+
+class RegisteredProbeWorld(Strict):
+    """Private provenance only; never a launch, restore or feedback capability."""
+    schema_: Literal["strata/RegisteredProbeVanillaWorld/1"] = Field(alias="schema")
+    namespace: str = Field(pattern=r"^evaluation:.+", max_length=256)
+    pair_id: Id
+    arm: Literal["initial", "experienced"]
+    fixture_ref: Ref
+    pack_lock: Ref
+    pair_plan_digest: Digest
+    world_digest: Digest
+    world_files: dict[str, Ref] = Field(min_length=1, max_length=12000)
+    world_directories: list[str] = Field(min_length=1, max_length=12000)
+
+    @model_validator(mode="after")
+    def identity(self):
+        require(self.world_digest == digest({"pack_lock":self.pack_lock,
+            "files":self.world_files,"directories":self.world_directories}), "PROBE_WORLD_IDENTITY")
+        names = self.world_directories
+        require(names == sorted(set(names)) and len({p.casefold() for p in names}) == len(names),
+                "PROBE_WORLD_DIRECTORY_SCOPE")
+        require(len({p.casefold() for p in self.world_files}) == len(self.world_files)
+                and not {p.casefold() for p in names}.intersection(p.casefold() for p in self.world_files),
+                "PROBE_WORLD_DIRECTORY_SCOPE")
+        for name in names:
+            path = safe_relative(name)
+            require(name == "external" or path.parts[0] == "world"
+                    and (len(path.parts) == 1 or path.parts[1] in WORLD_ROOTS), "PROBE_PACK_STATE_LAYOUT")
+            require(not {p.casefold() for p in path.parts} & SECRET_NAMES, "SECRET_IN_SNAPSHOT")
+        for name in [*names, *self.world_files]:
+            require(all(p.as_posix() in names for p in safe_relative(name).parents if str(p) != "."),
+                    "PROBE_WORLD_DIRECTORY_SCOPE")
+        mapped = {}
+        for name, ref in self.world_files.items():
+            target = name.removeprefix("external/")
+            require((not name.startswith("external/") or target in MUTABLE)
+                    and disposition(target) == "state" and target.casefold() not in mapped,
+                    "PROBE_PACK_STATE_LAYOUT")
+            mapped[target.casefold()] = ref
+        require(MUTABLE | {"world/level.dat"} <= mapped.keys(), "PROBE_PACK_STATE_INCOMPLETE")
+        return self
 
 
 def template_files(inventory, pack):
@@ -77,7 +125,7 @@ def disposition(path, template=None):
     require(False, "VANILLA_PERSISTENCE_LAYOUT_UNSUPPORTED")
 
 
-def layout(root, *, template=None, template_directories=(), initial=False):
+def layout(root, *, template=None, template_directories=(), initial=False, registered_prelaunch=False):
     root = safe(root)
     inventory = snapshot([], [root])
     entries = {}
@@ -87,8 +135,10 @@ def layout(root, *, template=None, template_directories=(), initial=False):
         relative = path.relative_to(root).as_posix()
         entries[relative] = {"bytes": entry["bytes"], "sha256": entry["sha256"],
                              "disposition": disposition(relative, template)}
+    require(not registered_prelaunch or template is not None and not initial, "PROBE_WORLD_PROFILE")
     required = (set(template) if initial and template is not None else
-                MUTABLE | {"world/level.dat", "world/session.lock", *PINNED_JARS})
+                MUTABLE | {"world/level.dat", *PINNED_JARS} |
+                (set() if registered_prelaunch else {"world/session.lock"}))
     require(required <= entries.keys(),
             "VANILLA_PERSISTENCE_INCOMPLETE")
     if initial:
@@ -138,16 +188,21 @@ def verify_snapshot(destination, expected_manifest_sha256):
     raw = path.read_bytes()
     require(hashlib.sha256(raw).hexdigest() == expected_manifest_sha256, "VANILLA_CAPTURE_CHANGED")
     body = strict_json(raw)
-    sealed = body.get("schema") == "strata/StoppedVanillaSnapshot/2"
+    probe = body.get("schema") == "strata/StoppedVanillaSnapshot/3"
+    sealed = probe or body.get("schema") == "strata/StoppedVanillaSnapshot/2"
     require(set(body) == {"schema", "policy", "minecraft", "server_plan_digest", "source_root", "files",
                          "directories", "state_bytes", "owned_processes", "clean_save_proven", "complete_checkpoint",
                          "dispatch_authorized", "writer_custody_qualified", "G0"} |
-            ({"pack", "installed_inventory"} if sealed else set())
-            and body["schema"] == ("strata/StoppedVanillaSnapshot/2" if sealed else "strata/StoppedVanillaSnapshot/1")
-            and body["policy"] == (PACK_POLICY if sealed else POLICY)
+            ({"pack", "installed_inventory"} if sealed else set()) | ({"probe_world"} if probe else set())
+            and body["schema"] == ("strata/StoppedVanillaSnapshot/3" if probe else
+                                   "strata/StoppedVanillaSnapshot/2" if sealed else "strata/StoppedVanillaSnapshot/1")
+            and body["policy"] == (PROBE_POLICY if probe else PACK_POLICY if sealed else POLICY)
             and body["minecraft"] == "1.19.2" and body["G0"] == "fail"
             and all(body[k] is False for k in ("clean_save_proven", "complete_checkpoint", "dispatch_authorized",
                                              "writer_custody_qualified")), "VANILLA_CAPTURE_MANIFEST")
+    if probe:
+        provenance = RegisteredProbeWorld.model_validate(body["probe_world"])
+        require(provenance.pack_lock == body["pack"]["lock"], "PROBE_WORLD_IDENTITY")
     template = template_files(body["installed_inventory"], body["pack"]) if sealed else None
     template_directories = template_directory_layout(body["installed_inventory"]) if sealed else []
     require(isinstance(body["files"], dict) and 0 < len(body["files"]) <= 12000, "VANILLA_CAPTURE_MANIFEST")
@@ -212,8 +267,12 @@ def verify_snapshot(destination, expected_manifest_sha256):
 
 
 class VanillaPersistence:
-    def __init__(self, root, *, pack=None, resolved=None):
+    def __init__(self, root, *, pack=None, resolved=None, probe_world=None, capture_state_limit=1024**3):
         self.root, self.lease = safe(root), None
+        require(type(capture_state_limit) is int and 1 <= capture_state_limit <= 1024**3,
+                "VANILLA_CAPTURE_QUOTA")
+        self.capture_state_limit = capture_state_limit
+        self.probe_world = None if probe_world is None else RegisteredProbeWorld.model_validate(probe_world)
         self.pack = self.installed_inventory = self.template = None
         self.template_directories = []
         if pack is not None:
@@ -230,8 +289,28 @@ class VanillaPersistence:
             self.template_directories = template_directory_layout(self.installed_inventory)
         else:
             require(resolved is None, "VANILLA_TEMPLATE_CHANGED")
-        from .pack_launch import RestoredPackLaunchBinding, restoration_scope
-        if isinstance(pack, RestoredPackLaunchBinding):
+        from .pack_launch import PackLaunchBinding, RestoredPackLaunchBinding, restoration_scope
+        if self.probe_world is not None:
+            require(type(pack) is PackLaunchBinding and self.template is not None
+                    and self.probe_world.pack_lock == pack.lock, "PROBE_WORLD_PROFILE")
+            inventory, entries, directories = layout(self.root, template=self.template,
+                template_directories=self.template_directories, registered_prelaunch=True)
+            expected_state = {}
+            for name, ref in self.probe_world.world_files.items():
+                target = name.removeprefix("external/")
+                require((not name.startswith("external/") or target in MUTABLE)
+                        and disposition(target, self.template) == "state" and target not in expected_state,
+                        "PROBE_PACK_STATE_LAYOUT")
+                expected_state[target] = ref[11:]
+            require({p:e["sha256"] for p,e in entries.items() if e["disposition"] == "state"}
+                    == expected_state and all(e["disposition"] in {"state","immutable"} for e in entries.values()),
+                    "PROBE_WORLD_CHANGED")
+            immutable = {p:e for p,e in self.template.items() if disposition(p,self.template) == "immutable"}
+            require({p:{k:e[k] for k in ("bytes","sha256")} for p,e in entries.items()
+                     if e["disposition"] == "immutable"} == immutable, "VANILLA_TEMPLATE_CHANGED")
+            expected_dirs = set(self.template_directories) | (set(self.probe_world.world_directories)-{"external"})
+            require(set(directories) == expected_dirs, "PROBE_WORLD_CHANGED")
+        elif isinstance(pack, RestoredPackLaunchBinding):
             from .pack_restore import load_restoration, restored_layout
             world = load_restoration(pack, self.installed_inventory)
             require(resolved.get("scope") == restoration_scope(pack)
@@ -281,6 +360,7 @@ class VanillaPersistence:
                 "VANILLA_PIN_MISMATCH")
         states = {p: e for p, e in entries.items() if e["disposition"] == "state"}
         state_bytes = sum(e["bytes"] for e in states.values())
+        require(state_bytes <= self.capture_state_limit, "VANILLA_CAPTURE_QUOTA")
         require(shutil.disk_usage(destination.parent).free >= state_bytes + 5 * 1024**3, "DISK_RESERVE_LOW")
         # Hold all actual post-stop input bytes while copying. This is never a
         # live-save copy; the retained job must already prove every member exited.
@@ -315,6 +395,9 @@ class VanillaPersistence:
             if self.pack:
                 manifest.update(schema="strata/StoppedVanillaSnapshot/2", policy=PACK_POLICY,
                                 pack=self.pack, installed_inventory=self.installed_inventory)
+            if self.probe_world is not None:
+                manifest.update(schema="strata/StoppedVanillaSnapshot/3", policy=PROBE_POLICY,
+                                probe_world=self.probe_world.model_dump(by_alias=True))
             raw = canonical(manifest)
             write_new(destination / "manifest.json", raw)
             verify_snapshot(destination, hashlib.sha256(raw).hexdigest())

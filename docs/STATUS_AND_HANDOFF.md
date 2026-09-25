@@ -4,6 +4,29 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
+now connects registered pair state to a separate held server coordinator.
+Both states/launch inputs are checked before either server starts; matching
+limits and remaining parent lifetime must contain both server windows. Each
+normal stopped export retains private initial-world provenance in snapshot /3,
+and the first export remains held while its sibling runs. Ordinary restoration
+rejects probe captures. Game intent blocks preparation-only capacity release;
+a general stopped-game release/disposal path is still required.
+115 distinct focused cases and76/76 read-only checks pass. The missing synthetic
+evidence directory and provenance collision failures remain retained. The first
+audit refuses added WAL/SHM sidecars from a read-only SQLite inspection: all
+sealed bytes remain unchanged, the nine WALs are empty, and the sidecars plus
+path mapping are archived before corrected frozen-reader verification passes.
+Three stores are sealed. All40 real authority tables/holds remain unchanged;
+no owned runtime or model calls. Native JVM/token/exits are substituted in these
+tests, so M1.6l remains implemented_unverified for authentic integration.
+Next execute this exact paired server-reference path from complete registered
+authentic inputs. Check host resources and all finite parent windows before
+execution; do not extend deadlines, reuse consumed cases or relabel M1.6j as a
+pair. Complete actual all-N workers/live initial-state matching, scoped native
+admission, clocks and one-way disposal. T05, scorer controls and combined runtime
+routes remain open; no M1 paid inference authority is inferred.
+
 M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
 now carries complete registered world directories into pair identity, staging,
 native views and both writer /4 copies. Explicit /2 fixture/request/software
@@ -14,7 +37,7 @@ Pydantic exception-type assertion failure is retained. Three evidence stores
 are sealed; completed contract tests use an explicit archive path mapping to
 stay within per-bundle limits. All40 real authority tables/holds stay unchanged;
 no native/game/model execution or paid M1 authority. No owned runtime remains.
-Next bind this registered pair state to a reviewed held game coordinator.
+M1.6l now binds this state to the coordinator in fixture verification.
 M1.6j's restored-baseline session cannot be relabeled as a pair launch: it expects
 its own restoration identity, while this policy combines registered evaluator
 state and fresh sealed software. Keep both original input/resource owners live

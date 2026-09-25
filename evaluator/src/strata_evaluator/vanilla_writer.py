@@ -33,6 +33,26 @@ POLICY = "protected-sealed-restored-vanilla-server/1"
 ARGUMENTS = ["-XX:ActiveProcessorCount=2", "-Xms1G", "-Xmx2G", "-jar", "server.jar", "nogui"]
 
 
+def check_vanilla_settings(root):
+    properties = (root / "server.properties").read_text(encoding="utf-8")
+    for key, expected_value in {
+        "server-ip": "127.0.0.1",
+        "online-mode": "true",
+        "level-name": "world",
+        "enable-rcon": "false",
+        "rcon.password": "",
+        "enable-command-block": "false",
+    }.items():
+        require(
+            re.findall(r"(?m)^" + re.escape(key) + r"=(.*)$", properties) == [expected_value],
+            "VANILLA_WRITER_SETTINGS",
+        )
+    require(
+        re.findall(r"(?m)^eula=(true|false)\s*$", (root / "eula.txt").read_text()) == ["true"],
+        "AWAITING_OPERATOR_EULA",
+    )
+
+
 class VanillaWriterLaunch(Strict):
     schema_: Literal["strata/PrivateVanillaWriterLaunch/1"] = Field(alias="schema")
     policy: Literal["protected-sealed-restored-vanilla-server/1"]
@@ -92,24 +112,7 @@ class VanillaWriterSession:
             == set(writer.plan.directories),
             "VANILLA_WRITER_SOURCE",
         )
-        properties = (writer.tree.path / "server.properties").read_text(encoding="utf-8")
-        for key, expected_value in {
-            "server-ip": "127.0.0.1",
-            "online-mode": "true",
-            "level-name": "world",
-            "enable-rcon": "false",
-            "rcon.password": "",
-            "enable-command-block": "false",
-        }.items():
-            require(
-                re.findall(r"(?m)^" + re.escape(key) + r"=(.*)$", properties) == [expected_value],
-                "VANILLA_WRITER_SETTINGS",
-            )
-        require(
-            re.findall(r"(?m)^eula=(true|false)\s*$", (writer.tree.path / "eula.txt").read_text())
-            == ["true"],
-            "AWAITING_OPERATOR_EULA",
-        )
+        check_vanilla_settings(writer.tree.path)
         inputs = snapshot(
             [plan.helper_class.path], [Path(binding.instance), Path(binding.restoration.snapshot)]
         )

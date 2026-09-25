@@ -220,6 +220,10 @@ class ProbeCustody:
         self.check()
         with self.db.transaction() as db:
             self._owned(db, "HELD")
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='probe_world_copies'").fetchone():
+                world = db.execute("SELECT plan FROM probe_world_copies WHERE namespace=? AND pair=?",
+                                   (self.views.namespace, self.pair_id)).fetchone()
+                require(world is None or "runtime" not in json.loads(world[0]), "PROBE_GAME_REFERENCE_INTENT")
             require(all(db.execute("SELECT 1 FROM native_jobs WHERE id=?", (job,)).fetchone() is None
                         for job in self.plan["bindings"]), "PROBE_ALREADY_DISPATCHED")
             db.execute("UPDATE probe_pair_custody SET state='CLOSED' WHERE namespace=? AND pair=?",

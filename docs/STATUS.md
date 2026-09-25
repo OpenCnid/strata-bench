@@ -3,6 +3,17 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
+adds joint initial-state/launch preflight, matched runtime bounds, sequential
+owned stop/export and private capture provenance. Game-reference intent blocks
+the preparation-only capacity release; probe outputs cannot restore training.
+115 distinct focused cases and76/76 sealed reconstruction checks pass. Native
+execution/JVM/token results are substituted; authentic paired Minecraft remains
+implemented_unverified. Retain the two source-test failures and first audit's
+added-sidecar refusal. All40 real authority tables/holds remain unchanged; no
+native/game/model run. Next verify this exact paired profile with authentic
+registered inputs, then complete live matching, all-N readiness and disposal.
+
 M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
 adds explicit /2 fixture/request/software policies and requires writer /4.
 Both staged and copied trees preserve declared empty world/software directories;

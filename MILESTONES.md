@@ -7,6 +7,17 @@ M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
 not_run. The active long-horizon goal is M1/G1 only, including its required
 scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
 
+Latest: M1.6l [held paired server references](docs/verification/2026-09-25-m1-probe-runtime.md)
+adds joint initial-state/launch preflight, matched runtime bounds, sequential
+normal stop/export and snapshot /3 private provenance. Game-reference intent
+blocks premature capacity release; ordinary restoration rejects probe outputs.
+115 distinct focused cases and76/76 sealed read-only checks pass with synthetic
+game bytes and substituted native/JVM/token results. Two source-test failures
+and an audit sidecar refusal are retained. All40 real authority tables remain
+unchanged, with no owned runtime/model calls. Authentic paired execution stays
+implemented_unverified. Next verify that exact registered profile, then complete
+all-N live matching, scoped native admission, clocks and one-way disposal.
+
 Fetched origin and verified PR #8 merged at
 `215c4e0d01f0602c91504ad631dc2343ffc9f354`. A clean checkout became
 `codex/m1-g1-isolation`. The [opening coverage audit](docs/verification/2026-09-24-g1-coverage-audit.md)
@@ -653,6 +664,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6i | AR/GI/SI/RS/QA | Bind sealed vanilla software and complete registered state to both held copies; normalize writer path containment; inherits M1.6h, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [Software binding verification](docs/verification/2026-09-25-m1-probe-software.md):52 distinct passes,29/29 read-only reconstruction, two unchanged native-plan checks. Actual resolver/file leases with synthetic game bytes and substituted writer execution; retained fixture/assertion failures, exact software/state mapping and normalized Windows containment. All40 real authority tables unchanged. Native game/readiness/probe admission/disposal remain open. |
 | M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
 | M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
+| M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7617,3 +7629,47 @@ identity as a pair launch. Keep both input/resource owners live through actual
 readiness, stopped exports and one-way disposal; prove live matching/all-N and
 scoped runtime admission before opening native probes. T05, scorer controls and
 remaining combined runtime routes remain open; unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6l held paired server references and private captures
+
+Added held-pair-protected-vanilla-reference/1. Validate and hold both registered
+initial trees and launch inputs before either dispatch, require matching helper
+pins/runtime/output limits and enough remaining custody time for both windows.
+Reserve output/growth storage before copying. Sequential arms use unchanged
+sealed server settings, require owned readiness and normal stop history, export
+state before handle closure and hold the first export through sibling execution.
+Both writers close STOPPED_REFERENCE; failure preserves consumed intent/fences.
+
+Added RegisteredProbeVanillaWorld/1 and StoppedVanillaSnapshot/3 for exact private
+namespace/pair/arm/fixture/PackLock/initial-world provenance. Validate complete
+registered state and immutable software, reject path collisions/imported locks,
+bound output copying and refuse ordinary/changed-worker restoration of probe
+captures. Legacy /1 and /2 meanings remain. Preparation-only resource release
+now refuses any game-reference intent; unlaunched copies retain their explicit
+capacity-only release. Costs remain held. This is not full probe disposal.
+
+IDs: M1.6l; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36; partial T01/T04/T06/T07/T11. The
+[report](docs/verification/2026-09-25-m1-probe-runtime.md) records115 distinct
+passes (30 new,85 affected existing), including final9 runtime checks in444.08s.
+Ruff/whitespace pass. Retain initial missing synthetic evidence-directory failure
+and missing provenance collision refusal, then their fixes and passing results.
+Preparation, budgets, Windows file leases and copying are real; native/JVM/token
+execution results and game bytes are synthetic. No native/game/model run occurs.
+
+Read-only reconstruction passes76/76: complete inventories/explicit archive
+mapping, both input holds before launch, exact initial identity and outcome
+bytes, provenance, stopped custody, five failures/fences and retained synthetic
+cost/capacity. The first audit refuses18 new SQLite sidecars created by an
+intervening read-only inspection. All8,294 sealed producer files are unchanged;
+all nine added WALs are empty. Preserve sidecars/path mapping/failed audit in a
+separate bundle, then use the frozen reader. Both producer seals remain unchanged.
+Three private evidence seals and actual checks are recorded in the report.
+
+All40 real authority tables remain unchanged; exposure$4.887796/$10, every old
+hold and consumed decision persists. No owned runtime remains. M1.6l stays
+implemented_unverified for authentic paired integration; M1.6/M1 in_progress,
+G1-G5 not_run, M0/G0 unchanged. Next execute the exact registered paired reference
+after host/resource/deadline preflight, then complete live all-N matching, native
+admission, clocks and one-way disposal. Keep T05, scorer controls and remaining
+combined runtime routes open. No M1 paid allowance; unrelated M2-M7 untouched.

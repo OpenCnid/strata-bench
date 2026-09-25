@@ -1766,6 +1766,32 @@ does not change the preceding pair compiler's unsupported-layout refusals.
 [Protected vanilla verification](docs/verification/2026-09-25-m1-protected-vanilla.md)
 records the exact profile and retained failures.
 
+`held-pair-protected-vanilla-reference/1` extends the directory-bound pair with
+sequential server references in its registered arm order. Hold both originals,
+software, resource/cost envelopes and writer roots throughout. Validate both
+initial states and launch inputs before either server starts; then require the
+remaining custody lifetime to contain both declared server windows. Match helper
+bytes, server limits and export limits between arms. Reserve space for mutable
+state/export bounds before copying. A missing or failed arm cannot produce a
+successful pair. Stop each server once, prove normal owned termination and hold
+its stopped export immutable while the sibling runs. Record STOPPED_REFERENCE
+separately from unlaunched DISCARDED. Any recorded game-reference intent prevents
+the old undispatched-preparation resource release, even with no native model job.
+Cost holds remain independent and cannot be refunded by either close path.
+
+Private `RegisteredProbeVanillaWorld/1` binds namespace, pair, arm, fixture,
+PackLock, pair-plan digest and complete initial world files/directories. Require
+the exact registered state plus sealed immutable software before launch; refuse
+imported session locks, extra state and directory/filename collisions. Stopped
+probe captures use `StoppedVanillaSnapshot/3` with preserved initial provenance
+and bounded output copying. Ordinary vanilla restoration rejects this format
+with PROBE_FEEDBACK_FORBIDDEN, including changed-worker baseline imports. Legacy
+capture formats retain their behavior. A serialized provenance record grants no
+launch or feedback authority. [Paired server-reference verification](docs/verification/2026-09-25-m1-probe-runtime.md)
+must distinguish substituted process/token tests from actual native evidence.
+Server readiness alone does not establish all-N body readiness, authoritative
+clocks, live matched state, clean save, native probe admission or agent disposal.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

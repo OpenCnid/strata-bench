@@ -88,8 +88,11 @@ def fake_writers(monkeypatch):
     from mcbench.launch_integrity import snapshot
 
     # Synthetic coordinator tests replace native pins along with native launch.
-    monkeypatch.setattr(probe_world_copies, "runtime_inventory", lambda plans:
-        snapshot([next(iter(next(iter(plans.values())).sources.values())).path], []))
+    monkeypatch.setattr(
+        probe_world_copies,
+        "runtime_inventory",
+        lambda plans: snapshot([next(iter(next(iter(plans.values())).sources.values())).path], []),
+    )
 
     events = []
 
@@ -97,6 +100,7 @@ def fake_writers(monkeypatch):
         plan = parse_preparation_plan(value)
         root = Path(plan.workspace_directory) / "guarded"
         root.mkdir(parents=True)
+        Path(plan.evidence_directory).mkdir(parents=True)
         for name in getattr(plan, "directories", []):
             (root / name).mkdir(parents=True, exist_ok=True)
         for name, pin in plan.sources.items():
@@ -116,7 +120,7 @@ def fake_writers(monkeypatch):
         writer = WriterCustody(
             plan,
             SimpleNamespace(path=root, group_sid="group", scope_sid="scope", verify=lambda: None),
-            SimpleNamespace(verify_enrolled=lambda *_: None),
+            SimpleNamespace(path=Path(plan.workspace_directory), verify_enrolled=lambda *_: None),
             [],
             time.monotonic() + plan.max_wall_s,
             body,
@@ -125,11 +129,16 @@ def fake_writers(monkeypatch):
         events.append((plan.id, "ENTER"))
         try:
             continuation(writer)
-            assert writer.completed and writer.result["status"] == "discarded"
+            assert writer.completed and writer.result["status"] in {"discarded", "stopped"}
         finally:
             writer.close()
             events.append((plan.id, "CLOSE"))
-        return {"status": "discarded_preparation", "custody": writer.result}
+        return {
+            "status": "discarded_preparation"
+            if writer.result["status"] == "discarded"
+            else "stopped_reference",
+            "custody": writer.result,
+        }
 
     monkeypatch.setattr(probe_world_copies.WriterPreparations, "run", run)
     return events
@@ -257,7 +266,9 @@ def test_actual_native_pair_copy_and_unlaunched_close(copies, tmp_path):
         # The existing lower-privilege writer must traverse the parent. The
         # production OperatorWorkspace creates this leaf with its final DACL;
         # no private evidence/ancestor permissions are broadened.
-        plan["workspace_directory"] = str(Path("C:/Users/Public") / ("strata-probe-world-" + uuid.uuid4().hex))
+        plan["workspace_directory"] = str(
+            Path("C:/Users/Public") / ("strata-probe-world-" + uuid.uuid4().hex)
+        )
     observed = []
 
     def inspect(held):
@@ -297,11 +308,18 @@ def test_actual_native_pair_copy_and_unlaunched_close(copies, tmp_path):
         ).fetchone()[0]
         == 2
     )
-    fresh = {arm: value | {"workspace_directory": value["workspace_directory"] + "-unused",
-                          "evidence_directory": value["evidence_directory"] + "-unused"}
-             for arm, value in plans.items()}
+    fresh = {
+        arm: value
+        | {
+            "workspace_directory": value["workspace_directory"] + "-unused",
+            "evidence_directory": value["evidence_directory"] + "-unused",
+        }
+        for arm, value in plans.items()
+    }
     with pytest.raises(Fault, match="PROBE_WORLD_COPIES_CONSUMED"):
-        service.run(EVALUATOR, fresh, continuation=lambda _: pytest.fail("Consumed pair was replayed"))
+        service.run(
+            EVALUATOR, fresh, continuation=lambda _: pytest.fail("Consumed pair was replayed")
+        )
     (tmp_path / "native-world-copy-result.json").write_bytes(
         canonical(
             {

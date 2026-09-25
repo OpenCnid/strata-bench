@@ -91,7 +91,22 @@ class ProbeWorldCopies:
                 return self._run(principal, values, continuation=continuation, software=software)
         return self._run(principal, values, continuation=continuation)
 
-    def _run(self, principal, values, *, continuation, software=None):
+    def run_vanilla_reference(self, principal, values, launches, *, continuation, pack_binding):
+        """Separate server-reference path; never native probe/body admission."""
+        from .probe_vanilla_inputs import DIRECTORY_POLICY
+        from .probe_vanilla_runtime import PairedVanillaRuntime
+
+        self.preparation.views.pairs._authorize(principal)
+        with VanillaProbeInputs(
+            self.preparation, pack_binding, policy=DIRECTORY_POLICY
+        ) as software:
+            pair, *_ = self.preparation._source(self.preparation.pair_id)
+            runtime = PairedVanillaRuntime(pair, launches)
+            return self._run(
+                principal, values, continuation=continuation, software=software, runtime=runtime
+            )
+
+    def _run(self, principal, values, *, continuation, software=None, runtime=None):
         """Prepare both exact worlds, borrow them together, then discard unlaunched.
 
         A later game-launch policy must explicitly extend this lifetime. A
@@ -110,6 +125,8 @@ class ProbeWorldCopies:
         total = sum(entry["bytes"] for entry in prep.plan["inventory"]["files"])
         if software is not None:
             total += sum(entry["bytes"] for entry in software.lease.inventory["files"])
+        if runtime is not None:
+            total += runtime.storage_bound
         for arm, plan in plans.items():
             root = target / pair["arm_directories"][arm] / "server"
             if software is not None:
@@ -187,6 +204,8 @@ class ProbeWorldCopies:
         }
         if software is not None:
             plan["software"] = software.record
+        if runtime is not None:
+            plan.update(policy=runtime.record["policy"], runtime=runtime.record)
         key = (prep.views.namespace, prep.pair_id)
         with self.db.transaction() as db:
             require(
@@ -230,8 +249,13 @@ class ProbeWorldCopies:
                         {"namespace": key[0], "pair": key[1], **body["held"]},
                     )
                 try:
-                    continuation(borrowed)
-                    borrowed.check()
+                    if runtime is None:
+                        continuation(borrowed)
+                        borrowed.check()
+                    else:
+                        body["runtime"] = runtime.result
+                        runtime.run(borrowed, continuation)
+                        runtime.verify_stopped()
                 finally:
                     borrowed.closed = True
                 return
@@ -252,7 +276,15 @@ class ProbeWorldCopies:
                 writers[arm] = writer
                 try:
                     stage(index + 1)
-                    writer.discard_unlaunched()
+                    if runtime is None:
+                        writer.discard_unlaunched()
+                    else:
+                        require(
+                            writer.completed
+                            and writer.result["status"] == "stopped"
+                            and writer.native is None,
+                            "PROBE_WORLD_CLOSE_UNCERTAIN",
+                        )
                 finally:
                     writers.pop(arm, None)
 
@@ -260,8 +292,10 @@ class ProbeWorldCopies:
                 plans[arm].model_dump(by_alias=True), continuation=held
             )
             require(
-                results[arm]["status"] == "discarded_preparation"
-                and results[arm]["custody"]["status"] == "discarded"
+                results[arm]["status"]
+                == ("discarded_preparation" if runtime is None else "stopped_reference")
+                and results[arm]["custody"]["status"]
+                == ("discarded" if runtime is None else "stopped")
                 and results[arm]["custody"]["live"] is False,
                 "PROBE_WORLD_CLOSE_UNCERTAIN",
             )
@@ -276,12 +310,18 @@ class ProbeWorldCopies:
                 software.check()
             with self.db.transaction() as db:
                 db.execute(
-                    "UPDATE probe_world_copies SET state='DISCARDED',body=? WHERE namespace=? AND pair=?",
-                    (canonical(body).decode(), *key),
+                    "UPDATE probe_world_copies SET state=?,body=? WHERE namespace=? AND pair=?",
+                    (
+                        "DISCARDED" if runtime is None else "STOPPED_REFERENCE",
+                        canonical(body).decode(),
+                        *key,
+                    ),
                 )
                 self.db.event(
                     db,
-                    "probe.world_copies_discarded",
+                    "probe.world_copies_discarded"
+                    if runtime is None
+                    else "probe.world_references_stopped",
                     {"namespace": key[0], "pair": key[1], "body_digest": digest(body)},
                 )
             return body

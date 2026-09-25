@@ -1,4 +1,4 @@
-# M1.6o.1 — authentic identity-bound worker conformance
+# M1.6o.1 â€” authentic identity-bound worker conformance
 
 D20 authorizes this operator conformance dependency. It uses a fresh pinned
 worker containing commit7437692's identity checks, a separately sealed vanilla
@@ -13,8 +13,8 @@ the scoped live observation and the newly saved player. This can qualify worker
 identity; it cannot establish matched probe initial state or reinterpret the
 baseline as a registered player checkpoint.
 
-Preparation copies only reviewed worker/runtime dependencies and excludes game,
-authentication and evaluator material. The new private runtime has11,725 files
+Preparation copies only reviewed worker/runtime dependencies and excludes game installations,
+credential caches and private evaluator data. The new private runtime has11,725 files
 and654,090,689 bytes; its manifest SHA-256 is
 `24efd636d855655e0281b969d79cd32d319aac695c4ee15db034025ddea8553c`.
 Actual fixed import succeeds in3.391s with all3 owned processes normally terminal.
@@ -94,4 +94,83 @@ All408 prior milestone IDs and append-only progress remain; only .1/.1a are
 added, prior SPEC text is preserved with the explicit stop clause, and1,600 local
 links resolve. Whitespace checks pass. Seal pointers added afterward do not
 change source/test evidence. No new authentic trial has run on the corrected
-source; passing reconstruction never promotes the failed producer.
+source at that checkpoint; passing reconstruction never promotes the failed producer.
+
+## Corrected case02 and mismatched-identity negative
+
+The changed source at020541f is separately packaged and sealed. Case02 does not
+alter or reuse the failed runtime/profile. Its worker manifest is
+`7ca5ff3d4df7f3e86485aab112db12ed6abf196b488ddef91da2f12348afa511`
+(11,725 files/654,090,742 bytes). Fixed import passes in2.469s with3 normally
+terminal owned processes. New PackLock
+`5c9923e81c3fa28575275911d218e8352738727e5cdb868e5b47e9ab9337cd2c`
+preserves every original row; publication adds only provisioning/object/outbox
+metadata and leaves37 other tables unchanged. Original acquisition, installation,
+server settings, baseline and180/360/480s bounds are retained.
+
+The authentic positive case passes `stopped_reference` in118.188s:
+
+- The protected copier exits normally10/10, worker preflight3/3, worker7/7 and
+  server12/12. The server retains all12 held/signaled process identities, complete
+  logs and exit0 with no forced termination. No owned runtime remains.
+- The first private identity receipt precedes the live observation, matches the
+  predeclared account UUID and server login UUID, and binds the exact configured
+  campaign/agent/epoch/lease. The sole stopped player file embeds that same UUID.
+  Public observation data contains no private UUID. No actions or primitives run.
+- Worker drain is37.5321ms, owner stop110ms. Server dispatch through stopped
+  capture takes43.235s. Three held write-denial checks pass. All source/runtime/
+  configuration leases remain held through their respective normal stop paths.
+- Stopped capture has26 state files/12,792,919 bytes; manifest SHA-256
+  `509a0361f9a3f3dffa791bc5e7d30b6574c3b0f092b80a663712eb3a9f056d33`.
+  The existing strict projection comparison matches live position, rotation,
+  dimension, health, food and occupied inventory to that stopped save. This is
+  live-to-stopped equality, not matched probe initial-state equivalence.
+
+A separate negative uses the exact same sealed worker/profile and real protected
+account cache with a deliberately different expected UUID. It starts no server
+or model. The worker fences with `AUTH_PLAYER_MISMATCH`; its public observation
+request returns `PRECONDITION_FAILED` without a state or either private UUID.
+The frozen journal contains zero identity receipts, delivered observations,
+actions or primitive charges. It stops normally7/7, with18.9218ms child drain
+and46ms owner stop. This is a distinct required negative case, not a repeat of
+the positive trial. The protected profile check precedes provider refresh and
+connection in the pinned source; no separate network-monitoring claim is made.
+
+Independent sealed reconstruction passes35/35 positive and19/19 negative checks.
+All40 authority tables stay unchanged across each execution and final audit;
+exposure remains$4.887796/$10, preserving all original holds and consumed decisions.
+No model calls, M1 inference allowance, shared-desktop input or new download.
+The unchanged26 source tests from the correction remain prior evidence and were
+not rerun. Current source/build bytes match that sealed passing source exactly.
+
+M1.6o.1 is verified for the bounded authenticated-worker identity/readiness/stop
+contract. M1.6o and M1.6n remain implemented_unverified for complete registered
+probe integration. Next bind the registered pair to held worker execution and
+complete live-state matching using fresh declared references. The new stopped
+world can be a source for a newly registered fixture; it cannot retroactively
+repair old manifests or missing native checkpoint/configuration references.
+Do not repeat these unchanged successful cases. Native admission, all-N matched
+state, authoritative clocks, one-way disposal, capable T05, protected T10 and
+the remaining combined runtime qualification still block full G1.
+
+| Private evidence store | Files / bytes | SHA-256 seal |
+|---|---|---|
+| `2026-09-25-m1-identity-runtime-02` |12 /9,356,022|`79549b984dcfa66a3bd8dfc294a6c4012ce58ccab48fce63b76c148113f04e36`|
+| `2026-09-25-m1-identity-profile-02` |16 /33,842,870|`01e90b45d8a0545c4bec70ecc52a903b58206b7ebd8119d8e9aed8a9cefb848f`|
+| `2026-09-25-m1-identity-native-02` |325 /23,294,418|`aba45c9e2cd9d9a016a471ee811b4238e6740a6648dbfcccb45e515f89313ff8`|
+| `2026-09-25-m1-identity-negative-01` |18 /54,994|`6c0c10fdd4062fe09ee4e327316a5ab0938e913d887ae18000719c2857a4ff35`|
+
+The native store retains255 exact source files, helper/compiler pins, complete
+plans/logs, public observation, private journal/identity, normal stop/capture and
+before/after authority/process snapshots. The negative references that sealed
+source and retains its own configuration, journal, refusal, stop and authority.
+Archived absolute paths remain data only; audit readers use explicit bundle paths.
+
+Combined audit store `2026-09-25-m1-identity-audit-02` is sealed with17 files/
+48,030 bytes under
+`374646337f78528ab078a26e7fcfd6a5d72538ac6875d35d081cf62dcb922dc6`.
+It retains both readers/results, final WAL-aware authority check, empty owned
+runtime snapshot,255-file source equality, documentation QA and the public diff.
+All410 milestone IDs and prior progress remain; SPEC is unchanged. Documentation
+links and whitespace checks pass. Later seal pointers do not alter source or
+execution evidence.

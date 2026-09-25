@@ -4,18 +4,20 @@
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
 M1.6o.1 [authentic worker identity](verification/2026-09-25-m1-worker-identity-native.md)
-retains a failed105.922s trial: server ready, worker refused before grant with
-CAPABILITY_MISSING. Copier10/10 normal; server12/12 terminal through forced
-exit125, with no observation/identity receipt/stopped capture. Accounting stays
-unchanged; profile publication only added metadata and preserved all old rows.
-M1.6o.1a fixes the separate supervisor allowlist to admit DevelopmentWorker/2
-alongside /1 while preserving Forge refusal and the2250ms drain. The subprocess
-regression first reproduces the refusal;26 focused cases now pass with a
-synthetic IPC child.19 sealed failure-audit checks pass. No live rerun yet.
-Next prepare a NEW pinned worker/runtime/PackLock from the corrected source and
-run the changed authentic identity trial under the same bounds. Never retarget
-the failed sealed runtime. Complete registered pairs/live state/native admission,
-clocks/disposal and all other G1 gaps remain open; no M1 paid authority.
+is verified for the bounded account/server/save identity and normal-stop contract.
+Fresh corrected case02 passes118.188s: copier10/10, worker preflight3/3, worker7/7,
+server12/12 normal; scoped identity precedes the live observation and joins the
+saved player.26-file capture and live-to-stopped own-state projection agree.
+The separate actual wrong-UUID negative fences/refuses observations and stops7/7
+normally.35 positive/19 negative sealed audit checks pass. Case01's startup
+refusal and forced exit125 remain failed; no unchanged successful case is rerun.
+New profile publication preserves all original rows and changes metadata only;
+all40 tables stay unchanged across execution, with exposure$4.887796 and holds
+preserved. No owned runtime remains; no model calls or M1 paid authority.
+Next integrate registered-pair held workers and complete live-state matching
+using fresh declarations. Do not backfill old missing native configuration refs.
+All-N matching, native admission, clocks/disposal, T05/T10 and remaining runtime
+qualification stay open. M1.6o/.6n remain implemented_unverified; G1 not_run.
 
 M1.6o [worker identity](verification/2026-09-25-m1-worker-identity.md) adds
 complete registered both-arm invocation binding and explicit DevelopmentWorker/2.

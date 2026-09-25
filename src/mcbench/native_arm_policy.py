@@ -29,10 +29,10 @@ def require_arm_policy(db, cas, plan):
     if row is None:
         require(not disabled, "NATIVE_RETENTION_NOT_REGISTERED")
         return None
-    from .native_checkpoint import NativeRetentionPolicy
+    from .native_checkpoint import parse_retention_policy
     from .native_export import private_json
     from .records import AgentConfig, CampaignConfig
-    policy = NativeRetentionPolicy.model_validate(private_json(db, cas, row["ref"]))
+    policy = parse_retention_policy(private_json(db, cas, row["ref"]))
     config = CampaignConfig.model_validate_json(row["config"])
     agent = AgentConfig.model_validate_json(row["agent_config"])
     require(policy.campaign_id == config.campaign_id == plan.campaign_id and
@@ -40,6 +40,12 @@ def require_arm_policy(db, cas, plan):
             policy.system_digest == config.system_digest == agent.system_digest and
             row["ref"] == agent.memory_policy, "NATIVE_ARM_SCOPE")
     require(not disabled or policy.arm == "no-self-play", "NATIVE_ARM_SCOPE")
+    if policy.arm == "frozen-skills":
+        require(canonical(declared) == canonical([agent.model_dump()]), "NATIVE_ARM_SCOPE")
+        mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
+        require(policy.schema_ == "strata/NativeRetentionPolicy/2" or
+                mode is not None and mode[0] == 1 and plan.purpose == "conformance",
+                "NATIVE_NOTE_POLICY_REQUIRED")
     if policy.arm == "no-self-play":
         require(canonical(declared) == canonical([agent.model_dump()]), "NATIVE_ARM_SCOPE")
         require(agent.self_play is False and agent.helper_limit == 0 and

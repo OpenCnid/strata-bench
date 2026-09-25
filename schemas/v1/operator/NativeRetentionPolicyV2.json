@@ -1,0 +1,69 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/NativeRetentionPolicy/2",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "policy": {
+      "const": "native-preregistered-retention-checkpoint/2",
+      "title": "Policy",
+      "type": "string"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "system_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "System Digest",
+      "type": "string"
+    },
+    "arm": {
+      "const": "frozen-skills",
+      "title": "Arm",
+      "type": "string"
+    },
+    "initial_artifacts": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Initial Artifacts",
+      "type": "string"
+    },
+    "resume_mode": {
+      "const": "fresh_handoff",
+      "title": "Resume Mode",
+      "type": "string"
+    },
+    "note_classifier": {
+      "const": "frozen-notes-markdown-no-code/1",
+      "title": "Note Classifier",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "policy",
+    "campaign_id",
+    "agent_id",
+    "system_digest",
+    "arm",
+    "initial_artifacts",
+    "resume_mode",
+    "note_classifier"
+  ],
+  "title": "NativeRetentionPolicyV2",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

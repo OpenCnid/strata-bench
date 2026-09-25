@@ -25,6 +25,8 @@ def stopped(admitted):
             broker.project("child", "supplied/plan.md", "Only helper task.")
         for path, text in [("notes/root.md", "Own prior note."), ("skills/draft.md", "Unactivated draft."),
                            ("handoff/next.md", "Fresh goal continuation.")]:
+            if path.startswith("skills/") and getattr(gate.db, "checkpoint_fixture", {}).get("note_classifier"):
+                continue  # Versioned frozen-skills fixtures cannot create learned packages.
             broker.call("artifact_write", {"path": path, "text": text, "expected_ref": None}, broker_meta(model=plan.model))
         if plan.helper_limit:
             broker.call("artifact_write", {"path": "results/private.md", "text": "Unshared helper result.",

@@ -29,6 +29,9 @@ Retained timeout/hold and original33/36 failure remain sealed;24 scripted calls
 settle336 units with prior112 retained. Measured validation falls3.745 to1.582
 seconds with integrity checks and deadlines retained. Full G1 remains open.
 Independent reconstruction passes64/64 episode and7/7 common checks.
+M1.4b.1 [frozen-skills category source](verification/2026-09-25-m1-frozen-note-policy.md)
+adds versioned root/helper write and checkpoint checks with auditable ambiguity;
+39 final tests pass. Actual native verification remains open.
 
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false

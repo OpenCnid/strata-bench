@@ -22,7 +22,7 @@ from mcbench.storage import CAS, Database, Fault, Principal, canonical, digest
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=2):
+def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=2, purpose="campaign"):
     NativeExec(database, cas, simulation=True)
     gate = InferenceDispatches(database, cas, simulation=True)
     gate.budgets.create_account("a1", dict.fromkeys(DIMENSIONS, 100000), "c1", "a1",
@@ -40,7 +40,7 @@ def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=
         "dovetail_commit": DOVETAIL_COMMIT, "model": model, "config_overrides": config,
         "environment": {}, "prompt": "ordinary goal", "hard_timeout_s": 120,
         "output_limit_bytes": 1048576, "qualification_ref": None, "budget_mode": "per_dispatch",
-        "broker_policy": policy, "helper_limit": helpers})
+        "broker_policy": policy, "helper_limit": helpers, "purpose": purpose})
     def put(value):
         return cas.put(Principal("operator", "operator"), "operator", "operator", canonical(value))
     price = put({"is_example": True, "schema": "synthetic-price"})

@@ -1625,6 +1625,16 @@ The indispensable comparison is experienced versus initial clones at each checkp
 
 Frozen-skills notes can encode procedural information; this intervention estimates the effect of executable/procedural packaging under the declared classifier, not the absence of all implicit skills. Enforce category rules (no executable blocks or tool-triggered procedures in notes), audit a sample, and report ambiguity. Frozen-persistence does not prevent short-term adaptation inside an episode or indirect information in the persistent world. Matched probes, not training progress differences, remove direct gear/world advantages.
 
+The native frozen-skills candidate declares `NativeRetentionPolicy/2` and
+`frozen-notes-markdown-no-code/1`: [operator category policy](docs/operations/native-frozen-notes.md).
+Bind the classifier before execution; enforce it on root/helper artifact writes
+and checkpoint reconstruction, retain accepted-content audit references and
+report implicit-procedure ambiguity. Legacy /1 frozen-skills evidence stays
+readable and synthetic-conformance-only, without campaign category authority.
+The lexical classifier does not satisfy complete category, native isolation or
+T11 qualification by itself; actual produced-note audit and bypass checks remain
+required. Other arms and every acceptance case above remain unchanged.
+
 All arms keep ordinary world progress and lawful client settings across training episodes. “Frozen persistence” refers to cognitive artifacts; its Controls-equivalent card can be regenerated from current settings under the same convenience policy as other arms. Probes restore the common keymap and initial control card for both clones. These distinctions prevent an accidental extra memory channel from being described as a fully amnesic campaign.
 
 Defaults for MVP pilot: full and frozen-persistence campaigns plus experienced/initial probe pairing; retain configurations for frozen-skills and no-self-play and run them when budget permits. Do not claim isolated effects of unrun ablations. Human/scripted reference trajectories validate fixture reachability and scoring only; they are not model competitors or agent hints. Human gameplay repairs invalidate unassisted interpretation as specified in Section 12.

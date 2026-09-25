@@ -6,12 +6,13 @@ from pathlib import Path
 from mcbench.records import AGENT_RECORDS, EVALUATOR_RECORDS, OPERATOR_RECORDS
 from mcbench.authorization import ExecutionAuthorization, ModelExecutionAuthorization
 from mcbench.native import NativeLaunch
+from mcbench.native_checkpoint import NativeRetentionPolicy, NativeRetentionPolicyV2
 from mcbench.provisioning import (
     AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, FrozenE9ELaunchProfile,
     ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
 )
 
-OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
+OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeRetentionPolicy, NativeRetentionPolicyV2, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
                        E9ELaunchProfile, FrozenE9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput)
 
 ROOT = Path(__file__).resolve().parents[1]

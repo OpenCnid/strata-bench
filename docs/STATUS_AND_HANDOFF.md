@@ -52,6 +52,20 @@ the report. Next complete
 session/cache reset, frozen-skills category and disposable probe qualification.
 No paid M1 authority or RuntimeQualification.
 
+Next concrete work: M1.4b.1 [versioned frozen-note policy](verification/2026-09-25-m1-frozen-note-policy.md)
+is implemented_unverified. NativeRetentionPolicy/2 pins the declared lexical
+classifier; initial trees, root/helper writes and both checkpoint boundaries
+enforce it. Successful notes bind an ambiguity/audit event to their broker call.
+Final39 source cases pass; old full/frozen native readback64/64+7/7 passes.
+Build a fresh selected native v2 frozen-skills fixture with permitted initial
+procedures, prose, helper results and observations plus refused packaged writes;
+audit actual returned receipts and produced notes. Existing selected_seed only
+supports full/frozen-persistence/no-self-play; do not relabel old sources or reuse
+the full ActivationProbe's empty-overlay=frozen-persistence assumption. Preserve
+legacy /1 stopped readers; only explicitly synthetic conformance may execute
+legacy frozen-skills, never campaign mode. Full T04/T06/T11 still require the
+remaining session/cache, client/log/registry and disposable probe boundaries.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

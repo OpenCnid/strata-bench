@@ -379,12 +379,15 @@ class NativeBroker:
                     and "/" in path and (row is None or not row["immutable"]), "BROKER_WRITE_FORBIDDEN")
             require(len(value.text.encode("utf-8")) <= (8000 if prefix == "handoff" else MAX_TEXT),
                     "ARTIFACT_QUOTA")
+            from .native_note_policy import write_policy
+            category = write_policy(self.db.connection, self.cas, g, path, value.text)
             # Service writes only the caller's permitted result/draft namespace.
             # This does not activate a learned revision or mutate initial skills.
             ref = self.cas.put(Principal(g.namespace, "executor"), g.namespace, "agent",
                                value.text.encode("utf-8"), media_type="text/plain")
             with self.db.transaction() as db:
                 self._grant(db, g.thread_id)
+                require(write_policy(db, self.cas, g, path, value.text) == category, "NATIVE_ARM_SCOPE")
                 old = db.execute("SELECT ref FROM broker_files WHERE namespace=? AND path=?",
                     (g.namespace, path)).fetchone()
                 if old is None or old[0] != ref:
@@ -395,6 +398,9 @@ class NativeBroker:
                         "DO UPDATE SET ref=excluded.ref", (g.namespace, path, ref))
                 db.execute("INSERT INTO broker_artifact_writes VALUES(?,?,?,?,?,?,?)",
                     (event, self.runtime_id, g.thread_id, g.namespace, path, ref, value.expected_ref))
+                if category:
+                    self.db.event(db, "broker.note_classified", {"runtime": self.runtime_id,
+                        "thread": g.thread_id, "source_event": event, "path": path, "ref": ref, **category})
             return {"path": path, "ref": ref}
         require(g.role == "executor" and game_transport is not None, "BROKER_GAME_FORBIDDEN")
         r = value.request

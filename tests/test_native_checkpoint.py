@@ -37,13 +37,15 @@ def admitted(database, cas, tmp_path, example, configs, request, *, model="gpt-5
     config = type(config).model_validate(config.model_dump() | {"recovery_policy": "resume_development"})
     agent = AgentConfig.model_validate(configs()[1][0].model_dump() | {"memory_policy": policy,
         "initial_skills": baseline, "resume_mode": "fresh_handoff", "self_play": arm != "no-self-play",
+        "helper_limit": 0 if arm == "no-self-play" else configs()[1][0].helper_limit,
         "requested_model": model})
     Controller(database, simulation=True).create(config, [agent])
     native = NativeCheckpointStates(NativeExec(database, cas, simulation=True))
     native.register(config, agent)
     database.checkpoint_fixture = {"config": config, "agent": agent, "body": body, "stop": stop,
         "put": put, "arm": arm, "initial": initial_files}
-    return _admitted.__wrapped__(database, cas, tmp_path, example, model=model)
+    return _admitted.__wrapped__(database, cas, tmp_path, example, model=model,
+                                helpers=0 if arm == "no-self-play" else 2)
 
 
 def stage(stopped, *, boundary="episode"):

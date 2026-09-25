@@ -15,19 +15,20 @@ from mcbench.budgets import DIMENSIONS
 from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
 from mcbench.native import NativeExec, NativeLaunch
 from mcbench.native_admission import NativeAdmission
-from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+from mcbench.native_broker_policy import BROKER_TOOLS, NO_HELPER_POLICY, restricted_settings
 from mcbench.records import BudgetLedger
 from mcbench.runtime import CODEX_VERSION, DOVETAIL_COMMIT
 from mcbench.storage import CAS, Database, Fault, Principal, canonical, digest
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna"):
+def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=2):
     NativeExec(database, cas, simulation=True)
     gate = InferenceDispatches(database, cas, simulation=True)
     gate.budgets.create_account("a1", dict.fromkeys(DIMENSIONS, 100000), "c1", "a1",
                                 category="training")
-    config = restricted_settings() | {"mcp_servers.strata_broker": {
+    policy = NO_HELPER_POLICY if helpers == 0 else POLICY
+    config = restricted_settings(policy=policy) | {"mcp_servers.strata_broker": {
         "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
             "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
     plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": "job",
@@ -38,7 +39,7 @@ def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna"):
         "dovetail_commit": DOVETAIL_COMMIT, "model": model, "config_overrides": config,
         "environment": {}, "prompt": "ordinary goal", "hard_timeout_s": 120,
         "output_limit_bytes": 1048576, "qualification_ref": None, "budget_mode": "per_dispatch",
-        "broker_policy": POLICY, "helper_limit": 2})
+        "broker_policy": policy, "helper_limit": helpers})
     def put(value):
         return cas.put(Principal("operator", "operator"), "operator", "operator", canonical(value))
     price = put({"is_example": True, "schema": "synthetic-price"})

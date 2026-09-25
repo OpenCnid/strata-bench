@@ -60,7 +60,9 @@ class NativeLaunch(Strict):
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     accounting_basis_digest: Digest | None = None
     broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1",
-                           "native-stdio-projected-artifacts-executor-game-team/1"] | None = None
+                           "native-stdio-projected-artifacts-executor-game-team/1",
+                           "native-stdio-projected-artifacts-executor-game-no-helpers/1",
+                           "native-stdio-projected-artifacts-executor-game-team-no-helpers/1"] | None = None
     bootstrap_manifest: str | None = None
     bootstrap_digest: Digest | None = None
     ingress_policy: Literal["native-job-http-header/1"] | None = None
@@ -82,9 +84,12 @@ class NativeLaunch(Strict):
 
     @model_validator(mode="after")
     def team_profile(self):
-        from .native_broker_policy import TEAM_POLICY
-        if (self.broker_policy == TEAM_POLICY) != (self.team_policy_ref is not None):
+        from .native_broker_policy import TEAM_POLICIES, NO_HELPER_POLICIES
+        if (self.broker_policy in TEAM_POLICIES) != (self.team_policy_ref is not None):
             raise ValueError("team capability requires its explicit policy and private policy pin")
+        if self.broker_policy in NO_HELPER_POLICIES and (self.helper_limit != 0 or self.role != "executor"
+                or self.depth != 0 or self.parent_job_id is not None or self.helper_skill_activation_ref is not None):
+            raise ValueError("helper-free policy requires an executor with zero helper capability")
         return self
 
     def profile_digest(self):
@@ -243,6 +248,8 @@ class NativeExec:
         require(set(plan.environment) <= {"PATH", "LANG", "TZ", "TMP", "TEMP",
                                          "STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"},
                 "FORBIDDEN_ENVIRONMENT")
+        from .native_arm_policy import require_arm_policy
+        require_arm_policy(self.db.connection, self.cas, plan)
         if plan.broker_policy is not None:
             from .native_broker_policy import validate_broker_settings
             validate_broker_settings(plan.config_overrides, policy=plan.broker_policy)

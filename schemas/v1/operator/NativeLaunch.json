@@ -162,7 +162,12 @@
     "broker_policy": {
       "anyOf": [
         {
-          "const": "native-stdio-projected-artifacts-executor-game/1",
+          "enum": [
+            "native-stdio-projected-artifacts-executor-game/1",
+            "native-stdio-projected-artifacts-executor-game-team/1",
+            "native-stdio-projected-artifacts-executor-game-no-helpers/1",
+            "native-stdio-projected-artifacts-executor-game-team-no-helpers/1"
+          ],
           "type": "string"
         },
         {
@@ -290,6 +295,19 @@
       ],
       "default": null,
       "title": "Resume Component Ref"
+    },
+    "team_policy_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Team Policy Ref"
     },
     "config_overrides": {
       "additionalProperties": {

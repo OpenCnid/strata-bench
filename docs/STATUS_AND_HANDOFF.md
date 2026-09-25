@@ -35,6 +35,8 @@ passes37/37 each and42/42 independent checks. It normally enters CHECKPOINTING
 and activates revisions2/3 through complete synthetic checkpoints; epoch3 starts
 fresh context/storage with admitted artifacts and all costs retained. Next
 matched frozen/no-self-play controls and complete combined-profile qualification.
+The new M1.4b section below records the prerequisite helper-disable enforcement
+and supersedes the immediate next action with actual native /6 verification.
 
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
@@ -375,3 +377,37 @@ continuation does not substitute for those controls. Continue remaining native
 interruption/combined-profile boundary, capable settings, scorer and disposable
 probe requirements. T04's runtime continuation belongs to G1; full authentic
 game recovery/fault/soaks remain G2. M1.4a/M1 in_progress, G1 not_run.
+
+
+## September25 no-self-play source boundary
+
+M1.4b [source enforcement](verification/2026-09-25-m1-no-self-play-source.md)
+corrects an existing contract gap: a false self_play label did not disable native
+helpers. Live launch (even unbrokered), dispatch and broker use now check the
+private arm registration and exact campaign agent. No-self-play requires zero
+helpers, executor-only scope and explicit helper-free policies. Closed settings
+/4 disables multi_agent_v2; selected campaign projection /6 pins functions only,
+no helper reference. Full-arm/default policies remain unchanged. Historical
+helper-enrolling retention fixtures retain their limited evidence; they are not
+complete no-self-play controls. New source fixtures have only root calls/costs.
+
+Final108 focused passes/three existing privilege skips, including26 arm cases;
+earlier103 and250 regression selections overlap. Ruff/whitespace pass. Read-only
+reconstruction42/42 preserves the two sealed full-arm handoff episodes, all40
+real authority tables and original exposure/holds. No native/game/paid run or
+qualification. Private bundle2026-09-25-m1-no-self-play-source-01:
+403files/4,210,721bytes, seal
+ d73823a1abb111dcb69872dd8816dfd8af64dfef4ddca53fcf9584f913ae0ab7.
+Its process-filter artifact is not process absence evidence; query the actual
+owned paths before executing a fresh fixture.
+
+Next add an explicitly root-only selected native verification path. Existing
+native_mcp_identity_probe and selected activation seed assume helpers/full arm;
+do not pass the new policy to them and silently reuse two-actor checks. Register
+the control before source jobs; pin reviewed root-only tools independently before
+request admission; verify actual missing-tool spawn refusal, zero child admission
+and costs, permitted artifact/game operations and fresh retention. All native
+verification remains a local scripted provider at USD0 until genuinely missing
+M1 paid authority is requested for a concrete bounded need. Preserve common
+public instructions/opportunity ceilings for later matched frozen controls and
+report actual spend. M1.4b/M1 in_progress; complete G1 not_run.

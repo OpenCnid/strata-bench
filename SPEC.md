@@ -11,6 +11,14 @@ failure, profile, unresolved hold and consumed decision. The
 [opening G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md) supersede
 older next-action instructions. No acceptance threshold or product feature changes.
 
+**M1 no-self-play enforcement (2026-09-25):** Section13.2's existing helper-disabled
+control now binds retention registration to zero helper capacity and explicit
+native helper-free broker/settings/catalog identities at launch, dispatch and
+tool use. Source checks and retained full-arm reconstruction pass; actual native
+helper-free verification remains open. Historical retention fixtures and profiles
+are not relabeled. [Evidence](docs/verification/2026-09-25-m1-no-self-play-source.md).
+This implements the existing contract without changing acceptance or authority.
+
 **M1 stopped native disposition (2026-09-24):** unfamiliar source-bound function
 or custom calls remain invalid for early helper retirement. After the complete
 owned native process tree is proved terminal, private stopped-component export

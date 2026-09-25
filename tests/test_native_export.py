@@ -8,7 +8,7 @@ from mcbench.native import NativeExec
 from mcbench.native_export import NativeExports, NativeStateV2
 from mcbench.records import BudgetLedger
 from mcbench.storage import CAS, Database, Fault, Principal, canonical
-from test_native_admission import admitted as _admitted, broker_meta
+from test_native_admission import admitted as _admitted, begin, broker_meta
 from test_native_retirement import scenario, settle
 
 admitted = _admitted
@@ -17,24 +17,34 @@ OPERATOR = Principal("operator", "operator")
 
 @pytest.fixture
 def stopped(admitted):
-    admission, gate, broker, plan, _, _, put = admitted
+    admission, gate, broker, plan, request, _, put = admitted
     def files():
         broker.project("root", "initial/SKILL.md", "Immutable initial body.")
         broker.project("root", "docs/allowed.md", "Admitted document.")
-        broker.project("child", "supplied/plan.md", "Only helper task.")
+        if plan.helper_limit:
+            broker.project("child", "supplied/plan.md", "Only helper task.")
         for path, text in [("notes/root.md", "Own prior note."), ("skills/draft.md", "Unactivated draft."),
                            ("handoff/next.md", "Fresh goal continuation.")]:
             broker.call("artifact_write", {"path": path, "text": text, "expected_ref": None}, broker_meta(model=plan.model))
-        broker.call("artifact_write", {"path": "results/private.md", "text": "Unshared helper result.",
-            "expected_ref": None}, broker_meta("child", "root", model=plan.model))
-    _, ref, _, observed = scenario(admitted, before_revoke=files)
-    settle(admitted, observed)
-    admission.retire("job", "child", ref)
+        if plan.helper_limit:
+            broker.call("artifact_write", {"path": "results/private.md", "text": "Unshared helper result.",
+                "expected_ref": None}, broker_meta("child", "root", model=plan.model))
+    if plan.helper_limit:
+        _, ref, _, observed = scenario(admitted, before_revoke=files)
+        settle(admitted, observed)
+        admission.retire("job", "child", ref)
+        threads = ["child", "root"]
+        attempts = ["child-call", "root-call", "status-issue", "status-observed"]
+    else:
+        root = request("root-call")
+        begin(admitted, root)
+        files()
+        settle(admitted, root)
+        threads, attempts = ["root"], ["root-call"]
     gate.db.connection.execute("UPDATE native_jobs SET state='UNSETTLED',returncode=0")
     seal = put({"schema": "strata/InferenceIngressSeal/1", "is_example": True, "job_id": "job",
         "profile_digest": plan.profile_digest(), "process_tree_dead": True, "ingress_closed": True,
-        "handlers_fenced": True, "participant_threads": ["child", "root"],
-        "attempt_ids": ["child-call", "root-call", "status-issue", "status-observed"]})
+        "handlers_fenced": True, "participant_threads": threads, "attempt_ids": attempts})
     runtime = NativeExec(gate.db, gate.cas, simulation=True)
     runtime.close_dispatch_budget("job", seal)
     return runtime, plan, seal

@@ -23,6 +23,12 @@ See the [current handoff](STATUS_AND_HANDOFF.md),
 [ledger](../MILESTONES.md#current-position), and preserved
 [M0/G0 assembly](verification/2026-09-24-g0-assembly.md).
 
+Latest M1.4b [no-self-play source enforcement](verification/2026-09-25-m1-no-self-play-source.md)
+binds zero helpers and disabled collaboration to live native launch/admission/
+broker use. Final108 focused passes/three existing privilege skips and42/42
+retained full-arm reconstruction; all40 authority tables unchanged. Actual
+helper-free native /6 verification and matched frozen controls remain open.
+
 The [first native boundary slice](verification/2026-09-24-m1-native-boundary.md)
 has187 focused Python passes and24/24 independent native reconstruction.
 Its original environment refusal and68/74 verifier result remain retained.

@@ -17,7 +17,7 @@ from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict
 from .budgets import Budgets
 from . import broker_lifecycle
 from .runtime import CODEX_VERSION
-from .native_broker_policy import POLICY, TEAM_POLICY
+from .native_broker_policy import POLICY, TEAM_POLICIES, NO_HELPER_POLICIES
 from .storage import Fault, Principal, canonical, digest, require, safe_relative
 from .team_protocol import TeamRequest
 
@@ -140,13 +140,14 @@ class NativeBroker:
         self.arguments = dict(ARGUMENTS)
         if self.db.connection.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
             row = self.db.connection.execute("SELECT plan FROM native_jobs WHERE id=?", (runtime_id,)).fetchone()
-            if row is not None and json.loads(row[0]).get("broker_policy") == TEAM_POLICY:
+            if row is not None and json.loads(row[0]).get("broker_policy") in TEAM_POLICIES | NO_HELPER_POLICIES:
                 from .native import NativeLaunch
                 plan = NativeLaunch.model_validate_json(row[0])
                 require(plan.job_id == runtime_id and plan.profile_digest() == profile_digest,
                         "BROKER_SCOPE")
-                self.policy, self.team_policy_ref = TEAM_POLICY, plan.team_policy_ref
-                self.arguments["team"] = TeamCall
+                self.policy, self.team_policy_ref = plan.broker_policy, plan.team_policy_ref
+                if plan.broker_policy in TEAM_POLICIES:
+                    self.arguments["team"] = TeamCall
         with self.db.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS broker_grants (runtime TEXT, thread TEXT, "
                 "namespace TEXT UNIQUE, parent TEXT, body TEXT, fingerprint TEXT, "
@@ -237,6 +238,8 @@ class NativeBroker:
                 row["request_digest"] == evidence.get("request_digest"), "BROKER_RUNTIME_REVOKED")
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(row["plan"])
+        from .native_arm_policy import require_arm_policy
+        require_arm_policy(db, self.cas, plan)
         require(plan.profile_digest() == grant.profile_digest and plan.broker_policy == self.policy and
                 plan.team_policy_ref == self.team_policy_ref and
                 all(getattr(plan, k) == getattr(grant, k)

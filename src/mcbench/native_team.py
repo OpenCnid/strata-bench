@@ -3,14 +3,14 @@
 import json
 import time
 
-from .native_broker_policy import TEAM_POLICY
+from .native_broker_policy import TEAM_POLICIES
 from .storage import Principal, digest, require
 from .team_protocol import TeamPolicy, TeamRequest, TeamResponse, TeamSend
 
 
 def require_team_plan(db, cas, plan, *, now=None):
     """Read-only preflight/admission check, never a grant or policy creation."""
-    require(plan.broker_policy == TEAM_POLICY and plan.team_policy_ref is not None,
+    require(plan.broker_policy in TEAM_POLICIES and plan.team_policy_ref is not None,
             "TEAM_PROFILE_REQUIRED")
     tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     require({"campaigns", "controller_profile", "native_profile"} <= tables,
@@ -42,7 +42,7 @@ def inspect_team_calls(db, plan, calls):
     state is validated only as delivery identity, not copied into an old export
     or restored as a campaign checkpoint.
     """
-    require(plan.broker_policy == TEAM_POLICY and plan.team_policy_ref is not None,
+    require(plan.broker_policy in TEAM_POLICIES and plan.team_policy_ref is not None,
             "TEAM_PROFILE_REQUIRED")
     receipts = []
     for call in calls:

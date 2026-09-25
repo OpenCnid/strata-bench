@@ -12,8 +12,8 @@ import time
 from pathlib import Path
 from xml.etree import ElementTree
 
-from .broker import BrokerGrant, NativeBroker, POLICY
-from .native_broker_policy import TEAM_POLICY
+from .broker import BrokerGrant, NativeBroker
+from .native_broker_policy import POLICIES
 from .budgets import Budgets
 from .inference_transport import strict_json
 from .native import NativeLaunch
@@ -134,10 +134,12 @@ class NativeAdmission:
             require(plan.tool_projection_ref is not None, "NATIVE_TOOL_PROJECTION_REQUIRED")
             require(plan.tool_catalog_policy is not None, "NATIVE_TOOL_CATALOG_REQUIRED")
         require(row["started"] + plan.hard_timeout_s > self.clock(), "RUNTIME_EXPIRED")
-        require(plan.broker_policy in {POLICY, TEAM_POLICY} and plan.binary_version == CODEX_VERSION and
+        require(plan.broker_policy in POLICIES and plan.binary_version == CODEX_VERSION and
                 plan.dovetail_commit == DOVETAIL_COMMIT and plan.role == "executor" and
                 plan.budget_mode == "per_dispatch", "NATIVE_ADMISSION_PROFILE")
         validate_broker_settings(plan.config_overrides, policy=plan.broker_policy)
+        from .native_arm_policy import require_arm_policy
+        require_arm_policy(db, self.cas, plan)
         if plan.team_policy_ref is not None:
             from .native_team import require_team_plan
             require_team_plan(db, self.cas, plan, now=self.clock())

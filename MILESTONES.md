@@ -92,6 +92,13 @@ checkpoints activate revisions2/3, and a fresh epoch3 runtime preserves admitted
 artifacts/costs while starting new context/private code-mode state. Sixteen
 requests settle224 units, prior56 retained. Next matched frozen/no-self-play
 controls and remaining combined-profile qualification; no full G1 claim.
+M1.4b now enforces the [no-self-play capability contract](docs/verification/2026-09-25-m1-no-self-play-source.md)
+at native launch/dispatch/tool use with explicit helper-free settings/catalog /6.
+Final focused selection108 passes/three existing privilege skips; retained
+full-arm reconstruction42/42 and all40 authority tables unchanged. Older
+helper-enrolling retention fixtures do not prove the complete control. Next
+verify actual helper-free native tools/refusal/positive root behavior, then
+matched frozen controls. No native /6 or complete G1 qualification is claimed.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -489,6 +496,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
 | M1.4a | AR/SI/QA | Selected-profile learned JavaScript execution through native restricted code mode, scoped effects and retained revision/accounting evidence; inherits M1.4 and SPEC6.2/6.3 | in_progress | [Actual native evidence](docs/verification/2026-09-24-m1-active-script-native.md):177 focused checks,36/36 native and22/22 reconstruction. [New complete checkpoint/fresh activation](docs/verification/2026-09-25-m1-native-handoff.md):94 focused cases,37/37 per episode,42/42 independent reconstruction; exact revisions2/3, scoped effects, fresh context/private code-mode state and retained costs. USD0 scripted provider, synthetic world/worker/readiness. Next matched frozen/no-self-play controls and combined-profile qualification; no historical activation reclassification. |
+| M1.4b | AR/SI/QA | Enforced no-self-play helper-disabled native profile and matched frozen/control retention; inherits M1.4 and SPEC13.2 | in_progress | [Source enforcement](docs/verification/2026-09-25-m1-no-self-play-source.md): launch/admission/broker guards, helper-free policy/catalog /6,26 focused arm cases within108 final passes/three privilege skips; retained full-arm reconstruction42/42. Actual native helper-free and matched frozen controls remain open; no ablation effect or full T04/T06/T11 claim. |
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
 | M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
@@ -6847,3 +6855,32 @@ Next matched selected frozen/no-self-play controls and full session/cache reset
 evidence, then remaining combined-profile boundary qualification. Full arm
 continuation does not pass those control arms or T05/T10/T11. All inherited IDs
 and unrelated M2-M7/G2-G5 requirements retain their original scope/history.
+
+
+### 2026-09-25 — M1.4b explicit no-self-play native capability boundary
+
+SPEC13.2 audit found retention-only no-self-play fixtures still admitted helpers.
+Preserve their historical limited results; do not promote them to the complete
+control. New live native arm enforcement joins private preregistration and exact
+agent state at launch (including unbrokered plans), admission and broker calls.
+Zero helper capacity, executor-only scope, disabled native collaboration and new
+basic/team helper-free identities are required. Catalog /6 has only an executor
+pin; old catalog/settings identities and stopped export readers are unchanged.
+New registration and synthetic root-only retention/export fixtures obey the
+existing arm contract. Operator NativeLaunch schema updated in the same change.
+
+[Evidence](docs/verification/2026-09-25-m1-no-self-play-source.md): initial103
+checkpoint/projection/admission checks;250 regression checks; expanded25 arm
+cases; final108 passes/three existing Windows privilege skips includes26 arm
+cases. Selections overlap and are not a distinct summed total. Ruff/whitespace
+pass. Retain the nonexistent-module collection error and pre-write archive
+import error. Read-only current-source reconstruction42/42 preserves both sealed
+full-arm profiles/checkpoints/exports and costs. All40 real authority tables and
+$4.887796 exposure/holds unchanged. USD0, no native/game/paid run. Private403-file
+source/check bundle seal d73823a1abb111dcb69872dd8816dfd8af64dfef4ddca53fcf9584f913ae0ab7.
+Its process-filter artifact is not process absence evidence; recheck before
+execution. M1.4b inherits M1.4, SPEC13.2, F03/F04/F07/F11/F16, N01/N04/N06,
+C06/C07/C12/C14/C20/C36, T01/T04/T06/T11. M1.4b/M1 in_progress; G1 not_run.
+Next actual pinned native helper-free catalog/refusal/root-positive verification,
+then matched frozen controls and remaining settings/scorer/probe qualification.
+Unrelated M2-M7, historical failures and M0-only paid authority remain unchanged.

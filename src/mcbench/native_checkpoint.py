@@ -113,7 +113,8 @@ class NativeCheckpointStates:
             policy.campaign_id == config.campaign_id and policy.agent_id == agent.agent_id and
             agent.agent_id in config.agent_ids and policy.system_digest == config.system_digest == agent.system_digest
             and agent.initial_skills == policy.initial_artifacts and agent.resume_mode == "fresh_handoff" and
-            (policy.arm != "no-self-play" or agent.self_play is False), "NATIVE_RETENTION_SCOPE")
+            (policy.arm != "no-self-play" or agent.self_play is False and agent.helper_limit == 0),
+            "NATIVE_RETENTION_SCOPE")
         initial = InitialArtifacts.model_validate(private_json(self.db.connection, self.cas, policy.initial_artifacts))
         check_files(self.cas, initial.files)
         values = (config.campaign_id, agent.agent_id, agent.memory_policy,

@@ -15,7 +15,7 @@ from pydantic import Field, model_validator
 
 from .contracts import Strict, Id, Ref, Digest
 
-from .launch_integrity import FileLease, safe, snapshot
+from .launch_integrity import FileLease, safe, snapshot, tree_files
 from .inference_transport import strict_json
 from .inventory import inventory_directories
 from .records import FileEntry
@@ -266,6 +266,26 @@ def verify_snapshot(destination, expected_manifest_sha256):
     return body
 
 
+def _immutable_lease(selected, roots):
+    """Enumerate current membership, then hash every selected byte under custody.
+
+    The caller already checked these expected bytes against the sealed template.
+    No discarded second byte snapshot is needed to obtain tree membership.
+    """
+    roots = [str(safe(root)) for root in roots]
+    require(len(set(roots)) == len(roots) and len(roots) <= 16, "BOOTSTRAP_TREE")
+    trees = [{"path": root, "files": tree_files(root)} for root in roots]
+    found = {name for tree in trees for name in tree["files"]}
+    expected = {entry["path"]: entry for entry in selected}
+    # A file added since layout validation must not become an unheld member of
+    # the launch tree. FileLease also re-enumerates after acquiring its handles.
+    require(found == {name for name in expected if any(Path(name).is_relative_to(root) for root in roots)},
+            "VANILLA_TEMPLATE_CHANGED")
+    require(0 < len(found) <= 12000 and all(expected[name]["bytes"] <= 512 * 1024**2 for name in found)
+            and sum(expected[name]["bytes"] for name in found) <= 1024**3, "BOOTSTRAP_QUOTA")
+    return FileLease({"schema": "strata/LaunchFileInventory/1", "files": selected, "trees": trees})
+
+
 class VanillaPersistence:
     def __init__(self, root, *, pack=None, resolved=None, probe_world=None, capture_state_limit=1024**3):
         self.root, self.lease = safe(root), None
@@ -335,8 +355,7 @@ class VanillaPersistence:
             if actual_java != self.root / "java":
                 selected += external["files"]
                 roots.append(actual_java)
-        trees = snapshot([], roots)["trees"]
-        self.lease = FileLease({"schema": "strata/LaunchFileInventory/1", "files": selected, "trees": trees})
+        self.lease = _immutable_lease(selected, roots)
 
     @staticmethod
     def terminal_processes(process):

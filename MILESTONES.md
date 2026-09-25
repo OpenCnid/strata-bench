@@ -2,6 +2,16 @@
 
 ## Current position
 
+M1.6q.12 [protected persistence preparation](docs/verification/2026-09-25-m1-protected-preparation.md)
+is implemented_unverified for authentic paired integration. Remove a discarded
+byte snapshot while retaining exact membership, quotas and fresh held-byte
+hashing; reject late unselected members.61 distinct source cases pass after a
+retained test-assertion failure. Read-only persistence8.797s to6.781s, identical
+state/inventory and input bytes, two denied write-opens, no job/session dispatch.
+All40 authority tables unchanged at$4.887796; no owned runtime or native10.
+Next inspect moving worker imports before writer acquisition under the existing
+parent clocks and custody. Original bounds and full G1 remain unchanged/open.
+
 M1.6q.11 [lexical directory-prefix reuse](docs/verification/2026-09-25-m1-layout-prefix.md)
 is implemented_unverified for authentic paired integration. All 114 focused
 source cases pass; read-only exact-profile resolution falls from q10's 6.078s
@@ -937,6 +947,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.9 | SI/GI/QA | Validate acquired parent paths once while retaining fresh per-file link and held-hash checks; inherit M1.6q.8 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md): 110 distinct source passes/three privilege skips after two retained custody failures. Exact read-only resolution matches, faster profiled entry. Native09 fails202.19s before first server, both copiers/imports normal; original windows/holds remain. Next compose repeated materialization membership validation. |
 | M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
 | M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
+| M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8869,3 +8880,63 @@ These pointers follow the archived documentation snapshot.
 - No native10 or model call. The full pair remains unverified; next measure
   protected-session preparation under fresh diagnostic custody without dispatch
   or reopening consumed decisions. G1-G5 remain not_run.
+
+### 2026-09-25 — M1.6q.12 protected preparation diagnosis begins
+
+- Clean644c5a1, all40 authority tables unchanged at$4.887796, no owned runtime.
+  Previous turn progressed with two committed changes and sealed verification.
+- Retained native09 initial/experienced trees still exist. Select read-only
+  component profiling on the initial tree under new diagnostic FileLease custody,
+  using sealed result/provenance and current public binding. Do not reconstruct
+  the consumed writer job, launch a ProbeVanillaSession or dispatch processes.
+- Measure tree validation and VanillaPersistence initialization separately,
+  retain original/full output and byte/membership/custody checks. Select the next
+  implementation only from the resulting evidence. No changed bounds or claims.
+
+### 2026-09-25 — M1.6q.12 measured persistence change selected
+
+- Read-only native09 initial-tree components: check_tree1.047s,
+  directories/settings0.109s, VanillaPersistence8.797s. Input bytes unchanged,
+  two denied write-opens and all custody closed; no job/session/process dispatch.
+  The persistence profile attributes4.802s to three snapshots; the third discards
+  all hashes and keeps only tree membership before FileLease hashes again.
+- Replace that discarded byte snapshot with fresh tree membership, matched
+  exactly to previously checked selected files within each root. Keep original
+  file/count/byte quotas and independent retained-handle hashing plus final
+  membership checks. A late unselected file must refuse instead of entering a
+  declared tree without a held handle. Focused mutation/custody and persistence/
+  pair checks plus changed read-only timing are required before acceptance.
+
+### 2026-09-25 — M1.6q.12 focused component verification
+
+- Retain exact fresh membership, quotas, selected-file hashes through acquired
+  handles and final membership checks while removing a discarded byte snapshot.
+  Late unselected files now refuse before they can enter an unheld tree.
+- Initial58 passes/one test assertion failure25.82s preserved. Correct canonical
+  extended-path expectation; final3 cases pass94.53s, including the corrected
+  late-addition cleanup case and relevant saved-body/worker pair paths.61
+  distinct passes/no skips. Initial unused-import lint failure fixed; final
+  Ruff/whitespace pass. Synthetic fixtures and real Windows custody only.
+- Read-only persistence8.797s to6.781s with identical complete state/inventory
+  and unchanged retained native09 input. Both diagnostics deny two write-opens
+  and close custody; no configuration writes, jobs reopened or live sessions.
+- All40 real tables unchanged at$4.887796/no owned runtime. No native10 or model
+  call. Preserve all failures, holds, consumed decisions and original windows.
+  Next inspect pre-writer import ordering under existing parent custody/clocks,
+  retaining durable receipts and full later validation. Full G1 remains open.
+  [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md).
+
+### 2026-09-25 — M1.6q.12 evidence preservation complete
+
+- Final audit passes440 source pins,61 distinct passing cases, identical
+  diagnostic state/input,40 unchanged authority tables and no owned runtime.
+  All423 historical milestone IDs retained, newM1.6q.12,1,674 local links,
+  append-only progress and unchanged prior SPEC text/JSON. Preserve the first
+  audit's SOURCE_SCOPE refusal: its allowlist omitted the intentional SPEC
+  addition; corrected to exactly SPEC and vanilla_persistence.py.
+- Independently verified private archive4,243 files/12,231,390 bytes, SHA-256
+  `0d9152df0ba37c3d9081b31c0b715001f1d4179ecc99ba89c74797dd14ea4067`.
+  Initial test and lint failures, before/after profiles and complete outputs
+  remain. No native10, paid call, bounds change or G1 promotion.
+- Next inspect pre-writer import ordering with existing parent clocks,
+  configuration/runtime custody, durable receipts and complete later checks.

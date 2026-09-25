@@ -4,6 +4,27 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.12 [protected persistence preparation](verification/2026-09-25-m1-protected-preparation.md)
+is implemented_unverified for authentic paired integration.61 distinct source
+cases pass after a retained initial test-assertion failure; final lint passes.
+Read-only persistence8.797s to6.781s with identical state/inventory and unchanged
+native09 input. Fresh diagnostic custody only; no writer job reopened or live
+session constructed. Source67494/70982 and diagnostic34372/91026 are terminal.
+No native10 or paid call. All40 authority tables unchanged at$4.887796/no owned
+runtime. Private evidence root:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-protected-preparation-01`.
+Next inspect moving worker imports before finite writer acquisition under the
+existing parent clocks/runtime/configuration custody, preserving receipts and
+complete later preflight. No bounds change or assumption that timing now fits.
+Full G1 remains open; earlier next actions below are historical.
+
+Q12 evidence is now sealed:4,243 files/12,231,390 bytes, SHA-256
+`0d9152df0ba37c3d9081b31c0b715001f1d4179ecc99ba89c74797dd14ea4067`.
+The bundle independently verifies and preserves the initial test/lint failure
+and first audit's missing SPEC allowlist entry, all corrected. No source test
+reruns beyond the corrected case and relevant pair paths. Start subsequent
+work in fresh evidence storage; do not change this root or native09 evidence.
+
 M1.6q.11 [lexical directory-prefix reuse](verification/2026-09-25-m1-layout-prefix.md)
 is implemented_unverified for authentic paired integration.114 source cases
 pass50.47s/no skips or failures. One changed read-only exact-profile resolution

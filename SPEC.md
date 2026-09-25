@@ -1876,6 +1876,12 @@ current provisioning/CAS authority, exact role and empty-directory layouts, name
 types, sizes, hardlinks and source membership on every call. Unknown paths, foreign
 trees and closed custody refuse; ordinary public resolution still hashes bytes.
 Hashes come from verified handles, not later edits to an inventory dictionary.
+Private vanilla persistence may enumerate immutable-tree membership separately
+from byte validation. Require exact membership among previously template-checked
+files, preserve snapshot file/count/byte limits, and hash every selected file
+through newly retained handles before returning custody. Re-enumerate after
+acquisition. New members, changed bytes, missing files or failed locks refuse;
+no file may join a protected tree without its own verified retained handle.
 One complete private materialization resolution may bracket both role layouts
 with fresh whole-installation membership checks, rather than repeating the same
 tree scan inside each role. Require the exact live installation/marker custody

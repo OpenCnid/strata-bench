@@ -115,6 +115,7 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     coordinator_check = module.PairedWorkerReference.check
     software_calls = []
     standalone_calls = []
+    drain_checks = []
     member_check = module.PairedWorkerReference.check_workers
 
     def checked_members(self):
@@ -127,6 +128,10 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
 
     def checked_pair(self):
         before = len(software_calls)
+        for arm, session in self.sessions.items():
+            if session.result["stop_requested"] and not session.writer.completed:
+                drain_checks.append(arm)
+                assert not (session.evidence / "stopped-instance").exists()
         result = coordinator_check(self)
         assert len(software_calls) == before + 1
         return result
@@ -166,12 +171,54 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     assert result["policy"] == module.POLICY
     assert process_fixture[0] == ["initial", "experienced"]
     assert len(standalone_calls) == 2  # One live-body barrier per arm.
+    assert drain_checks == ["initial", "experienced"]
     assert [v[0] for v in order] == ["preflight", "preflight", "worker", "worker"]
     assert not result["native_launch_authorized"] and not result["live_initial_state_verified"]
     for group in result["runtime"]["workers"].values():
         assert group["complete_roster_observed_connected"] and not group["live_initial_state_verified"]
         assert group["members"]["a1"]["own_state_projection_verified"]
     assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "STOPPED_REFERENCE"
+    from mcbench.controller import reserved_resources
+    assert reserved_resources(service.db.connection, "probe-worker") == capacity
+    assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
+
+
+@pytest.mark.parametrize("failure", ["account", "member_binding", "software_closed"])
+def test_post_stop_validation_failure_refuses_export_and_sibling(
+    runtime, candidate, process_fixture, worker_processes, tmp_path, directory_fixture, per_arm_disk_bytes,
+    failure, monkeypatch,
+):
+    service, plans, launches, binding, capacity = runtime
+    account(candidate[1].worker_settings.auth_cache)
+    invocations = values(service, tmp_path)
+    original = module.PairedWorkerReference.event
+    stopped = []
+
+    def event(self, arm, phase):
+        if phase == "stop_requested":
+            assert arm == "initial"
+            session = self.sessions[arm]
+            assert session.result["stop_requested"] and not session.writer.completed
+            assert all(p.poll() == 0 for p in worker_processes[1])
+            stopped.append(session)
+            if failure == "account":
+                service.db.connection.execute("UPDATE accounts SET category='training' WHERE id='initial-account'")
+            elif failure == "member_binding":
+                self.inputs._binding_refs[arm, "a1"] = "cas:sha256:" + "a" * 64
+            else:
+                self.inputs.software.close()
+        original(self, arm, phase)
+
+    monkeypatch.setattr(module.PairedWorkerReference, "event", event)
+    with pytest.raises(Fault, match="PROBE_|WORKER_"):
+        service.run_vanilla_worker_reference(EVALUATOR, plans, launches_v2(launches), invocations,
+                                             pack_binding=binding.model_dump())
+    assert process_fixture[0] == ["initial"] and len(stopped) == 1
+    assert not (stopped[0].evidence / "stopped-instance").exists()
+    assert not stopped[0].writer.completed
+    assert all(p.poll() is not None for p in worker_processes[1])
+    assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
     from mcbench.controller import reserved_resources
     assert reserved_resources(service.db.connection, "probe-worker") == capacity
     assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200

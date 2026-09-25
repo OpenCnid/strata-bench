@@ -81,10 +81,15 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     # alter deadlines; write only after the attempt, including failed preparation.
     from mcbench.pack_worker import HeldPackWorker
     from strata_evaluator.probe_vanilla_inputs import VanillaProbeInputs
+    from strata_evaluator.probe_vanilla_runtime import ProbeVanillaSession
+    from strata_evaluator.vanilla_writer import VanillaWriterSession
     monkeypatch.setattr(prep, "check", timed("parent_check", prep.check))
     for cls, method, name in ((HeldPackWorker, "__enter__", "worker_inputs"),
                               (VanillaProbeInputs, "__enter__", "software_inputs"),
-                              (VanillaProbeInputs, "check", "software_check")):
+                              (VanillaProbeInputs, "check", "software_check"),
+                              (PairedWorkerReference, "check", "pair_check"),
+                              (VanillaWriterSession, "stop", "server_stop_request"),
+                              (ProbeVanillaSession, "finish", "server_finish")):
         monkeypatch.setattr(cls, method, timed(name, getattr(cls, method)))
     pair = prep._source("p1")[0]
     launches = {arm: {"schema": "strata/PrivateProbeVanillaLaunch/2", "policy": BODY_POLICY,

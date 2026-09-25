@@ -292,10 +292,14 @@ class PairedVanillaRuntime:
                 "PROBE_REFERENCE_OUTPUT_QUOTA",
             )
             self.result["observations"][arm] = observed
-            self.check()
             session.stop()
             self.event(arm, "stop_requested")
             until = min(held.preparation.deadline, session.writer.deadline, time.monotonic() + 120)
+            # Normal stop only reduces execution. Its scoped writer check stays
+            # in stop(); validate the complete pair while the JVM drains, before
+            # accepting any capture or advancing to the sibling. A failed check
+            # still fences the pair and retains every reservation.
+            self.check()
             while session.native.observe() is None:
                 require(time.monotonic() < until, "SERVER_STOP_TIMEOUT")
                 time.sleep(0.05)

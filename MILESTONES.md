@@ -2,6 +2,20 @@
 
 ## Current position
 
+M1.6q.7 [paired stop ordering](docs/verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
+Scoped normal stop now precedes the complete pair check during bounded drain;
+capture acceptance and sibling dispatch still require full validation. All22
+source cases pass. Fresh case07 fails221.33s before the second server dispatch:
+WRITER_EXPOSURE_INSUFFICIENT, outer PROBE_WORLD_CLOSE_UNCERTAIN. First worker's
+exact projection and normal stop pass; first server exits normally12/12 with a
+verified27-file export. Stop request takes0.109s; full pair checks reach8s. Next
+compose repeated member-runtime/preflight validation without weakening authority,
+custody, admission or export checks. Original bounds and cases01-06 remain.
+Both writers UNCERTAIN, world FAILED, parent FENCED, all holds retained. All40
+real tables unchanged at$4.887796; no owned runtime or model calls. Full matched
+live state/tool parity, native admission, clocks/disposal, T05/T10 and isolation
+remain open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.6 [borrowed worker materialization](docs/verification/2026-09-25-m1-worker-materialization.md) is implemented_unverified for authentic paired integration.
 Private member preparation now borrows the live installation lease, preserving
 fresh authority/layout checks and separate runtime/configuration/account custody.
@@ -866,6 +880,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.4 | AR/GI/SI/QA | Exact initial worker observation and ordinary inventory projection; persist stop/custody before later validation; inherits M1.6q mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-initial-worker-projection.md):37 distinct source cases pass after retained fixture failure; case05 first worker projection/normal stop passes with receipts, pair fails hard server deadline then stop send. All holds/history/windows retained; reduce held software-resolution cost and normal-stop delay. |
 | M1.6q.5 | AR/GI/SI/QA | Private resolution from still-held verified materialization bytes with fresh authority/layout checks; inherits M1.6q plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-materialization-checks.md):134 distinct source passes, three privilege skips, retained initial refusal-ordering failure. Case06 first server stops normally12/12 with27-file export; second launch refuses insufficient exposure. All holds/bounds/history retained; next reuse held materialization in private member resolution. |
 | M1.6q.6 | AR/GI/SI/QA | Borrow live materialization for private worker resolution; retain per-member runtime/config/account and whole-roster custody. Inherits M1.6q.5 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-materialization.md): 97 source passes; genuine read-only entry 13.672s to 11.078s, equal output. No new native attempt: savings precede the writer clock. Next reduce validation delaying normal stop within the original bounds; retain case06 and all holds. |
+| M1.6q.7 | AR/GI/SI/QA | Scoped stop before full pair validation during bounded drain; preserve capture and sibling admission. Inherits M1.6q.6 plus partial T07 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-pair-stop-order.md):22 source passes; case07 first worker/server normal stop and export pass, second launch refuses insufficient exposure. Stop request0.109s, pair checks up to8s. Next compose repeated validation; retain bounds and all failures/holds. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8541,3 +8556,63 @@ passes, 437 source files, all 417 prior IDs retained / 418 current, 1,644 local
 links, append-only progress, SPEC history/JSON, Ruff and whitespace checks pass.
 All 40 real tables remain unchanged; no owned runtime or new native trial.
 This pointer follows the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.7 normal stop before complete drain validation, in progress
+
+- Move the complete paired check after the scoped server stop request, keeping
+  the drain bound fixed and requiring validation before capture and sibling
+  dispatch. Add positive ordering checks and account/member/software-custody
+  failures at the post-stop boundary; retain failure fencing and all holds.
+- Focused22-case selection remains running in exec session5194; no test pass is
+  claimed. Ruff and whitespace checks pass. Current handoff records the live
+  handle, private output and next inspection; never restart on buffered silence.
+- All40 real authority tables match the q6 checkpoint; no owned runtime before
+  execution. Fresh native07 prepared with437 source pins, but not dispatched.
+  Original bounds, failed cases01-06, profile identities and consumed decisions
+  remain unchanged. No game/model call or extension of M0-only spending authority.
+- M1.6q.7 in_progress, inheriting M1.6q.6 mappings plus partial T07. Next inspect
+  the running selection, resolve any actual failures, then perform the changed
+  authentic case only after its dispatch checks. G1-G5 remain not_run; all wider
+  live-state/tool/native-admission/clock/disposal/T05/T10/isolation gaps remain.
+
+### 2026-09-25 — M1.6q.7 verified source ordering and retained authentic case07
+
+- Source suite completed:22 pass601.28s, no failures/skips. Positive ordering
+  proves complete validation follows normal stop and precedes capture. Changed
+  account/member/software custody at stop still refuses export and sibling
+  launch, fences the pair and retains all reservations. Existing import, grant,
+  state, stop/receipt, early-exit/history and between-arm refusal cases pass.
+- Fresh case07 dispatch checks match437 source pins, unchanged real accounting,
+  available host/port and unused evidence. Original300/200-170/60-60s bounds and
+  genuine profile02/runtime02/source-world identities remain; no model/actions.
+  Test fails221.33s: second server refuses WRITER_EXPOSURE_INSUFFICIENT; outer
+  PROBE_WORLD_CLOSE_UNCERTAIN. No second worker/server dispatch. Keep cases01-06.
+- Both copiers/imports stop normally. First worker verifies exact journal,
+  authenticated saved-player identity and own-state projection, then stops
+  normally: seven total/zero active or terminated processes, supervisor50.4249ms,
+  owner109ms. First server normal exit0,12 held/12 signaled, complete logs and
+  verified27-file/13,625,307-byte export. No watchdog; clean-save and complete-
+  checkpoint flags remain false. Both writers UNCERTAIN, world FAILED, parent
+  FENCED, every hold retained. A normal first arm is not full pair completion.
+- Added diagnostic intervals show stop request0.109s, stopped capture3.969s and
+  five composed pair checks37.171s total/max8s. Software and parent intervals
+  overlap these; do not add them or treat them as authoritative campaign clocks.
+  Read source: member files recheck runtime, then phase receipt rechecks it again.
+  Next compose repeated runtime/preflight validation while preserving every
+  required authority/membership/process check before launch or export acceptance.
+- Native audit passes for the retained failed scope and matches all437 source
+  files; all40 real tables unchanged at$4.887796, no owned processes, no inference
+  calls or M1 paid authority. [Report](docs/verification/2026-09-25-m1-pair-stop-order.md).
+  M1.6q.7 implemented_unverified for authentic paired integration. Full live-state/
+  tool parity, native admission, clocks/disposal, T05/T10 and isolation remain
+  open. G1-G5 not_run; M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.7 final seals: source8,029 files/28,975,169 bytes,
+`3c811f3e2e55a0406f0f54088aaab9f6edc5b44e8e2ac1c41cf5cfbe2fe3b94b`;
+native728 files/66,074,382 bytes,
+`b0dfdd7a688a572424e4745a2d5442b861cb1dd1af0898bed086d64680a975d7`.
+Both independently verify with extended paths. All22 source cases pass; native07
+remains failed in its full scope.437 source pins match, all418 prior IDs remain/
+419 current,1,650 links resolve, append-only progress and SPEC history/JSON pass.
+Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
+pointers follow the archived documentation snapshot.

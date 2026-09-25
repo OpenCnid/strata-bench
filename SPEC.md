@@ -1888,6 +1888,12 @@ member checks still validate shared custody. Persist and flush each successful
 import stop receipt before advancing its phase; receipt failure prevents server
 launch. Returned writer failures retain the first inner cause alongside the
 unchanged outer close refusal, without releasing reservations or claiming disposal.
+After the continuation drains its workers, request normal server stop through
+the still-scoped writer before the complete pair recheck. Perform that recheck
+during bounded drain, before capturing or accepting a stopped export and before
+any sibling dispatch. A validation failure still fences the pair and retains
+all reservations; requesting stop cannot establish a successful capture. The
+original writer/server/parent deadlines and pre-dispatch checks remain binding.
 Its private `registered-worker-initial-own-projection/1` checks normal owned stop,
 saved UUID, single identity/epoch, zero actions/primitives and exact journalled
 delivery, then compares the existing own-state projection.

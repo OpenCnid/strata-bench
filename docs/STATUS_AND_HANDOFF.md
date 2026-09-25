@@ -4,6 +4,20 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.7 [paired stop ordering](verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
+Scoped normal stop now precedes the complete pair check during bounded drain;
+capture acceptance and sibling dispatch still require full validation. All22
+source cases pass. Fresh case07 fails221.33s before the second server dispatch:
+WRITER_EXPOSURE_INSUFFICIENT, outer PROBE_WORLD_CLOSE_UNCERTAIN. First worker's
+exact projection and normal stop pass; first server exits normally12/12 with a
+verified27-file export. Stop request takes0.109s; full pair checks reach8s. Next
+compose repeated member-runtime/preflight validation without weakening authority,
+custody, admission or export checks. Original bounds and cases01-06 remain.
+Both writers UNCERTAIN, world FAILED, parent FENCED, all holds retained. All40
+real tables unchanged at$4.887796; no owned runtime or model calls. Full matched
+live state/tool parity, native admission, clocks/disposal, T05/T10 and isolation
+remain open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.6 [borrowed worker materialization](verification/2026-09-25-m1-worker-materialization.md) is implemented_unverified for authentic paired integration.
 Private member preparation now borrows the live installation lease, preserving
 fresh authority/layout checks and separate runtime/configuration/account custody.

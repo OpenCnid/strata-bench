@@ -127,3 +127,58 @@ def test_selected_orchestrator_requires_exact_complete_profile_before_copy(setup
     with pytest.raises(Fault, match="SELECTED_ACTIVATION_REQUIRED"):
         native.run(Path("missing.exe"), tmp_path / "unused", selected_activation=flag, model=model)
     assert not (tmp_path / "unused").exists()
+
+
+@pytest.mark.parametrize("case", ["normal", "missing_proof", "forced", "failed", "unsettled", "live", "interrupted"])
+def test_checkpoint_transition_uses_normal_drain_and_held_owner(setup, monkeypatch, case):
+    module, runtime, body, plan = setup
+    plan.job_id = "stopped-native"
+    status = {"state": "FINALIZED", "returncode": 0, "reason": "native_exit"}
+    if case == "failed":
+        status["returncode"] = 1
+    elif case == "unsettled":
+        status["state"] = "UNSETTLED"
+    elif case == "interrupted":
+        status["reason"] = "probe_cleanup"
+    elif case == "live":
+        runtime.live[plan.job_id] = object()
+    monkeypatch.setattr(runtime, "status", lambda _: status)
+    # The controller unit uses an explicit proof stub. Actual held-job proof
+    # reconstruction is covered by native_process_drain and the native fixture.
+    ref = runtime.cas.put(Principal("operator", "operator"), "operator", "operator", canonical({
+        "observation": {"accounting": {"terminated_processes": int(case == "forced")}}}))
+    def proof(*args):
+        if case == "missing_proof":
+            raise Fault("NATIVE_PROCESS_DRAIN_MISSING")
+        return {"proof_ref": ref, "active_processes": 0}
+    monkeypatch.setattr(module, "require_process_drain", proof)
+    with module.ActivationController(runtime, body, plan) as owned:
+        if case == "normal":
+            result = owned.begin_checkpoint(plan)
+            assert result["state"] == "CHECKPOINTING" and not result["complete_checkpoint"]
+            assert runtime.db.connection.execute("SELECT epoch FROM campaigns").fetchone()[0] == 2
+            with pytest.raises(Fault, match="ACTIVATION_CHECKPOINT_REARM"):
+                owned.begin_checkpoint(plan)
+        else:
+            with pytest.raises(Fault):
+                owned.begin_checkpoint(plan)
+            assert runtime.db.connection.execute("SELECT state FROM campaigns").fetchone()[0] == "RUNNING"
+            assert owned.checkpoint_transition is None
+    runtime.live.clear()
+
+
+def test_checkpoint_after_owner_drain_is_not_rearmed(setup):
+    module, runtime, body, plan = setup
+    with module.ActivationController(runtime, body, plan) as owned:
+        pass
+    with pytest.raises(Fault, match="ACTIVATION_CONTROLLER_HEARTBEAT"):
+        owned.begin_checkpoint(plan)
+
+
+@pytest.mark.parametrize("flag,selected", [(True, False), (1, True), (None, True)])
+def test_checkpoint_option_rejects_incomplete_profile_before_copy(setup, tmp_path, flag, selected):
+    native = importlib.import_module("native_mcp_identity_probe")
+    with pytest.raises(Fault, match="SELECTED_ACTIVATION_CHECKPOINT_REQUIRED"):
+        native.run(Path("missing.exe"), tmp_path / "unused", selected_activation=selected,
+                   activation_checkpoint=flag)
+    assert not (tmp_path / "unused").exists()

@@ -490,7 +490,12 @@ now demonstrates exact active source execution in root/helper code mode, scoped
 artifact effects/refusal and stopped executable-candidate lineage. Its provider,
 world and readiness are synthetic. It does not qualify full executable-skill
 behavior, subsequent-episode activation, actual game macros, complete isolation
-or G1; the requirements below remain unchanged.
+or G1; the requirements below remain unchanged. Its subsequent
+[selected native episode pair](docs/verification/2026-09-25-m1-native-handoff.md)
+adds normal held-owner checkpoint transition, complete synthetic checkpoint,
+next-revision activation, fresh runtime/context/private storage and preserved
+accounting. Matched frozen/no-self-play controls, complete isolation and authentic
+game restoration keep their separate acceptance requirements.
 
 Install the exact remote plugin commit `15c306ccfef28eb5f616fadcd5fd8eac0663e361` (manifest 0.4.1) into each isolated worker profile through the pinned host's supported plugin mechanism; retain original source and attribution. This is the initial candidate pin, not a claim that it is the newest commit. No global user skill directory or older sibling checkout is inherited.
 

@@ -13,12 +13,23 @@ from mcbench.records import CheckpointManifest
 from mcbench.storage import canonical, require
 
 
-def next_checkpoint(runtime, job, parent_id, checkpoint_id, *, boundary):
+def next_checkpoint(runtime, job, parent_id, checkpoint_id, *, boundary, controller_owner=None):
     require(runtime.simulation is True, "SYNTHETIC_STORE_REQUIRED")
     before = runtime.budgets.status("a1")
     checkpoints = Checkpoints(runtime.db, runtime.cas)
     parent, namespace = checkpoints.load(parent_id)
     require(namespace == "operator", "SYNTHETIC_FIXTURE_SCOPE")
+    if controller_owner is not None:
+        from mcbench.controller import Controller
+        from mcbench.native import NativeLaunch
+        launch = NativeLaunch.model_validate_json(runtime.db.connection.execute(
+            "SELECT plan FROM native_jobs WHERE id=?", (job,)).fetchone()[0])
+        controller = Controller(runtime.db, simulation=True)
+        row = controller.owned(runtime.db.connection, launch.campaign_id, controller_owner, launch.epoch)
+        require(row["state"] == "CHECKPOINTING" and parent.source_epoch < launch.epoch
+                and parent.campaign_id == launch.campaign_id and parent.system_digest ==
+                runtime.cas.json(OPERATOR, "operator", launch.skill_activation_ref)["system_digest"],
+                "ACTIVATION_CHECKPOINT_SCOPE")
     export = runtime.export_broker_state(job)
     publication = NativeSkillPublications(runtime).publish(export)
     states = NativeCheckpointStates(runtime)
@@ -44,6 +55,9 @@ def next_checkpoint(runtime, job, parent_id, checkpoint_id, *, boundary):
     committed = checkpoints.commit(config, CheckpointManifest.model_validate(body), "operator")
     sets = NativeSkillSets(runtime)
     active = sets.create(ref)
+    if controller_owner is not None:
+        row = controller.owned(runtime.db.connection, launch.campaign_id, controller_owner, launch.epoch)
+        require(row["state"] == "CHECKPOINTING", "ACTIVATION_CHECKPOINT_SCOPE")
     require(runtime.budgets.status("a1") == before, "FIXTURE_ACCOUNTING_CHANGED")
     return {"is_example": True, "real_game_checkpoint": False, "export": export, "publication": publication,
         "state": ref, "manifest_digest": committed.manifest_digest, "skill_set_ref": active,

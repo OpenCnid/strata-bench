@@ -15,10 +15,16 @@ from test_native_skill_activation import activate
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from native_team_channel_probe import POLICY
 
-SCRIPT = '''const find=name=>ALL_TOOLS.find(t=>t.name.endsWith("__"+name)).name;
+SCRIPT = '''text({prior_private_state:load("active-script-private")??null});
+store("active-script-private","owned local execution state");
+text({owner_private_state:load("active-script-private")});
+const find=name=>ALL_TOOLS.find(t=>t.name.endsWith("__"+name)).name;
 const read=await tools[find("artifact_read")]({path:"active/revisions.json"});
 text({active_script_read:read});
-const write=await tools[find("artifact_write")]({path:"notes/active-script.md",expected_ref:null,text:"Active JavaScript ran through the scoped broker.\\n"});
+const listing=await tools[find("artifact_list")]({});
+const files=JSON.parse(listing.content[0].text).files;
+const previous=files.find(f=>f.path==="notes/active-script.md");
+const write=await tools[find("artifact_write")]({path:"notes/active-script.md",expected_ref:previous?previous.ref:null,text:"Active JavaScript ran through the scoped broker.\\n"});
 text({active_script_write:write});
 '''
 

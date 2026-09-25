@@ -101,3 +101,11 @@ units with prior56 preserved. Source custody and owned epoch2 controller use
 catalog /5. Game/world/readiness/provider remain synthetic, USD0. Next complete
 held CHECKPOINTING transition and fresh activation through a complete checkpoint.
 All40 real authority tables unchanged; no RuntimeQualification or G1 promotion.
+
+[Normal checkpoint and fresh selected activation](verification/2026-09-25-m1-native-handoff.md)
+now pass37/37 per episode and42/42 independent checks;94 distinct focused tests.
+The held controller enters CHECKPOINTING, complete synthetic checkpoints activate
+revisions2/3, and the next runtime preserves admitted artifacts/costs with fresh
+context/private storage. Sixteen requests settle224 fixture units, prior56
+retained. Next matched frozen/no-self-play controls and combined-profile
+qualification. All40 real authority tables unchanged; full G1 remains open.

@@ -30,6 +30,11 @@ and executable candidate2 retain real native provenance. Historical GPT-5.6
 stores remain unchanged. Next complete the held controller CHECKPOINTING
 transition/new complete checkpoint and fresh activation; current sealed epoch2
 controller is RUNNING with expired lease and must not be retroactively rewritten.
+The [new changed episode pair](verification/2026-09-25-m1-native-handoff.md) now
+passes37/37 each and42/42 independent checks. It normally enters CHECKPOINTING
+and activates revisions2/3 through complete synthetic checkpoints; epoch3 starts
+fresh context/storage with admitted artifacts and all costs retained. Next
+matched frozen/no-self-play controls and complete combined-profile qualification.
 
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
@@ -330,3 +335,43 @@ normal native closure/publication to a complete target-epoch checkpoint. Verify
 one new changed bounded case and fresh activation/context, with original costs,
 candidate lineage and matched frozen controls. Source scope remains M1.4a,
 SPEC6.2/6.3; actual game macros, combined-profile isolation, T05/T10/T11 remain.
+
+## September25 selected native episode continuation
+
+The [new checkpoint/activation pair](verification/2026-09-25-m1-native-handoff.md)
+supersedes the preceding section's next action. `activation_checkpoint=True`
+requires selected activation. After provider/worker cleanup and normal finalized
+native closure, `ActivationController.begin_checkpoint` verifies held process
+zero-active/no forced termination and uses the live owner to enter CHECKPOINTING.
+The existing synthetic checkpoint builder now checks owner/state around its
+complete-set commit/activation. Heartbeat drains on every path; no old epoch is
+rewritten or rearmed. Existing historical fixture defaults remain unchanged.
+
+94 distinct source tests pass;37/37 native checks for each of two sequential
+episodes;42/42 independent read-only reconstruction. First epoch2 checkpoint
+activates executable revision2; the new epoch3 runtime receives that exact set,
+starts fresh root/helper context/private code-mode storage, executes exact
+source, preserves admitted notes and settles its own calls. It normally stops
+and checkpoints revision3. Root write succeeds/helper refuses in each episode.
+Each has8 requests (root5/helper3),112 fixture units; total280 including prior56.
+No real model/game, allowance change or RuntimeQualification. Complete synthetic
+checkpoints are explicitly not authentic game restoration evidence.
+
+Profiles20ff3473cab73b198842de85e3511620607330ed7ee5d212178e570aec6e5e7b
+andadf4e4e26d798ff3b5ba6e7db0643a9517e7db822fa0dd5108ae79215c22d890.
+Producer `2026-09-24-m1-active-handoff-01` retains its preparation-date name:
+7,976files/153,051,314bytes,
+seal68a94c894938fcb7e304049f40c75de1bdcc8c6d96af1200c803d36774cb74d7.
+Audit `2026-09-25-m1-active-handoff-audit-01`:3files/19,845bytes,
+seal8d5da4b962a38b4c57ee4ac0958097e98abb777b36a53c2cf3bd246114ca9a39.
+All40 authority tables and$4.887796 exposure/holds unchanged; no owned fixture
+process remains. Sealed one-use scripts are history, never resume commands.
+
+Next verify matched selected frozen/no-self-play controls and exact designated
+artifact/session/cache reset, preserving equal public instruction/goal schedule,
+body/tools/budget and explicitly allowed artifact differences. Create arm policy
+before source jobs; never rewrite retention in a used store. Full-arm fresh
+continuation does not substitute for those controls. Continue remaining native
+interruption/combined-profile boundary, capable settings, scorer and disposable
+probe requirements. T04's runtime continuation belongs to G1; full authentic
+game recovery/fault/soaks remain G2. M1.4a/M1 in_progress, G1 not_run.

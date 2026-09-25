@@ -10,6 +10,7 @@ import time
 
 from mcbench.controller import Controller, READINESS
 from mcbench.native_team import require_team_plan
+from mcbench.native_process_drain import require_process_drain
 from mcbench.storage import Database, Principal, canonical, require
 from mcbench.team_protocol import TeamPolicy
 
@@ -25,6 +26,7 @@ class ActivationController:
         self.errors, self.heartbeats = [], []
         self.entered = False
         self.policy_ref = None
+        self.checkpoint_transition = None
 
     def __enter__(self):
         require(not self.entered, "ACTIVATION_CONTROLLER_REARM")
@@ -94,9 +96,33 @@ class ActivationController:
             self.thread.join(5)
             require(not self.thread.is_alive(), "ACTIVATION_CONTROLLER_DRAIN")
 
+    def begin_checkpoint(self, plan):
+        """Normal stopped boundary while this exact controller owner is held."""
+        require(self.checkpoint_transition is None, "ACTIVATION_CHECKPOINT_REARM")
+        self.healthy(plan)
+        require((plan.campaign_id, plan.agent_id, plan.epoch) ==
+                (self.plan.campaign_id, self.plan.agent_id, self.plan.epoch), "ACTIVATION_CONTROLLER_SCOPE")
+        status = self.runtime.status(plan.job_id)
+        require(status["state"] == "FINALIZED" and status["returncode"] == 0
+                and status["reason"] == "native_exit" and plan.job_id not in self.runtime.live,
+                "ACTIVATION_CHECKPOINT_NOT_NORMAL")
+        proof = require_process_drain(self.runtime.db.connection, self.runtime.cas, plan)
+        observed = self.runtime.cas.json(Principal("operator", "operator"), "operator", proof["proof_ref"])
+        require(observed["observation"]["accounting"]["terminated_processes"] == 0,
+                "ACTIVATION_CHECKPOINT_NOT_NORMAL")
+        controller = Controller(self.runtime.db, simulation=True)
+        before = controller.status(plan.campaign_id)
+        controller.transition(plan.campaign_id, OWNER, plan.epoch, before["revision"],
+                              "CHECKPOINTING", "normal native fixture episode boundary")
+        self.checkpoint_transition = {"job_id": plan.job_id, "epoch": plan.epoch,
+            "from_revision": before["revision"], "state": controller.status(plan.campaign_id)["state"],
+            "process_drain": proof, "complete_checkpoint": False}
+        return self.checkpoint_transition
+
     def report(self):
         return {"is_example": True, "controller_readiness": "synthetic", "real_game_bodies": 0,
                 "campaign_id": self.plan.campaign_id, "epoch": self.plan.epoch,
                 "source_epoch": self.body["source_epoch"], "policy_ref": self.policy_ref,
+                "checkpoint_transition": self.checkpoint_transition,
                 "thread_stopped": self.thread is not None and not self.thread.is_alive(),
                 "heartbeats": self.heartbeats, "errors": self.errors, "production_qualified": False}

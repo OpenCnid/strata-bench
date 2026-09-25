@@ -91,7 +91,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
         selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
-        activation_script=None, selected_activation=False):
+        activation_script=None, selected_activation=False, activation_checkpoint=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -117,6 +117,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "SCRIPT_ACTIVATION_REQUIRED")
     script_probe = None
     activation_controller = None
+    checkpoint_result = activation_closure = None
+    normal_native_return = False
+    require(type(activation_checkpoint) is bool and (not activation_checkpoint or selected_activation),
+            "SELECTED_ACTIVATION_CHECKPOINT_REQUIRED")
     require(type(selected_activation) is bool and (not selected_activation or activation_source is not None
             and model == "gpt-6-luna" and broker_mode and admission_mode and bootstrap_mode
             and ingress_mode and oauth_mode and tool_projections is not None and no_patch_catalog is not None
@@ -812,6 +816,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 response.read()
                 client.close()
         wait_job(runtime, plan)
+        normal_native_return = True
     finally:
         try:
             if gateway:
@@ -829,6 +834,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 canaries.close()
             if native_worker and native_worker.job:
                 native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
+            if activation_checkpoint and normal_native_return:
+                activation_closure = close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None)
+                activation_controller.begin_checkpoint(plan)
+                from native_fixture_checkpoint import next_checkpoint
+                from mcbench.native_checkpoint import NativeCheckpointStates
+                from native_activation_controller import OWNER
+                parent, _ = NativeCheckpointStates(runtime).load(activation.body["checkpoint_ref"])
+                checkpoint_result = next_checkpoint(runtime, plan.job_id, parent.checkpoint_id,
+                    "episode-" + plan.job_id, boundary="episode", controller_owner=OWNER)
+                (output / "activation-checkpoint.json").write_text(json.dumps(checkpoint_result), encoding="utf-8")
         finally:
             if activation_controller:
                 activation_controller.__exit__()
@@ -840,7 +855,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "identities": provider.identities, "broker_calls": calls,
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
-        "closure": close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
+        "closure": activation_closure or close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
         "budget": gate.budgets.status(plan.account if team_channel_probe else "a1" if activation else "project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
@@ -949,6 +964,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             result["activation_controller"] = activation_controller.report()
             result["checks"]["activation_controller_owned_and_drained"] = bool(activation_controller.heartbeats) and (
                 not activation_controller.errors and result["activation_controller"]["thread_stopped"])
+        if checkpoint_result:
+            result["activation_checkpoint"] = checkpoint_result
+            result["checks"]["complete_synthetic_episode_checkpoint"] = checkpoint_result["costs_unchanged"] and (
+                activation_controller.checkpoint_transition["state"] == "CHECKPOINTING")
     if game_retention:
         result["retention"] = game_retention.finish()
         result["checks"]["preregistered_native_retention_component"] = True

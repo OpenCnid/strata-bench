@@ -2,6 +2,20 @@
 
 ## Current position
 
+M1.6p [complete worker input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md) is implemented_unverified for
+registered runtime integration. Nine distinct focused source cases pass using
+synthetic accounts/packs and actual Windows file leases. Both complete arm rosters
+resolve and match account declarations before configuration creation; account,
+config and runtime custody is rechecked. Mismatch, changed authority, closed parent
+and partial failure refuse without dispatch or parent resource/cost release.
+Token-refresh sibling files remain writable. Initial collection/assertion failures
+are retained. No worker/game/provider/model execution; all40 real authority tables
+remain unchanged at$4.887796 exposure, with prior holds and consumed decisions.
+Next connect this one-use input custody to the registered runtime lifecycle and
+all-N live-state matching. A single-account profile must reject an incompatible
+roster in full. Native admission, clocks/disposal, T05/T10 and full isolation stay
+open; G1-G5 not_run. No M1 paid inference authority is inferred.
+
 M1.6o.1 [authentic worker identity](docs/verification/2026-09-25-m1-worker-identity-native.md)
 is verified for the bounded account/server/save identity and normal-stop contract.
 Fresh corrected case02 passes118.188s: copier10/10, worker preflight3/3, worker7/7,
@@ -725,6 +739,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6o | AR/GI/SI/RS/QA | Bind complete registered probe roster to authenticated worker profiles and server UUID before readiness; inherits M1.6n, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Worker identity](docs/verification/2026-09-25-m1-worker-identity.md):49 Python/28 Node cases and15 audit checks pass with synthetic provider/game transport. Complete both-arm binding, account/profile check before connection, server UUID/private receipt before readiness; mismatch/storage failures fence. No authentic probe integration, all-N live state, clocks/disposal or G1 pass. |
 | M1.6o.1 | AR/GI/SI/QA | Qualify identity-bound worker on authentic protected vanilla server with private journal/live/save joins; inherits M1.6o mappings | verified | [Case02 and wrong-identity negative](docs/verification/2026-09-25-m1-worker-identity-native.md):118.188s, scoped identity/live/save join, normal copier10/10/worker7/7/server12/12 and26-file capture. Actual mismatch fences, refuses observation and stops7/7 normally.35+19 sealed audit checks pass; case01 refusal/forced exit125 preserved. Bounded operator contract only; registered-pair/native admission/matched initial state remain open. |
 | M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
+| M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8034,3 +8049,32 @@ The54 read-only checks, final40-table comparison and255-file source match pass;
 no owned runtime remains. Documentation QA preserves all410 IDs, append-only
 progress and unchanged SPEC; local links and whitespace pass. The prior failed
 case and correction evidence remain separately sealed and unchanged.
+
+### 2026-09-25 — M1.6p complete worker inputs before dispatch
+
+- Added private `probe_worker_inputs.py` and the `VanillaProbeInputs` entry point,
+  strict account declaration checks and complete both-arm worker/config/runtime
+  custody. Every selected account is checked before any config creation. Own
+  one-use cleanup preserves configuration evidence and parent resource/cost holds.
+- Nine distinct focused cases pass on Windows with synthetic accounts/packs and
+  actual file leases. Late mismatch, account snapshot race, missing stop, helper,
+  roster loss, parent close, runtime check and partial construction paths refuse.
+  Retain the collection failure and three test setup/assertion failures; corrected
+  selections alone rerun. No worker/game/provider/model dispatch occurred.
+- M1.6p inherits F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06,
+  C06/C20/C23/C24/C36, partial T01/T06/T11; SPEC documents this input-only policy.
+  [Report](docs/verification/2026-09-25-m1-probe-worker-inputs.md) distinguishes
+  actual custody from substituted profile/fault tests.426 source files retained;
+  all40 durable authority tables unchanged, exposure$4.887796 with holds intact.
+  No owned runtime remains; M1 paid inference still lacks authority.
+- Implemented_unverified for authentic registered runtime integration. Next connect
+  held inputs to bounded worker lifecycle, all-N live matching, native admission,
+  clocks and disposal. A selected single-account profile cannot reduce the roster.
+  G1-G5 remain not_run; T05/T10 and remaining isolation qualification stay open.
+  M0/G0, historic failures, consumed decisions and unrelated M2-M7 are unchanged.
+
+M1.6p evidence seal:3,477 files/15,619,247 bytes, SHA-256
+`e8200784ad3b22b3167b7408443b157f8ff06af335155c79aef9dda2dc6dc7ae`. Independent bundle verification passes.
+Documentation QA preserves410 prior IDs (411 current), append-only progress and
+prior SPEC text;1,607 local links resolve. Source426-file match, focused Ruff
+and whitespace pass. This post-seal pointer changes no source or test evidence.

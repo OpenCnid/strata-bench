@@ -4,6 +4,20 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6p [complete worker input custody](verification/2026-09-25-m1-probe-worker-inputs.md) is implemented_unverified for
+registered runtime integration. Nine distinct focused source cases pass using
+synthetic accounts/packs and actual Windows file leases. Both complete arm rosters
+resolve and match account declarations before configuration creation; account,
+config and runtime custody is rechecked. Mismatch, changed authority, closed parent
+and partial failure refuse without dispatch or parent resource/cost release.
+Token-refresh sibling files remain writable. Initial collection/assertion failures
+are retained. No worker/game/provider/model execution; all40 real authority tables
+remain unchanged at$4.887796 exposure, with prior holds and consumed decisions.
+Next connect this one-use input custody to the registered runtime lifecycle and
+all-N live-state matching. A single-account profile must reject an incompatible
+roster in full. Native admission, clocks/disposal, T05/T10 and full isolation stay
+open; G1-G5 not_run. No M1 paid inference authority is inferred.
+
 M1.6o.1 [authentic worker identity](verification/2026-09-25-m1-worker-identity-native.md)
 is verified for the bounded account/server/save identity and normal-stop contract.
 Fresh corrected case02 passes118.188s: copier10/10, worker preflight3/3, worker7/7,

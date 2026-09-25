@@ -1836,6 +1836,19 @@ readiness, native probe admission, authoritative campaign clocks or disposal.
 [Worker identity verification](docs/verification/2026-09-25-m1-worker-identity.md)
 distinguishes substituted transport/provider evidence from authentic connections.
 
+`held-complete-probe-worker-inputs/1` resolves both complete registered arm rosters
+before configuration creation. Each declared account must match its derived saved
+UUID and support the scoped normal-stop worker profile. Hold the account.json
+declarations, sealed runtimes and exact configurations; recheck live parent and
+committed binding custody. Token files are not read or frozen. Refuse the entire
+roster on mismatch; a single-account profile cannot silently reduce N. Partial
+failure retains created configuration evidence, closes only its own leases and
+preserves parent resource/cost holds. This one-use preparation grants no process,
+authentication, native admission or live-state authority. A subsequent runtime
+consumer must separately qualify those contracts and disposal.
+[Input custody evidence](docs/verification/2026-09-25-m1-probe-worker-inputs.md)
+uses synthetic accounts/packs with actual Windows file leases.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

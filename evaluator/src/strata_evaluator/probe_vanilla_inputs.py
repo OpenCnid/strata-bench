@@ -232,6 +232,11 @@ class VanillaProbeInputs:
                     update={"expected_player_uuid": player}).model_dump()
         return result
 
+    def hold_worker_inputs(self, principal, values):
+        """Hold the complete registered worker roster; this starts no process."""
+        from .probe_worker_inputs import HeldProbeWorkerInputs
+        return HeldProbeWorkerInputs(self, principal, values)
+
     def validate(self, arm, plan):
         require(
             isinstance(plan, WriterPreparationPlanV4) == (self.policy != POLICY),

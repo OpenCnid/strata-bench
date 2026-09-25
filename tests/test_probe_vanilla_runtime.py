@@ -314,3 +314,35 @@ def test_second_arm_missing_launch_helper_refuses_before_either_server(
         service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0]
         == "FAILED"
     )
+
+
+@pytest.mark.parametrize("changed_source", [False, True])
+def test_held_plan_factory_keeps_custody_and_full_source_validation(
+    runtime, process_fixture, directory_fixture, changed_source
+):
+    from test_probe_pairs import EVALUATOR
+
+    service, plans, launches, binding, _ = runtime
+    called = []
+
+    def factory(software):
+        called.append(software)
+        software.check()
+        with pytest.raises(PermissionError):
+            with Path(binding.instance, "server/server.jar").open("ab"):
+                pass
+        if changed_source:
+            plans["initial"]["sources"]["world/level.dat"]["sha256"] = "0" * 64
+        return plans
+
+    if changed_source:
+        with pytest.raises(Fault, match="PROBE_WORLD_SOURCE"):
+            service.run_vanilla_reference(EVALUATOR, factory, launches,
+                continuation=lambda *_: None, pack_binding=binding.model_dump())
+        assert process_fixture[0] == []
+    else:
+        result = service.run_vanilla_reference(EVALUATOR, factory, launches,
+            continuation=lambda *_: None, pack_binding=binding.model_dump())
+        assert set(result["runtime"]["servers"]) == {"initial", "experienced"}
+        assert process_fixture[0] == ["initial", "experienced"]
+    assert len(called) == 1 and called[0].closed

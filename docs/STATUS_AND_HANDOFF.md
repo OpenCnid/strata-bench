@@ -4,6 +4,28 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
+is in_progress. The opt-in fixture imports26 genuine saved-state files from the
+sealed M1.6j capture into a fresh registered pair. Agent/protocol/capacity sources
+remain synthetic; no model/worker-body admission. Preserve preparation01's path
+comparison refusal, case02's operator-only streaming-import refusal and cases03/04's
+pre-native deadline refusals. Cases03/04 retain200 synthetic units and all capacity.
+The operator plan factory now avoids duplicate software acquisition while keeping
+full checks; positive/changed-source cases pass. Its initial wrong-error-name
+assertion remains retained. Case05 uses200/170s writer windows, leaving100s for
+observed preparation within the unchanged300s parent and two60s server windows;
+it fails on a missing evidence parent before native stages. Corrected case06
+completes both actual copier trees (10/10 normal owned exits each), validates
+both initial states and refuses PROBE_WORLD_DEADLINE before Minecraft launch.
+Outer/inner custody closes UNCERTAIN at128.750/115.282s; the pair is FAILED/FENCED
+with all cost/capacity holds. No unchanged rerun: next measure the stopped
+validation path and resolve its timing cost while keeping complete checks.
+101/101 read-only checks pass across all six attempts and both separately sealed
+native copied trees. The audit's initial integer-key serialization failure is
+retained. All40 real authority tables remain unchanged, no owned runtime remains,
+and no M1 inference authority is inferred. Full source/native admission, all-N
+matching, clocks/disposal, T05, scorer controls and combined runtime routes remain.
+
 M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
 now connects registered pair state to a separate held server coordinator.
 Both states/launch inputs are checked before either server starts; matching

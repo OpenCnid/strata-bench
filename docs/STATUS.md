@@ -3,6 +3,17 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
+is in_progress. Genuine software/world inputs now enter an opt-in paired check
+with synthetic agent/protocol/capacity sources. Cases03/04 refuse before native
+writer dispatch on deadline admission, preserving all holds. The held-plan
+factory passes two focused cases. Case05 retains its missing evidence-parent
+failure. Corrected case06 stops both real copiers normally (10/10 each), then
+refuses joint preflight because remaining time cannot contain both60s server
+windows. No Minecraft starts.101/101 sealed checks pass; all40 real authority
+tables are unchanged. Next measure validation cost without dispatch before
+selecting another changed profile. Full native/T11/G1 acceptance remains open.
+
 M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
 adds joint initial-state/launch preflight, matched runtime bounds, sequential
 owned stop/export and private capture provenance. Game-reference intent blocks

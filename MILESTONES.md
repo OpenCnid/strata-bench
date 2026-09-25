@@ -7,6 +7,20 @@ M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
 not_run. The active long-horizon goal is M1/G1 only, including its required
 scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
 
+M1.6m [actual paired vanilla verification](docs/verification/2026-09-25-m1-paired-vanilla.md)
+is in_progress. The registered world/software are genuine; agent/protocol/capacity
+fixtures are synthetic and no model or worker body is admitted. Retain the
+preparation path-comparison and CAS-import refusals, and case03's pre-writer
+deadline refusal with all cost/capacity holds. Operator plan factories now build
+inside held software custody without extending deadlines or skipping validation;
+two focused fixture cases pass. Case04 also refuses before native writer launch;
+case05 retains its missing evidence-parent failure. Corrected case06 completes
+both real copier trees (10/10 normal owned exits each) and joint initial-state
+validation, then refuses before Minecraft because both60s windows no longer fit.
+101/101 sealed checks pass; all40 authority tables and holds remain unchanged.
+Next measure stopped validation cost before another changed native profile.
+G1 remains not_run; full source/admission, all-N matching, clocks/disposal remain.
+
 Latest: M1.6l [held paired server references](docs/verification/2026-09-25-m1-probe-runtime.md)
 adds joint initial-state/launch preflight, matched runtime bounds, sequential
 normal stop/export and snapshot /3 private provenance. Game-reference intent
@@ -665,6 +679,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
 | M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
 | M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
+| M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Actual paired vanilla evidence](docs/verification/2026-09-25-m1-paired-vanilla.md): two focused factory passes;101/101 sealed reconstruction checks. Case06 real copiers stop normally10/10 each, then joint preflight refuses before Minecraft. Earlier refusals/failures retained with all holds. Measure validation cost before another changed profile. Agent/protocol/capacity fixtures remain synthetic; full source/admission, all-N matching, clocks/disposal and G1 remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7673,3 +7688,54 @@ G1-G5 not_run, M0/G0 unchanged. Next execute the exact registered paired referen
 after host/resource/deadline preflight, then complete live all-N matching, native
 admission, clocks and one-way disposal. Keep T05, scorer controls and remaining
 combined runtime routes open. No M1 paid allowance; unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6m genuine paired preparation, retained timing failures
+
+Added an explicit opt-in paired-server integration fixture using the genuine
+sealed vanilla profile and26 saved-state files from M1.6j. Agent checkpoint,
+protocol and capacity certificates remain synthetic. No provider/native agent
+or worker body is launched. Exact pinned private inputs, original immutable
+source archive, host resources/port/process preflight and fresh namespaces are
+required. Both arm states and runtime limits remain matched.
+
+Retain preparation01's slash-spelling comparison refusal; pins are unchanged.
+Case02 refuses the operator-only streaming CAS import; use the existing bounded
+evaluator byte import without changing production authority. Cases03/04 refuse
+deadline admission before any native writer:90.13s/72.85s. The operator plan
+factory now uses the existing held software scope once, with complete checks
+after factory return. Positive and changed-source refusal cases pass; the initial
+wrong-error-name assertion and corrected32.23s negative result remain retained.
+Default invocation skips the native test without explicit pins; Ruff/whitespace pass.
+
+Cases05/06 allocate200/170s writer windows instead of250/200s, leaving100s for
+observed setup inside the same300s parent and unchanged two60s server windows.
+This is a fresh declared profile; no consumed deadline is extended. Case05 fails
+FileNotFoundError before native stages because the external evidence parent was
+missing. Create its fresh parent before custody in the corrected fixture.
+Case06 passes both real native copier process histories (10/10 normal exits each)
+and both initial-state validations, then refuses PROBE_WORLD_DEADLINE before
+Minecraft because the remaining lifetime cannot contain both server windows.
+The complete test fails in202.02s; outer/inner custody closes UNCERTAIN at128.750/
+115.282s, with FAILED/FENCED pair and every synthetic cost/capacity hold intact.
+No paired-game, all-N, live-matching, isolation or clean-save pass is claimed.
+
+IDs: M1.6m; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36; partial T01/T04/T06/T07/T11. The
+[report](docs/verification/2026-09-25-m1-paired-vanilla.md) records all six attempts,
+profiles, checks and nine private seals. Read-only reconstruction passes101/101:
+genuine source/pair identity, every staged/copied byte and directory, both native
+copier histories/tokens, exact plans/provenance, no launch intent after joint
+preflight, retained failures/holds and unchanged producer/source archives. Native
+copied trees use separate bundles and explicit path mappings. Retain the first
+audit's integer-key report-serialization failure; corrected string keys change
+only that report. No execution is repeated. Rename ambiguous pre-execution
+fixture metadata in current source to distinguish authentic inputs from required
+execution; actual old receipts remain unchanged.
+
+All40 real authority tables match before/after, exposure$4.887796/$10 with all
+historical holds and consumed decisions. No owned runtime remains and no M1 paid
+allowance is inferred. M1.6m/M1 stay in_progress, G1-G5 not_run and M0/G0 unchanged.
+Next measure the stopped validation path, resolve its demonstrated timing cost
+without dropping checks, and select a changed profile only on that evidence.
+Full source/native admission, all-N live matching, clocks/disposal, T05, scorer
+controls and combined runtime routes remain open. Unrelated M2-M7 untouched.

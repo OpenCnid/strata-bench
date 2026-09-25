@@ -66,3 +66,11 @@ now passes45/45 per job and26/26 independent checks. Two agents share one queue;
 durable delivery/ack succeeds,14 team attempts refuse,14 scripted requests settle
 for196 synthetic units. Final qualified gameplay-profile binding remains .9d.
 All40 authority tables and holds are unchanged; no paid inference or game run.
+
+[Profile reconciliation and the campaign catalog](verification/2026-09-24-m1-profile-reconciliation.md)
+verify nine sealed bundles/eleven profiles against98 runtime modules. Earlier
+slices differ in11–12 modules, so no combined qualification is inferred.
+Explicit campaign projection /5 passes169 focused checks; both retained /4
+exports reconstruct unchanged. M1.3b.9d is in_progress: the next dependency is
+an integrated actual-worker candidate with root/helper isolation and permitted
+game/artifact/team controls. No native /5 qualification or M1 spending authority.

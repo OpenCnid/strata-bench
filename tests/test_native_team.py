@@ -255,6 +255,86 @@ def test_team_projection4_cannot_relabel_older_projection(native_team):
         read_tool_projection(gate.cas, plan.model_copy(update={"tool_projection_ref": legacy_ref}))
 
 
+@pytest.mark.parametrize("helpers", [1, 2])
+def test_campaign_team_projection_has_distinct_pin_and_preserves_qualification_gate(native_team, helpers):
+    from mcbench.native import REQUIRED_PROOFS, CONFORMANCE_PREREQUISITES
+
+    context, _, _ = native_team
+    _, gate, _, plan, _, _, put = context
+    plan = plan.model_copy(update={"purpose": "campaign", "model": "gpt-6-luna",
+                                   "helper_limit": helpers, "accounting_basis_digest": "a" * 64})
+    block = wire_tools("executor")
+    reviewed = {role: [{k: v for k, v in block.items() if k != "id"}] for role in ("executor", "helper")}
+    conformance = plan.model_copy(update={"purpose": "conformance"})
+    old_ref = pin_tool_projection(gate.cas, conformance, reviewed, conformance_helpers=True)
+    plan.tool_projection_ref = pin_tool_projection(gate.cas, plan, reviewed, campaign_team=True)
+    assert old_ref != plan.tool_projection_ref
+    pin = gate.cas.json(Principal("operator", "operator"), "operator", plan.tool_projection_ref)
+    assert pin["schema"] == "strata/NativeToolProjection/5" and pin["settings_policy"] == TEAM_SETTINGS_POLICY
+    for role in ("executor", "helper"):
+        assert require_tool_projection(gate.cas, plan, {"input": [block]}, role) == digest(reviewed[role])
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+        read_tool_projection(gate.cas, plan.model_copy(update={"tool_projection_ref": old_ref}))
+    changed = copy.deepcopy(block)
+    changed["tools"][0]["tools"][0]["description"] += " changed"
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_MISMATCH"):
+        require_tool_projection(gate.cas, plan, {"input": [changed]}, "helper")
+
+    # Synthetic parser evidence, never an actual qualification or native launch.
+    runtime = NativeExec(gate.db, gate.cas, simulation=True)
+    with pytest.raises(Fault, match="RUNTIME_UNQUALIFIED"):
+        runtime._proof(plan)
+    refs = {check: put({"result": "pass", "is_example": False, "check": check,
+        "profile_digest": plan.profile_digest(), "workspace": plan.workspace,
+        "profile_directory": plan.profile_directory, "role": plan.role,
+        "environment_digest": digest(plan.environment), "currency": "USD",
+        "auth_mode": plan.auth_mode, "pricing_semantics_verified": True,
+        "finite_dispatch_bound_verified": True, "accounting_basis_digest": plan.accounting_basis_digest})
+        for check in REQUIRED_PROOFS}
+    proof = {"schema": "strata/RuntimeQualification/1", "is_example": False, "purpose": "campaign",
+             "profile_digest": plan.profile_digest(), "expires_unix": time.time() + 60, "checks": refs}
+    for checks in [CONFORMANCE_PREREQUISITES, *(REQUIRED_PROOFS - {v} for v in REQUIRED_PROOFS)]:
+        ref = put(proof | {"checks": {k: refs[k] for k in checks}})
+        with pytest.raises(Fault, match="RUNTIME_UNQUALIFIED"):
+            runtime._proof(plan.model_copy(update={"qualification_ref": ref}))
+    runtime._proof(plan.model_copy(update={"qualification_ref": put(proof)}))
+    assert runtime.live == {}
+
+
+@pytest.mark.parametrize("updates", [
+    {"purpose": "conformance"}, {"purpose": "development_piloting"}, {"model": "gpt-5.6-luna"},
+    {"helper_limit": 0}, {"helper_limit": 3}, {"helper_limit": True},
+    {"team_policy_ref": None}, {"broker_policy": POLICY},
+])
+def test_campaign_team_projection_refuses_scope_changes_before_pin(native_team, updates):
+    context, _, _ = native_team
+    _, gate, _, plan, _, _, _ = context
+    plan = plan.model_copy(update={"purpose": "campaign", "model": "gpt-6-luna"})
+    block = wire_tools("executor")
+    reviewed = {role: [{k: v for k, v in block.items() if k != "id"}] for role in ("executor", "helper")}
+    plan.tool_projection_ref = pin_tool_projection(gate.cas, plan, reviewed, campaign_team=True)
+    changed = plan.model_copy(update=updates)
+    for operation in (lambda: read_tool_projection(gate.cas, changed),
+                      lambda: pin_tool_projection(gate.cas, changed, reviewed, campaign_team=True)):
+        with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE|BROKER_SERVER_POLICY"):
+            operation()
+
+
+@pytest.mark.parametrize("modes", [
+    {"campaign_team": 1}, {"campaign_team": "true"},
+    {"campaign_team": True, "conformance_helpers": True},
+    {"campaign_team": True, "helper_collaboration": True}, {},
+])
+def test_campaign_team_projection_requires_one_explicit_mode(native_team, modes):
+    context, _, _ = native_team
+    _, gate, _, plan, _, _, _ = context
+    plan = plan.model_copy(update={"purpose": "campaign", "model": "gpt-6-luna"})
+    block = wire_tools("executor")
+    reviewed = {role: [{k: v for k, v in block.items() if k != "id"}] for role in ("executor", "helper")}
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+        pin_tool_projection(gate.cas, plan, reviewed, **modes)
+
+
 def test_no_controller_cannot_gain_team_capability(admitted):
     _, gate, _, plan, _, _, put = admitted
     plan = plan.model_copy(update={"broker_policy": TEAM_POLICY, "team_policy_ref": put(COMMUNICATION_POLICY)})

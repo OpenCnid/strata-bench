@@ -165,3 +165,29 @@ admission, selected executable skills/handoff and probe disposal. M1.3b.9d keeps
 final qualified gameplay channel binding open: projection /4 is conformance-only,
 not a campaign permit. Do not issue RuntimeQualification by merging unlike profile
 digests. Full T01/T04/T05/T06/T10/T11 remains required, with no M1 paid allowance.
+
+
+M1.3a/.9d now has [profile reconciliation and campaign-catalog source evidence](verification/2026-09-24-m1-profile-reconciliation.md).
+Nine sealed bundles/eleven FINALIZED native profiles verify read-only. At45cf10f,
+team-native-01 matches all98 runtime modules; prior slices have11–12 changed
+modules and two/three absent newer modules. Per-file hashes and SPEC13.5 route
+matrix distinguish retained results from required combined-profile evidence.
+No RuntimeQualification or transfer is issued by the inventory.
+
+NativeToolProjection/5 explicitly enables campaign catalog setup with the team
+policy, selected Luna model, one/two helpers and exact reviewed tools. Projection
+/4 stays conformance-only; production still requires all six campaign proofs
+and every bootstrap/gateway/credential/lease/budget check.169 focused tests pass;
+5/5 readback checks preserve both old /4 exports and all40 authority tables.
+No native /5/game/model execution; no M1 paid authority. New private bundle
+profile-audit-01 is sealed,9files/125018bytes; preserve it and old source bundles.
+
+Next bounded implementation is a credential-free integrated /5 candidate with
+an actual scoped game worker, root/helper boundary attempts and permitted game,
+artifact and team controls. Existing native_team_channel_probe is conformance-
+only with a synthetic worker; do not silently relabel it or M0 pilot machinery.
+Plan each carried route against actual source/control changes, and run missing
+or affected routes. Keep the provider explicitly scripted until a concrete
+bounded actual-model procedure and M1 spending authorization exist. Then finish
+selected skill execution/fresh handoff and one-way probe disposal. T05/T10/T11
+keep all their authentic requirements; .9d/M1 remain in_progress and G1 not_run.

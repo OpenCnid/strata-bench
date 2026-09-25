@@ -455,6 +455,18 @@ A catalog pin grants no helper/game authority, paid execution or isolation pass.
 is credential-free native conformance with one helper and a scripted provider;
 remaining surfaces and complete T04/T06 remain open.
 
+**M1 campaign team catalog.** `NativeToolProjection/5` /
+`native-additional-tools-exact/5` explicitly pins the campaign counterpart to
+the conformance-only team catalog /4. Require the team broker policy, its
+private communication-policy reference, closed settings /3, purpose `campaign`,
+GPT-6 Luna, one or two configured helpers and reviewed exact root/helper tools.
+Do not relabel /4 evidence or infer qualification from catalog compatibility.
+All six campaign runtime proofs, bootstrap/ingress/gateway, lease/roster,
+credential and spending checks remain separate prerequisites. /1–/4 keep their
+original scopes. This auxiliary private artifact adds no experiment record,
+gameplay privilege or execution allowance. [Source and profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md)
+retains full native campaign qualification as open.
+
 ### 6.2 Initial skills, learning and invocation
 
 The versioned `dovetail-eight-immutable-text-support/1` projection extends the earlier body-only capability with reviewed supporting text from the pinned installed plugin. Include root skill/license/requirements files and the references/scripts/assets/agents/eval-viewer surfaces; exclude nested tests, fixtures, VCS and credential paths. Bind complete projected names and bytes to a private source inventory and the sealed bootstrap inventory. Only the eight original top-level skills are indexed. Readable script source grants no execution. The selected corpus and instructions change the runtime profile identity; retain the original body-only profile and its evidence. Installed-source inspection is not native invocation or isolation qualification.

@@ -59,6 +59,13 @@ now passes45/45 per job and26/26 independent reconstruction: one shared queue,
 Final qualified gameplay-profile integration remains .9d; projection /4 remains
 conformance-only. Continue exact-profile boundary composition and remaining
 actual game/credential, skill/handoff and probe-disposal routes.
+The [profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md)
+verifies nine sealed bundles/eleven profiles and compares98 runtime modules.
+Earlier slices have11–12 changed modules; no combined qualification is inferred.
+M1.3b.9d now implements explicit campaign projection /5 with169 focused passes
+and5/5 retained-export/authority checks. Native /5 gameplay integration remains
+unverified. Next compose the credential-free actual-worker candidate and its
+root/helper/allowed-artifact/team controls, then missing skills/probe routes.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -469,7 +476,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.9a | PL/SI/QA | Typed TeamRequest/TeamResponse, private declared policy, recipient-scoped durable cursors, atomic epoch/lease/deadline/idempotency guards; inherits M1.3b.9 coverage | verified | [Core72 cases](docs/verification/2026-09-24-m1-team-core.md) plus [actual native delivery/dedup/cursor/ack](docs/verification/2026-09-24-m1-native-team.md); legacy bytes/receipts retained. Named controller/conformance contract only; final runtime qualification remains .9d. |
 | M1.3b.9b | PL/SI/QA | Explicit native team capability/profile and broker facade with live authenticated scope, policy pin and atomic revocation fencing; inherits M1.3b.9 coverage | verified | [Source417 distinct passes/three opt-in skips](docs/verification/2026-09-24-m1-native-team-source.md) plus [actual metadata/projection/receipt joins](docs/verification/2026-09-24-m1-native-team.md). Old profiles preserved; new projection /4 remains conformance-only. |
 | M1.3b.9c | SI/AR/QA | Actual native same-roster delivery, durable dedup/cursors/ack, helper/foreign-campaign refusal and sealed receipt reconstruction; inherits M1.3b.9 coverage | verified | [Native45/45 per job, independent26/26](docs/verification/2026-09-24-m1-native-team.md),84 focused source tests. Two sequential native agents share one owned synthetic controller/queue;22 team calls,14 settled requests/196 units, two exports. No paid model or N-body capacity claim. |
-| M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | not_started | Projection /4 is conformance-only. Reuse its exact evidence without relabeling purpose; final game/credential/runtime qualification and its declared channel must be reconciled before full .9/G1 acceptance. |
+| M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | in_progress | [Source/profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md): nine sealed bundles/eleven profiles; campaign projection /5 implemented with169 focused passes and5/5 retained-export/authority checks. /4 remains conformance-only; all six campaign proofs remain mandatory. Actual /5 game/credential/native integration is unverified; no RuntimeQualification or scope promotion. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6633,3 +6640,31 @@ retains final qualified gameplay-profile binding. Projection /4 remains
 conformance-only. Next reconcile all SPEC13.5 routes/exact profile deltas, then
 actual game/credential, skill/handoff and probe-disposal boundaries. Complete
 G1 remains not_run, unrelated M2-M7 unchanged, all original failures retained.
+
+
+### 2026-09-24 — M1.3a/.9d profile reconciliation and campaign catalog
+
+Read-only verification checks nine externally pinned native bundles and eleven
+FINALIZED profiles. At45cf10f, all98 runtime modules match team-native-01;
+earlier slices differ in11–12 modules and lack two/three new modules. Complete
+per-file hashes and SPEC13.5 route dispositions are retained. No union of
+historical results becomes a qualification. Old failures and holds remain.
+
+Explicit NativeToolProjection/5 implements the campaign team catalog identity;
+/4 remains conformance-only. Exact selected model, one/two helpers, private team
+policy, closed settings and reviewed wire tools are mandatory. No paid authority
+or RuntimeQualification is issued; all six existing campaign proofs remain
+required. M1.3b.9d is in_progress pending authentic integrated gameplay evidence.
+Coverage F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, partial T01/T04/T06.
+SPEC6.1 records the auxiliary private artifact, with no changed acceptance gate.
+
+169 distinct focused tests pass (98 projection/team,71 admission/ingress/fixture),
+changed-file Ruff/whitespace pass. Read-only current-source reconstruction passes
+5/5: both /4 catalogs, both stopped exports unchanged, all40 authority tables
+unchanged. No game/native/model/desktop execution; exposure$4.887796 and every
+old hold/decision unchanged. Private audit has9files/125018bytes, seal
+3adcb73ce6512e6f1085a24222c29a84533f5dcc44c2efc7d3afe7a8edfbcff3.
+[Full audit and source evidence](docs/verification/2026-09-24-m1-profile-reconciliation.md).
+Next compose the credential-free /5 actual-worker candidate, permitted controls
+and affected isolation routes; then selected skill/handoff and probe disposal.
+No broad unchanged replay, M1 paid call, G1 promotion or unrelated M2–M7 work.

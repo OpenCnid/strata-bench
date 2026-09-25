@@ -164,6 +164,15 @@ complete that coordinator, all-N admission and scoped native projection, then
 actual matched-state and one-way disposal evidence. Existing account, campaign
 activation/publication and all six runtime-proof requirements remain intact.
 
+M1.6j [protected vanilla server/worker](docs/verification/2026-09-25-m1-protected-vanilla.md)
+adds directory-preserving copying and a separate authentic vanilla lifetime.
+Changed case02 proves copier10/10/server12/12 normal exits, real Mineflayer
+connection and26-file stopped capture. First180s failure11/12 stays retained;
+ordering is corrected without extending the deadline.91 focused cases and32/32
+sealed read-only checks pass. Parent launch metadata is corrected separately,
+with original native receipts unchanged. All40 authority tables/holds persist.
+Paired/native probe integration remains implemented_unverified; G1 not_run.
+
 M1.6i [sealed vanilla probe software](docs/verification/2026-09-25-m1-probe-software.md)
 connects the registered pair to exact sealed server inputs under file custody.
 It requires complete vanilla state, preserves explicit path mapping and refuses
@@ -634,6 +643,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6g | AR/SI/RS/QA | Pin prepared probe workspace/catalog into bootstrap and project exact root/helper files through native admission; inherits M1.6a-f, F03/F04/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Projection verification](docs/verification/2026-09-25-m1-probe-broker-projection.md):141 focused cases, read-only137/137+3/3. Exact prepared bootstrap inputs and atomic role projection through actual broker methods with explicit simulation grants. Initial audit path-format failure retained. Native startup and account-purpose gates remain closed; no full native/game qualification. |
 | M1.6h | AR/SI/RS/QA | Copy both prepared worlds into fresh protected writer trees within live pair custody; inherits M1.6a-g, F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [World copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md):47 source passes plus one actual native pair;58/58 read-only checks across success and two retained failures. Both exact copies held together, write denial, normal10/10 process stop each, retained cost/capacity and consumed-pair refusal. Existing native writer path reused. Explicit unlaunched discard does not certify game launch or one-way post-probe disposal. |
 | M1.6i | AR/GI/SI/RS/QA | Bind sealed vanilla software and complete registered state to both held copies; normalize writer path containment; inherits M1.6h, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [Software binding verification](docs/verification/2026-09-25-m1-probe-software.md):52 distinct passes,29/29 read-only reconstruction, two unchanged native-plan checks. Actual resolver/file leases with synthetic game bytes and substituted writer execution; retained fixture/assertion failures, exact software/state mapping and normalized Windows containment. All40 real authority tables unchanged. Native game/readiness/probe admission/disposal remain open. |
+| M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7514,3 +7524,43 @@ then scoped native probe admission, live matching and one-way disposal. Current
 writer launch supports only synthetic and separate E9E reference identities;
 vanilla needs an explicit reviewed extension. Keep unsupported empty-directory
 preservation visible. Unrelated M2-M7 work remains untouched.
+
+### 2026-09-25 — M1.6j authentic protected vanilla server/worker lifetime
+
+Added writer plan /4 with held complete directory manifests, exact native copier
+receipt /3 and post-copy directory checks. Added a separate restored-vanilla
+session using the existing bounded native dispatcher: exact sealed Java/profile,
+complete file/directory custody, reviewed loopback/online/EULA settings, retained
+child identity/token join, held worker connection, one normal worker/server stop
+and stopped-state capture before process handles close. No fabricated telemetry,
+authoritative ticks, native probe admission or whole-profile isolation claim.
+
+IDs: M1.6j, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24, T01/T06/T07/T11. [Verification report](docs/verification/2026-09-25-m1-protected-vanilla.md)
+records91 distinct source/component passes and32/32 sealed read-only checks.
+Retain the initial wrong synthetic launch fixture, metadata-test temporary-parent
+setup failure and evidence collector import error. Ruff and whitespace pass.
+
+Actual case01 connects/stops its worker but hits the unchanged180s server hard
+deadline with incomplete forced11/12 process history. Move complete worker
+validation/import before starting the finite server lifetime; fresh case02 with
+the same180s bound passes normal copier10/10/server12/12, connected Mineflayer,
+34.3396ms child drain and26-file/13,063,255-byte stopped capture. Three specific
+held operator write attempts refuse. Those checks do not qualify full read/
+process/network boundaries or a clean save. All original failed evidence stays.
+
+The audit identifies stale parent game_launched=false preparation metadata in
+native receipts, despite nested owned-ready JVM evidence. Source now records
+attempt/owned-readiness flags; two focused tests pass. Original receipts remain
+unchanged and native work is not repeated for this metadata correction. Sealed
+case02 distinguishes actual executed source and subsequent metadata source.
+Producer/audit seals, commands, pins and exact scope are recorded in the report.
+
+All40 real authority tables remain unchanged, exposure$4.887796/$10 and all
+prior holds/consumed decisions persist; no owned runtime remains. No model calls
+or paid inference, and D18/D19 are not extended. M1.6j remains
+implemented_unverified for paired/native probe integration, M1.6/M1 in_progress,
+G1-G5 not_run and M0/G0 unchanged. Next extend complete directory/software
+mapping into held paired execution, bind live matched state/readiness, stopped
+exports and one-way disposal before native probe admission. Keep T05, scorer
+controls and remaining combined runtime routes open. Unrelated M2-M7 untouched.

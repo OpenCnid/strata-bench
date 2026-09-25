@@ -144,9 +144,34 @@ public final class StrataWriterPreparation {
         } finally {
             if (input != null) input.close();
         }
-        publish(control.resolve("copied.json"), "{\"schema\":\"strata/WriterJavaCopied/2\","
+        Path directoryManifest = control.resolve("directories.tsv");
+        int directoryCount = -1;
+        if (Files.exists(directoryManifest, LinkOption.NOFOLLOW_LINKS)) {
+            if (Files.isSymbolicLink(directoryManifest) || Files.size(directoryManifest) > 8 * 1024 * 1024)
+                throw new Exception("WRITER_DIRECTORY_QUOTA");
+            List<String> directories = Files.readAllLines(directoryManifest, StandardCharsets.US_ASCII);
+            if (directories.size() > 12000) throw new Exception("WRITER_DIRECTORY_QUOTA");
+            HashSet<String> seen = new HashSet<>();
+            for (String encoded : directories) {
+                if (System.nanoTime() >= deadline) throw new Exception("WRITER_COPY_TIMEOUT");
+                String relative = decode(encoded);
+                Path destination = root.resolve(relative).normalize();
+                for (String component : relative.split("/", -1))
+                    if (component.isEmpty() || component.equals(".") || component.equals(".."))
+                        throw new Exception("WRITER_DIRECTORY_INVALID");
+                if (relative.contains("\\") || relative.contains(":") || Path.of(relative).isAbsolute()
+                        || destination.equals(root) || !destination.startsWith(root)
+                        || !seen.add(relative.toLowerCase(java.util.Locale.ROOT)))
+                    throw new Exception("WRITER_DIRECTORY_INVALID");
+                Files.createDirectories(destination);
+            }
+            directoryCount = directories.size();
+        }
+        publish(control.resolve("copied.json"), "{\"schema\":\"strata/WriterJavaCopied/"
+            + (directoryCount < 0 ? "2" : "3") + "\","
             + "\"challenge\":" + quote(challenge) + ",\"files\":" + files
-            + ",\"bytes\":" + total + ",\"root\":" + quote(root.toString()) + "}");
+            + ",\"bytes\":" + total + ",\"root\":" + quote(root.toString())
+            + (directoryCount < 0 ? "" : ",\"directories\":" + directoryCount) + "}");
         waitFor(control.resolve("finish.grant"), challenge, deadline);
         System.out.println("strata-writer-preparation-stopped");
     }

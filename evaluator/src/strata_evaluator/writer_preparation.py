@@ -86,12 +86,31 @@ class WriterPreparationPlanV3(WriterPreparationPlanV2):
     staging_policy: Literal["sequential-bundles512mib/1"]
 
 
+class WriterPreparationPlanV4(WriterPreparationPlanV3):
+    schema_: Literal["strata/PrivateWriterPreparationPlan/4"] = Field(alias="schema")
+    directories: list[str] = Field(max_length=12000)
+
+    @model_validator(mode="after")
+    def directory_scope(self):
+        selected = {name.casefold() for name in self.directories}
+        require(len(selected) == len(self.directories), "WRITER_DIRECTORY_SCOPE")
+        require(not selected.intersection(name.casefold() for name in self.sources),
+                "WRITER_DIRECTORY_SCOPE")
+        for name in [*self.directories, *self.sources]:
+            path = safe_relative(name)
+            require(all(p.as_posix().casefold() in selected for p in path.parents if str(p) != "."),
+                    "WRITER_DIRECTORY_SCOPE")
+        return self
+
+
 def online_preparation(plan):
-    return plan.schema_ in {"strata/PrivateWriterPreparationPlan/2", "strata/PrivateWriterPreparationPlan/3"}
+    return plan.schema_ in {"strata/PrivateWriterPreparationPlan/2", "strata/PrivateWriterPreparationPlan/3",
+                            "strata/PrivateWriterPreparationPlan/4"}
 
 
 def parse_preparation_plan(value):
-    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2 | WriterPreparationPlanV3).validate_python(value)
+    return TypeAdapter(WriterPreparationPlan | WriterPreparationPlanV2 | WriterPreparationPlanV3 |
+                       WriterPreparationPlanV4).validate_python(value)
 
 
 def pinned_inventory(pins, runtime_trees=()):
@@ -260,6 +279,9 @@ class WriterPreparations:
                 manifest = "\n".join(lines).encode("utf-8")
             require(len(manifest) <= 8 * 1024**2, "WRITER_MANIFEST_QUOTA")
             (control / "files.tsv").write_bytes(manifest)
+            if isinstance(plan, WriterPreparationPlanV4):
+                (control / "directories.tsv").write_bytes(b"\n".join(
+                    base64.b64encode(name.encode("utf-8")) for name in sorted(plan.directories)))
             phase("staged")
             environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
             environment["CODEX_HOME"] = plan.sandbox_home
@@ -279,6 +301,8 @@ class WriterPreparations:
             staged_leases.append(FileLease(staged_inventory))
             staged_leases.append(FileLease(pinned_inventory([{"path": str(control / "files.tsv"),
                 "bytes": len(manifest), "sha256": hashlib.sha256(manifest).hexdigest()}])))
+            if isinstance(plan, WriterPreparationPlanV4):
+                staged_leases.append(FileLease(snapshot([control / "directories.tsv"], [])))
             phase("staging_locked")
             require(until - time.monotonic() >= 22, "WRITER_EXPOSURE_INSUFFICIENT")
             challenge = secrets.token_hex(32)
@@ -309,10 +333,12 @@ class WriterPreparations:
                 require(active.observe() is None, "WRITER_JAVA_EARLY_EXIT")
                 time.sleep(0.025)
             copied = strict_json(private_read(control / "copied.json", 8192))
-            require(copied == {"schema": "strata/WriterJavaCopied/2", "challenge": challenge,
+            expected_copy = {"schema": "strata/WriterJavaCopied/2", "challenge": challenge,
                 "files": len(plan.sources), "bytes": sum(pin.bytes for pin in plan.sources.values()),
-                "root": str(tree.path)},
-                "WRITER_COPY_RECEIPT")
+                "root": str(tree.path)}
+            if isinstance(plan, WriterPreparationPlanV4):
+                expected_copy.update(schema="strata/WriterJavaCopied/3", directories=len(plan.directories))
+            require(copied == expected_copy, "WRITER_COPY_RECEIPT")
             def finish_preparation():
                 nonlocal active
                 grant(control / "finish.grant", challenge)
@@ -332,6 +358,9 @@ class WriterPreparations:
                 finish_preparation()
             tree.verify()
             check_tree(tree.path, plan.sources)
+            if isinstance(plan, WriterPreparationPlanV4):
+                require({p.relative_to(tree.path).as_posix() for p in tree.path.rglob("*") if p.is_dir()}
+                        == set(plan.directories), "WRITER_DIRECTORY_SCOPE")
             for path in tree.path.rglob("*"):
                 tree.security.verify(path, plan.writer_sid, group, scope, directory=path.is_dir())
             phase("tree_verified")

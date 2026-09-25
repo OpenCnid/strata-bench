@@ -3,6 +3,15 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6j [protected vanilla server/worker](verification/2026-09-25-m1-protected-vanilla.md)
+adds complete directory preservation and a separate held vanilla launch path.
+The changed authentic case passes copier10/10/server12/12 normal process exits,
+real worker connection and26-file stopped capture. Preserve the first180s
+deadline failure (11/12) and stale parent launch metadata; source fixes ordering
+and flags without relabeling old receipts.91 focused cases and32/32 sealed
+read-only checks pass. All40 authority tables remain unchanged; no paid/model
+execution. Full paired/native probe integration remains implemented_unverified.
+
 M1.6i [sealed vanilla probe software](verification/2026-09-25-m1-probe-software.md)
 connects the registered pair to exact sealed server inputs under file custody.
 It requires complete vanilla state, preserves explicit path mapping and refuses

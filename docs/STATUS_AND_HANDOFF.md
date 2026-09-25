@@ -4,6 +4,26 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6j [protected vanilla server/worker](verification/2026-09-25-m1-protected-vanilla.md)
+adds directory-preserving writer /4 and a separately identified vanilla session.
+Its changed authentic case passes copier10/10/server12/12 normal owned exits,
+real worker connection, three held write denials and26-file stopped capture.
+91 focused cases and32/32 sealed read-only checks pass; all40 authority tables
+remain unchanged, with no model calls or paid M1 authority.
+The first180s deadline failure (11/12) stays sealed. Preflight/import now precedes
+server launch with the same180s bound. Both native receipts retain stale parent
+game_launched=false metadata; nested owned-ready evidence is authoritative for
+this narrow observation, and subsequent source/tests fix parent flags without
+rerunning native execution. Native source and subsequent metadata source are
+archived separately. No owned runtime remains.
+Next connect directory/software support to both registered held copies and the
+live coordinator, then prove initial-state matching, all-N readiness, stopped
+exports and one-way disposal before native probe admission. The pair compiler
+still refuses unsupported empty software directories and closes unlaunched;
+the separate operator session does not silently change that policy. Keep exact
+profile clocks, clean-save and read-isolation gaps visible. T05, protected scorer
+controls and remaining combined runtime routes still block full G1.
+
 M1.6i [sealed vanilla probe software](verification/2026-09-25-m1-probe-software.md)
 connects the registered pair to exact sealed server inputs under file custody.
 It requires complete vanilla state, preserves explicit path mapping and refuses
@@ -12,13 +32,10 @@ unsupported layouts. Writer path containment now normalizes Windows aliases.
 retained native plans pass normalized containment without a rerun. All40 real
 authority tables/holds remain unchanged. Actual game/native probe integration
 stays implemented_unverified, with G1 not_run and no paid execution.
-Next supply complete registered authentic vanilla state and a fresh materialized
-sealed pack, use disjoint input/workspace/evidence namespaces, and verify actual
-protected software copying followed by held server/worker readiness. The source
-ancestor is bookkeeping, never a native read grant. Current writer launch modes
-support synthetic fixtures and the separately identified E9E reference; vanilla
-needs a reviewed launch extension before game execution. Keep probe startup
-closed until complete scoped admission, matching and disposal are implemented.
+M1.6j now supplies a separate authentic restored-vanilla preparation/readiness
+path with disjoint input/workspace/evidence namespaces. The source ancestor
+remains bookkeeping, never a native read grant. Keep probe startup closed until
+complete scoped admission, matching and disposal are implemented.
 
 M1.6h [held protected world copies](verification/2026-09-25-m1-probe-world-copies.md)
 adds a whole-pair native writer lifetime while original files and all resource/

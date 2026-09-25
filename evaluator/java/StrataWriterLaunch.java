@@ -51,6 +51,18 @@ public final class StrataWriterLaunch {
                                                            StandardCharsets.UTF_8)).toList();
         if (!Path.of(command.get(0)).isAbsolute()) throw new Exception("WRITER_LAUNCH_COMMAND");
         Process child = new ProcessBuilder(command).directory(root.toFile()).inheritIO().start();
+        ProcessHandle launched = child.toHandle();
+        String childIdentity = "{\"schema\":\"strata/WriterJavaIdentity/2\",\"challenge\":" + quote(challenge)
+            + ",\"pid\":" + launched.pid() + ",\"process_started_unix_ms\":"
+            + launched.info().startInstant().orElseThrow().toEpochMilli() + ",\"executable\":"
+            + quote(launched.info().command().orElseThrow()) + ",\"requested_root\":" + quote(root.toString()) + "}";
+        Path childPending = control.resolve("launch-child-identity.pending");
+        try (FileChannel file = FileChannel.open(childPending, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
+            var bytes = java.nio.ByteBuffer.wrap(childIdentity.getBytes(StandardCharsets.UTF_8));
+            while (bytes.hasRemaining()) file.write(bytes);
+            file.force(true);
+        }
+        Files.move(childPending, control.resolve("launch-child-identity.json"));
         System.exit(child.waitFor()); // The controller owns every descendant in the retained Job.
     }
 }

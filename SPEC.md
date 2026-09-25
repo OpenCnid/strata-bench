@@ -1728,6 +1728,24 @@ Windows path aliases before writer input/output containment checks. This
 still closes unlaunched and cannot establish actual game state, native probe
 admission, isolation or one-way disposal. Other pack layouts keep separate gates.
 
+`protected-sealed-restored-vanilla-server/1` is a separate operator conformance
+dependency for protected game execution. Writer preparation /4 preserves the
+complete declared directory inventory, including empty directories, with held
+manifests and an exact post-copy check. Bind a genuine restored vanilla profile,
+the original sealed Java identity, complete source files/directories, reviewed
+loopback/online/EULA settings and a fresh protected tree. Keep original software
+and state under file custody. The native gate records its actual server child;
+join that identity to retained Job membership and the writer token before
+accepting readiness. Resolve and import the held Mineflayer worker before
+starting the finite server lifetime. Observe connection, stop the worker once,
+then stop the server once; require complete normal process history and capture
+stopped state before closing process handles. A deadline or forced/incomplete
+exit remains a failed case. No telemetry broker, authoritative ticks, clean-save
+qualification, probe admission or matched-state claim is inferred. This path
+does not change the preceding pair compiler's unsupported-layout refusals.
+[Protected vanilla verification](docs/verification/2026-09-25-m1-protected-vanilla.md)
+records the exact profile and retained failures.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

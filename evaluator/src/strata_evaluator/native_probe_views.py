@@ -47,6 +47,10 @@ class ProbeNativeViews:
 
     def _derive(self, pair_id):
         pair, pair_target = self._source(pair_id)
+        return self._derive_from_source(pair_id, pair, pair_target)
+
+    def _derive_from_source(self, pair_id, pair, pair_target):
+        """Use this call's checked pair; never retain validation between calls."""
         views = {}
         for arm in ARMS:
             views[arm] = {}

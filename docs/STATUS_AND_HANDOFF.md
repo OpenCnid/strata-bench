@@ -4,6 +4,29 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md)
+is in_progress. A frozen read-only production reconstruction of stopped case06
+shows duplicate pair reconstruction in one custody call. Derivation now uses
+that call's checked pair; runtime validation keeps the complete software check
+which already rechecks preparation. No cross-call cache or changed deadlines.
+Measured3.2258s before/1.6808s after, identical pair/view digests and unchanged
+sealed files/database/holds. Initial reader's missing runtime attribute is
+retained separately. All63 focused cases pass in695.59s; diagnostic/source evidence
+is sealed. All40 real authority tables remain unchanged and no owned runtime
+remains after source checks. Fresh native case07 ran after host/port/
+accounting preflight, with the same300s parent,200/170s writer and two60s server
+windows. It finished FAIL in171.35s: both copiers stop normally10/10 each and
+both initial-state checks finish, but joint admission still refuses before
+Minecraft. The inner/outer custody times are97.078/109.406s, both UNCERTAIN;
+the pair is FAILED/FENCED with200 synthetic units and whole capacity retained.
+All40 real authority tables stay unchanged and no owned runtime remains.
+Four producer/profile/tree stores and the final audit are sealed;35/35 read-only reconstruction
+checks pass. Retain the diagnostic import and legacy-directory-inventory reader
+failures; neither changes producer evidence. No unchanged native rerun:
+next profile stopped initial-state/software/persistence validation, preserving
+complete source/lease/budget/capacity/deadline checks. The change improves source
+reconstruction but has not resolved live timing. No M1 paid authority is inferred.
+
 M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
 is in_progress. The opt-in fixture imports26 genuine saved-state files from the
 sealed M1.6j capture into a fresh registered pair. Agent/protocol/capacity sources

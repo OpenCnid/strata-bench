@@ -38,7 +38,10 @@ class ProbeCustody:
         view = self.db.connection.execute("SELECT * FROM probe_native_views WHERE namespace=? AND pair=?",
                                           (self.views.namespace, pair_id)).fetchone()
         require(view is not None and view["state"] == "PREPARED", "PROBE_VIEWS_NOT_PREPARED")
-        views = self.views._derive(pair_id)
+        # The source and both staged trees were just validated above. Derive
+        # their views from that same result, rather than reconstructing the
+        # complete native/checkpoint/pair chain a second time in this call.
+        views = self.views._derive_from_source(pair_id, pair, target)
         require(canonical(views).decode() == view["plan"], "PROBE_SOURCE_CHANGED")
         self.views._check(extended_path(Path(view["target"])), views)
         rows = self.db.connection.execute("SELECT * FROM native_probe_bindings WHERE namespace=? AND pair=?",

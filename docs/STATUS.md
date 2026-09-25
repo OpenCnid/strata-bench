@@ -3,6 +3,17 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md)
+is in_progress. Stopped case06 profiling identifies duplicate pair/preparation
+checks within single calls. The changed source reconstruction takes1.6808s
+versus3.2258s with identical outputs. Fresh validation remains mandatory on each
+call;63 focused cases pass and source evidence is sealed. All40 real authority
+tables remain unchanged. Fresh native case07 fails joint deadline admission
+before Minecraft after both copiers stop normally10/10 each. All holds and the
+171.35s failure are retained; no owned runtime remains. Next profile remaining
+stopped initial-state/software/persistence checks. No unchanged native rerun,
+deadline/acceptance change or paid execution.
+
 M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
 is in_progress. Genuine software/world inputs now enter an opt-in paired check
 with synthetic agent/protocol/capacity sources. Cases03/04 refuse before native

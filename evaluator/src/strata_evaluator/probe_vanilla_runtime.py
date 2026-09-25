@@ -195,7 +195,8 @@ class PairedVanillaRuntime:
             held.software is not None and held.software.policy == DIRECTORY_POLICY,
             "PROBE_PACK_DIRECTORY_POLICY",
         )
-        held.preparation.check()
+        # Software.check includes the complete live preparation, budget,
+        # resource and source check; do not repeat it immediately beforehand.
         held.software.check()
         require(set(held.writers) == set(self.plans), "PROBE_WORLD_ROSTER")
         for arm, writer in held.writers.items():

@@ -7,6 +7,18 @@ M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
 not_run. The active long-horizon goal is M1/G1 only, including its required
 scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
 
+M1.6m.1 [validation cost](docs/verification/2026-09-25-m1-pair-validation-cost.md)
+is in_progress. Stopped case06 profiling identifies duplicate pair reconstruction
+within one custody call and duplicate preparation validation within one runtime
+call. Removing only those duplicates reduces the measured source check from
+3.2258s to1.6808s with identical results; every subsequent call revalidates state.
+All63 focused cases pass; diagnostic/source evidence is sealed and all40 real
+authority tables remain unchanged. Fresh case07's two native copiers stop
+normally10/10 each; joint preflight still refuses before Minecraft. Its171.35s
+failed attempt and all holds remain sealed. No native agent/model execution.
+Next profile stopped initial-state/software/persistence validation before further
+source changes; no unchanged native rerun or deadline relaxation.
+
 M1.6m [actual paired vanilla verification](docs/verification/2026-09-25-m1-paired-vanilla.md)
 is in_progress. The registered world/software are genuine; agent/protocol/capacity
 fixtures are synthetic and no model or worker body is admitted. Retain the
@@ -680,6 +692,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
 | M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
 | M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Actual paired vanilla evidence](docs/verification/2026-09-25-m1-paired-vanilla.md): two focused factory passes;101/101 sealed reconstruction checks. Case06 real copiers stop normally10/10 each, then joint preflight refuses before Minecraft. Earlier refusals/failures retained with all holds. Measure validation cost before another changed profile. Agent/protocol/capacity fixtures remain synthetic; full source/admission, all-N matching, clocks/disposal and G1 remain open. |
+| M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | in_progress | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md):63 focused passes; stopped case06 reconstruction3.2258s before/1.6808s after, same pair/view digests and unchanged source. Fresh unchanged-window case07 retains joint deadline refusal before Minecraft after both copiers stop normally10/10 each. All40 authority tables/holds unchanged. Next profile remaining stopped preflight cost; full native timing remains unverified. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7739,3 +7752,46 @@ Next measure the stopped validation path, resolve its demonstrated timing cost
 without dropping checks, and select a changed profile only on that evidence.
 Full source/native admission, all-N live matching, clocks/disposal, T05, scorer
 controls and combined runtime routes remain open. Unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6m.1 measured source validation; retained case07 deadline
+
+Stopped case06 profiling finds two reconstructions of the complete native/
+checkpoint/pair chain within one custody call. Reuse only that call's checked
+pair for view derivation; retain every view-tree/plan/binding/account check and
+revalidate on the next call. Runtime.check retains the full software check
+which already includes live preparation/budget/resource/source validation,
+removing only its immediately preceding duplicate. No cross-call cache or
+deadline/policy/acceptance change. Production files: native_probe_views.py,
+probe_custody.py and probe_vanilla_runtime.py in evaluator/src/strata_evaluator.
+
+Before/after stopped measurements are3.2258/1.6808s, with identical pair/view
+digests, retained FENCED state and200 synthetic units, unchanged externally sealed
+source files/database and no dispatch. Preserve the initial diagnostic reader's
+missing-runtime failure. Focused custody/native-view/paired-runtime/contract
+verification passes63 cases in695.59s. Ruff/whitespace pass. Documentation QA
+preserves all405 original IDs, adds M1.6m.1, preserves append-only history and
+unchanged SPEC, and checks1,442 local links. [Verification report](docs/verification/2026-09-25-m1-pair-validation-cost.md).
+
+After fresh host/port/WAL-aware accounting preflight, changed-source case07 uses
+the same300s preparation,200/170s writer and two60s server windows. It fails in
+171.35s: both real copier trees stop normally with10/10 owned processes each,
+both initial-state checks finish29.547s apart, then joint preflight still refuses
+PROBE_WORLD_DEADLINE before Minecraft. Inner/outer custody closes UNCERTAIN at
+97.078/109.406s; pair FAILED/FENCED, whole8GiB/6GiB capacity and200 synthetic units
+retained. No server/model/worker body starts. Genuine world/software inputs and
+synthetic agent/protocol/capacity sources remain explicitly separate.
+
+Four producer/profile/tree stores and the final audit are sealed; corrected
+read-only reconstruction passes35/35 and final documentation QA resolves1,443
+local links. Preserve the reconciliation import-name collision and first audit's
+unsupported legacy directory-sidecar expectation, with original seals unchanged.
+All40 real authority tables match, exposure$4.887796/$10 with all historical holds
+and consumed decisions; no owned runtime remains. No M1 paid authority inferred.
+
+Coverage inherits M1.6m: F01/F02/F03/F04/F07/F08/F09/F11/F16,
+N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11.
+M1.6m.1/M1 remain in_progress; G1-G5 not_run, M0/G0 and unrelated M2-M7 unchanged.
+Next profile stopped initial-state/software/persistence validation and resolve
+the remaining measured cost without weakening checks. No unchanged native rerun.
+Full source/native admission, all-N matching, clocks/disposal, T05, scorer controls
+and combined runtime routes remain open.

@@ -69,9 +69,19 @@ denied old-helper resume, independent16/16 reconstruction. Original33/34 false
 upstream-count failure retained. All40 authority tables remain unchanged and
 the private bundle is sealed. Completed-helper retirement only.
 
-Next bounded work: fix source-bound native cell-drain handling of additional
-notify outputs without accepting notification text as terminal evidence; test
-spoofed completions and retained pending holds. Then selected interruption/drain,
+M1.3b.5 has [notification-safe framed drain evidence](verification/2026-09-24-m1-notification-drain.md):
+policy /2 ignores scalar exec notifications as status, permits separate native
+content/image frames and retains all ambiguous holds. 200 focused cases,
+actual34/34 and independent20/20 pass. Sealed prior selected-state capture
+independently confirms scalar-only silent yields remain unresolved. /1 histories
+are not relabeled. Both relevant source versions and actual spoofed notices are
+retained in the new private seal. No real authority or input changed.
+
+Next bounded work: M1.3b.6, inspect and qualify held native whole-process drain
+for scalar-only yields, or establish unambiguous runtime framing. Existing
+ManagedProcess/WindowsJob already owns no-breakaway descendants, but durable
+proof must establish actual closure, not configuration or parent disappearance.
+Then selected interruption/drain,
 correct-team versus cross-team communication and remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential

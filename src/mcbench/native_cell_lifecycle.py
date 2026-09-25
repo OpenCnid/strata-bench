@@ -11,16 +11,18 @@ from .native_retirement import _CompletedResponse, private_bytes
 from .records import BudgetLedger
 from .storage import canonical, require
 
-POLICY = "native-source-bound-cell-drain/1"
+POLICY = "native-source-bound-cell-drain/2"
 
 
 def _text(value):
     if isinstance(value, str):
         return value
-    require(isinstance(value, list) and all(isinstance(x, dict) and
-        x.get("type") in {"text", "input_text"} and isinstance(x.get("text"), str) for x in value),
+    require(isinstance(value, list) and all(isinstance(x, dict) and (
+        x.get("type") in {"text", "input_text"} and isinstance(x.get("text"), str)
+        or set(x) == {"type", "image_url"} and x["type"] == "input_image"
+        and isinstance(x["image_url"], str) and x["image_url"].startswith("data:image/")) for x in value),
         "NATIVE_CELL_RESULT_SHAPE")
-    return "\n".join(x["text"] for x in value)
+    return "\n".join(x["text"] for x in value if "text" in x)
 
 
 def _status(output):
@@ -81,13 +83,27 @@ def require_native_cells_drained(db, cas, plan, thread):
             key = output.get("call_id")
             if key not in issued:
                 continue
-            require(key not in seen, "NATIVE_CELL_RESULT_DUPLICATE")
-            seen.add(key)
             call, ordinal = issued[key]
             fields = ("type", "namespace", "name", "call_id", "input" if call["name"] == "exec" else "arguments")
             require(row["ordinal"] > ordinal and key in in_calls and
                     all(in_calls[key].get(k) == call.get(k) for k in fields), "NATIVE_CELL_RESULT_SCOPE")
             value = output.get("output")
+            require(output["type"] == ("custom_tool_call_output" if call["name"] == "exec"
+                    else "function_call_output"), "NATIVE_CELL_RESULT_SCOPE")
+            if call["name"] == "exec" and isinstance(value, str):
+                # Native notify() emits arbitrary model-controlled strings under
+                # the exec call ID. Even a perfect terminal/pending-header mimic
+                # is not authoritative cell evidence. Silent native yields also
+                # use this ambiguous shape: retain the hold until an unambiguous
+                # frame or whole-process drain can establish closure.
+                continue
+            require(key not in seen, "NATIVE_CELL_RESULT_DUPLICATE")
+            seen.add(key)
+            require(isinstance(value, list) and value and isinstance(value[0], dict)
+                    and value[0].get("type") in {"text", "input_text"}
+                    or call["name"] == "wait" and isinstance(value, str)
+                    and re.fullmatch(r"aborted by user after [0-9]+(?:\.[0-9]+)?s", value),
+                    "NATIVE_CELL_RESULT_SHAPE")
             require(key not in observed or canonical(observed[key][0]) == canonical(value),
                     "NATIVE_CELL_RESULT_CHANGED")
             observed.setdefault(key, (value, row["ordinal"]))

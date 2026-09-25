@@ -57,6 +57,14 @@ def test_incompatible_selected_retirement_profile_refuses_before_setup(tmp_path,
     assert not (tmp_path / "absent-output").exists()
 
 
+@pytest.mark.parametrize("value", [True, 1, "true"])
+def test_notification_retirement_requires_selected_profile(tmp_path, monkeypatch, value):
+    monkeypatch.syspath_prepend(str(TOOLS))
+    with pytest.raises(Fault, match="RETIREMENT_NOTIFICATIONS_REQUIRE_SELECTED_PROFILE"):
+        fixture.run(tmp_path / "absent-binary", tmp_path / "absent-output", retirement_notifications=value)
+    assert not (tmp_path / "absent-output").exists()
+
+
 @pytest.mark.parametrize("case", ["positive", "missing", "rejected_forwarded", "wrong_digest", "duplicate",
                                   "no_credential", "unknown_forwarded", "duplicate_admitted", "empty",
                                   "received_unforwarded", "malformed_identity"])

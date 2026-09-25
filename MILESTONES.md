@@ -33,6 +33,10 @@ helper lifecycle and cross-team communication before full qualification.
 M1.3b.4 now has [selected retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md),
 16/16 independent reconstruction with original33/34 retained. Next resolve
 notification-aware cell drain without allowing status-text spoofing.
+M1.3b.5 now has [notification-safe framed drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):
+200 focused cases,34/34 native checks and20/20 independent reconstruction.
+Ambiguous scalar-only silent yields retain holds; qualified whole-process drain
+or unambiguous runtime framing remains required before lifecycle closure.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -434,6 +438,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.2 | SI/AR/QA | Native code-mode output/media local-file and network routes with owned private/public media controls; inherits M1.3b coverage | verified | [Named media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md): six denied routes plus exact public PNG per actor;49 verifier tests and33/33 independent reconstruction of11 native requests. Original75/76 review-pending report and rejected incomplete seal retained. Notification and other encodings remain open; no full isolation qualification. |
 | M1.3b.3 | SI/AR/QA | Selected-profile private state, live cell ownership and notification routing; inherits M1.3b coverage | verified | [Named state/notification evidence](docs/verification/2026-09-24-m1-state-boundary.md):41 existing plus36 new cases;12 settled native requests and34/34 independent reconstruction. Original failed15/41 with uncertain synthetic reservation and changed45/46 review-pending report retained. No cross-team, full lifecycle, probe-disposal or runtime qualification claim. |
 | M1.3b.4 | SI/AR/QA | Selected-profile helper revocation, proved retirement and replacement with retained consumption; inherits M1.3b coverage plus F11/C18 | verified | [Named retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md):40 existing and66 selected verifier cases;15 settled native requests plus one rejected old-helper resume,16/16 independent audit. Original33/34 upstream-count failure retained. Completed helper only; notification-aware drain, interruption and full lifecycle remain open. |
+| M1.3b.5 | SI/AR/QA | Distinguish authoritative native cell result frames from model-controlled notification text; retain holds on ambiguous scalar yields; inherits M1.3b.4 coverage | verified | [Named framed-drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):200 focused cases,34/34 actual native and20/20 audit; nine forged-status notifications cannot replace three actual content frames. /1 duplicate refusal and scalar-yield limitation retained. No full lifecycle qualification. |
+| M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain or unambiguous runtime framing for scalar-only silent yields; inherits M1.3b.5 coverage | in_progress | [Recorded limitation](docs/verification/2026-09-24-m1-notification-drain.md): actual selected-state helper capture refuses under /2 with NATIVE_CELL_RESULT_MISSING. Inspect held ManagedProcess/WindowsJob shutdown and durable evidence; no inferred release from terminal parent status, model text or stop configuration. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6415,3 +6421,26 @@ full Ruff and whitespace pass. No paid inference, Minecraft or new allowance.
 Next resolve the discovered notification/cell-drain parser gap, including
 spoofed terminal text and retained pending holds, then cross-team boundaries.
 M1.3b.4 verifies completed-helper retirement only; M1/G1 remain open.
+
+
+### 2026-09-24 — M1.3b.5 notification-safe native frames
+
+Changed native-source-bound-cell-drain to /2: model-controlled scalar notify
+outputs cannot establish handles/completion; require a separate exact native
+content frame, retain duplicate/change/source/type checks, allow inline image
+payloads without using them as status, and preserve pending/uncertain holds.
+Actual selected native retirement variant emits nine forged-status notifications
+and three public images;34/34 original checks and20/20 independent reconstruction
+pass,15 settled requests/210 synthetic units plus one denied old-helper resume.
+Historical /1 rejects this same capture as duplicate; its source/result is kept.
+200 focused lifecycle/retirement/broker/export/checkpoint/verifier tests pass;
+full Ruff/whitespace pass. All40 real authority tables remain unchanged, no
+owned process remains. [Source/native evidence and seal](docs/verification/2026-09-24-m1-notification-drain.md).
+
+SPEC6 and handoff now explicitly retain a current limitation: native scalar-only
+silent yields are indistinguishable from notification text at this seam and
+refuse with NATIVE_CELL_RESULT_MISSING. This was verified on the existing sealed
+selected-state capture without rerun or history mutation. M1.3b.5 is verified
+only for the content-frame path and conservative refusal; M1.3b.6 now tracks
+qualified whole-process drain or stronger runtime framing. No gate reduction,
+paid authority, release or unrelated M2-M7 scope is implied.

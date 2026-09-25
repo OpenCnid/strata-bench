@@ -35,5 +35,7 @@ probe-disposal and actual-game boundaries remain unqualified.
 
 The [selected retirement slice](verification/2026-09-24-m1-retirement-boundary.md)
 adds16/16 independent reconstruction: rejected old-helper resume, proved slot
-release and fresh replacement. Next fix notification-aware cell-drain evidence;
-notification prose must never stand in for native completion.
+release and fresh replacement. [Notification-safe framed drain](verification/2026-09-24-m1-notification-drain.md)
+now passes200 focused cases,34/34 native and20/20 independent checks.
+Scalar-only silent yields still retain holds; whole-process drain or unambiguous
+native framing remains necessary. Full lifecycle/G1 remains open.

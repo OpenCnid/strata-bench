@@ -77,5 +77,12 @@ game/artifact/team controls. No native /5 qualification or M1 spending authority
 
 The [integrated campaign candidate fixture](verification/2026-09-24-m1-campaign-candidate-source.md)
 now combines the scoped worker path with team and owned root/helper boundary
-probes.89 source checks pass; authentic invocation is pending explicit M1 outer
-lifecycle preparation. No native/game/model launch or authority change occurred.
+probes.89 source checks pass. [Actual M1 integration](verification/2026-09-24-m1-native-game.md)
+now adds203 distinct orchestration/export checks,97/97 native candidate checks,
+26/26 independent reconstruction and3/3 retained-export/marker checks. One real
+look action, permitted artifacts/team and root/helper boundary attempts join in
+the same vanilla profile. Original pre-native and outer-export failures remain
+sealed; the corrected stopped reader exports only a copy, without a game rerun.
+All40 authority tables remain unchanged. No paid M1 inference or qualification.
+Next: selected executable skills/fresh handoff, then remaining client/log/registry
+and probe boundaries. .9d/M1 in_progress; G1 not_run.

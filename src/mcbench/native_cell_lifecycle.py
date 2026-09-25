@@ -47,10 +47,12 @@ def _status(output):
 def require_native_cells_drained(db, cas, plan, thread, *, stopped_job=False):
     """Reconstruct from immutable per-call receipts, retaining history across compaction."""
     from .native_admission import context_metadata
+    require(type(stopped_job) is bool, "NATIVE_CELL_DRAIN_SCOPE")
     requests = db.execute("SELECT a.rowid ordinal,a.*,i.state,i.request FROM native_request_admissions a "
         "JOIN inference_attempts i ON i.operation=a.operation WHERE a.job=? AND a.thread=? ORDER BY a.rowid",
         (plan.job_id, thread)).fetchall()
     issued, observed, first_seen = {}, {}, {}
+    uninterpreted = set()
     for row in requests:
         require(row["state"] == "SETTLED", "METERING_UNKNOWN")
         attempt = strict_json(row["request"])
@@ -84,12 +86,22 @@ def require_native_cells_drained(db, cas, plan, thread, *, stopped_job=False):
             if key not in issued:
                 continue
             call, ordinal = issued[key]
-            fields = ("type", "namespace", "name", "call_id", "input" if call["name"] == "exec" else "arguments")
+            custom = call["type"] == "custom_tool_call"
+            fields = ("type", "namespace", "name", "call_id", "input" if custom else "arguments")
             require(row["ordinal"] > ordinal and key in in_calls and
                     all(in_calls[key].get(k) == call.get(k) for k in fields), "NATIVE_CELL_RESULT_SCOPE")
             value = output.get("output")
-            require(output["type"] == ("custom_tool_call_output" if call["name"] == "exec"
+            require(output["type"] == ("custom_tool_call_output" if custom
                     else "function_call_output"), "NATIVE_CELL_RESULT_SCOPE")
+            if key in uninterpreted:
+                # Preserve contradictory/duplicate-source detection, but never
+                # interpret an unfamiliar tool's response as lifecycle evidence.
+                require(key not in seen, "NATIVE_CELL_RESULT_DUPLICATE")
+                seen.add(key)
+                require(key not in observed or canonical(observed[key][0]) == canonical(value),
+                        "NATIVE_CELL_RESULT_CHANGED")
+                observed.setdefault(key, (value, row["ordinal"]))
+                continue
             if call["name"] == "exec" and isinstance(value, str):
                 # Native notify() emits arbitrary model-controlled strings under
                 # the exec call ID. Even a perfect terminal/pending-header mimic
@@ -119,18 +131,29 @@ def require_native_cells_drained(db, cas, plan, thread, *, stopped_job=False):
             if call.get("namespace") != "functions":
                 continue
             name = call.get("name")
-            require(name in {"exec", "wait"}, "NATIVE_CELL_UNKNOWN_TOOL")
+            recognized = isinstance(name, str) and name in {"exec", "wait"}
+            require(recognized or stopped_job, "NATIVE_CELL_UNKNOWN_TOOL")
             key = call.get("call_id")
             require(isinstance(key, str) and 0 < len(key) <= 256 and key not in issued and key not in first_seen,
                     "NATIVE_CELL_ISSUANCE_REUSED")
-            require(call.get("type") == ("custom_tool_call" if name == "exec" else "function_call") and
-                    isinstance(call.get("input" if name == "exec" else "arguments"), str),
+            require(isinstance(name, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,128}", name) and
+                    call.get("type") in {"custom_tool_call", "function_call"} and
+                    (not recognized or call["type"] == (
+                        "custom_tool_call" if name == "exec" else "function_call")) and
+                    isinstance(call.get("input" if call["type"] == "custom_tool_call" else "arguments"), str),
                     "NATIVE_CELL_ISSUANCE_SHAPE")
             issued[key] = (call, row["ordinal"])
-    require(type(stopped_job) is bool, "NATIVE_CELL_DRAIN_SCOPE")
+            if not recognized:
+                uninterpreted.add(key)
     pending, known, unresolved = {}, set(), set()
     ambiguous_execs = set()
     for key, (call, ordinal) in issued.items():
+        if key in uninterpreted:
+            # Even an exact unsupported-tool string is not proof that this
+            # reader understands the tool. Only the whole-job fence disposes
+            # of it; this never qualifies tool isolation or successful effects.
+            unresolved.add(key)
+            continue
         args = None
         if call["name"] == "wait":
             args = strict_json(call["arguments"])
@@ -181,8 +204,12 @@ def require_native_cells_drained(db, cas, plan, thread, *, stopped_job=False):
         require(stopped_job, "NATIVE_CELL_DRAIN_PENDING")
         from .native_process_drain import require_process_drain
         fence = require_process_drain(db, cas, plan)
-        return {"policy": "native-process-fenced-cell-disposal/1", "issued_tools": len(issued),
+        result = {"policy": "native-process-fenced-cell-disposal/1", "issued_tools": len(issued),
                 "observed_yielded_cells": len(known), "observed_pending_before_fence": len(pending),
                 "unresolved_call_ids": sorted(unresolved), "pending_cells": 0, "process_fence": fence,
                 "tool_success_inferred": False}
+        if uninterpreted:
+            result.update(policy="native-process-fenced-cell-disposal/2",
+                          uninterpreted_call_ids=sorted(uninterpreted))
+        return result
     return {"policy": POLICY, "issued_tools": len(issued), "yielded_cells": len(known), "pending_cells": 0}

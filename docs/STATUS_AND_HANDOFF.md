@@ -15,6 +15,13 @@ boundaries with positive permitted gameplay/artifact controls. Historical
 restricted-tool successes and same-user sibling-read/loopback failures retain
 their exact profiles. No runtime qualification has been issued.
 
+Latest: [actual M1 candidate and stopped reconstruction](verification/2026-09-24-m1-native-game.md)
+passes native97/97, independent26/26 plus3/3 retained-export/marker checks;
+203 distinct source checks. Its original outer export failure remains sealed.
+Do not repeat the game run to change that verdict. Next implement/verify selected
+executable skill loading and fresh handoff, then reconcile remaining client/log/
+registry and one-way probe routes against the exact integrated profile.
+
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
 track necessary M3 dependencies without authorizing unrelated later work.
@@ -201,9 +208,9 @@ Luna metadata/one helper and keeps native/provider/controller accounting in the
 private simulation store. Team readiness is synthetic; do not claim N-body
 capacity. The fixture combines game, artifact, team and owned boundary controls,
 including actual-profile fake credential target existence and direct shell/
-patch dispatch refusal.89 focused source checks pass, no authentic invocation.
+patch dispatch refusal.89 focused source checks preceded authentic invocation.
 
-Next prepare explicit M1 outer game lifecycle orchestration and one fresh
+That source checkpoint required explicit M1 outer game lifecycle orchestration and one fresh
 pinned integration case. tools/m0_native_game.py has useful held pack/worker,
 normal stop, journal and ownership primitives, but run/run_plan validates M0
 retention/model/helper identities and cannot be silently relabeled or bypassed.
@@ -218,3 +225,39 @@ All40 authority tables and exposure$4.887796/holds unchanged. No live owned
 fixture process remains, no native/game/model/desktop run occurred, no M1 paid
 allowance. M1.3b.9d/M1 stay in_progress, G1 not_run. Full skill/handoff, client,
 credential, settings/scorer and probe obligations remain in the route audit.
+
+## Actual campaign candidate and current next work
+
+The explicit tools/m1_native_game.py runner now uses the existing held restored
+pack/minor12 worker lifecycle with a separate M1 plan. It requires executable
+controller records while keeping provider/readiness/store simulation labels;
+M0 retention and permit gates stay on their original branch. No paid authority.
+Run01's EXAMPLE_NOT_EXECUTABLE failure is sealed at
+fdc85177a9d5bd258f70b2aa32f29dfe987fc9a093ba93759118a2ee23b19002.
+
+Changed run02: native97/97, root7/helper4 settled requests,154 synthetic units,
+one authentic look/one primitive, all owned processes normally terminal.
+Profile88adebd2e3aec639198862bd969d202dff0cc7a6bd49fd26252a80cdf0469ecb.
+Its outer result stays fail/NATIVE_CELL_UNKNOWN_TOOL because stopped export
+rejected the deliberate unsupported shell/patch calls. Producer3,999files,
+116,659,953bytes; seal11fb7582ab82269cc6f00a5135818681d4f6f1681936215a84f3cce49b959b7e.
+Both old one-use preparation/run scripts are history, never resume commands.
+
+The corrected native cell reader retains unknown calls under separate stopped
+disposal /2, requires the original zero-active held process proof and infers no
+success/isolation. Early retirement stays strict.108 focused cases pass in37.20s;
+95 disjoint orchestration cases give203 total. Offline26/26 reconstructs the
+sealed source and exports only its copied controller/CAS;3/3 confirms old team
+exports unchanged and the extracted private module marker absent. Consumer
+bundle326files/5,940,237bytes; seal
+ce2800d9e88603dcdb86d7adced8e87b7dfb76827ad415c9dc4b23e28affcb77.
+Private paths end in2026-09-24-m1-native-game-02 and
+2026-09-24-m1-native-game-audit-01. Preserve failed seal/preparation/query checks
+and native cache WALs. No original snapshot, result or source was rewritten.
+
+Continue M1.4 selected executable skills/fresh handoff and .9d route reconciliation
+using this actual-worker capture wherever unchanged. Native /5 campaign readiness
+remains synthetic; exact Forge/client, log/registry, scorer and probe disposal
+obligations remain open. A later changed combined profile must carry source pins
+and justify affected authentic cases. All40 authority tables match; exposure
+$4.887796/holds unchanged. No M1 paid allowance, restored session or new gate pass.

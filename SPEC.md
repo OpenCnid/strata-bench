@@ -11,6 +11,16 @@ failure, profile, unresolved hold and consumed decision. The
 [opening G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md) supersede
 older next-action instructions. No acceptance threshold or product feature changes.
 
+**M1 stopped native disposition (2026-09-24):** unfamiliar source-bound function
+or custom calls remain invalid for early helper retirement. After the complete
+owned native process tree is proved terminal, private stopped-component export
+may retain those IDs as uninterpreted and unresolved under
+`native-process-fenced-cell-disposal/2`, with `tool_success_inferred=false`.
+Validate issuance/return scope and reject malformed, duplicate or conflicting
+evidence. No result string grants tool success, isolation qualification, restore,
+replay or cost refund. Preserve existing /1 exports and the original failed outer
+integration result. [Implementation and actual evidence](docs/verification/2026-09-24-m1-native-game.md).
+
 **September24 M0 closure (v0.2.184):** M0 verified; G0 pass for the named D14
 development feasibility slice; G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md)
 and [final assembly](docs/verification/2026-09-24-g0-assembly.md) supersede historical

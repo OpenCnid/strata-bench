@@ -1,4 +1,4 @@
-"""Export the implemented public contracts; do not export private schemas here."""
+"""Export implemented contracts into separate public/operator/evaluator domains."""
 
 import json
 import sys
@@ -20,7 +20,8 @@ def evaluator_models():
     # Operator build only; the evaluator package stays outside gameplay tooling.
     sys.path.insert(0, str(ROOT / "evaluator/src"))
     from strata_evaluator.native_probe_projection import NativeProbeArtifactSelection, NativeProbeArtifactProjection
-    return [*EVALUATOR_RECORDS, NativeProbeArtifactSelection, NativeProbeArtifactProjection]
+    from strata_evaluator.probe_pairs import ProbeFixture, ProbePairRequest
+    return [*EVALUATOR_RECORDS, NativeProbeArtifactSelection, NativeProbeArtifactProjection, ProbeFixture, ProbePairRequest]
 
 OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeRetentionPolicy, NativeRetentionPolicyV2, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
                        E9ELaunchProfile, FrozenE9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput)

@@ -1,0 +1,121 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/ProbeFixture/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "instance_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Instance Id",
+      "type": "string"
+    },
+    "pack_lock": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Pack Lock",
+      "type": "string"
+    },
+    "world_files": {
+      "additionalProperties": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "maxProperties": 200000,
+      "minProperties": 1,
+      "title": "World Files",
+      "type": "object"
+    },
+    "body_states": {
+      "patternProperties": {
+        "^[A-Za-z0-9_.:-]{1,128}$": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "title": "Body States",
+      "type": "object"
+    },
+    "keymaps": {
+      "patternProperties": {
+        "^[A-Za-z0-9_.:-]{1,128}$": {
+          "anyOf": [
+            {
+              "pattern": "^cas:sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "title": "Keymaps",
+      "type": "object"
+    },
+    "control_cards": {
+      "patternProperties": {
+        "^[A-Za-z0-9_.:-]{1,128}$": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "title": "Control Cards",
+      "type": "object"
+    },
+    "public_goal": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Public Goal",
+      "type": "string"
+    },
+    "backend_initialization": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Backend Initialization",
+      "type": "string"
+    },
+    "runtime_policy": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Runtime Policy",
+      "type": "string"
+    },
+    "tools": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Tools",
+      "type": "string"
+    },
+    "observation_action_limits": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Observation Action Limits",
+      "type": "string"
+    },
+    "information_policy": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Information Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "is_example",
+    "instance_id",
+    "pack_lock",
+    "world_files",
+    "body_states",
+    "keymaps",
+    "control_cards",
+    "public_goal",
+    "backend_initialization",
+    "runtime_policy",
+    "tools",
+    "observation_action_limits",
+    "information_policy"
+  ],
+  "title": "ProbeFixture",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

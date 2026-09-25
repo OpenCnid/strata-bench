@@ -1622,6 +1622,16 @@ projection rule. [Source and stopped-capture verification](docs/verification/202
 does not establish complete clone matching, content review, actual state reset,
 dispatch authority or disposal; every requirement above and T11 remains binding.
 
+The private `ProbeFixture/1` / `ProbePairRequest/1` preparation candidate binds
+protocol instance, selection and order indices, complete checkpoint roster and
+common configuration before creating two separate file trees. It reserves
+one-use instance/world identities, preserves failed-copy evidence, checks exact
+staged bytes/directories and excludes session/cache imports. A synthetic t=0
+case requires zero recorded exposure and identical artifact surfaces.
+[Pair staging evidence](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+has no dispatch authority: actual native/world initial state, resource admission,
+held launch custody, isolation and one-way disposal remain separately required.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

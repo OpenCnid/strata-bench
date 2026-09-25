@@ -120,6 +120,17 @@ M1.6a implemented_unverified pending complete pre-start pair binding, actual
 native/world clone execution and one-way disposal. All40 authority tables stay
 unchanged. No native/game execution or paid inference in this task.
 
+M1.6b [one-use pair staging](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+now passes80 source checks,18/18 N=1 synthetic preparation/reopen checks and
+21/21+2/2 independent reconstruction. Protocol indices, full source roster and
+common parameters bind two separate disk trees; exact byte/directory checks,
+failed-copy fencing and t=0 equality/zero designed gain pass their named scope.
+No native/world probe or resource/launch/isolation qualification is inferred.
+Five unresolved policy/config references in old matched-retention03/r11 prevent
+its reuse as a complete new pair source; preserve it unchanged. Next implement
+a disposable probe runtime adapter with fresh resolved source, local adaptation
+and one-way disposal, retaining campaign activation/import fences. USD0.
+
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
 agents.enabled=false; its absence left collaboration advertised despite the
@@ -545,6 +556,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
+| M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7076,3 +7088,45 @@ pre-start equal body/world/keymap/model/tools/budget/prompt manifests, then actu
 disposable clones and canary disposal. Content/corpus review remains necessary;
 matching selected artifacts is not proof of t=0 or an execution permit. Remaining
 client/log/registry, T05 and scorer contracts still block complete G1.
+
+
+### 2026-09-25 — M1.6b one-use matched pair staging
+
+[Executed preparation and audit](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+adds private ProbeFixture/1 and ProbePairRequest/1, exact protocol instance/
+selection/order indices and full source-roster/checkpoint binding. Common model/
+runtime/plugin/backend/track/capability/information/communication/budget/goal/
+keymap/control settings accompany two separate actual disk copies. Admitted
+cognitive artifacts are the only permitted difference. Arm labels remain private;
+copy directories are neutral. Empty member profile/backend-cache directories are
+verified as empty, without claiming a live reset. Reserve instance/fixture/world
+identity before copying; overlapping/relabelled reuse refuses. Failed copies
+retain intent/files and cannot rearm. Complete source reconstruction and file/
+directory/byte/link checks precede PREPARED and every later verification.
+
+Initial10 pass/one fixture assertion failure: canonical file order copied the
+external team file first; replace the wrong level.dat expectation with actual
+first-success/second-absence checks. Intermediate28 pass and expanded9 pass/25
+deselected overlap; final34 pair+46 record/evaluator cases=80 pass. Ruff and
+whitespace pass. No runtime/canonical/public schema changes. Two isolated N=1
+synthetic preparations (retained/t0) pass18/18, including reopen; zero source
+exposure plus identical bytes produces zero designed seeded-policy gain at t=0.
+Independent read-only21/21+2/2 recomputes source plan, actual inventories/diffs,
+world independence, empty state, events and unchanged budgets/database dumps.
+Producer592 files/5,777,719 bytes and audit6 files/15,275 bytes are sealed; exact
+hashes in report. Each source fixture retains56 synthetic units, no added model/
+game call. All40 WAL-aware real authority tables unchanged, exposure/holds and
+consumed decisions preserved, USD0 and no owned runtime process.
+
+Read-only old matched-retention03/r11 source audit finds unresolved information,
+runtime, backend-capability, inference and agent-capability references; its team
+policy resolves. Never backfill/relabel this historical synthetic/native capture.
+Use a fresh fully resolved source for the new adapter. NativeLaunch has no probe
+purpose; campaign activation and evaluation-publication fences must remain while
+supporting disposable probe-local adaptation. M1.6b implemented_unverified;
+M1.6 in_progress, G1 not_run. Inherits F02/F03/F07/F08/F11/F16,
+N01/N04/N05/N06, C03/C04/C06/C12/C13/C20/C22/C23/C24/C36, T01/T04/T06/T11.
+Next actual paired native/world execution with held custody, matched live initial
+state, resources, development-only practice and canary disposal. N>1 preparation,
+real process-interruption custody and all remaining client/T05/scorer gates remain
+open. D18/D19 do not authorize paid M1 inference.

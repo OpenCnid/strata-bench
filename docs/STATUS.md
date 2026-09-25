@@ -42,6 +42,13 @@ checks. It selects exact approved checkpoint artifacts with arm/provenance rules
 complete matched pre-start manifests, actual disposable clones and one-way
 feedback/disposal remain open. M1.6 in_progress; no new runtime or paid execution.
 
+M1.6b [pair preparation](verification/2026-09-25-m1-probe-pair-staging.md)
+passes80 source cases,18/18 N=1 synthetic disk/reopen checks and21/21+2/2 audit.
+One-use fixture/world reservations and exact common/source/byte checks precede
+PREPARED; no launch permit. Actual paired native/world execution and one-way
+disposal remain open. Old synthetic source has five unresolved config refs and
+cannot be backfilled into this contract. All40 authority tables unchanged, USD0.
+
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false
 switch is required; first pre-forward refusal and original35/37 remain retained.

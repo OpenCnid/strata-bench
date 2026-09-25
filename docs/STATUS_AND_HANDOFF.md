@@ -91,6 +91,30 @@ artifact bytes as t=0. Content review and complete runtime/client/scorer/keybind
 qualification remain required. M1.6 in_progress, M1.6a implemented_unverified,
 G1 not_run; no M1 paid authority.
 
+Latest M1.6b: [one-use pair staging](verification/2026-09-25-m1-probe-pair-staging.md)
+passes80 final tests,18/18 N=1 synthetic disk/reopen checks and21/21+2/2 independent
+audit. New private fixture/request types bind exact protocol indices, complete
+source roster, common model/runtime/backend/control/budget/goal configuration and
+two independently copied worlds. Only admitted cognitive artifacts differ; t=0
+requires zero exposure and exact equality. PREPARING/FAILED retain one-use fences;
+PREPARED and verification grant no dispatch authority. Neutral copy directories,
+exact whole-tree/hash/link checks, empty profile/cache directories and costs are
+joined. Producer `2026-09-25-m1-probe-pair-stage-01` and audit
+`2026-09-25-m1-probe-pair-audit-01` are sealed; hashes in report. No actual native/
+game/model process ran; all40 authority tables unchanged, no owned runtime, USD0.
+
+Next implement the disposable native probe adapter and held launch/disposal
+fence. NativeLaunch currently lacks probe purpose, campaign activation requires
+campaign scope and the publisher rejects evaluation-account imports. Preserve
+those guards while allowing explicit probe-local adaptation that never returns
+to training; do not substitute a conformance label. Use a fresh fully resolved
+source: old matched-retention03/r11 lacks five policy/config refs (information,
+runtime, backend capability, inference, agent capability); team policy resolves.
+Do not backfill or promote that source. Complete live matched state, N>1 positive
+preparation, runtime resets, resources, development-only practice, canary disposal
+and remaining client/log/registry, T05 and scorer gates. M1.6b stays
+implemented_unverified and G1 not_run. No M1 paid authority exists.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

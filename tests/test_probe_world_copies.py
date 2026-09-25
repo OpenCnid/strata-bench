@@ -97,6 +97,8 @@ def fake_writers(monkeypatch):
         plan = parse_preparation_plan(value)
         root = Path(plan.workspace_directory) / "guarded"
         root.mkdir(parents=True)
+        for name in getattr(plan, "directories", []):
+            (root / name).mkdir(parents=True, exist_ok=True)
         for name, pin in plan.sources.items():
             destination = root / name
             destination.parent.mkdir(parents=True, exist_ok=True)

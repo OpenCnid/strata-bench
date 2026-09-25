@@ -1637,6 +1637,26 @@ VERIFYING. Both remain consumed even if files are repaired. The
 [controller-death checks](docs/verification/2026-09-25-m1-probe-verification-fence.md)
 cover this preparation boundary, not native launch custody or probe disposal.
 
+`ProbeFixture/2` and `ProbePairRequest/2` select
+`private-matched-probe-pair-staging/2`. The fixture declares sorted, unique,
+safe world/external directories, including every file/directory parent. Reject
+file/directory collisions, spelling aliases, private roots and missing parents.
+Bind the declared directories into the world digest and both staged trees;
+verify them under the same consumed-failure rules. Fixture/request versions must
+match. Native views derive the original versioned request instead of dropping
+directory state. Legacy /1 identities and evidence remain unchanged.
+
+The matching `held-pair-sealed-vanilla-inputs/2` policy requires this directory
+fixture and writer preparation /4. Compile the sealed software directories plus
+the complete registered world directories; only the external namespace root is
+removed when the six mutable files map to the server root. Reject unsupported
+world/external directory layouts and require exact output directories before
+borrowing and after the continuation. A legacy writer, policy or file-only
+copy path cannot downgrade a directory-bound pair. Preserve original custody,
+finite holds and unlaunched close. [Directory-bound pair verification](docs/verification/2026-09-25-m1-probe-directories.md)
+is preparation evidence; authentic paired runtime readiness, live initial-state
+equivalence, native probe admission and one-way disposal remain required.
+
 The native purpose/account guard joins the reservation to the durable leaf and
 aggregate account identities before startup, participant admission, dispatch and
 broker effects. Campaign profiles accept training or development accounts;

@@ -12,8 +12,13 @@ from mcbench.storage import canonical, digest, extended_path, require
 
 from .craft_reference import check_tree
 from .reference_pair import LOG_LIMIT
-from .writer_preparation import WriterPreparations, parse_preparation_plan, pinned_inventory
-from .probe_vanilla_inputs import VanillaProbeInputs
+from .writer_preparation import (
+    WriterPreparations,
+    WriterPreparationPlanV4,
+    parse_preparation_plan,
+    pinned_inventory,
+)
+from .probe_vanilla_inputs import VanillaProbeInputs, POLICY as SOFTWARE_POLICY
 
 POLICY = "held-pair-protected-world-copies/1"
 
@@ -45,6 +50,16 @@ class HeldProbeWorldCopies:
             writer.check()
             require(not writer.launched and not writer.completed, "PROBE_WORLD_ALREADY_LAUNCHED")
             check_tree(writer.tree.path, writer.plan.sources)
+            if isinstance(writer.plan, WriterPreparationPlanV4):
+                require(
+                    {
+                        p.relative_to(writer.tree.path).as_posix()
+                        for p in writer.tree.path.rglob("*")
+                        if p.is_dir()
+                    }
+                    == set(writer.plan.directories),
+                    "PROBE_PACK_DIRECTORIES",
+                )
         return {
             "policy": POLICY if self.software is None else self.software.record["policy"],
             "world_digest": self.pair["world_digest"],
@@ -64,10 +79,15 @@ class ProbeWorldCopies:
                 "plan TEXT,state TEXT,body TEXT,PRIMARY KEY(namespace,pair))"
             )
 
-    def run(self, principal, values, *, continuation, pack_binding=None):
+    def run(
+        self, principal, values, *, continuation, pack_binding=None, software_policy=SOFTWARE_POLICY
+    ):
         self.preparation.views.pairs._authorize(principal)
+        require(pack_binding is not None or software_policy == SOFTWARE_POLICY, "PROBE_PACK_POLICY")
         if pack_binding is not None:
-            with VanillaProbeInputs(self.preparation, pack_binding) as software:
+            with VanillaProbeInputs(
+                self.preparation, pack_binding, policy=software_policy
+            ) as software:
                 return self._run(principal, values, continuation=continuation, software=software)
         return self._run(principal, values, continuation=continuation)
 
@@ -95,6 +115,11 @@ class ProbeWorldCopies:
             if software is not None:
                 software.validate(arm, plan)
             else:
+                require(
+                    not isinstance(plan, WriterPreparationPlanV4)
+                    and "world_directories" not in pair,
+                    "PROBE_WORLD_DIRECTORY_POLICY",
+                )
                 require(
                     extended_path(Path(plan.source_root)) == root
                     and set(plan.sources) == set(pair["world_files"]),

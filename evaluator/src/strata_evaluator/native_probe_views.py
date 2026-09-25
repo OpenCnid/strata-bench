@@ -14,7 +14,7 @@ from mcbench.native_export import MAX_METADATA, OPERATOR
 from mcbench.native_skill_activation import skill_metadata
 from mcbench.storage import canonical, digest, extended_path, reject_links, require, safe_relative
 
-from .probe_pairs import ARMS, ProbePairRequest
+from .probe_pairs import ARMS, parse_pair_request
 
 POLICY = "pair-derived-native-artifact-views/1"
 INSTRUCTIONS = """Read catalog skills under .agents/skills/<name>/ through the artifact
@@ -39,7 +39,7 @@ class ProbeNativeViews:
         row = self.db.connection.execute("SELECT * FROM probe_pair_staging WHERE namespace=? AND id=?",
                                          (self.namespace, pair_id)).fetchone()
         require(row is not None and row["state"] == "PREPARED", "PROBE_PAIR_NOT_PREPARED")
-        request = ProbePairRequest.model_validate_json(row["request"])
+        request = parse_pair_request(json.loads(row["request"]))
         pair = self.pairs._derive(OPERATOR, request)
         require(canonical(pair).decode() == row["plan"], "PROBE_SOURCE_CHANGED")
         self.pairs._check(extended_path(Path(row["target"])), pair)

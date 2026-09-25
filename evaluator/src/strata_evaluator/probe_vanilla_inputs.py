@@ -12,9 +12,12 @@ from mcbench.vanilla_persistence import (
     disposition,
     template_directory_layout,
     template_files,
+    WORLD_ROOTS,
 )
+from .writer_preparation import WriterPreparationPlanV4
 
 POLICY = "held-pair-sealed-vanilla-inputs/1"
+DIRECTORY_POLICY = "held-pair-sealed-vanilla-inputs/2"
 
 
 class VanillaProbeInputs:
@@ -25,7 +28,9 @@ class VanillaProbeInputs:
     manifests, client software and the provisioning store are never copied.
     """
 
-    def __init__(self, preparation, value):
+    def __init__(self, preparation, value, *, policy=POLICY):
+        require(policy in {POLICY, DIRECTORY_POLICY}, "PROBE_PACK_POLICY")
+        self.policy = policy
         self.preparation = preparation
         self.binding = PackLaunchBinding.model_validate(value)
         require(type(self.binding) is PackLaunchBinding, "PROBE_PACK_TEMPLATE")
@@ -36,6 +41,10 @@ class VanillaProbeInputs:
         prep = self.preparation
         prep.check()
         pair, _, target, *_ = prep._source(prep.pair_id)
+        require(
+            (pair["schema"] == "strata/ProbePairStaging/2") == (self.policy == DIRECTORY_POLICY),
+            "PROBE_PACK_DIRECTORY_POLICY",
+        )
         require(self.binding.lock == pair["common"]["pack_lock"], "PROBE_PACK_MISMATCH")
         resolved = resolve_pack_launch(self.binding, "server")
         require(resolved["target"] == "vanilla", "PROBE_PACK_UNSUPPORTED")
@@ -51,12 +60,12 @@ class VanillaProbeInputs:
             for name, entry in template.items()
             if disposition(name, template) == "immutable"
         }
-        # This copier creates file parents, not arbitrary empty directories.
-        # Refuse a wider sealed layout instead of silently dropping it.
+        # Legacy policy only creates file parents. The explicit /2 policy
+        # requires the directory-preserving copier and an exact layout below.
         parents = {p.as_posix() for name in software for p in Path(name).parents if str(p) != "."}
-        require(
-            set(template_directory_layout(inventory)) <= parents, "PROBE_PACK_EMPTY_DIRECTORIES"
-        )
+        software_directories = set(template_directory_layout(inventory))
+        if self.policy == POLICY:
+            require(software_directories <= parents, "PROBE_PACK_EMPTY_DIRECTORIES")
         state = {}
         for name in pair["world_files"]:
             destination = name.removeprefix("external/")
@@ -70,6 +79,32 @@ class VanillaProbeInputs:
             )
             state[destination] = name
         require(MUTABLE | {"world/level.dat"} <= state.keys(), "PROBE_PACK_STATE_INCOMPLETE")
+        world_directories = set()
+        if self.policy == DIRECTORY_POLICY:
+            require(
+                pair["schema"] == "strata/ProbePairStaging/2" and "world_directories" in pair,
+                "PROBE_WORLD_DIRECTORY_SCOPE",
+            )
+            for name in pair["world_directories"]:
+                parts = Path(name).parts
+                require(
+                    name == "external"
+                    or parts[0] == "world"
+                    and (len(parts) == 1 or parts[1] in WORLD_ROOTS),
+                    "PROBE_PACK_STATE_LAYOUT",
+                )
+                if name != "external":
+                    world_directories.add(name)
+        self.directories = sorted(
+            software_directories
+            | world_directories
+            | {
+                p.as_posix()
+                for name in [*software, *state]
+                for p in Path(name).parents
+                if str(p) != "."
+            }
+        )
         sources, roots = {}, {}
         for arm in pair["arm_order"]:
             original = target / pair["arm_directories"][arm] / "server"
@@ -93,7 +128,7 @@ class VanillaProbeInputs:
         self.sources, self.roots = sources, roots
         self.resolved = resolved
         self.record = {
-            "policy": POLICY,
+            "policy": self.policy,
             "binding": self.binding.model_dump(),
             "resolved_digest": digest(resolved),
             "world_digest": pair["world_digest"],
@@ -103,6 +138,12 @@ class VanillaProbeInputs:
             "native_launch_authorized": False,
             "live_initial_state_verified": False,
         }
+        if self.policy == DIRECTORY_POLICY:
+            self.record.update(
+                directories=self.directories,
+                directory_basis="sealed-software-and-registered-world-directories/1",
+                registered_world_directories_preserved=True,
+            )
         # Include exact inventory metadata and all materialization files so a
         # changed template cannot be accepted between resolution and copying.
         self.lease = FileLease(snapshot([inventory_path], [Path(self.binding.instance)]))
@@ -120,6 +161,12 @@ class VanillaProbeInputs:
         require(resolve_pack_launch(self.binding, "server") == self.resolved, "PROBE_PACK_CHANGED")
 
     def validate(self, arm, plan):
+        require(
+            isinstance(plan, WriterPreparationPlanV4) == (self.policy == DIRECTORY_POLICY),
+            "PROBE_PACK_DIRECTORY_POLICY",
+        )
+        if self.policy == DIRECTORY_POLICY:
+            require(sorted(plan.directories) == self.directories, "PROBE_PACK_DIRECTORIES")
         require(
             extended_path(Path(plan.source_root)) == extended_path(Path(self.roots[arm]))
             and {

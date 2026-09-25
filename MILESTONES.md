@@ -164,6 +164,14 @@ complete that coordinator, all-N admission and scoped native projection, then
 actual matched-state and one-way disposal evidence. Existing account, campaign
 activation/publication and all six runtime-proof requirements remain intact.
 
+M1.6k [directory-bound pair preparation](docs/verification/2026-09-25-m1-probe-directories.md)
+adds explicit /2 fixture/request/software policies and writer /4. Registered
+world directories enter world identity and both staged/copied trees; declared
+empty world/software paths survive and policy downgrades refuse.111 distinct
+focused cases and66/66 sealed read-only checks pass; initial assertion failure
+retained. All40 authority tables/holds unchanged, no native/game/model run.
+Full authentic paired runtime integration remains implemented_unverified.
+
 M1.6j [protected vanilla server/worker](docs/verification/2026-09-25-m1-protected-vanilla.md)
 adds directory-preserving copying and a separate authentic vanilla lifetime.
 Changed case02 proves copier10/10/server12/12 normal exits, real Mineflayer
@@ -644,6 +652,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6h | AR/SI/RS/QA | Copy both prepared worlds into fresh protected writer trees within live pair custody; inherits M1.6a-g, F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [World copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md):47 source passes plus one actual native pair;58/58 read-only checks across success and two retained failures. Both exact copies held together, write denial, normal10/10 process stop each, retained cost/capacity and consumed-pair refusal. Existing native writer path reused. Explicit unlaunched discard does not certify game launch or one-way post-probe disposal. |
 | M1.6i | AR/GI/SI/RS/QA | Bind sealed vanilla software and complete registered state to both held copies; normalize writer path containment; inherits M1.6h, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [Software binding verification](docs/verification/2026-09-25-m1-probe-software.md):52 distinct passes,29/29 read-only reconstruction, two unchanged native-plan checks. Actual resolver/file leases with synthetic game bytes and substituted writer execution; retained fixture/assertion failures, exact software/state mapping and normalized Windows containment. All40 real authority tables unchanged. Native game/readiness/probe admission/disposal remain open. |
 | M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
+| M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7564,3 +7573,47 @@ G1-G5 not_run and M0/G0 unchanged. Next extend complete directory/software
 mapping into held paired execution, bind live matched state/readiness, stopped
 exports and one-way disposal before native probe admission. Keep T05, scorer
 controls and remaining combined runtime routes open. Unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6k complete declared directories through paired preparation
+
+Added explicit ProbeFixture/2, ProbePairRequest/2 and pair-staging/2. Require
+sorted, unique, case-unambiguous safe directory lists and every file/directory
+parent; reject file collisions, private/credential paths and policy mismatches.
+Bind directories into world identity and both staged trees. Native views parse
+the original versioned request; failed verification remains consumed. Legacy
+pair-plan literal construction and /1 identities remain unchanged.
+
+Added held-pair-sealed-vanilla-inputs/2 requiring that pair and writer /4. Combine
+sealed software directories with complete registered world directories, map only
+the existing six external mutable files to the server root, and reject unsupported
+layouts. Validate exact directory sets in both plans and before/after borrowing.
+A legacy policy/writer or file-only route cannot downgrade the pair. Keep original
+input/runtime custody, deadlines, resource/cost holds and unlaunched dispositions.
+
+IDs: M1.6k; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11. [Verification](docs/verification/2026-09-25-m1-probe-directories.md)
+records111 distinct focused passes (27 new,84 affected existing):10 new copy
+cases,71 contract/pair/native-view cases,28 remaining affected cases and two
+later single checks. Retain the original model-validator exception-type assertion
+failure; only its expectation changes. Actual leases and preparation are tested
+with synthetic world/checkpoint/protocol bytes and substituted writer execution.
+No Minecraft/native/model run, new allowance or promoted RuntimeQualification.
+Ruff and whitespace checks pass.
+
+Sealed read-only reconstruction passes66/66 across both layouts, exact staged/
+copied directories and bytes, versioned world identity, native-view records,
+policy joins, unlaunched disposal, both directory-mutation failures/fences and
+retained200-unit/capacity holds. Directory inventories are sealed alongside file
+inventories. Completed71-case outputs move once to a separately sealed private
+archive with explicit original-path mapping; no file bytes or stored absolute
+paths change. Three store seals and actual commands are in the report.
+
+All40 real authority tables remain unchanged; exposure$4.887796/$10, prior holds
+and consumed decisions persist. No owned runtime remains. M1.6k remains
+implemented_unverified for authentic paired/native probe integration; M1.6/M1
+in_progress, G1-G5 not_run and M0/G0 unchanged. Next bind registered pair state
+to a reviewed held game coordinator. Do not relabel M1.6j's restored-baseline
+identity as a pair launch. Keep both input/resource owners live through actual
+readiness, stopped exports and one-way disposal; prove live matching/all-N and
+scoped runtime admission before opening native probes. T05, scorer controls and
+remaining combined runtime routes remain open; unrelated M2-M7 untouched.

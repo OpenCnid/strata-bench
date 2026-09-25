@@ -4,6 +4,24 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
+now carries complete registered world directories into pair identity, staging,
+native views and both writer /4 copies. Explicit /2 fixture/request/software
+policies preserve legacy /1 semantics and reject downgrades. Both declared empty
+world and sealed software directories are checked before/after borrowing.
+111 distinct focused cases and66/66 sealed read-only checks pass; the initial
+Pydantic exception-type assertion failure is retained. Three evidence stores
+are sealed; completed contract tests use an explicit archive path mapping to
+stay within per-bundle limits. All40 real authority tables/holds stay unchanged;
+no native/game/model execution or paid M1 authority. No owned runtime remains.
+Next bind this registered pair state to a reviewed held game coordinator.
+M1.6j's restored-baseline session cannot be relabeled as a pair launch: it expects
+its own restoration identity, while this policy combines registered evaluator
+state and fresh sealed software. Keep both original input/resource owners live
+through readiness, stopped export and one-way disposal. Complete live matching,
+all-N readiness and scoped runtime admission before opening native probes.
+T05, protected scorer controls and remaining combined runtime routes stay open.
+
 M1.6j [protected vanilla server/worker](verification/2026-09-25-m1-protected-vanilla.md)
 adds directory-preserving writer /4 and a separately identified vanilla session.
 Its changed authentic case passes copier10/10/server12/12 normal owned exits,
@@ -16,13 +34,12 @@ game_launched=false metadata; nested owned-ready evidence is authoritative for
 this narrow observation, and subsequent source/tests fix parent flags without
 rerunning native execution. Native source and subsequent metadata source are
 archived separately. No owned runtime remains.
-Next connect directory/software support to both registered held copies and the
-live coordinator, then prove initial-state matching, all-N readiness, stopped
-exports and one-way disposal before native probe admission. The pair compiler
-still refuses unsupported empty software directories and closes unlaunched;
-the separate operator session does not silently change that policy. Keep exact
-profile clocks, clean-save and read-isolation gaps visible. T05, protected scorer
-controls and remaining combined runtime routes still block full G1.
+M1.6k connects explicit directory/software support to registered held copies;
+the live coordinator, initial-state matching, all-N readiness, stopped exports
+and one-way disposal remain. Legacy /1 still refuses unsupported empty software
+directories; /2 preserves them but still closes unlaunched. Keep exact-profile
+clocks, clean-save and read-isolation gaps visible. T05, scorer controls and
+remaining combined runtime routes still block full G1.
 
 M1.6i [sealed vanilla probe software](verification/2026-09-25-m1-probe-software.md)
 connects the registered pair to exact sealed server inputs under file custody.

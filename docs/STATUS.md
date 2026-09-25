@@ -3,6 +3,14 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
+adds explicit /2 fixture/request/software policies and requires writer /4.
+Both staged and copied trees preserve declared empty world/software directories;
+world identity includes directories and policy downgrades refuse.111 distinct
+focused cases and66/66 sealed read-only checks pass; the initial assertion
+failure is retained. All40 real authority tables/holds remain unchanged. No
+native/game/model run occurs. Authentic paired runtime integration stays open.
+
 M1.6j [protected vanilla server/worker](verification/2026-09-25-m1-protected-vanilla.md)
 adds complete directory preservation and a separate held vanilla launch path.
 The changed authentic case passes copier10/10/server12/12 normal process exits,

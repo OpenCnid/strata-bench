@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter, model_validator
 
 from mcbench.checkpoints import Checkpoints
 from mcbench.contracts import Id, Positive, Ref, Strict
@@ -21,6 +21,7 @@ from mcbench.storage import canonical, digest, extended_path, reject_links, requ
 from .native_probe_projection import NativeProbeArtifactSelection, project_native_checkpoint
 
 POLICY = "private-matched-probe-pair-staging/1"
+DIRECTORY_POLICY = "private-matched-probe-pair-staging/2"
 ARMS = ("experienced", "initial")
 
 
@@ -51,6 +52,40 @@ class ProbePairRequest(Strict):
     selections: dict[Id, NativeProbeArtifactSelection] = Field(min_length=1)
     arm_order: list[Literal["experienced", "initial"]] = Field(min_length=2, max_length=2)
     max_materialized_bytes: Positive
+
+
+class ProbeFixtureV2(ProbeFixture):
+    schema_: Literal["strata/ProbeFixture/2"] = Field(alias="schema")
+    world_directories: list[str] = Field(min_length=1, max_length=12000)
+
+    @model_validator(mode="after")
+    def directory_scope(self):
+        directories = self.world_directories
+        require(directories == sorted(set(directories))
+                and len({p.casefold() for p in directories}) == len(directories),
+                "PROBE_WORLD_DIRECTORY_SCOPE")
+        names = set(directories)
+        folded_files = {p.casefold() for p in self.world_files}
+        for name in directories:
+            path = safe_relative(name)
+            require(path.parts[0] in {"world", "external"} and name.casefold() not in folded_files,
+                    "PROBE_WORLD_DIRECTORY_SCOPE")
+            require(not {p.casefold() for p in path.parts} & {
+                ".git", ".codex", ".ssh", ".aws", "keys.json", "auth.json", "credentials.json", "launcher_accounts.json",
+                "launcher_msa_credentials.bin", "auth-cache", "auth_cache"}, "SECRET_IN_SNAPSHOT")
+        for name in [*directories, *self.world_files]:
+            require(all(p.as_posix() in names for p in safe_relative(name).parents if str(p) != "."),
+                    "PROBE_WORLD_DIRECTORY_SCOPE")
+        return self
+
+
+class ProbePairRequestV2(ProbePairRequest):
+    schema_: Literal["strata/ProbePairRequest/2"] = Field(alias="schema")
+    policy: Literal["private-matched-probe-pair-staging/2"]
+
+
+def parse_pair_request(value):
+    return TypeAdapter(ProbePairRequest | ProbePairRequestV2).validate_python(value)
 
 
 class ProbePairs:
@@ -85,7 +120,9 @@ class ProbePairs:
         require(request.is_example is self.sets.runtime.simulation and set(request.arm_order) == set(ARMS),
                 "PROBE_PAIR_SCOPE")
         protocol = EvaluationProtocol.model_validate(self._private(request.protocol_ref))
-        fixture = ProbeFixture.model_validate(self._private(request.fixture_ref))
+        fixture = TypeAdapter(ProbeFixture | ProbeFixtureV2).validate_python(self._private(request.fixture_ref))
+        directory_bound = isinstance(fixture, ProbeFixtureV2)
+        require(directory_bound == isinstance(request, ProbePairRequestV2), "PROBE_FIXTURE_POLICY")
         require(protocol.is_example is request.is_example and fixture.is_example is request.is_example,
                 "PROBE_PAIR_SCOPE")
         # These fixed manifests are private protocol inputs, not caller-assigned
@@ -183,6 +220,11 @@ class ProbePairs:
             "at_t0": first.scheduled_active_s == first.actual_active_s == 0,
             "dispatch_authorized": False, "campaign_feedback_allowed": False,
             "live_initial_state_verified": False, "resource_admission_verified": False}
+        if directory_bound:
+            plan.update(schema="strata/ProbePairStaging/2", policy=DIRECTORY_POLICY,
+                        world_directories=fixture.world_directories,
+                        world_digest=digest({"pack_lock": fixture.pack_lock, "files": fixture.world_files,
+                                             "directories": fixture.world_directories}))
         return plan
 
     def _inventory(self, plan):
@@ -192,6 +234,7 @@ class ProbePairs:
             directory = plan["arm_directories"][arm]
             generated[directory + "/private/common.json"] = canonical(plan["common"])
             files.update({directory + "/server/" + p: (self.namespace, r) for p, r in plan["world_files"].items()})
+            directories.update(directory + "/server/" + p for p in plan.get("world_directories", []))
             for agent, member in plan["common"]["members"].items():
                 root = directory + "/agents/" + member["directory"]
                 directories.update({root + "/profile", root + "/backend-cache", root + "/workspace"})
@@ -224,7 +267,7 @@ class ProbePairs:
 
     def prepare(self, principal, request, target):
         self._authorize(principal)
-        request = ProbePairRequest.model_validate(request)
+        request = parse_pair_request(request)
         plan = self._derive(principal, request)
         target = extended_path(Path(target))
         reject_links(target)
@@ -290,7 +333,7 @@ class ProbePairs:
                 "dispatch_authorized": False})
         try:
             with self.db.transaction() as db:
-                request = ProbePairRequest.model_validate_json(row["request"])
+                request = parse_pair_request(json.loads(row["request"]))
                 plan = self._derive(principal, request)
                 require(canonical(plan).decode() == row["plan"], "PROBE_SOURCE_CHANGED")
                 target = extended_path(Path(row["target"]))

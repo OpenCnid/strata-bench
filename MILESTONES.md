@@ -75,6 +75,12 @@ rerunning game/native work. One actual look, root/helper boundary attempts,
 team/artifact controls and normal drain join; no full runtime qualification.
 Next complete selected executable skills/fresh handoff and remaining client/log/
 registry/probe routes. Do not rerun solely to replace the original outer failure.
+M1.4a now has an [activated JavaScript fixture](docs/verification/2026-09-24-m1-active-script-source.md)
+with53 focused source checks. It issues exact bytes only after each participant's
+registered artifact read and requires native framed completion. Actual selected
+execution is still unverified. Next prepare a fresh D17 source and connect the
+running target-epoch controller/catalog /5 dependency; preserve old activation
+stores and their profiles. No model/game run or permission change follows.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -471,6 +477,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.2a | PL/SI/QA | Enforce specific process-zero, broker depth/quota and game primitive bounds; F03/F04/F11/F16, N01/N04/N06, T01/T04/T06 | verified | [Correction and retained-proof audit](docs/verification/2026-09-24-m1-team-core.md):190 distinct focused cases pass, four sealed jobs/nine grants and committed exports recheck unchanged. Prior masked negative-test coverage explicitly corrected; no full contract/gate promotion. |
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
+| M1.4a | AR/SI/QA | Selected-profile learned JavaScript execution through native restricted code mode, scoped effects and retained revision/accounting evidence; inherits M1.4 and SPEC6.2/6.3 | in_progress | [Fixture and53 source checks](docs/verification/2026-09-24-m1-active-script-source.md). Exact registered-read/source/completion protocol implemented; actual GPT-6 Luna campaign /5 execution, broker effects and boundary integration unverified. Next fresh selected-model checkpoint source and owned target-epoch controller/catalog; no historical activation reclassification. |
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
 | M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
@@ -6742,3 +6749,29 @@ new RuntimeQualification, N-body claim or unrelated M2–M7 implementation.
 Final documentation checks preserve all388 prior milestone IDs and the complete
 previous append-only log;1,458 local links resolve. Changed-file Ruff and
 whitespace pass. No additional execution or authority mutation during closure.
+
+### 2026-09-24 — M1.4a active JavaScript execution fixture source
+
+Added an explicit optional activation-script phase to the existing native
+fixture. Each participant must receive exact active revision script bytes from
+its registered artifact-read call before the fixed provider issues them through
+native functions.exec. No operator evaluation or new shell/tool. Require echoed
+source, correct participant and framed completion; preserve changed/missing/
+pending outcomes without claiming successful effects.32 broker calls in this
+fixture, existing nine-request parent/four-request helper/90s limits unchanged;
+old fixture bounds and all historical profiles remain unchanged.
+
+53 focused source checks pass in20.53s. Initial11 Ruff test-style findings are
+corrected; final Ruff/diff pass. Actual selected native execution remains
+unverified, not replaced by synthetic frames. M1.4a is in_progress and inherits
+M1.4, SPEC6.2/6.3, F03/F04/F07/F11/F16, N01/N04/N06, C06/C07/C12/C14/C20/C36
+and partial T01/T04/T06. [Implementation and next dependency](docs/verification/2026-09-24-m1-active-script-source.md).
+
+Private source bundle7files/103767bytes seal
+d7282b917326f9ee34fcd0b8f675ba1e112f6a7f84c4091698b84254720f0f4e.
+All40 authority tables match; exposure$4.887796/holds unchanged. No model/game/
+native execution, no owned fixture process remains. Next new D17 checkpoint and
+JavaScript bundle source, exact owned target-epoch controller/heartbeat and
+campaign /5 catalog integration, followed by authentic script/effect/fresh-state
+checks. Historical GPT-5.6 activation stores cannot be relabeled. Complete
+skill/handoff/isolation/settings/scorer/probe contracts and G1 remain open.

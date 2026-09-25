@@ -86,3 +86,10 @@ sealed; the corrected stopped reader exports only a copy, without a game rerun.
 All40 authority tables remain unchanged. No paid M1 inference or qualification.
 Next: selected executable skills/fresh handoff, then remaining client/log/registry
 and probe boundaries. .9d/M1 in_progress; G1 not_run.
+
+[Activated JavaScript fixture source](verification/2026-09-24-m1-active-script-source.md)
+now passes53 focused checks under M1.4a. Exact active bytes must be returned by
+each participant's registered artifact read before native exec issuance; framed
+completion remains separate from broker-effect qualification. Actual selected
+native execution is unverified. Next: fresh D17 checkpoint source and owned
+target-epoch controller/catalog /5 integration, preserving historical profiles.

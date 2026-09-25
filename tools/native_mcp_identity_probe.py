@@ -90,7 +90,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
-        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None):
+        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
+        activation_script=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -111,6 +112,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_campaign_boundary_probe import CampaignBoundaryProbe
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(activation_script is None or isinstance(activation_script, str) and activation_source is not None
+            and game_probe is None and game_recovery is None and game_retention is None,
+            "SCRIPT_ACTIVATION_REQUIRED")
+    script_probe = None
     if campaign_boundary_probe is not None:
         require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
                 and game_probe is None and game_retention is None and game_recovery is None
@@ -299,21 +304,28 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 team_channel_probe.observe(agent, body)
             if interrupt_probe:
                 interrupt_probe.observe(agent, body)
+            if script_probe:
+                script_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
+            script_turn = script_probe is not None and step == 1
             if game_failure and step > 0:
                 require(agent == "/root" and step == 1, "GAME_FAILURE_PROFILE_REQUIRED")
                 game_probe.truncate(handler, operation, model, self.outputs)
             extra_items = []
             self.steps[agent] = step + 1
+            if script_probe and step >= 2:
+                step -= 1  # One extra charged native turn; original protocol stays intact.
             root_id = next(i["thread_id"] for i in self.identities if i["agent"] == "/root")
             item = {"id": "message-" + operation, "type": "message", "role": "assistant",
                 "status": "completed", "content": [{"type": "output_text",
                 "text": "Synthetic identity probe finished.", "annotations": []}]}
-            if piloting_contract:
+            if script_turn:
+                item = script_probe.issue(agent, operation)
+            elif piloting_contract:
                 from native_pilot_contract_probe import response
                 item = response(agent, step, operation, helper=pilot_helper,
                                 child_done=self.steps.get("/root/pilot_review", 0) == 1)
@@ -347,7 +359,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             "admission_ref": admission})
                         if admission_mode:
                             grant = NativeAdmission(connection, objects).enroll(operation,
-                                tool_calls=64 if campaign_boundary_probe else 20)
+                                tool_calls=64 if campaign_boundary_probe else 32 if script_probe else 20)
                         else:
                             broker.admit(grant)
                         if activation is None or agent != "/root":
@@ -391,6 +403,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         calls.append(("artifact_write", {"path":
                             "initial/dovetail/skills/prompt-engineering/SKILL.md",
                             "text": "must remain immutable", "expected_ref": None}))
+                    if script_probe:
+                        calls.append(script_probe.read_call())
                     if agent != "/root":
                         calls.extend([("artifact_read", {"path": "docs/root-only.md"}),
                             ("artifact_write", {"path": "notes/root.md", "text": "spoof", "expected_ref": None}),
@@ -420,6 +434,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
+                if script_probe:
+                    script_probe.expect_read(agent, item["call_id"])
                 if state_probe:
                     item = state_probe.start(agent, operation, code)
                     if agent == "/root":
@@ -444,7 +460,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = interrupt_probe.next(self, agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
-                    2 + int(canary_mode) + int(patch_test)):
+                    2 + int(canary_mode) + int(patch_test) + int(script_probe is not None)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
                     "message": "Exercise only the synthetic inspect_identity tool. "
                                "Do not read files or call any other tool."}) if step == 1 else (
@@ -589,6 +605,17 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             plan = game_recovery.prepare(runtime, plan)
         if activation:
             plan = activation.prepare(runtime, plan)
+            if activation_script is not None:
+                from native_active_script_probe import ActiveScriptProbe
+                from mcbench.native_export import OPERATOR
+                parts = activation_script.split("/")
+                require(len(parts) >= 4 and parts[0] == "active" and parts[2] == "scripts",
+                        "SCRIPT_PATH")
+                skill = activation.body["skills"].get(parts[1], {})
+                ref = skill.get("files", {}).get("/".join(parts[2:]))
+                require(ref is not None, "SCRIPT_NOT_ACTIVE")
+                script_probe = ActiveScriptProbe(activation.body, activation_script,
+                    cas.read(OPERATOR, "operator", ref).decode("utf-8"))
         installed = install_dovetail(binary, Path(plan.profile_directory))
         if skills_mode:
             from mcbench.native_skills import INSTRUCTIONS, prepare_skill_corpus, read_skill_corpus
@@ -637,6 +664,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["developer_instructions"] = INSTRUCTIONS
         if activation:
             config["developer_instructions"] = activation.instructions
+            if script_probe:
+                config["developer_instructions"] = activation.instructions.replace(
+                    "Reading script source does not permit execution.",
+                    "For the declared native-active-javascript-exec/1 fixture, read " + script_probe.path +
+                    " through the artifact broker and copy its exact JavaScript into functions.exec. "
+                    "It runs with the same scoped broker permissions and native execution limits. "
+                    "No shell, host evaluation, arbitrary imports or other script language is provided.")
         bootstrap = {}
         catalog = None
         if no_patch_catalog is not None:
@@ -889,6 +923,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["activation"] = activation.report(provider, db, plan)
         result["checks"].update(result["activation"]["checks"])
         result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
+        if script_probe:
+            result["active_script"] = script_probe.report()
+            result["checks"].update(result["active_script"]["checks"])
     if game_retention:
         result["retention"] = game_retention.finish()
         result["checks"]["preregistered_native_retention_component"] = True

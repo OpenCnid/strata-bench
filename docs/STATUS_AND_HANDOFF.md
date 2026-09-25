@@ -22,6 +22,13 @@ Do not repeat the game run to change that verdict. Next implement/verify selecte
 executable skill loading and fresh handoff, then reconcile remaining client/log/
 registry and one-way probe routes against the exact integrated profile.
 
+M1.4a now adds the [activated JavaScript fixture](verification/2026-09-24-m1-active-script-source.md),
+53 source checks and no authentic invocation yet. Next prepare a new D17 source
+with a complete synthetic checkpoint and learned `.js` bundle, then connect the
+owned target-epoch controller/heartbeat and campaign catalog /5. Historical
+GPT-5.6 activation stores remain unchanged. The selected-native fixture must
+still join execution, scoped broker effects, fresh state and accounting.
+
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
 track necessary M3 dependencies without authorizing unrelated later work.
@@ -261,3 +268,27 @@ remains synthetic; exact Forge/client, log/registry, scorer and probe disposal
 obligations remain open. A later changed combined profile must carry source pins
 and justify affected authentic cases. All40 authority tables match; exposure
 $4.887796/holds unchanged. No M1 paid allowance, restored session or new gate pass.
+
+## Active script fixture source checkpoint
+
+M1.4a adds tools/native_active_script_probe.py and the optional activation_script
+argument to the identity fixture. It requires exact active JavaScript bytes in
+each actor's registered artifact return, issues them unchanged through native
+exec once, and verifies echoed source plus framed completion. It does not run
+code in operator Python or qualify broker effects.53 focused source tests pass;
+actual selected native execution remains unverified. Existing activation fixtures
+retain their behavior. The new phase uses32 broker calls and an additional
+charged turn per participant inside the existing9 parent/4 helper/90s bounds.
+
+Before an authentic run, create fresh GPT-6 Luna source records and a complete
+synthetic checkpoint with a learned JavaScript bundle; preserve old GPT-5.6
+stores. Connect the target-epoch owned controller/lease/heartbeat and campaign
+catalog /5. Check the copied-source loader's complete file/WAL/path custody as
+part of this preparation; do not trust legacy fixture copying as qualification.
+Native output, real scoped effects, revision publication and fresh-context resets
+need actual evidence. No paid M1 request is authorized by this source task.
+
+Source-only bundle2026-09-24-m1-active-script-source-01 has7files/103767bytes,
+seal d7282b917326f9ee34fcd0b8f675ba1e112f6a7f84c4091698b84254720f0f4e.
+All40 authority tables unchanged; no matching owned fixture process. M1/G1 goal
+active, M1.4a in_progress, G1 not_run. Full requirements are unchanged.

@@ -4,6 +4,25 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+Current next action follows M1.6e [native artifact binding](verification/2026-09-25-m1-probe-native-binding.md):
+implement the held pair coordinator, all-N resource/budget admission, exact
+probe wire catalog and scoped root/helper projection. The new `probe` purpose
+and private binding refs are preparation only. NativeExec refuses every such
+launch with NATIVE_PROBE_LAUNCH_CUSTODY_REQUIRED; account/admission/dispatch and
+broker guards also remain closed to probe execution. Do not remove these gates
+merely because a binding or empty profile exists. Bind actual pre-start world/
+body/keymap/tools/cache equivalence, frozen/no-self-play behavior, fresh sessions
+and one-way destruction to held evidence. Preserve all six runtime proofs and
+separate evaluation accounting. No paid M1 authority exists.
+M1.6e has140 distinct passing source/regression cases and72/72+3/3 reconstruction.
+Retain the initial nested-transaction failure and wrong error-code test
+expectation; inert CAS publication now precedes atomic binding registration.
+Producer `2026-09-25-m1-probe-native-binding-01` and audit
+`2026-09-25-m1-probe-native-binding-audit-01` are sealed; hashes in the report.
+One old actual native source/two exports reconstruct unchanged. All40 authority
+tables/holds remain unchanged, with no matching owned runtime. M1.6e remains
+implemented_unverified for native integration; full G1 remains not_run.
+
 Start with the [opening exact-profile audit](verification/2026-09-24-g1-coverage-audit.md)
 and [ledger current position](../MILESTONES.md#current-position). The branch
 `codex/m1-g1-isolation` starts from fetched main at PR8 merge

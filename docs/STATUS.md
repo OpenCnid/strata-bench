@@ -3,6 +3,14 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+Latest work: M1.6e [disposable native artifact bindings](verification/2026-09-25-m1-probe-native-binding.md).
+Both arms register fresh evaluation identities atomically, with separate native
+probe refs and exact role/catalog preflight. Native probe execution remains
+closed pending held world/resource custody and complete scoped admission.
+140 distinct checks and72/72+3/3 read-only checks pass. Initial failures and all
+accounting holds remain retained; actual loader/broker integration and one-way
+disposal remain unverified.
+
 PR8 is verified merged at `215c4e0`; work continues on
 `codex/m1-g1-isolation` from updated main. The
 [opening coverage audit](verification/2026-09-24-g1-coverage-audit.md)

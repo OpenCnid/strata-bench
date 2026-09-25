@@ -152,6 +152,18 @@ refusal is retained beside a separate WAL-aware snapshot; no source changed.
 M1.6d implemented_unverified: native catalog loading/projection, separate probe
 admission, held launch and disposal remain next. All40 authority tables unchanged.
 
+M1.6e [disposable native artifact bindings](docs/verification/2026-09-25-m1-probe-native-binding.md)
+adds atomic both-arm/member registration, fresh evaluation identities, separate
+NativeLaunch probe refs and exact root/helper catalog preflight.140 distinct
+checks and72/72+3/3 read-only reconstruction pass; initial transaction failure
+and the wrong error-code test expectation remain retained. It is
+implemented_unverified for live native admission/projection. Native probe
+startup remains explicitly closed before job/reservation/process creation:
+held world/resource custody is not established by an artifact binding. Next
+complete that coordinator, all-N admission and scoped native projection, then
+actual matched-state and one-way disposal evidence. Existing account, campaign
+activation/publication and all six runtime-proof requirements remain intact.
+
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
 agents.enabled=false; its absence left collaboration advertised despite the
@@ -581,6 +593,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6b.1 | RS/AR/SI/QA | Irreversible failed/interrupted pair verification and actual controller-death reservation checks; inherits M1.6b, F08/F09/F16, N01/N05/N06/N08, T01/T06/T07/T11 | verified | [Preparation-boundary evidence](docs/verification/2026-09-25-m1-probe-verification-fence.md):42 focused passes and19/19 read-only reconstruction. Durable VERIFYING intent, repaired-byte refusal, journal faults, auth-before-intent and actual abrupt Python process exits/reopen. Initial crash-wrapper failures retained. Synthetic world/native records, no model/game/native launch. Held launch custody and disposal remain M1.6 gaps; no G1/G2 suite promotion. |
 | M1.6c | AR/SI/RS/QA | Native purpose/account separation at startup, request admission, dispatch and broker effects; inherits M1.6, F03/F07/F08/F11/F16, N01/N04/N06, T01/T04/T06/T11/T12 | implemented_unverified | [Source and retained reconstruction](docs/verification/2026-09-25-m1-native-account-purpose.md):235 final distinct passes including32 new cases, one stopped source/two committed exports unchanged, both source seals reverified. Explicit durable category/original-reservation/ancestry checks fence evaluation in campaign/conformance paths, new helpers, dispatch and existing grants. Preserve initial wrong-file invocation, missing-export reader failure and first source before original-reservation binding. Separate native probe identity/bootstrap, actual integration and disposal remain open; no qualification or new paid authority. |
 | M1.6d | AR/SI/RS/QA | Complete pair-derived native artifact/catalog views, explicit root/helper inventories and fresh native profiles; inherits M1.6a/b/c, F03/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Source/disk preparation and readback](docs/verification/2026-09-25-m1-probe-native-views.md):57 distinct passes,60/60+3/3 reconstruction, six prepared/ten failed/seven preflight-refused cases. Exact approved catalog/active bytes, role inventories, control arms, operator-store refs, empty profiles and one-use failure fences. Preserve first retained-WAL refusal and original source; separate read-only snapshot resolves audit. Actual native loading/projection, N>1 positive preparation, admission/isolation/launch/disposal remain open; no new paid or native execution authority. |
+| M1.6e | AR/SI/RS/QA | Atomic pair-derived disposable native identity/artifact binding and exact catalog preflight; inherits M1.6a-d, F03/F07/F08/F11/F16, N01/N04/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Source and verification](docs/verification/2026-09-25-m1-probe-native-binding.md):140 distinct focused passes,72/72+3/3 read-only reconstruction; old native source/two exports unchanged. Complete both-arm registration, fresh evaluation leaves/identities/paths, ordinary goal and role/catalog scope, separate probe purpose/profile binding. Startup stays closed pending held world/resource custody; actual native loading, scoped broker projection and disposal are not verified. Preserve initial transaction failure, wrong test expectation and source versions; no RuntimeQualification or paid authority. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7255,3 +7268,43 @@ bootstrap/catalog/broker admission and evaluation accounting, then held launch,
 matched live state/resources and one-way disposal. Preserve campaign import
 fences; N>1 preparation, combined isolation, T05/scorer gates remain open.
 Unrelated M2-M7 work is unchanged.
+
+
+### 2026-09-25 — M1.6e disposable native artifact binding
+
+Compiled complete prepared views into atomic both-arm/member native artifact
+bindings with fresh evaluation leaves, jobs, operations and disjoint locations.
+Separate NativeLaunch probe purpose/root/helper refs bind exact ordinary goals,
+role inventories and catalogs; private records stay outside gameplay views.
+Fresh ephemeral roots cannot borrow campaign activation/recovery or old epochs.
+Absent fields preserve historical plan/profile hashes. Every probe startup
+still refuses before job/cost/process creation pending held launch custody;
+existing account/admission/dispatch/broker guards and six proofs stay intact.
+
+IDs: M1.6e, F03/F07/F08/F11/F16, N01/N04/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T11/T12. Initial11 passes/26 failures
+retain the nested CAS transaction error. Fixed code publishes inert private CAS
+records before atomic registration; content alone has no admission authority.
+Next40 pass/one fail retains a wrong test expectation: altered bytes correctly
+raise CORRUPT_EVIDENCE. Corrected assertion plus two additional catalog cases
+pass3/3, yielding43 distinct binding passes. Schema/native/account regression97
+passes (140 distinct total), Ruff/whitespace pass. Failure inputs/logs/JUnit and
+source versions remain in the sealed producer.
+
+Read-only reconstruction72/72 across six cases plus3/3 common checks validates
+exact registered identities/sources, approved role/physical files and catalogs,
+helper exclusions, fresh profiles, unused evaluation leaves, no new native job,
+unchanged databases and seal. One old actual native source and two committed
+exports also reconstruct unchanged with original seals preserved. Producer
+and audit hashes are in the [report](docs/verification/2026-09-25-m1-probe-native-binding.md).
+All40 real authority tables unchanged, exposure $4.887796/$10 with every hold
+and consumed decision retained, no owned runtime and no paid M1 execution.
+New binding cases are synthetic preparation; native lifecycle regression uses
+Python process fixtures, not Codex/Minecraft/provider experiments.
+
+M1.6e implemented_unverified for actual native admission/projection; M1.6 stays
+in_progress, G1 not_run. Next implement the held pair coordinator/all-N admission,
+immutable bootstrap and separate probe wire catalog, scoped root/helper broker
+projection, actual matched world/body/keymap/cache assertions and one-way
+session/artifact destruction. N>1 positive preparation, combined isolation,
+T05 and protected scorer controls remain open. Unrelated M2-M7 work unchanged.

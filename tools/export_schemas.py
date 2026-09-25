@@ -7,6 +7,7 @@ from pathlib import Path
 from mcbench.records import AGENT_RECORDS, EVALUATOR_RECORDS, OPERATOR_RECORDS
 from mcbench.authorization import ExecutionAuthorization, ModelExecutionAuthorization
 from mcbench.native import NativeLaunch
+from mcbench.native_probe_binding import NativeProbeArtifactBinding
 from mcbench.native_checkpoint import NativeRetentionPolicy, NativeRetentionPolicyV2
 from mcbench.provisioning import (
     AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, FrozenE9ELaunchProfile,
@@ -23,7 +24,7 @@ def evaluator_models():
     from strata_evaluator.probe_pairs import ProbeFixture, ProbePairRequest
     return [*EVALUATOR_RECORDS, NativeProbeArtifactSelection, NativeProbeArtifactProjection, ProbeFixture, ProbePairRequest]
 
-OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeRetentionPolicy, NativeRetentionPolicyV2, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
+OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeProbeArtifactBinding, NativeRetentionPolicy, NativeRetentionPolicyV2, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
                        E9ELaunchProfile, FrozenE9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput)
 
 for domain, models in (("public", AGENT_RECORDS), ("operator", [*OPERATOR_RECORDS, *OPERATOR_API_MODELS]),

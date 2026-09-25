@@ -41,7 +41,7 @@ class NativeLaunch(Strict):
     agent_id: Id
     epoch: Positive
     role: Literal["executor", "helper"]
-    purpose: Literal["campaign", "conformance", "development_piloting"] = "campaign"
+    purpose: Literal["campaign", "conformance", "development_piloting", "probe"] = "campaign"
     parent_job_id: Id | None
     depth: UInt
     helper_limit: Annotated[int, Field(ge=0, le=32)] = 2
@@ -74,6 +74,8 @@ class NativeLaunch(Strict):
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     resume_component_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     team_policy_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    probe_binding_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    helper_probe_binding_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -88,8 +90,18 @@ class NativeLaunch(Strict):
         if (self.broker_policy in TEAM_POLICIES) != (self.team_policy_ref is not None):
             raise ValueError("team capability requires its explicit policy and private policy pin")
         if self.broker_policy in NO_HELPER_POLICIES and (self.helper_limit != 0 or self.role != "executor"
-                or self.depth != 0 or self.parent_job_id is not None or self.helper_skill_activation_ref is not None):
+                or self.depth != 0 or self.parent_job_id is not None or self.helper_skill_activation_ref is not None
+                or self.helper_probe_binding_ref is not None):
             raise ValueError("helper-free policy requires an executor with zero helper capability")
+        if (self.purpose == "probe") != (self.probe_binding_ref is not None):
+            raise ValueError("probe purpose requires a separate committed artifact binding")
+        if self.helper_probe_binding_ref is not None and self.helper_probe_binding_ref != self.probe_binding_ref:
+            raise ValueError("probe helpers require the same explicitly supplied artifact binding")
+        if self.purpose == "probe" and (self.skill_activation_ref is not None or
+                self.helper_skill_activation_ref is not None or self.resume_component_ref is not None or
+                self.session_storage != "ephemeral" or self.role != "executor" or self.depth != 0 or
+                self.parent_job_id is not None or self.epoch != 1 or self.budget_mode != "per_dispatch"):
+            raise ValueError("probe identity requires a fresh disposable root and separate artifact admission")
         return self
 
     def profile_digest(self):
@@ -121,6 +133,9 @@ class NativeLaunch(Strict):
                                         "source": self.resume_component_ref}
         if self.team_policy_ref is not None:
             body["team_policy_ref"] = self.team_policy_ref
+        if self.probe_binding_ref is not None:
+            body["probe_artifacts"] = {"policy": "disposable-native-artifact-binding/1",
+                "root": self.probe_binding_ref, "helpers": self.helper_probe_binding_ref}
         return digest(body)
 
 
@@ -222,6 +237,12 @@ class NativeExec:
 
     def _validate(self, plan, reserve, fixture_argv):
         db = self.db.connection
+        if plan.purpose == "probe":
+            from .native_probe_binding import require_binding_scope
+            require_binding_scope(db, self.cas, plan)
+            # Artifact binding is not held world/resource admission. Keep both
+            # production and fixture launch closed until that coordinator exists.
+            require(False, "NATIVE_PROBE_LAUNCH_CUSTODY_REQUIRED")
         if db.execute("SELECT 1 FROM sqlite_master WHERE name='inference_exposure_faults'").fetchone():
             require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
                     "INFERENCE_EXPOSURE_QUARANTINED")

@@ -1662,6 +1662,18 @@ refs are required. [Preparation evidence](docs/verification/2026-09-25-m1-probe-
 is not native catalog loading, broker admission, OS isolation, launch custody or
 disposal authority; those complete T04/T06/T11 contracts remain required.
 
+`NativeProbeArtifactBinding/1` compiles the complete prepared pair into a separate
+operator-only native identity for every arm/member. Both rosters register
+atomically; destination evaluation accounts, jobs, operations, workspaces and
+profiles must be fresh. Root/helper artifact maps and exact catalog entries come
+from the registered views, never caller-supplied selections. The `probe` launch
+purpose binds these records separately from campaign activation or recovery;
+fresh ephemeral roots and the same ordinary goal are required. Absent extension
+fields preserve historical plan/profile hashes. Artifact binding and catalog
+preflight remain preparation: native probe startup is explicitly closed pending
+held world/resource custody, complete native admission/projection and disposal.
+See [binding source evidence](docs/verification/2026-09-25-m1-probe-native-binding.md).
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

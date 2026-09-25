@@ -43,7 +43,8 @@
       "enum": [
         "campaign",
         "conformance",
-        "development_piloting"
+        "development_piloting",
+        "probe"
       ],
       "title": "Purpose",
       "type": "string"
@@ -308,6 +309,32 @@
       ],
       "default": null,
       "title": "Team Policy Ref"
+    },
+    "probe_binding_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Probe Binding Ref"
+    },
+    "helper_probe_binding_ref": {
+      "anyOf": [
+        {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Helper Probe Binding Ref"
     },
     "config_overrides": {
       "additionalProperties": {

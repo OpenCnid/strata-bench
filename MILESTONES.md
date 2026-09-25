@@ -35,8 +35,11 @@ M1.3b.4 now has [selected retirement evidence](docs/verification/2026-09-24-m1-r
 notification-aware cell drain without allowing status-text spoofing.
 M1.3b.5 now has [notification-safe framed drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):
 200 focused cases,34/34 native checks and20/20 independent reconstruction.
-Ambiguous scalar-only silent yields retain holds; qualified whole-process drain
-or unambiguous runtime framing remains required before lifecycle closure.
+M1.3b.6 now has [held-process drain and stopped disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):
+222 distinct focused cases,28/28 native checks and15/15 independent export audit.
+The failed state-readiness attempt and its synthetic hold remain retained.
+Scalar-only yields still cannot authorize early retirement; stopped export uses
+the independent private process fence without claiming successful tool completion.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -439,7 +442,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.3 | SI/AR/QA | Selected-profile private state, live cell ownership and notification routing; inherits M1.3b coverage | verified | [Named state/notification evidence](docs/verification/2026-09-24-m1-state-boundary.md):41 existing plus36 new cases;12 settled native requests and34/34 independent reconstruction. Original failed15/41 with uncertain synthetic reservation and changed45/46 review-pending report retained. No cross-team, full lifecycle, probe-disposal or runtime qualification claim. |
 | M1.3b.4 | SI/AR/QA | Selected-profile helper revocation, proved retirement and replacement with retained consumption; inherits M1.3b coverage plus F11/C18 | verified | [Named retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md):40 existing and66 selected verifier cases;15 settled native requests plus one rejected old-helper resume,16/16 independent audit. Original33/34 upstream-count failure retained. Completed helper only; notification-aware drain, interruption and full lifecycle remain open. |
 | M1.3b.5 | SI/AR/QA | Distinguish authoritative native cell result frames from model-controlled notification text; retain holds on ambiguous scalar yields; inherits M1.3b.4 coverage | verified | [Named framed-drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):200 focused cases,34/34 actual native and20/20 audit; nine forged-status notifications cannot replace three actual content frames. /1 duplicate refusal and scalar-yield limitation retained. No full lifecycle qualification. |
-| M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain or unambiguous runtime framing for scalar-only silent yields; inherits M1.3b.5 coverage | in_progress | [Recorded limitation](docs/verification/2026-09-24-m1-notification-drain.md): actual selected-state helper capture refuses under /2 with NATIVE_CELL_RESULT_MISSING. Inspect held ManagedProcess/WindowsJob shutdown and durable evidence; no inferred release from terminal parent status, model text or stop configuration. |
+| M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain for scalar-only silent yields; inherits M1.3b.5 coverage | verified | [Named stopped-disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):222 distinct focused cases,28/28 actual native checks,15/15 independent committed-export audit; held job six lifetime/zero active processes. Original29/48 readiness race retains one uncertain request and full synthetic hold. No early helper retirement, successful-tool, cost or full isolation inference. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6444,3 +6447,29 @@ selected-state capture without rerun or history mutation. M1.3b.5 is verified
 only for the content-frame path and conservative refusal; M1.3b.6 now tracks
 qualified whole-process drain or stronger runtime framing. No gate reduction,
 paid authority, release or unrelated M2-M7 scope is implied.
+
+
+### 2026-09-24 — M1.3b.6 held-process proof and stopped export
+
+Added held Windows Job zero-active observation and private NativeProcessDrain/1
+with exact launch/profile/start/return/event binding. The supervisor records it
+only after successful cleanup; observation failure still closes resources and
+retains uncertainty. Stopped export can classify unresolved cells as disposed
+through this proof without inventing tool success, settling costs or releasing
+a live helper slot. Existing source/receipt/ingress/broker/artifact checks remain.
+SPEC6 describes this independent process-fenced disposal path.
+
+217 focused tests pass; five new malformed-wait cases then pass with all17
+disposal tests (222 distinct). Actual Windows parent-exit/lingering-descendant
+control refuses drain until the held job stops. First selected native attempt
+retains29/48 STATE_PEER_CELL_NOT_READY failure: seven settled/one uncertain
+request, full120,000 synthetic-unit hold, physical proof insufficient for export.
+Changed focused fixture leaves two silent cells, observes the helper reply, then
+finishes:28/28 checks, nine settled requests/126 units, six lifetime/zero active
+processes and committed stopped export. Independent15/15 reconstructs all joins;
+early per-cell proof still refuses both scalar outputs. [Report/seals](docs/verification/2026-09-24-m1-process-drain.md).
+
+All40 real authority tables remain unchanged; no paid model/game process/shared
+input or allowance change. No owned fixture process remains. Full Ruff/whitespace
+pass. M1.3b.6 verifies this stopped path only; next selected concurrent helpers
+and correct-team/cross-team communication. Full G1 and unrelated M2-M7 unchanged.

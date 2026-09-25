@@ -221,7 +221,7 @@ def inspect_native_source(db, cas, job, *, simulation, live_jobs=()):
             grant.parent_thread_id == participant["parent"] and grant.depth == participant["depth"] and
             grant.role == ("executor" if participant["depth"] == 0 else "helper"), "NATIVE_EXPORT_PARTICIPANTS")
         require_drained(db, job, participant["thread"])
-        cells = require_native_cells_drained(db, cas, plan, participant["thread"])
+        cells = require_native_cells_drained(db, cas, plan, participant["thread"], stopped_job=True)
         inventory = _inventory(db, cas, participant, grant)
         from .native_skill_activation import active_files, read_set, require_scope
         active_ref = plan.skill_activation_ref if grant.role == "executor" else plan.helper_skill_activation_ref

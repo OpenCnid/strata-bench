@@ -37,5 +37,7 @@ The [selected retirement slice](verification/2026-09-24-m1-retirement-boundary.m
 adds16/16 independent reconstruction: rejected old-helper resume, proved slot
 release and fresh replacement. [Notification-safe framed drain](verification/2026-09-24-m1-notification-drain.md)
 now passes200 focused cases,34/34 native and20/20 independent checks.
-Scalar-only silent yields still retain holds; whole-process drain or unambiguous
-native framing remains necessary. Full lifecycle/G1 remains open.
+[Held-process drain and stopped disposal](verification/2026-09-24-m1-process-drain.md)
+now pass222 distinct focused cases,28/28 native and15/15 independent export
+checks. Scalar yields remain invalid for early retirement; stopped export uses
+the separate private process fence. Full lifecycle/G1 remains open.

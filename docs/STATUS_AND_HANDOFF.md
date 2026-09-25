@@ -77,12 +77,17 @@ independently confirms scalar-only silent yields remain unresolved. /1 histories
 are not relabeled. Both relevant source versions and actual spoofed notices are
 retained in the new private seal. No real authority or input changed.
 
-Next bounded work: M1.3b.6, inspect and qualify held native whole-process drain
-for scalar-only yields, or establish unambiguous runtime framing. Existing
-ManagedProcess/WindowsJob already owns no-breakaway descendants, but durable
-proof must establish actual closure, not configuration or parent disappearance.
-Then selected interruption/drain,
-correct-team versus cross-team communication and remaining
+M1.3b.6 has [held-process drain and stopped disposal evidence](verification/2026-09-24-m1-process-drain.md):
+222 distinct focused cases,28/28 native and15/15 independent committed-export
+checks. Private NativeProcessDrain/1 binds the original held job, zero active
+processes, exact launch/profile/start and durable event. Stopped export retains
+unresolved call IDs with tool_success_inferred=false; early retirement stays
+strict. Original29/48 state-readiness race remains UNSETTLED with its120,000
+synthetic-unit hold. Both bundles are sealed; all40 real authority tables remain
+unchanged and no owned process remains.
+
+Next bounded work: selected-profile two-helper concurrency and correct-team
+versus cross-team communication, then remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential
 admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.

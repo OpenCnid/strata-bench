@@ -89,7 +89,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
-        selected_retirement_boundary=False, retirement_notifications=False):
+        selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -107,6 +107,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(type(process_drain_mode) is bool and (not process_drain_mode or selected_state_boundary),
+            "PROCESS_DRAIN_REQUIRES_SELECTED_STATE")
     require(type(retirement_notifications) is bool and (not retirement_notifications or
             selected_retirement_boundary), "RETIREMENT_NOTIFICATIONS_REQUIRE_SELECTED_PROFILE")
     require(type(selected_retirement_boundary) is bool and (not selected_retirement_boundary or
@@ -177,7 +179,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
     from native_interrupt_probe import InterruptProbe
-    if selected_state_boundary:
+    if process_drain_mode:
+        from native_process_drain_probe import ProcessDrainCanaries
+        state_probe = ProcessDrainCanaries()
+    elif selected_state_boundary:
         from native_state_boundary import SelectedStateCanaries
         state_probe = SelectedStateCanaries()
     else:

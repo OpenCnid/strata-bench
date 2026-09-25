@@ -166,6 +166,8 @@ class NativeExec:
                        "state IN ('PREPARED','STARTING','RUNNING','STOPPING','UNSETTLED')")
             db.execute("CREATE TABLE IF NOT EXISTS native_events (job TEXT REFERENCES native_jobs(id), "
                        "cursor INTEGER, channel TEXT, body TEXT, PRIMARY KEY(job,cursor))")
+            db.execute("CREATE TABLE IF NOT EXISTS native_process_drains (job TEXT PRIMARY KEY "
+                       "REFERENCES native_jobs(id), proof_ref TEXT, event INTEGER REFERENCES outbox(cursor))")
 
     def _proof(self, plan):
         require(plan.qualification_ref is not None, "RUNTIME_UNQUALIFIED")
@@ -503,6 +505,7 @@ class NativeExec:
         live = self.live[job]
         plan = live["plan"]
         cleanup_error = None
+        process_drain = None
         for child, entry in list(self.live.items()):
             if entry["plan"].parent_job_id == job and child in self.live:
                 try:
@@ -520,10 +523,14 @@ class NativeExec:
         try:
             # Stop descendants before closing pipes/readers. End is not permission
             # to refund the reservation or assume only one provider call happened.
-            live["process"].stop()
-            for thread in live["threads"]:
-                thread.join(timeout=1)
-            live["process"].close()
+            try:
+                live["process"].stop()
+                if os.name == "nt":
+                    process_drain = live["process"].drain_evidence()
+            finally:
+                for thread in live["threads"]:
+                    thread.join(timeout=1)
+                live["process"].close()
             if live.get("integrity"):
                 live["integrity"].close()
         except BaseException as error:
@@ -531,6 +538,13 @@ class NativeExec:
                 self.integrity_holds[job] = live["integrity"]
             cleanup_error = error
             reason = "process_stop_failed"
+        if cleanup_error is None and process_drain is not None:
+            from .native_process_drain import record_process_drain
+            try:
+                record_process_drain(self, plan, process_drain)
+            except BaseException as error:
+                cleanup_error = error
+                reason = "process_drain_evidence_failed"
         try:
             while True:
                 channel, raw = live["queue"].get_nowait()

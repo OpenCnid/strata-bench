@@ -11,6 +11,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
 from .storage import Fault, reject_links, require
@@ -337,6 +338,29 @@ class ManagedProcess:
                 self.process.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 raise Fault("PROCESS_STOP_FAILED") from None
+
+    def drain_evidence(self, *, timeout_s=2):
+        """Observe zero members while the original no-breakaway job stays held.
+
+        Parent exit or successful TerminateJobObject alone is insufficient.
+        POSIX groups do not supply this Windows qualification evidence.
+        """
+        require(type(timeout_s) in (int, float) and 0 < timeout_s <= 2, "INVALID_ARGUMENT")
+        require(self.job is not None and self.job.handle and self.process is not None,
+                "PROCESS_DRAIN_UNSUPPORTED")
+        started = time.monotonic_ns()
+        deadline = started + int(timeout_s * 1_000_000_000)
+        while True:
+            accounting = self.job.accounting()
+            code = self.process.poll()
+            if accounting["active_processes"] == 0 and type(code) is int:
+                require(accounting["total_processes"] > 0, "PROCESS_DRAIN_EMPTY_JOB")
+                return {"schema": "strata/HeldProcessDrain/1", "policy": "held-windows-job-zero-active/1",
+                        "root_returncode": code, "accounting": accounting,
+                        "observed_unix_ms": time.time_ns() // 1_000_000,
+                        "observation_elapsed_ns": time.monotonic_ns() - started}
+            require(time.monotonic_ns() < deadline, "PROCESS_DRAIN_PENDING")
+            time.sleep(0.005)
 
     def close(self):
         # Closing a completed parent still kills any lingering grandchildren.

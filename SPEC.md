@@ -1687,6 +1687,19 @@ undispatched preparation resources; this never settles costs or rearms the pair.
 File leases and budget reservation still grant no game/native launch authority,
 live state-equivalence claim or OS-isolation qualification. See [custody checks](docs/verification/2026-09-25-m1-probe-custody.md).
 
+The `prepared-probe-bootstrap-and-role-projection/1` native consumer binds every
+prepared workspace/catalog file and directory to the approved artifact binding
+and complete bootstrap inventory. Native admission checks the exact probe
+catalog before enrollment and projects the explicitly selected role inventory
+after broker authentication. Revalidate scope, source and grant at the atomic
+projection commit; failed copies cannot publish partial broker file mappings.
+Private provenance and catalog paths are not broker artifacts. Fresh namespaces
+cannot contain unrelated files; repeated admission preserves local adaptation
+and checks immutable initial/docs/supplied/active files. Helpers receive no root
+notes/handoff/drafts. [Source and broker fixture evidence](docs/verification/2026-09-25-m1-probe-broker-projection.md)
+does not open the native launch/account gates, establish held world/runtime
+custody or prove actual catalog loading, matched live state or one-way disposal.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

@@ -3,7 +3,15 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
-Current M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
+M1.6g [probe bootstrap and broker projection](verification/2026-09-25-m1-probe-broker-projection.md)
+connects prepared views to exact bootstrap validation, pre-enrollment catalog
+checks and atomic role-specific artifact projection. Native probe startup and
+purpose/account guards remain closed; actual world/runtime custody and full
+native integration remain required.141 focused cases and137/137+3/3 read-only
+checks pass. The first audit path-format failure is retained; all40 authority
+tables remain unchanged. This is implemented_unverified for actual native use.
+
+Prior M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
 adds real Windows file leases and atomic both-arm budget/capacity reservations.
 Campaign admission counts those holds; failure/expiry preserves them. Native
 probe execution remains closed pending actual world/runtime custody and scoped

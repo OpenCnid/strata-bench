@@ -148,6 +148,9 @@ class NativeAdmission:
         if plan.bootstrap_digest is not None:
             from .native_bootstrap import verify_native_inventory
             verify_native_inventory(plan)
+        if plan.probe_binding_ref is not None:
+            from .native_probe_artifacts import validate_probe_bootstrap
+            validate_probe_bootstrap(db, self.cas, plan)
         if plan.tool_catalog_policy is not None:
             from .native_catalog import require_no_patch_catalog
             require_no_patch_catalog(plan)
@@ -208,6 +211,9 @@ class NativeAdmission:
             if plan.skill_activation_ref is not None:
                 from .native_skill_activation import require_catalog
                 require_catalog(db, self.cas, plan, body, "executor" if name == "/root" else "helper")
+            if plan.probe_binding_ref is not None:
+                from .native_probe_binding import require_probe_catalog
+                require_probe_catalog(db, self.cas, plan, body, "executor" if name == "/root" else "helper")
             # No helper envelope or participant is created until the complete
             # request tool projection matches the pre-existing operator pin.
             # Lineage checks below independently authenticate the claimed role.
@@ -328,6 +334,9 @@ class NativeAdmission:
         return grant
 
     def _project_skills(self, plan, grant, broker):
+        if plan.probe_binding_ref is not None:
+            from .native_probe_artifacts import project_probe_artifacts
+            project_probe_artifacts(self.db, self.cas, plan, grant, broker)
         if plan.resume_component_ref is not None:
             from .native import NativeExec
             from .native_recovery import NativeRecovery

@@ -4,7 +4,15 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
-Latest M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
+M1.6g [probe bootstrap and broker projection](verification/2026-09-25-m1-probe-broker-projection.md)
+connects prepared views to exact bootstrap validation, pre-enrollment catalog
+checks and atomic role-specific artifact projection. Native probe startup and
+purpose/account guards remain closed; actual world/runtime custody and full
+native integration remain required.141 focused cases and137/137+3/3 read-only
+checks pass. The first audit path-format failure is retained; all40 authority
+tables remain unchanged. This is implemented_unverified for actual native use.
+
+Prior M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
 provides ProbeCustody: durable view verification, actual Windows file handles,
 atomic both-arm evaluation envelopes/capacity, scheduler contention, retained
 failure/expiry holds and dual wall/monotonic deadlines. Only the live owner can
@@ -18,8 +26,8 @@ and audit `2026-09-25-m1-probe-custody-audit-01` are sealed (hashes in report).
 All40 real authority tables and $4.887796 exposure/holds are unchanged.
 
 Next complete the held world/runtime coordinator after M1.6e [artifact binding](verification/2026-09-25-m1-probe-native-binding.md)
-and M1.6f preparation custody: all-N live readiness, exact probe wire catalog
-and scoped root/helper projection. The new `probe` purpose
+and M1.6f preparation custody, using M1.6g artifact hooks: all-N live readiness,
+exact probe wire catalog and actual scoped root/helper admission/projection. The new `probe` purpose
 and private binding refs are preparation only. NativeExec refuses every such
 launch with NATIVE_PROBE_LAUNCH_CUSTODY_REQUIRED; account/admission/dispatch and
 broker guards also remain closed to probe execution. Do not remove these gates
@@ -27,6 +35,11 @@ merely because a binding or empty profile exists. Bind actual pre-start world/
 body/keymap/tools/cache equivalence, frozen/no-self-play behavior, fresh sessions
 and one-way destruction to held evidence. Preserve all six runtime proofs and
 separate evaluation accounting. No paid M1 authority exists.
+Preparation custody currently denies writes to the staged worlds. Actual game
+launch therefore needs an explicit handover to a held mutable writer lifetime,
+followed by native readiness and stopped probe export/disposal. Releasing the
+preparation handles alone is not that handover. M1.6g's projection fixture grants
+are simulation-only and cannot be used as native admission evidence.
 M1.6e has140 distinct passing source/regression cases and72/72+3/3 reconstruction.
 Retain the initial nested-transaction failure and wrong error-code test
 expectation; inert CAS publication now precedes atomic binding registration.

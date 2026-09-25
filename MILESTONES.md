@@ -164,6 +164,13 @@ complete that coordinator, all-N admission and scoped native projection, then
 actual matched-state and one-way disposal evidence. Existing account, campaign
 activation/publication and all six runtime-proof requirements remain intact.
 
+M1.6h [held protected world copies](docs/verification/2026-09-25-m1-probe-world-copies.md)
+adds a whole-pair native writer lifetime while original files and all resource/
+cost holds stay protected.47 source cases and one actual native pair pass;
+58/58 read-only checks preserve both prior native failures. Both copier trees
+stop normally (10/10 each) and close explicitly unlaunched; this does not prove
+Minecraft, live-state equivalence or post-probe disposal. No paid inference.
+
 M1.6g [probe bootstrap and broker projection](docs/verification/2026-09-25-m1-probe-broker-projection.md)
 connects prepared views to exact bootstrap validation, pre-enrollment catalog
 checks and atomic role-specific artifact projection. Native probe startup and
@@ -616,6 +623,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6e | AR/SI/RS/QA | Atomic pair-derived disposable native identity/artifact binding and exact catalog preflight; inherits M1.6a-d, F03/F07/F08/F11/F16, N01/N04/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Source and verification](docs/verification/2026-09-25-m1-probe-native-binding.md):140 distinct focused passes,72/72+3/3 read-only reconstruction; old native source/two exports unchanged. Complete both-arm registration, fresh evaluation leaves/identities/paths, ordinary goal and role/catalog scope, separate probe purpose/profile binding. Startup stays closed pending held world/resource custody; actual native loading, scoped broker projection and disposal are not verified. Preserve initial transaction failure, wrong test expectation and source versions; no RuntimeQualification or paid authority. |
 | M1.6f | AR/SI/RS/QA | Held pair/view files and atomic whole-pair evaluation envelopes/shared worker capacity; inherits M1.6a-e, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Custody verification](docs/verification/2026-09-25-m1-probe-custody.md):86 distinct passes, three existing symbolic-link privilege skips; audit73/73+3/3. Actual Windows write/delete denial and owner-process exit with synthetic N=1 pair/capacity/budget records. Both arms reserve atomically; failure/expiry/dead ownership retains resources and costs. Explicit preparation-only release never refunds/rearms. No actual native/game launch, live-state equivalence, N>1 acceptance, OS isolation or disposal qualification. |
 | M1.6g | AR/SI/RS/QA | Pin prepared probe workspace/catalog into bootstrap and project exact root/helper files through native admission; inherits M1.6a-f, F03/F04/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Projection verification](docs/verification/2026-09-25-m1-probe-broker-projection.md):141 focused cases, read-only137/137+3/3. Exact prepared bootstrap inputs and atomic role projection through actual broker methods with explicit simulation grants. Initial audit path-format failure retained. Native startup and account-purpose gates remain closed; no full native/game qualification. |
+| M1.6h | AR/SI/RS/QA | Copy both prepared worlds into fresh protected writer trees within live pair custody; inherits M1.6a-g, F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [World copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md):47 source passes plus one actual native pair;58/58 read-only checks across success and two retained failures. Both exact copies held together, write denial, normal10/10 process stop each, retained cost/capacity and consumed-pair refusal. Existing native writer path reused. Explicit unlaunched discard does not certify game launch or one-way post-probe disposal. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7403,3 +7411,49 @@ world files against writes; actual world launch needs an explicit held custody
 handover and mutable writer lifetime, not simply releasing those handles or
 removing the native gate. N>1 positive preparation, remaining combined isolation,
 T05 and protected scorer controls remain open. Unrelated M2-M7 work unchanged.
+
+
+### 2026-09-25 — M1.6h whole-pair protected world copies
+
+Connected both exact prepared worlds to the existing native protected writer
+path while retaining original file leases and whole-pair budget/capacity holds.
+Validate complete arms, exact source paths/hashes/sizes, fresh disjoint names,
+finite copy storage and nested deadlines. Hold the main native executable and
+all three pinned companions throughout both lifetimes. The operator borrows
+both copies together; returning closes explicit unlaunched custody. DISCARDED
+cannot satisfy a stopped-server reference, reopen a consumed pair or refund
+costs/resources. Native probe launch/account gates remain closed.
+
+IDs: M1.6h, F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24, T01/T06/T07/T11. Source47 pass in195.17s; changed coordinator
+selection2 pass in47.60s. Actual native case03 passes in35.36s (48 distinct cases
+including native), Ruff/whitespace pass. Unit writer/token doubles are explicitly
+synthetic. The native case uses real sandbox/Java/token/held process behavior and
+synthetic N=1 world bytes; no Minecraft, model, measured capacity certificate or
+RuntimeQualification. Both10/10 process trees stop normally; exact copies and
+originals deny operator writes, and fresh-path reacquisition refuses.
+
+Preserve native01 error5 (7/7 terminal, exit1, no force) and native02 wrong online
+writer token (10/10 terminal, forced exit125). Use the already verified readable
+runtime path and protected public-parent workspace, then the recorded online
+writer identity with unchanged runtime/home/helper and token checks. Do not
+change private ancestor ACLs or accept an observed token as its own authority.
+Both failures stay FAILED/FENCED with holds; the positive ends DISCARDED and
+caller teardown fences preparation with all holds retained. No retry/rearm of
+any used identity or source store.
+
+Read-only reconstruction58/58 across all three native cases passes, joining
+plans, exact source bytes, shared companion pins, retained process/token evidence,
+discard/failure semantics, unknown/forced history and reservations. All producer
+seals and databases remain unchanged; [report](docs/verification/2026-09-25-m1-probe-world-copies.md)
+pins the four private bundles. All40 authority tables remain unchanged, exposure
+$4.887796/$10 with every hold and consumed decision retained. No owned runtime
+remains and no paid M1 authority is inferred.
+
+M1.6h implemented_unverified for game/native probe integration; M1.6 in_progress,
+G1 not_run. Next bind reviewed immutable game software to the protected copies
+and extend the live coordinator through actual server/worker/native readiness,
+registered controls, matched live-state assertions, stopped exports and one-way
+disposal. Current unlaunched discard is not erasure or a completed probe. N>1
+positive preparation, full combined isolation, T05 and protected scorer controls
+remain open. Unrelated M2-M7 work is unchanged.

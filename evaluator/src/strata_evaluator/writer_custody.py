@@ -211,6 +211,22 @@ class WriterCustody:
         self.completed = True
         return dict(self.result)
 
+    def discard_unlaunched(self):
+        """Close a held copy without claiming that a server was ever launched.
+
+        Used when preparing both probe worlds under one live parent custody.
+        A consumed launch attempt cannot take this path, even if it failed.
+        """
+        self.check()
+        require(not self.launched and self.native is None and self.broker is None
+                and not self.completed, "WRITER_CUSTODY_ALREADY_LAUNCHED")
+        prepared = self.body["stages"]["preparation"]
+        require(prepared["terminal_verified"] and prepared["logs_complete"]
+                and prepared["exit_code"] == 0 and not prepared["forced"], "WRITER_TERMINAL_UNCERTAIN")
+        self._record("DISCARDED", disposition="unlaunched_copy", game_launched=False)
+        self.completed = True
+        return dict(self.result)
+
     def close(self):
         if self.closed:
             return

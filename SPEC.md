@@ -1700,6 +1700,20 @@ notes/handoff/drafts. [Source and broker fixture evidence](docs/verification/202
 does not open the native launch/account gates, establish held world/runtime
 custody or prove actual catalog loading, matched live state or one-way disposal.
 
+`held-pair-protected-world-copies/1` keeps the prepared originals immutable while
+the existing native writer copies both exact world inventories into separate
+fresh protected trees. Require complete arms, distinct identities and disjoint
+namespaces; bind every source path/hash/size, finite copy storage and nested
+deadlines before dispatch. Hold the pinned native executable and its three
+execution companions across both writer lifetimes. Both copies are borrowed
+together only while original pair/file/budget/capacity and native writer custody
+remain live. This stage permits explicit unlaunched discard only, with a separate
+DISCARDED disposition that cannot satisfy a stopped-server reference. Failure
+closes writer/process custody before original input leases and preserves all
+resource/cost holds. Surviving paths and serialized results grant no authority.
+[Copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md) does not
+establish game launch, matched live state, runtime isolation or post-probe disposal.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

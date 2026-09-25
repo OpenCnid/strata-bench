@@ -53,6 +53,24 @@ def test_no_native_process_or_unfinished_process_cannot_be_success(held):
     assert custody.result["status"] == "held"
 
 
+@pytest.mark.parametrize("fault", [None, "launched", "history", "forced"])
+def test_explicit_unlaunched_discard_is_not_server_success(held, fault):
+    custody, _, records = held
+    custody.body["stages"] = {"preparation": {"terminal_verified": fault != "history",
+        "logs_complete": True, "exit_code": 0, "forced": fault == "forced"}}
+    custody.launched = fault == "launched"
+    if fault:
+        with pytest.raises(Fault, match="WRITER_CUSTODY_ALREADY_LAUNCHED|WRITER_TERMINAL_UNCERTAIN"):
+            custody.discard_unlaunched()
+        assert not custody.completed and not records
+    else:
+        result = custody.discard_unlaunched()
+        assert result["status"] == "discarded" and result["disposition"] == "unlaunched_copy"
+        assert not result["game_launched"] and custody.completed
+        custody.close()
+        assert custody.result["status"] == "discarded" and not custody.result["live"]
+
+
 @pytest.mark.parametrize("fault", ["native", "broker"])
 def test_cleanup_keeps_added_leases_until_native_and_broker_cleanup_attempted(held, fault):
     custody, order, _ = held

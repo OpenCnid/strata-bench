@@ -4,6 +4,13 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6h [held protected world copies](verification/2026-09-25-m1-probe-world-copies.md)
+adds a whole-pair native writer lifetime while original files and all resource/
+cost holds stay protected.47 source cases and one actual native pair pass;
+58/58 read-only checks preserve both prior native failures. Both copier trees
+stop normally (10/10 each) and close explicitly unlaunched; this does not prove
+Minecraft, live-state equivalence or post-probe disposal. No paid inference.
+
 M1.6g [probe bootstrap and broker projection](verification/2026-09-25-m1-probe-broker-projection.md)
 connects prepared views to exact bootstrap validation, pre-enrollment catalog
 checks and atomic role-specific artifact projection. Native probe startup and
@@ -35,11 +42,16 @@ merely because a binding or empty profile exists. Bind actual pre-start world/
 body/keymap/tools/cache equivalence, frozen/no-self-play behavior, fresh sessions
 and one-way destruction to held evidence. Preserve all six runtime proofs and
 separate evaluation accounting. No paid M1 authority exists.
-Preparation custody currently denies writes to the staged worlds. Actual game
-launch therefore needs an explicit handover to a held mutable writer lifetime,
-followed by native readiness and stopped probe export/disposal. Releasing the
-preparation handles alone is not that handover. M1.6g's projection fixture grants
-are simulation-only and cannot be used as native admission evidence.
+M1.6h now borrows both exact protected world copies within the existing native
+writer lifetime while keeping originals immutable. Its current policy closes
+unlaunched copies only. Next bind reviewed game software and extend the held
+lifetime to actual server/worker/native readiness, mutable game state, stopped
+probe exports and disposal. Releasing original handles or reopening a discarded
+path is not a handover. M1.6g grants remain simulation-only. For native writer
+work, reuse the checked readable four-executable runtime and the recorded online
+writer identity; retain error5 and wrong-token cases. Fresh workspaces use the
+existing protected-leaf creation under a traversable parent, with no private
+ancestor permission broadening.
 M1.6e has140 distinct passing source/regression cases and72/72+3/3 reconstruction.
 Retain the initial nested-transaction failure and wrong error-code test
 expectation; inert CAS publication now precedes atomic binding registration.

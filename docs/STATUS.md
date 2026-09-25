@@ -3,6 +3,13 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6h [held protected world copies](verification/2026-09-25-m1-probe-world-copies.md)
+adds a whole-pair native writer lifetime while original files and all resource/
+cost holds stay protected.47 source cases and one actual native pair pass;
+58/58 read-only checks preserve both prior native failures. Both copier trees
+stop normally (10/10 each) and close explicitly unlaunched; this does not prove
+Minecraft, live-state equivalence or post-probe disposal. No paid inference.
+
 M1.6g [probe bootstrap and broker projection](verification/2026-09-25-m1-probe-broker-projection.md)
 connects prepared views to exact bootstrap validation, pre-enrollment catalog
 checks and atomic role-specific artifact projection. Native probe startup and

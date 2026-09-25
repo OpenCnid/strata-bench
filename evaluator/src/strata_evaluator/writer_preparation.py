@@ -350,13 +350,14 @@ class WriterPreparations:
                 continuation(custody)
                 # Returning with a live/unfinished process is a fault, not a
                 # successful preparation followed by an untracked launch.
-                require(custody.completed and custody.result["status"] == "stopped",
+                require(custody.completed and custody.result["status"] in {"stopped", "discarded"},
                         "WRITER_CUSTODY_UNFINISHED")
                 custody.check()
             body["status"] = "prepared_reference"
             if custody is not None:
-                body["status"] = "stopped_reference"
-            self.record(plan.id, "STOPPED", body)
+                body["status"] = ("discarded_preparation" if custody.result["status"] == "discarded"
+                                  else "stopped_reference")
+            self.record(plan.id, "DISCARDED" if body["status"] == "discarded_preparation" else "STOPPED", body)
         except BaseException as error:
             body.update(status="uncertain", error=getattr(error, "code", type(error).__name__))
             if isinstance(error, ProcessInventoryFault):
@@ -386,7 +387,8 @@ class WriterPreparations:
                             cleanup.callback(staged_lease.close)
                 except BaseException as error:
                     body.update(status="uncertain", release_error=getattr(error, "code", type(error).__name__))
-            state = "STOPPED" if body["status"] in ("stopped_reference", "prepared_reference") else "UNCERTAIN"
+            state = ("DISCARDED" if body["status"] == "discarded_preparation" else
+                     "STOPPED" if body["status"] in ("stopped_reference", "prepared_reference") else "UNCERTAIN")
             body["elapsed_s"] = time.monotonic() - started
             self.record(plan.id, state, body)
             if evidence.exists():

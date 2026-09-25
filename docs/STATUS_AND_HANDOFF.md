@@ -95,8 +95,18 @@ Stopped export reconstructs exactly. The first two attempts retain their
 21/37 and26/37 failures and320,000-unit holds; initial13/15 audit remains beside
 corrected15/15. All three bundles are sealed, real authority remains unchanged.
 
-Next bounded work: M1.3b.8, cross-team native communication against a separate
-owned job, preserving permitted within-team controls, then remaining
+M1.3b.8 has [separate-job native evidence](verification/2026-09-24-m1-cross-job.md):
+35 focused cases,25/25 independent reconstruction. All36 targeted foreign/absent
+operations return exact native denials, permitted local messages succeed,36
+requests settle for504 synthetic units, both jobs export and stop. Original28/29
+per job remains review-pending history; optional coordinator timeline serialization
+failure is retained, not reconstructed or used as proof. One sealed bundle, all40
+real authority tables unchanged. No campaign-team API or N-body claim.
+
+Next bounded work: M1.3b.9, the G1-required SPEC10.2 team.send/team.receive facade
+and native allowed-roster/cross-campaign verification over Communication. Current
+restricted broker exposes only artifacts/game; native helper collaboration cannot
+substitute for this contract. Minimal M4.1 dependency only, then remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential
 admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.

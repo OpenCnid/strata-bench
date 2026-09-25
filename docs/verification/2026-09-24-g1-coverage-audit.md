@@ -88,3 +88,15 @@ credential-free native fixtures. D18/D19 remain M0-only spending authority.
 Prepare a concrete bounded M1 authentic-model procedure before requesting its
 missing spending authorization. No broad rerun of unchanged M0 matrices, old
 one-use script replay, shared-desktop input or new allowance is selected here.
+
+
+## Campaign-team communication dependency clarified
+
+M1.3b.8 exercises separate native job/helper communication and control attempts.
+It cannot substitute for SPEC10.2 team.send/team.receive. The controller
+Communication service exists, but the current restricted broker exposes only
+artifact/game operations. M1.3b.9 now tracks the minimal M4.1 dependency required
+by complete T01/T06/G1: typed scoped native team operations, declared policy,
+permitted roster delivery, cross-campaign refusal, cursors/deadlines/limits and
+durable receipts. This does not start N-body capacity qualification or unrelated
+M4 work; the original gate still requires correct team communication.

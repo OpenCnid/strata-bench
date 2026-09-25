@@ -90,7 +90,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
-        selected_helper_pair=False):
+        selected_helper_pair=False, cross_team_probe=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -106,8 +106,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_dispatch_probe import LocalProvider, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
     from native_broker_canaries import Canaries
+    from native_cross_team_probe import CrossTeamProbe
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(cross_team_probe is None or type(cross_team_probe) is CrossTeamProbe and
+            bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                gateway_mode, skills_mode, activation_source, game_probe, piloting_contract,
+                runtime_boundary, selected_state_boundary, selected_retirement_boundary, selected_helper_pair)),
+            "CROSS_TEAM_PROFILE_REQUIRED")
     require(type(selected_helper_pair) is bool and (not selected_helper_pair or
             bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
             tool_projections is not None and no_patch_catalog is not None and not any((
@@ -182,7 +190,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract or selected_helper_pair,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract or selected_helper_pair or cross_team_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_helper_pair_probe import HelperPairProbe
@@ -207,7 +215,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
     request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
-    if pair_probe:
+    if pair_probe or cross_team_probe:
         request_limit = 32
     if output_boundary:
         from native_output_boundary import OutputBoundaryCanaries
@@ -258,6 +266,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 state_probe.observe(agent, body)
             if pair_probe:
                 pair_probe.observe(agent, body)
+            if cross_team_probe:
+                cross_team_probe.observe(agent, body)
             if interrupt_probe:
                 interrupt_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
@@ -386,6 +396,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         extra_items.append(state_probe.reserve_root_handle(operation))
                 if pair_probe:
                     item = pair_probe.start(agent, operation, code)
+                if cross_team_probe:
+                    item = cross_team_probe.start(agent, operation, code)
+            elif cross_team_probe:
+                item, *extra_items = cross_team_probe.next(agent, step, operation)
             elif pair_probe:
                 item, *extra_items = pair_probe.next(agent, step, operation)
             elif state_probe:
@@ -461,7 +475,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         native_worker = NativeWorker(db, game_probe.descriptor)
         runtime.revoke_game = native_worker.revoke
     gate = InferenceDispatches(db, cas, simulation=True)
-    limits = dict.fromkeys(DIMENSIONS, 8000000 if pair_probe else 2000000) | {"spend_microusd": request_limit * 10000}
+    limits = dict.fromkeys(DIMENSIONS, 8000000 if pair_probe or cross_team_probe else 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     if activation is None and game_recovery is None:
@@ -473,7 +487,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(model in {"gpt-5.6-luna", "gpt-6-luna"}, "MODEL_POLICY")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit, model=model,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
-                        helper_requests=9 if pair_probe else 8 if interrupt_mode else 5 if state_mode else 4,
+                        helper_requests=10 if cross_team_probe else 9 if pair_probe else 8 if interrupt_mode else 5 if state_mode else 4,
                         fixture_input_reserve=10000 if activation else 100000)
     gateway = None
     if gateway_mode:
@@ -522,7 +536,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
-        if runtime_boundary or selected_state_boundary:
+        if runtime_boundary or selected_state_boundary or cross_team_probe:
             plan = plan.model_copy(update={"helper_limit": 1})
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
@@ -618,7 +632,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
             "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
-                       if pilot_helper else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
+                       if pilot_helper else "Exercise the owned separate-job communication fixture and permitted local messages."
+                       if cross_team_probe else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
                        if pair_probe else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
@@ -627,7 +642,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
-                conformance_helpers=runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair)})
+                conformance_helpers=bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe))})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -670,6 +685,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 inputs=exposure.max_input_tokens * 12, outputs=exposure.max_output_tokens * 12)
         if native_worker:
             native_worker.bind(plan)
+        if cross_team_probe:
+            cross_team_probe.before_launch()
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
@@ -925,6 +942,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     if state_probe:
         result["state_canaries"] = state_probe.report()
         result["checks"].update(result["state_canaries"]["checks"])
+    if cross_team_probe:
+        result["cross_team"] = cross_team_probe.report()
+        result["checks"].update(result["cross_team"]["checks"])
+        result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
     if pair_probe:
         result["helper_pair"] = pair_probe.report()
         result["checks"].update(result["helper_pair"]["checks"])

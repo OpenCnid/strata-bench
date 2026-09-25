@@ -42,8 +42,11 @@ the independent private process fence without claiming successful tool completio
 M1.3b.7 now has [selected two-helper evidence](docs/verification/2026-09-24-m1-helper-pair.md):
 149 distinct focused cases,37/37 native and15/15 independent checks. Two helper
 parser/rendezvous failures and their synthetic holds remain retained; the
-initial13/15 audit is retained beside its corrections. Next M1.3b.8 checks
-actual cross-team communication against a separate owned native job.
+initial13/15 audit is retained beside its corrections. M1.3b.8 adds
+[separate-job native evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused
+cases and25/25 independent checks; original28/29 per job and optional summary
+serialization failure retained. M1.3b.9 next implements the distinct G1-required
+campaign-team API; native helper collaboration cannot substitute for it.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -448,7 +451,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.5 | SI/AR/QA | Distinguish authoritative native cell result frames from model-controlled notification text; retain holds on ambiguous scalar yields; inherits M1.3b.4 coverage | verified | [Named framed-drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):200 focused cases,34/34 actual native and20/20 audit; nine forged-status notifications cannot replace three actual content frames. /1 duplicate refusal and scalar-yield limitation retained. No full lifecycle qualification. |
 | M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain for scalar-only silent yields; inherits M1.3b.5 coverage | verified | [Named stopped-disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):222 distinct focused cases,28/28 actual native checks,15/15 independent committed-export audit; held job six lifetime/zero active processes. Original29/48 readiness race retains one uncertain request and full synthetic hold. No early helper retirement, successful-tool, cost or full isolation inference. |
 | M1.3b.7 | SI/AR/QA | Selected-profile two-helper overlap, scoped public messages and artifact namespaces, bounded excess-helper refusal; inherits M1.3b coverage, F03/F07/F11 and T04/T06 | verified | [Named pair evidence](docs/verification/2026-09-24-m1-helper-pair.md):149 distinct focused cases,37/37 native and15/15 independent reconstruction;27 settled/one refused,378 synthetic units, three closed participants and stopped export. Two protocol failures with retained holds and initial13/15 audit preserved. No N-body, cross-team or full isolation claim. |
-| M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | not_started | Two-helper same-team result is insufficient. Test foreign known agent/thread identifiers across distinct native jobs, denied delivery/control and absence of private canaries; bind exact profiles and retained accounting. |
+| M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | verified | [Named separate-job evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused cases,25/25 independent audit;36 targeted operation denials, permitted local messages,36 settled requests/504 synthetic units and two exports. Original28/29 per job and optional timeline serialization failure retained. Same fixture campaign labels in separate stores; no campaign-team API, N-body or full isolation claim. |
+| M1.3b.9 | SI/AR/PL/QA | G1-required SPEC10.2 team.send/team.receive boundary: typed scoped native access, permitted roster delivery and cross-campaign refusal; F07/F16/N01/N04, C13, T01/T06; minimal M4.1 dependency | not_started | Native helper collaboration is not the campaign-team API. Communication service exists but current restricted broker exposes only artifact/game operations. Bind declared communication policy, scoped sender/recipient/cursor/deadline/limits and durable receipts; actual permitted and refused native calls required. No N-body capacity claim or unrelated M4 expansion. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6505,3 +6509,27 @@ and full Ruff/whitespace pass. M1.3b.7 verifies only the named same-team slice.
 M1.3b.8 next tests actual separate-job cross-team attempts. Full G1, actual-game/
 credential integration, executable skills, capable keybinding/scorer/probe
 requirements and unrelated M2-M7 retain their open or original dispositions.
+
+
+### 2026-09-24 — M1.3b.8 separate-job native communication and G1 team dependency
+
+Added the owned two-job CrossTeamProbe and strict known-ID denial reviewer.
+Two pinned native profiles run concurrently; each root/helper targets the other
+job's actual root/helper IDs for message/followup/interrupt, plus absent controls.
+Both local helper conversations complete and private peer markers remain absent.
+35 focused tests pass. Native original28/29 per job deliberately awaits exact
+error review; independent25/25 reconstructs all36 attempts, raw request/issued
+response/receipt joins, permitted deliveries, own artifacts and both stopped
+exports.36 requests settle exactly once,504 synthetic units total, no uncertainty.
+The outer optional timeline summary fails canonical JSON's nanosecond integer
+bound after both exports; preserve that failure and original reports. Future
+summary uses milliseconds; no rerun or invented lost timeline. [Report/seal](docs/verification/2026-09-24-m1-cross-job.md).
+
+Audit clarified SPEC10.2 team.send/team.receive is not native helper collaboration:
+the Communication service exists but the restricted broker lacks that facade.
+M1.3b.9 records the minimal M4.1 dependency needed for complete T01/T06/G1, including
+actual permitted roster delivery and cross-campaign refusal. This does not expand
+unrelated M4/N-body capacity work or reduce the gate. All40 real authority tables
+unchanged, no owned process remains, Ruff/whitespace pass. Next implement .9;
+full runtime qualification, actual game/credential admission, skills, capable
+keybindings, scorer controls and matched probes remain open.

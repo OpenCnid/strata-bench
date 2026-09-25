@@ -2,6 +2,14 @@
 
 ## Current position
 
+M1.6n [saved-player binding](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
+is implemented_unverified for authentic launch integration. The explicit
+software /3 and paired-reference /2 profiles bind all declared bodies to exact
+registered player files, UUIDs, full NBT bytes and typed state before dispatch.
+91 distinct source cases pass, with one opt-in native copier test skipped;
+12 read-only authentic stopped-capture checks pass. No game/model execution.
+Live account assignment/readiness, matching, clocks and disposal remain open.
+
 **D20, September 24: M1 implementation and complete G1 are now authorized.**
 M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
 not_run. The active long-horizon goal is M1/G1 only, including its required
@@ -686,6 +694,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
 | M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Paired reference and validation evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): case09 passes229.74s with unchanged bounds, normal12/12 server and10/10 copier exits per arm, held26-file tagged exports and sibling custody. Case08 and earlier failures retained.189 distinct source cases and67/67 case08/09 reconstruction checks pass. Genuine world/software, synthetic agent/protocol/capacity fixtures, no model/worker bodies. Next complete authentic native source/admission, all-N live matching, clocks and disposal; G1 remains open. |
 | M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | verified | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): source reconstruction3.2258→1.6808s; persistence6.4363→5.6526s; software resolution10.5409→8.1547s, identical diagnostic outputs. Exact borrowed software/helper inventory, live leases and complete dispatch/callback/stop/export checks retained;189 distinct source cases pass. Changed-source case09 paired operator reference passes229.74s with original finite windows. Historical deadline failures and all40 authority tables/holds preserved. Bounded optimization verified; full native agent probe acceptance stays with M1.6m/M1.6. |
+| M1.6n | AR/GI/SI/RS/QA | Bind vanilla probe body declarations to complete saved-player bytes/UUID/state before launch; inherits M1.6m, F01/F02/F04/F07/F08/F16, N01/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md):91 distinct source cases pass, one opt-in native copier skip,12 authentic stopped-capture checks. Exact player file/UUID/full NBT and typed declaration join before copying/launch under explicit profiles; retain mismatch/downgrade/identity refusals and all holds. No native /2 launch, live account mapping, initial-state equivalence, clocks or disposal claim. Next bind authenticated worker identities and live observations. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7845,3 +7854,53 @@ resolves1,438 local links in the edited ledger/status/handoff/report.
 Final audit store is sealed (18 files/92,970 bytes); report retains its exact pin,
 67/67 reconstruction checks, source-to-case09 equality and final40-table/process
 verification. All nine stores for this continuation are now sealed.
+
+### 2026-09-25 — M1.6n registered saved-player body binding
+
+The pair previously treated body-state refs as opaque. Add evaluator-only
+probe_saved_bodies.py: strict PrivateVanillaProbeBody/1, bounded1.19.2 NBT
+parsing, exact file/embedded UUID agreement, complete declared roster with
+distinct identities, finite coordinates, health/food/mode/slot and inventory
+structure. Full uncompressed NBT plus compressed CAS identity binds all remaining
+state, including item tags, effects, abilities, respawn and ender inventory.
+It is saved-state matching, not authenticated account or live-state authority.
+
+Explicit sealed-software /3 and paired-reference /2 profiles integrate this join
+before writer dispatch and into held validation. The software reuses the pinned
+pair identity only after current preparation has reconstructed and verified it;
+body records/player bytes are reread every time. Mixed policies, downgrades and
+altered pair identity refuse. Nested output preserves the strict body schema.
+Changed evaluator components: probe_vanilla_inputs, probe_vanilla_runtime and
+probe_world_copies, with SPEC13.1 documenting the additive profile contract.
+No old profile identity, deadline, budget, privacy, clock or scoring rule changes.
+
+Focused checks:35 initial cases in77.05s;30 after synthetic identity selection
+in66.02s;30 after recheck/downgrade negatives in59.50s;30 after strict result
+nesting in59.72s; one explicit unknown-schema case in0.19s. Affected legacy
+software/runtime/world-copy checks pass55 in876.35s, with the opt-in actual copier
+case explicitly skipped. Together91 distinct cases pass. Source fixtures use
+synthetic game/NBT/native checkpoint state and substituted process/JVM results;
+actual CAS, registration and Windows leases remain exercised. Retain the first
+fixture collection failure and original source; public fixture UUIDs are synthetic.
+
+Read-only authentic reconstruction passes12 checks on the sealed M1.6j player
+capture. It creates a new private declaration and checks original pins plus
+wrong health/food/position/slot/NBT negatives. It does not backfill old fixtures,
+launch Minecraft, prove live matching or qualify native /2 integration.
+[Report and private evidence pins](docs/verification/2026-09-25-m1-probe-saved-bodies.md).
+All40 durable authority tables remain unchanged at$4.887796/$10; no owned runtime
+or model calls, no inferred M1 spending authority. Terminal synthetic fixture
+archives have explicit original-path mappings; declared old paths grant no reads.
+
+M1.6n is implemented_unverified for authentic launch integration; M1/G1 stays
+open and G1-G5 not_run. Affected F01/F02/F04/F07/F08/F16, N01/N04/N06,
+C06/C20/C23/C24/C36, partial T01/T06/T11. Next connect authenticated worker
+identity and live observations to the saved-body binding, then complete native
+admission, all-N readiness, clocks/disposal and remaining T05/T10/isolation routes.
+M0/G0, all historical failures/holds/consumed decisions and unrelated M2-M7 remain.
+
+All three evidence stores are sealed; exact hashes and archive mappings are in
+the report. Preserve the final reader's initial skip-name mismatch and correction;
+no test outcome changes. Final Ruff/whitespace and documentation QA pass:
+406 prior IDs preserved plus M1.6n, prior progress and SPEC text preserved,
+1,588 local links resolved. Fresh40-table authority/process checks pass.

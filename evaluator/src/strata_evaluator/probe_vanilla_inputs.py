@@ -6,6 +6,7 @@ from pathlib import Path
 
 from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
+from mcbench.native_export import OPERATOR
 from mcbench.storage import digest, extended_path, require
 from mcbench.vanilla_persistence import (
     MUTABLE,
@@ -18,6 +19,7 @@ from .writer_preparation import WriterPreparationPlanV4
 
 POLICY = "held-pair-sealed-vanilla-inputs/1"
 DIRECTORY_POLICY = "held-pair-sealed-vanilla-inputs/2"
+BODY_POLICY = "held-pair-sealed-vanilla-inputs/3"
 
 
 class VanillaProbeInputs:
@@ -29,7 +31,7 @@ class VanillaProbeInputs:
     """
 
     def __init__(self, preparation, value, *, policy=POLICY):
-        require(policy in {POLICY, DIRECTORY_POLICY}, "PROBE_PACK_POLICY")
+        require(policy in {POLICY, DIRECTORY_POLICY, BODY_POLICY}, "PROBE_PACK_POLICY")
         self.policy = policy
         self.preparation = preparation
         self.binding = PackLaunchBinding.model_validate(value)
@@ -42,7 +44,7 @@ class VanillaProbeInputs:
         prep.check()
         pair, _, target, *_ = prep._source(prep.pair_id)
         require(
-            (pair["schema"] == "strata/ProbePairStaging/2") == (self.policy == DIRECTORY_POLICY),
+            (pair["schema"] == "strata/ProbePairStaging/2") == (self.policy != POLICY),
             "PROBE_PACK_DIRECTORY_POLICY",
         )
         require(self.binding.lock == pair["common"]["pack_lock"], "PROBE_PACK_MISMATCH")
@@ -80,7 +82,7 @@ class VanillaProbeInputs:
             state[destination] = name
         require(MUTABLE | {"world/level.dat"} <= state.keys(), "PROBE_PACK_STATE_INCOMPLETE")
         world_directories = set()
-        if self.policy == DIRECTORY_POLICY:
+        if self.policy != POLICY:
             require(
                 pair["schema"] == "strata/ProbePairStaging/2" and "world_directories" in pair,
                 "PROBE_WORLD_DIRECTORY_SCOPE",
@@ -138,12 +140,15 @@ class VanillaProbeInputs:
             "native_launch_authorized": False,
             "live_initial_state_verified": False,
         }
-        if self.policy == DIRECTORY_POLICY:
+        if self.policy != POLICY:
             self.record.update(
                 directories=self.directories,
                 directory_basis="sealed-software-and-registered-world-directories/1",
                 registered_world_directories_preserved=True,
             )
+        if self.policy == BODY_POLICY:
+            self.body_pair = pair
+            self.record["saved_bodies"] = self._bodies(pair)
         # Include exact inventory metadata and all materialization files so a
         # changed template cannot be accepted between resolution and copying.
         self.lease = FileLease(snapshot([inventory_path], [Path(self.binding.instance)]))
@@ -159,13 +164,31 @@ class VanillaProbeInputs:
         self.preparation.check()
         self.lease.recheck()
         require(resolve_pack_launch(self.binding, "server") == self.resolved, "PROBE_PACK_CHANGED")
+        if self.policy == BODY_POLICY:
+            # preparation.check just reconstructed the complete registered pair
+            # and compared its digest. Reuse only that pinned identity here;
+            # read/verify the body declarations and player bytes on every call.
+            require(digest(self.body_pair) == self.preparation.plan["pair_digest"],
+                    "PROBE_SOURCE_CHANGED")
+            require(self._bodies(self.body_pair) == self.record["saved_bodies"],
+                    "PROBE_BODY_STATE_MISMATCH")
+
+    def _bodies(self, pair):
+        from .probe_saved_bodies import verify_saved_bodies
+        pairs = self.preparation.views.pairs
+
+        def read(ref, limit):
+            # World refs already passed the evaluator visibility gate in _source.
+            return self.preparation.cas.read(OPERATOR, pairs.namespace, ref, max_bytes=limit)
+
+        return verify_saved_bodies(pair, pairs._private, read)
 
     def validate(self, arm, plan):
         require(
-            isinstance(plan, WriterPreparationPlanV4) == (self.policy == DIRECTORY_POLICY),
+            isinstance(plan, WriterPreparationPlanV4) == (self.policy != POLICY),
             "PROBE_PACK_DIRECTORY_POLICY",
         )
-        if self.policy == DIRECTORY_POLICY:
+        if self.policy != POLICY:
             require(sorted(plan.directories) == self.directories, "PROBE_PACK_DIRECTORIES")
         require(
             extended_path(Path(plan.source_root)) == extended_path(Path(self.roots[arm]))

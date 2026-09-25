@@ -98,18 +98,17 @@ class ProbeWorldCopies:
         Its result goes through the same full plan/custody checks as a supplied
         dictionary. This avoids acquiring the same software twice just to plan.
         """
-        from .probe_vanilla_inputs import DIRECTORY_POLICY
         from .probe_vanilla_runtime import PairedVanillaRuntime
 
         self.preparation.views.pairs._authorize(principal)
+        pair, *_ = self.preparation._source(self.preparation.pair_id)
+        runtime = PairedVanillaRuntime(pair, launches)
         with VanillaProbeInputs(
-            self.preparation, pack_binding, policy=DIRECTORY_POLICY
+            self.preparation, pack_binding, policy=runtime.software_policy
         ) as software:
             if callable(values):
                 values = values(software)
                 software.check()
-            pair, *_ = self.preparation._source(self.preparation.pair_id)
-            runtime = PairedVanillaRuntime(pair, launches)
             return self._run(
                 principal, values, continuation=continuation, software=software, runtime=runtime
             )

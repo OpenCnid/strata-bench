@@ -9,7 +9,7 @@ import threading
 import time
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Strict, Id
 from mcbench.launch_integrity import FileLease, safe, snapshot
@@ -17,11 +17,12 @@ from mcbench.storage import canonical, digest, require
 from mcbench.vanilla_persistence import RegisteredProbeWorld, VanillaPersistence, verify_snapshot
 
 from .craft_reference import PrivateFile, check_file, check_tree
-from .probe_vanilla_inputs import DIRECTORY_POLICY
+from .probe_vanilla_inputs import DIRECTORY_POLICY, BODY_POLICY as BODY_SOFTWARE_POLICY
 from .vanilla_writer import ARGUMENTS, VanillaWriterSession, check_vanilla_settings
 from .writer_preparation import WriterPreparationPlanV4, pinned_inventory
 
 POLICY = "held-pair-protected-vanilla-reference/1"
+BODY_POLICY = "held-pair-protected-vanilla-reference/2"
 
 
 class ProbeVanillaLaunch(Strict):
@@ -32,6 +33,11 @@ class ProbeVanillaLaunch(Strict):
     helper_class: PrivateFile
     max_wall_s: int = Field(ge=30, le=600)
     max_stopped_state_bytes: int = Field(ge=1, le=1024**3)
+
+
+class ProbeVanillaBodyLaunch(ProbeVanillaLaunch):
+    schema_: Literal["strata/PrivateProbeVanillaLaunch/2"] = Field(alias="schema")
+    policy: Literal["held-pair-protected-vanilla-reference/2"]
 
 
 class ProbeVanillaSession(VanillaWriterSession):
@@ -112,7 +118,7 @@ class ProbeVanillaSession(VanillaWriterSession):
         self.ready = threading.Event()
         self.evidence = Path(writer.plan.evidence_directory) / "launch"
         self.result = {
-            "policy": POLICY,
+            "policy": owner.policy,
             "source_resolution": resolved,
             "probe_world": self.provenance.model_dump(by_alias=True),
             "protected_working_directory": str(writer.tree.path),
@@ -156,7 +162,11 @@ class PairedVanillaRuntime:
         require(
             isinstance(values, dict) and set(values) == set(pair["arm_order"]), "PROBE_WORLD_ROSTER"
         )
-        self.plans = {arm: ProbeVanillaLaunch.model_validate(v) for arm, v in values.items()}
+        self.plans = {arm: TypeAdapter(ProbeVanillaLaunch | ProbeVanillaBodyLaunch).validate_python(v)
+                      for arm, v in values.items()}
+        require(len({p.policy for p in self.plans.values()}) == 1, "PROBE_UNMATCHED_RUNTIME")
+        self.policy = next(iter(self.plans.values())).policy
+        self.software_policy = BODY_SOFTWARE_POLICY if self.policy == BODY_POLICY else DIRECTORY_POLICY
         require(
             all(p.pair_id == pair["pair_id"] and p.arm == arm for arm, p in self.plans.items()),
             "PROBE_WORLD_IDENTITY",
@@ -178,7 +188,7 @@ class PairedVanillaRuntime:
         )
         self.pair_digest = digest(pair)
         self.record = {
-            "policy": POLICY,
+            "policy": self.policy,
             "pair_plan_digest": self.pair_digest,
             "launches": {arm: p.model_dump(by_alias=True) for arm, p in self.plans.items()},
             "native_probe_admission": False,
@@ -189,7 +199,7 @@ class PairedVanillaRuntime:
         )
         self.held, self.sessions = None, {}
         self.result = {
-            "policy": POLICY,
+            "policy": self.policy,
             "servers": {},
             "events": [],
             "observations": {},
@@ -207,7 +217,7 @@ class PairedVanillaRuntime:
             "PROBE_WORLD_CUSTODY_CLOSED",
         )
         require(
-            held.software is not None and held.software.policy == DIRECTORY_POLICY,
+            held.software is not None and held.software.policy == self.software_policy,
             "PROBE_PACK_DIRECTORY_POLICY",
         )
         require(set(held.writers) == set(self.plans), "PROBE_WORLD_ROSTER")
@@ -246,6 +256,8 @@ class PairedVanillaRuntime:
         # Validate this coordinator's scope here; full checks below and in
         # session.start remain mandatory before any physical dispatch.
         self._scope()
+        if self.policy == BODY_POLICY:
+            self.result["saved_bodies"] = held.software.record["saved_bodies"]
         # Validate and hold both initial states before starting either server.
         # Slow profile validation cannot consume the sibling's finite game window.
         for arm in held.pair["arm_order"]:

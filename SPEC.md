@@ -1798,6 +1798,26 @@ paired Minecraft execution when joint preflight refuses before launch.
 Server readiness alone does not establish all-N body readiness, authoritative
 clocks, live matched state, clean save, native probe admission or agent disposal.
 
+`PrivateVanillaProbeBody/1` and `registered-vanilla1192-saved-bodies/1` bind each
+registered body to one distinct saved-player UUID and its exact registered
+`world/playerdata/<uuid>.dat` object. Decode bounded gzip/NBT at data version3120;
+require the filename/declaration/embedded UUID to agree and check position,
+rotation, dimension, health, food, selected slot, mode and inventory structure.
+The full decompressed NBT digest binds all remaining state, including item tags,
+effects, abilities, respawn and ender inventory; unprojected fields are not
+discarded. Validate the complete declared N roster. Extra historical player
+saves do not acquire an executor or satisfy online-roster readiness.
+
+Explicit sealed-software /3 and paired-reference /2 profiles require this
+saved-body join before writer dispatch, recheck it with live source custody and
+carry the private result in operator evidence. Mixed arm policies or software
+downgrades refuse. Earlier profile identities remain unchanged; their opaque
+body references cannot certify this join. Saved-state verification supplies no
+account assignment, live initial-state equivalence, server ticks, gameplay
+admission or disposal authority. Those original G1/T11 requirements remain.
+[Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
+distinguishes source fixtures and authentic stopped reconstruction from live proof.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

@@ -3,6 +3,17 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6n [saved-player binding](verification/2026-09-25-m1-probe-saved-bodies.md)
+adds a strict private body declaration joined to the exact registered player
+file, embedded UUID, full NBT digest and declared state before writer dispatch.
+Explicit software /3 and paired-reference /2 profiles preserve earlier identities.
+91 distinct source cases pass with one explicit native copier skip;
+12 read-only authentic saved-capture checks pass. Three evidence stores are
+sealed with unchanged40-table accounting and no owned runtime. Actual registered native /2 launch, account
+assignment and live matching remain unverified. No game/model execution or
+M1 paid authority. Next bind authenticated worker identities and live observations
+to these saved bodies; do not reinterpret saved-state equality as online readiness.
+
 M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md) is verified for the bounded paired
 server-reference path. Fresh case09 passes in229.74s with the original300s
 parent,200/170s writer and two60s server windows unchanged. Both authentic

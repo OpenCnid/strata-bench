@@ -4,6 +4,24 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.11 [lexical directory-prefix reuse](verification/2026-09-25-m1-layout-prefix.md)
+is implemented_unverified for authentic paired integration.114 source cases
+pass50.47s/no skips or failures. One changed read-only exact-profile resolution
+takes4.531s versus q10's reused6.078s baseline, with identical output and all
+per-entry/custody checks retained. Source session7605 and diagnostic88557 are
+terminal; both write-opens denied, custody closed, no configuration writes.
+All 40 real authority tables remain unchanged at$4.887796; no owned runtime.
+Next profile protected-session preparation without server/worker dispatch or
+reopening a consumed job, then decide the next implementation/trial. Evidence:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-layout-prefix-01`.
+No new native pair or paid call. Q10 evidence stays immutable; G1-G5 not_run.
+
+Q11 evidence root above is now sealed: 5,924 files / 17,152,579 bytes,
+SHA-256 `320ed4c38fb6e076dbb6fc5fccdbffa780e271b5f42496ce891f7ba458e14ff3`.
+Bundle verification and final authority/source/documentation audit pass. Do not
+modify this root. The next diagnostic needs a new private root and must not
+reopen native09's consumed trial. Full pair timing remains unverified.
+
 M1.6q.10 [materialization scan composition](verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
 Complete held resolution now checks installation membership before and after both
 role layouts, with a live marker/scope guard before authority reads. Every entry

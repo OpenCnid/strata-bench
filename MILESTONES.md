@@ -2,6 +2,15 @@
 
 ## Current position
 
+M1.6q.11 [lexical directory-prefix reuse](docs/verification/2026-09-25-m1-layout-prefix.md)
+is implemented_unverified for authentic paired integration. All 114 focused
+source cases pass; read-only exact-profile resolution falls from q10's 6.078s
+to 4.531s with identical output and all per-entry/custody checks retained. No
+new native trial, paid call or bounds change. All 40 real tables unchanged at
+$4.887796; no owned runtime. Next profile protected-session preparation without
+dispatch before changing it or selecting another pair trial. Full G1 remains
+open; earlier next actions below are historical.
+
 M1.6q.10 [materialization scan composition](docs/verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
 Complete held resolution now checks installation membership before and after both
 role layouts, with a live marker/scope guard before authority reads. Every entry
@@ -927,6 +936,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.8 | AR/GI/SI/QA | Compose runtime/phase checks and first-start full preflight with aggregate windows; inherit M1.6q.7 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-runtime-check-composition.md): 35 source passes; native08 fails125.69s before first writer, PROBE_WORLD_DEADLINE. No runtime dispatch; world FAILED/parent FENCED/holds retained. Lifecycle timing unverified. Next profile pre-writer preparation; preserve original bounds and cases01-08. |
 | M1.6q.9 | SI/GI/QA | Validate acquired parent paths once while retaining fresh per-file link and held-hash checks; inherit M1.6q.8 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md): 110 distinct source passes/three privilege skips after two retained custody failures. Exact read-only resolution matches, faster profiled entry. Native09 fails202.19s before first server, both copiers/imports normal; original windows/holds remain. Next compose repeated materialization membership validation. |
 | M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
+| M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8820,3 +8830,42 @@ These pointers follow the archived documentation snapshot.
 - Authentic paired integration remains implemented_unverified; no new native
   trial, paid call, deadline change, or G1 promotion. Continue the measured
   lexical-path and protected-session preparation work before another trial.
+
+### 2026-09-25 — M1.6q.11 lexical scan preparation, in progress
+
+- Begin from clean a4f6c56. All 40 durable authority tables match q10's sealed
+  evidence at $4.887796. Reuse its 6.078s read-only diagnostic as the unchanged
+  baseline; do not rerun it. Archive the original implementation before editing.
+- Compute each walked directory's relative prefix once. Keep per-entry portable
+  path policy, collision/type/reparse/hardlink/size/hash checks and complete
+  before/after membership validation. No filesystem observation cache.
+- Focused source checks and one changed read-only profile are required. No new
+  native trial, model call, deadline change, consumed-decision reuse or G1 claim.
+
+### 2026-09-25 — M1.6q.11 focused verification
+
+- Compute each directory prefix once; keep per-entry policy/type/metadata/hash
+  checks and both membership boundaries. 114 focused cases pass50.47s without
+  skips/failures; Ruff/whitespace pass. Two existing Typer warnings remain.
+- Reuse sealed q10 baseline instead of rerunning it. One changed exact-profile
+  read-only resolution takes4.531s versus6.078s, identical output and two denied
+  write-opens, closed custody, no config writes/model calls/game dispatch. Core
+  scans take1.947s versus3.437s; two membership checks remain1.136s cumulative.
+- All 40 real authority tables unchanged at$4.887796; no owned runtime. No new
+  native trial; native01-09 failures, consumed inputs, holds and original bounds
+  remain. M1.6q.11 implemented_unverified for authentic paired integration,
+  G1-G5 not_run. Next measure protected-session preparation without dispatch.
+  [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md).
+
+### 2026-09-25 — M1.6q.11 evidence sealed
+
+- Sealed 5,924 files / 17,152,579 bytes in the private layout-prefix archive,
+  independently verified SHA-256
+  `320ed4c38fb6e076dbb6fc5fccdbffa780e271b5f42496ce891f7ba458e14ff3`.
+  Source audit pins439 files and confirms only inventory.py changed from q10.
+  All114 focused cases pass, unchanged resolved digest,40 authority tables
+  unchanged/no owned runtime. Preserve422 prior milestone IDs, addM1.6q.11;
+  1,669 local links pass, append-only history and SPEC unchanged.
+- No native10 or model call. The full pair remains unverified; next measure
+  protected-session preparation under fresh diagnostic custody without dispatch
+  or reopening consumed decisions. G1-G5 remain not_run.

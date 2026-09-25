@@ -149,9 +149,12 @@ def _scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
     reviewed_world_paths = reviewed_world_paths or {}
     entries, directory_entries, seen, total = [], [], set(), 0
     for current, directories, files in os.walk(root, followlinks=False):
+        directory = Path(current)
+        prefix = directory.relative_to(root).as_posix()
+        prefix = "" if prefix == "." else prefix + "/"
         for name in sorted(directories + files):
-            path = Path(current) / name
-            relative = path.relative_to(root).as_posix()
+            path = directory / name
+            relative = prefix + name
             template_path(relative, reviewed_world_paths=reviewed_world_paths)
             require(relative.casefold() not in seen, "PATH_COLLISION")
             seen.add(relative.casefold())

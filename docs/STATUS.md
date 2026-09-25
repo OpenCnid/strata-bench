@@ -3,6 +3,15 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.11 [lexical directory-prefix reuse](verification/2026-09-25-m1-layout-prefix.md)
+is implemented_unverified for authentic paired integration.114 focused cases
+pass; exact read-only resolution6.078s to4.531s with identical output and all
+per-entry/custody checks retained. No new native trial, model call or bounds
+change. All40 real tables unchanged at$4.887796; no owned runtime. Next measure
+protected-session preparation without dispatch before another paired trial.
+Full matched-state/native/probe/keybinding/scorer and isolation gates remain
+open. Earlier next actions below are historical.
+
 M1.6q.10 [materialization scan composition](verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
 Complete held resolution now checks installation membership before and after both
 role layouts, with a live marker/scope guard before authority reads. Every entry

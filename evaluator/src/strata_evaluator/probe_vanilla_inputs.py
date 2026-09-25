@@ -183,6 +183,55 @@ class VanillaProbeInputs:
 
         return verify_saved_bodies(pair, pairs._private, read)
 
+    def worker_invocations(self, principal, values):
+        """Compile both complete rosters. This grants no worker or native launch.
+
+        UUIDs come from checked private state, destination scopes from committed
+        bindings. The caller supplies only fresh operator state/config paths and
+        lease identities; normal worker resolution still checks their custody.
+        """
+        from mcbench.native_probe_binding import read_binding
+        from mcbench.pack_worker import WorkerInvocation, _path
+
+        prep = self.preparation
+        prep.views.pairs._authorize(principal)
+        require(self.policy == BODY_POLICY, "PROBE_BODY_POLICY_REQUIRED")
+        self.check()
+        members = set(self.body_pair["common"]["members"])
+        require(isinstance(values, dict) and set(values) == set(self.body_pair["arm_order"])
+                and all(isinstance(group, dict) and set(group) == members for group in values.values()),
+                "PROBE_COMPLETE_ROSTER")
+        result, leases = {}, set()
+        paths = [safe(self.binding.instance), safe(self.binding.store),
+                 *(safe(t["path"]) for t in prep.plan["inventory"]["trees"])]
+        for arm, group in values.items():
+            result[arm] = {}
+            for source_agent, value in group.items():
+                invocation = WorkerInvocation.model_validate(value)
+                require(invocation.expected_player_uuid is None, "PROBE_BODY_CALLER_IDENTITY")
+                row = prep.db.connection.execute(
+                    "SELECT ref FROM native_probe_bindings WHERE namespace=? AND pair=? AND arm=? AND source_agent=?",
+                    (prep.views.namespace, prep.pair_id, arm, source_agent)).fetchone()
+                require(row is not None, "NATIVE_PROBE_ROSTER")
+                binding = read_binding(prep.db.connection, prep.cas, row["ref"])
+                require(invocation.campaign_id == binding.destination.campaign_id
+                        and invocation.agent_id == binding.destination.agent_id and invocation.epoch == 1,
+                        "PROBE_WORKER_SCOPE")
+                require(invocation.lease_id not in leases, "PROBE_WORKER_IDENTITY_REUSED")
+                leases.add(invocation.lease_id)
+                state, config = _path(invocation.state_directory), _path(invocation.configuration_path)
+                require(state.is_dir() and not any(state.iterdir()) and not config.exists(),
+                        "PROBE_WORKER_NAMESPACE")
+                for value in (invocation.state_directory, invocation.configuration_path):
+                    path = _path(value)
+                    require(all(not path.is_relative_to(p) and not p.is_relative_to(path) for p in paths),
+                            "PROBE_WORKER_NAMESPACE")
+                    paths.append(path)
+                player = self.record["saved_bodies"]["bodies"][source_agent]["state"]["player_uuid"]
+                result[arm][source_agent] = invocation.model_copy(
+                    update={"expected_player_uuid": player}).model_dump()
+        return result
+
     def validate(self, arm, plan):
         require(
             isinstance(plan, WriterPreparationPlanV4) == (self.policy != POLICY),

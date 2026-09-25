@@ -3,6 +3,7 @@ import { isAbsolute, relative } from 'node:path';
 import type { Scope } from './actions.js';
 import { fields, strictJson } from './native_game.js';
 import { requireThat } from './protocol.js';
+import { profileId } from './player_identity.js';
 
 interface Common extends Scope {
   purpose: 'manual-conformance'; state_directory: string; max_wall_ms: number; primitive_limit: number;
@@ -10,12 +11,15 @@ interface Common extends Scope {
 export interface VanillaConfig extends Common {
   schema:'strata/DevelopmentWorker/1'; server_kind:'vanilla'; host:string; port:number; username:string; auth_cache:string;
 }
+export interface BoundVanillaConfig extends Omit<VanillaConfig, 'schema'> {
+  schema:'strata/DevelopmentWorker/2'; expected_player_uuid:string;
+}
 export interface ForgeConfig extends Common {
   schema:'strata/ForgeDevelopmentWorker/2'; server_kind:'e9e'; backend:'forge_client'; pack_version:'1.27.0';
   connection_file:string; native_fingerprint:string; body_fingerprint:string;
   process_guard_file:string; guard_python:string;
 }
-export type WorkerConfig = VanillaConfig | ForgeConfig;
+export type WorkerConfig = VanillaConfig | BoundVanillaConfig | ForgeConfig;
 export function outside(path: string, repository: string): string {
   requireThat(typeof path === 'string' && isAbsolute(path), 'FORBIDDEN');
   const full = realpathSync(path); const rel = relative(realpathSync(repository), full);
@@ -27,8 +31,10 @@ export function workerConfig(path: string, repository: string): WorkerConfig {
   requireThat(value && typeof value === 'object' && !Array.isArray(value), 'SCHEMA_UNSUPPORTED');
   const c = value as Record<string, unknown>;
   const common = ['schema','purpose','server_kind','state_directory','max_wall_ms','primitive_limit','campaign_id','agent_id','epoch','lease_id'];
-  if (c.schema === 'strata/DevelopmentWorker/1') {
-    fields(c, [...common,'host','port','username','auth_cache']);
+  if (c.schema === 'strata/DevelopmentWorker/1' || c.schema === 'strata/DevelopmentWorker/2') {
+    fields(c, [...common,'host','port','username','auth_cache',
+      ...(c.schema === 'strata/DevelopmentWorker/2' ? ['expected_player_uuid'] : [])]);
+    if(c.schema === 'strata/DevelopmentWorker/2') profileId(c.expected_player_uuid as string);
     requireThat(c.server_kind === 'vanilla', 'CAPABILITY_MISSING');
     requireThat(typeof c.host === 'string' && c.host.length > 0 && c.host.length < 256 &&
       typeof c.username === 'string' && c.username.length > 0 && c.username.length < 256, 'SCHEMA_UNSUPPORTED');

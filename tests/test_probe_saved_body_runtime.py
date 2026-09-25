@@ -106,3 +106,49 @@ def test_mixed_policy_and_software_downgrade_refuse(runtime, directory_fixture):
         software.body_pair["common"]["n"] = 2
         with pytest.raises(Fault, match="PROBE_SOURCE_CHANGED"):
             software.check()
+
+
+def test_both_worker_rosters_derive_identity_and_reject_caller_substitution(runtime, tmp_path, directory_fixture):
+    from copy import deepcopy
+    service, _, _, binding, capacity = runtime
+    values = {arm: {} for arm in ("initial", "experienced")}
+    rows = service.db.connection.execute("SELECT * FROM native_probe_bindings").fetchall()
+    for row in rows:
+        state = tmp_path / ("worker-" + row["arm"])
+        state.mkdir()
+        values[row["arm"]][row["source_agent"]] = {
+            "campaign_id": row["campaign"], "agent_id": row["agent"], "epoch": 1,
+            "lease_id": "worker-lease-" + row["arm"], "state_directory": str(state),
+            "configuration_path": str(tmp_path / ("worker-config-" + row["arm"] + ".json"))}
+    with VanillaProbeInputs(service.preparation, binding.model_dump(), policy=SOFTWARE_POLICY) as software:
+        compiled = software.worker_invocations(EVALUATOR, values)
+        assert set(compiled) == set(values)
+        for arm in values:
+            assert compiled[arm]["a1"] == values[arm]["a1"] | {"expected_player_uuid": PLAYER}
+        for change in ("arm", "member", "scope", "epoch", "identity", "lease", "path", "nested"):
+            broken = deepcopy(values)
+            member = broken["experienced"]["a1"]
+            if change == "arm":
+                del broken["initial"]
+            elif change == "member":
+                broken["initial"] = {}
+            elif change == "scope":
+                member["agent_id"] = "foreign"
+            elif change == "epoch":
+                member["epoch"] = 2
+            elif change == "identity":
+                member["expected_player_uuid"] = PLAYER
+            elif change == "lease":
+                member["lease_id"] = broken["initial"]["a1"]["lease_id"]
+            elif change == "path":
+                member["state_directory"] = broken["initial"]["a1"]["state_directory"]
+            else:
+                member["configuration_path"] = member["state_directory"] + "/config.json"
+            with pytest.raises(Fault, match="PROBE_|NATIVE_PROBE_"):
+                software.worker_invocations(EVALUATOR, broken)
+        with pytest.raises(Fault, match="FORBIDDEN"):
+            software.worker_invocations(Principal("a1", "helper"), values)
+        assert software.worker_invocations(EVALUATOR, values) == compiled
+    from mcbench.controller import reserved_resources
+    assert reserved_resources(service.db.connection, "probe-worker") == capacity
+    assert not service.db.connection.execute("SELECT * FROM probe_world_copies").fetchall()

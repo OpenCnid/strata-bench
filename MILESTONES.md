@@ -2,6 +2,17 @@
 
 ## Current position
 
+M1.6o [worker identity](docs/verification/2026-09-25-m1-worker-identity.md) adds
+complete registered both-arm invocation binding and explicit DevelopmentWorker/2.
+The worker checks account identity before refresh/connection and server UUID
+before readiness, persisting a scoped private receipt.49 Python and28 Node
+source cases pass;15 cross-language/accounting audit checks pass with synthetic
+provider/game transport. No game/model/auth network runs. Authentic registered
+worker integration, all-N live state, native admission, clocks and disposal remain
+open. M1.6o is implemented_unverified for authentic integration. Next connect this
+identity boundary to fresh pinned worker inputs and complete live-state matching;
+never retrofit old sealed profiles. No M1 paid authority is inferred.
+
 M1.6n [saved-player binding](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
 is implemented_unverified for authentic launch integration. The explicit
 software /3 and paired-reference /2 profiles bind all declared bodies to exact
@@ -695,6 +706,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Paired reference and validation evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): case09 passes229.74s with unchanged bounds, normal12/12 server and10/10 copier exits per arm, held26-file tagged exports and sibling custody. Case08 and earlier failures retained.189 distinct source cases and67/67 case08/09 reconstruction checks pass. Genuine world/software, synthetic agent/protocol/capacity fixtures, no model/worker bodies. Next complete authentic native source/admission, all-N live matching, clocks and disposal; G1 remains open. |
 | M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | verified | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): source reconstruction3.2258→1.6808s; persistence6.4363→5.6526s; software resolution10.5409→8.1547s, identical diagnostic outputs. Exact borrowed software/helper inventory, live leases and complete dispatch/callback/stop/export checks retained;189 distinct source cases pass. Changed-source case09 paired operator reference passes229.74s with original finite windows. Historical deadline failures and all40 authority tables/holds preserved. Bounded optimization verified; full native agent probe acceptance stays with M1.6m/M1.6. |
 | M1.6n | AR/GI/SI/RS/QA | Bind vanilla probe body declarations to complete saved-player bytes/UUID/state before launch; inherits M1.6m, F01/F02/F04/F07/F08/F16, N01/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md):91 distinct source cases pass, one opt-in native copier skip,12 authentic stopped-capture checks. Exact player file/UUID/full NBT and typed declaration join before copying/launch under explicit profiles; retain mismatch/downgrade/identity refusals and all holds. No native /2 launch, live account mapping, initial-state equivalence, clocks or disposal claim. Next bind authenticated worker identities and live observations. |
+| M1.6o | AR/GI/SI/RS/QA | Bind complete registered probe roster to authenticated worker profiles and server UUID before readiness; inherits M1.6n, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Worker identity](docs/verification/2026-09-25-m1-worker-identity.md):49 Python/28 Node cases and15 audit checks pass with synthetic provider/game transport. Complete both-arm binding, account/profile check before connection, server UUID/private receipt before readiness; mismatch/storage failures fence. No authentic probe integration, all-N live state, clocks/disposal or G1 pass. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7904,3 +7916,33 @@ the report. Preserve the final reader's initial skip-name mismatch and correctio
 no test outcome changes. Final Ruff/whitespace and documentation QA pass:
 406 prior IDs preserved plus M1.6n, prior progress and SPEC text preserved,
 1,588 local links resolved. Fresh40-table authority/process checks pass.
+
+### 2026-09-25 — M1.6o registered authenticated worker identity
+
+- Explicit DevelopmentWorker/2 binds the saved UUID to the protected account
+  before token refresh/connection and server login UUID before readiness.
+  Private WorkerPlayerIdentity/1 records scope, identity and spawn clocks;
+  mismatch or failed journal persistence fences permanently. Legacy /1 and
+  Forge identities and public observations/capabilities stay unchanged.
+- The private compiler requires both complete registered rosters, committed
+  destination scopes, fresh epoch/lease/path namespaces and no caller UUID.
+  It rechecks held source/resource state and grants no native admission.
+- [Verification](docs/verification/2026-09-25-m1-worker-identity.md):49 distinct
+  Python/28 Node source cases pass;15 actual emitted-receipt/Python/accounting
+  checks pass. Provider and game transport are synthetic. Two fixture compiler
+  failures and the wrong Python exception expectation remain retained; no live
+  run was repeated to repair tests. No game, model or authentication network run.
+- F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36,
+  partial T01/T06/T11. M1.6o remains implemented_unverified for authentic native
+  use. Complete pinned worker integration, all-N live matching, scoped native
+  admission, clocks and disposal next. T05/T10/combined runtime remain open;
+  G1-G5 not_run. All40 authority tables/holds remain unchanged at$4.887796/$10;
+  no M1 spending authority. Historical failures and unrelated M2-M7 preserved.
+
+M1.6o final evidence seal
+`17950cd4dea1d7fd6f45260c49c5515419d6d26a23d4a798d9060322cd56e76b`
+verifies4,778 files/15,571,913 bytes. Final authority comparison preserves all40
+tables; owned runtime snapshot is empty. Focused Ruff/whitespace checks pass;
+documentation QA preserves407 IDs plus M1.6o, append-only history and prior SPEC
+text, with1,594 local links resolved. Source, tests, failures and actual emitted
+synthetic receipt remain private in the sealed store; no runtime authority added.

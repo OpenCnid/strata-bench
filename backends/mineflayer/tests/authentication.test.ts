@@ -166,6 +166,40 @@ test('worker never exposes or accepts a device prompt; fencing prevents a late c
   assert.equal((await fenced).message,'AUTHENTICATION_FAILED'); assert.equal(connected,0);
 });
 
+test('declared player mismatch refuses before token refresh, session handoff or connection', async t => {
+  const cache=directory(t);
+  await authenticateAccount(cache,'avatar1',ignored,control().signal,true,provider);
+  const client=new EventEmitter() as Client; client.end=()=>{};
+  let calls=0,connections=0,receipts=0,sessions=0;
+  client.on('session',()=>{sessions++;});
+  const options={username:'avatar1',connect:()=>{connections++;}} as ClientOptions;
+  const failed=new Promise<Error>(resolve=>client.once('error',resolve));
+  workerAuthentication(cache,'avatar1',control().signal,async()=>{calls++;return fixture();},
+    {expectedUuid:'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',authenticated:()=>{receipts++;}})(client,options);
+  assert.equal((await failed).message,'AUTH_PLAYER_MISMATCH');
+  assert.deepEqual([calls,connections,receipts,sessions],[0,0,0,0]);
+  assert.equal(existsSync(join(cache,'auth.lock')),false);
+});
+
+test('matched declared player binds before handoff and failed evidence callback cannot connect', async t => {
+  const cache=directory(t);
+  await authenticateAccount(cache,'avatar1',ignored,control().signal,true,provider);
+  for(const reject of [false,true]) {
+    const client=new EventEmitter() as Client; client.end=()=>{};
+    const order:string[]=[];
+    const done=new Promise<void>(resolve=>{
+      client.once('error',error=>{assert.equal(error.message,'AUTHENTICATION_FAILED');resolve();});
+      client.once('session',()=>{order.push('session');setImmediate(resolve);});
+    });
+    workerAuthentication(cache,'avatar1',control().signal,provider,
+      {expectedUuid:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',authenticated:id=>{
+        assert.equal(id,'a'.repeat(32));order.push('identity');if(reject)throw Error('PRIVATE-CANARY');
+      }})(client,{username:'avatar1',connect:()=>{order.push('connect');}} as ClientOptions);
+    await done;
+    assert.deepEqual(order,reject?['identity']:['identity','session','connect']);
+  }
+});
+
 test('operator prepare-only command creates no credentials and rejects repository storage', t => {
   const cache = directory(t);
   const cli = new URL('../src/operator_auth.js',import.meta.url);

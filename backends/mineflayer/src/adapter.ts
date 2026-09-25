@@ -17,6 +17,7 @@ import { chat, useItem } from './gestures.js';
 import { ObservedEntities } from './entities.js';
 import { workerAuthentication } from './authentication.js';
 import { trackBodyRevision } from './body_revision.js';
+import { PlayerIdentity, type PlayerIdentityMatch } from './player_identity.js';
 
 export const ACTION_KINDS = ['move_to', 'look_at', 'dig', 'place', 'craft', 'equip', 'interact_block', 'click_slot',
   'use_item', 'attack', 'interact_entity', 'chat', 'close_window'] as const;
@@ -37,9 +38,14 @@ export class MineflayerBackend implements Backend {
   readonly bot: Bot;
   private readonly authenticationAbort = new AbortController();
   private readonly bodyRevision: ReturnType<typeof trackBodyRevision>;
-  constructor(options: {host: string; port: number; username: string; profilesFolder: string}) {
-    this.bot = mineflayer.createBot({...options, version: '1.19.2',
-      auth: workerAuthentication(options.profilesFolder, options.username, this.authenticationAbort.signal),
+  constructor(options: {host: string; port: number; username: string; profilesFolder: string;
+    expectedPlayerUuid?:string; onIdentity?:(receipt:PlayerIdentityMatch)=>void}) {
+    const {expectedPlayerUuid,onIdentity,...connection} = options;
+    const identity = expectedPlayerUuid === undefined ? undefined : new PlayerIdentity(expectedPlayerUuid);
+    requireThat(identity === undefined || typeof onIdentity === 'function', 'AUTH_IDENTITY_EVIDENCE_REQUIRED');
+    this.bot = mineflayer.createBot({...connection, version: '1.19.2',
+      auth: workerAuthentication(options.profilesFolder, options.username, this.authenticationAbort.signal,
+        undefined, identity ? {expectedUuid:identity.expectedUuid,authenticated:id=>identity.authenticate(id)} : undefined),
       hideErrors: true, logErrors: false});
     this.bodyRevision = trackBodyRevision(this.bot, () => {this.revision++;});
     this.map = new ObservedMap(p => this.bot.blockAt(p, false));
@@ -53,12 +59,19 @@ export class MineflayerBackend implements Backend {
         this.publicEvents.emit('signal', 'inventory', 'Recipe book changed.');
       } catch { this.disconnect(); }
     });
-    this.bot.on('spawn', () => {this.connected = true; this.revision++; this.map.reset(); this.pages.reset(); this.entities.reset();
+    this.bot.on('spawn', () => {
+      if(identity) {
+        try { onIdentity!(identity.spawn(this.bot._client.uuid)); }
+        catch(error) { identity.close(); this.connectionFailure = error instanceof Fault
+          ? error.code : 'AUTH_IDENTITY_EVIDENCE_UNAVAILABLE'; this.stop(); this.disconnect(); return; }
+      }
+      this.connected = true; this.revision++; this.map.reset(); this.pages.reset(); this.entities.reset();
       this.publicEvents.emit('signal', 'connection', 'Connected.');});
-    this.bot.on('end', () => {this.authenticationAbort.abort(); this.connected = false;
+    this.bot.on('end', () => {identity?.close(); this.authenticationAbort.abort(); this.connected = false;
       this.connectionFailure ??= 'CONNECTION_LOST'; this.revision++; this.pages.reset(); this.entities.reset();
       this.publicEvents.emit('signal', 'connection', 'Disconnected.');});
     this.bot.on('error', error => {
+      identity?.close();
       this.connectionFailure ??= error instanceof Fault && /^[A-Z0-9_]{1,96}$/.test(error.code)
         ? error.code : 'CONNECTION_FAILED';
       this.connected = false; this.stop();

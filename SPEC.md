@@ -1818,6 +1818,22 @@ admission or disposal authority. Those original G1/T11 requirements remain.
 [Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
 distinguishes source fixtures and authentic stopped reconstruction from live proof.
 
+`DevelopmentWorker/2` carries a required canonical `expected_player_uuid`.
+The private registered-pair compiler derives it from checked saved-body state,
+requires complete distinct both-arm worker scopes and fresh disjoint output
+paths, and rejects caller identity substitutions. Compilation grants no launch.
+The worker checks the bound account profile before provider refresh/connection,
+then requires the server login UUID to match before announcing readiness.
+Mismatch, closed identity or failed private evidence persistence fences readiness.
+`WorkerPlayerIdentity/1` under `authenticated-saved-player-binding/1` records the
+UUID join, campaign/agent/epoch/lease, spawn sequence and clocks in the operator
+journal, outside public signals. The strict reader checks the configured scope;
+parsing alone does not authenticate provenance. Legacy unbound invocations retain
+`DevelopmentWorker/1`. These checks do not establish complete live state, all-N
+readiness, native probe admission, authoritative campaign clocks or disposal.
+[Worker identity verification](docs/verification/2026-09-25-m1-worker-identity.md)
+distinguishes substituted transport/provider evidence from authentic connections.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

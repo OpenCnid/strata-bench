@@ -112,6 +112,22 @@ def test_two_fresh_invocations_keep_the_same_sealed_settings_and_different_scope
     assert resolve_pack_launch(binding, "server")["schema"] == "strata/ResolvedPackLaunch/1"
 
 
+def test_explicit_player_identity_selects_worker_v2_without_changing_legacy_bytes(pack):
+    from mcbench.pack_worker import WorkerInvocation
+    binding, invocation, _ = pack
+    legacy = resolve_pack_launch(binding, "client", worker_invocation=invocation)
+    uuid = "00000000-0000-4000-8000-000000000001"
+    current = resolve_pack_launch(binding, "client", worker_invocation=invocation | {"expected_player_uuid": uuid})
+    assert current["worker_configuration"] == legacy["worker_configuration"] | {
+        "schema": "strata/DevelopmentWorker/2", "expected_player_uuid": uuid}
+    assert current["worker_configuration_sha256"] != legacy["worker_configuration_sha256"]
+    assert WorkerInvocation.model_validate(invocation).model_dump() == invocation
+    assert resolve_pack_launch(binding, "client", worker_invocation=invocation) == legacy
+    for value in ("", "a" * 32, "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA", True):
+        with pytest.raises(ValidationError):
+            WorkerInvocation.model_validate(invocation | {"expected_player_uuid": value})
+
+
 @pytest.mark.parametrize("change", ["argv", "node", "cwd", "pin", "runtime", "port", "missing_slot"])
 def test_unbound_or_changed_profile_cannot_seal(candidate, change):
     service, profile, *_ = candidate

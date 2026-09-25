@@ -4,6 +4,17 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6o [worker identity](verification/2026-09-25-m1-worker-identity.md) adds
+complete registered both-arm invocation binding and explicit DevelopmentWorker/2.
+The worker checks account identity before refresh/connection and server UUID
+before readiness, persisting a scoped private receipt.49 Python and28 Node
+source cases pass;15 cross-language/accounting audit checks pass with synthetic
+provider/game transport. No game/model/auth network runs. Authentic registered
+worker integration, all-N live state, native admission, clocks and disposal remain
+open. M1.6o is implemented_unverified for authentic integration. Next connect this
+identity boundary to fresh pinned worker inputs and complete live-state matching;
+never retrofit old sealed profiles. No M1 paid authority is inferred.
+
 M1.6n [saved-player binding](verification/2026-09-25-m1-probe-saved-bodies.md)
 adds a strict private body declaration joined to the exact registered player
 file, embedded UUID, full NBT digest and declared state before writer dispatch.

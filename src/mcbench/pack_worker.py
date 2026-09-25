@@ -14,11 +14,11 @@ import re
 import shutil
 import threading
 import time
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from .contracts import Id, Positive, Strict
+from .contracts import Id, Positive, Strict, Utc
 from .inventory import file_hash
 from .launch_integrity import FileLease, safe, snapshot
 from .processes import ManagedProcess
@@ -31,6 +31,7 @@ from .worker_stop import ARGUMENT
 ROOT = Path(__file__).resolve().parents[2]
 SERVER_READY_SECONDS = 80
 SERVER_STOP_SECONDS = 120
+PlayerUuid = Annotated[str, Field(pattern=r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")]
 
 
 class WorkerInvocation(Strict):
@@ -40,6 +41,39 @@ class WorkerInvocation(Strict):
     lease_id: Id
     state_directory: Annotated[str, Field(min_length=1)]
     configuration_path: Annotated[str, Field(min_length=1)]
+    expected_player_uuid: PlayerUuid | None = Field(
+        default=None, exclude_if=lambda v: v is None)
+
+
+class WorkerPlayerIdentity(Strict):
+    """Private worker journal record; parsing alone cannot authenticate its producer."""
+    schema_: Literal["strata/WorkerPlayerIdentity/1"] = Field(alias="schema")
+    policy: Literal["authenticated-saved-player-binding/1"]
+    campaign_id: Id
+    agent_id: Id
+    epoch: Positive
+    lease_id: Id
+    expected_player_uuid: PlayerUuid
+    authenticated_player_uuid: PlayerUuid
+    connected_player_uuid: PlayerUuid
+    spawn_seq: Positive
+    recorded_at: Utc
+    mono_ms: Annotated[float, Field(ge=0)]
+
+    @model_validator(mode="after")
+    def matched_player(self):
+        require(self.expected_player_uuid == self.authenticated_player_uuid == self.connected_player_uuid,
+                "AUTH_PLAYER_MISMATCH")
+        return self
+
+    @classmethod
+    def for_invocation(cls, value, invocation):
+        record, expected = cls.model_validate(value), WorkerInvocation.model_validate(invocation)
+        require(expected.expected_player_uuid is not None and all(
+            getattr(record, field) == getattr(expected, field)
+            for field in ("campaign_id", "agent_id", "epoch", "lease_id", "expected_player_uuid")),
+            "WORKER_IDENTITY_SCOPE")
+        return record
 
 
 def _path(value):
@@ -133,6 +167,8 @@ def resolve_worker_invocation(profile, value, binding):
         configuration = {"schema": "strata/DevelopmentWorker/1", "purpose": "manual-conformance",
             "server_kind": "vanilla", **profile.worker_settings.model_dump(),
             **invocation.model_dump(exclude={"configuration_path"})}
+        if invocation.expected_player_uuid is not None:
+            configuration["schema"] = "strata/DevelopmentWorker/2"
         configuration["state_directory"] = launch_path(state)
         configuration["auth_cache"] = launch_path(cache)
         raw = canonical(configuration)

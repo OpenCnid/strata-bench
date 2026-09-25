@@ -6,6 +6,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { lockCache, protectedCache, readPrivateJson, strictCacheFactory, writePrivateJson } from './auth_cache.js';
 import { Fault, requireThat } from './errors.js';
 import { requireSessionLifetime, sessionCacheFactory, sessionLifetimeLimit } from './session_lifetime.js';
+import { profileId } from './player_identity.js';
 
 const {Authflow, Titles} = prismarineAuth;
 export const authOptions = Object.freeze({flow: 'live' as const,
@@ -45,13 +46,16 @@ export function accountBinding(cache: string, account: string, initialize = fals
 }
 
 export async function authenticateAccount(cachePath: string, account: string, callback: CodeCallback,
-  signal: AbortSignal, initialize = false, provider: TokenProvider = tokens, minimumLifetimeMs = 0): Promise<Result> {
+  signal: AbortSignal, initialize = false, provider: TokenProvider = tokens, minimumLifetimeMs = 0,
+  expectedProfileId?: string): Promise<Result> {
   sessionLifetimeLimit(minimumLifetimeMs);
   signal.throwIfAborted();
   const cache = protectedCache(cachePath, initialize);
   const unlock = lockCache(cache);
   try {
     const binding = accountBinding(cache, account, initialize);
+    requireThat(expectedProfileId === undefined || /^[a-f0-9]{32}$/.test(expectedProfileId)
+      && binding.profile_id === expectedProfileId, 'AUTH_PLAYER_MISMATCH');
     const result = await provider(account, cache, code => { signal.throwIfAborted(); callback(code); }, minimumLifetimeMs);
     signal.throwIfAborted();
     requireThat(typeof result.token === 'string' && result.token.length > 0 &&
@@ -69,11 +73,14 @@ export async function authenticateAccount(cachePath: string, account: string, ca
 }
 
 export function workerAuthentication(cache: string, account: string, signal: AbortSignal,
-  provider: TokenProvider = tokens): (client: Client, options: ClientOptions) => void {
+  provider: TokenProvider = tokens, identity?: {expectedUuid:string; authenticated:(id:string)=>void}):
+  (client: Client, options: ClientOptions) => void {
+  const expected = identity ? profileId(identity.expectedUuid) : undefined;
   return (client, options) => {
     void authenticateAccount(cache, account, () => { throw new Fault('AWAITING_OPERATOR_AUTH'); },
-      signal, false, provider).then(result => {
+      signal, false, provider, 0, expected).then(result => {
       signal.throwIfAborted();
+      identity?.authenticated(result.profile.id);
       // Same session/certificate handoff as minecraft-protocol 1.68.0 microsoftAuth.
       // The private cache factory prevents its default writable-directory fallback.
       const session = {accessToken: result.token, selectedProfile: result.profile, availableProfile: [result.profile]};

@@ -111,6 +111,15 @@ source checks pass. All40 authority tables unchanged; six scripted calls84 units
 prior56 retained, USD0. Model-produced category sampling and remaining combined
 isolation/probe boundaries stay open; M1.4b.1 remains implemented_unverified.
 
+M1.6a now has a [private committed-source artifact projection](docs/verification/2026-09-25-m1-probe-artifact-projection.md):
+32 distinct focused cases and46 record/evaluator regression cases pass; three
+stopped actual native captures reconstruct24/24 plus2/2. It derives exact
+initial/retained/active bytes, refuses evaluation-origin notes and preserves
+actual exposure/costs. It grants no clone/launch authority. M1.6 is in_progress;
+M1.6a implemented_unverified pending complete pre-start pair binding, actual
+native/world clone execution and one-way disposal. All40 authority tables stay
+unchanged. No native/game execution or paid inference in this task.
+
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
 agents.enabled=false; its absence left collaboration advertised despite the
@@ -534,7 +543,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.9c | SI/AR/QA | Actual native same-roster delivery, durable dedup/cursors/ack, helper/foreign-campaign refusal and sealed receipt reconstruction; inherits M1.3b.9 coverage | verified | [Native45/45 per job, independent26/26](docs/verification/2026-09-24-m1-native-team.md),84 focused source tests. Two sequential native agents share one owned synthetic controller/queue;22 team calls,14 settled requests/196 units, two exports. No paid model or N-body capacity claim. |
 | M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | in_progress | [Source/profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md): nine sealed bundles/eleven profiles, campaign /5 with169 focused passes. [Candidate source](docs/verification/2026-09-24-m1-campaign-candidate-source.md):89 checks. [Actual integration](docs/verification/2026-09-24-m1-native-game.md):203 distinct source checks, native97/97, independent26/26 plus3/3 retained export/marker checks. Authentic vanilla look, root/helper boundary, team/artifacts and drain join; original pre-native and outer-export failures retained. Corrected stopped component export only on a copy; no lucky rerun. Full selected skill/handoff/client/probe qualification remains open; /4 stays conformance-only, all six proofs mandatory and no RuntimeQualification. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
-| M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
+| M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
+| M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7034,3 +7044,35 @@ M1.4b.1 stays implemented_unverified for its complete category/audit scope;
 M1/M1.4b in_progress, G1 not_run. Next complete session/cache, client/log/registry,
 disposable probes and combined-profile qualification; retain distinct required
 model-produced category audit and T05/scorer gaps. No M1 paid authority inferred.
+
+
+### 2026-09-25 — M1.6a committed-source probe artifact projection
+
+[Source and sealed readback](docs/verification/2026-09-25-m1-probe-artifact-projection.md)
+starts the missing private input boundary for actual matched clones. The prior
+matched_pair dictionary checker has no committed native provenance and retains
+its original synthetic scope. NativeProbeArtifactSelection/1 names reviewed
+paths/active skills from one committed native set; NativeProbeArtifactProjection/1
+derives refs and exposure through complete checkpoint/export/revision/account
+joins. No caller origin/ref replacement, inferred time-zero, draft/helper export
+or session/cache projection. Require initial procedures, final-union integrity/
+quotas and exact full/frozen-persistence/frozen-skills/no-self-play rules;
+evaluation-account plain notes also refuse. Models export only under evaluator;
+no canonical record, gameplay catalog or native runtime changes.
+
+31 initial tests pass; final union/account follow-up5 pass with27 deselected
+includes four repeat positives and one new refusal:32 distinct cases. Records/
+evaluator regression46 pass. Initial unused/import-order lint findings corrected;
+final Ruff/whitespace pass. Read-only full/frozen-persistence/frozen-skills actual
+stopped captures project24/24+2/2, preserving source seals, database dumps, costs
+and all40 durable authority tables. Private5-file/29,462-byte bundle and hash
+are recorded in the report. No game/native/model execution or new inference
+charge; $4.887796/$10 exposure with all historical holds/decisions unchanged.
+
+M1.6 transitions not_started to in_progress; new M1.6a implemented_unverified
+pending full pair/native/disposal integration. F03/F07/F08/F16, N01/N04/N06,
+C06/C12/C20/C22/C23/C36, T01/T04/T06/T11; G1 stays not_run. Next bind complete
+pre-start equal body/world/keymap/model/tools/budget/prompt manifests, then actual
+disposable clones and canary disposal. Content/corpus review remains necessary;
+matching selected artifacts is not proof of t=0 or an execution permit. Remaining
+client/log/registry, T05 and scorer contracts still block complete G1.

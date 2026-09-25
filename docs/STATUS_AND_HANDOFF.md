@@ -76,6 +76,21 @@ inference authority exists. Preserve legacy /1 stopped readers; only explicitly
 synthetic conformance may execute legacy frozen-skills, never campaign mode.
 Full T04/T06/T11, T05 and scorer controls still prevent G1 closure.
 
+Latest M1.6a: [committed-source probe projection](verification/2026-09-25-m1-probe-artifact-projection.md)
+passes32 distinct source cases plus46 records/evaluator cases and read-only
+24/24+2/2 on three actual stopped full/frozen-persistence/frozen-skills captures.
+Evaluator-only selection/projected models derive exact initial/retained/active
+refs and exposure from committed provenance; evaluation-account notes cannot
+be relabeled. No draft/helper/session/cache projection or launch permit. Private
+`2026-09-25-m1-probe-projection-readback-01` is sealed; all40 authority tables
+unchanged. No native/game/model ran. Next bind this source selection into full
+pre-start matched manifests and disposable native/world clones, with exact
+initial state/caches, denied probe imports and canary disposal. Do not treat
+matched_pair's old supplied dictionaries as native admission or identical
+artifact bytes as t=0. Content review and complete runtime/client/scorer/keybinding
+qualification remain required. M1.6 in_progress, M1.6a implemented_unverified,
+G1 not_run; no M1 paid authority.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

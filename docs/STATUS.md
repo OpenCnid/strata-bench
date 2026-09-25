@@ -36,6 +36,12 @@ now passes44/44 plus20/20+4/4 reconstruction and52 fixture/source checks:27
 exact denials, five audited prose writes and normal complete synthetic checkpoint.
 Model-produced category sampling and full combined qualification remain open.
 
+M1.6a [committed native probe projection](verification/2026-09-25-m1-probe-artifact-projection.md)
+adds32 distinct source cases,46 regression cases and24/24+2/2 stopped-capture
+checks. It selects exact approved checkpoint artifacts with arm/provenance rules;
+complete matched pre-start manifests, actual disposable clones and one-way
+feedback/disposal remain open. M1.6 in_progress; no new runtime or paid execution.
+
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false
 switch is required; first pre-forward refusal and original35/37 remain retained.

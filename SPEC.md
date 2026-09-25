@@ -1612,6 +1612,16 @@ At each checkpoint, instantiate experienced and initial clones with:
 
 Use a fresh instance for every checkpoint/pair/replica. The same instance is shared only by the two matched arm copies. Each clone sees one probe and is then destroyed, including provider/runtime session files and learned overlays. Preserve private evidence before deletion. Campaigns cannot read probe namespaces or model histories. Seed generators, sealed instance IDs and scores stay evaluator-only; opaque task briefs reveal only ordinary gameplay objectives. Developers do not inspect sealed intermediate results to tune prompts/skills/curriculum. Access logging and canary tests enforce this one-way boundary.
 
+The private native projection candidate uses `NativeProbeArtifactSelection/1`
+and `NativeProbeArtifactProjection/1` to derive reviewed initial/retained/active
+artifact references from a complete committed native checkpoint and its source
+account/revision provenance. Caller-provided origin labels and uncommitted
+substitutions cannot establish eligibility. Preserve exact exposure, exclude
+helper-private results, drafts and session/cache state, and enforce each arm's
+projection rule. [Source and stopped-capture verification](docs/verification/2026-09-25-m1-probe-artifact-projection.md)
+does not establish complete clone matching, content review, actual state reset,
+dispatch authority or disposal; every requirement above and T11 remains binding.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

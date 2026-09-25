@@ -1,6 +1,7 @@
 """Export the implemented public contracts; do not export private schemas here."""
 
 import json
+import sys
 from pathlib import Path
 
 from mcbench.records import AGENT_RECORDS, EVALUATOR_RECORDS, OPERATOR_RECORDS
@@ -12,12 +13,20 @@ from mcbench.provisioning import (
     ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
 )
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def evaluator_models():
+    # Operator build only; the evaluator package stays outside gameplay tooling.
+    sys.path.insert(0, str(ROOT / "evaluator/src"))
+    from strata_evaluator.native_probe_projection import NativeProbeArtifactSelection, NativeProbeArtifactProjection
+    return [*EVALUATOR_RECORDS, NativeProbeArtifactSelection, NativeProbeArtifactProjection]
+
 OPERATOR_API_MODELS = (ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeRetentionPolicy, NativeRetentionPolicyV2, AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile,
                        E9ELaunchProfile, FrozenE9ELaunchProfile, ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput)
 
-ROOT = Path(__file__).resolve().parents[1]
 for domain, models in (("public", AGENT_RECORDS), ("operator", [*OPERATOR_RECORDS, *OPERATOR_API_MODELS]),
-                      ("evaluator", EVALUATOR_RECORDS)):
+                      ("evaluator", evaluator_models())):
     for model in models:
         schema = model.model_json_schema()
         schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"

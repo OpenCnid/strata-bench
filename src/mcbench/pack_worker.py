@@ -5,7 +5,7 @@ leases protect selected bytes; neither this launcher nor a fresh directory is
 a general process/network sandbox or a complete checkpoint protocol.
 """
 
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 import hashlib
 import os
@@ -144,6 +144,13 @@ def validate_worker_profile(profile):
 
 def resolve_worker_invocation(profile, value, binding):
     """Resolve the single declared argument slot, with no caller setting overrides."""
+    with _held_worker_invocation(profile, value, binding) as (result, _):
+        return result
+
+
+@contextmanager
+def _held_worker_invocation(profile, value, binding):
+    """Keep the exact validated runtime continuously held for an owning caller."""
     require(value is not None, "WORKER_INVOCATION_REQUIRED")
     invocation = WorkerInvocation.model_validate(value)
     from .pack_launch import WorkerProfileBaseline
@@ -176,10 +183,10 @@ def resolve_worker_invocation(profile, value, binding):
         command = profile.client.model_dump() | {
             "arguments": [runtime.body["worker"], launch_path(config), *([ARGUMENT] if runtime.operator_stop else [])],
             "working_directory": launch_path(_path(binding.instance) / "client")}
-        return {"schema": "strata/ResolvedPackLaunch/2", "launch": command,
+        yield {"schema": "strata/ResolvedPackLaunch/2", "launch": command,
             "worker_runtime": profile.worker_runtime.model_dump(), "worker_configuration": configuration,
             "worker_configuration_path": launch_path(config),
-            "worker_configuration_sha256": hashlib.sha256(raw).hexdigest(), "update_policy": profile.update_policy}
+            "worker_configuration_sha256": hashlib.sha256(raw).hexdigest(), "update_policy": profile.update_policy}, runtime
 
 
 class HeldPackWorker:
@@ -215,18 +222,18 @@ class HeldPackWorker:
         return deepcopy(self._server_resolved)
 
     def __enter__(self):
-        from .pack_launch import resolve_pack_launch
+        from .pack_launch import _held_pack_launch, resolve_pack_launch
         require(not self._entered and self._resources is None, "WORKER_LAUNCH_ALREADY_HELD")
         self._entered = True
-        resolved = resolve_pack_launch(self.binding, "client", simulation=self.simulation,
-                                       worker_invocation=self.invocation)
-        # Resolve both roles while the materialization is still pristine. The
-        # server may then create its world/logs without invalidating worker start.
-        server = (resolve_pack_launch(self.binding, "server", simulation=self.simulation)
-                  if self.own_server else None)
         resources = ExitStack()
         try:
-            self.runtime = resources.enter_context(HeldWorkerBundle(resolved["worker_runtime"]))
+            resolved, self.runtime = resources.enter_context(_held_pack_launch(
+                self.binding, "client", simulation=self.simulation, worker_invocation=self.invocation))
+            require(self.runtime is not None, "WORKER_LAUNCH_PROFILE")
+            # Resolve both roles while materialization is pristine, retaining
+            # the worker runtime already checked by the client resolver.
+            server = (resolve_pack_launch(self.binding, "server", simulation=self.simulation)
+                      if self.own_server else None)
             if server:
                 require(server["lock"] == resolved["lock"]
                         and server["launch_profile"] == resolved["launch_profile"], "PACK_BINDING_MISMATCH")

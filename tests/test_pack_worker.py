@@ -156,6 +156,75 @@ def test_deferred_configuration_holds_runtime_and_refuses_every_dispatch_until_c
         holder.__enter__()
 
 
+def test_resolved_runtime_is_continuously_owned_until_launcher_exit(pack, monkeypatch):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+    entered, exited = [], []
+    original = module.HeldWorkerBundle
+
+    class TrackedRuntime(original):
+        def __enter__(self):
+            result = super().__enter__()
+            entered.append(self)
+            return result
+
+        def __exit__(self, *args):
+            exited.append(self)
+            return super().__exit__(*args)
+
+    monkeypatch.setattr(module, "HeldWorkerBundle", TrackedRuntime)
+    with HeldPackWorker(binding, invocation, defer_configuration=True) as worker:
+        assert entered == [worker.runtime] and exited == []
+        node = Path(worker.runtime.body["node"])
+        raw = node.read_bytes()
+        with pytest.raises(PermissionError):
+            node.write_bytes(raw)
+        worker.commit_configuration()
+        assert entered == [worker.runtime] and exited == []
+        worker.runtime.recheck()
+    assert exited == entered
+    node.write_bytes(raw)
+
+
+@pytest.mark.parametrize("boundary", ["worker_validation", "server_resolution"])
+def test_failed_resolution_closes_runtime_before_config_or_process(pack, monkeypatch, boundary):
+    import mcbench.pack_worker as module
+    import mcbench.pack_launch as launch
+    binding, invocation, profile = pack
+    body = json.loads(Path(profile.worker_runtime.path).read_bytes())
+    node = Path(body["node"])
+    raw = node.read_bytes()
+
+    def fail(*args, **kwargs):
+        with pytest.raises(PermissionError):
+            node.write_bytes(raw)
+        raise Fault("SYNTHETIC_RESOLUTION_FAILURE")
+
+    if boundary == "worker_validation":
+        monkeypatch.setattr(module, "check_worker_command", fail)
+    else:
+        monkeypatch.setattr(launch, "resolve_pack_launch", fail)
+    with pytest.raises(Fault, match="SYNTHETIC_RESOLUTION_FAILURE"):
+        with HeldPackWorker(binding, invocation, own_server=True):
+            pytest.fail("accepted failed resolution")
+    assert not Path(invocation["configuration_path"]).exists()
+    node.write_bytes(raw)
+
+
+def test_public_resolution_releases_runtime_without_creating_configuration(pack):
+    binding, invocation, profile = pack
+    from mcbench.pack_worker import resolve_worker_invocation
+    resolved = resolve_pack_launch(binding, "client", worker_invocation=invocation)
+    body = json.loads(Path(profile.worker_runtime.path).read_bytes())
+    node = Path(body["node"])
+    raw = node.read_bytes()
+    node.write_bytes(raw)
+    direct = resolve_worker_invocation(profile, invocation, binding)
+    assert all(resolved[k] == v for k, v in direct.items())
+    node.write_bytes(raw)
+    assert not Path(invocation["configuration_path"]).exists()
+
+
 @pytest.mark.parametrize("change", ["state", "config", "missing_state", "hash", "runtime"])
 def test_deferred_commit_revalidates_freshness_and_failure_closes_custody(pack, change, monkeypatch):
     binding, invocation, _ = pack

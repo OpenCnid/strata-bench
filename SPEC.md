@@ -1855,6 +1855,10 @@ worker or server dispatch. Commit rechecks runtime and fresh paths; a failed
 attempt closes its own custody and retains partial evidence. Preliminary path
 discovery may batch shared ancestors within one call; final per-file link checks
 under held parents, retained-handle hashes and membership checks remain required.
+The owning launcher may retain the exact runtime opened by launch resolution
+through configuration and owned process cleanup, without closing and reopening
+it. Public read-only resolution releases its handles before returning; neither
+path may skip validation or grant new dispatch/admission authority.
 
 `held-pair-protected-vanilla-worker-reference/1` connects complete held worker
 inputs to saved-body paired server references. Import-check all workers before

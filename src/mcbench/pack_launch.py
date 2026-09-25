@@ -7,7 +7,7 @@ Runtime-mutated instances need a separate recovery policy and cannot pass here.
 import json
 import os
 import sqlite3
-from contextlib import closing
+from contextlib import closing, contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Literal
@@ -73,6 +73,14 @@ def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=Fal
 The caller must keep the binding private and enforce its own process, input,
 credential, runtime dependency and mutable-world boundaries.
 """
+    with _held_pack_launch(binding, role, simulation=simulation, worker_invocation=worker_invocation,
+                           forge_invocation=forge_invocation) as (result, _):
+        return result
+
+
+@contextmanager
+def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None, forge_invocation=None):
+    """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
     store = _absolute(binding.store)
     database = store / "controller.sqlite"
@@ -191,9 +199,12 @@ credential, runtime dependency and mutable-world boundaries.
     if restored:
         result.update(scope=restoration_scope(binding), restoration=binding.restoration.model_dump())
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
-        from .pack_worker import resolve_worker_invocation
-        result.update(resolve_worker_invocation(launch, worker_invocation, binding))
+        from .pack_worker import _held_worker_invocation
+        with _held_worker_invocation(launch, worker_invocation, binding) as (worker, runtime):
+            result.update(worker)
+            yield result, runtime
+        return
     if isinstance(launch, E9ELaunchProfile) and role == "client":
         from .pack_forge import resolve_forge_invocation
         result.update(resolve_forge_invocation(launch, forge_invocation, binding, command))
-    return result
+    yield result, None

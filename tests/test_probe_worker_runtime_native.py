@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import time
 from pathlib import Path
 import uuid
 
@@ -62,8 +63,29 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     per_arm = {"bodies": 1, "model_slots": 3, "memory_mib": 4096, "disk_bytes": 3 * 1024**3}
     capacity = {k: v * 2 for k, v in per_arm.items()}
     controller.certify("probe-worker", "fixture-pins", capacity, "cas:sha256:" + "a" * 64, simulation=True)
+    started = time.monotonic()
     prep.acquire(EVALUATOR, "p1", reservations, worker="probe-worker", fingerprint="fixture-pins",
                  per_arm_resources=per_arm, lifetime_s=300)
+    phases = [{"phase": "parent_acquire", "start_s": 0, "end_s": time.monotonic() - started}]
+
+    def timed(name, method):
+        def call(*args, **kwargs):
+            start = time.monotonic() - started
+            try:
+                return method(*args, **kwargs)
+            finally:
+                phases.append({"phase": name, "start_s": start, "end_s": time.monotonic() - started})
+        return call
+
+    # Diagnostic intervals may overlap. They do not replace campaign clocks or
+    # alter deadlines; write only after the attempt, including failed preparation.
+    from mcbench.pack_worker import HeldPackWorker
+    from strata_evaluator.probe_vanilla_inputs import VanillaProbeInputs
+    monkeypatch.setattr(prep, "check", timed("parent_check", prep.check))
+    for cls, method, name in ((HeldPackWorker, "__enter__", "worker_inputs"),
+                              (VanillaProbeInputs, "__enter__", "software_inputs"),
+                              (VanillaProbeInputs, "check", "software_check")):
+        monkeypatch.setattr(cls, method, timed(name, getattr(cls, method)))
     pair = prep._source("p1")[0]
     launches = {arm: {"schema": "strata/PrivateProbeVanillaLaunch/2", "policy": BODY_POLICY,
         "pair_id": "p1", "arm": arm, "helper_class": actual_inputs["launch_helper"],
@@ -95,6 +117,7 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     original = PairedWorkerReference.event
     checks = []
     def event(owner, arm, phase):
+        phases.append({"phase": arm + ":" + phase, "at_s": time.monotonic() - started})
         if phase == "server_ready":
             session = owner.sessions[arm]
             assert session.result["jvm_token"]["held_token_verified"]
@@ -115,8 +138,13 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
         original(owner, arm, phase)
     monkeypatch.setattr(PairedWorkerReference, "event", event)
     service = ProbeWorldCopies(prep)
-    result = service.run_vanilla_worker_reference(EVALUATOR, plans, launches, invocations,
-                                                 pack_binding=source[0].model_dump())
+    try:
+        result = service.run_vanilla_worker_reference(EVALUATOR, plans, launches, invocations,
+                                                     pack_binding=source[0].model_dump())
+    finally:
+        (tmp_path / "preparation-timing.json").write_bytes(canonical({
+            "diagnostic_only": True, "intervals_may_overlap": True, "phases": phases,
+            "elapsed_since_parent_acquire_s": time.monotonic() - started}))
     assert result["policy"] == POLICY and set(result["runtime"]["workers"]) == set(pair["arm_order"])
     assert len(checks) == 2
     for group in result["runtime"]["workers"].values():

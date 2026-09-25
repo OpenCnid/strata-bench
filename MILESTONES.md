@@ -2,6 +2,24 @@
 
 ## Current position
 
+M1.6q.2 [retained runtime custody](docs/verification/2026-09-25-m1-retained-worker-resolution.md) is implemented_unverified for authentic paired integration.
+The launcher retains the runtime opened by sealed resolution through config and
+owned cleanup; public resolution still releases handles.93 focused source cases
+pass. Real-profile deferred entry takes23.844s under cProfile with one runtime
+lease. Fresh case03 reaches both copiers (normal10/10 owned stops each) and both
+worker import logs, then fails before server launch: inner PROBE_WORLD_DEADLINE,
+outer PROBE_WORLD_CLOSE_UNCERTAIN,176.62s total. Writer custody remains UNCERTAIN,
+world FAILED,parent FENCED,all holds retained. Import job receipts were checked
+but not persisted; stdout cannot replace that missing proof. Ten software checks
+consume60.546s with overlapping parent checks. Next reduce redundant software
+validation while writers are held, persist import receipts and surface retained
+inner refusals,
+retaining all authority/hash/link/membership checks and original finite windows.
+Cases01/02 stay failed. All40 real tables unchanged at$4.887796,no owned runtime,
+no server/gameplay-worker/model dispatch and no M1 inference authority. Full live
+state/tool parity,native admission,clocks/disposal,T05/T10 and isolation stay open;
+G1-G5 not_run. Earlier next-action text below is historical.
+
 M1.6q.1 [worker preparation cost](docs/verification/2026-09-25-m1-worker-preparation-cost.md) is implemented_unverified for authentic paired integration.
 Batch preliminary path discovery while retaining final per-file checks under
 held parents. Resolve and hold each worker once, then commit configurations only
@@ -774,6 +792,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
 | M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | implemented_unverified | [Lifecycle and retained failure](docs/verification/2026-09-25-m1-probe-worker-runtime.md):31 distinct source cases pass; first authentic-input attempt fails pre-dispatch PROBE_WORLD_DEADLINE178.93s. Both configs created, zero copier/import/worker/server dispatch; parent fenced, holds intact. Profile identifies repeated validation; reduce duplication under unchanged300/200-170/60s bounds before changed-case retry. Full live matching/native admission/clocks/disposal remain open. |
 | M1.6q.1 | AR/GI/SI/QA | Reduce repeated worker/path validation under unchanged source, link, custody and deadline requirements; inherits M1.6q mappings | implemented_unverified | [Cost and retained case02](docs/verification/2026-09-25-m1-worker-preparation-cost.md):108 distinct source cases pass,3 privilege skips; deferred whole-roster config commit retains custody/no-dispatch. Client profile23.937s vs33.687s. Authentic case02 fails118.32s at first copier deadline; zero processes,FAILED row,FENCED parent,holds retained. Remaining preparation cost must be resolved before changed-case retry; no full paired/native/G1 pass. |
+| M1.6q.2 | AR/GI/SI/QA | Retain exact worker-resolution runtime custody through launch without duplicate opening; inherits M1.6q mappings | implemented_unverified | [Retained custody and case03](docs/verification/2026-09-25-m1-retained-worker-resolution.md):93 source cases pass; genuine deferred entry23.844s/one runtime lease under cProfile. Both copiers stop10/10, imports log success; no server/gameplay worker/model. Case03 fails176.62s with inner deadline/outer close uncertainty; holds remain. Next remove redundant software validation while preserving complete checks and retain import receipts and surface recorded inner errors before changed-case retry. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8211,3 +8230,58 @@ exclusion or rerun. Final435 source-file matches,108 distinct passing cases,
 412 prior milestone IDs retained/413 current,1,618 local links, append-only
 progress, SPEC history/JSON, Ruff and whitespace checks pass. G1 remains not_run;
 all40 authority tables unchanged. Final seal pointers follow archived docs.
+
+
+### 2026-09-25 — M1.6q.2 continuous resolution custody; paired pre-server refusal
+
+- Private context-managed pack/worker resolution lets HeldPackWorker retain the
+  same validated runtime through configuration and owned cleanup. Public resolver
+  JSON and release semantics remain unchanged. No cross-call caches, skipped
+  authority/layout/hash/link/membership checks, changed profiles or new dispatch.
+  Account whole-roster checks and deferred configuration ordering remain intact.
+- Source selections pass90/161.85s and3/41.22s (93 distinct cases): continuous
+  single runtime ownership, worker/server validation failure cleanup, public
+  no-write/release, strict config/profile/path refusal, whole-pair lifecycle,
+  Forge relocation and restored-worker compatibility. Synthetic processes/game
+  data with real Windows leases; no new authentic Forge/isolation claim.
+- Genuine profile diagnostic: deferred held entry23.844s,total24.891s under
+  cProfile,one runtime lease,11,725 files/654,090,742 bytes. Node write-open denied
+  while held,handles closed,no config/process/game/model. Instrumentation costs
+  are not a latency certificate. Worker runtime/profile identities unchanged.
+- Fresh authentic case03 preserves parent300s,writers200/170s,servers60/60s.
+  Both protected copiers produce374 files/239,730,374 bytes and162 directories;
+  each stops10/10 normally with zero active/terminated processes. Both worker
+  imports log vanilla_runtime_loaded,avatar_created=false. Import job receipts
+  pass transient checks but are not persisted; that retained proof remains open.
+- Case03 fails176.62s before server launch intent: experienced writer retains
+  PROBE_WORLD_DEADLINE; initial writer/world surface PROBE_WORLD_CLOSE_UNCERTAIN.
+  Aggregate120s server windows no longer fit remaining writer custody. Both
+  writers UNCERTAIN,world FAILED,parent FENCED; resource/cost holds remain.
+  No gameplay worker/server/model runs. Cases01/02 remain failed,not replaced.
+- Test-only timing: two worker inputs13.875s/13.734s;10 software checks60.546s;
+  15 parent checks12.594s overlap these. Initial state holds140.250s/145.625s from
+  acquisition start,later checks through159.437s. No double summing or campaign
+  clock claim. Audit verifies435 source matches,receipts/logs and full real-state
+  equality. All40 authority tables unchanged at$4.887796,old$0.7554/four$1 holds
+  and consumed decisions preserved,no owned runtime. No M1 inference authority.
+- Inherits M1.6q mappings and partial T01/T06/T11. SPEC preserves owning/public
+  resolver lifetime contracts. [Report](docs/verification/2026-09-25-m1-retained-worker-resolution.md).
+  M1.6q.2 implemented_unverified. Next compose repeated software checks without
+  losing authority/source/hash/link/membership guarantees, persist import receipts
+  and surface the retained nested error before changed-case retry. Original finite windows and
+  full G1 criteria remain. Live-state/tool parity,native admission,clocks/disposal,
+  T05/T10 and isolation stay open; G1-G5 not_run,M0/G0 and M2-M7 unchanged.
+
+M1.6q.2 final seals: source8,610 files/21,603,962 bytes
+`3bfff7b9648c5a9d0974b64d6c9fa756c93b60a8d7f2059c6e93c532d291664b`;
+failed native676 files/47,064,244 bytes
+`af573320a7f2b26eca76223a17dfbe48d1f5eed82f4db2cc69a4e14aa0c554e7`;
+no-dispatch diagnostic9 files/108,142 bytes
+`4bde799e42161e4ab9b80289b492dc829eedf04158611ea5cf125ec1ca23f735`.
+All independently verify with extended paths.93 source cases pass,435 source
+files match native03,413 previous IDs retained/414 current,1,623 links resolve;
+append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real tables
+unchanged,no owned runtime. These pointers follow the archived docs snapshot.
+Clarification: writer/world records already retain both inner deadline and outer
+close errors. The next diagnostic improvement is to surface that retained cause;
+only the import ownership receipts lack persistence. No sealed evidence is edited.

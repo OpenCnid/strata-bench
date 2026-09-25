@@ -4,6 +4,24 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.2 [retained runtime custody](verification/2026-09-25-m1-retained-worker-resolution.md) is implemented_unverified for authentic paired integration.
+The launcher retains the runtime opened by sealed resolution through config and
+owned cleanup; public resolution still releases handles.93 focused source cases
+pass. Real-profile deferred entry takes23.844s under cProfile with one runtime
+lease. Fresh case03 reaches both copiers (normal10/10 owned stops each) and both
+worker import logs, then fails before server launch: inner PROBE_WORLD_DEADLINE,
+outer PROBE_WORLD_CLOSE_UNCERTAIN,176.62s total. Writer custody remains UNCERTAIN,
+world FAILED,parent FENCED,all holds retained. Import job receipts were checked
+but not persisted; stdout cannot replace that missing proof. Ten software checks
+consume60.546s with overlapping parent checks. Next reduce redundant software
+validation while writers are held, persist import receipts and surface retained
+inner refusals,
+retaining all authority/hash/link/membership checks and original finite windows.
+Cases01/02 stay failed. All40 real tables unchanged at$4.887796,no owned runtime,
+no server/gameplay-worker/model dispatch and no M1 inference authority. Full live
+state/tool parity,native admission,clocks/disposal,T05/T10 and isolation stay open;
+G1-G5 not_run. Earlier next-action text below is historical.
+
 M1.6q.1 [worker preparation cost](verification/2026-09-25-m1-worker-preparation-cost.md) is implemented_unverified for authentic paired integration.
 Batch preliminary path discovery while retaining final per-file checks under
 held parents. Resolve and hold each worker once, then commit configurations only

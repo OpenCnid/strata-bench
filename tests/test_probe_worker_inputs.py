@@ -2,6 +2,7 @@
 
 import json
 import os
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -98,20 +99,21 @@ def test_late_arm_account_mismatch_refuses_before_any_configuration_commit(runti
     service, _, _, binding, _ = runtime
     account(candidate[1].worker_settings.auth_cache)
     supplied = values(service, tmp_path)
-    original = pack_launch.resolve_pack_launch
+    original = pack_launch._held_pack_launch
     count = 0
 
+    @contextmanager
     def altered(*args, **kwargs):
         nonlocal count
-        resolved = original(*args, **kwargs)
-        if kwargs.get("worker_invocation") is not None:
-            count += 1
-        if count == 2 and kwargs.get("worker_invocation") is not None:
-            # Substitute the resolver output to exercise the late-roster boundary.
-            resolved["worker_configuration"]["expected_player_uuid"] = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-        return resolved
+        with original(*args, **kwargs) as (resolved, runtime):
+            if kwargs.get("worker_invocation") is not None:
+                count += 1
+            if count == 2 and kwargs.get("worker_invocation") is not None:
+                # Substitute the resolver output to exercise the late-roster boundary.
+                resolved["worker_configuration"]["expected_player_uuid"] = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+            yield resolved, runtime
 
-    monkeypatch.setattr(pack_launch, "resolve_pack_launch", altered)
+    monkeypatch.setattr(pack_launch, "_held_pack_launch", altered)
     monkeypatch.setattr(module.HeldPackWorker, "commit_configuration", no_process)
     with VanillaProbeInputs(service.preparation, binding.model_dump(), policy=BODY_POLICY) as software:
         with pytest.raises(Fault, match="PROBE_WORKER_ACCOUNT_MISMATCH"):
@@ -185,15 +187,16 @@ def test_custody_failures_never_dispatch_or_release_parent(runtime, candidate, t
     with VanillaProbeInputs(service.preparation, binding.model_dump(), policy=BODY_POLICY) as software:
         holder = software.hold_worker_inputs(EVALUATOR, supplied)
         if failure == "stop":
-            original = pack_launch.resolve_pack_launch
+            original = pack_launch._held_pack_launch
 
+            @contextmanager
             def no_stop(*args, **kwargs):
-                result = original(*args, **kwargs)
-                if kwargs.get("worker_invocation") is not None:
-                    result["launch"]["arguments"].pop()
-                return result
+                with original(*args, **kwargs) as (result, runtime):
+                    if kwargs.get("worker_invocation") is not None:
+                        result["launch"]["arguments"].pop()
+                    yield result, runtime
 
-            monkeypatch.setattr(pack_launch, "resolve_pack_launch", no_stop)
+            monkeypatch.setattr(pack_launch, "_held_pack_launch", no_stop)
             expected = "PROBE_WORKER_STOP_REQUIRED"
         elif failure == "changed_account":
             original = module.FileLease

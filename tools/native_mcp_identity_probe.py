@@ -91,7 +91,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
         selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
-        activation_script=None, selected_activation=False, activation_checkpoint=False, no_self_play=False):
+        activation_script=None, selected_activation=False, activation_checkpoint=False, no_self_play=False,
+        matched_retention=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -134,6 +135,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 game_failure, pilot_helper, deferred_tools))), "NO_SELF_PLAY_PROFILE_REQUIRED")
     from native_no_self_play_probe import NoSelfPlayProbe
     no_helper_probe = NoSelfPlayProbe() if no_self_play else None
+    require(type(matched_retention) is bool and (not matched_retention or selected_activation and
+            activation_checkpoint and activation_script is None and not any((no_self_play, canary_mode,
+                state_mode, retirement_mode, interrupt_mode, inherited_helper, gateway_mode, skills_mode,
+                piloting_contract, runtime_boundary, output_boundary, selected_state_boundary,
+                selected_retirement_boundary, selected_helper_pair, cross_team_probe, team_channel_probe,
+                campaign_boundary_probe, game_failure, pilot_helper, deferred_tools))), "MATCHED_RETENTION_PROFILE_REQUIRED")
     if campaign_boundary_probe is not None:
         require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
                 and game_probe is None and game_retention is None and game_recovery is None
@@ -257,7 +264,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     retirement_probe = RetirementProbe() if retirement_mode else None
     interrupt_probe = InterruptProbe() if interrupt_mode else None
     from native_activation_probe import ActivationProbe
-    activation = ActivationProbe(activation_source, output) if activation_source else None
+    from native_matched_retention_probe import (
+        MatchedActivationProbe, PROMPT as MATCHED_PROMPT, STATE_CODE, HELPER_TASK, call_code)
+    activation_type = MatchedActivationProbe if matched_retention else ActivationProbe
+    activation = activation_type(activation_source, output) if activation_source else None
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
     patch_test = no_patch_catalog is not None and activation is None and game_probe is None and not piloting_contract
@@ -327,6 +337,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 script_probe.observe(agent, body)
             if no_helper_probe:
                 no_helper_probe.observe(agent, body)
+            if matched_retention:
+                activation.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
@@ -380,7 +392,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             "admission_ref": admission})
                         if admission_mode:
                             grant = NativeAdmission(connection, objects).enroll(operation,
-                                tool_calls=64 if campaign_boundary_probe else 32 if script_probe else 20)
+                                tool_calls=64 if campaign_boundary_probe else 32 if script_probe or matched_retention else 20)
                         else:
                             broker.admit(grant)
                         if activation is None or agent != "/root":
@@ -404,11 +416,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ("game", {"request": game_request})]
                     if activation:
                         if agent == "/root":
-                            calls[0] = ("artifact_read", {"path": "notes/seed.md" if activation.reset else "notes/root.md"})
+                            calls[0] = ("artifact_read", {"path": "notes/seed.md" if activation.reset and not matched_retention else "notes/root.md"})
                             calls[1][1]["expected_ref"] = activation.body["workspace"].get("notes/root.md")
-                            if activation.reset:
+                            if activation.reset and not matched_retention:
                                 calls[1][1]["text"] = "STRATA_AFTER_FROZEN_BOUNDARY"
-                        if activation.reset:
+                        if activation.reset or matched_retention:
                             calls = activation.calls(agent) + calls
                         else:
                             calls.extend(activation.calls(agent))
@@ -437,10 +449,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ' const t=ALL_TOOLS.find(t=>t.name.endsWith("__"+name)); '
                         ' if (!t) throw new Error("MCP_TOOL_MISSING:"+name); '
                         ' text({name,result:await tools[t.name](args)}); }')
+                    if matched_retention:
+                        code = call_code(calls)
                     if canaries:
                         code += "\n" + canaries.code(agent=agent)
                     if activation and agent == "/root":
                         code += "\n" + activation.publish_code()
+                    if matched_retention:
+                        code += "\n" + STATE_CODE
                     if game_probe and agent == "/root":
                         code += "\n" + game_probe.code()
                     if retirement_notifications:
@@ -457,6 +473,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     "input": code}
                 if script_probe:
                     script_probe.expect_read(agent, item["call_id"])
+                if matched_retention:
+                    activation.expect_call(agent, item)
                 if state_probe:
                     item = state_probe.start(agent, operation, code)
                     if agent == "/root":
@@ -486,8 +504,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
                     2 + int(canary_mode) + int(patch_test) + int(script_probe is not None)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
-                    "message": "Exercise only the synthetic inspect_identity tool. "
-                               "Do not read files or call any other tool."}) if step == 1 else (
+                    "message": HELPER_TASK if matched_retention else (
+                        "Exercise only the synthetic inspect_identity tool. "
+                        "Do not read files or call any other tool.")}) if step == 1 else (
                     "wait_agent", {"timeout_ms": 30000 if activation else 10000})
                 item = {"id": "tool-" + operation, "type": "function_call",
                     "call_id": "call-" + operation, "namespace": "collaboration",
@@ -742,7 +761,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
-            "prompt": ("Exercise the owned worker, declared team channel and clean helper with the fixed boundary checks. Game interactions are real; provider replies and controller readiness are scripted."
+            "prompt": (MATCHED_PROMPT if matched_retention else "Exercise the owned worker, declared team channel and clean helper with the fixed boundary checks. Game interactions are real; provider replies and controller readiness are scripted."
                        if campaign_boundary_probe else "Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
                        if pilot_helper else "Exercise the owned separate-job communication fixture and permitted local messages."

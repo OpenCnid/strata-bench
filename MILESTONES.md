@@ -92,6 +92,16 @@ checkpoints activate revisions2/3, and a fresh epoch3 runtime preserves admitted
 artifacts/costs while starting new context/private code-mode state. Sixteen
 requests settle224 units, prior56 retained. Next matched frozen/no-self-play
 controls and remaining combined-profile qualification; no full G1 claim.
+M1.4b [matched retention work](docs/verification/2026-09-25-m1-matched-retention.md)
+now passes36/36,36/36,38/38,36/36 across both arms and fresh second episodes.
+Full retains learned artifacts; frozen resets to initial while allowing new
+within-episode work.24 native calls settle336 synthetic units, prior112 retained.
+First timeout/90,000-unit hold and second33/36 failure remain sealed. Read-only
+timeout diagnosis passes10/10; batch validation reduces measured3.745 to1.582
+seconds without changing deadlines or removing checks. Complete session/cache,
+frozen-skills categories, disposable probes and combined qualification remain open.
+Independent sealed reconstruction passes64/64 episode and7/7 common checks.
+
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
 agents.enabled=false; its absence left collaboration advertised despite the
@@ -497,7 +507,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
 | M1.4a | AR/SI/QA | Selected-profile learned JavaScript execution through native restricted code mode, scoped effects and retained revision/accounting evidence; inherits M1.4 and SPEC6.2/6.3 | in_progress | [Actual native evidence](docs/verification/2026-09-24-m1-active-script-native.md):177 focused checks,36/36 native and22/22 reconstruction. [New complete checkpoint/fresh activation](docs/verification/2026-09-25-m1-native-handoff.md):94 focused cases,37/37 per episode,42/42 independent reconstruction; exact revisions2/3, scoped effects, fresh context/private code-mode state and retained costs. USD0 scripted provider, synthetic world/worker/readiness. Next matched frozen/no-self-play controls and combined-profile qualification; no historical activation reclassification. |
-| M1.4b | AR/SI/QA | Enforced no-self-play helper-disabled native profile and matched frozen/control retention; inherits M1.4 and SPEC13.2 | in_progress | [Actual native evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):37/37 plus22/22 independent reconstruction; explicit agents.enabled=false, root-only catalog /6, both spawn wire types refused, permitted artifacts/synthetic observation/private state, complete synthetic checkpoint and revision2. Original pre-forward failure/35-of-37 report retained. Five new calls/70 units plus prior14; actual matched frozen controls, complete reset/category rules and full T04/T06/T11 remain open. |
+| M1.4b | AR/SI/QA | Enforced no-self-play helper-disabled native profile and matched frozen/control retention; inherits M1.4 and SPEC13.2 | in_progress | [No-self-play](docs/verification/2026-09-25-m1-no-self-play-native.md):37/37 plus22/22 reconstruction, root-only /6 and complete synthetic checkpoint. [Matched full/frozen episodes](docs/verification/2026-09-25-m1-matched-retention.md):36/36,36/36,38/38,36/36 plus64/64 episode and7/7 common reconstruction; exact retained/reset artifacts, permitted synthetic observation/root/helper,24 settled calls336 units plus112 seed units. All original failures/holds retained. Complete session/cache/category and disposable probe qualification and full T04/T06/T11 remain open. |
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
 | M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
@@ -6913,3 +6923,41 @@ M1.4b/M1 in_progress, complete G1 not_run; inherited IDs unchanged. Next matched
 frozen controls/common schedules and complete session/cache/category enforcement,
 then remaining native/settings/scorer/probe qualification. Unrelated M2-M7 and
 M0-only inference authority remain unchanged.
+
+### 2026-09-25 — M1.4b matched native full/frozen episode retention
+
+[Exact source/native evidence](docs/verification/2026-09-25-m1-matched-retention.md)
+adds an explicit matched fixture mode, equal recovery seeds, common public
+schedule/opportunity ceilings and reversed second-phase order. Full retains
+source-bound notes/handoff/learned revisions; frozen restores initial artifacts
+at the normal episode boundary, yet can learn within the next episode. Fresh
+root/helper contexts and private stores, immutable reads/writes, root-history
+denials and permitted synthetic observation are joined to normal checkpoints.
+
+Sequence01 times out in local scripted transport, retaining one UNSETTLED
+request/job,90,000-unit hold and prior56; no checkpoint, other episodes not_run.
+Read-only WAL-aware snapshot diagnosis10/10 preserves the original sidecars.
+Batch path checks and single companion-path parsing reduce measured validation
+3.745 to1.582 seconds without removing integrity checks, caching across calls or
+changing deadlines. Sequence02 closes normally but retains33/36: its observation
+expired before dispatch and the clean-helper verifier rejected the launch task.
+Fixture /2 computes a bounded deadline at call time and validates only the
+exact public helper message. Neither old sequence resumes or changes verdict.
+
+Separate sequence03 passes36/36,36/36,38/38,36/36; independent sealed audit64/64
+episode plus7/7 common checks.24 calls settle336 synthetic units; two distinct
+seeds112 retained, total448 across final lineages without charging copied
+history again. All40 real authority tables/$4.887796 exposure and historical
+holds/consumed decisions unchanged. Owned native process checks empty; no
+Minecraft, paid inference, shared-desktop input or RuntimeQualification.
+
+Focused source selections63 pass; integrity/skill90 pass plus one missing-tools
+import setup failure/three native symlink-privilege skips, corrected focused32
+pass/three skips; final matched17 pass. Ruff and whitespace pass. Report pins
+all producer/diagnostic/audit seals and exact native profiles. Inherited IDs
+unchanged; M1.4b/M1 remain in_progress and G1 not_run. Next complete session/cache
+and frozen-skills category enforcement, disposable probe boundaries and exact
+combined-profile isolation; capable T05/settings and T10/T11 remain required.
+Unrelated M2-M7 and the M0-only spending scope remain unchanged. Final local
+documentation check resolves1361 links and preserves all390 milestone IDs
+and the prior append-only progress log.

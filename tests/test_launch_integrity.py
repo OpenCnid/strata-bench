@@ -9,9 +9,48 @@ import sys
 
 import pytest
 
-from mcbench.launch_integrity import FileLease, IntegrityError, encode, read_manifest, safe, snapshot
+from mcbench.launch_integrity import FileLease, IntegrityError, encode, read_manifest, safe, safe_many, snapshot
 
 pytestmark = pytest.mark.skipif(os.name != "nt", reason="Windows deny-write sharing contract")
+
+
+def test_batched_paths_check_every_component_without_cross_call_cache(tmp_path, monkeypatch):
+    from collections import Counter
+    paths = [tmp_path / "shared" / name for name in ("first", "second", "first")]
+    calls = Counter()
+    original = Path.lstat
+    def observe(path, *args, **kwargs):
+        calls[str(path)] += 1
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", observe)
+    checked = safe_many(paths)
+    components = {str(p) for path in checked for p in (path, *path.parents)}
+    assert set(calls) == components and set(calls.values()) == {1}
+    assert checked[0] == checked[2]
+    safe_many(paths)
+    assert set(calls.values()) == {2}
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_PATH"):
+        safe_many([paths[0], Path("relative")])
+
+
+@pytest.mark.parametrize("failure", ["link", "reparse", "denied"])
+def test_batched_paths_reject_changed_shared_ancestor_each_call(tmp_path, monkeypatch, failure):
+    from types import SimpleNamespace
+    import stat
+    paths = [tmp_path / "shared" / name for name in ("first", "second")]
+    safe_many(paths)
+    original = Path.lstat
+    def changed(path, *args, **kwargs):
+        if path.name == "shared":
+            if failure == "denied":
+                raise PermissionError("unreadable ancestor")
+            return SimpleNamespace(st_mode=stat.S_IFLNK if failure == "link" else stat.S_IFDIR,
+                                   st_file_attributes=0x400 if failure == "reparse" else 0)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", changed)
+    expected = PermissionError if failure == "denied" else IntegrityError
+    with pytest.raises(expected, match="unreadable ancestor" if failure == "denied" else "BOOTSTRAP_LINK"):
+        safe_many(paths)
 
 
 @pytest.mark.parametrize("target_kind", ["file", "dangling", "directory"])

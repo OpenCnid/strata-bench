@@ -23,7 +23,14 @@ See the [current handoff](STATUS_AND_HANDOFF.md),
 [ledger](../MILESTONES.md#current-position), and preserved
 [M0/G0 assembly](verification/2026-09-24-g0-assembly.md).
 
-Latest M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
+Latest M1.4b [matched native retention work](verification/2026-09-25-m1-matched-retention.md)
+passes36/36,36/36,38/38,36/36 across full/frozen arms and fresh second episodes.
+Retained timeout/hold and original33/36 failure remain sealed;24 scripted calls
+settle336 units with prior112 retained. Measured validation falls3.745 to1.582
+seconds with integrity checks and deadlines retained. Full G1 remains open.
+Independent reconstruction passes64/64 episode and7/7 common checks.
+
+M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false
 switch is required; first pre-forward refusal and original35/37 remain retained.
 Root-only tools, refused helpers, permitted artifacts/synthetic observation and

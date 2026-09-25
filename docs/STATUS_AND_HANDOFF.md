@@ -35,6 +35,23 @@ passes37/37 each and42/42 independent checks. It normally enters CHECKPOINTING
 and activates revisions2/3 through complete synthetic checkpoints; epoch3 starts
 fresh context/storage with admitted artifacts and all costs retained. Next
 matched frozen/no-self-play controls and complete combined-profile qualification.
+Latest [matched retention work](verification/2026-09-25-m1-matched-retention.md)
+preregisters a common full/frozen protocol from equal recovery seeds. First
+sequence01 failed at a local scripted transport timeout; retain its90,000-unit
+hold plus56 prior units and original WAL. Never resume r11/r12/r21/r22 there.
+Read-only diagnosis10/10, validation3.745 to1.582 seconds with checks retained;
+32 corrected focused passes/three privilege skips follow90 passes/one missing
+tools-path setup failure. Sequence02 closes/checkpoints but retains33/36:
+expired synthetic observation and exact helper-task verifier mismatch. Do not
+continue or rerun either old sequence. Changed /2 sequence03 passes all four
+episodes36/36,36/36,38/38,36/36; full retains and frozen resets while preserving
+within-episode learning and all costs.24 calls336 units plus112 distinct seed
+units.17 fixture tests and64/64 episode plus7/7 independent common checks pass.
+All four episodes are sealed; no live fixture remains. Exact pins/seals are in
+the report. Next complete
+session/cache reset, frozen-skills category and disposable probe qualification.
+No paid M1 authority or RuntimeQualification.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

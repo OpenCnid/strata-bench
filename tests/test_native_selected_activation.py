@@ -29,9 +29,10 @@ text({active_script_write:write});
 '''
 
 
-def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time, arm="full"):
+def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time, arm="full", boundary="episode"):
     """Build before sealing, using normal synthetic contracts and controller APIs."""
-    require(arm in {"full", "no-self-play"}, "SELECTED_SEED_ARM")
+    require(arm in {"full", "no-self-play", "frozen-persistence"} and
+            boundary in {"episode", "recovery"}, "SELECTED_SEED_ARM")
     operator = Principal("operator", "operator")
     policy = cas.put(operator, "operator", "operator", canonical(POLICY))
     def selected_configs(*args, **kwargs):
@@ -53,7 +54,7 @@ def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time,
     controller.ready("c1", owner, epoch, controller.status("c1")["revision"], {"a1": dict.fromkeys(READINESS, proof)})
     source_stopped = stopped.__wrapped__(source)
     controller.transition("c1", owner, epoch, controller.status("c1")["revision"], "CHECKPOINTING", "fixture")
-    service, checkpoint = activate(source_stopped)
+    service, checkpoint = activate(source_stopped, boundary=boundary)
     ref = service.create(checkpoint)
     return source_stopped, service, ref
 

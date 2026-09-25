@@ -295,10 +295,12 @@ class NativeSkillSets:
         require(row is not None and row["set_ref"] == plan.skill_activation_ref and row["files_digest"] == digest(files),
                 "NATIVE_SKILL_VIEW_UNCOMMITTED")
         self._verify_files(target, files)
-        from .launch_integrity import read_manifest, safe
+        from .launch_integrity import read_manifest, safe, safe_many
         require(plan.bootstrap_manifest is not None and plan.bootstrap_digest is not None, "SKILL_BOOTSTRAP_REQUIRED")
         manifest = read_manifest(plan.bootstrap_manifest, plan.bootstrap_digest)
-        held = {str(safe(e["path"])): e["sha256"] for e in manifest["inventory"]["files"]}
+        entries = manifest["inventory"]["files"]
+        held = {str(path): entry["sha256"] for path, entry in
+                zip(safe_many(e["path"] for e in entries), entries, strict=True)}
         require(any(safe(t["path"]) == safe(target) for t in manifest["inventory"]["trees"]) and
             all(held.get(str(safe(target / p))) == r[11:] for p, r in files.items()), "SKILL_BODY_UNPINNED")
         return body

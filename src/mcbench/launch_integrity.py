@@ -21,23 +21,42 @@ def check(value, code):
         raise IntegrityError(code)
 
 
-def safe(path):
+def _absolute(path):
     path = Path(path)
     check(path.is_absolute(), "BOOTSTRAP_PATH")
     if os.name == "nt" and not str(path).startswith("\\\\?\\"):
         value = str(path)
         path = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value)
-    for part in (path, *path.parents):
-        try:
-            info = part.lstat()
-        except (FileNotFoundError, NotADirectoryError):
-            continue
-        # Inspect each component without first following it via exists(). This
-        # also rejects dangling links and halves metadata queries on existing
-        # paths. No component result is cached across checks or leases.
-        check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
-              "BOOTSTRAP_LINK")
     return path
+
+
+def safe_many(paths):
+    """Check every component once in this batch; retain no filesystem cache.
+
+    This is a path check, not a lease. Live callers still hold the separate
+    file/directory handles that deny replacement throughout execution.
+    """
+    result = [_absolute(path) for path in paths]
+    checked = set()
+    for path in result:
+        part = path
+        # A checked component implies its ancestors were visited by an earlier
+        # path in this call. Stop there instead of rebuilding the same chain.
+        while part not in checked:
+            try:
+                info = part.lstat()
+            except (FileNotFoundError, NotADirectoryError):
+                pass
+            else:
+                check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
+                      "BOOTSTRAP_LINK")
+            checked.add(part)
+            part = part.parent
+    return result
+
+
+def safe(path):
+    return safe_many([path])[0]
 
 
 def encode(value):
@@ -117,9 +136,12 @@ def native_companion_inventory(manifest):
           "BOOTSTRAP_COMPANION_INVENTORY")
     check(all(isinstance(e, dict) and isinstance(e.get("path"), str) for e in inventory["files"]),
           "BOOTSTRAP_COMPANION_INVENTORY")
+    by_path = {}
+    for entry in inventory["files"]:
+        path = PureWindowsPath(entry["path"].removeprefix("\\\\?\\"))
+        by_path.setdefault(path, []).append(entry)
     for name, sha in companions.items():
-        entries = [e for e in inventory["files"] if
-                   PureWindowsPath(e["path"].removeprefix("\\\\?\\")) == executable.parent / name]
+        entries = by_path.get(executable.parent / name, [])
         check(len(entries) == 1 and entries[0].get("sha256") == sha and type(entries[0].get("bytes")) is int
               and 0 < entries[0]["bytes"] <= 512 * 1024**2, "BOOTSTRAP_COMPANION_UNPINNED")
     return dict(companions)

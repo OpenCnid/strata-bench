@@ -25,6 +25,25 @@ RESOURCES = {"bodies", "memory_mib", "disk_bytes", "model_slots"}
 READINESS = {"backend", "fresh_observation", "runtime_grant", "metering", "telemetry"}
 
 
+def reserved_resources(db, worker):
+    """Include private pair holds in the same worker capacity ledger.
+
+    Expired or fenced holds do not free resources without explicit cleanup.
+    Older controllers with no probe table retain their original behavior.
+    """
+    totals = dict.fromkeys(RESOURCES, 0)
+    rows = list(db.execute("SELECT resources FROM reservations WHERE worker=?", (worker,)))
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='probe_pair_resources'").fetchone():
+        rows += list(db.execute("SELECT resources FROM probe_pair_resources WHERE worker=? AND released=0", (worker,)))
+    for row in rows:
+        resources = json.loads(row[0])
+        require(set(resources) == RESOURCES and all(type(v) is int and 0 <= v <= 2**53-1
+                for v in resources.values()), "CAPACITY_RESERVATION_CORRUPT")
+        for key, value in resources.items():
+            totals[key] += value
+    return totals
+
+
 class Controller:
     def __init__(self, database: Database, *, simulation=False, clock=time.time,
                  cas: CAS | None = None, evidence_namespace="operator"):
@@ -184,7 +203,7 @@ class Controller:
             old = db.execute("SELECT fingerprint FROM workers WHERE id=?", (worker,)).fetchone()
             if old and old[0] != fingerprint:
                 require(db.execute("SELECT 1 FROM reservations WHERE worker=?", (worker,)).fetchone()
-                        is None, "WORKER_IN_USE")
+                        is None and not any(reserved_resources(db, worker).values()), "WORKER_IN_USE")
             db.execute("INSERT OR REPLACE INTO workers VALUES (?,?,?,?,?,?)",
                        (worker, fingerprint, canonical(capacity).decode(),
                         self.clock() + lifetime_s, evidence_ref, int(simulation)))
@@ -205,10 +224,8 @@ class Controller:
             available = json.loads(cert["capacity"])
             # Expired reservations remain held until supervisor stop/cleanup is recorded.
             # Releasing on TTL alone could overbook a live but unresponsive worker.
-            for reservation in db.execute("SELECT resources FROM reservations WHERE worker=?",
-                                          (worker,)):
-                for key, used in json.loads(reservation[0]).items():
-                    available[key] -= used
+            for key, used in reserved_resources(db, worker).items():
+                available[key] -= used
             accounts = [a["account_ref"] for a in json.loads(row["agents"])]
             shortage = any(resources[k] > available[k] for k in resources)
             shortage |= any(db.execute("SELECT 1 FROM account_leases WHERE account=?", (a,))

@@ -164,6 +164,18 @@ complete that coordinator, all-N admission and scoped native projection, then
 actual matched-state and one-way disposal evidence. Existing account, campaign
 activation/publication and all six runtime-proof requirements remain intact.
 
+M1.6f [held pair preparation](docs/verification/2026-09-25-m1-probe-custody.md)
+adds Windows file leases and atomic both-arm evaluation envelopes/capacity.
+The campaign scheduler counts those holds; failure, expiry and lost ownership
+retain them. A separate monotonic deadline prevents wall-clock rollback from
+extending custody. Undispatched resource release neither settles costs nor
+rearms the pair. This is implemented_unverified for actual native/game launch;
+the native probe gate remains closed. Next connect the held preparation owner
+to world/runtime custody, scoped catalog/broker projection and one-way disposal.
+86 distinct focused cases pass with three existing symbolic-link privilege
+skips; read-only audit73/73+3/3 passes. Sealed evidence is linked in the report;
+all40 real authority tables and existing exposure/holds remain unchanged.
+
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
 agents.enabled=false; its absence left collaboration advertised despite the
@@ -594,6 +606,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6c | AR/SI/RS/QA | Native purpose/account separation at startup, request admission, dispatch and broker effects; inherits M1.6, F03/F07/F08/F11/F16, N01/N04/N06, T01/T04/T06/T11/T12 | implemented_unverified | [Source and retained reconstruction](docs/verification/2026-09-25-m1-native-account-purpose.md):235 final distinct passes including32 new cases, one stopped source/two committed exports unchanged, both source seals reverified. Explicit durable category/original-reservation/ancestry checks fence evaluation in campaign/conformance paths, new helpers, dispatch and existing grants. Preserve initial wrong-file invocation, missing-export reader failure and first source before original-reservation binding. Separate native probe identity/bootstrap, actual integration and disposal remain open; no qualification or new paid authority. |
 | M1.6d | AR/SI/RS/QA | Complete pair-derived native artifact/catalog views, explicit root/helper inventories and fresh native profiles; inherits M1.6a/b/c, F03/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Source/disk preparation and readback](docs/verification/2026-09-25-m1-probe-native-views.md):57 distinct passes,60/60+3/3 reconstruction, six prepared/ten failed/seven preflight-refused cases. Exact approved catalog/active bytes, role inventories, control arms, operator-store refs, empty profiles and one-use failure fences. Preserve first retained-WAL refusal and original source; separate read-only snapshot resolves audit. Actual native loading/projection, N>1 positive preparation, admission/isolation/launch/disposal remain open; no new paid or native execution authority. |
 | M1.6e | AR/SI/RS/QA | Atomic pair-derived disposable native identity/artifact binding and exact catalog preflight; inherits M1.6a-d, F03/F07/F08/F11/F16, N01/N04/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Source and verification](docs/verification/2026-09-25-m1-probe-native-binding.md):140 distinct focused passes,72/72+3/3 read-only reconstruction; old native source/two exports unchanged. Complete both-arm registration, fresh evaluation leaves/identities/paths, ordinary goal and role/catalog scope, separate probe purpose/profile binding. Startup stays closed pending held world/resource custody; actual native loading, scoped broker projection and disposal are not verified. Preserve initial transaction failure, wrong test expectation and source versions; no RuntimeQualification or paid authority. |
+| M1.6f | AR/SI/RS/QA | Held pair/view files and atomic whole-pair evaluation envelopes/shared worker capacity; inherits M1.6a-e, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Custody verification](docs/verification/2026-09-25-m1-probe-custody.md):86 distinct passes, three existing symbolic-link privilege skips; audit73/73+3/3. Actual Windows write/delete denial and owner-process exit with synthetic N=1 pair/capacity/budget records. Both arms reserve atomically; failure/expiry/dead ownership retains resources and costs. Explicit preparation-only release never refunds/rearms. No actual native/game launch, live-state equivalence, N>1 acceptance, OS isolation or disposal qualification. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7308,3 +7321,39 @@ immutable bootstrap and separate probe wire catalog, scoped root/helper broker
 projection, actual matched world/body/keymap/cache assertions and one-way
 session/artifact destruction. N>1 positive preparation, combined isolation,
 T05 and protected scorer controls remain open. Unrelated M2-M7 work unchanged.
+
+
+### 2026-09-25 — M1.6f held pair preparation and reservations
+
+Added evaluator-owned ProbeCustody with actual Windows file leases, durable
+verification before acquisition, one-use ownership, dual wall/monotonic expiry,
+atomic both-arm evaluation envelopes and shared worker capacity. Campaign
+admission counts these holds. Budget/capacity/journal failure rolls back the
+entire reservation transaction; failure/expiry/dead ownership never releases
+committed costs or resources. Explicit live-owner preparation-only resource
+release requires zero native intents and never refunds costs or rearms a pair.
+Native probe startup remains closed; no runtime qualification is issued.
+
+IDs: M1.6f, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T11/T12. Initial custody20 pass,
+expanded23 pass, final targeted delta6 pass with one new monotonic case:24
+distinct custody cases. Controller/budget/lease regression56 pass, three
+existing symbolic-link privilege skips; affected binding/account regression6
+pass, totaling86 distinct passes. Ruff/whitespace pass. Actual separate Python
+write and owner-exit cases prove OS handle behavior; synthetic N=1 game/native/
+capacity records do not prove gameplay or native integration.
+
+Read-only reconstruction73/73 across six final cases plus3/3 common checks
+passes. Both stores are sealed; producer15,904 files/67,945,198 bytes and
+audit3 files/9,777 bytes, with hashes and procedures in the
+[report](docs/verification/2026-09-25-m1-probe-custody.md). Original databases,
+seed costs and all40 real authority tables are unchanged. Exposure remains
+$4.887796/$10 with all holds and consumed decisions preserved. No owned runtime
+remains; no paid M1 execution or allowance extension occurs.
+
+M1.6f implemented_unverified for actual native/game admission; M1.6 in_progress,
+G1 not_run. Next connect held preparation to actual world/runtime custody,
+all-N live readiness, exact probe wire catalog and scoped root/helper projection,
+then matched live-state assertions and one-way disposal. N>1 positive pair
+preparation, combined isolation, T05 and protected scorer controls remain open.
+Unrelated M2-M7 work is unchanged.

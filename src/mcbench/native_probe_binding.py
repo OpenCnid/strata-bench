@@ -85,6 +85,16 @@ def read_binding(db, cas, ref):
     return body
 
 
+def require_binding_account(db, body):
+    from .budgets import Budgets
+    d = body.destination
+    chain = Budgets.ancestors(db, d.account)
+    leaf = chain[0]
+    require(leaf["category"] == "evaluation" and leaf["campaign"] == d.campaign_id and
+            leaf["agent"] == d.agent_id and all(a["category"] in (None, "evaluation") and
+            a["campaign"] in ("*", d.campaign_id) for a in chain[1:]), "NATIVE_PROBE_ACCOUNT")
+
+
 def require_binding_scope(db, cas, plan):
     body = read_binding(db, cas, plan.probe_binding_ref)
     d = body.destination
@@ -100,12 +110,7 @@ def require_binding_scope(db, cas, plan):
         plan.helper_probe_binding_ref == (plan.probe_binding_ref if d.supply_helper_artifacts else None),
         "NATIVE_PROBE_SCOPE")
     require(plan.prompt == body.public_goal, "NATIVE_PROBE_PROMPT")
-    from .budgets import Budgets
-    chain = Budgets.ancestors(db, plan.account)
-    leaf = chain[0]
-    require(leaf["category"] == "evaluation" and leaf["campaign"] == plan.campaign_id and
-            leaf["agent"] == plan.agent_id and all(a["category"] in (None, "evaluation") and
-            a["campaign"] in ("*", plan.campaign_id) for a in chain[1:]), "NATIVE_PROBE_ACCOUNT")
+    require_binding_account(db, body)
     from .native_broker_policy import NO_HELPER_POLICIES
     require((plan.helper_limit == 0) == (plan.broker_policy in NO_HELPER_POLICIES), "NATIVE_PROBE_HELPERS")
     return body

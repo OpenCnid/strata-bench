@@ -1674,6 +1674,19 @@ preflight remain preparation: native probe startup is explicitly closed pending
 held world/resource custody, complete native admission/projection and disposal.
 See [binding source evidence](docs/verification/2026-09-25-m1-probe-native-binding.md).
 
+The `held-prepared-pair-resources-and-envelopes/1` candidate holds the prepared
+pair and native-view files with Windows deny-write/delete handles. It reserves
+both complete arms' matched evaluation envelopes and worker capacity atomically;
+this version reserves concurrent capacity for both arms, including declared
+helper model slots. Registered per-probe team ceilings remain finite and are not
+multiplied by the number of agents. A future sequential scheduler needs an
+explicit handover policy. Campaign admission counts these holds in the same
+worker pool. Expiry, lost ownership, changed inputs or unknown usage fence the
+pair while preserving its capacity and cost holds. A live owner may release only
+undispatched preparation resources; this never settles costs or rearms the pair.
+File leases and budget reservation still grant no game/native launch authority,
+live state-equivalence claim or OS-isolation qualification. See [custody checks](docs/verification/2026-09-25-m1-probe-custody.md).
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

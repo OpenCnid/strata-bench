@@ -4,9 +4,22 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
-Current next action follows M1.6e [native artifact binding](verification/2026-09-25-m1-probe-native-binding.md):
-implement the held pair coordinator, all-N resource/budget admission, exact
-probe wire catalog and scoped root/helper projection. The new `probe` purpose
+Latest M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
+provides ProbeCustody: durable view verification, actual Windows file handles,
+atomic both-arm evaluation envelopes/capacity, scheduler contention, retained
+failure/expiry holds and dual wall/monotonic deadlines. Only the live owner can
+release undispatched preparation resources; it does not settle costs or rearm
+the pair. A stale HELD row grants no ownership. Native/game launch and scoped
+projection remain the next integration step; NativeExec still refuses probes.
+Do not use preparation custody as proof of live-world equivalence or isolation.
+86 distinct focused cases pass with three existing symbolic-link privilege
+skips; audit73/73+3/3 passes. Producer `2026-09-25-m1-probe-custody-01`
+and audit `2026-09-25-m1-probe-custody-audit-01` are sealed (hashes in report).
+All40 real authority tables and $4.887796 exposure/holds are unchanged.
+
+Next complete the held world/runtime coordinator after M1.6e [artifact binding](verification/2026-09-25-m1-probe-native-binding.md)
+and M1.6f preparation custody: all-N live readiness, exact probe wire catalog
+and scoped root/helper projection. The new `probe` purpose
 and private binding refs are preparation only. NativeExec refuses every such
 launch with NATIVE_PROBE_LAUNCH_CUSTODY_REQUIRED; account/admission/dispatch and
 broker guards also remain closed to probe execution. Do not remove these gates

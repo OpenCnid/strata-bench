@@ -3,7 +3,17 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
-Latest work: M1.6e [disposable native artifact bindings](verification/2026-09-25-m1-probe-native-binding.md).
+Current M1.6f [held preparation](verification/2026-09-25-m1-probe-custody.md)
+adds real Windows file leases and atomic both-arm budget/capacity reservations.
+Campaign admission counts those holds; failure/expiry preserves them. Native
+probe execution remains closed pending actual world/runtime custody and scoped
+admission. This is not OS-isolation or live matched-state qualification.
+86 distinct focused cases pass with three existing symbolic-link privilege
+skips; read-only reconstruction passes73/73+3/3. Both evidence stores are sealed,
+all40 real authority tables unchanged, and no paid M1 execution occurs.
+
+M1.6e [disposable native artifact bindings](verification/2026-09-25-m1-probe-native-binding.md)
+precedes the current custody work.
 Both arms register fresh evaluation identities atomically, with separate native
 probe refs and exact role/catalog preflight. Native probe execution remains
 closed pending held world/resource custody and complete scoped admission.

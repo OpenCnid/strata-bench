@@ -56,6 +56,8 @@ def pair_source(database, cas, tmp_path, example, configs, request):
     protocol = example("EvaluationProtocol") | {"is_example": True, "system_digests": [config.system_digest],
         "exposure_s": [0, 3600], "primary_checkpoint_s": 3600, "control_keymap": keymap,
         **dict.fromkeys(("scorer", "sample_plan", "censoring_plan", "analysis_plan", "access_log"), blob)}
+    if isinstance(options, dict) and "probe_spend" in options:
+        protocol["probe_limits"] = protocol["probe_limits"] | {"spend_microusd": options["probe_spend"]}
     service = ProbePairs(sets, EVALUATOR.namespace)
     def request(*, fixture_patch=None, selection_patch=None, protocol_patch=None, pair_id="p1"):
         f = fixture | (fixture_patch or {})

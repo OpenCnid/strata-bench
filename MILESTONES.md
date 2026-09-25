@@ -2,6 +2,20 @@
 
 ## Current position
 
+M1.6q.8 [runtime check composition](docs/verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
+Every lifecycle check validates member runtime custody once, directly or through
+its complete stop receipt. First-start full preflight includes aggregate-window
+admission after validation. All35 source cases pass. Fresh native08 fails125.69s:
+PROBE_WORLD_DEADLINE before any copier/import/server/worker dispatch; preparation
+consumes103.906s, leaving too little for the first200s writer. World FAILED,
+parent FENCED, all reservations held; no writer row exists. Lifecycle timing was
+not exercised. Next profile pre-writer preparation without dispatch and reduce
+repeated work under held custody, preserving fresh authority/layout checks and
+original300/200-170/60-60s limits. Cases01-08 remain. All40 real tables unchanged
+at$4.887796; no owned runtime or model call. Full live-state/tool parity, native
+admission, clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run.
+Earlier next actions are historical.
+
 M1.6q.7 [paired stop ordering](docs/verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
 Scoped normal stop now precedes the complete pair check during bounded drain;
 capture acceptance and sibling dispatch still require full validation. All22
@@ -881,6 +895,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.5 | AR/GI/SI/QA | Private resolution from still-held verified materialization bytes with fresh authority/layout checks; inherits M1.6q plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-materialization-checks.md):134 distinct source passes, three privilege skips, retained initial refusal-ordering failure. Case06 first server stops normally12/12 with27-file export; second launch refuses insufficient exposure. All holds/bounds/history retained; next reuse held materialization in private member resolution. |
 | M1.6q.6 | AR/GI/SI/QA | Borrow live materialization for private worker resolution; retain per-member runtime/config/account and whole-roster custody. Inherits M1.6q.5 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-materialization.md): 97 source passes; genuine read-only entry 13.672s to 11.078s, equal output. No new native attempt: savings precede the writer clock. Next reduce validation delaying normal stop within the original bounds; retain case06 and all holds. |
 | M1.6q.7 | AR/GI/SI/QA | Scoped stop before full pair validation during bounded drain; preserve capture and sibling admission. Inherits M1.6q.6 plus partial T07 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-pair-stop-order.md):22 source passes; case07 first worker/server normal stop and export pass, second launch refuses insufficient exposure. Stop request0.109s, pair checks up to8s. Next compose repeated validation; retain bounds and all failures/holds. |
+| M1.6q.8 | AR/GI/SI/QA | Compose runtime/phase checks and first-start full preflight with aggregate windows; inherit M1.6q.7 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-runtime-check-composition.md): 35 source passes; native08 fails125.69s before first writer, PROBE_WORLD_DEADLINE. No runtime dispatch; world FAILED/parent FENCED/holds retained. Lifecycle timing unverified. Next profile pre-writer preparation; preserve original bounds and cases01-08. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8614,5 +8629,56 @@ native728 files/66,074,382 bytes,
 Both independently verify with extended paths. All22 source cases pass; native07
 remains failed in its full scope.437 source pins match, all418 prior IDs remain/
 419 current,1,650 links resolve, append-only progress and SPEC history/JSON pass.
+Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
+pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.8 runtime and first-preflight composition, in progress
+
+- Split member bindings/configuration from runtime validation. Preparation-only
+  checks remain complete; lifecycle checks validate each runtime directly in
+  HELD/RUNNING and through full owned-stop receipts in IMPORTED/STOPPED. Every
+  subsequent call revalidates and unknown phases refuse. Standalone lifecycle
+  checks retain complete shared software/parent and software-identity checks.
+- Move complete sequential-window admission immediately after the first-start
+  full pair check, retaining all parent/writer limits and charging preflight time.
+  Remove only the adjacent earlier complete check; later starts remain checked.
+- Source35-case selection is running in exec session17554, not yet a pass. New
+  actual-lease phase cases, once-per-member checks, post-stop failures and lost
+  complete-window admission are included. Ruff/whitespace pass. All40 durable
+  tables unchanged, no owned game runtime before execution, no paid calls.
+- Native08 prepared with438 source pins and fresh input, not dispatched. Current
+  handoff records the live verification handle and required dispatch checks.
+  M1.6q.8 in_progress, inherits M1.6q.7 mappings; original bounds, cases01-07,
+  reservations/consumed decisions and all wider G1 requirements remain unchanged.
+
+### 2026-09-25 — M1.6q.8 source pass and pre-writer native refusal
+
+- All35 source cases pass791.39s with actual Windows file custody and synthetic
+  processes/profiles. Phase custody losses, repeated validation, account/member
+  changes, post-stop failures and parent/either-writer aggregate-window refusal
+  remain covered. Ruff/whitespace pass; two Typer deprecations remain.
+- Fresh native08 passed438 source pins, one-use input, host and durable authority
+  checks. It fails125.69s (JUnit case124.398s), PROBE_WORLD_DEADLINE at first
+  writer admission after103.906s parent preparation. No copier/import/server/
+  worker dispatched; no writer table/row, empty worker state and writer evidence
+  parent. World FAILED, parent FENCED, all resource reservations retained.
+- Early-refusal audit passes without executing the prepared post-dispatch audit;
+  all40 real tables unchanged at$4.887796 and no owned runtime remains. No model
+  calls or M1 paid authority. Current source lifecycle changes were not reached
+  authentically; M1.6q.8 is implemented_unverified, never a new G1 pass.
+- Diagnostic preparations: software26.875s, workers36.235s; software checks25.094s
+  and parent checks10.095s overlap these intervals. Next profile preparation
+  without dispatch and reduce repeated work under continuously held custody,
+  keeping fresh authority/layout/account checks and original300/200-170/60-60s
+  limits. Preserve cases01-08, holds/consumed decisions and all wider G1 gaps.
+  Evidence: [runtime check composition](docs/verification/2026-09-25-m1-runtime-check-composition.md).
+
+M1.6q.8 final seals: source9,364 files/32,685,057 bytes,
+`1af8a31b6d387ad7bbf67cd18862dcfa9a6a384e4af2672f93825f2766da3455`;
+native666 files/46,119,790 bytes,
+`694dc4a2fcb7f10be95c6294de4132db2e0adc89b40ee001769fa6069b2e9ec8`.
+Both independently verify. Source35/35 passes; native08 remains failed before
+any writer dispatch.438 source pins match, all419 prior IDs remain/420 current,
+1,655 links resolve; append-only progress and prior SPEC text/JSON pass.
 Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
 pointers follow the archived documentation snapshot.

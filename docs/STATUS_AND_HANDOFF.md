@@ -4,6 +4,35 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.8 [runtime check composition](verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
+Every lifecycle check validates member runtime custody once, directly or through
+its complete stop receipt. First-start full preflight includes aggregate-window
+admission after validation. All35 source cases pass. Fresh native08 fails125.69s:
+PROBE_WORLD_DEADLINE before any copier/import/server/worker dispatch; preparation
+consumes103.906s, leaving too little for the first200s writer. World FAILED,
+parent FENCED, all reservations held; no writer row exists. Lifecycle timing was
+not exercised. Next profile pre-writer preparation without dispatch and reduce
+repeated work under held custody, preserving fresh authority/layout checks and
+original300/200-170/60-60s limits. Cases01-08 remain. All40 real tables unchanged
+at$4.887796; no owned runtime or model call. Full live-state/tool parity, native
+admission, clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run.
+Earlier next actions are historical.
+
+Both exec sessions17554 and1493 are terminal. Source35/35 passes791.39s;
+actual native08 fails125.69s before first-writer admission. Private evidence:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-runtime-check-composition-01`
+and `C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-08`.
+The early-refusal audit passes; no worker/server evidence is claimed. Input pin
+`c1b41556b9ce1da4cab218141cf9dfbf6db10b3185322e3c88bc5ff15ff89cc8` is consumed.
+Do not rerun it. Inspect preparation before a relevant changed-profile trial.
+
+Final source seal:9,364 files/32,685,057 bytes,
+`1af8a31b6d387ad7bbf67cd18862dcfa9a6a384e4af2672f93825f2766da3455`.
+Native08 seal:666 files/46,119,790 bytes,
+`694dc4a2fcb7f10be95c6294de4132db2e0adc89b40ee001769fa6069b2e9ec8`.
+Both independently verify. All419 prior IDs remain/420 current;1,655 local links,
+append-only progress and prior SPEC text/JSON pass. No active verification job.
+
 M1.6q.7 [paired stop ordering](verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
 Scoped normal stop now precedes the complete pair check during bounded drain;
 capture acceptance and sibling dispatch still require full validation. All22

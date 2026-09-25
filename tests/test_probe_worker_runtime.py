@@ -5,6 +5,7 @@ Actual software/config/account/source custody and stopped SQLite joins run.
 
 import io
 import json
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -116,11 +117,27 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     software_calls = []
     standalone_calls = []
     drain_checks = []
+    from mcbench.worker_bundle import HeldWorkerBundle
+    runtime_check = HeldWorkerBundle.recheck
+    runtime_calls = []
+
+    def checked_runtime(self):
+        runtime_calls.append(id(self))
+        return runtime_check(self)
+
+    def once_per_member(self, before):
+        expected = Counter(id(w.runtime) for group in self.workers.values() for w in group.values())
+        assert Counter(runtime_calls[before:]) == expected
+
+    monkeypatch.setattr(HeldWorkerBundle, "recheck", checked_runtime)
     member_check = module.PairedWorkerReference.check_workers
 
     def checked_members(self):
         standalone_calls.append(self)
-        return member_check(self)
+        before = len(runtime_calls)
+        result = member_check(self)
+        once_per_member(self, before)
+        return result
 
     def checked_software(self):
         software_calls.append(self)
@@ -128,12 +145,14 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
 
     def checked_pair(self):
         before = len(software_calls)
+        before_runtime = len(runtime_calls)
         for arm, session in self.sessions.items():
             if session.result["stop_requested"] and not session.writer.completed:
                 drain_checks.append(arm)
                 assert not (session.evidence / "stopped-instance").exists()
         result = coordinator_check(self)
         assert len(software_calls) == before + 1
+        once_per_member(self, before_runtime)
         return result
 
     monkeypatch.setattr(VanillaProbeInputs, "check", checked_software)

@@ -44,9 +44,9 @@ class ProbeVanillaSession(VanillaWriterSession):
     def __init__(self, owner, arm):
         held = owner.held
         writer = held.writers[arm]
-        # The coordinator checks the complete pair immediately before and after
-        # constructing both sessions, before any dispatch. Keep local custody
-        # live here without rescanning both sealed installations for each arm.
+        # start() checks the complete pair after both sessions are constructed,
+        # before any dispatch. Keep local custody live here without rescanning
+        # both sealed installations for each arm.
         writer.check()
         require(not writer.launched and not writer.completed, "PROBE_WORLD_ALREADY_LAUNCHED")
         writer.launched = True  # Failed preflight consumes this attempt.
@@ -143,6 +143,14 @@ class ProbeVanillaSession(VanillaWriterSession):
     def start(self):
         self.owner.check()
         require(not self.started and self.native is None, "PROBE_WORLD_ALREADY_LAUNCHED")
+        if not any(session.started for session in self.owner.sessions.values()):
+            held = self.owner.held
+            remaining = (
+                min(held.preparation.deadline, *(w.deadline for w in held.writers.values()))
+                - time.monotonic()
+            )
+            # Charge preflight time before admitting the complete sequential pair.
+            require(sum(p.max_wall_s for p in self.owner.plans.values()) < remaining, "PROBE_WORLD_DEADLINE")
         self.started = True
         self.writer.body["game_launch_attempted"] = True
         self.native = self.writer._dispatch(
@@ -263,12 +271,6 @@ class PairedVanillaRuntime:
         for arm in held.pair["arm_order"]:
             self.sessions[arm] = ProbeVanillaSession(self, arm)
             self.event(arm, "initial_state_held")
-        self.check()
-        remaining = (
-            min(held.preparation.deadline, *(w.deadline for w in held.writers.values()))
-            - time.monotonic()
-        )
-        require(sum(p.max_wall_s for p in self.plans.values()) < remaining, "PROBE_WORLD_DEADLINE")
         # Server ports are sealed: run arms in registered order without changing
         # server settings. All-N avatars within an arm remain a separate gate.
         for arm in held.pair["arm_order"]:

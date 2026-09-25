@@ -3,6 +3,20 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.8 [runtime check composition](verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
+Every lifecycle check validates member runtime custody once, directly or through
+its complete stop receipt. First-start full preflight includes aggregate-window
+admission after validation. All35 source cases pass. Fresh native08 fails125.69s:
+PROBE_WORLD_DEADLINE before any copier/import/server/worker dispatch; preparation
+consumes103.906s, leaving too little for the first200s writer. World FAILED,
+parent FENCED, all reservations held; no writer row exists. Lifecycle timing was
+not exercised. Next profile pre-writer preparation without dispatch and reduce
+repeated work under held custody, preserving fresh authority/layout checks and
+original300/200-170/60-60s limits. Cases01-08 remain. All40 real tables unchanged
+at$4.887796; no owned runtime or model call. Full live-state/tool parity, native
+admission, clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run.
+Earlier next actions are historical.
+
 M1.6q.7 [paired stop ordering](verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
 Scoped normal stop now precedes the complete pair check during bounded drain;
 capture acceptance and sibling dispatch still require full validation. All22

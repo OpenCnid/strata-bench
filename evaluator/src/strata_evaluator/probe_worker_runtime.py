@@ -53,18 +53,24 @@ class PairedWorkerReference(PairedVanillaRuntime):
         self.storage_bound += len(self.phases) * MEMBER_STORAGE + sum(runtime_files.values())
 
     def check_workers(self):
-        self.inputs._check_custody()
+        require(self._scope().software is self.inputs.software, "PROBE_WORKER_SOFTWARE_SCOPE")
+        self.inputs.software.check()
+        self.inputs._check_bindings_and_configuration()
         self._check_worker_phases()
 
     def _check_worker_phases(self):
         for (arm, agent), phase in self.phases.items():
+            require(phase in {"HELD", "IMPORTED", "RUNNING", "STOPPED"}, "PROBE_WORKER_PHASE")
             worker = self.workers[arm][agent]
             expected = set() if phase == "HELD" else {"preflight"} if phase == "IMPORTED" else {"preflight", "worker"}
             require(set(worker.processes) == expected, "PROBE_WORKER_PHASE")
             if phase in {"IMPORTED", "STOPPED"}:
+                # Receipt validates this runtime plus the retained process job.
                 worker.receipt()
-            elif phase == "RUNNING":
-                require(worker.processes["worker"].poll() is None, "PROBE_WORKER_EARLY_EXIT")
+            else:
+                worker.runtime.recheck()
+                if phase == "RUNNING":
+                    require(worker.processes["worker"].poll() is None, "PROBE_WORKER_EARLY_EXIT")
             paths = tree_files(worker.invocation["state_directory"])
             require(sum(Path(p).stat().st_size for p in paths) <= STATE_LIMIT, "PROBE_WORKER_STORAGE_LIMIT")
         for lease in self.exports:
@@ -75,7 +81,7 @@ class PairedWorkerReference(PairedVanillaRuntime):
         super().check()
         # The base check includes the complete shared software/parent check.
         # Compose the remaining member custody and phases without repeating it.
-        self.inputs._check_bindings_and_files()
+        self.inputs._check_bindings_and_configuration()
         self._check_worker_phases()
 
     def _write(self, output, name, value):

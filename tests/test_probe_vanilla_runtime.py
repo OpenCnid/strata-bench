@@ -387,6 +387,42 @@ def test_changed_authority_at_launch_boundary_never_dispatches_next_server(
     assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
 
 
+@pytest.mark.parametrize("owner", ["parent", "initial", "experienced"])
+def test_complete_pair_window_is_checked_after_full_preflight_before_first_dispatch(
+    runtime, process_fixture, directory_fixture, monkeypatch, owner
+):
+    import time
+    from strata_evaluator.probe_vanilla_runtime import PairedVanillaRuntime
+    from test_probe_pairs import EVALUATOR
+
+    service, plans, launches, binding, capacity = runtime
+    original = PairedVanillaRuntime.check
+    checked = []
+
+    def consumes_window(coordinator):
+        result = original(coordinator)
+        if not any(session.started for session in coordinator.sessions.values()):
+            checked.append(True)
+            # Enough for one30s server, insufficient for the complete60s pair.
+            remaining = time.monotonic() + 45
+            if owner == "parent":
+                coordinator.held.preparation.deadline = remaining
+            else:
+                coordinator.held.writers[owner].deadline = remaining
+        return result
+
+    monkeypatch.setattr(PairedVanillaRuntime, "check", consumes_window)
+    with pytest.raises(Fault, match="PROBE_WORLD_DEADLINE"):
+        service.run_vanilla_reference(EVALUATOR, plans, launches, continuation=lambda *_: None,
+                                     pack_binding=binding.model_dump())
+    assert checked == [True] and not process_fixture[0]
+    assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+    row = service.db.connection.execute("SELECT resources,released FROM probe_pair_resources").fetchone()
+    assert not row['released'] and json.loads(row['resources']) == capacity
+    assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
+
+
 @pytest.mark.parametrize("changed_source", [False, True])
 def test_held_plan_factory_keeps_custody_and_full_source_validation(
     runtime, process_fixture, directory_fixture, changed_source

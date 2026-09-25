@@ -1888,6 +1888,14 @@ member checks still validate shared custody. Persist and flush each successful
 import stop receipt before advancing its phase; receipt failure prevents server
 launch. Returned writer failures retain the first inner cause alongside the
 unchanged outer close refusal, without releasing reservations or claiming disposal.
+Within one member lifecycle check, validate runtime custody directly for held or
+running workers and through the complete owned-stop receipt for imported/stopped
+workers. Every new check revalidates; unknown phases refuse and no cached success
+may substitute for live custody. Preparation-only input checks retain their full
+runtime validation. After constructing both sessions, perform the complete pair
+preflight at first start and then check the aggregate server windows against
+every current parent/writer deadline before dispatch. Preflight time consumes
+those existing bounds; all later dispatch checks remain required.
 After the continuation drains its workers, request normal server stop through
 the still-scoped writer before the complete pair recheck. Perform that recheck
 during bounded drain, before capturing or accepting a stopped export and before

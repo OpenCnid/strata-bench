@@ -133,12 +133,18 @@ class HeldProbeWorkerInputs:
 
     def _check_bindings_and_files(self):
         """Private component of a check that already validates shared software."""
+        self._check_bindings_and_configuration()
+        for group in self._workers.values():
+            for worker in group.values():
+                worker.runtime.recheck()
+
+    def _check_bindings_and_configuration(self):
+        """Runtime consumers add their phase-specific runtime/owned-stop check."""
         require(self._resources is not None and not self.closed, "PROBE_WORKER_INPUTS_CLOSED")
         require(self._bindings() == self._binding_refs, "PROBE_WORKER_BINDING_CHANGED")
         self._check_accounts()
         for arm, group in self._workers.items():
             for agent, worker in group.items():
-                worker.runtime.recheck()
                 worker.config_lease.recheck()
                 require(worker.resolved == self._resolved[arm][agent], "PROBE_WORKER_INPUTS_CHANGED")
 

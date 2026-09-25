@@ -63,6 +63,22 @@ def test_operator_control_cannot_be_claimed_when_the_module_is_missing(inputs):
     assert not inputs[3].exists()
 
 
+@pytest.mark.parametrize("change", ["bytes", "membership"])
+def test_manifest_preflight_does_not_replace_final_held_validation(inputs, change):
+    from mcbench.launch_integrity import IntegrityError
+    from mcbench.worker_bundle import HeldWorkerBundle
+    result = prepare(inputs)
+    held = HeldWorkerBundle({"path": result["manifest"], "sha256": result["sha256"]})
+    if change == "bytes":
+        (inputs[3] / "node/node.exe").write_bytes(b"different bytes after preflight")
+    else:
+        (inputs[3] / "added.py").write_bytes(b"unlisted after preflight")
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_FILE_CHANGED|BOOTSTRAP_TREE_CHANGED"):
+        with held:
+            pytest.fail("preflight admitted changed runtime")
+    (inputs[3] / "node/node.exe").write_bytes(b"all handles released")
+
+
 def test_only_software_is_copied_and_every_output_is_pinned(inputs):
     result = prepare(inputs)
     raw = open(result["manifest"], "rb").read()

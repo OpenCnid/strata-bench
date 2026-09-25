@@ -1849,6 +1849,13 @@ consumer must separately qualify those contracts and disposal.
 [Input custody evidence](docs/verification/2026-09-25-m1-probe-worker-inputs.md)
 uses synthetic accounts/packs with actual Windows file leases.
 
+Preparation may retain each resolved runtime before the whole-roster account
+check, then commit its configuration once. Deferred custody permits no import,
+worker or server dispatch. Commit rechecks runtime and fresh paths; a failed
+attempt closes its own custody and retains partial evidence. Preliminary path
+discovery may batch shared ancestors within one call; final per-file link checks
+under held parents, retained-handle hashes and membership checks remain required.
+
 `held-pair-protected-vanilla-worker-reference/1` connects complete held worker
 inputs to saved-body paired server references. Import-check all workers before
 either finite server window, reserve complete runtime/log/state storage, validate

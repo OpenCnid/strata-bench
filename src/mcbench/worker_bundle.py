@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import shutil
 
-from .launch_integrity import FileLease, encode, safe, snapshot, tree_files
+from .launch_integrity import FileLease, encode, safe, safe_many, snapshot, tree_files
 from .storage import digest, require, safe_relative
 from .worker_stop import ARGUMENT, POLICY as STOP_POLICY
 
@@ -61,13 +61,17 @@ class HeldWorkerBundle:
         require(set(inventory) == {"schema", "files", "trees"}
                 and inventory["schema"] == "strata/LaunchFileInventory/1"
                 and 0 < len(inventory["files"]) < 12000, "WORKER_BUNDLE_INVENTORY")
-        paths, total = [], 0
         for entry in inventory["files"]:
             require(set(entry) == {"path", "bytes", "sha256"}
+                    and isinstance(entry["path"], str)
                     and type(entry["bytes"]) is int and 0 <= entry["bytes"] <= 512 * 1024**2
                     and isinstance(entry["sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]),
                     "WORKER_BUNDLE_INVENTORY")
-            path = safe(Path(entry["path"]))
+        # This is manifest preflight only. __enter__ still acquires every file
+        # handle, checks its path under held parents and hashes the held bytes.
+        checked = safe_many(entry["path"] for entry in inventory["files"])
+        paths, total = [], 0
+        for entry, path in zip(inventory["files"], checked, strict=True):
             require(".." not in path.parts and path.is_relative_to(self.root)
                     and str(path) == entry["path"] and path.is_file() and path.stat().st_nlink == 1,
                     "WORKER_BUNDLE_FILE_UNSAFE")

@@ -2,6 +2,23 @@
 
 ## Current position
 
+M1.6q.1 [worker preparation cost](docs/verification/2026-09-25-m1-worker-preparation-cost.md) is implemented_unverified for authentic paired integration.
+Batch preliminary path discovery while retaining final per-file checks under
+held parents. Resolve and hold each worker once, then commit configurations only
+after both rosters' account checks pass; deferred custody permits no dispatch.
+108 distinct source cases pass; three symlink-privilege cases skip while actual
+junction cases pass. Read-only client resolution falls33.687s to23.937s under
+cProfile. Changed authentic case02 still fails PROBE_WORLD_DEADLINE in118.32s,
+now at first-copier dispatch after the earlier preparation preflight passed.
+One world-copy row is FAILED, parent FENCED, all reservations retained; zero
+copier/import/worker/server/model dispatches. Both original finite windows and
+case01's178.93s failure remain. All40 real authority tables unchanged at$4.887796;
+no owned runtime or M1 paid inference authority. Next resolve remaining repeated
+preparation checks under unchanged authority/hash/link/custody/deadline contracts
+before any changed-case retry. Full live-state/tool parity, native admission,
+clocks/disposal, T05/T10 and remaining isolation stay open; G1-G5 not_run.
+Earlier next-action text below is historical and superseded by this paragraph.
+
 M1.6q [registered worker lifecycle](docs/verification/2026-09-25-m1-probe-worker-runtime.md) is implemented_unverified.
 31 distinct source cases pass, covering whole-pair import/worker/stop ordering,
 private identity and observable-state joins, failed imports/grants/state/stop,
@@ -756,6 +773,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
 | M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
 | M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | implemented_unverified | [Lifecycle and retained failure](docs/verification/2026-09-25-m1-probe-worker-runtime.md):31 distinct source cases pass; first authentic-input attempt fails pre-dispatch PROBE_WORLD_DEADLINE178.93s. Both configs created, zero copier/import/worker/server dispatch; parent fenced, holds intact. Profile identifies repeated validation; reduce duplication under unchanged300/200-170/60s bounds before changed-case retry. Full live matching/native admission/clocks/disposal remain open. |
+| M1.6q.1 | AR/GI/SI/QA | Reduce repeated worker/path validation under unchanged source, link, custody and deadline requirements; inherits M1.6q mappings | implemented_unverified | [Cost and retained case02](docs/verification/2026-09-25-m1-worker-preparation-cost.md):108 distinct source cases pass,3 privilege skips; deferred whole-roster config commit retains custody/no-dispatch. Client profile23.937s vs33.687s. Authentic case02 fails118.32s at first copier deadline; zero processes,FAILED row,FENCED parent,holds retained. Remaining preparation cost must be resolved before changed-case retry; no full paired/native/G1 pass. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8139,3 +8157,57 @@ remains failed.434 native code/tool/lock files match current source, with fixtur
 JSON unchanged. Docs QA preserves411 prior IDs (412 current), append-only progress
 and prior SPEC text;1,613 links resolve. Ruff/whitespace pass. No model/owned runtime,
 all40 authority tables unchanged. Post-seal pointers alter no source/test evidence.
+
+
+### 2026-09-25 — M1.6q.1 reduced preparation cost; later deadline refusal
+
+- Batch preliminary worker-manifest and FileLease ancestor checks within a call;
+  preserve final per-file link validation under held parents, held-handle hashes,
+  exact membership, hardlink/size/path bounds and cleanup. No cross-call cache.
+- Resolve each registered worker once and hold its runtime while checking the
+  complete pair. Hold/recheck all account declarations before one-use config
+  commits. Deferred import/worker/server dispatch refuses. Freshness/hash/runtime
+  failure closes own custody and preserves partial evidence and parent holds.
+- Focused selections pass92/26.74s,57/210.82s,2/60.91s:108 distinct cases.
+  Three symlink cases skip for absent Windows privilege; actual junction-swap
+  race, write/delete/replace denials,8,300 native handles, late failure cleanup,
+  deferred config/refusal/failure paths and lifecycle ordering pass. Synthetic
+  game/process data with actual Windows file leases; not OS isolation qualification.
+- Same authentic read-only resolution after path batching measures8.422s server,
+  23.937s client, versus8.188s/33.687s before. Profiling includes instrumentation;
+  no config/process/model dispatch. Final per-file checks remain; safe calls fall
+ 35,207 to11,756. Server layout scanning still costs7.379s under cProfile.
+- Fresh case02 with unchanged pinned profile/world and300s parent,200/170s
+  writers,60/60s servers fails in118.32s at stage(0), before first copier.
+  The earlier preparation preflight passes and one world-copy row becomes FAILED,
+  with empty results. Both configs exist; native/worker evidence remains empty.
+  Parent FENCED, resources unreleased; no copier/import/worker/server/model runs.
+  Case01's178.93s pre-intent failure remains retained. No successful integration
+  or broadened gate is claimed. Read-only audit joins435 current source files.
+- Inherits M1.6q F/N/C and partial T01/T06/T11 mappings; SPEC records deferred
+  config/no-dispatch and retained final checks. [Report](docs/verification/2026-09-25-m1-worker-preparation-cost.md).
+  M1.6q.1 implemented_unverified; full live body/tool/policy parity, native probe
+  admission, clocks/disposal, T05/T10 and remaining isolation stay open. G1-G5
+  not_run; M0/G0 and unrelated M2-M7 remain unchanged.
+- All40 real authority tables unchanged at$4.887796, old$0.7554 and four$1 holds
+  and consumed decisions preserved; no owned runtime. No M1 inference authority.
+  Next resolve remaining repeated preparation validation with all authority,
+  source/link/hash/custody and deadline checks intact; then a changed-case retry.
+  No unchanged rerun or larger finite window is justified by this failure.
+
+M1.6q.1 final seals: source/path fixtures12,994 files/14,694,126 bytes
+`c344f835d76de3ba02c36a88cf7517955705ae92256691cdbab3a11609e8253d`;
+deferred fixtures6,299 files/16,036,255 bytes
+`326cbb0e6ca7c82ce971b3ebee189a967eb03fec33e78245e4d6334cbb0339ae`;
+failed native659 files/46,052,552 bytes
+`9e805a13a0e8a19353587db20798579b36e430206df451857336cc2485a3d420`;
+read-only diagnostic10 files/199,132 bytes
+`37722bbbbd216c49a6713ccfb622bd42a74966ef8f21c80e1aa608d80d227519`.
+All four final bundles independently verify. The original path archive seal
+fails EVIDENCE_INVENTORY because ordinary enumeration omitted one long-path
+fixture. Preserve it; extended-path copying compares all12,992 original files
+and retains the failed seal/inventory before store02 sealing. No source/test
+exclusion or rerun. Final435 source-file matches,108 distinct passing cases,
+412 prior milestone IDs retained/413 current,1,618 local links, append-only
+progress, SPEC history/JSON, Ruff and whitespace checks pass. G1 remains not_run;
+all40 authority tables unchanged. Final seal pointers follow archived docs.

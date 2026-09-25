@@ -128,6 +128,66 @@ def test_explicit_player_identity_selects_worker_v2_without_changing_legacy_byte
             WorkerInvocation.model_validate(invocation | {"expected_player_uuid": value})
 
 
+def test_deferred_configuration_holds_runtime_and_refuses_every_dispatch_until_commit(pack, monkeypatch):
+    import mcbench.pack_worker as module
+    binding, invocation, _ = pack
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("deferred preparation dispatched a process")
+
+    monkeypatch.setattr(module, "ManagedProcess", forbidden)
+    holder = HeldPackWorker(binding, invocation, own_server=True, defer_configuration=True)
+    config = Path(invocation["configuration_path"])
+    with holder as worker:
+        assert not config.exists() and worker.config_lease is None
+        node = Path(worker.runtime.body["node"])
+        with pytest.raises(PermissionError):
+            node.write_bytes(b"changed")
+        for dispatch in (worker.start, lambda: worker.start(preflight=True), worker.start_server):
+            with pytest.raises(Fault, match="WORKER_CONFIGURATION_NOT_HELD"):
+                dispatch()
+        worker.commit_configuration()
+        assert json.loads(config.read_bytes()) == worker.resolved["worker_configuration"]
+        with pytest.raises(PermissionError):
+            config.write_bytes(b"changed")
+        with pytest.raises(Fault, match="WORKER_CONFIGURATION_ORDER"):
+            worker.commit_configuration()
+    with pytest.raises(Fault, match="WORKER_LAUNCH_ALREADY_HELD"):
+        holder.__enter__()
+
+
+@pytest.mark.parametrize("change", ["state", "config", "missing_state", "hash", "runtime"])
+def test_deferred_commit_revalidates_freshness_and_failure_closes_custody(pack, change, monkeypatch):
+    binding, invocation, _ = pack
+    holder = HeldPackWorker(binding, invocation, defer_configuration=True)
+    with holder as worker:
+        node = Path(worker.runtime.body["node"])
+        raw = node.read_bytes()
+        config = Path(invocation["configuration_path"])
+        state = Path(invocation["state_directory"])
+        if change == "state":
+            (state / "foreign").write_bytes(b"preserve")
+        elif change == "config":
+            config.write_bytes(b"preserve")
+        elif change == "missing_state":
+            state.rmdir()
+        elif change == "hash":
+            worker._resolved["worker_configuration"]["username"] = "foreign"
+        else:
+            def refuse():
+                raise Fault("SYNTHETIC_RUNTIME_CHANGED")
+            monkeypatch.setattr(worker.runtime, "recheck", refuse)
+        with pytest.raises(Fault, match="WORKER_INVOCATION_NOT_FRESH|WORKER_LAUNCH_CONFIG_CHANGED|SYNTHETIC_RUNTIME_CHANGED"):
+            worker.commit_configuration()
+        assert worker._resources is None and not worker.processes
+        assert config.read_bytes() == b"preserve" if change == "config" else not config.exists()
+        node.write_bytes(raw)  # Failure closed this holder's runtime lease.
+        with pytest.raises(Fault, match="WORKER_LAUNCH_NOT_HELD"):
+            worker.start(preflight=True)
+        with pytest.raises(Fault, match="WORKER_CONFIGURATION_ORDER"):
+            worker.commit_configuration()
+
+
 @pytest.mark.parametrize("change", ["argv", "node", "cwd", "pin", "runtime", "port", "missing_slot"])
 def test_unbound_or_changed_profile_cannot_seal(candidate, change):
     service, profile, *_ = candidate

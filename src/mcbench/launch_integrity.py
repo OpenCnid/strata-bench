@@ -181,7 +181,10 @@ class FileLease:
             def native_path(path):
                 text = str(path)
                 return text if text.startswith("\\\\?\\") else "\\\\?\\" + text
-            parents = {p for name in self.paths for p in safe(name).parents}
+            # Batch only preliminary ancestor discovery. Every file still gets
+            # its full path check below, after all parent handles are acquired.
+            # No filesystem result survives this constructor call.
+            parents = {p for path in safe_many(self.paths) for p in path.parents}
             check(len(parents) <= 12000, "BOOTSTRAP_QUOTA")
             for path in sorted(parents, key=str):
                 handle = create(native_path(path), 0, 3, None, 3, 0x02000000, None)

@@ -190,10 +190,14 @@ class HeldPackWorker:
     Nothing dispatches inference or accepts account terms here.
     """
 
-    def __init__(self, binding, invocation, *, simulation=False, own_server=False):
-        require(type(own_server) is bool, "WORKER_LAUNCH_PROFILE")
+    def __init__(self, binding, invocation, *, simulation=False, own_server=False, defer_configuration=False):
+        require(type(own_server) is bool and type(defer_configuration) is bool, "WORKER_LAUNCH_PROFILE")
         self.binding, self.invocation, self.simulation = deepcopy(binding), deepcopy(invocation), simulation
         self.own_server = own_server
+        self.defer_configuration = defer_configuration
+        self._entered = False
+        self._configuration_attempted = False
+        self.config_lease = None
         self._server_resolved = None
         self._resources = None
         self._resolved = None
@@ -212,7 +216,8 @@ class HeldPackWorker:
 
     def __enter__(self):
         from .pack_launch import resolve_pack_launch
-        require(self._resources is None, "WORKER_LAUNCH_ALREADY_HELD")
+        require(not self._entered and self._resources is None, "WORKER_LAUNCH_ALREADY_HELD")
+        self._entered = True
         resolved = resolve_pack_launch(self.binding, "client", simulation=self.simulation,
                                        worker_invocation=self.invocation)
         # Resolve both roles while the materialization is still pristine. The
@@ -236,7 +241,28 @@ class HeldPackWorker:
                     FileLease(snapshot([Path(server["launch"]["executable_path"])], [])))
                 require(file_hash(Path(server["launch"]["executable_path"]))
                         == server["launch"]["executable"]["digest"], "HASH_MISMATCH")
+            self._resolved, self._resources = resolved, resources
+            self._server_resolved = server
+            if not self.defer_configuration:
+                self.commit_configuration()
+        except BaseException:
+            resources.close()
+            self._resources = None
+            raise
+        return self
+
+    def commit_configuration(self):
+        """One attempt after whole-roster validation; failure releases own custody."""
+        require(self._resources is not None and not self._configuration_attempted
+                and self.config_lease is None and not self.processes, "WORKER_CONFIGURATION_ORDER")
+        self._configuration_attempted = True
+        try:
+            self.runtime.recheck()
+            resolved = self._resolved
+            state = _path(resolved["worker_configuration"]["state_directory"])
             config = _path(resolved["worker_configuration_path"])
+            require(state.is_dir() and not any(state.iterdir()) and config.parent.is_dir()
+                    and not config.exists(), "WORKER_INVOCATION_NOT_FRESH")
             raw = canonical(resolved["worker_configuration"])
             require(hashlib.sha256(raw).hexdigest() == resolved["worker_configuration_sha256"],
                     "WORKER_LAUNCH_CONFIG_CHANGED")
@@ -244,17 +270,15 @@ class HeldPackWorker:
                 stream.write(raw)
                 stream.flush()
                 os.fsync(stream.fileno())
-            self.config_lease = resources.enter_context(FileLease(snapshot([config], [])))
+            self.config_lease = self._resources.enter_context(FileLease(snapshot([config], [])))
             require(file_hash(config) == resolved["worker_configuration_sha256"], "WORKER_LAUNCH_CONFIG_CHANGED")
-            self._resolved, self._resources = resolved, resources
-            self._server_resolved = server
         except BaseException:
-            resources.close()
+            self.__exit__()
             raise
-        return self
 
     def start_server(self):
         require(self._resources is not None and self._server_resolved is not None, "SERVER_LAUNCH_NOT_HELD")
+        require(self.config_lease is not None, "WORKER_CONFIGURATION_NOT_HELD")
         require("server" not in self.processes and "worker" not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
         previous = self.processes.get("preflight")
         require(previous is not None and previous.poll() == 0
@@ -284,6 +308,7 @@ class HeldPackWorker:
 
     def start(self, *, preflight=False):
         require(self._resources is not None and type(preflight) is bool, "WORKER_LAUNCH_NOT_HELD")
+        require(self.config_lease is not None, "WORKER_CONFIGURATION_NOT_HELD")
         mode = "preflight" if preflight else "worker"
         require(mode not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
         if not preflight and "preflight" in self.processes:

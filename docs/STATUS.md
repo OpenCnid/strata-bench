@@ -3,6 +3,23 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.1 [worker preparation cost](verification/2026-09-25-m1-worker-preparation-cost.md) is implemented_unverified for authentic paired integration.
+Batch preliminary path discovery while retaining final per-file checks under
+held parents. Resolve and hold each worker once, then commit configurations only
+after both rosters' account checks pass; deferred custody permits no dispatch.
+108 distinct source cases pass; three symlink-privilege cases skip while actual
+junction cases pass. Read-only client resolution falls33.687s to23.937s under
+cProfile. Changed authentic case02 still fails PROBE_WORLD_DEADLINE in118.32s,
+now at first-copier dispatch after the earlier preparation preflight passed.
+One world-copy row is FAILED, parent FENCED, all reservations retained; zero
+copier/import/worker/server/model dispatches. Both original finite windows and
+case01's178.93s failure remain. All40 real authority tables unchanged at$4.887796;
+no owned runtime or M1 paid inference authority. Next resolve remaining repeated
+preparation checks under unchanged authority/hash/link/custody/deadline contracts
+before any changed-case retry. Full live-state/tool parity, native admission,
+clocks/disposal, T05/T10 and remaining isolation stay open; G1-G5 not_run.
+Earlier next-action text below is historical and superseded by this paragraph.
+
 M1.6q [registered worker lifecycle](verification/2026-09-25-m1-probe-worker-runtime.md) is implemented_unverified.
 31 distinct source cases pass, covering whole-pair import/worker/stop ordering,
 private identity and observable-state joins, failed imports/grants/state/stop,

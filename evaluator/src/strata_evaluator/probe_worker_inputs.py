@@ -12,7 +12,6 @@ import re
 from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease, snapshot
 from mcbench.native_probe_binding import read_binding
-from mcbench.pack_launch import resolve_pack_launch
 from mcbench.pack_worker import HeldPackWorker, _path
 from mcbench.storage import digest, require
 from mcbench.worker_stop import ARGUMENT
@@ -74,8 +73,12 @@ class HeldProbeWorkerInputs:
             # Validate ALL members before creating even the first config file.
             for arm, group in self._invocations.items():
                 self._resolved[arm] = {}
+                self._workers[arm] = {}
                 for agent, invocation in group.items():
-                    resolved = resolve_pack_launch(self.software.binding, "client", worker_invocation=invocation)
+                    worker = resources.enter_context(HeldPackWorker(
+                        self.software.binding, invocation, defer_configuration=True))
+                    self._workers[arm][agent] = worker
+                    resolved = worker.resolved
                     configuration = resolved["worker_configuration"]
                     require(configuration["schema"] == "strata/DevelopmentWorker/2"
                             and resolved["launch"]["arguments"][-1] == ARGUMENT,
@@ -87,12 +90,9 @@ class HeldProbeWorkerInputs:
             self._account_lease = resources.enter_context(FileLease(snapshot(list(accounts), [])))
             self._accounts = accounts
             self._check_accounts()
-            for arm, group in self._invocations.items():
-                self._workers[arm] = {}
-                for agent, invocation in group.items():
-                    worker = resources.enter_context(HeldPackWorker(self.software.binding, invocation))
-                    self._workers[arm][agent] = worker
-                    require(worker.resolved == self._resolved[arm][agent], "PROBE_WORKER_INPUTS_CHANGED")
+            for group in self._workers.values():
+                for worker in group.values():
+                    worker.commit_configuration()
             self._resources = resources
             self.check()
             return self

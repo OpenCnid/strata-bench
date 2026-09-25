@@ -134,6 +134,42 @@ def test_changed_bytes_and_partial_acquisition_release_prior_handles(tmp_path):
     a.write_bytes(b"not left locked")
 
 
+def test_parent_changed_to_junction_after_discovery_is_rechecked_under_handles(tmp_path, monkeypatch):
+    """Same bytes behind a new junction must not pass merely by matching hashes."""
+    from mcbench import launch_integrity as module
+    source, retained = tmp_path / "source", tmp_path / "retained"
+    source.mkdir()
+    (source / "file").write_bytes(b"identical bytes")
+    inventory = snapshot([source / "file"], [])
+    original = module.safe_many
+    changed = False
+
+    def swap(paths):
+        nonlocal changed
+        result = original(paths)
+        if not changed:
+            changed = True
+            assert source.resolve().parent == retained.resolve().parent == tmp_path.resolve()
+            source.rename(retained)
+            def quote(path):
+                return "'" + str(path).replace("'", "''") + "'"
+            subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+                f"New-Item -ItemType Junction -Path {quote(source)} -Target {quote(retained)} -ErrorAction Stop | Out-Null"],
+                capture_output=True, check=True, timeout=15, creationflags=subprocess.CREATE_NO_WINDOW)
+        return result
+
+    monkeypatch.setattr(module, "safe_many", swap)
+    try:
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+            FileLease(inventory)
+        assert changed
+    finally:
+        if source.exists() and source.lstat().st_file_attributes & 0x400:
+            source.rmdir()  # Remove the junction only, not its target.
+    # Failed acquisition releases the parent handles too.
+    (retained / "file").write_bytes(b"released")
+
+
 def test_native_lease_exceeds_crt_capacity_and_releases_after_late_hash_failure(tmp_path):
     """The authentic pack needs more than the CRT's 8,192 file descriptors."""
     tree = tmp_path / "large"

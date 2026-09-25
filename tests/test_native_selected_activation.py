@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from mcbench.controller import Controller, READINESS
-from mcbench.storage import Principal, canonical
+from mcbench.storage import Principal, canonical, require
 from test_native_export import stopped
 from test_native_revisions import admitted
 from test_native_skill_activation import activate
@@ -29,14 +29,15 @@ text({active_script_write:write});
 '''
 
 
-def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time):
+def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time, arm="full"):
     """Build before sealing, using normal synthetic contracts and controller APIs."""
+    require(arm in {"full", "no-self-play"}, "SELECTED_SEED_ARM")
     operator = Principal("operator", "operator")
     policy = cas.put(operator, "operator", "operator", canonical(POLICY))
     def selected_configs(*args, **kwargs):
         config, agents = configs(*args, **kwargs)
         return config.model_copy(update={"communication_policy": policy}), agents
-    request = SimpleNamespace(param="full", node=SimpleNamespace(callspec=None))
+    request = SimpleNamespace(param=arm, node=SimpleNamespace(callspec=None))
     source = admitted.__wrapped__(database, cas, tmp_path, example, selected_configs, request,
                                   model="gpt-6-luna", script=SCRIPT)
     controller = Controller(database, simulation=True, clock=clock)

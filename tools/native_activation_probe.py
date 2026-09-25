@@ -19,9 +19,15 @@ class ActivationProbe:
         self.source = source
         self.body = None
 
-    def prepare(self, runtime, plan):
+    def prepare(self, runtime, plan, *, helper_free=False):
         service = NativeSkillSets(runtime)
         self.body = service.load(self.ref)
+        require(type(helper_free) is bool, "ACTIVATION_FIXTURE_SCOPE")
+        if helper_free:
+            from mcbench.native_export import OPERATOR
+            state, _ = service.components.load(self.body["checkpoint_ref"])
+            policy = runtime.cas.json(OPERATOR, "operator", state.retention_policy)
+            require(policy["arm"] == "no-self-play", "ACTIVATION_FIXTURE_ARM")
         require(self.body["is_example"] is True and self.body["campaign_id"] == "c1" and
                 self.body["agent_id"] == "a1" and self.body["source_epoch"] >= 1,
                 "ACTIVATION_FIXTURE_SCOPE")
@@ -47,7 +53,7 @@ class ActivationProbe:
         self.runtime = runtime
         return plan.model_copy(update={"campaign_id": self.body["campaign_id"], "agent_id": self.body["agent_id"],
             "epoch": self.body["source_epoch"] + 1, "workspace": str(view), "skill_activation_ref": self.ref,
-            "helper_skill_activation_ref": self.ref, "purpose": "campaign"})
+            "helper_skill_activation_ref": None if helper_free else self.ref, "purpose": "campaign"})
 
     @property
     def instructions(self):
@@ -57,6 +63,9 @@ class ActivationProbe:
         calls = [("artifact_read", {"path": p}) for p in (
             "active/learned-crafting/SKILL.md", "active/learned-crafting/references/steps.md",
             "active/learned-crafting/scripts/check.py", "active/revisions.json")]
+        requested = {args["path"] for _, args in calls}
+        calls += [("artifact_read", {"path": p}) for p in sorted(active_files(self.body))
+                  if p.startswith("active/learned-crafting/") and p not in requested]
         calls += [("artifact_write", {"path": "active/learned-crafting/SKILL.md", "expected_ref": None, "text": "forbidden"}),
                   ("artifact_write", {"path": "active/revisions.json", "expected_ref": None, "text": "forbidden"})]
         if agent == "/root":
@@ -103,7 +112,7 @@ text({native_publication:await artifact("artifact_write",{path:"skills/publish.j
 '''.replace("REVISION_ID", json.dumps(self.next_revision)).replace(
             "REVISION_KIND", json.dumps(self.body["skills"]["learned-crafting"]["revision"]["kind"]))
 
-    def report(self, provider, db, plan):
+    def report(self, provider, db, plan, *, helper_free=False):
         from mcbench.native_export import OPERATOR
         # Decode actual returned broker content, never echoed call inputs.
         def values(value):
@@ -154,12 +163,15 @@ text({native_publication:await artifact("artifact_write",{path:"skills/publish.j
             expected = self.runtime.cas.read(OPERATOR, "operator", self.body["skills"]["learned-crafting"]["files"]["SKILL.md"]).decode()
             checks["native_explicit_body_injection"] = bool(initial) and expected.strip() in text_content(json.loads(
                 self.runtime.cas.read(OPERATOR, "operator", initial[0], max_bytes=1024*1024))).replace("\r\n", "\n")
-        for name in ("/root", "/root/identity_child"):
+        for name in (("/root",) if helper_free else ("/root", "/root/identity_child")):
             reads = per_agent.get(name, {})
             checks[name + "_unchanged_active_reads"] = all(p in reads and reads[p]["ref"] == ref and
                 reads[p]["text"].encode() == self.runtime.cas.read(OPERATOR, "operator", ref) for p, ref in wanted.items())
         child = per_agent.get("/root/identity_child", {})
-        checks["helper_no_root_history_returned"] = not any(p.startswith(("notes/", "skills/", "handoff/")) for p in child)
+        if helper_free:
+            checks["only_root_artifact_returns"] = set(per_agent) == {"/root"}
+        else:
+            checks["helper_no_root_history_returned"] = not any(p.startswith(("notes/", "skills/", "handoff/")) for p in child)
         rows = list(db.connection.execute("SELECT g.body,f.path,f.ref,f.immutable FROM broker_grants g "
             "JOIN broker_files f ON json_extract(g.body,'$.namespace')=f.namespace WHERE g.runtime=?", (plan.job_id,)))
         checks["active_bytes_still_immutable"] = all(r["immutable"] == 1 and

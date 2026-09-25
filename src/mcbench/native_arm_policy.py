@@ -11,6 +11,10 @@ from .storage import canonical, require
 
 
 def require_arm_policy(db, cas, plan):
+    # The pinned CLI also needs its independent agents switch closed. Keep this
+    # live requirement out of historical stopped projection reconstruction.
+    if plan.broker_policy in NO_HELPER_POLICIES:
+        require(plan.config_overrides.get("agents.enabled") is False, "NATIVE_HELPER_TOOLS_ENABLED")
     declared = []
     if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='campaigns'").fetchone():
         campaign = db.execute("SELECT agents FROM campaigns WHERE id=?", (plan.campaign_id,)).fetchone()

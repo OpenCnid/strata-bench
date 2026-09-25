@@ -41,6 +41,14 @@ def test_root_permitted_child_refused_before_envelope_or_admission(controlled):
     assert gate.db.connection.execute("SELECT count(*) FROM native_participants").fetchone()[0] == 1
 
 
+@pytest.mark.parametrize("value", [True, 0, None])
+def test_native_agents_switch_must_explicitly_disable_helpers(controlled, value):
+    _, gate, _, plan, _, _, _ = controlled
+    plan.config_overrides["agents.enabled"] = value
+    with pytest.raises(Fault, match="NATIVE_HELPER_TOOLS_ENABLED"):
+        require_arm_policy(gate.db.connection, gate.cas, plan)
+
+
 def test_legacy_contradictory_job_is_fenced_at_dispatch_and_broker(controlled):
     _, gate, broker, plan, request, prepare, _ = controlled
     begin(controlled, request("first"))

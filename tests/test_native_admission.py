@@ -28,7 +28,8 @@ def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=
     gate.budgets.create_account("a1", dict.fromkeys(DIMENSIONS, 100000), "c1", "a1",
                                 category="training")
     policy = NO_HELPER_POLICY if helpers == 0 else POLICY
-    config = restricted_settings(policy=policy) | {"mcp_servers.strata_broker": {
+    helper_config = {"agents.enabled": False} if helpers == 0 else {}
+    config = restricted_settings(policy=policy) | helper_config | {"mcp_servers.strata_broker": {
         "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
             "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
     plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": "job",

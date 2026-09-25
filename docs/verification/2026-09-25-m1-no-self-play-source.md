@@ -1,5 +1,10 @@
 # M1.4b no-self-play capability enforcement
 
+**Native follow-up:** [actual verification](2026-09-25-m1-no-self-play-native.md)
+retains the first feature-only configuration failure. The pinned CLI additionally
+requires `agents.enabled=false`, now enforced live. The changed profile passes
+37/37 plus22/22 reconstruction; matched controls and full G1 remain open.
+
 SPEC13.2 requires native direct reasoning/artifact editing with helper/self-play
 tools disabled. The existing retention registration checked `self_play=false`
 but did not bind native helper capability to that arm; older synthetic retention

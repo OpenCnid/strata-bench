@@ -91,7 +91,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
         selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
-        activation_script=None, selected_activation=False, activation_checkpoint=False):
+        activation_script=None, selected_activation=False, activation_checkpoint=False, no_self_play=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -101,7 +101,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from mcbench.budgets import DIMENSIONS
     from mcbench.inference_dispatch import InferenceDispatches
     from mcbench.native import NativeExec, NativeLaunch
-    from mcbench.native_broker_policy import TEAM_POLICY, broker_tools, broker_approvals, validate_broker_settings
+    from mcbench.native_broker_policy import TEAM_POLICY, NO_HELPER_TEAM_POLICY, broker_tools, broker_approvals, validate_broker_settings
     from mcbench.plugins import install_dovetail
     from mcbench.storage import CAS, Database, Principal, require
     from native_dispatch_probe import LocalProvider, ledger, plan_for, put, sse, wait_job
@@ -126,6 +126,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             and ingress_mode and oauth_mode and tool_projections is not None and no_patch_catalog is not None
             and game_probe is None and game_retention is None and game_recovery is None),
             "SELECTED_ACTIVATION_REQUIRED")
+    require(type(no_self_play) is bool and (not no_self_play or selected_activation and
+            activation_script is None and not any((canary_mode, state_mode, retirement_mode,
+                interrupt_mode, inherited_helper, gateway_mode, skills_mode, piloting_contract,
+                runtime_boundary, output_boundary, selected_state_boundary, selected_retirement_boundary,
+                selected_helper_pair, cross_team_probe, team_channel_probe, campaign_boundary_probe,
+                game_failure, pilot_helper, deferred_tools))), "NO_SELF_PLAY_PROFILE_REQUIRED")
+    from native_no_self_play_probe import NoSelfPlayProbe
+    no_helper_probe = NoSelfPlayProbe() if no_self_play else None
     if campaign_boundary_probe is not None:
         require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
                 and game_probe is None and game_retention is None and game_recovery is None
@@ -148,7 +156,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 gateway_mode, skills_mode, activation_source, game_probe if campaign_boundary_probe is None else None, piloting_contract,
                 runtime_boundary, selected_state_boundary, selected_retirement_boundary,
                 selected_helper_pair, cross_team_probe)), "TEAM_CHANNEL_PROFILE_REQUIRED")
-    selected_broker_policy = TEAM_POLICY if team_channel_probe or selected_activation else POLICY
+    selected_broker_policy = NO_HELPER_TEAM_POLICY if no_self_play else (
+        TEAM_POLICY if team_channel_probe or selected_activation else POLICY)
     require(cross_team_probe is None or type(cross_team_probe) is CrossTeamProbe and
             bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
             tool_projections is not None and no_patch_catalog is not None and not any((
@@ -316,6 +325,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 interrupt_probe.observe(agent, body)
             if script_probe:
                 script_probe.observe(agent, body)
+            if no_helper_probe:
+                no_helper_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
@@ -456,6 +467,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     item = cross_team_probe.start(agent, operation, code)
                 if team_channel_probe:
                     item = team_channel_probe.start(agent, operation, code)
+            elif no_helper_probe:
+                if step in {1, 2, 3}:
+                    item = no_helper_probe.next(step, operation)
             elif team_channel_probe:
                 item, *extra_items = team_channel_probe.next(agent, step, operation)
             elif cross_team_probe:
@@ -614,10 +628,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if game_recovery:
             plan = game_recovery.prepare(runtime, plan)
         if activation:
-            plan = activation.prepare(runtime, plan)
+            plan = activation.prepare(runtime, plan, helper_free=no_self_play)
             if selected_activation:
                 from native_activation_controller import ActivationController
-                plan = plan.model_copy(update={"helper_limit": 1})
+                plan = plan.model_copy(update={"helper_limit": 0 if no_self_play else 1})
                 activation_controller = ActivationController(runtime, activation.body, plan)
                 activation_controller.__enter__()
             if activation_script is not None:
@@ -645,6 +659,9 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "startup_timeout_sec": 10, "tool_timeout_sec": 5},
         }
         if broker_mode:
+            if no_self_play:
+                config["features.multi_agent_v2"] = False
+                config["agents.enabled"] = False
             config.pop("mcp_servers.strata_probe")
             config["mcp_servers.strata_broker"] = {"command": sys.executable,
                 "args": ["-m", "mcbench.broker_stdio", "--config", str(output / "broker.json")],
@@ -733,14 +750,16 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                        if team_channel_probe else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
                        if pair_probe else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
-                       if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
+                       if game_probe else "$learned-crafting Exercise permitted root artifacts and one scoped synthetic observation; verify that helper calls are unavailable. Provider and worker are scripted."
+                       if no_self_play else ("$learned-crafting " if activation and not activation.reset else "") +
                        "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
                 conformance_helpers=not campaign_boundary_probe and bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe),
-                campaign_team=campaign_boundary_probe is not None or selected_activation)})
+                campaign_team=campaign_boundary_probe is not None or selected_activation and not no_self_play,
+                helper_free=no_self_play)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -953,8 +972,17 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         e.get("tool_projection_digest") == expected["executor" if e["depth"] == 0 else "helper"]
                         and e.get("tool_projection_ref") == plan.tool_projection_ref for e in events),
                 })
+    if no_helper_probe:
+        for name in ("helper_result_written", "helper_game_denied", "spoof_arguments_denied",
+                     "distinct_root_helper_envelopes", "both_projection_roles_checked"):
+            result["checks"].pop(name)
+        result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) == 5
+        result["checks"]["root_projection_only_checked"] = set(expected) == {"executor"} and {e["depth"] for e in events} == {0}
+        result["no_self_play"] = no_helper_probe.report(db, plan, provider)
+        result["checks"].update(result["no_self_play"]["checks"])
+        result["scope"] = "selected-native-no-self-play-control"
     if activation:
-        result["activation"] = activation.report(provider, db, plan)
+        result["activation"] = activation.report(provider, db, plan, helper_free=no_self_play)
         result["checks"].update(result["activation"]["checks"])
         result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
         if script_probe:

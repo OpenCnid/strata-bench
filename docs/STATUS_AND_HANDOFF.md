@@ -36,7 +36,8 @@ and activates revisions2/3 through complete synthetic checkpoints; epoch3 starts
 fresh context/storage with admitted artifacts and all costs retained. Next
 matched frozen/no-self-play controls and complete combined-profile qualification.
 The new M1.4b section below records the prerequisite helper-disable enforcement
-and supersedes the immediate next action with actual native /6 verification.
+and its native follow-up records37/37 plus22/22 reconstruction. Next matched
+frozen controls and complete reset/category/probe qualification.
 
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
@@ -411,3 +412,44 @@ verification remains a local scripted provider at USD0 until genuinely missing
 M1 paid authority is requested for a concrete bounded need. Preserve common
 public instructions/opportunity ceilings for later matched frozen controls and
 report actual spend. M1.4b/M1 in_progress; complete G1 not_run.
+
+
+## September25 actual no-self-play native verification
+
+The [actual native report](verification/2026-09-25-m1-no-self-play-native.md)
+supersedes the preceding source-only next action. Explicit no_self_play mode
+requires selected campaign activation, a fresh preregistered root-only seed and
+pre-reviewed functions-only /6 catalog. Actual pinned runtime needs both
+features.multi_agent_v2=false and agents.enabled=false; live guard requires the
+latter even without retention registration. Preserve old stopped readers.
+
+Case01 fails closed before forwarding because feature-only configuration still
+advertises collaboration. Case02 closes/checkpoints but retains35/37: exact
+unsupported-call wording differed and check.js was never requested. Case03
+changes the fixture to read all active supporting files and recognizes exact
+wire-specific refusals:37/37 plus22/22 independent reconstruction. Both spawn
+wire types refuse; no helpers/reservations/cost; permitted root artifacts,
+synthetic game observation and fresh private state work. Normal exit0/zero-active
+process proof joins complete synthetic checkpoint and activated revision2.
+Five new native calls70 units plus14 seed units; no real model/game experiment.
+
+Successful profile9359cef9d6c5ea5569cf4fad0460f8acbadb25cbb9b759653d2cb582c9fcdc4e.
+Producer2026-09-25-m1-no-self-play-native-03:4138files/76,321,418bytes,
+seal8a5bb9e7438c4f8a544e1b0e88ebd3a6be8d51ef34a8785788c0320ede6c1d11.
+Audit2026-09-25-m1-no-self-play-audit-01:3files/15,778bytes,
+seal69e3dbb8340574cd3f53662f66539c8605d18900a9fbb6c155db23a60740666e.
+All failures and seals are in the report. All40 real authority tables unchanged;
+$4.887796 exposure/holds preserved. No owned native/game process remains. Old
+one-use scripts remain history. Overlapping source selections60/45/42/66/14
+pass, final Ruff/whitespace pass. No RuntimeQualification or full G1 claim.
+
+Next M1.4b preregisters matched frozen-persistence controls before seed jobs,
+with common public instruction/goal/opportunity schedules and explicitly allowed
+artifact differences. Existing selected_seed accepts full/no-self-play only;
+add frozen controls deliberately, preserving within-episode learning and complete
+episode reset. ActivationProbe.reset currently recognizes frozen-persistence
+only; frozen-skills still needs its category rules and declared notes-only
+projection. Native no-self-play has a distinct fixture prompt and cannot be
+called a scientific matched-arm result. Full/native session/cache reset,
+combined-profile isolation, capable settings, scorer and one-way probe boundaries
+remain required. M1.4b/M1 in_progress; G1 not_run; unrelated M2-M7 untouched.

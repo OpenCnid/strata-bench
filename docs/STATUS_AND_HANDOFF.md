@@ -86,8 +86,17 @@ strict. Original29/48 state-readiness race remains UNSETTLED with its120,000
 synthetic-unit hold. Both bundles are sealed; all40 real authority tables remain
 unchanged and no owned process remains.
 
-Next bounded work: selected-profile two-helper concurrency and correct-team
-versus cross-team communication, then remaining
+M1.3b.7 has [selected helper-pair evidence](verification/2026-09-24-m1-helper-pair.md):
+149 distinct focused cases,37/37 actual native and15/15 independent checks.
+Two clean helpers run concurrently, exchange permitted messages and preserve
+private artifact namespaces. Third-helper admission refuses before dispatch;
+27 requests settle, one refuses,378 synthetic units, three participants CLOSED.
+Stopped export reconstructs exactly. The first two attempts retain their
+21/37 and26/37 failures and320,000-unit holds; initial13/15 audit remains beside
+corrected15/15. All three bundles are sealed, real authority remains unchanged.
+
+Next bounded work: M1.3b.8, cross-team native communication against a separate
+owned job, preserving permitted within-team controls, then remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential
 admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.

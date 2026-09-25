@@ -31,8 +31,7 @@ M1.3b.3 adds [state/notification evidence](docs/verification/2026-09-24-m1-state
 notification-parser run and45/46 pending-review report retained. Continue
 helper lifecycle and cross-team communication before full qualification.
 M1.3b.4 now has [selected retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md),
-16/16 independent reconstruction with original33/34 retained. Next resolve
-notification-aware cell drain without allowing status-text spoofing.
+16/16 independent reconstruction with original33/34 retained.
 M1.3b.5 now has [notification-safe framed drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):
 200 focused cases,34/34 native checks and20/20 independent reconstruction.
 M1.3b.6 now has [held-process drain and stopped disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):
@@ -40,6 +39,11 @@ M1.3b.6 now has [held-process drain and stopped disposal evidence](docs/verifica
 The failed state-readiness attempt and its synthetic hold remain retained.
 Scalar-only yields still cannot authorize early retirement; stopped export uses
 the independent private process fence without claiming successful tool completion.
+M1.3b.7 now has [selected two-helper evidence](docs/verification/2026-09-24-m1-helper-pair.md):
+149 distinct focused cases,37/37 native and15/15 independent checks. Two helper
+parser/rendezvous failures and their synthetic holds remain retained; the
+initial13/15 audit is retained beside its corrections. Next M1.3b.8 checks
+actual cross-team communication against a separate owned native job.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -443,6 +447,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.4 | SI/AR/QA | Selected-profile helper revocation, proved retirement and replacement with retained consumption; inherits M1.3b coverage plus F11/C18 | verified | [Named retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md):40 existing and66 selected verifier cases;15 settled native requests plus one rejected old-helper resume,16/16 independent audit. Original33/34 upstream-count failure retained. Completed helper only; notification-aware drain, interruption and full lifecycle remain open. |
 | M1.3b.5 | SI/AR/QA | Distinguish authoritative native cell result frames from model-controlled notification text; retain holds on ambiguous scalar yields; inherits M1.3b.4 coverage | verified | [Named framed-drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):200 focused cases,34/34 actual native and20/20 audit; nine forged-status notifications cannot replace three actual content frames. /1 duplicate refusal and scalar-yield limitation retained. No full lifecycle qualification. |
 | M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain for scalar-only silent yields; inherits M1.3b.5 coverage | verified | [Named stopped-disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):222 distinct focused cases,28/28 actual native checks,15/15 independent committed-export audit; held job six lifetime/zero active processes. Original29/48 readiness race retains one uncertain request and full synthetic hold. No early helper retirement, successful-tool, cost or full isolation inference. |
+| M1.3b.7 | SI/AR/QA | Selected-profile two-helper overlap, scoped public messages and artifact namespaces, bounded excess-helper refusal; inherits M1.3b coverage, F03/F07/F11 and T04/T06 | verified | [Named pair evidence](docs/verification/2026-09-24-m1-helper-pair.md):149 distinct focused cases,37/37 native and15/15 independent reconstruction;27 settled/one refused,378 synthetic units, three closed participants and stopped export. Two protocol failures with retained holds and initial13/15 audit preserved. No N-body, cross-team or full isolation claim. |
+| M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | not_started | Two-helper same-team result is insufficient. Test foreign known agent/thread identifiers across distinct native jobs, denied delivery/control and absence of private canaries; bind exact profiles and retained accounting. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6473,3 +6479,29 @@ All40 real authority tables remain unchanged; no paid model/game process/shared
 input or allowance change. No owned fixture process remains. Full Ruff/whitespace
 pass. M1.3b.6 verifies this stopped path only; next selected concurrent helpers
 and correct-team/cross-team communication. Full G1 and unrelated M2-M7 unchanged.
+
+
+### 2026-09-24 — M1.3b.7 selected simultaneous helpers and permitted messages
+
+Added the bounded HelperPairProbe and selected profile mode in the native
+identity fixture. Two clean helpers require actual delivered readiness/release/
+peer/final messages, private artifact reads and denied sibling/root paths.
+Native overlap is recorded while both run; a third request is refused before
+forwarding or envelope creation. No production capability or spending scope
+changes; SPEC6.3/13.5 contracts remain intact.
+
+149 distinct focused cases pass (125 admission/projection/broker,15 new fixture,
+9 process-drain fixture). First native attempt21/37 retains the split-payload
+parser error,15 settled/one uncertain and320,000 synthetic-unit hold. Second
+attempt26/37 retains the global-wait-bound error,23 settled/one uncertain/one
+refused and320,000-unit hold. Changed bounded rendezvous completes37/37 with
+27 settled/one refused,378 units and three CLOSED participants. Root13 and
+helpers7 each; all costs retained exactly once. Independent audit initially13/15
+retains tuple/JSON and operation-versus-envelope counting mistakes; corrected
+15/15 reconstructs the same capture without rerun. [Report and all three seals](docs/verification/2026-09-24-m1-helper-pair.md).
+
+All40 real authority tables remain unchanged, no owned fixture process remains,
+and full Ruff/whitespace pass. M1.3b.7 verifies only the named same-team slice.
+M1.3b.8 next tests actual separate-job cross-team attempts. Full G1, actual-game/
+credential integration, executable skills, capable keybinding/scorer/probe
+requirements and unrelated M2-M7 retain their open or original dispositions.

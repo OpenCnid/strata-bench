@@ -41,3 +41,8 @@ now passes200 focused cases,34/34 native and20/20 independent checks.
 now pass222 distinct focused cases,28/28 native and15/15 independent export
 checks. Scalar yields remain invalid for early retirement; stopped export uses
 the separate private process fence. Full lifecycle/G1 remains open.
+
+[Two simultaneous selected-profile helpers](verification/2026-09-24-m1-helper-pair.md)
+pass149 distinct focused cases,37/37 native and15/15 independent checks for
+permitted messages, private artifacts and excess-helper refusal. Both fixture
+failures and their holds remain retained. Next: separate-job cross-team attempts.

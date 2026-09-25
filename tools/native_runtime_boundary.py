@@ -68,8 +68,11 @@ def inspect_boundary_outputs(outputs):
 
 
 class RuntimeBoundaryCanaries(Canaries):
-    def __init__(self, output, **kwargs):
+    def __init__(self, output, *, profile_name="root-profile", **kwargs):
+        require(isinstance(profile_name, str) and profile_name.endswith("-profile")
+                and profile_name.replace("-", "").isalnum(), "CANARY_PROFILE_NAME")
         super().__init__(output, **kwargs)
+        self.credential_path = output / profile_name / "auth.json"
         self.module = output / "owned-private-module.mjs"
         self.secrets["module"] = "STRATA_PRIVATE_MODULE_" + uuid.uuid4().hex
         self.module.write_text("export default " + json.dumps(self.secrets["module"]) + ";\n",
@@ -90,7 +93,7 @@ class RuntimeBoundaryCanaries(Canaries):
             "import_fs": "import('node:fs').then(m=>m.readFileSync(" +
                          json.dumps(str(self.protected)) + ",'utf8'))",
             "import_credentials": "import('node:fs').then(m=>m.readFileSync(" +
-                         json.dumps(str(self.output / 'root-profile' / 'auth.json')) + ",'utf8'))",
+                         json.dumps(str(self.credential_path)) + ",'utf8'))",
             "import_process": "import('node:process').then(m=>m.env.TEMP)",
             "import_child_process": "import('node:child_process').then(m=>typeof m.spawn)",
             "import_file": "import(" + json.dumps(self.module.as_uri()) + ").then(m=>m.default)",

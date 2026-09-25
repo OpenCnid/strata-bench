@@ -66,6 +66,11 @@ M1.3b.9d now implements explicit campaign projection /5 with169 focused passes
 and5/5 retained-export/authority checks. Native /5 gameplay integration remains
 unverified. Next compose the credential-free actual-worker candidate and its
 root/helper/allowed-artifact/team controls, then missing skills/probe routes.
+The [integrated candidate fixture](docs/verification/2026-09-24-m1-campaign-candidate-source.md)
+now combines that worker path, campaign team scope and owned boundary probes;
+89 source/verifier checks pass. Actual invocation remains unverified. Prepare
+explicit M1 outer lifecycle orchestration and a fresh pinned worker/native
+case; retain M0-specific checks rather than bypassing them for the new profile.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -476,7 +481,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.9a | PL/SI/QA | Typed TeamRequest/TeamResponse, private declared policy, recipient-scoped durable cursors, atomic epoch/lease/deadline/idempotency guards; inherits M1.3b.9 coverage | verified | [Core72 cases](docs/verification/2026-09-24-m1-team-core.md) plus [actual native delivery/dedup/cursor/ack](docs/verification/2026-09-24-m1-native-team.md); legacy bytes/receipts retained. Named controller/conformance contract only; final runtime qualification remains .9d. |
 | M1.3b.9b | PL/SI/QA | Explicit native team capability/profile and broker facade with live authenticated scope, policy pin and atomic revocation fencing; inherits M1.3b.9 coverage | verified | [Source417 distinct passes/three opt-in skips](docs/verification/2026-09-24-m1-native-team-source.md) plus [actual metadata/projection/receipt joins](docs/verification/2026-09-24-m1-native-team.md). Old profiles preserved; new projection /4 remains conformance-only. |
 | M1.3b.9c | SI/AR/QA | Actual native same-roster delivery, durable dedup/cursors/ack, helper/foreign-campaign refusal and sealed receipt reconstruction; inherits M1.3b.9 coverage | verified | [Native45/45 per job, independent26/26](docs/verification/2026-09-24-m1-native-team.md),84 focused source tests. Two sequential native agents share one owned synthetic controller/queue;22 team calls,14 settled requests/196 units, two exports. No paid model or N-body capacity claim. |
-| M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | in_progress | [Source/profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md): nine sealed bundles/eleven profiles; campaign projection /5 implemented with169 focused passes and5/5 retained-export/authority checks. /4 remains conformance-only; all six campaign proofs remain mandatory. Actual /5 game/credential/native integration is unverified; no RuntimeQualification or scope promotion. |
+| M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | in_progress | [Source/profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md): nine sealed bundles/eleven profiles; campaign projection /5 with169 focused passes and5/5 retained-export/authority checks. [Integrated candidate source](docs/verification/2026-09-24-m1-campaign-candidate-source.md) adds89 verifier/scenario passes, combining scoped worker, roster and owned boundary probes. Actual /5 invocation/outer lifecycle and full game/credential qualification remain unverified. /4 stays conformance-only; all six campaign proofs remain mandatory, with no RuntimeQualification or scope promotion. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6668,3 +6673,28 @@ old hold/decision unchanged. Private audit has9files/125018bytes, seal
 Next compose the credential-free /5 actual-worker candidate, permitted controls
 and affected isolation routes; then selected skill/handoff and probe disposal.
 No broad unchanged replay, M1 paid call, G1 promotion or unrelated M2–M7 work.
+
+
+### 2026-09-24 — M1.3b.9d integrated campaign candidate source
+
+The explicit CampaignBoundaryProbe combines the existing scoped worker path,
+team controller and owned runtime canaries under campaign projection /5. Native
+fixture execution remains simulation=True with scripted provider and synthetic
+roster readiness; no production or N-body claim. Exact worker scope, current
+heartbeat, private team policy, selected model and closed modes are required.
+Helpers retain artifact access but no game/team authority. Direct shell and
+both patch forms receive separate observed-refusal checks. Candidate limits are
+20 scripted requests/four helper requests,64 broker calls per participant,90s;
+original fixtures retain their limits. Fake credentials target the actual job
+profile and must exist. Failed entry drains its listener without rearming.
+
+89 focused source/scenario/verifier tests pass in16.43s; the earlier87-pass run
+is retained. Ruff/whitespace pass. All40 authority tables remain unchanged;
+no native/game/model/desktop execution. Exposure$4.887796 and every old hold
+remain. Private source bundle8files/125034bytes, seal
+ d818c8c390529facd727df57daf83a44ebb627fa0ff2726d18e3bba48dc53551.
+[Source report](docs/verification/2026-09-24-m1-campaign-candidate-source.md).
+Coverage F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, partial T01/T04/T06.
+Next explicit M1 outer lifecycle and fresh pinned actual-worker/native case;
+do not bypass M0 retention/profile checks or reuse paid permits. Authentic
+invocation and complete qualification remain open; .9d/M1 in_progress/G1 not_run.

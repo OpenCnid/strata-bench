@@ -74,3 +74,8 @@ Explicit campaign projection /5 passes169 focused checks; both retained /4
 exports reconstruct unchanged. M1.3b.9d is in_progress: the next dependency is
 an integrated actual-worker candidate with root/helper isolation and permitted
 game/artifact/team controls. No native /5 qualification or M1 spending authority.
+
+The [integrated campaign candidate fixture](verification/2026-09-24-m1-campaign-candidate-source.md)
+now combines the scoped worker path with team and owned root/helper boundary
+probes.89 source checks pass; authentic invocation is pending explicit M1 outer
+lifecycle preparation. No native/game/model launch or authority change occurred.

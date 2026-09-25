@@ -191,3 +191,30 @@ or affected routes. Keep the provider explicitly scripted until a concrete
 bounded actual-model procedure and M1 spending authorization exist. Then finish
 selected skill execution/fresh handoff and one-way probe disposal. T05/T10/T11
 keep all their authentic requirements; .9d/M1 remain in_progress and G1 not_run.
+
+
+M1.3b.9d now has an [integrated candidate source fixture](verification/2026-09-24-m1-campaign-candidate-source.md).
+Use native_mcp_identity_probe.run(campaign_boundary_probe=...) with the explicit
+CampaignBoundaryProbe context manager, owned TeamChannelStore heartbeat and
+matching actual worker descriptor. It selects projection /5/campaign purpose,
+Luna metadata/one helper and keeps native/provider/controller accounting in the
+private simulation store. Team readiness is synthetic; do not claim N-body
+capacity. The fixture combines game, artifact, team and owned boundary controls,
+including actual-profile fake credential target existence and direct shell/
+patch dispatch refusal.89 focused source checks pass, no authentic invocation.
+
+Next prepare explicit M1 outer game lifecycle orchestration and one fresh
+pinned integration case. tools/m0_native_game.py has useful held pack/worker,
+normal stop, journal and ownership primitives, but run/run_plan validates M0
+retention/model/helper identities and cannot be silently relabeled or bypassed.
+Use the original held minor12 worker/PackLock where unchanged and retain exact
+new native/source identities. The integration must audit game receipts/journal,
+all native admissions/charges, root/helper isolation, stopped process and export.
+Preserve failed outcomes; do not seek a successful rerun without a relevant fix.
+
+Private campaign-candidate-source-01 contains8files/125034bytes, sealed at
+ d818c8c390529facd727df57daf83a44ebb627fa0ff2726d18e3bba48dc53551.
+All40 authority tables and exposure$4.887796/holds unchanged. No live owned
+fixture process remains, no native/game/model/desktop run occurred, no M1 paid
+allowance. M1.3b.9d/M1 stay in_progress, G1 not_run. Full skill/handoff, client,
+credential, settings/scorer and probe obligations remain in the route audit.

@@ -90,7 +90,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
-        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None):
+        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -108,14 +108,29 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
     from native_cross_team_probe import CrossTeamProbe
     from native_team_channel_probe import TeamChannelProbe
+    from native_campaign_boundary_probe import CampaignBoundaryProbe
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
-    require(team_channel_probe is None or type(team_channel_probe) is TeamChannelProbe and
+    if campaign_boundary_probe is not None:
+        require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
+                and game_probe is None and game_retention is None and game_recovery is None
+                and not any((canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                    gateway_mode, skills_mode, activation_source, piloting_contract, runtime_boundary,
+                    output_boundary, selected_state_boundary, selected_retirement_boundary,
+                    selected_helper_pair, cross_team_probe, game_failure, pilot_helper, deferred_tools))
+                and broker_mode and admission_mode and bootstrap_mode and ingress_mode and oauth_mode
+                and model == "gpt-6-luna" and job_id == campaign_boundary_probe.job_id
+                and Path(output).absolute() == campaign_boundary_probe.output
+                and tool_projections is not None and no_patch_catalog is not None,
+                "CAMPAIGN_BOUNDARY_PROFILE_REQUIRED")
+        team_channel_probe, game_probe = campaign_boundary_probe, campaign_boundary_probe.game
+    require(team_channel_probe is None or (type(team_channel_probe) is TeamChannelProbe or
+            campaign_boundary_probe is team_channel_probe) and
             broker_mode and admission_mode and bootstrap_mode and ingress_mode and oauth_mode
             and model == "gpt-6-luna" and job_id == team_channel_probe.job_id and
             tool_projections is not None and no_patch_catalog is not None and not any((
                 canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
-                gateway_mode, skills_mode, activation_source, game_probe, piloting_contract,
+                gateway_mode, skills_mode, activation_source, game_probe if campaign_boundary_probe is None else None, piloting_contract,
                 runtime_boundary, selected_state_boundary, selected_retirement_boundary,
                 selected_helper_pair, cross_team_probe)), "TEAM_CHANNEL_PROFILE_REQUIRED")
     selected_broker_policy = TEAM_POLICY if team_channel_probe else POLICY
@@ -227,6 +242,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
     if pair_probe or cross_team_probe:
         request_limit = 32
+    if campaign_boundary_probe:
+        request_limit = 20
     if output_boundary:
         from native_output_boundary import OutputBoundaryCanaries
         canary_type = OutputBoundaryCanaries
@@ -329,7 +346,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             "expires_unix_ms": self.grant_expiry, "tool_calls": 20,
                             "admission_ref": admission})
                         if admission_mode:
-                            grant = NativeAdmission(connection, objects).enroll(operation, tool_calls=20)
+                            grant = NativeAdmission(connection, objects).enroll(operation,
+                                tool_calls=64 if campaign_boundary_probe else 20)
                         else:
                             broker.admit(grant)
                         if activation is None or agent != "/root":
@@ -650,14 +668,15 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
-            "purpose": "development_piloting" if piloting_contract else plan.purpose,
+            "purpose": "campaign" if campaign_boundary_probe else "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": selected_broker_policy if admission_mode else None,
             **({"team_policy_ref": team_channel_probe.store.policy_ref} if team_channel_probe else {}),
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
-            "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
+            "prompt": ("Exercise the owned worker, declared team channel and clean helper with the fixed boundary checks. Game interactions are real; provider replies and controller readiness are scripted."
+                       if campaign_boundary_probe else "Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
                        if pilot_helper else "Exercise the owned separate-job communication fixture and permitted local messages."
                        if cross_team_probe else "Exercise the fixed same-roster team channel and helper-refusal fixture."
@@ -670,7 +689,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
-                conformance_helpers=bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe))})
+                conformance_helpers=not campaign_boundary_probe and bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe),
+                campaign_team=campaign_boundary_probe is not None)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})

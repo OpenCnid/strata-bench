@@ -3,6 +3,20 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.10 [materialization scan composition](verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
+Complete held resolution now checks installation membership before and after both
+role layouts, with a live marker/scope guard before authority reads. Every entry
+retains its policy/type/size/hardlink/hash checks; standalone scans and member
+checks retain independent custody.138 distinct source cases pass, no skips.
+Read-only exact-profile resolution7.828s becomes6.078s with identical output;
+five membership scans become two. No new native trial or model call. Native09's
+finite-window refusal and all original bounds/holds remain. Next reduce repeated
+lexical path reconstruction identified by profiling, then inspect protected
+session preparation before another paired trial. All40 real tables unchanged
+at$4.887796; no owned runtime. Full matched-state/tools, native admission,
+clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run. Earlier next
+actions are historical.
+
 M1.6q.9 [held-parent path validation](verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
 Directory handles now deny removal before child files open and retain reparse
 entries themselves. Validate held ancestors once, with fresh leaf checks and

@@ -1876,6 +1876,13 @@ current provisioning/CAS authority, exact role and empty-directory layouts, name
 types, sizes, hardlinks and source membership on every call. Unknown paths, foreign
 trees and closed custody refuse; ordinary public resolution still hashes bytes.
 Hashes come from verified handles, not later edits to an inventory dictionary.
+One complete private materialization resolution may bracket both role layouts
+with fresh whole-installation membership checks, rather than repeating the same
+tree scan inside each role. Require the exact live installation/marker custody
+before reading authority, retain every role entry's policy/type/size/hardlink/
+hash validation and check membership again before returning either layout.
+Standalone role scans and member effect/receipt checks retain their own custody
+validation. No public skip flag or cached success substitutes for these checks.
 
 Private fresh vanilla worker preparation may borrow that exact installation
 lease while keeping independent per-member runtime and configuration custody.

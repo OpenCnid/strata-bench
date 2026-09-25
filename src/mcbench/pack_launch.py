@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from typing import Literal
 
 from .contracts import Digest, Id, Ref, Strict
-from .inventory import file_hash, inventory_directories, scan_layout, template_path
+from .inventory import file_hash, inventory_directories, scan_layout, template_path, _scan_held_materialization
 from .pack_policies import reviewed_vendor_paths
 from .provisioning import TARGETS, E9ELaunchProfile, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
@@ -87,12 +87,18 @@ def _resolve_held_materialization(binding, lease):
 
 def _check_materialization_custody(binding, lease):
     """Check a borrowed owner's exact live tree without taking its ownership."""
+    _materialization_scope(binding, lease)
+    lease.recheck()
+
+
+def _materialization_scope(binding, lease):
+    """Scope/live-handle guard; complete resolution checks membership separately."""
     from .launch_integrity import FileLease, safe
     require(type(lease) is FileLease and type(binding) is PackLaunchBinding,
             "MATERIALIZATION_CUSTODY_REQUIRED")
-    lease.recheck()
     require({t["path"] for t in lease.inventory["trees"]} == {str(safe(binding.instance))},
             "MATERIALIZATION_CUSTODY_SCOPE")
+    lease.held_digest(Path(binding.instance) / ".strata-instance.json")
 
 
 @contextmanager
@@ -101,7 +107,7 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
     """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
     if _materialization_lease is not None:
-        _check_materialization_custody(binding, _materialization_lease)
+        _materialization_scope(binding, _materialization_lease)
         require(not simulation and forge_invocation is None
                 and (role == "server" or worker_invocation is not None), "MATERIALIZATION_CUSTODY_SCOPE")
     store = _absolute(binding.store)
@@ -189,6 +195,9 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
     directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
     entries = [FileEntry.model_validate(entry) for entry in inventory["files"]]
     require({entry.role for entry in entries} == {"client", "server"}, "ROLE_MISMATCH")
+    held_layouts = (_scan_held_materialization(instance, _materialization_lease,
+                                               reviewed_world_paths=reviewed)
+                    if _materialization_lease is not None else None)
     for selected in ("client", "server"):
         root = instance / selected
         if restored and selected == "server":
@@ -196,7 +205,8 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
             continue
         declared = sorted(({"path": entry.path, "digest": entry.digest, "bytes": entry.bytes}
                            for entry in entries if entry.role == selected), key=lambda e: e["path"])
-        require(scan_layout(root, reviewed_world_paths=reviewed, _lease=_materialization_lease)
+        actual = held_layouts[selected] if held_layouts is not None else scan_layout(root, reviewed_world_paths=reviewed)
+        require(actual
                 == {"files": declared, "directories": directories[selected]}, "MATERIALIZATION_CHANGED")
     relative = (Path(".") if command.working_directory == "."
                 else template_path(command.working_directory))

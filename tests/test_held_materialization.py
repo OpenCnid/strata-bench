@@ -28,22 +28,60 @@ def test_held_rechecks_match_public_resolution_without_reopening_file_hashes(sou
     binding, _, service = source
     expected, lease = held(binding)
     with lease:
+        checks = []
+        recheck = lease.recheck
+
+        def current_membership():
+            checks.append(True)
+            return recheck()
+
+        monkeypatch.setattr(lease, "recheck", current_membership)
         def no_hash(*args, **kwargs):
             pytest.fail("held immutable bytes rehashed by path")
         monkeypatch.setattr(inventory, "file_hash", no_hash)
         monkeypatch.setattr(pack_launch, "file_hash", no_hash)
         assert _resolve_held_materialization(binding, lease) == expected
+        assert len(checks) == 2
         for path in (Path(binding.instance) / "server/server.jar", Path(binding.instance) / ".strata-instance.json",
                      Path(expected["launch"]["executable_path"])):
             with pytest.raises(PermissionError):
                 with path.open("ab"):
                     pass
         assert _resolve_held_materialization(binding, lease) == expected
+        assert len(checks) == 4  # A new resolution must re-enumerate both boundaries.
         service.db.connection.execute("UPDATE provisioning SET state='VERIFIED'")
         with pytest.raises(Fault, match="UNSEALED_PACK"):
             _resolve_held_materialization(binding, lease)
     with pytest.raises(IntegrityError, match="BOOTSTRAP_LEASE_CLOSED"):
         _resolve_held_materialization(binding, lease)
+
+
+@pytest.mark.parametrize("role", ["client", "server"])
+@pytest.mark.parametrize("change", ["closed", "file"])
+def test_changes_between_or_after_role_scans_never_return_a_complete_layout(source, monkeypatch, role, change):
+    from mcbench import inventory
+
+    binding, _, _ = source
+    _, lease = held(binding)
+    original = inventory._scan_layout
+    visited = []
+
+    def changed(root, **kwargs):
+        result = original(root, **kwargs)
+        visited.append(root.name)
+        if root.name == role:
+            if change == "closed":
+                lease.close()
+            else:
+                # Add to an already scanned role so only a fresh final
+                # whole-installation membership check can catch the change.
+                (Path(binding.instance) / "client/late-unreviewed.txt").write_bytes(b"late")
+        return result
+
+    monkeypatch.setattr(inventory, "_scan_layout", changed)
+    with lease, pytest.raises(IntegrityError, match="BOOTSTRAP_LEASE_CLOSED|BOOTSTRAP_TREE_CHANGED"):
+        _resolve_held_materialization(binding, lease)
+    assert role in visited
 
 
 @pytest.mark.parametrize("change", ["extra_directory", "missing_empty_directory", "root_directory", "file",

@@ -2,6 +2,20 @@
 
 ## Current position
 
+M1.6q.10 [materialization scan composition](docs/verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
+Complete held resolution now checks installation membership before and after both
+role layouts, with a live marker/scope guard before authority reads. Every entry
+retains its policy/type/size/hardlink/hash checks; standalone scans and member
+checks retain independent custody.138 distinct source cases pass, no skips.
+Read-only exact-profile resolution7.828s becomes6.078s with identical output;
+five membership scans become two. No new native trial or model call. Native09's
+finite-window refusal and all original bounds/holds remain. Next reduce repeated
+lexical path reconstruction identified by profiling, then inspect protected
+session preparation before another paired trial. All40 real tables unchanged
+at$4.887796; no owned runtime. Full matched-state/tools, native admission,
+clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run. Earlier next
+actions are historical.
+
 M1.6q.9 [held-parent path validation](docs/verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
 Directory handles now deny removal before child files open and retain reparse
 entries themselves. Validate held ancestors once, with fresh leaf checks and
@@ -912,6 +926,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.7 | AR/GI/SI/QA | Scoped stop before full pair validation during bounded drain; preserve capture and sibling admission. Inherits M1.6q.6 plus partial T07 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-pair-stop-order.md):22 source passes; case07 first worker/server normal stop and export pass, second launch refuses insufficient exposure. Stop request0.109s, pair checks up to8s. Next compose repeated validation; retain bounds and all failures/holds. |
 | M1.6q.8 | AR/GI/SI/QA | Compose runtime/phase checks and first-start full preflight with aggregate windows; inherit M1.6q.7 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-runtime-check-composition.md): 35 source passes; native08 fails125.69s before first writer, PROBE_WORLD_DEADLINE. No runtime dispatch; world FAILED/parent FENCED/holds retained. Lifecycle timing unverified. Next profile pre-writer preparation; preserve original bounds and cases01-08. |
 | M1.6q.9 | SI/GI/QA | Validate acquired parent paths once while retaining fresh per-file link and held-hash checks; inherit M1.6q.8 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md): 110 distinct source passes/three privilege skips after two retained custody failures. Exact read-only resolution matches, faster profiled entry. Native09 fails202.19s before first server, both copiers/imports normal; original windows/holds remain. Next compose repeated materialization membership validation. |
+| M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8755,3 +8770,53 @@ prior IDs remain/421 current,1,658 links resolve, append-only progress and prior
 SPEC text/JSON pass.110 distinct source cases pass/three privilege skips; native09
 remains failed. No owned runtime or model call, all40 real tables unchanged.
 These pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.10 materialization scan composition, in progress
+
+- Last turn made progress: committedbd1df84,110 source passes/three privilege
+  skips, retained custody failures fixed and native09 refusal fully sealed.
+  Revalidated clean checkout, all40 real authority tables and no owned runtime.
+- Compose installation-wide membership checks around both complete role scans;
+  keep exact per-entry policy/type/size/hardlink/hash checks, current provisioning/
+  CAS, live custody and final membership. No public skip option or cached success.
+- Read-only before/after diagnosis and focused source/refusal tests are required
+  before any changed native trial. No deadline, paid authority, historical failure
+  or wider G1 requirement is changed. M1.6q.10 in_progress, G1-G5 not_run.
+
+### 2026-09-25 — M1.6q.10 source and read-only profile verification
+
+- Complete private resolution brackets both role layouts with two fresh whole-
+  installation membership checks. Exact live marker/tree scope precedes current
+  authority reads; every entry retains policy/type/size/hardlink/hash validation.
+  Ordinary public resolution hashes bytes; standalone scans and member effect/
+  receipt checks still validate custody. No skip flag or cross-call cache.
+- Main130 cases pass950.14s, paired4 pass175.57s, standalone4 pass5.91s:138
+  distinct cases/no skips or failures. Late additions to an already scanned role
+  and closure between/after scans refuse; repeated calls revalidate. Ruff and
+  whitespace pass. Two existing Typer deprecations remain.
+- Actual profile02 read-only held resolution7.828s to6.078s under cProfile,
+  identical public/held output, five-to-two whole-tree rechecks and two denied
+  write-opens per diagnostic. No config writes/model/game dispatch; leases close.
+  Profiling is diagnostic only and cannot qualify full paired timing.
+- All40 real authority tables unchanged at$4.887796 and no owned runtime. No new
+  native trial: preserve original300/200-170/60-60s windows, cases01-09, holds and
+  consumed decisions. Next reduce repeated lexical path reconstruction (4,691
+  relative_to calls/1.508s after composition), then inspect protected-session
+  preparation before a changed pair trial. Full G1 obligations remain open.
+  [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md).
+
+### 2026-09-25 — M1.6q.10 evidence preservation complete
+
+- Independently sealed two bounded test archives plus the remaining source and
+  diagnostic archive. Assembly accounts for all 18,904 original files and
+  11,003 directories, with byte-equal copies and empty directories preserved.
+  Raw working evidence is retained. Main seal:
+  `a922951d452f65ca77cd6a3fdc337095e2bd716725a6f8a00a85b5170314e28e`.
+  [All three pins](docs/verification/2026-09-25-m1-materialization-scan-composition.md).
+- Final review confirms 439 pinned source files, 138 passing distinct cases,
+  all 421 historical milestone IDs retained, new M1.6q.10, 1,664 valid local
+  links, append-only progress and unchanged prior SPEC text/JSON. Ruff and
+  whitespace pass; all 40 real authority tables still match, no owned runtime.
+- Authentic paired integration remains implemented_unverified; no new native
+  trial, paid call, deadline change, or G1 promotion. Continue the measured
+  lexical-path and protected-session preparation work before another trial.

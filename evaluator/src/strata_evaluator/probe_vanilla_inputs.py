@@ -163,7 +163,7 @@ class VanillaProbeInputs:
     def check(self):
         require(not self.closed and self.lease is not None, "PROBE_PACK_CUSTODY_CLOSED")
         self.preparation.check()
-        self.lease.recheck()
+        # Resolution checks live custody and membership around both role scans.
         require(_resolve_held_materialization(self.binding, self.lease) == self.resolved, "PROBE_PACK_CHANGED")
         if self.policy == BODY_POLICY:
             # preparation.check just reconstructed the complete registered pair

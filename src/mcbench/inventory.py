@@ -114,11 +114,36 @@ def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
     executable startup configuration and transitive downloads remain hash-bound.
     Path names are portable and case collisions are rejected even on Linux.
     """
-    root = root.absolute()
     if _lease is not None:
         from .launch_integrity import FileLease
         require(type(_lease) is FileLease, "MATERIALIZATION_CUSTODY_REQUIRED")
         _lease.recheck()
+    result = _scan_layout(root, max_files=max_files, max_bytes=max_bytes,
+                          reviewed_world_paths=reviewed_world_paths,
+                          hash_file=file_hash if _lease is None else _lease.held_digest)
+    if _lease is not None:
+        _lease.recheck()
+    return result
+
+
+def _scan_held_materialization(root: Path, lease, *, reviewed_world_paths=None):
+    """Check both role layouts between fresh whole-installation membership scans."""
+    from .launch_integrity import FileLease, safe
+    require(type(lease) is FileLease, "MATERIALIZATION_CUSTODY_REQUIRED")
+    root = safe(root)
+    require({t["path"] for t in lease.inventory["trees"]} == {str(root)},
+            "MATERIALIZATION_CUSTODY_SCOPE")
+    lease.recheck()
+    result = {role: _scan_layout(root / role, reviewed_world_paths=reviewed_world_paths,
+                                 hash_file=lease.held_digest) for role in ("client", "server")}
+    lease.recheck()
+    return result
+
+
+def _scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
+                 reviewed_world_paths=None, hash_file):
+    """Per-entry scan; owning entry points supply hashing and any custody checks."""
+    root = root.absolute()
     reject_links(root)
     require(root.is_dir(), "AWAITING_ARTIFACT")
     reviewed_world_paths = reviewed_world_paths or {}
@@ -148,14 +173,12 @@ def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
                 require(len(entries) < max_files and total <= max_bytes, "ARTIFACT_QUOTA")
                 # file_hash checks this path and every ancestor immediately
                 # before opening. Do not repeat that same check above for files.
-                sha = file_hash(path) if _lease is None else _lease.held_digest(path)
+                sha = hash_file(path)
                 if relative in reviewed_world_paths:
                     require(sha == reviewed_world_paths[relative], "VENDOR_CONTENT_MISMATCH")
                 entries.append({"path": relative, "digest": sha,
                                 "bytes": info.st_size})
     require(bool(entries), "EMPTY_INVENTORY")
-    if _lease is not None:
-        _lease.recheck()
     return {"files": sorted(entries, key=lambda e: e["path"]), "directories": sorted(directory_entries)}
 
 

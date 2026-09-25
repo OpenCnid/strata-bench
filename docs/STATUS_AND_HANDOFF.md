@@ -4,6 +4,36 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.10 [materialization scan composition](verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
+Complete held resolution now checks installation membership before and after both
+role layouts, with a live marker/scope guard before authority reads. Every entry
+retains its policy/type/size/hardlink/hash checks; standalone scans and member
+checks retain independent custody.138 distinct source cases pass, no skips.
+Read-only exact-profile resolution7.828s becomes6.078s with identical output;
+five membership scans become two. No new native trial or model call. Native09's
+finite-window refusal and all original bounds/holds remain. Next reduce repeated
+lexical path reconstruction identified by profiling, then inspect protected
+session preparation before another paired trial. All40 real tables unchanged
+at$4.887796; no owned runtime. Full matched-state/tools, native admission,
+clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run. Earlier next
+actions are historical.
+
+Q10 sessions16994/68371/57854/39485 are terminal. Main130 cases pass950.14s;
+paired4 pass175.57s and standalone4 pass5.91s. No source failures/skips. Both
+read-only profiles close custody and deny two write-opens with no config writes.
+Private working evidence:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-materialization-scan-composition-01`.
+Native09 remains the latest actual paired attempt; do not replay its consumed
+input. The new diagnostic is not proof that the full writer exposure now fits.
+
+Q10 evidence is now sealed: main archive
+`2026-09-25-m1-materialization-scan-checks-01`, SHA-256
+`a922951d452f65ca77cd6a3fdc337095e2bd716725a6f8a00a85b5170314e28e`.
+Its assembly binds two separately sealed test parts and accounts for all
+18,904 original files and 11,003 directories. Full pins and verification scope
+are in the linked report. Retain the unsealed raw evidence too; never mutate
+the three sealed archives. No live test or diagnostic session remains.
+
 M1.6q.9 [held-parent path validation](verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
 Directory handles now deny removal before child files open and retain reparse
 entries themselves. Validate held ancestors once, with fresh leaf checks and

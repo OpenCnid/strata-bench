@@ -152,6 +152,7 @@ class FileLease:
 
     def __init__(self, inventory):
         self.inventory, self.handles, self.directories = inventory, [], []
+        self._held_digests = {}
         self.closed = False
         check(os.name == "nt", "BOOTSTRAP_PLATFORM_UNQUALIFIED")
         check(inventory.get("schema") == "strata/LaunchFileInventory/1" and
@@ -213,6 +214,9 @@ class FileLease:
                     sha.update(buffer.raw[:received.value])
                 check(count == entry["bytes"] and sha.hexdigest() == entry["sha256"],
                       "BOOTSTRAP_FILE_CHANGED")
+                # Record the bytes actually hashed through this retained handle,
+                # independently of the caller's mutable inventory dictionary.
+                self._held_digests[str(path)] = sha.hexdigest()
             self.recheck()
         except BaseException:
             self.close()
@@ -226,6 +230,16 @@ class FileLease:
         # Held file and ancestor-directory handles already deny replacement.
         # Only additions need re-enumeration; do not rescan every ancestor per file.
 
+    def held_digest(self, path):
+        """Reuse verified bytes only while their deny-write/delete handles live."""
+        check(not self.closed and len(self.handles) == len(self._held_digests)
+              == len(self.inventory["files"]), "BOOTSTRAP_LEASE_CLOSED")
+        # Those same handles retain every ancestor against replacement. The
+        # caller still checks current membership, file type, size and hardlinks.
+        path = str(_absolute(path))
+        check(path in self._held_digests, "BOOTSTRAP_UNHELD_FILE")
+        return self._held_digests[path]
+
     def close(self):
         self.closed = True
         for handle in self.handles:
@@ -234,6 +248,7 @@ class FileLease:
         for handle in self.directories:
             self.close_handle(handle)
         self.directories.clear()
+        self._held_digests.clear()
 
     def __enter__(self):
         return self

@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from mcbench.launch_integrity import FileLease, safe, snapshot
-from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
+from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch, _resolve_held_materialization
 from mcbench.native_export import OPERATOR
 from mcbench.storage import digest, extended_path, require
 from mcbench.vanilla_persistence import (
@@ -151,7 +151,8 @@ class VanillaProbeInputs:
             self.record["saved_bodies"] = self._bodies(pair)
         # Include exact inventory metadata and all materialization files so a
         # changed template cannot be accepted between resolution and copying.
-        self.lease = FileLease(snapshot([inventory_path], [Path(self.binding.instance)]))
+        self.lease = FileLease(snapshot([inventory_path, Path(resolved["launch"]["executable_path"])],
+                                        [Path(self.binding.instance)]))
         try:
             self.check()
             return self
@@ -163,7 +164,7 @@ class VanillaProbeInputs:
         require(not self.closed and self.lease is not None, "PROBE_PACK_CUSTODY_CLOSED")
         self.preparation.check()
         self.lease.recheck()
-        require(resolve_pack_launch(self.binding, "server") == self.resolved, "PROBE_PACK_CHANGED")
+        require(_resolve_held_materialization(self.binding, self.lease) == self.resolved, "PROBE_PACK_CHANGED")
         if self.policy == BODY_POLICY:
             # preparation.check just reconstructed the complete registered pair
             # and compared its digest. Reuse only that pinned identity here;

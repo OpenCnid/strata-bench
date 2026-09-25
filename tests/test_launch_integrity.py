@@ -134,6 +134,23 @@ def test_changed_bytes_and_partial_acquisition_release_prior_handles(tmp_path):
     a.write_bytes(b"not left locked")
 
 
+def test_held_digest_comes_from_retained_handle_not_mutable_inventory(tmp_path):
+    path, foreign = tmp_path / "held", tmp_path / "foreign"
+    path.write_bytes(b"verified bytes")
+    foreign.write_bytes(b"verified bytes")
+    inventory = snapshot([path], [])
+    expected = hashlib.sha256(path.read_bytes()).hexdigest()
+    with FileLease(inventory) as lease:
+        inventory["files"][0]["sha256"] = "a" * 64
+        assert lease.held_digest(path) == expected
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_UNHELD_FILE"):
+            lease.held_digest(foreign)
+        with pytest.raises(PermissionError):
+            path.write_bytes(b"changed")
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_LEASE_CLOSED"):
+        lease.held_digest(path)
+
+
 def test_parent_changed_to_junction_after_discovery_is_rechecked_under_handles(tmp_path, monkeypatch):
     """Same bytes behind a new junction must not pass merely by matching hashes."""
     from mcbench import launch_integrity as module

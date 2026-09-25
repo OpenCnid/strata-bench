@@ -1860,6 +1860,13 @@ through configuration and owned process cleanup, without closing and reopening
 it. Public read-only resolution releases its handles before returning; neither
 path may skip validation or grant new dispatch/admission authority.
 
+Private fresh vanilla-server rechecks may reuse hashes computed through still-held
+Windows deny-write/delete file handles, including the external executable. Recheck
+current provisioning/CAS authority, exact role and empty-directory layouts, names,
+types, sizes, hardlinks and source membership on every call. Unknown paths, foreign
+trees and closed custody refuse; ordinary public resolution still hashes bytes.
+Hashes come from verified handles, not later edits to an inventory dictionary.
+
 `held-pair-protected-vanilla-worker-reference/1` connects complete held worker
 inputs to saved-body paired server references. Import-check all workers before
 either finite server window, reserve complete runtime/log/state storage, validate

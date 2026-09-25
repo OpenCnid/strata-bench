@@ -4,6 +4,25 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.5 [held materialization checks](verification/2026-09-25-m1-held-materialization-checks.md) is implemented_unverified for authentic paired integration.
+Private server rechecks use hashes verified through live Windows file handles;
+fresh authority, complete layout/type/size/hardlink/membership and external
+executable checks remain.134 distinct source cases pass after a retained refusal-
+ordering failure; three symlink-privilege skips remain. Real-profile diagnostic
+resolution4.875s becomes1.891s/1.953s under held custody, with equal output.
+Case06 passes first-worker projection/normal stop and first-server normal12/12
+stop plus a verified27-file export. Pair fails210.41s before second server dispatch:
+WRITER_EXPOSURE_INSUFFICIENT, outer PROBE_WORLD_CLOSE_UNCERTAIN. Both writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Complete-checkpoint and
+clean-save flags remain false. The audit's initial omission of empty directories
+is retained; a directory-preserving copy verifies the unchanged export.
+Next reuse already-held materialization during private worker input resolution,
+preserving separate member/runtime/config/account custody and fresh authority.
+Original300/200-170/60-60s bounds,cases01-05 and all G1 contracts remain. All40
+real tables unchanged at$4.887796,no owned runtime,no model call or M1 paid
+authority. Full live-state/tool parity,native admission,clocks/disposal,T05/T10 and
+isolation remain open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.4 [initial worker projection](verification/2026-09-25-m1-initial-worker-projection.md) is implemented_unverified for authentic paired integration.
 Accept only ordinary inventory window0 matching own slots, retain exact delivered
 JSON, and persist stop/custody before later state validation.37 distinct source

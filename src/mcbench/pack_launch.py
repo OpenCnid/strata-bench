@@ -78,8 +78,21 @@ credential, runtime dependency and mutable-world boundaries.
         return result
 
 
+def _resolve_held_materialization(binding, lease):
+    """Private fresh vanilla-server recheck using bytes under continuous custody."""
+    from .launch_integrity import FileLease, safe
+    require(type(lease) is FileLease and type(binding) is PackLaunchBinding,
+            "MATERIALIZATION_CUSTODY_REQUIRED")
+    lease.recheck()
+    require({t["path"] for t in lease.inventory["trees"]} == {str(safe(binding.instance))},
+            "MATERIALIZATION_CUSTODY_SCOPE")
+    with _held_pack_launch(binding, "server", _materialization_lease=lease) as (result, _):
+        return result
+
+
 @contextmanager
-def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None, forge_invocation=None):
+def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None, forge_invocation=None,
+                      _materialization_lease=None):
     """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
     store = _absolute(binding.store)
@@ -143,6 +156,10 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
 
     instance = _absolute(binding.instance)
     restored = isinstance(binding, RestoredPackLaunchBinding)
+    if _materialization_lease is not None:
+        require(type(binding) is PackLaunchBinding and not simulation and role == "server"
+                and target == "vanilla" and isinstance(launch, VanillaLaunchProfile),
+                "MATERIALIZATION_CUSTODY_SCOPE")
     if restored:
         require(target == "vanilla" and isinstance(launch, VanillaLaunchProfile) and not simulation,
                 "PACK_RESTORE_UNSUPPORTED")
@@ -171,7 +188,7 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
             continue
         declared = sorted(({"path": entry.path, "digest": entry.digest, "bytes": entry.bytes}
                            for entry in entries if entry.role == selected), key=lambda e: e["path"])
-        require(scan_layout(root, reviewed_world_paths=reviewed)
+        require(scan_layout(root, reviewed_world_paths=reviewed, _lease=_materialization_lease)
                 == {"files": declared, "directories": directories[selected]}, "MATERIALIZATION_CHANGED")
     relative = (Path(".") if command.working_directory == "."
                 else template_path(command.working_directory))
@@ -179,7 +196,9 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
     require(working_directory.is_dir(), "AWAITING_ARTIFACT")
     executable = _absolute(str(instance / role / command.executable_path)
                            if isinstance(launch, E9ELaunchProfile) else command.executable_path)
-    require(executable.stat().st_nlink == 1 and file_hash(executable) == command.executable.digest,
+    executable_hash = (file_hash(executable) if _materialization_lease is None
+                       else _materialization_lease.held_digest(executable))
+    require(executable.stat().st_nlink == 1 and executable_hash == command.executable.digest,
             "HASH_MISMATCH")
     require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
     validate_launch_environment(command.environment)

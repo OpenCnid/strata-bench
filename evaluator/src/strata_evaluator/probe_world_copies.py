@@ -8,7 +8,7 @@ from pathlib import Path
 
 from mcbench.launch_integrity import FileLease
 from mcbench.runtime import CODEX_COMPANION_PINS
-from mcbench.storage import canonical, digest, extended_path, require
+from mcbench.storage import Fault, canonical, digest, extended_path, require
 
 from .craft_reference import check_tree
 from .reference_pair import LOG_LIMIT
@@ -314,14 +314,19 @@ class ProbeWorldCopies:
             results[arm] = WriterPreparations(self.db).run(
                 plans[arm].model_dump(by_alias=True), continuation=held
             )
-            require(
+            closed = (
                 results[arm]["status"]
                 == ("discarded_preparation" if runtime is None else "stopped_reference")
                 and results[arm]["custody"]["status"]
                 == ("discarded" if runtime is None else "stopped")
-                and results[arm]["custody"]["live"] is False,
-                "PROBE_WORLD_CLOSE_UNCERTAIN",
+                and results[arm]["custody"]["live"] is False
             )
+            if not closed:
+                cause = results[arm].get("error")
+                if isinstance(cause, str):
+                    body.setdefault("writer_failure", {"arm": arm, "code": cause})
+                    raise Fault("PROBE_WORLD_CLOSE_UNCERTAIN") from Fault(body["writer_failure"]["code"])
+                raise Fault("PROBE_WORLD_CLOSE_UNCERTAIN")
 
         try:
             with FileLease(runtime_inventory(plans)) as native_inputs:

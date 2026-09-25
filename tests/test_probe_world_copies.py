@@ -254,6 +254,29 @@ def test_foreign_principal_cannot_begin_world_copy(copies, fake_writers):
     assert list(service.db.connection.iterdump()) == before and not fake_writers
 
 
+def test_returned_writer_failure_keeps_outer_guard_and_surfaces_inner_cause(copies, fake_writers, monkeypatch):
+    from strata_evaluator import probe_world_copies as module
+    service, plans, capacity = copies
+    first = next(iter(plans))
+
+    def refuse(self, value, *, continuation):
+        return {"status": "uncertain", "error": "PROBE_WORLD_DEADLINE",
+                "custody": {"status": "uncertain", "live": False}}
+
+    monkeypatch.setattr(module.WriterPreparations, "run", refuse)
+    with pytest.raises(Fault, match="PROBE_WORLD_CLOSE_UNCERTAIN") as caught:
+        service.run(EVALUATOR, plans, continuation=lambda _: pytest.fail("failed writer dispatched continuation"))
+    assert isinstance(caught.value.__cause__, Fault)
+    assert caught.value.__cause__.code == "PROBE_WORLD_DEADLINE"
+    row = service.db.connection.execute("SELECT state,body FROM probe_world_copies").fetchone()
+    body = json.loads(row["body"])
+    assert row["state"] == "FAILED" and body["failure"] == "PROBE_WORLD_CLOSE_UNCERTAIN"
+    assert body["writer_failure"] == {"arm": first, "code": "PROBE_WORLD_DEADLINE"}
+    assert body["results"][first]["error"] == "PROBE_WORLD_DEADLINE"
+    assert reserved_resources(service.db.connection, "probe-worker") == capacity
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+
+
 @pytest.mark.skipif(
     not os.environ.get("STRATA_PROBE_WRITER_RUNTIME"),
     reason="explicit existing native writer pins required",

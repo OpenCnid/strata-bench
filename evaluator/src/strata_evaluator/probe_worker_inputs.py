@@ -128,6 +128,11 @@ class HeldProbeWorkerInputs:
         """Private lifecycle consumer checks its process phases separately."""
         require(self._resources is not None and not self.closed, "PROBE_WORKER_INPUTS_CLOSED")
         self.software.check()
+        self._check_bindings_and_files()
+
+    def _check_bindings_and_files(self):
+        """Private component of a check that already validates shared software."""
+        require(self._resources is not None and not self.closed, "PROBE_WORKER_INPUTS_CLOSED")
         require(self._bindings() == self._binding_refs, "PROBE_WORKER_BINDING_CHANGED")
         self._check_accounts()
         for arm, group in self._workers.items():

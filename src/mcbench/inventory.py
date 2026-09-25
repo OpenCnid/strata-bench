@@ -126,13 +126,13 @@ def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
             template_path(relative, reviewed_world_paths=reviewed_world_paths)
             require(relative.casefold() not in seen, "PATH_COLLISION")
             seen.add(relative.casefold())
-            reject_links(path)
             info = path.lstat()
             require(stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode), "UNSAFE_PATH")
             if relative in reviewed_world_paths:
                 require(stat.S_ISDIR(info.st_mode) == (reviewed_world_paths[relative] is None),
                         "VENDOR_CONTENT_MISMATCH")
             if stat.S_ISDIR(info.st_mode):
+                reject_links(path)
                 directory_entries.append(relative)
                 require(len(directory_entries) <= 200000, "ARTIFACT_QUOTA")
             if stat.S_ISREG(info.st_mode):
@@ -141,6 +141,8 @@ def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
                 require(info.st_nlink == 1, "UNSAFE_PATH")
                 total += info.st_size
                 require(len(entries) < max_files and total <= max_bytes, "ARTIFACT_QUOTA")
+                # file_hash checks this path and every ancestor immediately
+                # before opening. Do not repeat that same check above for files.
                 sha = file_hash(path)
                 if relative in reviewed_world_paths:
                     require(sha == reviewed_world_paths[relative], "VENDOR_CONTENT_MISMATCH")

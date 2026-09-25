@@ -1867,6 +1867,12 @@ scoped grants and gather ordinary connected observations for the whole arm.
 Drain all workers before server save; retain the first worker export through its
 sibling, stop remaining owned workers on failure and preserve parent holds.
 This operator reference exposes no model/action or native probe authority.
+Each composed runtime check validates shared software/parent custody once and
+all member bindings, account/config/runtime files and process phases. Standalone
+member checks still validate shared custody. Persist and flush each successful
+import stop receipt before advancing its phase; receipt failure prevents server
+launch. Returned writer failures retain the first inner cause alongside the
+unchanged outer close refusal, without releasing reservations or claiming disposal.
 Its private `registered-worker-initial-own-projection/1` checks normal owned stop,
 saved UUID, single identity/epoch, zero actions/primitives and exact journalled
 delivery, then compares the existing own-state projection. This does not cover

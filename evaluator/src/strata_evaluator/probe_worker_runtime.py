@@ -6,6 +6,7 @@ probe claim. Workers drain before their server saves; failures fence the pair.
 
 from datetime import datetime, timezone
 from pathlib import Path
+import os
 import time
 import uuid
 
@@ -53,6 +54,9 @@ class PairedWorkerReference(PairedVanillaRuntime):
 
     def check_workers(self):
         self.inputs._check_custody()
+        self._check_worker_phases()
+
+    def _check_worker_phases(self):
         for (arm, agent), phase in self.phases.items():
             worker = self.workers[arm][agent]
             expected = set() if phase == "HELD" else {"preflight"} if phase == "IMPORTED" else {"preflight", "worker"}
@@ -67,12 +71,18 @@ class PairedWorkerReference(PairedVanillaRuntime):
             lease.recheck()
 
     def check(self):
+        require(self._scope().software is self.inputs.software, "PROBE_WORKER_SOFTWARE_SCOPE")
         super().check()
-        self.check_workers()
+        # The base check includes the complete shared software/parent check.
+        # Compose the remaining member custody and phases without repeating it.
+        self.inputs._check_bindings_and_files()
+        self._check_worker_phases()
 
     def _write(self, output, name, value):
         with (output / name).open("xb") as stream:
             stream.write(canonical(value))
+            stream.flush()
+            os.fsync(stream.fileno())
 
     def _wait(self, predicate, seconds, code):
         until = min(self.held.preparation.deadline, *(w.deadline for w in self.held.writers.values()),
@@ -109,9 +119,11 @@ class PairedWorkerReference(PairedVanillaRuntime):
             self.logs.append(log)
             self._wait(lambda: process.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT")
             log.finish()
-            worker.receipt()
+            self._write(output, "preflight-receipt.json", worker.receipt())
             self.phases[arm, agent] = "IMPORTED"
-        self.check_workers()
+        # Base run constructs the held initial states, then performs the full
+        # composed check before any server dispatch. Each import's owned stop
+        # has already been checked and persisted above; custody stays held.
 
     def _observe(self, worker, transport):
         config = worker.resolved["worker_configuration"]

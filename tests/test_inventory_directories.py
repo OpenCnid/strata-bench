@@ -1,6 +1,8 @@
 """Synthetic pack round trips; no Minecraft or inference execution."""
 
 from pathlib import Path
+import os
+import subprocess
 
 import pytest
 
@@ -9,6 +11,38 @@ from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
 from mcbench.storage import CAS, Database, Fault
 from test_pack_launch import rows
 from test_provisioning import prepare_fixture, seal
+
+
+@pytest.mark.skipif(os.name != "nt", reason="actual Windows junction substitution")
+def test_final_inventory_hash_rejects_ancestor_substitution_after_metadata(tmp_path, monkeypatch):
+    from mcbench import inventory
+    root, backup, other = (tmp_path / n for n in ("installed", "original", "replacement"))
+    for path in (root, other):
+        path.mkdir()
+        (path / "software.jar").write_bytes(b"same synthetic bytes")
+    original = inventory.file_hash
+    swapped = False
+
+    def swap(path):
+        nonlocal swapped
+        assert path.name == "software.jar" and not swapped
+        assert all(p.resolve().is_relative_to(tmp_path.resolve()) for p in (root, other))
+        assert backup.absolute().parent == tmp_path.absolute() and not backup.exists()
+        root.rename(backup)
+        subprocess.run(["cmd", "/c", "mklink", "/J", str(root), str(other)], check=True,
+                       capture_output=True)
+        swapped = True
+        return original(path)
+
+    monkeypatch.setattr(inventory, "file_hash", swap)
+    try:
+        with pytest.raises(Fault, match="UNSAFE_PATH"):
+            scan_layout(root)
+        assert swapped
+    finally:
+        if swapped:
+            os.rmdir(root)  # Remove only the junction, never its target tree.
+    assert (backup / "software.jar").read_bytes() == (other / "software.jar").read_bytes()
 
 
 @pytest.fixture

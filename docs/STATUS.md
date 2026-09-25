@@ -3,6 +3,25 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.3 [composed worker checks](verification/2026-09-25-m1-worker-check-composition.md) is implemented_unverified for authentic paired integration.
+Shared software custody is checked once per composed call; every member and
+standalone check retains its validation. Import receipts persist before phase
+advance, returned inner errors are retained, and final file link/hash checks
+remain.94 distinct source cases pass; one opt-in native copier case skips.
+Case04 reaches the first server and worker, then fails PROBE_INITIAL_OBSERVATION
+on ordinary inventory window0; outer PROBE_WORLD_CLOSE_UNCERTAIN remains. Both
+import job receipts persist; normal worker supervisor stop is retained, but the
+complete worker job receipt was not persisted before later validation failed.
+Server cleanup is forced125 with12/12 terminal. Both writer rows UNCERTAIN,
+world FAILED,parent FENCED,all reservations held. The journal's omitted optional
+machine field also differs from the normalized observation. Retain case04 and
+the first audit equality failure. Next fix these observation-contract mismatches
+and persist worker stop/custody before later validation, with focused negatives
+before a changed native case. Original finite windows and cases01-03 remain.
+All40 real tables unchanged at$4.887796,no owned runtime,no model call or M1
+inference authority. Full live-state/tool parity,native admission,clocks/disposal,
+T05/T10 and isolation stay open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.2 [retained runtime custody](verification/2026-09-25-m1-retained-worker-resolution.md) is implemented_unverified for authentic paired integration.
 The launcher retains the runtime opened by sealed resolution through config and
 owned cleanup; public resolution still releases handles.93 focused source cases

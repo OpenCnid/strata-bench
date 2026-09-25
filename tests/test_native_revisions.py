@@ -18,29 +18,35 @@ stopped = _stopped
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example, configs, request):
-    admitted = _admitted.__wrapped__(database, cas, tmp_path, example, configs, request)
+def admitted(database, cas, tmp_path, example, configs, request, *, model="gpt-5.6-luna", script=None):
+    admitted = _admitted.__wrapped__(database, cas, tmp_path, example, configs, request, model=model)
     b = admitted[2]
     original = b.call
     case = getattr(request.node, "callspec", None)
     change = case.params.get("request_change") if case else None
+    def selected_meta():
+        return broker_meta(model=model)
     def call(name, arguments, meta, **kwargs):
         result = original(name, arguments, meta, **kwargs)
         if name == "artifact_write" and arguments["path"] == "notes/root.md":
             evidence = original("artifact_write", {"path": "notes/development.md", "expected_ref": None,
-                "text": "Synthetic fixture development observation; no real game or activation result."}, broker_meta())
+                "text": "Synthetic fixture development observation; no real game or activation result."}, selected_meta())
             candidates = []
             for skill, paths in [("learned-crafting", ["SKILL.md", "references/steps.md", "scripts/check.py"]),
                                  ("learned-movement", ["SKILL.md"])]:
+                if script is not None and skill == "learned-crafting":
+                    paths.append("scripts/check.js")
                 files = {}
                 for path in paths:
                     value = original("artifact_write", {"path": f"skills/{skill}/{path}",
-                        "text": ("x" * 262144 if change == "aggregate_quota" and path == "SKILL.md"
+                        "text": (script if path == "scripts/check.js" else
+                            "x" * 262144 if change == "aggregate_quota" and path == "SKILL.md"
                             else (f"---\nname: {skill}\ndescription: Synthetic learned procedure\n---\n"
                                   "Synthetic learned body.\n") if path == "SKILL.md"
-                            else "Synthetic learned content: " + path), "expected_ref": None}, broker_meta())
+                            else "Synthetic learned content: " + path), "expected_ref": None}, selected_meta())
                     files[path] = value["ref"]
-                candidates.append({"revision_id": skill + ":1", "name": skill, "kind": "procedure",
+                candidates.append({"revision_id": skill + ":1", "name": skill,
+                    "kind": "executable" if script is not None and skill == "learned-crafting" else "procedure",
                     "parent_revision_id": None, "files": files, "inputs": {"notes/root.md": result["ref"]},
                     "development_evidence": {"notes/development.md": evidence["ref"]}})
             body = {"schema": "strata/NativeSkillPublicationRequest/1", "policy": POLICY, "candidates": candidates}
@@ -52,7 +58,7 @@ def admitted(database, cas, tmp_path, example, configs, request):
                 candidates[0]["name"] = "minecraft-keybindings"
             elif change == "baseline_input":
                 candidates[0]["inputs"] = {"docs/allowed.md": original("artifact_read", {
-                    "path": "docs/allowed.md"}, broker_meta())["ref"]}
+                    "path": "docs/allowed.md"}, selected_meta())["ref"]}
             elif change == "duplicate_id":
                 candidates[1]["revision_id"] = candidates[0]["revision_id"]
             elif change == "evidence_missing":
@@ -62,7 +68,7 @@ def admitted(database, cas, tmp_path, example, configs, request):
             elif change == "unknown_field":
                 candidates[0]["activate"] = True
             original("artifact_write", {"path": MANIFEST, "text": canonical(body).decode(),
-                                       "expected_ref": None}, broker_meta())
+                                       "expected_ref": None}, selected_meta())
         return result
     b.call = call
     return admitted

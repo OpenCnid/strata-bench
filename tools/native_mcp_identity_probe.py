@@ -91,7 +91,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
         selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
-        activation_script=None):
+        activation_script=None, selected_activation=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -116,6 +116,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             and game_probe is None and game_recovery is None and game_retention is None,
             "SCRIPT_ACTIVATION_REQUIRED")
     script_probe = None
+    activation_controller = None
+    require(type(selected_activation) is bool and (not selected_activation or activation_source is not None
+            and model == "gpt-6-luna" and broker_mode and admission_mode and bootstrap_mode
+            and ingress_mode and oauth_mode and tool_projections is not None and no_patch_catalog is not None
+            and game_probe is None and game_retention is None and game_recovery is None),
+            "SELECTED_ACTIVATION_REQUIRED")
     if campaign_boundary_probe is not None:
         require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
                 and game_probe is None and game_retention is None and game_recovery is None
@@ -138,7 +144,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 gateway_mode, skills_mode, activation_source, game_probe if campaign_boundary_probe is None else None, piloting_contract,
                 runtime_boundary, selected_state_boundary, selected_retirement_boundary,
                 selected_helper_pair, cross_team_probe)), "TEAM_CHANNEL_PROFILE_REQUIRED")
-    selected_broker_policy = TEAM_POLICY if team_channel_probe else POLICY
+    selected_broker_policy = TEAM_POLICY if team_channel_probe or selected_activation else POLICY
     require(cross_team_probe is None or type(cross_team_probe) is CrossTeamProbe and
             bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
             tool_projections is not None and no_patch_catalog is not None and not any((
@@ -605,6 +611,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             plan = game_recovery.prepare(runtime, plan)
         if activation:
             plan = activation.prepare(runtime, plan)
+            if selected_activation:
+                from native_activation_controller import ActivationController
+                plan = plan.model_copy(update={"helper_limit": 1})
+                activation_controller = ActivationController(runtime, activation.body, plan)
+                activation_controller.__enter__()
             if activation_script is not None:
                 from native_active_script_probe import ActiveScriptProbe
                 from mcbench.native_export import OPERATOR
@@ -704,7 +715,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
             "purpose": "campaign" if campaign_boundary_probe else "development_piloting" if piloting_contract else plan.purpose,
             "broker_policy": selected_broker_policy if admission_mode else None,
-            **({"team_policy_ref": team_channel_probe.store.policy_ref} if team_channel_probe else {}),
+            **({"team_policy_ref": team_channel_probe.store.policy_ref} if team_channel_probe else
+               {"team_policy_ref": activation_controller.policy_ref} if activation_controller else {}),
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
@@ -724,7 +736,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
                 conformance_helpers=not campaign_boundary_probe and bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe),
-                campaign_team=campaign_boundary_probe is not None)})
+                campaign_team=campaign_boundary_probe is not None or selected_activation)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -771,6 +783,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             cross_team_probe.before_launch()
         if team_channel_probe:
             team_channel_probe.store.healthy()
+        if activation_controller:
+            activation_controller.healthy(plan)
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
@@ -799,21 +813,26 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 client.close()
         wait_job(runtime, plan)
     finally:
-        if gateway:
-            gateway.stop_admission()
-        for job in list(runtime.live):
-            runtime.interrupt(job, "probe_cleanup")
-        if gateway:
-            gateway_seal = gateway.close(runtime)
-        provider.close()
-        if worker:
-            worker.shutdown()
-            worker.server_close()
-            worker_thread.join(3)
-        if canaries:
-            canaries.close()
-        if native_worker and native_worker.job:
-            native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
+        try:
+            if gateway:
+                gateway.stop_admission()
+            for job in list(runtime.live):
+                runtime.interrupt(job, "probe_cleanup")
+            if gateway:
+                gateway_seal = gateway.close(runtime)
+            provider.close()
+            if worker:
+                worker.shutdown()
+                worker.server_close()
+                worker_thread.join(3)
+            if canaries:
+                canaries.close()
+            if native_worker and native_worker.job:
+                native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
+        finally:
+            if activation_controller:
+                activation_controller.__exit__()
+                (output / "activation-controller.json").write_text(json.dumps(activation_controller.report()), encoding="utf-8")
     calls = [json.loads(line) for path in sorted(output.glob("mcp-*.jsonl"))
              for line in path.read_text(encoding="utf-8").splitlines()]
     result = {"schema": "strata/NativeMcpIdentityProbe/1", "is_example": True,
@@ -926,6 +945,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if script_probe:
             result["active_script"] = script_probe.report()
             result["checks"].update(result["active_script"]["checks"])
+        if activation_controller:
+            result["activation_controller"] = activation_controller.report()
+            result["checks"]["activation_controller_owned_and_drained"] = bool(activation_controller.heartbeats) and (
+                not activation_controller.errors and result["activation_controller"]["thread_stopped"])
     if game_retention:
         result["retention"] = game_retention.finish()
         result["checks"]["preregistered_native_retention_component"] = True

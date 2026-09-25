@@ -22,7 +22,7 @@ from mcbench.storage import CAS, Database, Fault, Principal, canonical, digest
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example):
+def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna"):
     NativeExec(database, cas, simulation=True)
     gate = InferenceDispatches(database, cas, simulation=True)
     gate.budgets.create_account("a1", dict.fromkeys(DIMENSIONS, 100000), "c1", "a1",
@@ -35,7 +35,7 @@ def admitted(database, cas, tmp_path, example):
         "parent_job_id": None, "depth": 0, "account": "a1", "operation_id": "job-envelope",
         "workspace": str(tmp_path / "workspace"), "profile_directory": str(tmp_path / "profile"),
         "executable": sys.executable, "binary_digest": "a" * 64, "binary_version": CODEX_VERSION,
-        "dovetail_commit": DOVETAIL_COMMIT, "model": "gpt-5.6-luna", "config_overrides": config,
+        "dovetail_commit": DOVETAIL_COMMIT, "model": model, "config_overrides": config,
         "environment": {}, "prompt": "ordinary goal", "hard_timeout_s": 120,
         "output_limit_bytes": 1048576, "qualification_ref": None, "budget_mode": "per_dispatch",
         "broker_policy": POLICY, "helper_limit": 2})
@@ -108,10 +108,10 @@ def admitted(database, cas, tmp_path, example):
     return admission, gate, broker, plan, request, prepare, put
 
 
-def broker_meta(thread="root", parent=None):
+def broker_meta(thread="root", parent=None, *, model="gpt-5.6-luna"):
     return {"callId": "call", "threadId": thread, "x-codex-turn-metadata": {
         "thread_id": thread, "session_id": "root", "parent_thread_id": parent,
-        "codex_version": CODEX_VERSION.removeprefix("codex-cli "), "model": "gpt-5.6-luna",
+        "codex_version": CODEX_VERSION.removeprefix("codex-cli "), "model": model,
         "thread_source": "subagent" if parent else "user", "subagent_kind": "thread_spawn"}}
 
 

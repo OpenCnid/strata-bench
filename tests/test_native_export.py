@@ -24,9 +24,9 @@ def stopped(admitted):
         broker.project("child", "supplied/plan.md", "Only helper task.")
         for path, text in [("notes/root.md", "Own prior note."), ("skills/draft.md", "Unactivated draft."),
                            ("handoff/next.md", "Fresh goal continuation.")]:
-            broker.call("artifact_write", {"path": path, "text": text, "expected_ref": None}, broker_meta())
+            broker.call("artifact_write", {"path": path, "text": text, "expected_ref": None}, broker_meta(model=plan.model))
         broker.call("artifact_write", {"path": "results/private.md", "text": "Unshared helper result.",
-            "expected_ref": None}, broker_meta("child", "root"))
+            "expected_ref": None}, broker_meta("child", "root", model=plan.model))
     _, ref, _, observed = scenario(admitted, before_revoke=files)
     settle(admitted, observed)
     admission.retire("job", "child", ref)

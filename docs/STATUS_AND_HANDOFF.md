@@ -22,12 +22,14 @@ Do not repeat the game run to change that verdict. Next implement/verify selecte
 executable skill loading and fresh handoff, then reconcile remaining client/log/
 registry and one-way probe routes against the exact integrated profile.
 
-M1.4a now adds the [activated JavaScript fixture](verification/2026-09-24-m1-active-script-source.md),
-53 source checks and no authentic invocation yet. Next prepare a new D17 source
-with a complete synthetic checkpoint and learned `.js` bundle, then connect the
-owned target-epoch controller/heartbeat and campaign catalog /5. Historical
-GPT-5.6 activation stores remain unchanged. The selected-native fixture must
-still join execution, scoped broker effects, fresh state and accounting.
+M1.4a now has [actual activated JavaScript evidence](verification/2026-09-24-m1-active-script-native.md):
+177 focused source checks,36/36 native and22/22 independent reconstruction.
+Root/helper execute exact active bytes; root writes succeed/helper writes refuse;
+eight scripted requests settle for112 units, prior56 preserved. Stopped export
+and executable candidate2 retain real native provenance. Historical GPT-5.6
+stores remain unchanged. Next complete the held controller CHECKPOINTING
+transition/new complete checkpoint and fresh activation; current sealed epoch2
+controller is RUNNING with expired lease and must not be retroactively rewritten.
 
 G1 requires complete T01/T04/T05/T06/T10/T11. Full capable settings extension,
 protected scorer controls and matched one-way probes remain open. M1.5/M1.6
@@ -292,3 +294,39 @@ Source-only bundle2026-09-24-m1-active-script-source-01 has7files/103767bytes,
 seal d7282b917326f9ee34fcd0b8f675ba1e112f6a7f84c4091698b84254720f0f4e.
 All40 authority tables unchanged; no matching owned fixture process. M1/G1 goal
 active, M1.4a in_progress, G1 not_run. Full requirements are unchanged.
+
+## Actual selected active-script checkpoint
+
+The [actual selected native continuation](verification/2026-09-24-m1-active-script-native.md)
+supersedes the preceding source checkpoint's next action. Source custody now
+copies only exact sealed stopped synthetic DB/CAS files and rejects live WALs,
+extra files, unsafe links/paths and changed sources. Owned activation controller
+claims the next epoch through normal APIs, preserves its held reservation and
+waits for its first heartbeat. Fresh optional fixture parameters create D17
+model/executable records before sealing, with historical defaults unchanged.
+
+177 distinct focused checks pass;36/36 actual native and22/22 read-only audit.
+Profile10eef5c409b9d79584cc3ea4de3ec8d27976d78d8a147742100ed9dc28d684ce.
+Root/helper execute exact learned JavaScript. Root artifact write succeeds,
+helper identical write rejects. Eight requests (5+3) settle112 synthetic units,
+prior56 retained. Both close; held native process drains; export reconstructs.
+Actual root publication becomes executable candidate learned-crafting:2 with
+parent:1, inherited unchanged script and native SKILL.md/publication writes.
+It has no activation timestamp and has not run in a new episode.
+
+Producer2026-09-24-m1-active-script-native-01:4,170files/78,459,675bytes,
+seal5998eafaa4f4d0760da81df41002e1198be5a71a20eb26c2c418726dbfbffd04.
+Audit2026-09-24-m1-active-script-audit-01:5files/25,365bytes,
+seal4638dc3c1b085cd09992e1ff9544df2870c2d58715f4ec7daa814d634411d1e9.
+Keep first import failure, heartbeat test failure and21/22 audit alongside fixes.
+Never rerun their sealed one-use scripts. All40 real authority tables match;
+exposure$4.887796/holds unchanged, no owned fixture processes. Synthetic game,
+world/readiness and local scripted provider, no paid M1 authority or qualification.
+
+Next normal episode dependency: the fixture controller currently exits while
+RUNNING at epoch2. Do not rewrite its expired lease/state to manufacture a new
+complete checkpoint. Implement held-owner transition to CHECKPOINTING and bind
+normal native closure/publication to a complete target-epoch checkpoint. Verify
+one new changed bounded case and fresh activation/context, with original costs,
+candidate lineage and matched frozen controls. Source scope remains M1.4a,
+SPEC6.2/6.3; actual game macros, combined-profile isolation, T05/T10/T11 remain.

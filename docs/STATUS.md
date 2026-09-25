@@ -91,5 +91,13 @@ and probe boundaries. .9d/M1 in_progress; G1 not_run.
 now passes53 focused checks under M1.4a. Exact active bytes must be returned by
 each participant's registered artifact read before native exec issuance; framed
 completion remains separate from broker-effect qualification. Actual selected
-native execution is unverified. Next: fresh D17 checkpoint source and owned
-target-epoch controller/catalog /5 integration, preserving historical profiles.
+native execution was unverified at that source checkpoint.
+
+[Actual selected JavaScript](verification/2026-09-24-m1-active-script-native.md)
+now passes36/36 native and22/22 independent checks, with177 focused source
+passes. Exact root/helper execution, permitted root write/helper refusal,
+stopped export and executable candidate2 join; eight requests settle112 fixture
+units with prior56 preserved. Source custody and owned epoch2 controller use
+catalog /5. Game/world/readiness/provider remain synthetic, USD0. Next complete
+held CHECKPOINTING transition and fresh activation through a complete checkpoint.
+All40 real authority tables unchanged; no RuntimeQualification or G1 promotion.

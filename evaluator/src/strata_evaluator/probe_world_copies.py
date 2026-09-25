@@ -13,6 +13,7 @@ from mcbench.storage import canonical, digest, extended_path, require
 from .craft_reference import check_tree
 from .reference_pair import LOG_LIMIT
 from .writer_preparation import WriterPreparations, parse_preparation_plan, pinned_inventory
+from .probe_vanilla_inputs import VanillaProbeInputs
 
 POLICY = "held-pair-protected-world-copies/1"
 
@@ -29,20 +30,23 @@ def runtime_inventory(plans):
 
 
 class HeldProbeWorldCopies:
-    def __init__(self, preparation, pair, writers):
+    def __init__(self, preparation, pair, writers, software=None):
         self.preparation, self.pair, self.writers = preparation, pair, writers
+        self.software = software
         self.closed = False
 
     def check(self):
         require(not self.closed, "PROBE_WORLD_CUSTODY_CLOSED")
         self.preparation.check()
+        if self.software is not None:
+            self.software.check()
         require(set(self.writers) == set(self.pair["arm_order"]), "PROBE_WORLD_ROSTER")
         for writer in self.writers.values():
             writer.check()
             require(not writer.launched and not writer.completed, "PROBE_WORLD_ALREADY_LAUNCHED")
             check_tree(writer.tree.path, writer.plan.sources)
         return {
-            "policy": POLICY,
+            "policy": POLICY if self.software is None else self.software.record["policy"],
             "world_digest": self.pair["world_digest"],
             "roots": {arm: str(writer.tree.path) for arm, writer in self.writers.items()},
             "native_launch_authorized": False,
@@ -60,7 +64,14 @@ class ProbeWorldCopies:
                 "plan TEXT,state TEXT,body TEXT,PRIMARY KEY(namespace,pair))"
             )
 
-    def run(self, principal, values, *, continuation):
+    def run(self, principal, values, *, continuation, pack_binding=None):
+        self.preparation.views.pairs._authorize(principal)
+        if pack_binding is not None:
+            with VanillaProbeInputs(self.preparation, pack_binding) as software:
+                return self._run(principal, values, continuation=continuation, software=software)
+        return self._run(principal, values, continuation=continuation)
+
+    def _run(self, principal, values, *, continuation, software=None):
         """Prepare both exact worlds, borrow them together, then discard unlaunched.
 
         A later game-launch policy must explicitly extend this lifetime. A
@@ -77,15 +88,20 @@ class ProbeWorldCopies:
         plans = {arm: parse_preparation_plan(value) for arm, value in values.items()}
         namespaces = []
         total = sum(entry["bytes"] for entry in prep.plan["inventory"]["files"])
+        if software is not None:
+            total += sum(entry["bytes"] for entry in software.lease.inventory["files"])
         for arm, plan in plans.items():
             root = target / pair["arm_directories"][arm] / "server"
-            require(
-                extended_path(Path(plan.source_root)) == root
-                and set(plan.sources) == set(pair["world_files"]),
-                "PROBE_WORLD_SOURCE",
-            )
+            if software is not None:
+                software.validate(arm, plan)
+            else:
+                require(
+                    extended_path(Path(plan.source_root)) == root
+                    and set(plan.sources) == set(pair["world_files"]),
+                    "PROBE_WORLD_SOURCE",
+                )
             require((plan.evidence_kind == "synthetic") is pair["is_example"], "PROFILE_MISMATCH")
-            for name, ref in pair["world_files"].items():
+            for name, ref in pair["world_files"].items() if software is None else []:
                 pin = plan.sources[name]
                 record = self.db.connection.execute(
                     "SELECT bytes FROM objects WHERE namespace=? AND ref=?",
@@ -106,7 +122,19 @@ class ProbeWorldCopies:
                     not p.exists()
                     and all(
                         not p.is_relative_to(q) and not q.is_relative_to(p)
-                        for q in [target, view_target, *namespaces]
+                        for q in [
+                            target,
+                            view_target,
+                            *namespaces,
+                            *(
+                                [
+                                    extended_path(Path(software.binding.instance)),
+                                    extended_path(Path(software.binding.store)),
+                                ]
+                                if software is not None
+                                else []
+                            ),
+                        ]
                     )
                     for p in paths
                 ),
@@ -125,13 +153,15 @@ class ProbeWorldCopies:
         require(len({p.id for p in plans.values()}) == 2, "PROBE_WORLD_IDENTITY")
         require(total <= prep.plan["resources"]["disk_bytes"], "PROBE_STORAGE_LIMIT")
         plan = {
-            "policy": POLICY,
+            "policy": POLICY if software is None else software.record["policy"],
             "preparation_digest": digest(prep.plan),
             "world_digest": pair["world_digest"],
             "writers": {arm: p.model_dump(by_alias=True) for arm, p in plans.items()},
             "copy_storage_bound": total,
             "native_launch_authorized": False,
         }
+        if software is not None:
+            plan["software"] = software.record
         key = (prep.views.namespace, prep.pair_id)
         with self.db.transaction() as db:
             require(
@@ -152,7 +182,7 @@ class ProbeWorldCopies:
             )
         writers, results, borrowed = {}, {}, None
         body = {
-            "policy": POLICY,
+            "policy": plan["policy"],
             "plan_digest": digest(plan),
             "native_launch_authorized": False,
             "live_initial_state_verified": False,
@@ -162,7 +192,7 @@ class ProbeWorldCopies:
         def stage(index):
             nonlocal borrowed
             if index == len(pair["arm_order"]):
-                borrowed = HeldProbeWorldCopies(prep, pair, writers)
+                borrowed = HeldProbeWorldCopies(prep, pair, writers, software)
                 body["held"] = borrowed.check()
                 with self.db.transaction() as db:
                     db.execute(
@@ -217,6 +247,8 @@ class ProbeWorldCopies:
                 stage(0)
                 native_inputs.recheck()
             prep.check()
+            if software is not None:
+                software.check()
             with self.db.transaction() as db:
                 db.execute(
                     "UPDATE probe_world_copies SET state='DISCARDED',body=? WHERE namespace=? AND pair=?",

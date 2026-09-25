@@ -4,6 +4,22 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6i [sealed vanilla probe software](verification/2026-09-25-m1-probe-software.md)
+connects the registered pair to exact sealed server inputs under file custody.
+It requires complete vanilla state, preserves explicit path mapping and refuses
+unsupported layouts. Writer path containment now normalizes Windows aliases.
+52 distinct focused cases and29/29 read-only reconstruction checks pass; two
+retained native plans pass normalized containment without a rerun. All40 real
+authority tables/holds remain unchanged. Actual game/native probe integration
+stays implemented_unverified, with G1 not_run and no paid execution.
+Next supply complete registered authentic vanilla state and a fresh materialized
+sealed pack, use disjoint input/workspace/evidence namespaces, and verify actual
+protected software copying followed by held server/worker readiness. The source
+ancestor is bookkeeping, never a native read grant. Current writer launch modes
+support synthetic fixtures and the separately identified E9E reference; vanilla
+needs a reviewed launch extension before game execution. Keep probe startup
+closed until complete scoped admission, matching and disposal are implemented.
+
 M1.6h [held protected world copies](verification/2026-09-25-m1-probe-world-copies.md)
 adds a whole-pair native writer lifetime while original files and all resource/
 cost holds stay protected.47 source cases and one actual native pair pass;

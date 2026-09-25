@@ -57,6 +57,34 @@ def test_changed_or_unsafe_preparation_scope_rejects_before_dispatch(plan, chang
         WriterPreparationPlan.model_validate(plan)
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended path aliases")
+@pytest.mark.parametrize("field", ["workspace_directory", "evidence_directory"])
+def test_extended_path_alias_cannot_hide_output_inside_source(plan, field):
+    from mcbench.storage import extended_path
+    plan["source_root"] = str(extended_path(Path(plan["source_root"])))
+    plan["sources"]["world/level.dat"]["path"] = str(extended_path(Path(plan["sources"]["world/level.dat"]["path"])))
+    plan[field] = str(Path(plan["source_root"].removeprefix("\\\\?\\")) / "nested")
+    with pytest.raises(ValueError, match="WRITER_SOURCE_SCOPE|WRITER_WORKSPACE_SCOPE"):
+        WriterPreparationPlan.model_validate(plan)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended path aliases")
+def test_equivalent_source_path_spellings_still_accept_disjoint_outputs(plan):
+    from mcbench.storage import extended_path
+    plan["source_root"] = str(extended_path(Path(plan["source_root"])))
+    assert WriterPreparationPlan.model_validate(plan).source_root == plan["source_root"]
+
+
+def test_probe_software_cannot_accept_a_restored_binding_object_as_fresh_template(tmp_path):
+    from mcbench.pack_launch import RestoredPackLaunchBinding
+    from strata_evaluator.probe_vanilla_inputs import VanillaProbeInputs
+    binding = RestoredPackLaunchBinding(store=str(tmp_path / "store"), request_id="pack",
+        lock="cas:sha256:" + "a" * 64, instance=str(tmp_path / "restored"),
+        restoration={"snapshot": str(tmp_path / "snapshot"), "sha256": "b" * 64})
+    with pytest.raises(Fault, match="PROBE_PACK_TEMPLATE"):
+        VanillaProbeInputs(None, binding)
+
+
 class HeldJob:
     def __init__(self, actual):
         self.actual = actual

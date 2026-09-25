@@ -164,6 +164,15 @@ complete that coordinator, all-N admission and scoped native projection, then
 actual matched-state and one-way disposal evidence. Existing account, campaign
 activation/publication and all six runtime-proof requirements remain intact.
 
+M1.6i [sealed vanilla probe software](docs/verification/2026-09-25-m1-probe-software.md)
+connects the registered pair to exact sealed server inputs under file custody.
+It requires complete vanilla state, preserves explicit path mapping and refuses
+unsupported layouts. Writer path containment now normalizes Windows aliases.
+52 distinct focused cases and29/29 read-only reconstruction checks pass; two
+retained native plans pass normalized containment without a rerun. All40 real
+authority tables/holds remain unchanged. Actual game/native probe integration
+stays implemented_unverified, with G1 not_run and no paid execution.
+
 M1.6h [held protected world copies](docs/verification/2026-09-25-m1-probe-world-copies.md)
 adds a whole-pair native writer lifetime while original files and all resource/
 cost holds stay protected.47 source cases and one actual native pair pass;
@@ -624,6 +633,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6f | AR/SI/RS/QA | Held pair/view files and atomic whole-pair evaluation envelopes/shared worker capacity; inherits M1.6a-e, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Custody verification](docs/verification/2026-09-25-m1-probe-custody.md):86 distinct passes, three existing symbolic-link privilege skips; audit73/73+3/3. Actual Windows write/delete denial and owner-process exit with synthetic N=1 pair/capacity/budget records. Both arms reserve atomically; failure/expiry/dead ownership retains resources and costs. Explicit preparation-only release never refunds/rearms. No actual native/game launch, live-state equivalence, N>1 acceptance, OS isolation or disposal qualification. |
 | M1.6g | AR/SI/RS/QA | Pin prepared probe workspace/catalog into bootstrap and project exact root/helper files through native admission; inherits M1.6a-f, F03/F04/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Projection verification](docs/verification/2026-09-25-m1-probe-broker-projection.md):141 focused cases, read-only137/137+3/3. Exact prepared bootstrap inputs and atomic role projection through actual broker methods with explicit simulation grants. Initial audit path-format failure retained. Native startup and account-purpose gates remain closed; no full native/game qualification. |
 | M1.6h | AR/SI/RS/QA | Copy both prepared worlds into fresh protected writer trees within live pair custody; inherits M1.6a-g, F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [World copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md):47 source passes plus one actual native pair;58/58 read-only checks across success and two retained failures. Both exact copies held together, write denial, normal10/10 process stop each, retained cost/capacity and consumed-pair refusal. Existing native writer path reused. Explicit unlaunched discard does not certify game launch or one-way post-probe disposal. |
+| M1.6i | AR/GI/SI/RS/QA | Bind sealed vanilla software and complete registered state to both held copies; normalize writer path containment; inherits M1.6h, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [Software binding verification](docs/verification/2026-09-25-m1-probe-software.md):52 distinct passes,29/29 read-only reconstruction, two unchanged native-plan checks. Actual resolver/file leases with synthetic game bytes and substituted writer execution; retained fixture/assertion failures, exact software/state mapping and normalized Windows containment. All40 real authority tables unchanged. Native game/readiness/probe admission/disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7457,3 +7467,50 @@ registered controls, matched live-state assertions, stopped exports and one-way
 disposal. Current unlaunched discard is not erasure or a completed probe. N>1
 positive preparation, full combined isolation, T05 and protected scorer controls
 remain open. Unrelated M2-M7 work is unchanged.
+
+### 2026-09-25 — M1.6i sealed software and state for paired vanilla copies
+
+Added `probe_vanilla_inputs.py` and its explicit held-pair-sealed-vanilla-inputs/1
+policy to the existing whole-pair copier. The fresh sealed PackLock must equal
+the registered pair; exact immutable server files and all registered state join
+under source custody. Require six vanilla mutable files and world/level.dat;
+map only those external files to the server root. Refuse unsupported paths,
+missing state, substitutions, extra files, restored templates and empty sealed
+software directories. Hold materialization/inventory metadata across both
+continuations and include software in the finite copy storage bound. Gameplay,
+native probe admission and live initial-state authority remain closed.
+
+Testing also identified Windows ordinary/extended path aliases bypassing writer
+containment comparisons. Normalize all writer roots and selected file paths
+before comparing; preserve serialized plan identity. Three focused alias cases
+and the two retained successful native writer plans establish the corrected
+preflight scope without repeating native work.
+
+IDs: M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24 and T01/T06/T07/T11. All prior milestone rows and history remain.
+[Verification report](docs/verification/2026-09-25-m1-probe-software.md) records
+52 distinct focused passes:8 retained from the first corrected batch,43 remaining
+cases and one new restored-binding-object refusal. Twenty cases are new and32
+are affected existing checks. Writer execution is substituted; real Windows
+leases and the actual sealed-pack resolver are exercised with synthetic bytes.
+Retain missing spending-ceiling/wrong fixture-pack errors, the initial spelling
+case and the mutated-template test's wrong expected error. No old source is
+relabelled or rearmed. Ruff and whitespace checks pass.
+
+Sealed reconstruction passes29/29 across exact pair/pack/world joins, complete
+13-file output maps per arm, all copied bytes, unlaunched dispositions and
+retained200 synthetic units/capacity. Evidence stores and hashes are in the
+report; source/database seals remain unchanged. The empty-process-list collector
+failure is recorded; explicit array serialization fixes only that collector.
+All40 real authority tables match the preceding checkpoint and before/after;
+$4.887796 exposure, original holds and consumed decisions persist. No owned
+runtime remains, no Minecraft/native writer/model executes and no paid M1
+allowance is inferred.
+
+M1.6i implemented_unverified for authentic software/native game integration;
+M1.6 in_progress, G1-G5 not_run, M0/G0 unchanged. Next bind complete authentic
+vanilla fixture state and reviewed protected server/worker launch/readiness,
+then scoped native probe admission, live matching and one-way disposal. Current
+writer launch supports only synthetic and separate E9E reference identities;
+vanilla needs an explicit reviewed extension. Keep unsupported empty-directory
+preservation visible. Unrelated M2-M7 work remains untouched.

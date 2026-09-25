@@ -1714,6 +1714,20 @@ resource/cost holds. Surviving paths and serialized results grant no authority.
 [Copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md) does not
 establish game launch, matched live state, runtime isolation or post-probe disposal.
 
+`held-pair-sealed-vanilla-inputs/1` extends that preparation with a fresh sealed
+vanilla installation whose PackLock equals the registered pair. Compile only
+reviewed immutable server files and every registered state file. Preserve world
+paths; map `external/<name>` to the server root only for the six vanilla mutable
+files. Require all six plus `world/level.dat`; refuse other external state,
+session-lock imports, software substitutions and unsupported empty software
+directories. The copier's source ancestor grants no read capability: only its
+explicit compiled files enter the protected tree. Keep the sealed installation
+under file custody across both copies and validate the exact Java pin. Normalize
+Windows path aliases before writer input/output containment checks. This
+[software-binding candidate](docs/verification/2026-09-25-m1-probe-software.md)
+still closes unlaunched and cannot establish actual game state, native probe
+admission, isolation or one-way disposal. Other pack layouts keep separate gates.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

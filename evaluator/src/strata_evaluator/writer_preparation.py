@@ -23,7 +23,7 @@ from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.native import _toml_value
 from mcbench.processes import ManagedProcess, ProcessInventoryFault
-from mcbench.storage import canonical, digest, require, safe_relative
+from mcbench.storage import canonical, digest, extended_path, require, safe_relative
 
 from .craft_reference import PrivateFile, check_file, check_tree, private_path, write_new
 from .reference_pair import OwnedCli
@@ -54,9 +54,11 @@ class WriterPreparationPlan(Strict):
         require(Path(self.java.path).name.lower() == "java.exe"
                 and Path(self.helper_class.path).name == "StrataWriterPreparation.class",
                 "WRITER_HELPER_PROFILE")
-        source = private_path(self.source_root)
-        evidence = private_path(self.evidence_directory)
-        workspace = private_path(self.workspace_directory)
+        # Ordinary and extended Windows spellings name the same namespace.
+        # Normalize before containment checks, including every selected input.
+        source = extended_path(private_path(self.source_root))
+        evidence = extended_path(private_path(self.evidence_directory))
+        workspace = extended_path(private_path(self.workspace_directory))
         require(not source.is_relative_to(evidence) and not evidence.is_relative_to(source),
                 "WRITER_SOURCE_SCOPE")
         require(all(not workspace.is_relative_to(other) and not other.is_relative_to(workspace)
@@ -65,7 +67,7 @@ class WriterPreparationPlan(Strict):
         for relative, pin in self.sources.items():
             safe_relative(relative)
             require(relative.casefold() not in seen
-                    and private_path(pin.path).is_relative_to(source)
+                    and extended_path(private_path(pin.path)).is_relative_to(source)
                     and pin.bytes <= 512 * 1024**2, "WRITER_SOURCE_SCOPE")
             seen.add(relative.casefold())
             total += pin.bytes

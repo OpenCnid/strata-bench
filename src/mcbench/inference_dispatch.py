@@ -211,6 +211,9 @@ class InferenceDispatches:
             (attempt.runtime_job_id,)).fetchone() if exists else None
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(job["plan"]) if job else None
+        if plan is not None:
+            from .native_account_policy import require_native_account
+            require_native_account(self.db.connection, plan, reserve)
         if not self.simulation or plan is not None and (
                 plan.broker_policy is not None or plan.ingress_policy is not None):
             require(job is not None and job["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")

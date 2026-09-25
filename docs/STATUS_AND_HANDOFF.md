@@ -129,6 +129,29 @@ no owned runtime or paid/native/game run. M1.6b.1 verified for preparation only;
 the adapter and all remaining M1.6/G1 work above remain next. No launch permit
 may be inferred from PREPARED or a successful check.
 
+M1.6c [purpose/account guard](verification/2026-09-25-m1-native-account-purpose.md)
+now checks the durable leaf/aggregate categories and reservation at native
+startup, request admission, dispatch and broker use. Evaluation cannot borrow
+campaign or development/conformance identities. Root/helper and already-issued
+grants refuse new effects without refunding old costs. Running jobs also match
+their original funded reservation, preventing a silent training-to-development
+category change.235 final distinct checks pass;
+one original stopped native-game source and two frozen-note exports reconstruct
+unchanged. Preserve the wrong-test-filename invocation and first reader's wrong
+assumption that the original failed outer export produced an export row. Both
+historical bundles remain unchanged. New source/bootstrap identity requires new
+integration evidence; this readback does not qualify changed live code.
+
+Clarified next implementation: probe-local adaptation uses scoped mutable
+artifacts within its one disposable runtime. Do not weaken campaign publication
+guards merely to support that local adaptation. Implement separate probe
+bootstrap/catalog/artifact admission and its explicit evaluation account, using
+fresh fully resolved sources and preserving the complete pair/launch/disposal
+requirements above. NativeLaunch still has no probe purpose; conformance or
+campaign relabelling cannot substitute. M1.6c implemented_unverified; G1 not_run.
+All40 real authority tables, holds and $4.887796 exposure unchanged; USD0 actual
+inference, no owned runtime. Bundle seal and exact checks are in the report.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

@@ -136,6 +136,14 @@ survives actual controller death; failed checks cannot revive after byte repair.
 Initial two crash-wrapper failures are retained. This preparation boundary is
 verified; native launch/disposal and full M1.6/G1 remain open. All40 real authority
 tables and $4.887796 exposure/holds are unchanged; no paid/native/game execution.
+M1.6c [native purpose/account separation](docs/verification/2026-09-25-m1-native-account-purpose.md)
+adds235 distinct passing cases and unchanged reconstruction of one stopped native
+source/two committed exports. Evaluation cannot enter a campaign or borrow a
+development conformance identity at startup, enrollment, dispatch or broker use.
+Running jobs also match their original funded reservation; changing between two
+otherwise permitted categories cannot silently change an admitted job's identity.
+New probe admission remains unimplemented; local adaptation does not require
+campaign publication. M1.6c implemented_unverified for complete native integration.
 
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
@@ -564,6 +572,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
 | M1.6b.1 | RS/AR/SI/QA | Irreversible failed/interrupted pair verification and actual controller-death reservation checks; inherits M1.6b, F08/F09/F16, N01/N05/N06/N08, T01/T06/T07/T11 | verified | [Preparation-boundary evidence](docs/verification/2026-09-25-m1-probe-verification-fence.md):42 focused passes and19/19 read-only reconstruction. Durable VERIFYING intent, repaired-byte refusal, journal faults, auth-before-intent and actual abrupt Python process exits/reopen. Initial crash-wrapper failures retained. Synthetic world/native records, no model/game/native launch. Held launch custody and disposal remain M1.6 gaps; no G1/G2 suite promotion. |
+| M1.6c | AR/SI/RS/QA | Native purpose/account separation at startup, request admission, dispatch and broker effects; inherits M1.6, F03/F07/F08/F11/F16, N01/N04/N06, T01/T04/T06/T11/T12 | implemented_unverified | [Source and retained reconstruction](docs/verification/2026-09-25-m1-native-account-purpose.md):235 final distinct passes including32 new cases, one stopped source/two committed exports unchanged, both source seals reverified. Explicit durable category/original-reservation/ancestry checks fence evaluation in campaign/conformance paths, new helpers, dispatch and existing grants. Preserve initial wrong-file invocation, missing-export reader failure and first source before original-reservation binding. Separate native probe identity/bootstrap, actual integration and disposal remain open; no qualification or new paid authority. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7167,3 +7176,40 @@ preparation boundary only. Continue the disposable native probe adapter and held
 launch/disposal fence with fresh resolved sources, permitted probe-local
 adaptation and unchanged campaign import guards. Actual matched worlds, resources,
 N>1 preparation, one-way canaries and remaining runtime/T05/scorer gates stay open.
+
+
+### 2026-09-25 — M1.6c native purpose/account separation
+
+Closed the source admission gap where a campaign-labelled native launch could
+use an evaluation reservation/account. A shared live guard joins purpose,
+durable leaf/ancestor categories, campaign/agent scope and reservation category
+at startup, request admission, dispatch and broker effects. Existing root/helper
+grants recheck after reopen. No label rewrite, refund, replay or stopped-reader
+change; explicit probe runtime admission remains unimplemented.
+
+IDs: M1.6c, F03/F07/F08/F11/F16, N01/N04/N06, C06/C12/C20/C22/C23/C24/C36,
+T01/T04/T06/T11/T12. Source cases prove permitted local mutable artifacts and
+private helper output; local probe adaptation need not publish into campaigns.
+Keep campaign publisher and checkpoint guards intact in the next implementation.
+
+Initial focused selection83 pass; final affected admission/broker/dispatch/export/
+revision selection198 pass,230 distinct cases including27 new policy cases.
+Review identifies an additional training-to-development relabelling route. Add
+original funded-operation/category binding and five cases; final changed source
+passes178 live-path plus57 stopped-export/revision cases (235 distinct,32 new).
+Keep the first source/evidence seal and pin the final source separately.
+Retain wrong test-file invocation (no tests ran) and the first reader failure:
+original native-game02 has no committed export due to its known outer failure.
+Corrected read-only reconstruction validates that stopped source and two committed
+frozen-note exports, preserving both source seals and database dumps. Ruff and
+whitespace pass. All40 real authority tables unchanged; $4.887796/$10 exposure
+and all holds/consumed decisions retained. No new native/game/provider execution
+or owned runtime remains; Python/synthetic fixture checks only.
+
+[Report](docs/verification/2026-09-25-m1-native-account-purpose.md) records exact
+scope, private source/evidence seal and limitations. M1.6c implemented_unverified
+for full native probe integration; M1.6 in_progress and G1 not_run. Continue the
+separate native probe bootstrap/catalog/artifact boundary, explicit evaluation
+account and complete held launch/disposal using fresh resolved source records.
+Actual matched state, resources, N>1 preparation, one-way canaries and remaining
+combined isolation/T05/scorer contracts remain open; unrelated M2-M7 untouched.

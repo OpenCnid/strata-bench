@@ -1637,6 +1637,19 @@ VERIFYING. Both remain consumed even if files are repaired. The
 [controller-death checks](docs/verification/2026-09-25-m1-probe-verification-fence.md)
 cover this preparation boundary, not native launch custody or probe disposal.
 
+The native purpose/account guard joins the reservation to the durable leaf and
+aggregate account identities before startup, participant admission, dispatch and
+broker effects. Campaign profiles accept training or development accounts;
+conformance/development-piloting profiles require development. Evaluation cannot
+borrow any of these identities. Unclassified aggregate accounts may pool
+classified children; an unclassified native leaf cannot dispatch. Running jobs
+also match their original funded reservation, so switching between two otherwise
+permitted categories cannot silently change an admitted job's identity. Keep stopped
+history readable and preserve all costs. [Source and retained-evidence checks](docs/verification/2026-09-25-m1-native-account-purpose.md)
+do not supply the separate disposable probe runtime admission still required.
+Local adaptation uses scoped mutable artifacts inside the probe; it does not
+require importing probe revisions into campaign publication/checkpoint paths.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

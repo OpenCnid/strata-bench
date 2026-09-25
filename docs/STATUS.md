@@ -52,6 +52,10 @@ M1.6b.1 [verification failure fence](verification/2026-09-25-m1-probe-verificati
 adds42 focused passes and19/19 reconstruction. Actual abrupt controller exits
 retain PREPARING/VERIFYING; repaired files cannot revive a failed pair. This
 preparation boundary is verified; native probe launch/disposal and G1 remain open.
+M1.6c [native account separation](verification/2026-09-25-m1-native-account-purpose.md)
+adds235 distinct passing checks and unchanged retained source/export reconstruction.
+Evaluation cannot use campaign/conformance startup, enrollment, dispatch or broker
+paths. Separate disposable native probe admission and full G1 remain open.
 
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false

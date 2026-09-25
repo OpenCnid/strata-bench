@@ -229,8 +229,8 @@ class NativeExec:
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
         require(reserve.kind == ("helper" if plan.role == "helper" else "model"), "OPERATION_LINEAGE")
-        if plan.purpose in {"conformance", "development_piloting"}:
-            require(reserve.campaign_account == "development", "CONFORMANCE_ACCOUNT_REQUIRED")
+        from .native_account_policy import require_native_account, require_purpose_category
+        require_purpose_category(plan.purpose, reserve.campaign_account)
         require(reserve.usage.spend_microusd is not None and reserve.usage.spend_microusd > 0,
                 "SPENDING_CEILING_REQUIRED")
         require(plan.depth <= 2 and ((plan.role == "executor" and plan.depth == 0 and
@@ -313,6 +313,7 @@ class NativeExec:
                     "INITIAL_TRIAL_LIMIT")
             # A different home alone is not isolation. Qualification must separately
             # prove that this workspace cannot access operator docs or provider auth.
+        require_native_account(db, plan, reserve)
         return workspace, profile
 
     def start(self, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):

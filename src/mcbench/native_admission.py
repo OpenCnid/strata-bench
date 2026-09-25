@@ -125,6 +125,8 @@ class NativeAdmission:
         row = db.execute("SELECT plan,state,started FROM native_jobs WHERE id=?", (job,)).fetchone()
         require(row is not None and row["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")
         plan = NativeLaunch.model_validate_json(row["plan"])
+        from .native_account_policy import require_native_account
+        require_native_account(db, plan)
         mode = db.execute("SELECT simulation FROM native_profile WHERE singleton=1").fetchone()
         require(mode is not None and mode[0] in (0, 1), "NATIVE_ADMISSION_PROFILE")
         if mode[0] == 0:
@@ -198,6 +200,8 @@ class NativeAdmission:
                     plan.campaign_id == reserve.campaign_id and plan.agent_id == reserve.agent_id and
                     plan.epoch == reserve.epoch and body.get("model") == plan.model == reserve.model_identity,
                     "NATIVE_ADMISSION_SCOPE")
+            from .native_account_policy import require_native_account
+            require_native_account(db, plan, reserve)
             root = self._root_thread(db, plan.job_id)
             require(meta["session_id"] == root, "NATIVE_LINEAGE")
             thread, name = meta["thread_id"], meta["agent_name"]

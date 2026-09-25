@@ -238,6 +238,8 @@ class NativeBroker:
                 row["request_digest"] == evidence.get("request_digest"), "BROKER_RUNTIME_REVOKED")
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(row["plan"])
+        from .native_account_policy import require_native_account
+        require_native_account(db, plan)
         from .native_arm_policy import require_arm_policy
         require_arm_policy(db, self.cas, plan)
         require(plan.profile_digest() == grant.profile_digest and plan.broker_policy == self.policy and

@@ -7,42 +7,35 @@ M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
 not_run. The active long-horizon goal is M1/G1 only, including its required
 scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
 
-M1.6m.1 [validation cost](docs/verification/2026-09-25-m1-pair-validation-cost.md)
-is in_progress. Stopped case06 profiling identifies duplicate pair reconstruction
-within one custody call and duplicate preparation validation within one runtime
-call. Removing only those duplicates reduces the measured source check from
-3.2258s to1.6808s with identical results; every subsequent call revalidates state.
-All63 focused cases pass; diagnostic/source evidence is sealed and all40 real
-authority tables remain unchanged. Fresh case07's two native copiers stop
-normally10/10 each; joint preflight still refuses before Minecraft. Its171.35s
-failed attempt and all holds remain sealed. No native agent/model execution.
-Next profile stopped initial-state/software/persistence validation before further
-source changes; no unchanged native rerun or deadline relaxation.
+M1.6m.1 [validation cost](docs/verification/2026-09-25-m1-pair-validation-cost.md) is verified for the bounded paired
+server-reference path. Fresh case09 passes in229.74s with the original300s
+parent,200/170s writer and two60s server windows unchanged. Both authentic
+vanilla servers reach readiness, exit normally with12/12 retained owned
+processes and export26 tagged state files each; both copiers exit normally10/10.
+The first export stays held through the sibling. Each arm verifies three write
+denials and premature capacity release is refused. This is an operator
+reference using genuine world/software and synthetic agent/protocol/capacity
+fixtures; no model calls or gameplay worker bodies, and no full native probe,
+all-N matching, authoritative clock, disposal, T11 or G1 pass is claimed.
 
-M1.6m [actual paired vanilla verification](docs/verification/2026-09-25-m1-paired-vanilla.md)
-is in_progress. The registered world/software are genuine; agent/protocol/capacity
-fixtures are synthetic and no model or worker body is admitted. Retain the
-preparation path-comparison and CAS-import refusals, and case03's pre-writer
-deadline refusal with all cost/capacity holds. Operator plan factories now build
-inside held software custody without extending deadlines or skipping validation;
-two focused fixture cases pass. Case04 also refuses before native writer launch;
-case05 retains its missing evidence-parent failure. Corrected case06 completes
-both real copier trees (10/10 normal owned exits each) and joint initial-state
-validation, then refuses before Minecraft because both60s windows no longer fit.
-101/101 sealed checks pass; all40 authority tables and holds remain unchanged.
-Next measure stopped validation cost before another changed native profile.
-G1 remains not_run; full source/admission, all-N matching, clocks/disposal remain.
+The source changes eliminate duplicate scans, retain live leases and reuse only
+call-local lexical parsing. Complete source/software/account/resource/deadline
+checks remain before dispatch and at callback/stop/export boundaries.189 distinct
+focused cases pass, including changed-authority refusals at launch intent and
+between arms. Case08's sibling exposure refusal remains a failed pair despite
+its successful first-server export. Sealed reconstruction passes30/30 for case08
+and37/37 for case09; all producer, terminal-tree and source stores are sealed.
+All40 real authority tables remain unchanged, exposure$4.887796/$10 with prior
+holds and consumed decisions preserved. No owned runtime remains. D18/D19 do
+not authorize M1 paid inference.
 
-Latest: M1.6l [held paired server references](docs/verification/2026-09-25-m1-probe-runtime.md)
-adds joint initial-state/launch preflight, matched runtime bounds, sequential
-normal stop/export and snapshot /3 private provenance. Game-reference intent
-blocks premature capacity release; ordinary restoration rejects probe outputs.
-115 distinct focused cases and76/76 sealed read-only checks pass with synthetic
-game bytes and substituted native/JVM/token results. Two source-test failures
-and an audit sidecar refusal are retained. All40 real authority tables remain
-unchanged, with no owned runtime/model calls. Authentic paired execution stays
-implemented_unverified. Next verify that exact registered profile, then complete
-all-N live matching, scoped native admission, clocks and one-way disposal.
+M1.6m remains in_progress for complete native probe integration. Next implement
+registered live-body matching, scoped native admission, authoritative clocks
+and one-way disposal using this held pair path. Keep missing authentic agent
+checkpoint/configuration references explicit; never backfill old evidence.
+T05 capable extension, protected scorer controls and combined runtime routes
+remain open. Do not repeat the unchanged successful paired reference. Earlier
+validation measurements and cases01–08 remain in the linked reports/history.
 
 Fetched origin and verified PR #8 merged at
 `215c4e0d01f0602c91504ad631dc2343ffc9f354`. A clean checkout became
@@ -691,8 +684,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
 | M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
 | M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
-| M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Actual paired vanilla evidence](docs/verification/2026-09-25-m1-paired-vanilla.md): two focused factory passes;101/101 sealed reconstruction checks. Case06 real copiers stop normally10/10 each, then joint preflight refuses before Minecraft. Earlier refusals/failures retained with all holds. Measure validation cost before another changed profile. Agent/protocol/capacity fixtures remain synthetic; full source/admission, all-N matching, clocks/disposal and G1 remain open. |
-| M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | in_progress | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md):63 focused passes; stopped case06 reconstruction3.2258s before/1.6808s after, same pair/view digests and unchanged source. Fresh unchanged-window case07 retains joint deadline refusal before Minecraft after both copiers stop normally10/10 each. All40 authority tables/holds unchanged. Next profile remaining stopped preflight cost; full native timing remains unverified. |
+| M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Paired reference and validation evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): case09 passes229.74s with unchanged bounds, normal12/12 server and10/10 copier exits per arm, held26-file tagged exports and sibling custody. Case08 and earlier failures retained.189 distinct source cases and67/67 case08/09 reconstruction checks pass. Genuine world/software, synthetic agent/protocol/capacity fixtures, no model/worker bodies. Next complete authentic native source/admission, all-N live matching, clocks and disposal; G1 remains open. |
+| M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | verified | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): source reconstruction3.2258→1.6808s; persistence6.4363→5.6526s; software resolution10.5409→8.1547s, identical diagnostic outputs. Exact borrowed software/helper inventory, live leases and complete dispatch/callback/stop/export checks retained;189 distinct source cases pass. Changed-source case09 paired operator reference passes229.74s with original finite windows. Historical deadline failures and all40 authority tables/holds preserved. Bounded optimization verified; full native agent probe acceptance stays with M1.6m/M1.6. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7795,3 +7788,60 @@ Next profile stopped initial-state/software/persistence validation and resolve
 the remaining measured cost without weakening checks. No unchanged native rerun.
 Full source/native admission, all-N matching, clocks/disposal, T05, scorer controls
 and combined runtime routes remain open.
+
+### 2026-09-25 — M1.6m.1 verified validation cost; authentic paired reference
+
+Stopped case07 persistence/software profiles identify repeated ancestor metadata
+queries and lexical parsing. storage.reject_links now uses one non-following
+query and still checks missing descendants' ancestors, links/reparse points and
+access errors. inventory.directory_layout reuses pure lexical parsing within one
+fixed-policy call, retaining collisions/quota/private-content checks. Measurements
+6.4363/10.5409s become5.6526/8.1547s with identical inventory/resolution digests.
+These diagnostic samples are not latency qualification.
+
+ProbeVanillaSession borrows the already-held installation inventory and acquires
+a separate helper lease, retaining exact launch inventory and quotas. Complete
+pair checks bracket construction and precede dispatch; local custody remains
+live. PairedVanillaRuntime and ProbeWorldCopies remove adjacent duplicate full
+checks while preserving joint preflight, immediately-before-dispatch validation,
+callback/stop checks and final stopped-export verification. No cross-call cache,
+deadline extension, schema change, scoring change or expanded gameplay access.
+Production changes are in src/mcbench/{storage,inventory}.py and evaluator/src/
+strata_evaluator/{probe_vanilla_runtime,probe_world_copies}.py.
+
+Focused source verification passes181 initial cases,15 runtime cases after
+borrowing inventory, then22 boundary/runtime-contract cases:189 distinct cases.
+Real Windows junction/lease checks and changed-authority launch/sibling refusals
+are included; native JVM/process/token outcomes in these source tests remain
+synthetic. Changed-source native case08 FAIL195.56s preserves normal initial
+server12/12 and26-file export, followed by sibling WRITER_EXPOSURE_INSUFFICIENT
+before its process starts. All cost/capacity holds remain. The next source
+change removes demonstrated consecutive scans; fresh case09 PASS229.74s with
+unchanged300/200/170/60/60s limits. Both genuine vanilla servers reach readiness,
+exit normally12/12 each and export26 tagged state files each; both copiers exit
+normally10/10. Initial/experienced writer times167.297/155.406s. Both arms deny
+three writes; first export stays held during sibling, premature release refuses.
+
+Case08/09 read-only reconstruction passes30/30 and37/37. Preserve the first
+case09 reader's missing optional failure-key exception; correcting that reader
+does not rerun native execution or change producer evidence. Eight source,
+producer and terminal-tree stores are sealed. [Evidence and exact pins](docs/verification/2026-09-25-m1-pair-validation-cost.md).
+All40 real authority tables are unchanged, exposure$4.887796/$10, historical
+holds/consumed decisions preserved, no owned process and no model calls.
+
+M1.6m.1 is verified for this bounded optimization/operator-reference scope;
+M1.6m/M1 remain in_progress and G1-G5 not_run. Coverage inherits M1.6m plus F05's
+sealed software dependency: F01/F02/F03/F04/F05/F07/F08/F09/F11/F16,
+N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11.
+No complete native agent/all-N/live-clock/disposal/T11/G1 claim. Agent/protocol/
+capacity fixtures remain synthetic. Next complete those native probe boundaries,
+T05/scorer/combined-runtime contracts with exact authentic inputs. M0/G0 and
+unrelated M2-M7 unchanged; no M1 paid authority inferred, no unchanged rerun.
+
+Final focused Ruff/whitespace checks pass. Documentation QA preserves all406
+milestone IDs, prior append-only history and unchanged normative SPEC, and
+resolves1,438 local links in the edited ledger/status/handoff/report.
+
+Final audit store is sealed (18 files/92,970 bytes); report retains its exact pin,
+67/67 reconstruction checks, source-to-case09 equality and final40-table/process
+verification. All nine stores for this continuation are now sealed.

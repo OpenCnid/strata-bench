@@ -263,7 +263,7 @@ class ProbeWorldCopies:
                     else:
                         body["runtime"] = runtime.result
                         runtime.run(borrowed, continuation)
-                        runtime.verify_stopped()
+                        # run() verifies both stopped exports before returning.
                 finally:
                     borrowed.closed = True
                 return

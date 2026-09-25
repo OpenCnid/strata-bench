@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from mcbench.inventory import inventory_directories, scan_layout
+from mcbench.inventory import directory_layout, inventory_directories, scan_layout
 from mcbench.pack_launch import PackLaunchBinding, resolve_pack_launch
 from mcbench.storage import CAS, Database, Fault
 from test_pack_launch import rows
@@ -119,3 +119,25 @@ def test_malformed_bound_layout_rejected(prepared, change):
         body["schema"] = "strata/InstalledInventory/1" if change == "legacy-field" else "strata/InstalledInventory/3"
     with pytest.raises(Fault):
         inventory_directories(body)
+
+
+def test_repeated_parents_keep_collision_checks_and_call_local_review_policy():
+    assert directory_layout(["mods/group/a.jar", "mods/group/b.jar"],
+                            ["mods", "mods/group", "mods/empty"]) == ["mods", "mods/empty", "mods/group"]
+    review = {"world": None, "world/data": None, "world/data/example.dat": "a" * 64}
+    assert directory_layout(["world/data/example.dat"], ["world", "world/data"],
+                            reviewed_world_paths=review) == ["world", "world/data"]
+    with pytest.raises(Fault, match="PRIVATE_INSTALLATION_CONTENT"):
+        directory_layout(["world/data/example.dat"])
+
+
+@pytest.mark.parametrize("files,extras", [
+    (["mods/a", "mods/a"], []),
+    (["mods/a", "mods"], []),
+    (["mods/a", "MODS/b"], []),
+    (["mods/a"], ["mods", "mods"]),
+    (["mods/a"], ["mods/a"]),
+])
+def test_repeated_directory_validation_does_not_merge_invalid_names(files, extras):
+    with pytest.raises(Fault, match="PATH_COLLISION"):
+        directory_layout(files, extras)

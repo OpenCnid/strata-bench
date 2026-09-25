@@ -62,10 +62,12 @@ def extended_path(path: Path) -> Path:
 def reject_links(path: Path):
     """Includes Windows junctions/reparse points, not just Python symlinks."""
     for part in (path, *path.parents):
-        if part.exists() or part.is_symlink():
+        try:
             info = part.lstat()
-            require(not stat.S_ISLNK(info.st_mode) and
-                    not getattr(info, "st_file_attributes", 0) & 0x400, "UNSAFE_PATH")
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        require(not stat.S_ISLNK(info.st_mode) and
+                not getattr(info, "st_file_attributes", 0) & 0x400, "UNSAFE_PATH")
 
 
 class Database:

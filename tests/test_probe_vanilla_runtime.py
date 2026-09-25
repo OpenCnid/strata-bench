@@ -173,6 +173,14 @@ def test_both_registered_servers_stop_export_and_keep_sibling_capture_immutable(
     sessions = {}
 
     def observe(arm, session):
+        from mcbench.launch_integrity import snapshot
+
+        assert session.inputs == snapshot([launches[arm]["helper_class"]["path"]], [binding.instance])
+        for path in (Path(launches[arm]["helper_class"]["path"]),
+                     Path(binding.instance) / "server/server.jar"):
+            with pytest.raises(PermissionError):
+                with path.open("ab"):
+                    pass
         with pytest.raises(Fault, match="PROBE_GAME_REFERENCE_INTENT"):
             service.preparation.release_undispatched_resources()
         if sessions:
@@ -314,6 +322,69 @@ def test_second_arm_missing_launch_helper_refuses_before_either_server(
         service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0]
         == "FAILED"
     )
+
+
+@pytest.mark.parametrize("change", ["empty_directory", "account", "expiry", "software_lease"])
+def test_joint_preflight_revalidates_after_first_session_before_either_dispatch(
+    runtime, process_fixture, directory_fixture, monkeypatch, change
+):
+    from strata_evaluator.probe_vanilla_runtime import ProbeVanillaSession
+    from mcbench.launch_integrity import IntegrityError
+    from test_probe_pairs import EVALUATOR
+
+    service, plans, launches, binding, capacity = runtime
+    original = ProbeVanillaSession.__init__
+    constructed = []
+
+    def changed(session, owner, arm):
+        original(session, owner, arm)
+        constructed.append(arm)
+        if len(constructed) == 1:
+            if change == "empty_directory":
+                (Path(binding.instance) / "server/libraries/unbound").mkdir()
+            elif change == "account":
+                service.db.connection.execute("UPDATE accounts SET category='training' WHERE id='initial-account'")
+            elif change == "expiry":
+                service.preparation.deadline = service.preparation.monotonic() - 1
+            else:
+                owner.held.software.lease.close()
+
+    monkeypatch.setattr(ProbeVanillaSession, "__init__", changed)
+    with pytest.raises((Fault, IntegrityError),
+                       match="MATERIALIZATION_CHANGED|NATIVE_PROBE_ACCOUNT|PROBE_CUSTODY_EXPIRED|BOOTSTRAP_LEASE_CLOSED"):
+        service.run_vanilla_reference(EVALUATOR, plans, launches, continuation=lambda *_: None,
+                                     pack_binding=binding.model_dump())
+    assert constructed and not process_fixture[0]
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+    row = service.db.connection.execute("SELECT resources,released FROM probe_pair_resources").fetchone()
+    assert not row['released'] and json.loads(row['resources']) == capacity
+    assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
+
+
+@pytest.mark.parametrize("phase", ["launch_intent", "stopped_export_held"])
+def test_changed_authority_at_launch_boundary_never_dispatches_next_server(
+    runtime, process_fixture, directory_fixture, monkeypatch, phase
+):
+    from strata_evaluator.probe_vanilla_runtime import PairedVanillaRuntime
+    from test_probe_pairs import EVALUATOR
+
+    service, plans, launches, binding, capacity = runtime
+    original = PairedVanillaRuntime.event
+
+    def changed(owner, arm, current):
+        original(owner, arm, current)
+        if arm == "initial" and current == phase:
+            service.db.connection.execute("UPDATE accounts SET category='training' WHERE id='initial-account'")
+
+    monkeypatch.setattr(PairedVanillaRuntime, "event", changed)
+    with pytest.raises(Fault, match="NATIVE_PROBE_ACCOUNT"):
+        service.run_vanilla_reference(EVALUATOR, plans, launches, continuation=lambda *_: None,
+                                     pack_binding=binding.model_dump())
+    assert process_fixture[0] == ([] if phase == "launch_intent" else ["initial"])
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+    row = service.db.connection.execute("SELECT resources,released FROM probe_pair_resources").fetchone()
+    assert not row['released'] and json.loads(row['resources']) == capacity
+    assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
 
 
 @pytest.mark.parametrize("changed_source", [False, True])

@@ -37,11 +37,19 @@ def file_hash(path: Path) -> str:
 
 def directory_layout(files, extra_directories=(), *, reviewed_world_paths=None):
     """Portable complete directory closure, including explicitly empty paths."""
-    reviewed = reviewed_world_paths or {}
+    reviewed = dict(reviewed_world_paths or {})
     names, kinds, directories = {}, {}, set()
+    paths = {}
+
+    def validated_path(name):
+        # Pure lexical validation against this call's fixed review policy.
+        # Repeated parents need no reparsing; no filesystem state is cached.
+        if name not in paths:
+            paths[name] = template_path(name, reviewed_world_paths=reviewed)
+        return paths[name]
 
     def add(name, is_directory):
-        template_path(name, reviewed_world_paths=reviewed)
+        path = validated_path(name)
         folded = name.casefold()
         require(folded not in names or names[folded] == name and kinds[folded] == is_directory,
                 "PATH_COLLISION")
@@ -50,21 +58,22 @@ def directory_layout(files, extra_directories=(), *, reviewed_world_paths=None):
             require(name not in reviewed or reviewed[name] is None, "VENDOR_CONTENT_MISMATCH")
             directories.add(name)
             require(len(directories) <= 200000, "ARTIFACT_QUOTA")
+        return path
 
     seen_files, seen_extras = set(), set()
     for name in files:
         require(name not in seen_files, "PATH_COLLISION")
         seen_files.add(name)
-        add(name, False)
-        for parent in safe_relative(name).parents:
+        path = add(name, False)
+        for parent in path.parents:
             if str(parent) != ".":
                 add(parent.as_posix(), True)
     for name in extra_directories:
-        template_path(name, reviewed_world_paths=reviewed)
+        path = validated_path(name)
         require(name not in seen_extras, "PATH_COLLISION")
         seen_extras.add(name)
         add(name, True)
-        for parent in safe_relative(name).parents:
+        for parent in path.parents:
             if str(parent) != ".":
                 add(parent.as_posix(), True)
     return sorted(directories)

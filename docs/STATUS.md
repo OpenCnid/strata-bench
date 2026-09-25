@@ -3,38 +3,35 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
-M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md)
-is in_progress. Stopped case06 profiling identifies duplicate pair/preparation
-checks within single calls. The changed source reconstruction takes1.6808s
-versus3.2258s with identical outputs. Fresh validation remains mandatory on each
-call;63 focused cases pass and source evidence is sealed. All40 real authority
-tables remain unchanged. Fresh native case07 fails joint deadline admission
-before Minecraft after both copiers stop normally10/10 each. All holds and the
-171.35s failure are retained; no owned runtime remains. Next profile remaining
-stopped initial-state/software/persistence checks. No unchanged native rerun,
-deadline/acceptance change or paid execution.
+M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md) is verified for the bounded paired
+server-reference path. Fresh case09 passes in229.74s with the original300s
+parent,200/170s writer and two60s server windows unchanged. Both authentic
+vanilla servers reach readiness, exit normally with12/12 retained owned
+processes and export26 tagged state files each; both copiers exit normally10/10.
+The first export stays held through the sibling. Each arm verifies three write
+denials and premature capacity release is refused. This is an operator
+reference using genuine world/software and synthetic agent/protocol/capacity
+fixtures; no model calls or gameplay worker bodies, and no full native probe,
+all-N matching, authoritative clock, disposal, T11 or G1 pass is claimed.
 
-M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
-is in_progress. Genuine software/world inputs now enter an opt-in paired check
-with synthetic agent/protocol/capacity sources. Cases03/04 refuse before native
-writer dispatch on deadline admission, preserving all holds. The held-plan
-factory passes two focused cases. Case05 retains its missing evidence-parent
-failure. Corrected case06 stops both real copiers normally (10/10 each), then
-refuses joint preflight because remaining time cannot contain both60s server
-windows. No Minecraft starts.101/101 sealed checks pass; all40 real authority
-tables are unchanged. Next measure validation cost without dispatch before
-selecting another changed profile. Full native/T11/G1 acceptance remains open.
+The source changes eliminate duplicate scans, retain live leases and reuse only
+call-local lexical parsing. Complete source/software/account/resource/deadline
+checks remain before dispatch and at callback/stop/export boundaries.189 distinct
+focused cases pass, including changed-authority refusals at launch intent and
+between arms. Case08's sibling exposure refusal remains a failed pair despite
+its successful first-server export. Sealed reconstruction passes30/30 for case08
+and37/37 for case09; all producer, terminal-tree and source stores are sealed.
+All40 real authority tables remain unchanged, exposure$4.887796/$10 with prior
+holds and consumed decisions preserved. No owned runtime remains. D18/D19 do
+not authorize M1 paid inference.
 
-M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
-adds joint initial-state/launch preflight, matched runtime bounds, sequential
-owned stop/export and private capture provenance. Game-reference intent blocks
-the preparation-only capacity release; probe outputs cannot restore training.
-115 distinct focused cases and76/76 sealed reconstruction checks pass. Native
-execution/JVM/token results are substituted; authentic paired Minecraft remains
-implemented_unverified. Retain the two source-test failures and first audit's
-added-sidecar refusal. All40 real authority tables/holds remain unchanged; no
-native/game/model run. Next verify this exact paired profile with authentic
-registered inputs, then complete live matching, all-N readiness and disposal.
+M1.6m remains in_progress for complete native probe integration. Next implement
+registered live-body matching, scoped native admission, authoritative clocks
+and one-way disposal using this held pair path. Keep missing authentic agent
+checkpoint/configuration references explicit; never backfill old evidence.
+T05 capable extension, protected scorer controls and combined runtime routes
+remain open. Do not repeat the unchanged successful paired reference. Earlier
+validation measurements and cases01–08 remain in the linked reports/history.
 
 M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
 adds explicit /2 fixture/request/software policies and requires writer /4.

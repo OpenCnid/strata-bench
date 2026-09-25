@@ -4,73 +4,35 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
-M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md)
-is in_progress. A frozen read-only production reconstruction of stopped case06
-shows duplicate pair reconstruction in one custody call. Derivation now uses
-that call's checked pair; runtime validation keeps the complete software check
-which already rechecks preparation. No cross-call cache or changed deadlines.
-Measured3.2258s before/1.6808s after, identical pair/view digests and unchanged
-sealed files/database/holds. Initial reader's missing runtime attribute is
-retained separately. All63 focused cases pass in695.59s; diagnostic/source evidence
-is sealed. All40 real authority tables remain unchanged and no owned runtime
-remains after source checks. Fresh native case07 ran after host/port/
-accounting preflight, with the same300s parent,200/170s writer and two60s server
-windows. It finished FAIL in171.35s: both copiers stop normally10/10 each and
-both initial-state checks finish, but joint admission still refuses before
-Minecraft. The inner/outer custody times are97.078/109.406s, both UNCERTAIN;
-the pair is FAILED/FENCED with200 synthetic units and whole capacity retained.
-All40 real authority tables stay unchanged and no owned runtime remains.
-Four producer/profile/tree stores and the final audit are sealed;35/35 read-only reconstruction
-checks pass. Retain the diagnostic import and legacy-directory-inventory reader
-failures; neither changes producer evidence. No unchanged native rerun:
-next profile stopped initial-state/software/persistence validation, preserving
-complete source/lease/budget/capacity/deadline checks. The change improves source
-reconstruction but has not resolved live timing. No M1 paid authority is inferred.
+M1.6m.1 [validation cost](verification/2026-09-25-m1-pair-validation-cost.md) is verified for the bounded paired
+server-reference path. Fresh case09 passes in229.74s with the original300s
+parent,200/170s writer and two60s server windows unchanged. Both authentic
+vanilla servers reach readiness, exit normally with12/12 retained owned
+processes and export26 tagged state files each; both copiers exit normally10/10.
+The first export stays held through the sibling. Each arm verifies three write
+denials and premature capacity release is refused. This is an operator
+reference using genuine world/software and synthetic agent/protocol/capacity
+fixtures; no model calls or gameplay worker bodies, and no full native probe,
+all-N matching, authoritative clock, disposal, T11 or G1 pass is claimed.
 
-M1.6m [actual paired vanilla verification](verification/2026-09-25-m1-paired-vanilla.md)
-is in_progress. The opt-in fixture imports26 genuine saved-state files from the
-sealed M1.6j capture into a fresh registered pair. Agent/protocol/capacity sources
-remain synthetic; no model/worker-body admission. Preserve preparation01's path
-comparison refusal, case02's operator-only streaming-import refusal and cases03/04's
-pre-native deadline refusals. Cases03/04 retain200 synthetic units and all capacity.
-The operator plan factory now avoids duplicate software acquisition while keeping
-full checks; positive/changed-source cases pass. Its initial wrong-error-name
-assertion remains retained. Case05 uses200/170s writer windows, leaving100s for
-observed preparation within the unchanged300s parent and two60s server windows;
-it fails on a missing evidence parent before native stages. Corrected case06
-completes both actual copier trees (10/10 normal owned exits each), validates
-both initial states and refuses PROBE_WORLD_DEADLINE before Minecraft launch.
-Outer/inner custody closes UNCERTAIN at128.750/115.282s; the pair is FAILED/FENCED
-with all cost/capacity holds. No unchanged rerun: next measure the stopped
-validation path and resolve its timing cost while keeping complete checks.
-101/101 read-only checks pass across all six attempts and both separately sealed
-native copied trees. The audit's initial integer-key serialization failure is
-retained. All40 real authority tables remain unchanged, no owned runtime remains,
-and no M1 inference authority is inferred. Full source/native admission, all-N
-matching, clocks/disposal, T05, scorer controls and combined runtime routes remain.
+The source changes eliminate duplicate scans, retain live leases and reuse only
+call-local lexical parsing. Complete source/software/account/resource/deadline
+checks remain before dispatch and at callback/stop/export boundaries.189 distinct
+focused cases pass, including changed-authority refusals at launch intent and
+between arms. Case08's sibling exposure refusal remains a failed pair despite
+its successful first-server export. Sealed reconstruction passes30/30 for case08
+and37/37 for case09; all producer, terminal-tree and source stores are sealed.
+All40 real authority tables remain unchanged, exposure$4.887796/$10 with prior
+holds and consumed decisions preserved. No owned runtime remains. D18/D19 do
+not authorize M1 paid inference.
 
-M1.6l [held paired server references](verification/2026-09-25-m1-probe-runtime.md)
-now connects registered pair state to a separate held server coordinator.
-Both states/launch inputs are checked before either server starts; matching
-limits and remaining parent lifetime must contain both server windows. Each
-normal stopped export retains private initial-world provenance in snapshot /3,
-and the first export remains held while its sibling runs. Ordinary restoration
-rejects probe captures. Game intent blocks preparation-only capacity release;
-a general stopped-game release/disposal path is still required.
-115 distinct focused cases and76/76 read-only checks pass. The missing synthetic
-evidence directory and provenance collision failures remain retained. The first
-audit refuses added WAL/SHM sidecars from a read-only SQLite inspection: all
-sealed bytes remain unchanged, the nine WALs are empty, and the sidecars plus
-path mapping are archived before corrected frozen-reader verification passes.
-Three stores are sealed. All40 real authority tables/holds remain unchanged;
-no owned runtime or model calls. Native JVM/token/exits are substituted in these
-tests, so M1.6l remains implemented_unverified for authentic integration.
-Next execute this exact paired server-reference path from complete registered
-authentic inputs. Check host resources and all finite parent windows before
-execution; do not extend deadlines, reuse consumed cases or relabel M1.6j as a
-pair. Complete actual all-N workers/live initial-state matching, scoped native
-admission, clocks and one-way disposal. T05, scorer controls and combined runtime
-routes remain open; no M1 paid inference authority is inferred.
+M1.6m remains in_progress for complete native probe integration. Next implement
+registered live-body matching, scoped native admission, authoritative clocks
+and one-way disposal using this held pair path. Keep missing authentic agent
+checkpoint/configuration references explicit; never backfill old evidence.
+T05 capable extension, protected scorer controls and combined runtime routes
+remain open. Do not repeat the unchanged successful paired reference. Earlier
+validation measurements and cases01–08 remain in the linked reports/history.
 
 M1.6k [directory-bound pair preparation](verification/2026-09-25-m1-probe-directories.md)
 now carries complete registered world directories into pair identity, staging,

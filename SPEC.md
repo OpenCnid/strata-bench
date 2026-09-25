@@ -1829,7 +1829,9 @@ Mismatch, closed identity or failed private evidence persistence fences readines
 UUID join, campaign/agent/epoch/lease, spawn sequence and clocks in the operator
 journal, outside public signals. The strict reader checks the configured scope;
 parsing alone does not authenticate provenance. Legacy unbound invocations retain
-`DevelopmentWorker/1`. These checks do not establish complete live state, all-N
+`DevelopmentWorker/1`. Both vanilla versions support the same scoped one-use
+operator stop and fixed drain bound; Forge remains unsupported on that stop path.
+These checks do not establish complete live state, all-N
 readiness, native probe admission, authoritative campaign clocks or disposal.
 [Worker identity verification](docs/verification/2026-09-25-m1-worker-identity.md)
 distinguishes substituted transport/provider evidence from authentic connections.

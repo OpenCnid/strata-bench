@@ -2,6 +2,20 @@
 
 ## Current position
 
+M1.6o.1 [authentic worker identity](docs/verification/2026-09-25-m1-worker-identity-native.md)
+retains a failed105.922s trial: server ready, worker refused before grant with
+CAPABILITY_MISSING. Copier10/10 normal; server12/12 terminal through forced
+exit125, with no observation/identity receipt/stopped capture. Accounting stays
+unchanged; profile publication only added metadata and preserved all old rows.
+M1.6o.1a fixes the separate supervisor allowlist to admit DevelopmentWorker/2
+alongside /1 while preserving Forge refusal and the2250ms drain. The subprocess
+regression first reproduces the refusal;26 focused cases now pass with a
+synthetic IPC child.19 sealed failure-audit checks pass. No live rerun yet.
+Next prepare a NEW pinned worker/runtime/PackLock from the corrected source and
+run the changed authentic identity trial under the same bounds. Never retarget
+the failed sealed runtime. Complete registered pairs/live state/native admission,
+clocks/disposal and all other G1 gaps remain open; no M1 paid authority.
+
 M1.6o [worker identity](docs/verification/2026-09-25-m1-worker-identity.md) adds
 complete registered both-arm invocation binding and explicit DevelopmentWorker/2.
 The worker checks account identity before refresh/connection and server UUID
@@ -707,6 +721,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | verified | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): source reconstruction3.2258→1.6808s; persistence6.4363→5.6526s; software resolution10.5409→8.1547s, identical diagnostic outputs. Exact borrowed software/helper inventory, live leases and complete dispatch/callback/stop/export checks retained;189 distinct source cases pass. Changed-source case09 paired operator reference passes229.74s with original finite windows. Historical deadline failures and all40 authority tables/holds preserved. Bounded optimization verified; full native agent probe acceptance stays with M1.6m/M1.6. |
 | M1.6n | AR/GI/SI/RS/QA | Bind vanilla probe body declarations to complete saved-player bytes/UUID/state before launch; inherits M1.6m, F01/F02/F04/F07/F08/F16, N01/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md):91 distinct source cases pass, one opt-in native copier skip,12 authentic stopped-capture checks. Exact player file/UUID/full NBT and typed declaration join before copying/launch under explicit profiles; retain mismatch/downgrade/identity refusals and all holds. No native /2 launch, live account mapping, initial-state equivalence, clocks or disposal claim. Next bind authenticated worker identities and live observations. |
 | M1.6o | AR/GI/SI/RS/QA | Bind complete registered probe roster to authenticated worker profiles and server UUID before readiness; inherits M1.6n, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Worker identity](docs/verification/2026-09-25-m1-worker-identity.md):49 Python/28 Node cases and15 audit checks pass with synthetic provider/game transport. Complete both-arm binding, account/profile check before connection, server UUID/private receipt before readiness; mismatch/storage failures fence. No authentic probe integration, all-N live state, clocks/disposal or G1 pass. |
+| M1.6o.1 | AR/GI/SI/QA | Qualify identity-bound worker on authentic protected vanilla server with private journal/live/save joins; inherits M1.6o mappings | in_progress | [Authentic failure](docs/verification/2026-09-25-m1-worker-identity-native.md):105.922s, server ready but worker CAPABILITY_MISSING before grant. Copier10/10 normal; server12/12 forced terminal, no identity/observation/capture.19 failure-audit checks pass. Fresh changed-runtime trial required after .1a; no unchanged rerun or M1 paid authority. |
+| M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7946,3 +7962,35 @@ tables; owned runtime snapshot is empty. Focused Ruff/whitespace checks pass;
 documentation QA preserves407 IDs plus M1.6o, append-only history and prior SPEC
 text, with1,594 local links resolved. Source, tests, failures and actual emitted
 synthetic receipt remain private in the sealed store; no runtime authority added.
+
+### 2026-09-25 — M1.6o.1 authentic startup failure and M1.6o.1a correction
+
+- Prepared and imported a fresh11,725-file identity worker;3/3 preflight processes
+  normally terminal. New PackLock/profile publication preserves all old rows and
+  adds only objects/outbox/provisioning metadata.37 other tables and all monetary
+  authority remain unchanged; no download, model, allowance or consumed-decision reset.
+- [Authentic trial](docs/verification/2026-09-25-m1-worker-identity-native.md)
+  fails105.922s: owned server ready, parent worker CAPABILITY_MISSING before grant.
+  Copier10/10 normal; server forced exit125 with12/12 retained terminal processes.
+  No connection/identity receipt/observation/stopped capture; status uncertain kept.
+  All40 authority tables unchanged across trial; no owned runtime remains.
+- The separate supervisor allowlist omitted DevelopmentWorker/2. New real-parent/
+  fork/control regression reproduces the same refusal (2 pass/1 fail); explicit
+  /2 admission then passes26 focused cases in1.405s. Child IPC is synthetic, with
+  no auth/game network. /1 behavior, Forge refusal and2250ms drain remain intact.
+  SPEC clarifies this existing stop contract. Prior native source/failure preserved.
+- Read-only sealed failure reconstruction passes19/19. M1.6o.1a verified only for
+  supervisor selection; .1 remains in_progress for authentic identity. Next create
+  a new runtime/profile from the corrected source and execute a fresh bounded
+  trial. Old failed runtime cannot be retargeted. Registered all-N matched state,
+  native admission, clocks/disposal and other G1 requirements remain open.
+  M0/G0 and unrelated M2-M7 unchanged. D18/D19 still excludes M1 paid inference.
+
+Final M1.6o.1 evidence stores remain separate: runtime seal9374bb2e7e4531173f57dc520f02ed9694a942f3afc41edfc42aae3e43cce244;
+profile fd070a281e32d75e980b6bcf0ed0d273a1b791acc602c5ee95b598f0793539ed;
+failed native e4a96d4c4e21c387a42f7f9bfd07f9c1d6b79aafaf348514a8486c8dba5c834f;
+19-check audit81a02506f617e6243d109a2f3dd1fa1766a35ef12531776f959cb82945b8ed78;
+source correction eeb2729cc02abeeb85fc07806c561991c29c84af6bcd267ad0443bf568b6a724.
+Final40-table authority comparison is unchanged after publication; owned snapshot
+empty. Doc QA preserves408 prior IDs plus .1/.1a and prior progress/SPEC, with1,600
+local links resolved. Source/build/regression evidence is sealed; whitespace passes.

@@ -4,6 +4,20 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6o.1 [authentic worker identity](verification/2026-09-25-m1-worker-identity-native.md)
+retains a failed105.922s trial: server ready, worker refused before grant with
+CAPABILITY_MISSING. Copier10/10 normal; server12/12 terminal through forced
+exit125, with no observation/identity receipt/stopped capture. Accounting stays
+unchanged; profile publication only added metadata and preserved all old rows.
+M1.6o.1a fixes the separate supervisor allowlist to admit DevelopmentWorker/2
+alongside /1 while preserving Forge refusal and the2250ms drain. The subprocess
+regression first reproduces the refusal;26 focused cases now pass with a
+synthetic IPC child.19 sealed failure-audit checks pass. No live rerun yet.
+Next prepare a NEW pinned worker/runtime/PackLock from the corrected source and
+run the changed authentic identity trial under the same bounds. Never retarget
+the failed sealed runtime. Complete registered pairs/live state/native admission,
+clocks/disposal and all other G1 gaps remain open; no M1 paid authority.
+
 M1.6o [worker identity](verification/2026-09-25-m1-worker-identity.md) adds
 complete registered both-arm invocation binding and explicit DevelopmentWorker/2.
 The worker checks account identity before refresh/connection and server UUID

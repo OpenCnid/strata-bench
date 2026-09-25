@@ -90,7 +90,8 @@ async function main(): Promise<void> {
   const operatorControl=process.argv.length===4 && process.argv[3]===OPERATOR_STOP_ARGUMENT;
   requireThat(process.argv.length === 3 || operatorControl, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
-  requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1','CAPABILITY_MISSING');
+  requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1'
+    || c.schema==='strata/DevelopmentWorker/2','CAPABILITY_MISSING');
   const fs = statfsSync(c.state_directory);
   requireThat(fs.bavail * fs.bsize >= 5 * 1024**3, 'DISK_RESERVE_LOW');
   const token = randomBytes(32).toString('hex');

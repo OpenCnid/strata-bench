@@ -1905,6 +1905,15 @@ scoped grants and gather ordinary connected observations for the whole arm.
 Drain all workers before server save; retain the first worker export through its
 sibling, stop remaining owned workers on failure and preserve parent holds.
 This operator reference exposes no model/action or native probe authority.
+Worker import checks may finish before either writer is acquired, after durable
+pair admission, complete namespace/storage checks and native-input custody.
+Keep parent time charged throughout and check its deadline after worker input
+validation, immediately before import process creation. Persist each normal
+owned-stop receipt before marking that member imported; retain configuration,
+runtime, account and source custody. Bind subsequent writer plans to the prepared
+imports. Failure before writer acquisition still cleans owned processes/logs,
+fences the attempt and retains reservations. Full later pair checks and every
+original finite writer/server window remain required; imports grant no gameplay.
 Each composed runtime check validates shared software/parent custody once and
 all member bindings, account/config/runtime files and process phases. Standalone
 member checks still validate shared custody. Persist and flush each successful

@@ -4,6 +4,7 @@ An operator reference, with no model, mutation, native admission or scientific
 probe claim. Workers drain before their server saves; failures fence the pair.
 """
 
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 import os
@@ -16,7 +17,7 @@ from mcbench.inference_transport import strict_json
 from mcbench.launch_integrity import FileLease, safe, snapshot, tree_files
 from mcbench.native_export import OPERATOR
 from mcbench.pack_worker import _ProcessOutput
-from mcbench.storage import Fault, canonical, require
+from mcbench.storage import Fault, canonical, digest, require
 from mcbench.worker_stop import stop_owned_worker
 
 from .probe_saved_bodies import MAX_COMPRESSED
@@ -44,6 +45,8 @@ class PairedWorkerReference(PairedVanillaRuntime):
         self.outputs, self.logs, self.exports = {}, [], []
         self.session = None
         self.consumed = False
+        self.prepared, self.run_started = False, False
+        self.preflight_preparation = None
         runtime_files = {}
         for group in self.workers.values():
             for worker in group.values():
@@ -90,9 +93,11 @@ class PairedWorkerReference(PairedVanillaRuntime):
             stream.flush()
             os.fsync(stream.fileno())
 
-    def _wait(self, predicate, seconds, code):
-        until = min(self.held.preparation.deadline, *(w.deadline for w in self.held.writers.values()),
-                    time.monotonic() + seconds)
+    def _wait(self, predicate, seconds, code, *, preparation=None):
+        until = (min(preparation.deadline, time.monotonic() + seconds) if preparation is not None
+                 else min(self.held.preparation.deadline, *(w.deadline for w in self.held.writers.values()),
+                          time.monotonic() + seconds))
+        require(time.monotonic() < until, code)
         while not predicate():
             require(time.monotonic() < until, code)
             for log in self.logs:
@@ -100,11 +105,12 @@ class PairedWorkerReference(PairedVanillaRuntime):
             if self.session is not None:
                 require(self.session.native.observe() is None, "PROBE_SERVER_EARLY_EXIT")
             time.sleep(.05)
+        require(time.monotonic() < until, code)
 
-    def _prepare(self, held):
+    def _prepare(self, preparation, plans):
         # Validate all destinations before creating any evidence output directory.
-        paths = [safe(p) for writer in held.writers.values() for p in
-                 (writer.plan.workspace_directory, writer.plan.evidence_directory)]
+        paths = [safe(p) for plan in plans.values() for p in
+                 (plan.workspace_directory, plan.evidence_directory)]
         paths += [safe(p) for group in self.workers.values() for worker in group.values()
                   for p in (worker.invocation["state_directory"], worker.invocation["configuration_path"])]
         for arm, group in self.workers.items():
@@ -120,16 +126,35 @@ class PairedWorkerReference(PairedVanillaRuntime):
             output.mkdir()
             worker = self.workers[arm][agent]
             self._write(output, "resolution.json", worker.resolved)
-            process = worker.start(preflight=True)
+            process = worker.start(preflight=True, _deadline=preparation.deadline)
             log = _ProcessOutput(process, output, "preflight")
             self.logs.append(log)
-            self._wait(lambda: process.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT")
+            self._wait(lambda: process.poll() is not None, 20, "WORKER_PREFLIGHT_TIMEOUT", preparation=preparation)
             log.finish()
             self._write(output, "preflight-receipt.json", worker.receipt())
             self.phases[arm, agent] = "IMPORTED"
-        # Base run constructs the held initial states, then performs the full
-        # composed check before any server dispatch. Each import's owned stop
-        # has already been checked and persisted above; custody stays held.
+        self.inputs.software.check()
+        self.inputs._check_bindings_and_configuration()
+        self._check_worker_phases()
+
+    @contextmanager
+    def before_writers(self, preparation, plans):
+        require(not self.consumed and self.held is None, "PROBE_WORKER_REFERENCE_CONSUMED")
+        require(preparation is self.inputs.software.preparation, "PROBE_WORKER_SOFTWARE_SCOPE")
+        self.consumed = True
+        self.preflight_preparation = preparation
+        self.preflight_plan_digest = digest({arm: p.model_dump(by_alias=True) for arm, p in plans.items()})
+        try:
+            self._prepare(preparation, plans)
+            self.prepared = True
+            self.result["import_preparation"] = {"stage": "before_writers", "complete": True,
+                                                  "writer_plans_digest": self.preflight_plan_digest}
+            yield
+        finally:
+            # run() must clean workers before unwinding any server writer. If
+            # copy/import preparation fails earlier, this context owns cleanup.
+            if not self.run_started:
+                self._cleanup_workers()
 
     def _observe(self, worker, transport):
         config = worker.resolved["worker_configuration"]
@@ -203,37 +228,40 @@ class PairedWorkerReference(PairedVanillaRuntime):
         return result
 
     def run(self, held, continuation):
-        require(not self.consumed and self.held is None, "PROBE_WORKER_REFERENCE_CONSUMED")
-        self.consumed = True
-        # Preflight wait uses the original parent's finite bounds before servers.
-        self.held = held
+        require(self.consumed and self.prepared and not self.run_started and self.held is None,
+                "PROBE_WORKER_REFERENCE_CONSUMED")
+        require(held.preparation is self.preflight_preparation and held.software is self.inputs.software
+                and digest({arm: w.plan.model_dump(by_alias=True) for arm, w in held.writers.items()})
+                == self.preflight_plan_digest, "PROBE_WORKER_SOFTWARE_SCOPE")
+        self.run_started = True
         try:
-            self._prepare(held)
-            self.held = None  # Base coordinator consumes this same held pair once.
             result = super().run(held, self._arm)
             require(all(p == "STOPPED" for p in self.phases.values()), "PROBE_WORKER_STOP_UNPROVEN")
             return result
         finally:
-            # Stop all worker processes before outer writer cleanup can save/exit.
-            errors = []
-            for group in self.workers.values():
-                for worker in group.values():
-                    for process in worker.processes.values():
-                        try:
-                            if process.poll() is None:
-                                process.stop()
-                        except Exception as error:
-                            errors.append(error)
-            for log in self.logs:
-                try:
-                    log.finish()
-                except Exception as error:
-                    errors.append(error)
-            for lease in reversed(self.exports):
-                try:
-                    lease.close()
-                except Exception as error:
-                    errors.append(error)
-            if errors:
-                self.result["cleanup_failures"] = [getattr(e, "code", type(e).__name__) for e in errors]
-                raise Fault("PROBE_WORKER_CLEANUP_UNCERTAIN") from errors[0]
+            self._cleanup_workers()
+
+    def _cleanup_workers(self):
+        # Stop all worker processes before outer writer cleanup can save/exit.
+        errors = []
+        for group in self.workers.values():
+            for worker in group.values():
+                for process in worker.processes.values():
+                    try:
+                        if process.poll() is None:
+                            process.stop()
+                    except Exception as error:
+                        errors.append(error)
+        for log in self.logs:
+            try:
+                log.finish()
+            except Exception as error:
+                errors.append(error)
+        for lease in reversed(self.exports):
+            try:
+                lease.close()
+            except Exception as error:
+                errors.append(error)
+        if errors:
+            self.result["cleanup_failures"] = [getattr(e, "code", type(e).__name__) for e in errors]
+            raise Fault("PROBE_WORKER_CLEANUP_UNCERTAIN") from errors[0]

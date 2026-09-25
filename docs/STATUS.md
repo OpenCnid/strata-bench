@@ -3,6 +3,16 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.13 [pre-writer imports](verification/2026-09-25-m1-prewriter-imports.md)
+is implemented_unverified for authentic paired integration.95 source cases pass.
+New ordering retains parent clocks, receipts, custody and dispatch deadlines.
+Native10 fails233.02s before admission/import/copy/server dispatch; first worker
+input entry148.437s, second11.094s. Parent FENCED/resources held, no world row or
+writer table. All441 source pins and40 real authority tables unchanged at
+$4.887796/no owned runtime. Next read-only phase diagnosis of that delay; preserve
+cases01-10 and original bounds, no unchanged game rerun. Full G1 remains open.
+Earlier next actions below are historical.
+
 M1.6q.12 [protected persistence preparation](verification/2026-09-25-m1-protected-preparation.md)
 is implemented_unverified for authentic paired integration.61 distinct source
 cases pass after a retained test assertion failure. Remove discarded byte

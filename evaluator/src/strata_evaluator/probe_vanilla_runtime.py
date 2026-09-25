@@ -4,6 +4,7 @@ This does not admit native gameplay, claim all-N body readiness, dispose of a
 probe agent, settle evaluation costs or expose private provenance to gameplay.
 """
 
+from contextlib import nullcontext
 from pathlib import Path
 import threading
 import time
@@ -166,6 +167,10 @@ class ProbeVanillaSession(VanillaWriterSession):
 
 
 class PairedVanillaRuntime:
+    def before_writers(self, preparation, plans):
+        """Server-only references have no independent worker import stage."""
+        return nullcontext()
+
     def __init__(self, pair, values):
         require(
             isinstance(values, dict) and set(values) == set(pair["arm_order"]), "PROBE_WORLD_ROSTER"

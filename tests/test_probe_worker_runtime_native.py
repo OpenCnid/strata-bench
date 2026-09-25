@@ -87,6 +87,7 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     for cls, method, name in ((HeldPackWorker, "__enter__", "worker_inputs"),
                               (VanillaProbeInputs, "__enter__", "software_inputs"),
                               (VanillaProbeInputs, "check", "software_check"),
+                              (PairedWorkerReference, "_prepare", "worker_imports"),
                               (PairedWorkerReference, "check", "pair_check"),
                               (VanillaWriterSession, "stop", "server_stop_request"),
                               (ProbeVanillaSession, "finish", "server_finish")):
@@ -102,6 +103,28 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
         invocations[row["arm"]][row["source_agent"]] = {"campaign_id": row["campaign"], "agent_id": row["agent"],
             "epoch": 1, "lease_id": "worker-" + row["arm"] + "-" + uuid.uuid4().hex,
             "state_directory": str(state), "configuration_path": str(tmp_path / ("worker-" + row["arm"] + ".json"))}
+
+    from strata_evaluator.writer_preparation import WriterPreparations
+    prepare_writer = WriterPreparations.run
+    import_barriers = []
+
+    def imported_before_writer(owner, value, **kwargs):
+        require(prep.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "PREPARING",
+                "NATIVE_IMPORT_ADMISSION")
+        for group in invocations.values():
+            for invocation in group.values():
+                proof = json.loads(Path(invocation["configuration_path"] + ".evidence/preflight-receipt.json").read_bytes())
+                owned = proof["owned_processes"]["preflight"]
+                require(owned["returncode"] == 0 and owned["job"]["active_processes"] == 0
+                        and owned["job"]["terminated_processes"] == 0 and owned["job"]["total_processes"] > 0
+                        and proof["held_through_owned_stop"] and proof["runtime"]["manifest_held"],
+                        "NATIVE_IMPORT_STOP_UNPROVEN")
+        import_barriers.append(value["id"])
+        phases.append({"phase": "imports_before_writer", "writer": value["id"],
+                       "at_s": time.monotonic() - started})
+        return prepare_writer(owner, value, **kwargs)
+
+    monkeypatch.setattr(WriterPreparations, "run", imported_before_writer)
 
     def plans(software):
         result = {}
@@ -152,6 +175,7 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
             "elapsed_since_parent_acquire_s": time.monotonic() - started}))
     assert result["policy"] == POLICY and set(result["runtime"]["workers"]) == set(pair["arm_order"])
     assert len(checks) == 2
+    assert len(import_barriers) == 2 and result["runtime"]["import_preparation"]["complete"]
     for group in result["runtime"]["workers"].values():
         assert group["complete_roster_observed_connected"] and not group["live_initial_state_verified"]
         assert group["members"]["a1"]["own_state_projection_verified"]

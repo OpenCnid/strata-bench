@@ -2,6 +2,16 @@
 
 ## Current position
 
+M1.6q.13 [pre-writer imports](docs/verification/2026-09-25-m1-prewriter-imports.md)
+is implemented_unverified for authentic paired integration.95 focused cases
+pass; imports now precede writer acquisition after durable admission, with
+parent clocks, receipts, custody and final dispatch deadlines intact. Fresh
+native10 fails233.02s before admission/import/copy/server dispatch: first worker
+input entry148.437s, second11.094s; original writer window no longer fits. Parent
+FENCED, resources held, no world row or writer table. All441 source pins and40
+real authority tables unchanged at$4.887796/no owned runtime. Next read-only
+phase diagnosis of the first-entry delay; do not rerun unchanged. G1 stays open.
+
 M1.6q.12 [protected persistence preparation](docs/verification/2026-09-25-m1-protected-preparation.md)
 is implemented_unverified for authentic paired integration. Remove a discarded
 byte snapshot while retaining exact membership, quotas and fresh held-byte
@@ -948,6 +958,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
 | M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
 | M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
+| M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md):95 source passes; native10 fails233.02s pre-admission before imports/copies/servers because first input entry takes148.437s. Parent FENCED/holds intact/no world row or writer table. New ordering unexercised authentically; next read-only first-entry diagnosis. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8940,3 +8951,99 @@ These pointers follow the archived documentation snapshot.
   remain. No native10, paid call, bounds change or G1 promotion.
 - Next inspect pre-writer import ordering with existing parent clocks,
   configuration/runtime custody, durable receipts and complete later checks.
+
+### 2026-09-25 — M1.6q.13 pre-writer import ordering begins
+
+- Clean2f7d6e4; prior turn progressed with implementation,61 passing cases,
+  identical-state read-only profile and sealed evidence. All40 durable tables
+  unchanged at$4.887796/no owned runtime; no new spending authority.
+- Trace imports to already-held software, worker configurations/runtime/account
+  declarations and parent reservation. Copied server trees are not required.
+  Select a preparation context after durable PREPARING/storage/namespace
+  admission and native-input custody, before either writer acquisition.
+- Preserve one-use attempt semantics, bounded import process ownership, flushed
+  receipts, parent deadlines, later source/config checks and cleanup before
+  fencing. Add final dispatch deadline refusal after worker input rechecks.
+  Original300/200-170/60-60s limits stay; no native10 selected before verification.
+
+### 2026-09-25 — M1.6q.13 implementation under focused verification
+
+- Added a pre-writer preparation context after durable pair/storage/namespace
+  admission and native-input custody. Complete worker imports flush receipts and
+  validate parent/configuration/runtime/account state before writer acquisition.
+  Later run binds the same preparation and writer-plan digest. Early failures
+  clean imports/logs; running failures retain cleanup before writer unwind.
+- HeldPackWorker now accepts a private finite preflight deadline and checks it
+  after runtime/config revalidation immediately before process creation. Invalid,
+  expired and validation-consumed deadlines have focused no-dispatch cases.
+- Positive/failure tests check receipts before each writer, no writer roots on
+  import failure, parent expiry/copier refusal cleanup, durable fencing and held
+  budgets. Native verification now independently joins both import stop receipts
+  before each writer, but no native trial has been selected or run.
+- Ruff passes. Source hashes captured in the private evidence root. Exec2571
+  (deadline, pack-worker and full paired-worker suite) and exec23955 (copy and
+  selected server-only regressions) are live; no aggregate result yet. Preserve
+  their handles and distinct basetemps rather than restarting. G1-G5 not_run.
+
+### 2026-09-25 — M1.6q.13 server/copy regressions complete
+
+- Exec23955 is terminal:17 cases pass386.93s, one authentic opt-in case
+  explicitly deselected, no skips/failures. Includes copy admission/cleanup,
+  server-only complete paired stop/export and whole-scope reservation checks.
+  Preserve raw JUnit/logs. Exec2571 remains live in the worker failure matrix;
+  no aggregate source or native/G1 pass is claimed yet.
+
+### 2026-09-25 — M1.6q.13 focused suites pass; changed native10 selected
+
+- Main exec2571 passes78 cases849.16s; server/copy exec23955 passes17
+  cases386.93s, one authentic opt-in case deselected.95 distinct source passes,
+  no skips/failures. Tested source hashes unchanged; final Ruff passes.
+- Select one fresh native10 attempt for imports-before-writers and verified
+  q10-q12 preparation changes. Preserve original300/200-170/60-60s windows,
+  real profile02/world identity, source-bound helpers and every prior failure.
+  No inference call or budget extension. Fresh preparation exec54359 verifies
+  authority/host/source pins before making a one-use input; dispatch is pending.
+  Full matched-state/native admission/clocks/disposal and G1 remain open.
+
+### 2026-09-25 — M1.6q.13 native10 dispatched once
+
+- Preparation54359 passes original source-world/profile/helper and authority
+  checks. Fresh dispatch verifies95 passing cases,441 matching source files,
+  all40 unchanged authority tables, host resource capacity, free25565 and no
+  existing writer evidence parent. No paid inference authority is used.
+- Native exec24927 is running with input
+  `cf3aadb467a40cc6085ddeb3c5fafcceda3fb7a69a82ead9b27fa1a7830f58ea`.
+  Resume that handle; never replay it or prior cases on a timeout. All original
+  windows and accounting holds remain. Result is pending; no G1 promotion.
+
+### 2026-09-25 — M1.6q.13 native10 terminal refusal audited
+
+- Exec24927 fails233.02s, JUnit231.798s, PROBE_WORLD_DEADLINE before world-copy
+  admission. No import/copier/server/worker dispatch; new import ordering not
+  reached. Parent FENCED, resources reserved, no world row or writer table.
+  Configuration files exist; worker state directories and external writer
+  evidence parent remain empty. Do not replay the consumed input.
+- Parent preparation211.969s: first worker-input entry148.437s, second11.094s;
+  shared software preparation20.468s. Overlapping software/parent checks remain
+  separately labeled; never sum them as authoritative campaign time. Original
+  parent300s/writers200-170s/servers60-60s limits are unchanged. Cause unknown.
+- Independent audit passes actual empty-dispatch scope, fencing/holds,441 source
+  pins,40 real authority tables unchanged at$4.887796 and no owned runtime.95
+  focused source cases pass; full authentic integration/G1 remain unverified.
+- Next read-only phase diagnosis of the first HeldPackWorker input entry under
+  fresh custody. Preserve cases01-10; no unchanged game rerun or spending scope
+  expansion. [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md).
+
+### 2026-09-25 — M1.6q.13 and native10 evidence sealed
+
+- Independent source archive14,502 files/45,604,709 bytes:
+  `bfc91309dbe73cada303beac38afd7ab5ac6c5a75f408409bc91022075ad24e2`.
+  Failed native10 archive669 files/44,767,353 bytes:
+  `2ae54226446f86ea7334735d4a74dd1e24551015631663dccf9dcc48e30bd45b`.
+  Both verify; full artifacts and empty directories remain preserved.
+- Final audit confirms95 source passes,441 pinned source files, native ordering
+  unexercised, all40 authority tables unchanged and no owned runtime. Preserve
+  all424 historical milestone IDs/addM1.6q.13;1,679 links, append-only progress
+  and prior SPEC text/JSON pass. Ruff/whitespace pass; all sessions terminal.
+- Next isolate the148.437s first-entry delay with read-only phase profiling;
+  no unchanged native replay, no bounds change, no G1 promotion.

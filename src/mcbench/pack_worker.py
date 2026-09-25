@@ -8,6 +8,7 @@ a general process/network sandbox or a complete checkpoint protocol.
 from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 import hashlib
+import math
 import os
 from pathlib import Path
 import re
@@ -323,9 +324,11 @@ class HeldPackWorker:
         self.restored_journal = HeldRestoredJournal(reference, self._resolved["worker_configuration"])
         self._resources.callback(self.restored_journal.close)
 
-    def start(self, *, preflight=False):
+    def start(self, *, preflight=False, _deadline=None):
         require(self._resources is not None and type(preflight) is bool, "WORKER_LAUNCH_NOT_HELD")
         require(self.config_lease is not None, "WORKER_CONFIGURATION_NOT_HELD")
+        require(_deadline is None or preflight and type(_deadline) in (int, float) and math.isfinite(_deadline),
+                "WORKER_PREFLIGHT_DEADLINE")
         mode = "preflight" if preflight else "worker"
         require(mode not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
         if not preflight and "preflight" in self.processes:
@@ -347,6 +350,9 @@ class HeldPackWorker:
         command = self._resolved["launch"]
         argv = ([command["executable_path"], command["arguments"][0], "--check-vanilla-runtime"]
                 if preflight else [command["executable_path"], *command["arguments"]])
+        # Input rechecks consume the parent's exposure too. Refuse an expired
+        # import after those checks, before creating the owned process.
+        require(_deadline is None or time.monotonic() < _deadline, "WORKER_PREFLIGHT_DEADLINE")
         # The pinned base interpreter avoids an unowned venv redirector child
         # before the bootstrap can wait for Job Object assignment.
         process = ManagedProcess(argv, Path(command["working_directory"]), command["environment"], "",

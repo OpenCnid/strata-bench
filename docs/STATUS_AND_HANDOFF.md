@@ -4,6 +4,42 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.13 [pre-writer imports](verification/2026-09-25-m1-prewriter-imports.md)
+is implemented_unverified for authentic paired integration.95 source cases pass.
+Imports now precede writer acquisition after durable admission, preserving parent
+clocks, receipts, namespace/storage/custody checks and final dispatch deadline.
+Native10 fails233.02s before admission/import/copy/server dispatch: first input
+entry148.437s, second11.094s. Parent FENCED/resources held, no world row or writer
+table. All441 source pins and40 real tables unchanged at$4.887796/no owned
+runtime. Next read-only phase diagnosis of the first-entry delay. No unchanged
+game rerun; G1 open. Source evidence root:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-prewriter-imports-01`.
+
+Both Q13 source sessions are terminal. Exec2571 passes78 cases849.16s;
+exec23955 passes17 cases386.93s with one authentic opt-in case explicitly
+deselected.95 distinct passes, no skips/failures; all tested source hashes
+match. Final Ruff passes. Native10 is now selected for the changed ordering
+plus verified q10-q12 preparation changes, retaining all original windows.
+Fresh root:`C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-10`.
+Preparation54359 is terminal/pass. Native10 exec24927 is terminal/fail,
+independently audited. Its input remains consumed:
+`cf3aadb467a40cc6085ddeb3c5fafcceda3fb7a69a82ead9b27fa1a7830f58ea`.
+Dispatch preflight verified95 source passes,441 unchanged source pins, all40
+authority tables unchanged, host capacity/free port and absent prior evidence
+parent. Final audit confirms no process dispatch, unchanged authority and all
+holds retained. No live test/diagnostic session remains. Do not replay.
+External writer evidence parent:
+`C:/Users/Darian/.codex/native-evidence/m1-worker-pair-native-10`.
+Do not replay native01-09. This trial has zero model calls and remains a mixed
+actual-game/synthetic-agent-protocol reference, without G1/native admission.
+
+Q13 and native10 archives are sealed and independently verified. Source archive:
+`bfc91309dbe73cada303beac38afd7ab5ac6c5a75f408409bc91022075ad24e2`
+(14,502 files/45,604,709 bytes). Native10:
+`2ae54226446f86ea7334735d4a74dd1e24551015631663dccf9dcc48e30bd45b`
+(669 files/44,767,353 bytes). All sessions, including sealing91249, are terminal.
+Use fresh storage for the next read-only diagnosis; never alter either root.
+
 M1.6q.12 [protected persistence preparation](verification/2026-09-25-m1-protected-preparation.md)
 is implemented_unverified for authentic paired integration.61 distinct source
 cases pass after a retained initial test-assertion failure; final lint passes.

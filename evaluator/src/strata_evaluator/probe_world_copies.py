@@ -331,7 +331,14 @@ class ProbeWorldCopies:
         try:
             with FileLease(runtime_inventory(plans)) as native_inputs:
                 body["native_input_inventory"] = native_inputs.inventory
-                stage(0)
+                if runtime is None:
+                    stage(0)
+                else:
+                    # Admission, complete storage/namespaces and native custody
+                    # precede imports; parent time still includes all this work.
+                    body["runtime"] = runtime.result
+                    with runtime.before_writers(prep, plans):
+                        stage(0)
                 native_inputs.recheck()
             prep.check()
             if software is not None:

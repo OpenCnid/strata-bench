@@ -42,7 +42,10 @@ def worker_processes(monkeypatch, example):
     launched, processes, observations = [], [], {}
     failures = {"kind": None}
 
-    def start(worker, *, preflight=False):
+    def start(worker, *, preflight=False, _deadline=None):
+        if preflight:
+            assert _deadline is not None
+            module.require(module.time.monotonic() < _deadline, "WORKER_PREFLIGHT_DEADLINE")
         config = worker.resolved["worker_configuration"]
         mode = "preflight" if preflight else "worker"
         launched.append((mode, config["campaign_id"]))
@@ -158,6 +161,20 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     monkeypatch.setattr(VanillaProbeInputs, "check", checked_software)
     monkeypatch.setattr(module.PairedWorkerReference, "check", checked_pair)
     monkeypatch.setattr(module.PairedWorkerReference, "check_workers", checked_members)
+    from strata_evaluator.writer_preparation import WriterPreparations
+    prepare_writer = WriterPreparations.run
+    writer_entries = []
+
+    def imported_before_writer(self, value, **kwargs):
+        assert [v[0] for v in order] == ["preflight", "preflight"]
+        assert all(p.poll() == 0 for p in processes)
+        assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "PREPARING"
+        for group in invocations.values():
+            assert Path(group["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").is_file()
+        writer_entries.append(value["id"])
+        return prepare_writer(self, value, **kwargs)
+
+    monkeypatch.setattr(WriterPreparations, "run", imported_before_writer)
 
     def event(self, arm, phase):
         events.append((arm, phase))
@@ -188,6 +205,8 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     result = service.run_vanilla_worker_reference(EVALUATOR, plans, launches_v2(launches), invocations,
                                                  pack_binding=binding.model_dump())
     assert result["policy"] == module.POLICY
+    assert len(writer_entries) == 2
+    assert result["runtime"]["import_preparation"]["stage"] == "before_writers"
     assert process_fixture[0] == ["initial", "experienced"]
     assert len(standalone_calls) == 2  # One live-body barrier per arm.
     assert drain_checks == ["initial", "experienced"]
@@ -290,6 +309,9 @@ def test_worker_failure_fences_pair_without_second_server_or_refund(
                                               pack_binding=binding.model_dump())
     assert process_fixture[0] == ([] if failure in {"import", "import_receipt", "member_binding", "runtime_recheck", "software_scope"}
                                   else ["initial"])
+    if failure in {"import", "import_receipt"}:
+        assert all(not Path(plan[field]).exists() for plan in plans.values()
+                   for field in ("workspace_directory", "evidence_directory"))
     if failure == "import_receipt":
         assert Path(invocations["initial"]["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").is_file()
         assert not Path(invocations["experienced"]["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").exists()
@@ -301,6 +323,44 @@ def test_worker_failure_fences_pair_without_second_server_or_refund(
     if failure == "ready_binding":
         assert len(processes) == 2 and all(not p.interactive for p in processes)
     assert all(p.poll() is not None for p in processes)
+    assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
+    assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+    from mcbench.controller import reserved_resources
+    assert reserved_resources(service.db.connection, "probe-worker") == capacity
+    assert service.preparation.runtime.budgets.status("probe-total")["committed_and_reserved"]["spend_microusd"] == 200
+
+
+@pytest.mark.parametrize("failure", ["expired_parent", "copier_refusal"])
+def test_prepared_imports_close_when_parent_expires_or_first_writer_refuses(
+    runtime, candidate, process_fixture, worker_processes, tmp_path, directory_fixture, per_arm_disk_bytes,
+    monkeypatch, failure,
+):
+    service, plans, launches, binding, capacity = runtime
+    account(candidate[1].worker_settings.auth_cache)
+    invocations = values(service, tmp_path)
+    if failure == "expired_parent":
+        write = module.PairedWorkerReference._write
+        def expire(self, output, name, value):
+            result = write(self, output, name, value)
+            if name == "preflight-receipt.json":
+                service.preparation.deadline = module.time.monotonic() - 1
+            return result
+        monkeypatch.setattr(module.PairedWorkerReference, "_write", expire)
+    else:
+        from strata_evaluator.writer_preparation import WriterPreparations
+        def refuse(*args, **kwargs):
+            assert [v[0] for v in worker_processes[0]] == ["preflight", "preflight"]
+            raise Fault("PROBE_TEST_COPIER_REFUSED")
+        monkeypatch.setattr(WriterPreparations, "run", refuse)
+    with pytest.raises(Fault, match="PROBE_|WORKER_"):
+        service.run_vanilla_worker_reference(EVALUATOR, plans, launches_v2(launches), invocations,
+                                             pack_binding=binding.model_dump())
+    assert not process_fixture[0]
+    assert all(p.poll() == 0 for p in worker_processes[1])
+    assert len(worker_processes[1]) == (1 if failure == "expired_parent" else 2)
+    assert all(not Path(plan[field]).exists() for plan in plans.values()
+               for field in ("workspace_directory", "evidence_directory"))
+    assert Path(invocations["initial"]["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").is_file()
     assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
     assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
     from mcbench.controller import reserved_resources

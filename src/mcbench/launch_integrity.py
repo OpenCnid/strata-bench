@@ -30,6 +30,15 @@ def _absolute(path):
     return path
 
 
+def _check_link(path):
+    try:
+        info = path.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        return
+    check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
+          "BOOTSTRAP_LINK")
+
+
 def safe_many(paths):
     """Check every component once in this batch; retain no filesystem cache.
 
@@ -43,13 +52,7 @@ def safe_many(paths):
         # A checked component implies its ancestors were visited by an earlier
         # path in this call. Stop there instead of rebuilding the same chain.
         while part not in checked:
-            try:
-                info = part.lstat()
-            except (FileNotFoundError, NotADirectoryError):
-                pass
-            else:
-                check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
-                      "BOOTSTRAP_LINK")
+            _check_link(part)
             checked.add(part)
             part = part.parent
     return result
@@ -182,20 +185,29 @@ class FileLease:
             def native_path(path):
                 text = str(path)
                 return text if text.startswith("\\\\?\\") else "\\\\?\\" + text
-            # Batch only preliminary ancestor discovery. Every file still gets
-            # its full path check below, after all parent handles are acquired.
-            # No filesystem result survives this constructor call.
+            # Discover ancestors, acquire their deny-delete handles, then check
+            # them again under custody. No result survives this constructor.
             parents = {p for path in safe_many(self.paths) for p in path.parents}
             check(len(parents) <= 12000, "BOOTSTRAP_QUOTA")
             for path in sorted(parents, key=str):
-                handle = create(native_path(path), 0, 3, None, 3, 0x02000000, None)
+                # Hold the entry itself if a reparse point appeared during
+                # discovery; the subsequent link check must see that same entry.
+                # FILE_LIST_DIRECTORY participates in sharing checks; a zero-
+                # access metadata handle does not reliably deny deletion.
+                handle = create(native_path(path), 1, 3, None, 3, 0x02200000, None)
                 check(handle not in (None, ctypes.c_void_p(-1).value), "BOOTSTRAP_DIRECTORY_LOCK_FAILED")
                 self.directories.append(handle)
+            safe_many(parents)
             for entry in inventory["files"]:
-                path = safe(entry["path"])
-                handle = create(native_path(path), 0x80000000, 1, None, 3, 0x80, None)
+                path = _absolute(entry["path"])
+                check(path.parent in parents, "BOOTSTRAP_UNHELD_PARENT")
+                # Held ancestors cannot be replaced after the check above.
+                # File entries remain mutable until their own handles open.
+                _check_link(path)
+                handle = create(native_path(path), 0x80000000, 1, None, 3, 0x00200080, None)
                 check(handle not in (None, ctypes.c_void_p(-1).value), "BOOTSTRAP_LOCK_FAILED")
                 self.handles.append(handle)  # Retained before any hash/size failure.
+                _check_link(path)
                 # Large authentic inventories exceed the CRT descriptor table.
                 # Hash the retained native handle directly; never reopen by name
                 # or exchange the deny-write/delete handle for a transient read.

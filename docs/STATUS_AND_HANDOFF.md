@@ -4,6 +4,37 @@ D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.
 
+M1.6q.9 [held-parent path validation](verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
+Directory handles now deny removal before child files open and retain reparse
+entries themselves. Validate held ancestors once, with fresh leaf checks and
+retained-handle hashes. Two initial custody failures are preserved and fixed;
+110 distinct source cases pass, with three symlink-privilege skips. Read-only
+profile30.250s becomes25.063s with identical launch resolution. Native09 fails
+202.19s before first server dispatch: inner PROBE_WORLD_DEADLINE, outer close
+uncertain. Both copiers/imports stop normally; no server/worker launched. Writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next compose repeated
+materialization membership scans around complete two-role resolution, retaining
+fresh authority/layout/type/size/hardlink checks and original300/200-170/60-60s
+limits. Cases01-09 remain. All40 real tables unchanged at$4.887796; no owned
+runtime or model calls. Full matched-state/native/probe/keybinding/scorer and
+isolation gates stay open; G1-G5 not_run. Earlier next actions are historical.
+
+All q9 exec sessions are terminal: source88346/20157 pass; native74048 fails.
+Private working evidence is `C:/Users/Darian/.strata/evidence/2026-09-25-m1-preparation-profile-01`;
+native evidence is `C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-09`.
+Native input962387de9ced95a65307d1a2778fd8fc56ac8fd0bca0d8982d82f8397aea12cb
+is consumed. Audit joins both10/10 normal copiers and both three-process import
+receipts, empty server/worker results and retained reservations. Do not rerun
+unchanged. Earlier q8 session/evidence text below is retained history.
+
+Q9 final main archive: `2026-09-25-m1-held-parent-checks-01`,1,930 files,
+11,839,556 bytes, seal578b4b0b29deded585bb624ed70bfc3215839af36405a77d7437fa2c5f11ad09.
+It joins both complete test-subtree seals; all27,052 original files are represented.
+Native09:684 files/47,132,251 bytes,
+0cdd369f44624b8925efa74ac8e894e3d0bcfbe77c09b7482e5c82d5d25f6698.
+All four seals independently verify; no live validation/archive job. Current421
+milestone IDs preserve all420 prior IDs;1,658 links and SPEC/progress checks pass.
+
 M1.6q.8 [runtime check composition](verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
 Every lifecycle check validates member runtime custody once, directly or through
 its complete stop receipt. First-start full preflight includes aggregate-window

@@ -2,6 +2,21 @@
 
 ## Current position
 
+M1.6q.9 [held-parent path validation](docs/verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
+Directory handles now deny removal before child files open and retain reparse
+entries themselves. Validate held ancestors once, with fresh leaf checks and
+retained-handle hashes. Two initial custody failures are preserved and fixed;
+110 distinct source cases pass, with three symlink-privilege skips. Read-only
+profile30.250s becomes25.063s with identical launch resolution. Native09 fails
+202.19s before first server dispatch: inner PROBE_WORLD_DEADLINE, outer close
+uncertain. Both copiers/imports stop normally; no server/worker launched. Writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next compose repeated
+materialization membership scans around complete two-role resolution, retaining
+fresh authority/layout/type/size/hardlink checks and original300/200-170/60-60s
+limits. Cases01-09 remain. All40 real tables unchanged at$4.887796; no owned
+runtime or model calls. Full matched-state/native/probe/keybinding/scorer and
+isolation gates stay open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.8 [runtime check composition](docs/verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
 Every lifecycle check validates member runtime custody once, directly or through
 its complete stop receipt. First-start full preflight includes aggregate-window
@@ -896,6 +911,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.6 | AR/GI/SI/QA | Borrow live materialization for private worker resolution; retain per-member runtime/config/account and whole-roster custody. Inherits M1.6q.5 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-materialization.md): 97 source passes; genuine read-only entry 13.672s to 11.078s, equal output. No new native attempt: savings precede the writer clock. Next reduce validation delaying normal stop within the original bounds; retain case06 and all holds. |
 | M1.6q.7 | AR/GI/SI/QA | Scoped stop before full pair validation during bounded drain; preserve capture and sibling admission. Inherits M1.6q.6 plus partial T07 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-pair-stop-order.md):22 source passes; case07 first worker/server normal stop and export pass, second launch refuses insufficient exposure. Stop request0.109s, pair checks up to8s. Next compose repeated validation; retain bounds and all failures/holds. |
 | M1.6q.8 | AR/GI/SI/QA | Compose runtime/phase checks and first-start full preflight with aggregate windows; inherit M1.6q.7 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-runtime-check-composition.md): 35 source passes; native08 fails125.69s before first writer, PROBE_WORLD_DEADLINE. No runtime dispatch; world FAILED/parent FENCED/holds retained. Lifecycle timing unverified. Next profile pre-writer preparation; preserve original bounds and cases01-08. |
+| M1.6q.9 | SI/GI/QA | Validate acquired parent paths once while retaining fresh per-file link and held-hash checks; inherit M1.6q.8 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md): 110 distinct source passes/three privilege skips after two retained custody failures. Exact read-only resolution matches, faster profiled entry. Native09 fails202.19s before first server, both copiers/imports normal; original windows/holds remain. Next compose repeated materialization membership validation. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8682,3 +8698,60 @@ any writer dispatch.438 source pins match, all419 prior IDs remain/420 current,
 1,655 links resolve; append-only progress and prior SPEC text/JSON pass.
 Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
 pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.9 held-parent validation, in progress
+
+- Revalidated clean8077751, all40 real authority tables unchanged and no owned
+  runtime. Last turn advanced implementation/evidence, not a no-progress wait.
+- Read-only profile02/runtime02 worker preparation completes with no configuration
+  writes, game/model dispatch or open runtime custody. Initial diagnostic failed
+  from naming its script profile.py (stdlib shadow); preserve that output and
+  corrected diagnostic separately. Profiled entry30.250s:18.492s in FileLease,
+  11,762 safe calls8.339s cumulative and263,150 stat calls. Timings overlap.
+- M1.6q.9 implements held-parent validation once per acquisition plus fresh leaf
+  checks/hashes. No cross-call cache, relaxed authority/membership requirement,
+  new paid allowance or longer runtime. Source/refusal verification remains
+  pending; original cases01-08 and all wider G1 contracts remain open.
+
+### 2026-09-25 — M1.6q.9 directory custody fixed; native09 finite-window refusal
+
+- FILE_LIST_DIRECTORY handles enforce deny-delete sharing before child opens;
+  OPEN_REPARSE_POINT retains link entries themselves through rejection. Recheck
+  held ancestors once, require every leaf's parent held, check leaves before/after
+  open and hash retained handles. No cached filesystem success or relaxed hashes.
+- Initial source104 passes/two failures/three privilege skips exposed zero-access
+  directory removal. Preserve that run; five targeted corrections pass and final
+  integrity/bundle/pack selection106 passes/three skips44.00s. Four complete-pair/
+  post-stop cases pass177.73s:110 distinct cases. Ruff/whitespace pass.
+- Exact-profile read-only entry30.250s to25.063s under cProfile, equal resolution;
+  FileLease18.492s to12.465s, stat calls263,150 to121,679. No config writes or
+  dispatch; held runtime/server write-opens denied. Retain the profiler naming
+  failure and distinguish instrumented diagnostics from native exposure clocks.
+- Fresh native09 passes110 source cases/declared skips,438 pins, host/authority/
+  one-use checks; fails202.19s total (JUnit200.869s). Both copiers normal10/10;
+  both imports exit0 with three total/zero active or terminated processes.
+  First full start check finishes179.110s after parent acquisition, then rejects
+  the complete120s server exposure: inner PROBE_WORLD_DEADLINE, outer close
+  uncertain. No server/worker dispatch, no stopped export. Writers UNCERTAIN,
+  world FAILED,parent FENCED,all holds retained; audit passes without promotion.
+- All40 real tables unchanged at$4.887796, no owned runtime or model call; D18/D19
+  remain M0-only. Preserve original bounds/cases01-09. Next compose redundant
+  membership scans within the full private two-role materialization resolution,
+  retaining fresh authority and every layout/type/size/hardlink/membership check.
+  Full matched state/tools, native admission, clocks/disposal, T05/T10 and isolation
+  remain open; G1-G5 not_run. [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md).
+
+M1.6q.9 final seals: initial source phase12,564 files/6,175,831 bytes,
+`83761e8a41111b3367d7ca1b80e35c662772d6ae61299a35854ee7106c3c40a8`;
+corrected phase12,564 files/6,198,557 bytes,
+`e230fe40a8beee5d6f45a660de52cb2a72fef4866f702170523ad32e5e735c70`;
+main1,930 files/11,839,556 bytes,
+`578b4b0b29deded585bb624ed70bfc3215839af36405a77d7437fa2c5f11ad09`;
+native684 files/47,132,251 bytes,
+`0cdd369f44624b8925efa74ac8e894e3d0bcfbe77c09b7482e5c82d5d25f6698`.
+All independently verify. Byte-equal complete subtrees/main represent all27,052
+original evidence files; original profile-01 remains retained unsealed. All420
+prior IDs remain/421 current,1,658 links resolve, append-only progress and prior
+SPEC text/JSON pass.110 distinct source cases pass/three privilege skips; native09
+remains failed. No owned runtime or model call, all40 real tables unchanged.
+These pointers follow the archived documentation snapshot.

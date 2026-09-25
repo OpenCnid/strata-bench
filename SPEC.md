@@ -1855,6 +1855,16 @@ worker or server dispatch. Commit rechecks runtime and fresh paths; a failed
 attempt closes its own custody and retains partial evidence. Preliminary path
 discovery may batch shared ancestors within one call; final per-file link checks
 under held parents, retained-handle hashes and membership checks remain required.
+After acquiring all ancestor handles, validate those parent paths again as one
+batch. Their deny-delete custody may replace repeated ancestor scans within that
+acquisition only. Require each file's parent to belong to that held set; check
+the file itself for links immediately before and after opening its retained
+handle. No cross-acquisition path cache or relaxed byte/membership check follows.
+Open native entries without following reparse points so a link introduced during
+acquisition remains held in place until the link check rejects it and cleanup
+releases every acquired handle.
+Directory access must participate in native sharing checks, so removal is denied
+even before any child file opens; a metadata-only zero-access handle is insufficient.
 The owning launcher may retain the exact runtime opened by launch resolution
 through configuration and owned process cleanup, without closing and reopening
 it. Public read-only resolution releases its handles before returning; neither

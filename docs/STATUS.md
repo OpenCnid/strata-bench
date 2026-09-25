@@ -3,6 +3,21 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.9 [held-parent path validation](verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
+Directory handles now deny removal before child files open and retain reparse
+entries themselves. Validate held ancestors once, with fresh leaf checks and
+retained-handle hashes. Two initial custody failures are preserved and fixed;
+110 distinct source cases pass, with three symlink-privilege skips. Read-only
+profile30.250s becomes25.063s with identical launch resolution. Native09 fails
+202.19s before first server dispatch: inner PROBE_WORLD_DEADLINE, outer close
+uncertain. Both copiers/imports stop normally; no server/worker launched. Writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next compose repeated
+materialization membership scans around complete two-role resolution, retaining
+fresh authority/layout/type/size/hardlink checks and original300/200-170/60-60s
+limits. Cases01-09 remain. All40 real tables unchanged at$4.887796; no owned
+runtime or model calls. Full matched-state/native/probe/keybinding/scorer and
+isolation gates stay open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.8 [runtime check composition](verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
 Every lifecycle check validates member runtime custody once, directly or through
 its complete stop receipt. First-start full preflight includes aggregate-window

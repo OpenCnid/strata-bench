@@ -159,7 +159,9 @@ def test_parent_changed_to_junction_after_discovery_is_rechecked_under_handles(t
     (source / "file").write_bytes(b"identical bytes")
     inventory = snapshot([source / "file"], [])
     original = module.safe_many
+    original_link = module._check_link
     changed = False
+    held_junction = []
 
     def swap(paths):
         nonlocal changed
@@ -176,15 +178,85 @@ def test_parent_changed_to_junction_after_discovery_is_rechecked_under_handles(t
         return result
 
     monkeypatch.setattr(module, "safe_many", swap)
+
+    def check_held_entry(path):
+        if changed and path == module._absolute(source):
+            # OPEN_REPARSE_POINT must hold the junction itself, not only its
+            # destination. Otherwise it can disappear before link validation.
+            with pytest.raises(OSError):
+                source.rmdir()
+            held_junction.append(True)
+        return original_link(path)
+
+    monkeypatch.setattr(module, "_check_link", check_held_entry)
     try:
         with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
             FileLease(inventory)
-        assert changed
+        assert changed and held_junction
     finally:
         if source.exists() and source.lstat().st_file_attributes & 0x400:
             source.rmdir()  # Remove the junction only, not its target.
     # Failed acquisition releases the parent handles too.
     (retained / "file").write_bytes(b"released")
+
+
+@pytest.mark.parametrize("when", ["before_open", "after_open"])
+def test_late_leaf_link_refuses_and_releases_acquired_handles(tmp_path, monkeypatch, when):
+    from types import SimpleNamespace
+    import stat
+    from mcbench import launch_integrity as module
+
+    source = tmp_path / "source"
+    source.write_bytes(b"same bytes")
+    inventory = snapshot([source], [])
+    original = Path.lstat
+    visits = []
+
+    def changed(path, *args, **kwargs):
+        if path == module._absolute(source):
+            visits.append(True)
+            # Discovery succeeds. Inject the changed file type at the final
+            # leaf boundary, with an actual held Windows handle after opening.
+            if len(visits) == (2 if when == "before_open" else 3):
+                if when == "after_open":
+                    with pytest.raises(OSError):
+                        source.write_bytes(b"cannot change held bytes")
+                return SimpleNamespace(st_mode=stat.S_IFLNK, st_file_attributes=0x400)
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "lstat", changed)
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+        FileLease(inventory)
+    source.write_bytes(b"released after refusal")
+
+
+def test_inventory_cannot_introduce_unheld_parent_after_directory_acquisition(tmp_path, monkeypatch):
+    from mcbench import launch_integrity as module
+
+    source, foreign = tmp_path / "source", tmp_path / "foreign"
+    source.mkdir()
+    foreign.mkdir()
+    first, second = source / "file", foreign / "file"
+    first.write_bytes(b"same bytes")
+    second.write_bytes(b"same bytes")
+    inventory = snapshot([first], [])
+    original = module.safe_many
+    calls = []
+
+    def changed(paths):
+        result = original(paths)
+        calls.append(True)
+        if len(calls) == 2:
+            with pytest.raises(OSError):
+                source.rename(tmp_path / "moved")
+            inventory["files"][0]["path"] = str(module._absolute(second))
+        return result
+
+    monkeypatch.setattr(module, "safe_many", changed)
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_UNHELD_PARENT"):
+        FileLease(inventory)
+    source.rename(tmp_path / "released")
+    second.write_bytes(b"never held")
 
 
 def test_native_lease_exceeds_crt_capacity_and_releases_after_late_hash_failure(tmp_path):

@@ -100,3 +100,11 @@ by complete T01/T06/G1: typed scoped native team operations, declared policy,
 permitted roster delivery, cross-campaign refusal, cursors/deadlines/limits and
 durable receipts. This does not start N-body capacity qualification or unrelated
 M4 work; the original gate still requires correct team communication.
+
+The [actual team conformance successor](2026-09-24-m1-native-team.md) now passes
+45/45 per native job and26/26 independent reconstruction in one shared controller
+and queue. Named .9a-.9c evidence includes delivery after sender shutdown, cursor/
+ack, helper/foreign scope denial and stopped receipts; the old four-tool profile
+is unchanged. .9d retains integration into the final qualified gameplay runtime.
+Projection /4 is conformance-only. Reconcile exact source/profile deltas and all
+SPEC13.5 routes before issuing any RuntimeQualification; no aggregate promotion.

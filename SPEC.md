@@ -1382,6 +1382,14 @@ receipts link exact broker calls and stopped exports, without restoring shared
 queue state. [Source verification](docs/verification/2026-09-24-m1-native-team-source.md)
 is implemented_unverified until actual native roster delivery/refusal passes.
 
+**M1.3b.9c conformance evidence (2026-09-24):** actual selected native jobs now
+prove same-roster delivery across sender shutdown, durable send retry, recipient
+cursor/explicit acknowledgment and helper/cross-campaign refusal in one private
+synthetic controller/queue. [Independent receipt reconstruction](docs/verification/2026-09-24-m1-native-team.md)
+passes26/26; both jobs pass45/45. This verifies the named controller/native
+conformance channel. Final qualified gameplay-profile binding remains .9d;
+projection /4 does not become campaign authority. No N-body or full G1 pass.
+
 ### 10.3 Action delivery and ambiguous acknowledgments
 
 Sequence scope is `(campaign, epoch, agent, stream_kind)`. Observations, actions, acknowledgments, telemetry and ledger each have independent cursors; never infer total ordering from UTC alone. Input seq starts at one, increases by one, and is persisted with the request digest before backend dispatch. Exactly one action lease and one in-flight batch exist per avatar. The worker durably records accepted/started/terminal state; repeated request IDs return the existing receipt and never redispatch. Sequence gaps are rejected until resynchronized.

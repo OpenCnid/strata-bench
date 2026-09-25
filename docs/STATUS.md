@@ -58,5 +58,11 @@ jobs/nine grants revalidate without changing their exports or original evidence.
 The [versioned native team facade](verification/2026-09-24-m1-native-team-source.md)
 adds417 distinct focused passes/three existing opt-in skips. Live scope and policy
 checks fence team effects, and stopped exports reconstruct private receipts.
-Actual selected-native roster delivery/refusal is still required (.9c); no full
-team/isolation/G1 acceptance claim yet.
+This source result precedes the actual native evidence below; it does not itself
+qualify isolation or G1.
+
+[Actual native team verification](verification/2026-09-24-m1-native-team.md)
+now passes45/45 per job and26/26 independent checks. Two agents share one queue;
+durable delivery/ack succeeds,14 team attempts refuse,14 scripted requests settle
+for196 synthetic units. Final qualified gameplay-profile binding remains .9d.
+All40 authority tables and holds are unchanged; no paid inference or game run.

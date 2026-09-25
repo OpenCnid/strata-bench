@@ -90,7 +90,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
         pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
         selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
-        selected_helper_pair=False, cross_team_probe=None):
+        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -100,15 +100,25 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from mcbench.budgets import DIMENSIONS
     from mcbench.inference_dispatch import InferenceDispatches
     from mcbench.native import NativeExec, NativeLaunch
-    from mcbench.native_broker_policy import validate_broker_settings
+    from mcbench.native_broker_policy import TEAM_POLICY, broker_tools, broker_approvals, validate_broker_settings
     from mcbench.plugins import install_dovetail
     from mcbench.storage import CAS, Database, Principal, require
     from native_dispatch_probe import LocalProvider, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
     from native_broker_canaries import Canaries
     from native_cross_team_probe import CrossTeamProbe
+    from native_team_channel_probe import TeamChannelProbe
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(team_channel_probe is None or type(team_channel_probe) is TeamChannelProbe and
+            broker_mode and admission_mode and bootstrap_mode and ingress_mode and oauth_mode
+            and model == "gpt-6-luna" and job_id == team_channel_probe.job_id and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                gateway_mode, skills_mode, activation_source, game_probe, piloting_contract,
+                runtime_boundary, selected_state_boundary, selected_retirement_boundary,
+                selected_helper_pair, cross_team_probe)), "TEAM_CHANNEL_PROFILE_REQUIRED")
+    selected_broker_policy = TEAM_POLICY if team_channel_probe else POLICY
     require(cross_team_probe is None or type(cross_team_probe) is CrossTeamProbe and
             bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
             tool_projections is not None and no_patch_catalog is not None and not any((
@@ -190,7 +200,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract or selected_helper_pair or cross_team_probe,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract or selected_helper_pair or cross_team_probe or team_channel_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
     from native_helper_pair_probe import HelperPairProbe
@@ -268,6 +278,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 pair_probe.observe(agent, body)
             if cross_team_probe:
                 cross_team_probe.observe(agent, body)
+            if team_channel_probe:
+                team_channel_probe.observe(agent, body)
             if interrupt_probe:
                 interrupt_probe.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
@@ -398,6 +410,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     item = pair_probe.start(agent, operation, code)
                 if cross_team_probe:
                     item = cross_team_probe.start(agent, operation, code)
+                if team_channel_probe:
+                    item = team_channel_probe.start(agent, operation, code)
+            elif team_channel_probe:
+                item, *extra_items = team_channel_probe.next(agent, step, operation)
             elif cross_team_probe:
                 item, *extra_items = cross_team_probe.next(agent, step, operation)
             elif pair_probe:
@@ -466,8 +482,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             handler.wfile.flush()
             return {}, response["id"]
 
-    db = Database(output / "synthetic.sqlite")
-    cas = CAS(db, output / "objects")
+    if team_channel_probe:
+        team_channel_probe.store.healthy()
+    db = Database(team_channel_probe.store.database if team_channel_probe else output / "synthetic.sqlite")
+    cas = CAS(db, team_channel_probe.store.objects if team_channel_probe else output / "objects")
     runtime = NativeExec(db, cas, simulation=True)
     native_worker = None
     if game_probe:
@@ -479,10 +497,17 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     if activation is None and game_recovery is None:
-        gate.budgets.create_account("project", limits, "*")
-        gate.budgets.create_account("a1", limits,
-            game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
-            game_probe.scope["agent_id"] if game_probe else "a1", "project",
+        project_limits = {key: value * 2 for key, value in limits.items()} if team_channel_probe else limits
+        prior_project = db.connection.execute("SELECT * FROM accounts WHERE id='project'").fetchone()
+        if prior_project is None:
+            gate.budgets.create_account("project", project_limits, "*")
+        else:
+            require(team_channel_probe is not None and prior_project["campaign"] == "*"
+                    and prior_project["parent"] is None and json.loads(prior_project["limits"]) == project_limits,
+                    "TEAM_PROJECT_BUDGET_MISMATCH")
+        gate.budgets.create_account(team_channel_probe.scope["account"] if team_channel_probe else "a1", limits,
+            team_channel_probe.scope["campaign_id"] if team_channel_probe else game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
+            team_channel_probe.agent_id if team_channel_probe else game_probe.scope["agent_id"] if game_probe else "a1", "project",
             category="development")
     require(model in {"gpt-5.6-luna", "gpt-6-luna"}, "MODEL_POLICY")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit, model=model,
@@ -536,8 +561,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
-        if runtime_boundary or selected_state_boundary or cross_team_probe:
+        if runtime_boundary or selected_state_boundary or cross_team_probe or team_channel_probe:
             plan = plan.model_copy(update={"helper_limit": 1})
+        if team_channel_probe:
+            plan = plan.model_copy(update=team_channel_probe.scope)
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
         if game_recovery:
@@ -562,11 +589,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["mcp_servers.strata_broker"] = {"command": sys.executable,
                 "args": ["-m", "mcbench.broker_stdio", "--config", str(output / "broker.json")],
                 "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
-                "enabled_tools": ["artifact_read", "artifact_write", "artifact_list", "game"],
-                "tools": {"artifact_write": {"approval_mode": "approve"},
-                          "game": {"approval_mode": "approve"}},
+                "enabled_tools": list(broker_tools(selected_broker_policy)),
+                "tools": broker_approvals(selected_broker_policy),
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
-            validate_broker_settings(config)
+            validate_broker_settings(config, policy=selected_broker_policy)
         ingress_checks = []
         if ingress_mode:
             from mcbench.native_ingress import HEADER, POLICY as INGRESS_POLICY, NativeIngress, credential
@@ -619,13 +645,14 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     Path(plan.profile_directory) / "config.toml",
                     Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json",
                     *([] if catalog is None else catalog["static_files"])],
-                static_trees=[Path(plan.workspace)] if activation else [])
+                static_trees=[Path(plan.workspace)] if activation else [], broker_policy=selected_broker_policy)
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
             "purpose": "development_piloting" if piloting_contract else plan.purpose,
-            "broker_policy": POLICY if admission_mode else None,
+            "broker_policy": selected_broker_policy if admission_mode else None,
+            **({"team_policy_ref": team_channel_probe.store.policy_ref} if team_channel_probe else {}),
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
@@ -633,7 +660,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
                        if pilot_helper else "Exercise the owned separate-job communication fixture and permitted local messages."
-                       if cross_team_probe else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
+                       if cross_team_probe else "Exercise the fixed same-roster team channel and helper-refusal fixture."
+                       if team_channel_probe else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
                        if pair_probe else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
                        if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
@@ -642,7 +670,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
-                conformance_helpers=bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe))})
+                conformance_helpers=bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe))})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -687,6 +715,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             native_worker.bind(plan)
         if cross_team_probe:
             cross_team_probe.before_launch()
+        if team_channel_probe:
+            team_channel_probe.store.healthy()
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
@@ -738,7 +768,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
         "closure": close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
-        "budget": gate.budgets.status("a1" if activation else "project")}
+        "budget": gate.budgets.status(plan.account if team_channel_probe else "a1" if activation else "project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
         result["worker_calls"] = worker_calls
@@ -851,7 +881,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])
             for r in db.connection.execute("SELECT body FROM native_events WHERE channel IN ('stdout','stderr')"))
         visible = native_raw + json.dumps(provider.outputs).encode() + (output / "journal.jsonl").read_bytes()
-        requests = list(output.glob("*-request.json"))
+        requests = ([db.path.parent / (row["operation_id"] + "-request.json") for row in provider.requests]
+                    if team_channel_probe else list(output.glob("*-request.json")))
         bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests WHERE job=?",
                                         (plan.job_id,)).fetchone()[0]
         result["ingress"] = {"negative_clients": ingress_checks, "denials": provider.ingress_denials,
@@ -946,6 +977,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         result["cross_team"] = cross_team_probe.report()
         result["checks"].update(result["cross_team"]["checks"])
         result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
+    if team_channel_probe:
+        result["team_channel"] = team_channel_probe.report()
+        result["checks"].update(result["team_channel"]["checks"])
+        result["checks"]["provider_clean"] = not provider.errors and 5 <= len(provider.requests) <= request_limit
+        result["checks"]["team_owned_heartbeat_healthy"] = not team_channel_probe.store.errors
     if pair_probe:
         result["helper_pair"] = pair_probe.report()
         result["checks"].update(result["helper_pair"]["checks"])

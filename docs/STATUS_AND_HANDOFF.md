@@ -147,3 +147,21 @@ projection /4 pins and stopped receipt audit. This is USD0 scripted-provider
 verification; it neither extends D18/D19 nor qualifies real gameplay. The
 team-facade-source-01 bundle is sealed, all40 authority tables unchanged and no
 matching owned fixture process remains. Full G1 stays open.
+
+M1.3b.9a-.9c now pass their named controller/native conformance scope:
+[actual team evidence](verification/2026-09-24-m1-native-team.md),45/45 per job,
+26/26 independent reconstruction and84 source tests. A shared private synthetic
+controller/queue with an actual owned heartbeat serves two sequential native
+jobs, separate roster agents/accounts and clean helpers.22 team calls yield eight
+committed receipts/14 refusals. Two messages survive sender shutdown; receiver
+cursor/ack works; foreign same-ID campaign mail remains unread.14 model-shaped
+requests settle for196 synthetic units. Both held native jobs drain and export.
+No real model/game/desktop input; all40 durable authority tables remain unchanged.
+Native bundle team-native-01 is sealed; do not rerun its one-use scripts.
+
+Next reconcile the complete SPEC13.5 route matrix against exact runtime profiles
+and source deltas, then integrate the boundary with actual game/credential
+admission, selected executable skills/handoff and probe disposal. M1.3b.9d keeps
+final qualified gameplay channel binding open: projection /4 is conformance-only,
+not a campaign permit. Do not issue RuntimeQualification by merging unlike profile
+digests. Full T01/T04/T05/T06/T10/T11 remains required, with no M1 paid allowance.

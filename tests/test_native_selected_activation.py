@@ -31,7 +31,7 @@ text({active_script_write:write});
 
 def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time, arm="full", boundary="episode"):
     """Build before sealing, using normal synthetic contracts and controller APIs."""
-    require(arm in {"full", "no-self-play", "frozen-persistence"} and
+    require(arm in {"full", "no-self-play", "frozen-persistence", "frozen-skills"} and
             boundary in {"episode", "recovery"}, "SELECTED_SEED_ARM")
     operator = Principal("operator", "operator")
     policy = cas.put(operator, "operator", "operator", canonical(POLICY))
@@ -39,8 +39,13 @@ def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time,
         config, agents = configs(*args, **kwargs)
         return config.model_copy(update={"communication_policy": policy}), agents
     request = SimpleNamespace(param=arm, node=SimpleNamespace(callspec=None))
-    source = admitted.__wrapped__(database, cas, tmp_path, example, selected_configs, request,
-                                  model="gpt-6-luna", script=SCRIPT)
+    if arm == "frozen-skills":
+        from test_native_checkpoint import admitted as note_admitted
+        source = note_admitted.__wrapped__(database, cas, tmp_path, example, selected_configs, request,
+                                           model="gpt-6-luna", note_classifier=True)
+    else:
+        source = admitted.__wrapped__(database, cas, tmp_path, example, selected_configs, request,
+                                      model="gpt-6-luna", script=SCRIPT)
     controller = Controller(database, simulation=True, clock=clock)
     proof = cas.put(operator, "operator", "operator", canonical({"is_example": True,
         "scope": "synthetic activation source readiness; no game or native execution"}))
@@ -54,7 +59,15 @@ def selected_seed(database, cas, tmp_path, example, configs, *, clock=time.time,
     controller.ready("c1", owner, epoch, controller.status("c1")["revision"], {"a1": dict.fromkeys(READINESS, proof)})
     source_stopped = stopped.__wrapped__(source)
     controller.transition("c1", owner, epoch, controller.status("c1")["revision"], "CHECKPOINTING", "fixture")
-    service, checkpoint = activate(source_stopped, boundary=boundary)
+    if arm == "frozen-skills":
+        from test_native_checkpoint import stage
+        from mcbench.checkpoints import Checkpoints
+        from mcbench.native_skill_activation import NativeSkillSets
+        _, _, checkpoint, manifest = stage(source_stopped, boundary=boundary)
+        Checkpoints(database, cas).commit(database.checkpoint_fixture["config"], manifest, "operator")
+        service = NativeSkillSets(source_stopped[0])
+    else:
+        service, checkpoint = activate(source_stopped, boundary=boundary)
     ref = service.create(checkpoint)
     return source_stopped, service, ref
 

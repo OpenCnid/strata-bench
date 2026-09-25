@@ -104,8 +104,12 @@ Independent sealed reconstruction passes64/64 episode and7/7 common checks.
 M1.4b.1 [versioned frozen-skills note policy](docs/verification/2026-09-25-m1-frozen-note-policy.md)
 now enforces category checks before root/helper writes and at checkpoint staging;
 final39 source cases pass. Legacy campaign use refuses, historical readers and
-explicit synthetic conformance remain separate. Actual selected native note
-verification and produced-note audit remain open; implemented_unverified.
+explicit synthetic conformance remain separate. The [fresh native category fixture](docs/verification/2026-09-25-m1-frozen-note-native.md)
+passes44/44 and independent20/20 plus4/4:27 exact denials, five audited prose
+writes, permitted synthetic observation and normal complete checkpoint;52 focused
+source checks pass. All40 authority tables unchanged; six scripted calls84 units,
+prior56 retained, USD0. Model-produced category sampling and remaining combined
+isolation/probe boundaries stay open; M1.4b.1 remains implemented_unverified.
 
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
@@ -513,7 +517,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
 | M1.4a | AR/SI/QA | Selected-profile learned JavaScript execution through native restricted code mode, scoped effects and retained revision/accounting evidence; inherits M1.4 and SPEC6.2/6.3 | in_progress | [Actual native evidence](docs/verification/2026-09-24-m1-active-script-native.md):177 focused checks,36/36 native and22/22 reconstruction. [New complete checkpoint/fresh activation](docs/verification/2026-09-25-m1-native-handoff.md):94 focused cases,37/37 per episode,42/42 independent reconstruction; exact revisions2/3, scoped effects, fresh context/private code-mode state and retained costs. USD0 scripted provider, synthetic world/worker/readiness. Next matched frozen/no-self-play controls and combined-profile qualification; no historical activation reclassification. |
 | M1.4b | AR/SI/QA | Enforced no-self-play helper-disabled native profile and matched frozen/control retention; inherits M1.4 and SPEC13.2 | in_progress | [No-self-play](docs/verification/2026-09-25-m1-no-self-play-native.md):37/37 plus22/22 reconstruction, root-only /6 and complete synthetic checkpoint. [Matched full/frozen episodes](docs/verification/2026-09-25-m1-matched-retention.md):36/36,36/36,38/38,36/36 plus64/64 episode and7/7 common reconstruction; exact retained/reset artifacts, permitted synthetic observation/root/helper,24 settled calls336 units plus112 seed units. All original failures/holds retained. Complete session/cache/category and disposable probe qualification and full T04/T06/T11 remain open. |
-| M1.4b.1 | AR/SI/QA | Versioned frozen-skills category enforcement and sampled ambiguity audit; inherits M1.4b, F08/C22/C23, SPEC13.2 | implemented_unverified | [Source policy](docs/verification/2026-09-25-m1-frozen-note-policy.md): NativeRetentionPolicy/2 pins lexical classifier; root/helper write and initial/checkpoint validation, atomic audit joins, legacy campaign refusal. Final39 cases pass; retained full/frozen native episodes reconstruct64/64 plus7/7. Actual selected native attempts and produced-note audit remain open; no semantic completeness or G1 claim. |
+| M1.4b.1 | AR/SI/QA | Versioned frozen-skills category enforcement and sampled ambiguity audit; inherits M1.4b, F08/C22/C23, SPEC13.2 | implemented_unverified | [Source policy](docs/verification/2026-09-25-m1-frozen-note-policy.md): NativeRetentionPolicy/2 pins lexical classifier; root/helper write and initial/checkpoint validation, atomic audit joins, legacy campaign refusal. Final39 cases pass; retained full/frozen native episodes reconstruct64/64 plus7/7. [Fresh native verification](docs/verification/2026-09-25-m1-frozen-note-native.md) passes44/44 plus20/20+4/4 reconstruction,27 durable denials and five sampled scripted prose writes, normal checkpoint/cost joins;52 source cases pass. Model-produced category audit remains open; no semantic completeness or G1 claim. |
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
 | M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
@@ -7002,3 +7006,31 @@ M2-M7, all original failures, holds and consumed authorizations remain unchanged
 Final source/check seal0bb1baf7a7c3273d83d3bab0de2670ddd96b78805612184bc8f1b7284bcbd648
 pins383 files;1497 local links resolve, all390 prior IDs/history remain and
 M1.4b.1 is the sole new milestone ID. Owned runtime enumeration is empty.
+
+
+### 2026-09-25 — M1.4b.1 selected native frozen-note verification
+
+[Exact-profile evidence](docs/verification/2026-09-25-m1-frozen-note-native.md):
+new v2 frozen-skills seed preserves initial procedures/prose without a learned
+publication. The fixture requires the absent publication only for that exact
+arm/version. Native root/helper packaging checks return27 exact denials and
+five successful prose writes with source-linked classification/ambiguity events.
+A root synthetic observation succeeds; helper game/history access refuses.
+Held normal stop joins an owned CHECKPOINTING transition and complete synthetic
+checkpoint with no learned package, retained root notes and unchanged initial
+procedures. Native44/44; independent20/20 episode+4/4 common checks reconstruct
+raw request/response, ingress/projection, exact rejected call digests/lifecycles,
+notes, costs and stopped source. All five scripted texts are sampled: ordinary
+conditional advice/handoff remains ambiguous; no model-produced-note claim.
+
+Focused four-file pytest selection52 pass; Ruff/whitespace pass. Producer
+4,144 files/78,408,146 bytes and independent4 files/19,894 bytes are sealed with
+exact hashes/profile in the report. Six fresh scripted calls settle84 synthetic
+units, prior56 preserved. All40 WAL-aware real authority tables unchanged;
+$4.887796/$10 exposure/holds/consumed decisions unchanged; USD0. No prior run
+replayed and no runtime remains. Inherits F03/F04/F07/F08/F11/F16,
+N01/N04/N06, C06/C07/C12/C14/C20/C22/C23/C36, T01/T04/T06/T11.
+M1.4b.1 stays implemented_unverified for its complete category/audit scope;
+M1/M1.4b in_progress, G1 not_run. Next complete session/cache, client/log/registry,
+disposable probes and combined-profile qualification; retain distinct required
+model-produced category audit and T05/scorer gaps. No M1 paid authority inferred.

@@ -57,14 +57,24 @@ is implemented_unverified. NativeRetentionPolicy/2 pins the declared lexical
 classifier; initial trees, root/helper writes and both checkpoint boundaries
 enforce it. Successful notes bind an ambiguity/audit event to their broker call.
 Final39 source cases pass; old full/frozen native readback64/64+7/7 passes.
-Build a fresh selected native v2 frozen-skills fixture with permitted initial
-procedures, prose, helper results and observations plus refused packaged writes;
-audit actual returned receipts and produced notes. Existing selected_seed only
-supports full/frozen-persistence/no-self-play; do not relabel old sources or reuse
-the full ActivationProbe's empty-overlay=frozen-persistence assumption. Preserve
-legacy /1 stopped readers; only explicitly synthetic conformance may execute
-legacy frozen-skills, never campaign mode. Full T04/T06/T11 still require the
-remaining session/cache, client/log/registry and disposable probe boundaries.
+The [fresh selected native v2 fixture](verification/2026-09-25-m1-frozen-note-native.md)
+now passes44/44 with independent20/20 episode+4/4 common checks;52 focused
+source/fixture cases pass. It preserves initial procedures/prose and an empty
+active set, returns27 exact durable write denials and five classified writes,
+permits a root synthetic observation and closes a complete synthetic checkpoint.
+All five actual scripted texts are sampled with implicit-procedure ambiguity;
+they are not model-produced campaign notes. Six requests84 synthetic units plus
+prior56; USD0, all40 real authority tables unchanged, no owned runtime remains.
+Producer `2026-09-25-m1-frozen-note-native-01` and audit
+`2026-09-25-m1-frozen-note-audit-01` are sealed; exact hashes/profile in report.
+Do not replay them. selected_seed now supports explicit v2 frozen-skills without
+relabelling old sources or inferring frozen-persistence from an empty overlay.
+Next complete remaining session/cache, client/log/registry and disposable probe
+boundaries, then bind complete evidence to the exact combined runtime profile.
+Retain the separate model-produced category audit requirement; no M1 paid
+inference authority exists. Preserve legacy /1 stopped readers; only explicitly
+synthetic conformance may execute legacy frozen-skills, never campaign mode.
+Full T04/T06/T11, T05 and scorer controls still prevent G1 closure.
 
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched

@@ -26,4 +26,7 @@ See the [current handoff](STATUS_AND_HANDOFF.md),
 The [first native boundary slice](verification/2026-09-24-m1-native-boundary.md)
 has187 focused Python passes and24/24 independent native reconstruction.
 Its original environment refusal and68/74 verifier result remain retained.
-Remaining output/media, cross-agent and actual-game boundaries are unqualified.
+The [native media-output slice](verification/2026-09-24-m1-output-boundary.md)
+adds49 verifier passes and33/33 independent reconstruction, retaining its
+75/76 review-pending original. Notification, cross-agent and actual-game
+boundaries remain unqualified.

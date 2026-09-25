@@ -50,8 +50,14 @@ Read-only capture/ingress/admission/catalog/accounting reconstruction passes24/2
 Final37 verifier cases, Ruff and whitespace pass. All40 real authority tables
 are unchanged, and no owned fixture process remains.
 
-Next bounded work: qualify native code-mode output/media helpers (beyond denied
-view_image), then cross-agent communication/state/lifecycle and remaining
+M1.3b.2 has [native media-output evidence](verification/2026-09-24-m1-output-boundary.md):
+49 verifier tests,11 settled native requests and33/33 independent reconstruction.
+Original75/76 review-pending report and rejected incomplete manifest remain
+retained; the verified extended-path seal is in the report. All40 authority
+tables remain unchanged; no owned fixture process remains.
+
+Next bounded work: qualify native notification routes, then cross-agent
+communication/state/lifecycle and remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential
 admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.

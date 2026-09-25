@@ -23,8 +23,10 @@ no M1 inference allowance. Credential-free verification can proceed independentl
 **Active work:** M1.3b gameplay-root/helper boundary qualification.
 M1.3b.1 now has [first selected-runtime evidence](docs/verification/2026-09-24-m1-native-boundary.md):
 187 focused cases and independent24/24 native reconstruction; retained original
-environment refusal and68/74 verifier report. Continue remaining code-mode
-output/media and cross-agent surfaces before full qualification.
+environment refusal and68/74 verifier report. M1.3b.2 adds
+[media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md):
+49 verifier passes,33/33 independent reconstruction, original75/76 retained.
+Continue notification and cross-agent surfaces before full qualification.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -423,6 +425,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
 | M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
+| M1.3b.2 | SI/AR/QA | Native code-mode output/media local-file and network routes with owned private/public media controls; inherits M1.3b coverage | verified | [Named media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md): six denied routes plus exact public PNG per actor;49 verifier tests and33/33 independent reconstruction of11 native requests. Original75/76 review-pending report and rejected incomplete seal retained. Notification and other encodings remain open; no full isolation qualification. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6343,3 +6346,23 @@ check successfully. Both new private seals verify, including the original
 result digest against the audit reference. Final projection49/49 and verifier
 37/37 checks pass after the last edits. Private `checkpoint-qa.json` records
 these results; current handoff and SPEC describe the new conformance-only policy.
+
+
+### 2026-09-24 — M1.3b.2 native media-output slice
+
+Added owned output-helper probes and a strict captured-content verifier in
+`tools/native_output_boundary.py`, integrated as a separate native fixture
+option, and added49 passing corruption/target tests. Root/helper local-file
+and remote image/audio routes reject; both exact public PNG outputs pass.
+The11-request native scripted fixture closes normally with154 synthetic units
+and zero real inference. Original75/76 pending-review report is retained;
+independent33/33 audit joins captures, admissions, projection, receipts and
+closure without rerun. All40 real authority tables and holds remain unchanged.
+No matching owned fixture process remains. Focused Ruff passes.
+
+The first seal failed EVIDENCE_INVENTORY because ordinary Windows enumeration
+omitted long paths. It remains retained; extended-path inventory and independent
+readback verify the final seal in the [report](docs/verification/2026-09-24-m1-output-boundary.md).
+M1.3b.2 is verified only for these named routes; notification/other encodings,
+cross-agent boundaries, actual game/credential admission and full G1 remain
+open. Current status/handoff updated; M2-M7 and existing test/gate rows unchanged.

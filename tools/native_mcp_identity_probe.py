@@ -70,7 +70,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
-        pilot_helper=False, runtime_boundary=False):
+        pilot_helper=False, runtime_boundary=False, output_boundary=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -88,6 +88,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(not output_boundary or runtime_boundary, "OUTPUT_BOUNDARY_FIXTURE_REQUIRED")
     require(not runtime_boundary or canary_mode and deferred_tools and bootstrap_mode and
             ingress_mode and oauth_mode and model == "gpt-6-luna" and
             tool_projections is not None and no_patch_catalog is not None and not any((
@@ -154,7 +155,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
     request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
-    if runtime_boundary:
+    if output_boundary:
+        from native_output_boundary import OutputBoundaryCanaries
+        canary_type = OutputBoundaryCanaries
+    elif runtime_boundary:
         from native_runtime_boundary import RuntimeBoundaryCanaries
         canary_type = RuntimeBoundaryCanaries
     else:

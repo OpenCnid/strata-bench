@@ -113,3 +113,17 @@ admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.
 Private sealed bundles are `2026-09-24-m1-runtime-boundary-01` and `-02` under
 `C:/Users/Darian/.strata/evidence/`; their public report holds full seals and
 limitations. Do not rerun their one-use scripts or alter their sealed bytes.
+
+M1.3b.9a now has [typed team core source/evidence](verification/2026-09-24-m1-team-core.md):
+72 synthetic passes for private policy, scoped cursors, atomic lease/epoch/deadline
+guards, dedup, limits and migration. It remains implemented_unverified for the
+native integration. Add an explicitly versioned optional native capability;
+preserve the exact historical four-tool catalogs and profile identities.
+
+M1.2a corrects Pydantic alias precedence in process-zero, broker depth/quota and
+game primitive bounds. The old nonzero-process test was masked by a separate
+event mismatch; direct/coherent cases now enforce the actual limit.190 distinct
+affected tests pass after resolving three build/import setup failures. Four
+sealed native jobs/nine grants reconstruct unchanged under strict readback.
+The new specific-bounds-01 private bundle is sealed; all40 authority tables and
+all holds remain unchanged. No native rerun, game or paid call occurred.

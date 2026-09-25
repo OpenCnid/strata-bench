@@ -47,6 +47,10 @@ initial13/15 audit is retained beside its corrections. M1.3b.8 adds
 cases and25/25 independent checks; original28/29 per job and optional summary
 serialization failure retained. M1.3b.9 next implements the distinct G1-required
 campaign-team API; native helper collaboration cannot substitute for it.
+Its [typed controller core](docs/verification/2026-09-24-m1-team-core.md) now
+passes72 synthetic cases, pending the native facade. The same work found and
+corrected specific integer bounds (M1.2a);190 distinct affected cases pass and
+four retained native jobs reconstruct unchanged under the stricter validator.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -440,6 +444,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M0.3a.2 | GI/PL/QA | Derive and verify the installed vanilla runtime inventory from the acquired distribution, with explicit configuration/state and licensing disposition | verified | [Actual template seal and evidence](docs/verification/2026-09-22-vanilla-packlock.md): original 4,097-entry installed inventory, 11,722-file worker, exact Node/Python/npm/Java sources and explicit uv metadata/absent-license dispositions. Nine bound operator provisioning checks join existing official acquisition and authentic cold-restart/native component evidence; original request SEALED. Actual fresh materialization and held import pass, with accounting and D12 preserved. This verifies the installed vanilla template scope, not full T02/G0 or game conformance. Authentic joint launch/server custody and canonical capture continue under M0.3a.3; E9E and all old failures remain open. |
 | M0.3a.3 | GI/PL/QA | Bind the sealed pack and explicit fresh/restored materialization to bounded server/worker launches; reject substitutions, changed roles, settings overrides and simulation stores | implemented_unverified | [Joint launch and actual sealed import](docs/verification/2026-09-22-vanilla-packlock.md) retain pre-start role checks, owned ordering and held inputs. [Restored baseline](docs/verification/2026-09-22-restored-native-baseline.md) now supports an actual connected native/helper/action run with normal owned stop and independent reconstruction. The original fresh-generation readiness failure stays failed. Full runtime custody/conformance and joint recovery remain unqualified; no unchanged import or baseline rerun. F01/F05/F16, N01/N04/N05/N06/N08, C03/C04/C24, partial T01/T02/T06/T07/T13/G0 items 2/4/6. Next carry the actual seal through game/agent recovery and remaining custody requirements. |
 | M1.2 | PL | All 13 models, partitioned schemas, generated bindings and semantic checks | in_progress | [Records](src/mcbench/records.py), [tests](tests/test_records.py); full reference fixtures/migrations/conditional Java open. |
+| M1.2a | PL/SI/QA | Enforce specific process-zero, broker depth/quota and game primitive bounds; F03/F04/F11/F16, N01/N04/N06, T01/T04/T06 | verified | [Correction and retained-proof audit](docs/verification/2026-09-24-m1-team-core.md):190 distinct focused cases pass, four sealed jobs/nine grants and committed exports recheck unchanged. Prior masked negative-test coverage explicitly corrected; no full contract/gate promotion. |
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
 | M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
@@ -452,7 +457,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain for scalar-only silent yields; inherits M1.3b.5 coverage | verified | [Named stopped-disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):222 distinct focused cases,28/28 actual native checks,15/15 independent committed-export audit; held job six lifetime/zero active processes. Original29/48 readiness race retains one uncertain request and full synthetic hold. No early helper retirement, successful-tool, cost or full isolation inference. |
 | M1.3b.7 | SI/AR/QA | Selected-profile two-helper overlap, scoped public messages and artifact namespaces, bounded excess-helper refusal; inherits M1.3b coverage, F03/F07/F11 and T04/T06 | verified | [Named pair evidence](docs/verification/2026-09-24-m1-helper-pair.md):149 distinct focused cases,37/37 native and15/15 independent reconstruction;27 settled/one refused,378 synthetic units, three closed participants and stopped export. Two protocol failures with retained holds and initial13/15 audit preserved. No N-body, cross-team or full isolation claim. |
 | M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | verified | [Named separate-job evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused cases,25/25 independent audit;36 targeted operation denials, permitted local messages,36 settled requests/504 synthetic units and two exports. Original28/29 per job and optional timeline serialization failure retained. Same fixture campaign labels in separate stores; no campaign-team API, N-body or full isolation claim. |
-| M1.3b.9 | SI/AR/PL/QA | G1-required SPEC10.2 team.send/team.receive boundary: typed scoped native access, permitted roster delivery and cross-campaign refusal; F07/F16/N01/N04, C13, T01/T06; minimal M4.1 dependency | not_started | Native helper collaboration is not the campaign-team API. Communication service exists but current restricted broker exposes only artifact/game operations. Bind declared communication policy, scoped sender/recipient/cursor/deadline/limits and durable receipts; actual permitted and refused native calls required. No N-body capacity claim or unrelated M4 expansion. |
+| M1.3b.9 | SI/AR/PL/QA | G1-required SPEC10.2 team.send/team.receive boundary: typed scoped native access, permitted roster delivery and cross-campaign refusal; F07/F16/N01/N04, C13, T01/T06; minimal M4.1 dependency | in_progress | Native helper collaboration is not the campaign-team API. Communication service exists but current restricted broker exposes only artifact/game operations. Bind declared communication policy, scoped sender/recipient/cursor/deadline/limits and durable receipts; actual permitted and refused native calls required. No N-body capacity claim or unrelated M4 expansion. |
+| M1.3b.9a | PL/SI/QA | Typed TeamRequest/TeamResponse, private declared policy, recipient-scoped durable cursors, atomic epoch/lease/deadline/idempotency guards; inherits M1.3b.9 coverage | implemented_unverified | [Core source and72 synthetic cases](docs/verification/2026-09-24-m1-team-core.md); legacy message bytes/receipts retained. Native facade and actual integration remain open; no campaign-team acceptance claim. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6533,3 +6539,28 @@ unrelated M4/N-body capacity work or reduce the gate. All40 real authority table
 unchanged, no owned process remains, Ruff/whitespace pass. Next implement .9;
 full runtime qualification, actual game/credential admission, skills, capable
 keybindings, scorer controls and matched probes remain open.
+
+
+### 2026-09-24 — M1.3b.9a typed team core and M1.2a integer-bound correction
+
+Implemented auxiliary team wire/policy models and atomic Communication request
+handling with scoped durable cursors, explicit acknowledgments, running roster,
+epoch/lease/deadline guards, request/send dedup and migration provenance.72
+synthetic checks pass; initial62/64 exposed alias-overridden TTL/receive limits,
+then64/64 and eight added queue/migration/concurrency cases pass. Native facade
+and authentic team integration remain open; .9a is implemented_unverified.
+
+The same defect affected broker depth/quota, game primitive minimum and the
+private zero-active process proof. M1.2a fixes direct scalar constraints and
+revalidates copied grants. The previous process corruption negative was masked
+by an event-reference mismatch; coherent mutation now tests the actual limit.
+101 boundary tests and89 distinct game/admission tests pass (initial86/89;
+three build/import setup failures corrected and rechecked). Locked npm ci/build,
+full Ruff and whitespace pass. Read-only four-job/nine-grant audit reconstructs
+all exact committed exports with actual zero-active proofs; original sealed
+bytes and reports remain unchanged. [Report and seal](docs/verification/2026-09-24-m1-team-core.md).
+
+All40 durable authority tables and every historical hold remain unchanged.
+No native rerun, Minecraft, paid inference or shared-desktop input. Next add the
+versioned scoped native team facade and actual allowed/refused-path evidence.
+Complete T01/T04/T05/T06/T10/T11 and G1 remain open; unrelated M2-M7 untouched.

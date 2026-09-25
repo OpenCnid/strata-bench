@@ -92,6 +92,7 @@ def test_changed_pack_commands_settings_or_stop_proof_do_not_reconcile(archive, 
 
 @pytest.mark.parametrize("schema", ["strata/M0NativeGameSmoke/4", "strata/M0NativeGameFailure/1"])
 def test_sealed_native_plan_rejects_literal_command_overrides_before_composition(tmp_path, monkeypatch, schema):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "tools"))
     import m0_native_game as runner
     path = tmp_path / "plan.json"
     body = {"schema": schema, "output": "unused", "pack": {},

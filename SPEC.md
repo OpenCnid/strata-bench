@@ -1361,6 +1361,17 @@ Full action envelopes can be supplied as validated JSON on stdin or through an a
 
 MVP team cooperation uses ordinary in-game chat plus the declared scoped message channel; both are logged, with no global shared memory folder. Messages consume output/input tokens where used by models and a separate bandwidth ledger. Shared quest/team configuration is fixed at campaign creation; unplanned joining/leaving is an incident, not a roster change. A later shared-artifact channel requires its own policy and system hash. Independent worlds cannot communicate or merge memories unless a separately labeled transfer experiment authorizes it.
 
+**M1.3b.9a implementation disposition (2026-09-24):** auxiliary TeamRequest/1,
+TeamResponse/1 and private CommunicationPolicy/1 implement the declared channel's
+controller core. Recipient-local durable cursors, explicit scoped acknowledgments,
+operation-bound request IDs and original send expiry survive retries. A running
+roster, current epoch/lease, declared private policy and five-second wall/monotonic
+transaction deadline are required. Helpers receive no team authority. Legacy
+message migration preserves bytes/sequences/acks and records its cursor format;
+subsequent missing cursor evidence refuses. These are not extra top-level record
+types. [Synthetic checks](docs/verification/2026-09-24-m1-team-core.md) do not
+qualify the pending native facade or complete T01/T06/G1.
+
 ### 10.3 Action delivery and ambiguous acknowledgments
 
 Sequence scope is `(campaign, epoch, agent, stream_kind)`. Observations, actions, acknowledgments, telemetry and ledger each have independent cursors; never infer total ordering from UTC alone. Input seq starts at one, increases by one, and is persisted with the request digest before backend dispatch. Exactly one action lease and one in-flight batch exist per avatar. The worker durably records accepted/started/terminal state; repeated request IDs return the existing receipt and never redispatch. Sequence gaps are rejected until resynchronized.

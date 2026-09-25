@@ -47,6 +47,20 @@ def request():
         "method": "observe", "action": None, "target_request_id": None, "after": None}
 
 
+@pytest.mark.parametrize("change", [{"depth": 3}, {"depth": True}, {"tool_calls": 10001},
+                                  {"tool_calls": False}, {"tool_calls": 0}])
+def test_grant_specific_limits_survive_shared_type_constraints(broker, change):
+    b, root, _ = broker
+    before = b.db.connection.execute("SELECT count(*) FROM broker_grants").fetchone()[0]
+    with pytest.raises(ValidationError):
+        BrokerGrant.model_validate(root.model_dump() | change)
+    with pytest.raises(ValidationError):
+        b.admit(root.model_copy(update=change))
+    assert b.db.connection.execute("SELECT count(*) FROM broker_grants").fetchone()[0] == before
+    fields = BrokerGrant.model_json_schema()["properties"]
+    assert fields["depth"]["maximum"] == 2 and fields["tool_calls"]["maximum"] == 10000
+
+
 def test_public_pilot_pagination_reaches_worker_once_and_cannot_expand_methods(broker):
     from mcbench.native_piloting import game_contract, PURPOSE
     b, _, _ = broker

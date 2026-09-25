@@ -16,6 +16,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter, model_validator
 
 from .client_discovery import bounded_read
+from .contracts import MAX_INT
 from .contracts import ActionBatch, Digest, DiscoveryQuery, Id, QuestComponentsQuery, QuestMenuQuery, QuestQuery, QuestTextQuery, Strict, StructuredState, UInt
 from .native_settings import (
     MAX_REQUEST, Connection, NativeSettingsClient, Response, strict_json,
@@ -106,7 +107,7 @@ class GameAuthority(Strict):
     capability_digest: Digest
     body_fingerprint: Digest
     expires_unix_ms: UInt
-    primitive_limit: UInt = Field(ge=2)
+    primitive_limit: Annotated[int, Field(ge=2, le=MAX_INT)]
 
 
 class GameBoundSnapshot(Strict):

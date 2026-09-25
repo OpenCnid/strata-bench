@@ -78,8 +78,21 @@ def test_corrupt_or_unbound_process_drain_never_qualifies(drained, case):
             proof["observation"]["accounting"]["active_processes"] = False
         ref = runtime.cas.put(Principal("operator", "operator"), "operator", "operator", canonical(proof))
         db.execute("UPDATE native_process_drains SET proof_ref=?", (ref,))
+        # Keep the source-event join coherent: otherwise an unrelated changed-ref
+        # error masks an incorrectly accepted accounting/scope field.
+        db.execute("UPDATE outbox SET body=? WHERE cursor=?", (canonical({"job_id": plan.job_id,
+            "profile_digest": plan.profile_digest(), "proof_ref": ref}).decode(), link["event"]))
     with pytest.raises((Fault, ValidationError)):
         require_process_drain(db, runtime.cas, plan)
+
+
+@pytest.mark.parametrize("value", [1, -1, False, True, 0.0, "0"])
+def test_zero_active_is_an_exact_integer_constraint(value):
+    from mcbench.native_process_drain import JobAccounting
+    with pytest.raises(ValidationError):
+        JobAccounting(total_processes=2, active_processes=value, terminated_processes=0)
+    assert JobAccounting(total_processes=2, active_processes=0, terminated_processes=0).active_processes == 0
+    assert JobAccounting.model_json_schema()["properties"]["active_processes"]["maximum"] == 0
 
 
 def test_parent_exit_cannot_hide_live_owned_descendant(tmp_path):

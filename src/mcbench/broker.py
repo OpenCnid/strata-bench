@@ -13,7 +13,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict, UInt
+from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict
 from .budgets import Budgets
 from . import broker_lifecycle
 from .runtime import CODEX_VERSION
@@ -99,9 +99,9 @@ class BrokerGrant(Strict):
     campaign_id: Id
     agent_id: Id
     epoch: Positive
-    depth: UInt = Field(le=2)
+    depth: Annotated[int, Field(ge=0, le=2)]
     expires_unix_ms: Positive
-    tool_calls: Positive = Field(le=10000)
+    tool_calls: Annotated[int, Field(ge=1, le=10000)]
     # The enrollment caller must first admit the model job/child reservation.
     admission_ref: Ref
 
@@ -147,6 +147,7 @@ class NativeBroker:
 
     def admit(self, grant: BrokerGrant):
         """Operator enrollment, after job/budget admission; never model-callable."""
+        grant = BrokerGrant.model_validate(grant.model_dump())
         require(grant.runtime_id == self.runtime_id and grant.profile_digest == self.profile_digest,
                 "BROKER_SCOPE")
         visibility = self.db.connection.execute("SELECT visibility FROM objects WHERE namespace=? "

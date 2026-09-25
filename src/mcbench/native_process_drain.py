@@ -4,7 +4,7 @@ This only supports stopped-job cell disposal/export. It grants no early helper
 retirement, cost settlement, action success, checkpoint or runtime qualification.
 """
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -17,7 +17,7 @@ OPERATOR = Principal("operator", "operator")
 
 class JobAccounting(Strict):
     total_processes: Positive
-    active_processes: UInt = Field(le=0)
+    active_processes: Annotated[int, Field(ge=0, le=0)]
     terminated_processes: UInt
 
 

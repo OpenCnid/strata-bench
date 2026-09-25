@@ -49,3 +49,8 @@ failures and their holds remain retained. [Separate-job native attempts](verific
 now pass25/25 independent checks with35 focused tests, preserving original28/29
 per-job reports and the optional summary failure. Next: G1-required campaign-team
 API integration; helper collaboration does not pass that separate contract.
+
+The [typed team core](verification/2026-09-24-m1-team-core.md) now passes72
+synthetic checks, with native integration still open. A discovered integer-bound
+defect is corrected;190 distinct affected tests pass and four retained native
+jobs/nine grants revalidate without changing their exports or original evidence.

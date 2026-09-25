@@ -2,39 +2,39 @@
 
 ## Current position
 
-**September24 M0 closure: M0 verified; G0 pass for the named D14 development
-slice; G1–G5 not_run.** The [exact six-outcome assembly](docs/verification/2026-09-24-g0-assembly.md)
-and [318-child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md)
-close the M0-only request. This is feasibility evidence, not a research MVP,
-complete backend/pack conformance, isolation or scientific-scoring qualification.
-All51 M1–M7 rows and all historical failures remain unchanged.
+**D20, September 24: M1 implementation and complete G1 are now authorized.**
+M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
+not_run. The active long-horizon goal is M1/G1 only, including its required
+scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
 
-PR7 is merged at `f8daedc`; this work began from clean updated main on
-`codex/m0-g0-final-assembly`. All40 original authority tables still match
-stopped live18. Exposure remains$4.887796/$10, preserving the$0.7554 hold and
-four full$1 unresolved envelopes. All20 gateways are CLOSED. No new inference
-occurred; D12/D19.11 and every used trial remain consumed.
+Fetched origin and verified PR #8 merged at
+`215c4e0d01f0602c91504ad631dc2343ffc9f354`. A clean checkout became
+`codex/m1-g1-isolation`. The [opening coverage audit](docs/verification/2026-09-24-g1-coverage-audit.md)
+distinguishes exact historical profiles, incomplete contracts and missing
+native/game evidence across complete T01/T04/T05/T06/T10/T11.
 
-M0.2k.3 now verifies minor12 actual dig cancellation/release, fencing and fresh
-worker epoch, exact historical receipt/dedup, stale denial, one new turn,
-unchanged journal prefixes, all3primitives and stopped block/full inventory
-NBT. Independent48/48 passes; all24 processes exit normally. The initial
-public-route selector failure is separately retained with zero actions/all17
-processes terminal. Current worker/PackLock identities remain exact.
+WAL-aware read-only verification matches all40 authority tables to the G0
+checkpoint: exposure $4.887796/$10, including the old $0.7554 hold and four full
+$1 unresolved envelopes;20 gateways CLOSED,15 jobs FINALIZED,5 UNSETTLED.
+No matching Strata-owned Java/native process remained. Used decisions remain
+consumed, with no replay/refund. D18/D19 authorize M0 spending only; D20 grants
+no M1 inference allowance. Credential-free verification can proceed independently.
 
-Live15's successful actual model turn/walk/helper remains distinct from
-live18's proved refusal/corrected turn and failed two-action goal. The complete
-live18 cost/source/pack/worker/player/clock join remains19/19. No failed goal,
-old500-ms shutdown, unknown cost or unsupported E9E Mineflayer result is upgraded.
+**Active work:** M1.3b gameplay-root/helper boundary qualification.
+M1.3b.1 now has [first selected-runtime evidence](docs/verification/2026-09-24-m1-native-boundary.md):
+187 focused cases and independent24/24 native reconstruction; retained original
+environment refusal and68/74 verifier report. Continue remaining code-mode
+output/media and cross-agent surfaces before full qualification.
+Preserve permitted structured game/artifact operations while
+checking filesystem, process, network, credentials, tools and cross-agent state.
+Existing same-user shell sandbox failures remain failures. Full settings T05,
+private scorer controls and matched probe boundaries remain required for G1.
+Shared-desktop input stays paused. Complete canonical recovery/soaks remain G2.
 
-**Next action:** stop M0 work. M1 is the next roadmap milestone, but no M1–M7
-implementation or new experiment is selected by this request. Full T05 and D14
-isolation stay G1; complete canonical recovery/fault/soaks stay G2. Wider
-M0-prefixed contracts keep their statuses and explicit later-gate dispositions.
-The [merged checkpoint](docs/verification/2026-09-24-session-handoff.md),
-[older checkpoint history](docs/MILESTONES_CHECKPOINT_HISTORY_2026-09-24.md),
-[historical G0 row](docs/verification/2026-09-24-g0-gate-history.md) and append-only
-log retain the earlier stopping state and every superseded next action.
+The [G0 assembly](docs/verification/2026-09-24-g0-assembly.md),
+[318-child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md),
+[prior closure handoff](docs/STATUS_AND_HANDOFF_M0_CLOSURE_2026-09-24.md) and
+append-only history retain all original results, scope limits and failures.
 
 ## M0 closure checklist — SPEC 16.1
 
@@ -57,8 +57,8 @@ unqualified single-run or full-backend claim.
 
 | ID | Owner | Dependencies | Required deliverables / exit | Status | Implementation / evidence | Next action |
 |---|---|---|---|---|---|---|
-| M0 | GI; AR owns host seam | Execution prerequisites | Mineflayer/host vanilla slice followed immediately by exact E9E API/recipe/machine conformance, cancel/reconnect, private milestone and complete charges; G0 | verified | [Six-outcome D14 development assembly](docs/verification/2026-09-24-g0-assembly.md), [all child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md) | M0 scope complete. Wider child contracts keep their original statuses and later gates; do not start M1–M7 or another experiment under this request. |
-| M1 | PL | M0 | Typed Python/TypeScript/conditional Java contracts, scoped local CLI, durable controller, capability isolation; full keybinding skill/extension T05; G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), M1.1–M1.4; contracts/storage/grants/settings workflow implemented partially. Actual isolation and Forge adapter remain open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
+| M0 | GI; AR owns host seam | Execution prerequisites | Mineflayer/host vanilla slice followed immediately by exact E9E API/recipe/machine conformance, cancel/reconnect, private milestone and complete charges; G0 | verified | [Six-outcome D14 development assembly](docs/verification/2026-09-24-g0-assembly.md), [all child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md) | M0 scope complete. Wider child contracts retain statuses and later gates; D20 now authorizes M1/G1 only. |
+| M1 | PL | M0 | Typed Python/TypeScript/conditional Java contracts, scoped local CLI, durable controller, capability isolation; full keybinding skill/extension T05; G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), M1.1–M1.4; contracts/storage/grants/settings workflow implemented partially. Actual isolation and Forge adapter remain open. | D20: audit complete T01/T04/T05/T06/T10/T11, qualify root/helper boundary first, then required settings/scorer/probe integrations; no milestone closure. |
 | M2 | QA | M1 | Durable single-agent play, input fencing/watchdog, complete snapshots, recovery, budgets/clocks and operational report; G2 | in_progress | [Budgets](src/mcbench/budgets.py), [clocks](src/mcbench/clocks.py), [checkpoints](src/mcbench/checkpoints.py); synthetic fault/recovery tests pass, full supervisor and real soaks open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M3 | RS | M1 | Private fixtures/scorers/probes, artifact projections, ablations, pairing/analysis and canary tests; T10/T11/T13 | in_progress | [Private evaluator](evaluator/src/strata_evaluator/), artifact projections and scorer/analysis controls; live telemetry/probe runner/isolation open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M4 | PL | M2 | Team communication, simultaneous capacity, atomic N-body admission, distinct accounts/routing; G3 | in_progress | [Admission](src/mcbench/controller.py), [messages](src/mcbench/communication.py); whole-team synthetic cases pass, measured simultaneous capacity and actual accounts open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
@@ -420,6 +420,11 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.2 | PL | All 13 models, partitioned schemas, generated bindings and semantic checks | in_progress | [Records](src/mcbench/records.py), [tests](tests/test_records.py); full reference fixtures/migrations/conditional Java open. |
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
+| M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
+| M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
+| M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
+| M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
+| M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -6283,3 +6288,58 @@ checkout in `2026-09-24-g0-publication-01/publication-qa.json`. Merge authorizat
 is explicit; verify the final PR head and resulting origin/main ancestry.
 M0/G0's D14 scope, retained failures, all budget holds and M1–M7 remain unchanged;
 this publication performs no game or inference execution.
+
+
+### 2026-09-24 — D20 starts M1/G1 from merged PR8
+
+User authorization: complete M1 and its full G1 acceptance gate, beginning with
+an exact-profile audit and qualified gameplay-root/helper boundary. Necessary
+T10/T11 dependencies are included; unrelated M2-M7 work is untouched. This
+supersedes the M0-only stopping instruction without changing D14's historical
+scope or accepting a weaker gate. D18/D19 spending remains M0-only. No M1 paid
+request or allowance is authorized by this transition.
+
+Created the active long-horizon goal and fresh `codex/m1-g1-isolation` branch
+from fetched PR8 merge `215c4e0`. Read current instructions/status/handoff,
+ledger, G0 assembly/crosswalk and applicable SPEC contracts. Added M1.3a/M1.3b,
+M1.5/M1.6 as explicit work partitions. [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md)
+records required suites/profiles and gaps. WAL-aware read-only comparison of all
+40 tables passes unchanged;20 gateways CLOSED,15 FINALIZED/5 UNSETTLED jobs,
+$4.887796 exposure with all holds. Process inventory finds no matching owned
+Java/native runtime. `uv sync --frozen --offline` succeeds; isolated import
+resolves this checkout. No game/model experiment, qualification or gate pass.
+Next: implement and exercise the missing root/helper boundary checks before
+settings, scorer and probe integration. All historical failures remain retained.
+
+
+### 2026-09-24 — M1.3b.1 selected-runtime boundary slice
+
+Added conformance-only NativeToolProjection/3 for the existing GPT-6 Luna
+root/helper catalog without extending M0 /2 or paid/campaign authority.
+Added owned code-mode filesystem/process/network/credential/artifact probes and
+strict caller-bound duplicate/conflict/output verification. [Evidence](docs/verification/2026-09-24-m1-native-boundary.md):
+187 focused Python cases pass; final37 verifier cases, full Ruff and whitespace
+pass. Fresh native fixture01 rejects an unapproved canary environment variable
+before launch; preserve it and the unchanged environment allowlist. Changed
+fixture02 completes11 scripted requests/one helper in42.598341seconds with154
+synthetic units, zero actual inference/game processes, normal FINALIZED exit0.
+Original68/74 keeps six unrecognized import-denial findings. The inspected exact
+native rejection is recognized by a separately retained verifier; read-only
+reconstruction of unchanged raw/ingress/admission/catalog/settled evidence passes
+24/24. Both sealed bundles and all prior failures remain. No lucky rerun.
+
+All40 real authority tables remain unchanged; every hold/consumed decision and
+$4.887796 exposure persist. No owned fixture process remains. This marks only
+the named M1.3b.1 source/native conformance slice verified; M1.3b/M1 remain
+in_progress, T04/T06 and G1 remain not_run. Next qualify remaining media/output,
+cross-agent state/communication/lifecycle and then actual-game/credential
+integration. Full T05/scorer/probe requirements are unchanged; no M1 paid run
+or RuntimeQualification authorized/issued.
+
+Checkpoint review: all370 prior milestone IDs remain; five explicit M1 children
+were added. Every M2-M7 row and T01-T17/G0-G5 row is unchanged; the old progress
+log is an exact prefix. All1,398 local links in changed Markdown and fences
+check successfully. Both new private seals verify, including the original
+result digest against the audit reference. Final projection49/49 and verifier
+37/37 checks pass after the last edits. Private `checkpoint-qa.json` records
+these results; current handoff and SPEC describe the new conformance-only policy.

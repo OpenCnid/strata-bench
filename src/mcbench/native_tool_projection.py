@@ -39,6 +39,30 @@ class HelperCollaborationProjection(NativeToolProjection):
     policy: Literal["native-additional-tools-exact/2"]
 
 
+class ConformanceHelperProjection(NativeToolProjection):
+    """Selected-model conformance only; neither campaign nor M0 spending authority."""
+
+    schema_: Literal["strata/NativeToolProjection/3"] = Field(alias="schema")
+    policy: Literal["native-additional-tools-exact/3"]
+
+
+def _projection_kind(schema, plan):
+    kinds = {
+        "strata/NativeToolProjection/1": NativeToolProjection,
+        "strata/NativeToolProjection/2": HelperCollaborationProjection,
+        "strata/NativeToolProjection/3": ConformanceHelperProjection,
+    }
+    require(isinstance(schema, str) and schema in kinds, "NATIVE_TOOL_PROJECTION_SHAPE")
+    if schema == "strata/NativeToolProjection/2":
+        require(plan.purpose == "development_piloting" and plan.helper_limit == 1
+                and plan.model == "gpt-6-luna", "NATIVE_TOOL_PROJECTION_SCOPE")
+    if schema == "strata/NativeToolProjection/3":
+        require(plan.purpose == "conformance" and type(plan.helper_limit) is int
+                and 1 <= plan.helper_limit <= 2 and plan.model == "gpt-6-luna",
+                "NATIVE_TOOL_PROJECTION_SCOPE")
+    return kinds[schema]
+
+
 def _validate_projection(blocks, role, *, helper_collaboration=False):
     require(role in {"executor", "helper"} and isinstance(blocks, list) and len(blocks) == 1,
             "NATIVE_TOOL_PROJECTION_SHAPE")
@@ -103,12 +127,10 @@ def read_tool_projection(cas, plan):
             "NATIVE_TOOL_PROJECTION_REQUIRED")
     validate_broker_settings(plan.config_overrides)
     body = _private_json(cas, plan.tool_projection_ref, 16384)
-    helper_collaboration = body.get("schema") == "strata/NativeToolProjection/2"
-    kind = HelperCollaborationProjection if helper_collaboration else NativeToolProjection
+    require(isinstance(body, dict), "NATIVE_TOOL_PROJECTION_SHAPE")
+    kind = _projection_kind(body.get("schema"), plan)
+    helper_collaboration = kind is not NativeToolProjection
     pin = kind.model_validate(body)
-    if helper_collaboration:
-        require(plan.purpose == "development_piloting" and plan.helper_limit == 1 and plan.model == "gpt-6-luna",
-                "NATIVE_TOOL_PROJECTION_SCOPE")
     require(all(getattr(pin, k) == getattr(plan, k) for k in (
         "binary_digest", "binary_version", "dovetail_commit", "model")) and
         pin.settings_policy == SETTINGS_POLICY and pin.settings_digest == digest(plan.config_overrides),
@@ -117,7 +139,8 @@ def read_tool_projection(cas, plan):
         MAX_PROJECTION_BYTES), role, helper_collaboration=helper_collaboration) for role in ("executor", "helper")}
 
 
-def pin_tool_projection(cas, plan, reviewed_projections, *, helper_collaboration=False):
+def pin_tool_projection(cas, plan, reviewed_projections, *, helper_collaboration=False,
+                        conformance_helpers=False):
     """Operator setup from previously reviewed projections, before native startup.
 
     This is deliberately absent from the HTTP/tool interfaces. It must not be
@@ -126,18 +149,19 @@ def pin_tool_projection(cas, plan, reviewed_projections, *, helper_collaboration
     require(isinstance(reviewed_projections, dict) and set(reviewed_projections) == {
         "executor", "helper"} and plan.broker_policy is not None, "NATIVE_TOOL_PROJECTION_SHAPE")
     validate_broker_settings(plan.config_overrides)
-    require(type(helper_collaboration) is bool, "NATIVE_TOOL_PROJECTION_SCOPE")
-    if helper_collaboration:
-        require(plan.purpose == "development_piloting" and plan.helper_limit == 1 and plan.model == "gpt-6-luna",
-                "NATIVE_TOOL_PROJECTION_SCOPE")
+    require(type(helper_collaboration) is bool and type(conformance_helpers) is bool
+            and not (helper_collaboration and conformance_helpers), "NATIVE_TOOL_PROJECTION_SCOPE")
+    version = 3 if conformance_helpers else 2 if helper_collaboration else 1
+    schema = f"strata/NativeToolProjection/{version}"
+    kind = _projection_kind(schema, plan)
     for role, blocks in reviewed_projections.items():
-        _validate_projection(blocks, role, helper_collaboration=helper_collaboration)
+        _validate_projection(blocks, role,
+                             helper_collaboration=helper_collaboration or conformance_helpers)
     refs = {role + "_ref": cas.put(Principal("operator", "operator"), "operator", "operator",
         canonical(blocks), max_object_bytes=MAX_PROJECTION_BYTES)
         for role, blocks in reviewed_projections.items()}
-    kind = HelperCollaborationProjection if helper_collaboration else NativeToolProjection
-    pin = kind.model_validate({"schema": "strata/NativeToolProjection/2" if helper_collaboration else "strata/NativeToolProjection/1",
-        "policy": "native-additional-tools-exact/2" if helper_collaboration else POLICY,
+    pin = kind.model_validate({"schema": schema,
+        "policy": f"native-additional-tools-exact/{version}",
         **{k: getattr(plan, k) for k in (
             "binary_digest", "binary_version", "dovetail_commit", "model")},
         "settings_policy": SETTINGS_POLICY, "settings_digest": digest(plan.config_overrides), **refs})
@@ -148,7 +172,8 @@ def require_tool_projection(cas, plan, body, role):
     expected = read_tool_projection(cas, plan)
     pin = _private_json(cas, plan.tool_projection_ref, 16384)
     projection = request_projection(body, role,
-        helper_collaboration=pin["schema"] == "strata/NativeToolProjection/2")
+        helper_collaboration=pin["schema"] in {
+            "strata/NativeToolProjection/2", "strata/NativeToolProjection/3"})
     # Canonical hashes distinguish booleans from numbers as well as all schemas,
     # descriptions, grammars, ordering and namespace fields. Dict equality does not.
     fingerprint = digest(projection)

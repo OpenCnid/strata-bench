@@ -10,6 +10,17 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
+## September 24 M1/G1 continuation (D20)
+
+The user now authorizes complete M1/G1 implementation from merged PR8. Begin
+with the exact-profile G1 coverage audit and qualified gameplay-root/helper
+runtime boundary, then complete required contracts/native integration/keybinding,
+isolation/scorer controls/probe boundaries and their necessary dependencies.
+Unrelated M2-M7 work remains outside scope. The current ledger/handoff supersede
+M0-only stopping instructions below. D18/D19 spending remains M0-only; D20 does
+not extend the inference allowance. Historical D14 development evidence stays
+isolation-unqualified. Preserve all original IDs, failures, holds and decisions.
+
 ## September 24 M0/G0 closure
 
 The resumed implementation objective was **M0 and all six G0 outcomes only**,

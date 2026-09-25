@@ -1,5 +1,16 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**D20 — M1/G1 scope transition (2026-09-24):** the user authorizes completing
+M1 and its full G1 acceptance gate from merged PR8, beginning with an exact-profile
+coverage audit and qualified gameplay-root/helper isolation. Include the scorer
+and probe dependencies G1 requires; leave unrelated M2-M7 work untouched. D14's
+historical M0 deferral remains unchanged and now requires qualification at G1.
+D18/D19 spending is M0-only and is not extended to M1. Preserve every historical
+failure, profile, unresolved hold and consumed decision. The
+[current handoff](docs/STATUS_AND_HANDOFF.md) and
+[opening G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md) supersede
+older next-action instructions. No acceptance threshold or product feature changes.
+
 **September24 M0 closure (v0.2.184):** M0 verified; G0 pass for the named D14
 development feasibility slice; G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md)
 and [final assembly](docs/verification/2026-09-24-g0-assembly.md) supersede historical
@@ -427,6 +438,18 @@ and explicit native injection, plus a disabled-plugin negative control. This
 catalog filtering is not filesystem protection: test fixtures, operator material,
 credentials, and evaluator state still require the enforced private boundary.
 Initial plugin bytes remain immutable and separate from learned overlays.
+
+**M1 native conformance helper catalog.** `NativeToolProjection/3` /
+`native-additional-tools-exact/3` separately pins the observed GPT-6 Luna root
+and helper collaboration catalogs for purpose `conformance`, with one or two
+configured helpers. It cannot be used for campaign or M0 development-piloting
+admission; /1 and /2 retain their original scopes. Exact caller identity,
+pre-reviewed catalog bytes, sealed bootstrap, clean context, parent budgets,
+credential/runtime qualifications and every-call admission remain required.
+A catalog pin grants no helper/game authority, paid execution or isolation pass.
+[First selected-runtime canary evidence](docs/verification/2026-09-24-m1-native-boundary.md)
+is credential-free native conformance with one helper and a scripted provider;
+remaining surfaces and complete T04/T06 remain open.
 
 ### 6.2 Initial skills, learning and invocation
 

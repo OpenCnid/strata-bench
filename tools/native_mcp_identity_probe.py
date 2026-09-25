@@ -70,7 +70,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
-        pilot_helper=False):
+        pilot_helper=False, runtime_boundary=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -88,6 +88,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(not runtime_boundary or canary_mode and deferred_tools and bootstrap_mode and
+            ingress_mode and oauth_mode and model == "gpt-6-luna" and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                inherited_helper, gateway_mode, skills_mode, state_mode, retirement_mode,
+                interrupt_mode, activation_source, game_probe, piloting_contract, game_failure)),
+            "RUNTIME_BOUNDARY_FIXTURE_REQUIRED")
     require(not admission_mode or broker_mode, "ADMISSION_BROKER_REQUIRED")
     require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
     require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
@@ -148,7 +154,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
     request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
-    canaries = Canaries(output, writer_target=writer_target,
+    if runtime_boundary:
+        from native_runtime_boundary import RuntimeBoundaryCanaries
+        canary_type = RuntimeBoundaryCanaries
+    else:
+        canary_type = Canaries
+    canaries = canary_type(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -437,6 +448,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
+        if runtime_boundary:
+            plan = plan.model_copy(update={"helper_limit": 1})
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
         if game_recovery:
@@ -538,7 +551,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
-                cas, plan, tool_projections, helper_collaboration=pilot_helper)})
+                cas, plan, tool_projections, helper_collaboration=pilot_helper,
+                conformance_helpers=runtime_boundary)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})

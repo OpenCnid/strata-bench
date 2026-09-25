@@ -57,6 +57,33 @@ def test_v2_helper_catalog_is_explicitly_pinned_and_v1_stays_strict(admitted):
             read_tool_projection(gate.cas, plan.model_copy(update=updates))
 
 
+@pytest.mark.parametrize("helpers", [1, 2])
+def test_v3_conformance_helpers_do_not_extend_development_or_campaign_scope(admitted, helpers):
+    _, gate, _, original, _, _, _ = admitted
+    plan = original.model_copy(update={"purpose": "conformance", "helper_limit": helpers,
+                                       "model": "gpt-6-luna"})
+    body = {"input": [wire_tools("executor")]}
+    projection = request_projection(body, "helper", helper_collaboration=True)
+    reviewed = {"executor": projection, "helper": projection}
+    plan.tool_projection_ref = pin_tool_projection(gate.cas, plan, reviewed, conformance_helpers=True)
+    assert require_tool_projection(gate.cas, plan, body, "helper") == digest(projection)
+    pin = gate.cas.json(Principal("operator", "operator"), "operator", plan.tool_projection_ref)
+    assert pin["schema"] == "strata/NativeToolProjection/3"
+    for update in ({"purpose": "campaign"}, {"purpose": "development_piloting"},
+                   {"helper_limit": 0}, {"helper_limit": 3}, {"helper_limit": True},
+                   {"model": "gpt-5.6-luna"}):
+        changed = plan.model_copy(update=update)
+        with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+            read_tool_projection(gate.cas, changed)
+        with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+            pin_tool_projection(gate.cas, changed, reviewed, conformance_helpers=True)
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_SCOPE"):
+        pin_tool_projection(gate.cas, plan, reviewed, helper_collaboration=True, conformance_helpers=True)
+    body["input"][0]["tools"][0]["tools"][0]["description"] += " changed"
+    with pytest.raises(Fault, match="NATIVE_TOOL_PROJECTION_MISMATCH"):
+        require_tool_projection(gate.cas, plan, body, "helper")
+
+
 @pytest.fixture
 def pinned(admitted):
     admission, gate, _, plan, request, prepare, put = admitted

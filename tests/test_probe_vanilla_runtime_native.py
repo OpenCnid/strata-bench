@@ -97,7 +97,8 @@ def pair_source(base_pair_source, source, cas, request):
                  if p == "world" or p.startswith("world/")})}
 
     def bounded_request(**kwargs):
-        return make_request(**kwargs, fixture_patch=patch) | {
+        override = kwargs.pop("fixture_patch", {})
+        return make_request(**kwargs, fixture_patch=patch | override) | {
             "schema": "strata/ProbePairRequest/2", "policy": "private-matched-probe-pair-staging/2",
             "max_materialized_bytes": 128 * 1024**2}
 

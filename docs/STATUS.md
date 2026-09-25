@@ -3,6 +3,21 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q [registered worker lifecycle](verification/2026-09-25-m1-probe-worker-runtime.md) is implemented_unverified.
+31 distinct source cases pass, covering whole-pair import/worker/stop ordering,
+private identity and observable-state joins, failed imports/grants/state/stop,
+changed authority and retained reservations. The first authentic-input attempt
+fails after 178.93s with PROBE_WORLD_DEADLINE before copier/import/worker/server dispatch.
+Both configurations were created; parent teardown fences and preserves all holds.
+Original parent300s/writer200-170s/server60s bounds remain unchanged. Read-only
+profiling measures server8.188s/client33.687s under cProfile and identifies repeated
+path/layout validation. Next reduce that duplication without removing custody,
+hash, link or authority checks, then retry this case after the implementation
+change. Keep its failure and diagnostic script-import error. All40 real tables
+remain unchanged at$4.887796; no owned runtime or model call. Full live-state/tool
+matching, native admission, clocks/disposal, T05/T10 and remaining isolation are
+still required; G1-G5 not_run. No M1 paid inference authority is inferred.
+
 M1.6p [complete worker input custody](verification/2026-09-25-m1-probe-worker-inputs.md) is implemented_unverified for
 registered runtime integration. Nine distinct focused source cases pass using
 synthetic accounts/packs and actual Windows file leases. Both complete arm rosters

@@ -113,6 +113,22 @@ class ProbeWorldCopies:
                 principal, values, continuation=continuation, software=software, runtime=runtime
             )
 
+    def run_vanilla_worker_reference(self, principal, values, launches, invocations, *, pack_binding):
+        """Registered server/worker reference. No model, action or native admission."""
+        from .probe_vanilla_inputs import BODY_POLICY
+        from .probe_worker_runtime import PairedWorkerReference
+
+        self.preparation.views.pairs._authorize(principal)
+        pair, *_ = self.preparation._source(self.preparation.pair_id)
+        with VanillaProbeInputs(self.preparation, pack_binding, policy=BODY_POLICY) as software:
+            with software.hold_worker_inputs(principal, invocations) as inputs:
+                runtime = PairedWorkerReference(pair, launches, inputs)
+                if callable(values):
+                    values = values(software)
+                    inputs.check()
+                return self._run(principal, values, continuation=lambda *_: None,
+                                 software=software, runtime=runtime)
+
     def _run(self, principal, values, *, continuation, software=None, runtime=None):
         """Prepare both exact worlds, borrow them together, then discard unlaunched.
 

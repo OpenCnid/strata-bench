@@ -111,15 +111,10 @@ class HeldProbeWorkerInputs:
     def check(self):
         require(self._resources is not None and not self.closed, "PROBE_WORKER_INPUTS_CLOSED")
         try:
-            self.software.check()
-            require(self._bindings() == self._binding_refs, "PROBE_WORKER_BINDING_CHANGED")
-            self._check_accounts()
+            self._check_custody()
             for arm, group in self._workers.items():
                 for agent, worker in group.items():
                     require(not worker.processes, "PROBE_WORKER_PREMATURE_DISPATCH")
-                    worker.runtime.recheck()
-                    worker.config_lease.recheck()
-                    require(worker.resolved == self._resolved[arm][agent], "PROBE_WORKER_INPUTS_CHANGED")
             return {"policy": POLICY, "pair_id": self.software.preparation.pair_id,
                     "invocations": deepcopy(self._invocations), "resolved": deepcopy(self._resolved),
                     "account_bindings": {str(p): pin for p, pin in self._accounts.items()},
@@ -128,6 +123,18 @@ class HeldProbeWorkerInputs:
         except BaseException:
             self.close()
             raise
+
+    def _check_custody(self):
+        """Private lifecycle consumer checks its process phases separately."""
+        require(self._resources is not None and not self.closed, "PROBE_WORKER_INPUTS_CLOSED")
+        self.software.check()
+        require(self._bindings() == self._binding_refs, "PROBE_WORKER_BINDING_CHANGED")
+        self._check_accounts()
+        for arm, group in self._workers.items():
+            for agent, worker in group.items():
+                worker.runtime.recheck()
+                worker.config_lease.recheck()
+                require(worker.resolved == self._resolved[arm][agent], "PROBE_WORKER_INPUTS_CHANGED")
 
     def close(self):
         self.closed = True

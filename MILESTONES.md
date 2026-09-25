@@ -2,6 +2,21 @@
 
 ## Current position
 
+M1.6q [registered worker lifecycle](docs/verification/2026-09-25-m1-probe-worker-runtime.md) is implemented_unverified.
+31 distinct source cases pass, covering whole-pair import/worker/stop ordering,
+private identity and observable-state joins, failed imports/grants/state/stop,
+changed authority and retained reservations. The first authentic-input attempt
+fails after 178.93s with PROBE_WORLD_DEADLINE before copier/import/worker/server dispatch.
+Both configurations were created; parent teardown fences and preserves all holds.
+Original parent300s/writer200-170s/server60s bounds remain unchanged. Read-only
+profiling measures server8.188s/client33.687s under cProfile and identifies repeated
+path/layout validation. Next reduce that duplication without removing custody,
+hash, link or authority checks, then retry this case after the implementation
+change. Keep its failure and diagnostic script-import error. All40 real tables
+remain unchanged at$4.887796; no owned runtime or model call. Full live-state/tool
+matching, native admission, clocks/disposal, T05/T10 and remaining isolation are
+still required; G1-G5 not_run. No M1 paid inference authority is inferred.
+
 M1.6p [complete worker input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md) is implemented_unverified for
 registered runtime integration. Nine distinct focused source cases pass using
 synthetic accounts/packs and actual Windows file leases. Both complete arm rosters
@@ -740,6 +755,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6o.1 | AR/GI/SI/QA | Qualify identity-bound worker on authentic protected vanilla server with private journal/live/save joins; inherits M1.6o mappings | verified | [Case02 and wrong-identity negative](docs/verification/2026-09-25-m1-worker-identity-native.md):118.188s, scoped identity/live/save join, normal copier10/10/worker7/7/server12/12 and26-file capture. Actual mismatch fences, refuses observation and stops7/7 normally.35+19 sealed audit checks pass; case01 refusal/forced exit125 preserved. Bounded operator contract only; registered-pair/native admission/matched initial state remain open. |
 | M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
 | M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
+| M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | implemented_unverified | [Lifecycle and retained failure](docs/verification/2026-09-25-m1-probe-worker-runtime.md):31 distinct source cases pass; first authentic-input attempt fails pre-dispatch PROBE_WORLD_DEADLINE178.93s. Both configs created, zero copier/import/worker/server dispatch; parent fenced, holds intact. Profile identifies repeated validation; reduce duplication under unchanged300/200-170/60s bounds before changed-case retry. Full live matching/native admission/clocks/disposal remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8078,3 +8094,48 @@ M1.6p evidence seal:3,477 files/15,619,247 bytes, SHA-256
 Documentation QA preserves410 prior IDs (411 current), append-only progress and
 prior SPEC text;1,607 local links resolve. Source426-file match, focused Ruff
 and whitespace pass. This post-seal pointer changes no source or test evidence.
+
+### 2026-09-25 — M1.6q registered worker lifecycle; preparation deadline refusal
+
+- Added `probe_worker_runtime.py`, `probe_worker_observation.py` and the private
+  `ProbeWorldCopies.run_vanilla_worker_reference` entry point. Complete held rosters
+  import before both registered servers; scope-checked observation only, normal
+  worker drain before server save, private journal/UUID/own-projection join and
+  first-worker export custody through sibling. No native/gameplay/model admission.
+- 31 distinct focused source cases pass with synthetic process/transport/JVM and
+  actual Windows input/export leases and SQLite. Changed input custody and existing
+  server-reference regressions pass. Before authentic execution, separate real
+  worker observation labels from synthetic agent/protocol source labels. Preserve
+  earlier passing versions/logs; the opt-in authentic case initially skips.
+- Fresh pinned profile02/identity-case02 world attempt fails in178.93s with
+  PROBE_WORLD_DEADLINE before world-copy intent, copier, worker import, worker or
+  server dispatch. Both scoped configs exist. Parent teardown fences; capacity/
+  cost holds remain. Failed attempt and source435-file comparison are retained.
+  Parent300s, writer200/170s and both server60s limits are unchanged.
+- Read-only cProfile measurement: server8.188s/client33.687s; client runtime entry
+  includes17.151s file-lease construction and35,207 safe calls overall. These are
+  instrumented diagnostics, not qualified latency figures. The first profiling
+  script shadowed stdlib profile and failed; corrected filename/fresh state runs
+  without configuration write or native execution. Retain both sources/results.
+- F01/F02/F04/F07/F08/F09/F16, N01/N02/N03/N04/N05/N06/N08,
+  C06/C20/C23/C24/C36, partial T01/T06/T11. SPEC records the separate lifecycle and
+  own-projection policies. [Report](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
+  preserves full live state/tool parity, native admission, clocks/disposal and
+  T05/T10/isolation gaps. M1.6q implemented_unverified, G1-G5 not_run.
+- All40 real authority tables unchanged; exposure$4.887796 with original holds and
+  consumed decisions preserved. No M1 inference authority or model call, and no
+  owned runtime remains. Next reduce repeated validation without removing source,
+  link, file custody or binding checks; only then repeat this changed authentic
+  case. M0/G0, prior failures/profiles and unrelated M2-M7 remain unchanged.
+
+M1.6q seals: source6,798 files/26,179,360 bytes
+`5c325b62eb4d75c9fd5bc60357e6f8f94e9e84df2b381e7d6720a3c07033be1a`;
+failed native657 files/44,663,039 bytes
+`0eba0d649438eecee9d647e5cea48524226d7cca3d914b4df7e91a8eeab6fdfc`;
+resolution diagnostic14 files/227,016 bytes
+`ce76fc191572e81a690867353f7840173d4b7715ea3d420d8959931cb86df7d1`.
+All bundles independently verify.31 distinct source cases pass; authentic attempt
+remains failed.434 native code/tool/lock files match current source, with fixture
+JSON unchanged. Docs QA preserves411 prior IDs (412 current), append-only progress
+and prior SPEC text;1,613 links resolve. Ruff/whitespace pass. No model/owned runtime,
+all40 authority tables unchanged. Post-seal pointers alter no source/test evidence.

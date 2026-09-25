@@ -32,7 +32,7 @@ def copies(custody, tmp_path, request):
         "disk_bytes": 1000000
         if getattr(request.node, "callspec", SimpleNamespace(params={})).params.get("fault")
         == "storage"
-        else 128 * 1024**2
+        else getattr(request.node, "callspec", SimpleNamespace(params={})).params.get("per_arm_disk_bytes", 128 * 1024**2)
     }
     capacity = {k: v * 2 for k, v in per_arm.items()}
     controller.certify(

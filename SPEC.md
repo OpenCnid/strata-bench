@@ -1849,6 +1849,23 @@ consumer must separately qualify those contracts and disposal.
 [Input custody evidence](docs/verification/2026-09-25-m1-probe-worker-inputs.md)
 uses synthetic accounts/packs with actual Windows file leases.
 
+`held-pair-protected-vanilla-worker-reference/1` connects complete held worker
+inputs to saved-body paired server references. Import-check all workers before
+either finite server window, reserve complete runtime/log/state storage, validate
+scoped grants and gather ordinary connected observations for the whole arm.
+Drain all workers before server save; retain the first worker export through its
+sibling, stop remaining owned workers on failure and preserve parent holds.
+This operator reference exposes no model/action or native probe authority.
+Its private `registered-worker-initial-own-projection/1` checks normal owned stop,
+saved UUID, single identity/epoch, zero actions/primitives and exact journalled
+delivery, then compares the existing own-state projection. This does not cover
+unprojected live NBT fields or establish full matched state, simultaneous all-N
+readiness, tool/policy parity, authoritative clocks or disposal. Genuine game
+observations retain their identity when agent/protocol reference fixtures are
+synthetic; example labels never substitute for producer provenance.
+[Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
+distinguish passing source cases from failed authentic-input execution.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

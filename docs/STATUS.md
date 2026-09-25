@@ -56,6 +56,10 @@ M1.6c [native account separation](verification/2026-09-25-m1-native-account-purp
 adds235 distinct passing checks and unchanged retained source/export reconstruction.
 Evaluation cannot use campaign/conformance startup, enrollment, dispatch or broker
 paths. Separate disposable native probe admission and full G1 remain open.
+M1.6d [native artifact/catalog views](verification/2026-09-25-m1-probe-native-views.md)
+adds57 distinct passes and60/60+3/3 read-only checks of approved root/helper
+inventories, control arms, exact catalog bytes, fresh profiles and failure fences.
+Actual native loading, projection, probe admission and disposal remain unverified.
 
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false

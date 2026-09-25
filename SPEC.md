@@ -1650,6 +1650,18 @@ do not supply the separate disposable probe runtime admission still required.
 Local adaptation uses scoped mutable artifacts inside the probe; it does not
 require importing probe revisions into campaign publication/checkpoint paths.
 
+The private `ProbeNativeViews/1` preparation candidate derives both native
+artifact views from the complete registered pair. It adds exact approved skill
+bodies/supporting files under the native catalog and active broker paths, plus
+the public revision index. Root inventories retain approved cognitive artifacts;
+helper inventories contain only selected immutable initial/docs/supplied files
+and the explicitly supplied active set. No-self-play has no helper inventory.
+Private pair/provenance manifests stay outside workspaces. Fresh empty profiles,
+one-use intents, complete source/tree checks and resolvable operator artifact
+refs are required. [Preparation evidence](docs/verification/2026-09-25-m1-probe-native-views.md)
+is not native catalog loading, broker admission, OS isolation, launch custody or
+disposal authority; those complete T04/T06/T11 contracts remain required.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.

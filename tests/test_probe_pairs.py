@@ -28,13 +28,15 @@ def pair_source(database, cas, tmp_path, example, configs, request):
         config = config.model_copy(update={"information_policy": information, "runtime_profile": runtime_policy,
             "backend": config.backend.model_copy(update={"capability_manifest": capability})})
         return config, [a.model_copy(update={"inference_config": inference, "capability_profile": capability}) for a in agents]
-    zero = getattr(request, "param", False)
+    options = getattr(request, "param", False)
+    zero = options.get("zero", False) if isinstance(options, dict) else options
+    arm = options.get("arm", "full") if isinstance(options, dict) else "full"
     def source_example(name):
         value = example(name)
         if zero and name == "CheckpointManifest":
             value |= {"scheduled_active_s": 0, "clocks": {"active_wall_s": 0, "elapsed_wall_s": 0, "avatar_ticks": 0}}
         return value
-    source, sets, ref = selected_seed(database, cas, tmp_path, source_example, resolved_configs)
+    source, sets, ref = selected_seed(database, cas, tmp_path, source_example, resolved_configs, arm=arm)
     _, config = sets.components.load(sets.load(ref)["checkpoint_ref"])
     def put(value):
         return cas.put(OPERATOR, EVALUATOR.namespace, "evaluator", canonical(value))
@@ -48,8 +50,9 @@ def pair_source(database, cas, tmp_path, example, configs, request):
         "keymaps": {"a1": keymap}, "control_cards": {"a1": blob}, "public_goal": "Explore the visible area.",
         **dict.fromkeys(("backend_initialization", "tools", "observation_action_limits"), blob),
         "runtime_policy": runtime_policy, "information_policy": information}
-    chosen = {"a1": selection(sets, ref, retained_paths=[] if zero else ["notes/root.md"],
-                               skill_names=[] if zero else ["learned-crafting"])}
+    chosen = {"a1": selection(sets, ref,
+        retained_paths=[] if zero or arm == "frozen-persistence" else ["notes/root.md"],
+        skill_names=[] if zero or arm in {"frozen-skills", "frozen-persistence"} else ["learned-crafting"])}
     protocol = example("EvaluationProtocol") | {"is_example": True, "system_digests": [config.system_digest],
         "exposure_s": [0, 3600], "primary_checkpoint_s": 3600, "control_keymap": keymap,
         **dict.fromkeys(("scorer", "sample_plan", "censoring_plan", "analysis_plan", "access_log"), blob)}

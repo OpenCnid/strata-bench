@@ -152,6 +152,27 @@ campaign relabelling cannot substitute. M1.6c implemented_unverified; G1 not_run
 All40 real authority tables, holds and $4.887796 exposure unchanged; USD0 actual
 inference, no owned runtime. Bundle seal and exact checks are in the report.
 
+M1.6d [native view preparation](verification/2026-09-25-m1-probe-native-views.md)
+now derives both arms/full declared roster from the registered pair, adding exact
+native `.agents/skills` catalogs beside active broker paths, explicit root/helper
+inventories and empty profiles. No-self-play omits helpers; frozen controls and
+t=0 retain their declared surfaces. Every broker input, including the generated
+public index, resolves with operator visibility. Private views/pair/provenance
+remain outside workspaces. PREPARING/VERIFYING/FAILED preserve one-use fences.
+57 distinct checks pass; reconstruction60/60+3/3. Keep the first retained-WAL
+audit refusal, original database/WAL and its seal; one separate read-only backup
+resolves the audit. Producer/audit seals and scopes are in the report. All40 real
+authority tables unchanged; $4.887796 exposure/holds, USD0, no owned runtime.
+
+Next bind the verified views to separate native probe bootstrap/catalog admission
+and scoped broker projection with an explicit evaluation account. NativeLaunch
+still has no probe purpose and the current views authorize no launch. Do not
+weaken campaign activation/publication fences, copy private evaluator manifests
+into runtime contexts, or infer isolation from these directories. Complete held
+launch/disposal, actual matched world/body/keymap/backend state, resources, N>1
+positive preparation and one-way canaries. M1.6d implemented_unverified; M1.6
+in_progress, G1 not_run. Remaining combined runtime/T05/scorer contracts persist.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

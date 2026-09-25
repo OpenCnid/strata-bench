@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue
+from pydantic import Field, JsonValue, model_validator
 
 from .accounting import EstimateBasis
 from .budgets import Budgets
@@ -59,7 +59,8 @@ class NativeLaunch(Strict):
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     accounting_basis_digest: Digest | None = None
-    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
+    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1",
+                           "native-stdio-projected-artifacts-executor-game-team/1"] | None = None
     bootstrap_manifest: str | None = None
     bootstrap_digest: Digest | None = None
     ingress_policy: Literal["native-job-http-header/1"] | None = None
@@ -70,6 +71,7 @@ class NativeLaunch(Strict):
     skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     resume_component_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    team_policy_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -77,6 +79,13 @@ class NativeLaunch(Strict):
     hard_timeout_s: Annotated[int, Field(ge=1, le=300)]
     output_limit_bytes: Annotated[int, Field(ge=1024, le=64 * 1024**2)]
     qualification_ref: Ref | None
+
+    @model_validator(mode="after")
+    def team_profile(self):
+        from .native_broker_policy import TEAM_POLICY
+        if (self.broker_policy == TEAM_POLICY) != (self.team_policy_ref is not None):
+            raise ValueError("team capability requires its explicit policy and private policy pin")
+        return self
 
     def profile_digest(self):
         # Episode text, identities and locations vary; execution affordances do not.
@@ -105,6 +114,8 @@ class NativeLaunch(Strict):
         if self.resume_component_ref is not None:
             body["component_resume"] = {"policy": "native-development-component-resume/1",
                                         "source": self.resume_component_ref}
+        if self.team_policy_ref is not None:
+            body["team_policy_ref"] = self.team_policy_ref
         return digest(body)
 
 
@@ -234,7 +245,10 @@ class NativeExec:
                 "FORBIDDEN_ENVIRONMENT")
         if plan.broker_policy is not None:
             from .native_broker_policy import validate_broker_settings
-            validate_broker_settings(plan.config_overrides)
+            validate_broker_settings(plan.config_overrides, policy=plan.broker_policy)
+            if plan.team_policy_ref is not None:
+                from .native_team import require_team_plan
+                require_team_plan(self.db.connection, self.cas, plan)
             require(not {"STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"} & set(plan.environment),
                     "BROKER_CREDENTIAL_ENVIRONMENT")
         require((plan.bootstrap_manifest is None) == (plan.bootstrap_digest is None), "BOOTSTRAP_REQUIRED")
@@ -295,6 +309,7 @@ class NativeExec:
         return workspace, profile
 
     def start(self, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
+        plan = NativeLaunch.model_validate(plan.model_dump())
         workspace, profile = self._validate(plan, reserve, fixture_argv)
         plan_body = plan.model_dump()
         if plan.accounting_basis_digest is None:

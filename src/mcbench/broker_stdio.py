@@ -68,12 +68,13 @@ def respond(broker, request, game_transport=None):
             "artifact_write": "Write an own note/skill draft or helper result; does not activate skills.",
             "artifact_list": "List this caller's admitted artifacts and own drafts.",
             "game": "Call the existing scoped game worker. Executor only; never retries uncertain calls.",
+            "team": "Send or receive declared campaign-roster messages. Executor only; scoped durable cursors and explicit acknowledgments.",
         }
         return {"tools": [{"name": name, "description": descriptions[name],
             "inputSchema": model.model_json_schema(), "annotations": {
                 "readOnlyHint": name in {"artifact_read", "artifact_list"},
                 "openWorldHint": False}}
-            for name, model in ARGUMENTS.items()]}
+            for name, model in broker.arguments.items()]}
     if method == "tools/call":
         try:
             result = broker.call(params.get("name"), params.get("arguments"), params.get("_meta"),

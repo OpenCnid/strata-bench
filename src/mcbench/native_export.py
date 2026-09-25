@@ -245,6 +245,9 @@ def inspect_native_source(db, cas, job, *, simulation, live_jobs=()):
         "participants": summaries, "attempts": attempts, "operations": operations,
         "ledger": ledgers, "broker_calls": calls, "game_calls": game_calls,
         "account_identities": [dict(a) for a in Budgets.ancestors(db, plan.account)]}
+    if plan.team_policy_ref is not None:
+        from .native_team import inspect_team_calls
+        source["team_receipts"] = inspect_team_calls(db, plan, calls)
     if rejected:
         # Preserve legacy source hashes when there are no proved denials.
         source["pre_dispatch_rejections"] = [{"admission": a, "rejection": rejected[a["operation"]].model_dump()}

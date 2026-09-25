@@ -51,6 +51,9 @@ Its [typed controller core](docs/verification/2026-09-24-m1-team-core.md) now
 passes72 synthetic cases, pending the native facade. The same work found and
 corrected specific integer bounds (M1.2a);190 distinct affected cases pass and
 four retained native jobs reconstruct unchanged under the stricter validator.
+M1.3b.9b adds the [versioned native team facade](docs/verification/2026-09-24-m1-native-team-source.md):
+417 distinct focused passes/three existing opt-in skips, preserving old catalogs
+and profile identities. Actual selected native team integration is next (.9c).
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -459,6 +462,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | verified | [Named separate-job evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused cases,25/25 independent audit;36 targeted operation denials, permitted local messages,36 settled requests/504 synthetic units and two exports. Original28/29 per job and optional timeline serialization failure retained. Same fixture campaign labels in separate stores; no campaign-team API, N-body or full isolation claim. |
 | M1.3b.9 | SI/AR/PL/QA | G1-required SPEC10.2 team.send/team.receive boundary: typed scoped native access, permitted roster delivery and cross-campaign refusal; F07/F16/N01/N04, C13, T01/T06; minimal M4.1 dependency | in_progress | Native helper collaboration is not the campaign-team API. Communication service exists but current restricted broker exposes only artifact/game operations. Bind declared communication policy, scoped sender/recipient/cursor/deadline/limits and durable receipts; actual permitted and refused native calls required. No N-body capacity claim or unrelated M4 expansion. |
 | M1.3b.9a | PL/SI/QA | Typed TeamRequest/TeamResponse, private declared policy, recipient-scoped durable cursors, atomic epoch/lease/deadline/idempotency guards; inherits M1.3b.9 coverage | implemented_unverified | [Core source and72 synthetic cases](docs/verification/2026-09-24-m1-team-core.md); legacy message bytes/receipts retained. Native facade and actual integration remain open; no campaign-team acceptance claim. |
+| M1.3b.9b | PL/SI/QA | Explicit native team capability/profile and broker facade with live authenticated scope, policy pin and atomic revocation fencing; inherits M1.3b.9 coverage | implemented_unverified | [Versioned source integration](docs/verification/2026-09-24-m1-native-team-source.md):417 distinct passes/three existing opt-in skips. Private stopped receipt joins and old profile compatibility tested. Actual native team evidence remains required. |
+| M1.3b.9c | SI/AR/QA | Actual native same-roster delivery, durable dedup/cursors/ack, helper/foreign-campaign refusal and sealed receipt reconstruction; inherits M1.3b.9 coverage | not_started | Next scripted selected-runtime fixture must use distinct native jobs/agents and one authentic private synthetic controller/queue with live owned heartbeat. No paid model or N-body capacity claim. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6564,3 +6569,32 @@ All40 durable authority tables and every historical hold remain unchanged.
 No native rerun, Minecraft, paid inference or shared-desktop input. Next add the
 versioned scoped native team facade and actual allowed/refused-path evidence.
 Complete T01/T04/T05/T06/T10/T11 and G1 remain open; unrelated M2-M7 untouched.
+
+
+### 2026-09-24 — M1.3b.9b explicit native team facade and receipt provenance
+
+Added the optional team broker policy, settings /3 and selected conformance
+projection /4, preserving historical four-tool policies and absent-extension
+profile hashes. Bind the private CommunicationPolicy reference into NativeLaunch.
+Preflight/native admission/broker calls require the current private controller,
+matching running roster/epoch/lease/policy and simulation identity. Only executor
+metadata can use team send/receive. Guards run inside the transaction before
+effects and before commit, plus the existing result-publication fence. Private
+receipts tie exact native calls to message/delivery/cursor/ack data; stopped
+exports include immutable scoped receipts, not shared queue restore authority.
+
+417 distinct focused tests pass; three existing opt-in launch cases stay skipped.
+Initial203/203; compatibility collection first lacks tools import path, then
+168 pass/eight outdated SimpleNamespace stubs fail/three skip. Explicit policy
+stubs and both catalog variants resolve those;105/105 core/facade and123 passes/
+three skips in final native/launch/export/facade group. Counts overlap.34 new
+facade cases include coherent receipt tampering and revocation rollback. Full
+Ruff/whitespace pass. [Source report/seal](docs/verification/2026-09-24-m1-native-team-source.md).
+
+The private source-only bundle verifies16 files/228,563 bytes; all40 durable
+real authority tables and every hold are unchanged. No matching owned fixture
+process remains; no actual native team conversation, Minecraft, paid inference
+or desktop input. .9b remains implemented_unverified and .9c explicitly tracks
+actual selected native roster delivery and refusal evidence. Use one private
+synthetic controller/queue with live heartbeat and separate native job/agent IDs.
+Full G1 and unrelated M2-M7 statuses remain unchanged.

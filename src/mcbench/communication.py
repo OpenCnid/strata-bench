@@ -174,9 +174,10 @@ class Communication:
             "SELECT COALESCE(MAX(seq),0)+1 FROM messages WHERE campaign=? AND sender=?",
             (campaign, agent),
         ).fetchone()[0]
+        created = self.clock()
         db.execute(
             "INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)",
-            (campaign, message_id, agent, seq, body, self.clock(), self.clock() + ttl, fingerprint),
+            (campaign, message_id, agent, seq, body, created, created + ttl, fingerprint),
         )
         db.executemany(
             "INSERT INTO deliveries(campaign,message,recipient) VALUES (?,?,?)",
@@ -199,7 +200,8 @@ class Communication:
         )
         return seq
 
-    def request(self, principal, value, cas):
+    def request(self, principal, value, cas, *, expected_policy_ref=None, authority_guard=None,
+                native_call_event=None):
         """Trusted scoped facade; authentication is supplied by the native broker.
 
         Guards, ack/send effects, public receipt and private journal commit in a
@@ -213,6 +215,8 @@ class Communication:
         budget = deadline - self.clock()
         require(0 < budget <= 5, "DEADLINE_EXCEEDED")
         with self.database.transaction() as db:
+            if authority_guard is not None:
+                authority_guard(db)
             roster = self.roster(db, value.campaign_id, value.agent_id, principal)
             row = db.execute("SELECT * FROM campaigns WHERE id=?", (value.campaign_id,)).fetchone()
             require(row["epoch"] == value.epoch, "STALE_EPOCH")
@@ -221,6 +225,7 @@ class Communication:
             remaining = deadline - now
             require(0 < remaining <= 5, "DEADLINE_EXCEEDED")
             ref = json.loads(row["config"])["communication_policy"]
+            require(expected_policy_ref is None or ref == expected_policy_ref, "TEAM_POLICY_CHANGED")
             visibility = db.execute(
                 "SELECT visibility FROM objects WHERE namespace='operator' AND ref=?", (ref,)
             ).fetchone()
@@ -324,12 +329,17 @@ class Communication:
             self.database.event(
                 db,
                 "team.request",
-                {"policy_ref": ref, "request": value.model_dump(), "result_digest": digest(result)},
+                {"policy_ref": ref, "request": value.model_dump(), "result_digest": digest(result),
+                 **({"native_call_event": native_call_event, "result": result}
+                    if native_call_event is not None else {})},
             )
             require(len(canonical(result)) <= 512 * 1024, "TEAM_RESPONSE_LIMIT")
             require(
                 self.monotonic() - started < budget and self.clock() < deadline, "DEADLINE_EXCEEDED"
             )
+            require(row["lease_until"] > self.clock(), "LEASE_EXPIRED")
+            if authority_guard is not None:
+                authority_guard(db)
             return result
 
     def receive(self, principal, campaign, agent, *, acknowledge=()):

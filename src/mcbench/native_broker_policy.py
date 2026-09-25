@@ -4,6 +4,24 @@ from .storage import require
 
 BROKER_TOOLS = ("artifact_read", "artifact_write", "artifact_list", "game")
 SETTINGS_POLICY = "native-broker-closed-features-stdio/2"
+POLICY = "native-stdio-projected-artifacts-executor-game/1"
+TEAM_POLICY = "native-stdio-projected-artifacts-executor-game-team/1"
+TEAM_SETTINGS_POLICY = "native-broker-closed-features-stdio/3"
+
+
+def broker_tools(policy=POLICY):
+    require(policy in {POLICY, TEAM_POLICY}, "BROKER_TOOL_POLICY")
+    return BROKER_TOOLS + (("team",) if policy == TEAM_POLICY else ())
+
+
+def broker_approvals(policy=POLICY):
+    return {name: {"approval_mode": "approve"} for name in broker_tools(policy)
+            if name not in {"artifact_read", "artifact_list"}}
+
+
+def settings_policy(policy):
+    broker_tools(policy)
+    return TEAM_SETTINGS_POLICY if policy == TEAM_POLICY else SETTINGS_POLICY
 
 
 def restricted_settings():
@@ -29,7 +47,7 @@ def restricted_settings():
     }
 
 
-def validate_broker_settings(config):
+def validate_broker_settings(config, *, policy=POLICY):
     required = restricted_settings()
     # A sealed command does not constrain an additional native tool feature.
     # Reject aliases/nested tables and unreviewed feature keys, including false
@@ -48,7 +66,6 @@ def validate_broker_settings(config):
     require(isinstance(server, dict) and set(server) <= {
                 "command", "args", "env", "required", "enabled_tools", "tools",
                 "startup_timeout_sec", "tool_timeout_sec"} and server.get("required") is True and
-            server.get("enabled_tools") == list(BROKER_TOOLS) and
-            server.get("tools") == {"artifact_write": {"approval_mode": "approve"},
-                                     "game": {"approval_mode": "approve"}} and
+            server.get("enabled_tools") == list(broker_tools(policy)) and
+            server.get("tools") == broker_approvals(policy) and
             "default_tools_approval_mode" not in server, "BROKER_SERVER_POLICY")

@@ -127,3 +127,23 @@ affected tests pass after resolving three build/import setup failures. Four
 sealed native jobs/nine grants reconstruct unchanged under strict readback.
 The new specific-bounds-01 private bundle is sealed; all40 authority tables and
 all holds remain unchanged. No native rerun, game or paid call occurred.
+
+M1.3b.9b now has [versioned native facade source evidence](verification/2026-09-24-m1-native-team-source.md):
+417 distinct focused passes/three existing opt-in skips, with initial test-path
+and eight outdated-stub failures retained. Old broker/settings/projection
+identities stay unchanged. New team broker policy, closed settings /3 and
+conformance projection /4 require a profile-bound private communication policy,
+running controller/epoch/lease and executor identity. Native authority is checked
+inside the message transaction and at output publication. Private committed
+receipts join the stopped export; no shared-queue restore authority follows.
+
+Next is M1.3b.9c actual selected-native integration. Use one private synthetic
+controller/queue, real owned heartbeat and distinct roster agent/native job IDs;
+show allowed durable delivery/ack plus helper/cross-campaign refusal. Existing
+native_mcp_identity_probe supports distinct job_id but still creates per-output
+stores/accounts and fixed a1 scope; extend it explicitly or compose its bounded
+primitives without relabeling separate stores as one team. Maintain exact
+projection /4 pins and stopped receipt audit. This is USD0 scripted-provider
+verification; it neither extends D18/D19 nor qualifies real gameplay. The
+team-facade-source-01 bundle is sealed, all40 authority tables unchanged and no
+matching owned fixture process remains. Full G1 stays open.

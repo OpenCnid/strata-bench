@@ -54,3 +54,9 @@ The [typed team core](verification/2026-09-24-m1-team-core.md) now passes72
 synthetic checks, with native integration still open. A discovered integer-bound
 defect is corrected;190 distinct affected tests pass and four retained native
 jobs/nine grants revalidate without changing their exports or original evidence.
+
+The [versioned native team facade](verification/2026-09-24-m1-native-team-source.md)
+adds417 distinct focused passes/three existing opt-in skips. Live scope and policy
+checks fence team effects, and stopped exports reconstruct private receipts.
+Actual selected-native roster delivery/refusal is still required (.9c); no full
+team/isolation/G1 acceptance claim yet.

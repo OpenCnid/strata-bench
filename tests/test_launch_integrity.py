@@ -217,10 +217,11 @@ def run_config(path,**kwargs):
 @pytest.mark.parametrize("mutation", ["arguments", "environment", "native_executable", "omitted_file",
                                       "workspace_overlap", "job_scope", "catalog_unpinned",
                                       "catalog_pinned", "valid"])
-def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path, mutation):
+@pytest.mark.parametrize("team", [False, True])
+def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path, mutation, team):
     from types import SimpleNamespace
     from mcbench.native_bootstrap import acquire_native_bootstrap
-    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+    from mcbench.native_broker_policy import POLICY, TEAM_POLICY, broker_tools, broker_approvals, restricted_settings
     from mcbench.storage import Fault
     names = ("python", "broker_bootstrap", "process_bootstrap", "broker_config", "native_executable")
     files = {name: str(tmp_path / name) for name in names}
@@ -237,11 +238,11 @@ def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path,
     path = tmp_path / "manifest.json"
     path.write_bytes(encode(manifest))
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    policy = TEAM_POLICY if team else POLICY
     server = {"command": files["python"], "args": ["-I", "-S", "-B", files["broker_bootstrap"],
         "--manifest", str(path), "--sha256", sha], "env": {}, "required": True,
-        "enabled_tools": list(BROKER_TOOLS), "tools": {"artifact_write": {"approval_mode": "approve"},
-                                                       "game": {"approval_mode": "approve"}}}
-    plan = SimpleNamespace(bootstrap_manifest=str(path), bootstrap_digest=sha,
+        "enabled_tools": list(broker_tools(policy)), "tools": broker_approvals(policy)}
+    plan = SimpleNamespace(bootstrap_manifest=str(path), bootstrap_digest=sha, broker_policy=policy,
         executable=files["native_executable"], workspace=str(tmp_path / "gameplay"), job_id="job",
         config_overrides=restricted_settings() | {
             "mcp_servers.strata_broker": server})

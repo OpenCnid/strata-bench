@@ -1372,6 +1372,16 @@ subsequent missing cursor evidence refuses. These are not extra top-level record
 types. [Synthetic checks](docs/verification/2026-09-24-m1-team-core.md) do not
 qualify the pending native facade or complete T01/T06/G1.
 
+**M1.3b.9b native disposition (2026-09-24):** the optional team facade has its
+own broker policy, closed settings /3 and selected conformance projection /4.
+Its private CommunicationPolicy reference is part of the native profile. Old
+four-tool catalogs and historical profiles remain unchanged. Native admission
+and message transactions require matching live controller/roster/epoch/lease,
+policy and executor identity; helpers cannot use team authority. Private committed
+receipts link exact broker calls and stopped exports, without restoring shared
+queue state. [Source verification](docs/verification/2026-09-24-m1-native-team-source.md)
+is implemented_unverified until actual native roster delivery/refusal passes.
+
 ### 10.3 Action delivery and ambiguous acknowledgments
 
 Sequence scope is `(campaign, epoch, agent, stream_kind)`. Observations, actions, acknowledgments, telemetry and ledger each have independent cursors; never infer total ordering from UTC alone. Input seq starts at one, increases by one, and is persisted with the request digest before backend dispatch. Exactly one action lease and one in-flight batch exist per avatar. The worker durably records accepted/started/terminal state; repeated request IDs return the existing receipt and never redispatch. Sequence gaps are rejected until resynchronized.

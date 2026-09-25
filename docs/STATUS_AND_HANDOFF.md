@@ -56,8 +56,15 @@ Original75/76 review-pending report and rejected incomplete manifest remain
 retained; the verified extended-path seal is in the report. All40 authority
 tables remain unchanged; no owned fixture process remains.
 
-Next bounded work: qualify native notification routes, then cross-agent
-communication/state/lifecycle and remaining
+M1.3b.3 has [selected state/notification evidence](verification/2026-09-24-m1-state-boundary.md):
+36 new cases plus41 existing cases pass; changed native capture12 requests and
+independent34/34 reconstruction. Failed first notification-parser run remains
+UNSETTLED with its synthetic reservation; no real authority changed. Original
+45/46 review-pending report remains unchanged. Both private state bundles are
+sealed; their exact profiles and seals are in the report.
+
+Next bounded work: qualify selected-profile helper lifecycle/retirement,
+correct-team versus cross-team communication and remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential
 admission and full RuntimeQualification. Do not repeat unchanged M0 matrices.

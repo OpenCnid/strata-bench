@@ -70,7 +70,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
-        pilot_helper=False, runtime_boundary=False, output_boundary=False):
+        pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -88,6 +88,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(type(selected_state_boundary) is bool and (not selected_state_boundary or
+            state_mode and bootstrap_mode and ingress_mode and oauth_mode and
+            model == "gpt-6-luna" and tool_projections is not None and no_patch_catalog is not None
+            and not any((canary_mode, inherited_helper, gateway_mode, skills_mode, retirement_mode,
+                         interrupt_mode, activation_source, game_probe, piloting_contract, runtime_boundary))),
+            "SELECTED_STATE_BOUNDARY_REQUIRED")
     require(not output_boundary or runtime_boundary, "OUTPUT_BOUNDARY_FIXTURE_REQUIRED")
     require(not runtime_boundary or canary_mode and deferred_tools and bootstrap_mode and
             ingress_mode and oauth_mode and model == "gpt-6-luna" and
@@ -144,7 +150,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_state_canaries import StateCanaries
     from native_retirement_probe import RetirementProbe
     from native_interrupt_probe import InterruptProbe
-    state_probe = StateCanaries() if state_mode else None
+    if selected_state_boundary:
+        from native_state_boundary import SelectedStateCanaries
+        state_probe = SelectedStateCanaries()
+    else:
+        state_probe = StateCanaries() if state_mode else None
     retirement_probe = RetirementProbe() if retirement_mode else None
     interrupt_probe = InterruptProbe() if interrupt_mode else None
     from native_activation_probe import ActivationProbe
@@ -452,7 +462,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
-        if runtime_boundary:
+        if runtime_boundary or selected_state_boundary:
             plan = plan.model_copy(update={"helper_limit": 1})
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
@@ -556,7 +566,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
-                conformance_helpers=runtime_boundary)})
+                conformance_helpers=runtime_boundary or selected_state_boundary)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})

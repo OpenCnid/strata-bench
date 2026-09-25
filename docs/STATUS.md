@@ -28,5 +28,7 @@ has187 focused Python passes and24/24 independent native reconstruction.
 Its original environment refusal and68/74 verifier result remain retained.
 The [native media-output slice](verification/2026-09-24-m1-output-boundary.md)
 adds49 verifier passes and33/33 independent reconstruction, retaining its
-75/76 review-pending original. Notification, cross-agent and actual-game
-boundaries remain unqualified.
+75/76 review-pending original. The [selected state/notification slice](verification/2026-09-24-m1-state-boundary.md)
+adds36 focused cases and34/34 independent reconstruction; its failed first run
+and original45/46 review-pending result remain retained. Cross-team/lifecycle,
+probe-disposal and actual-game boundaries remain unqualified.

@@ -30,6 +30,9 @@ M1.3b.3 adds [state/notification evidence](docs/verification/2026-09-24-m1-state
 36 new verifier cases and34/34 independent reconstruction; original failed
 notification-parser run and45/46 pending-review report retained. Continue
 helper lifecycle and cross-team communication before full qualification.
+M1.3b.4 now has [selected retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md),
+16/16 independent reconstruction with original33/34 retained. Next resolve
+notification-aware cell drain without allowing status-text spoofing.
 Preserve permitted structured game/artifact operations while
 checking filesystem, process, network, credentials, tools and cross-agent state.
 Existing same-user shell sandbox failures remain failures. Full settings T05,
@@ -430,6 +433,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
 | M1.3b.2 | SI/AR/QA | Native code-mode output/media local-file and network routes with owned private/public media controls; inherits M1.3b coverage | verified | [Named media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md): six denied routes plus exact public PNG per actor;49 verifier tests and33/33 independent reconstruction of11 native requests. Original75/76 review-pending report and rejected incomplete seal retained. Notification and other encodings remain open; no full isolation qualification. |
 | M1.3b.3 | SI/AR/QA | Selected-profile private state, live cell ownership and notification routing; inherits M1.3b coverage | verified | [Named state/notification evidence](docs/verification/2026-09-24-m1-state-boundary.md):41 existing plus36 new cases;12 settled native requests and34/34 independent reconstruction. Original failed15/41 with uncertain synthetic reservation and changed45/46 review-pending report retained. No cross-team, full lifecycle, probe-disposal or runtime qualification claim. |
+| M1.3b.4 | SI/AR/QA | Selected-profile helper revocation, proved retirement and replacement with retained consumption; inherits M1.3b coverage plus F11/C18 | verified | [Named retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md):40 existing and66 selected verifier cases;15 settled native requests plus one rejected old-helper resume,16/16 independent audit. Original33/34 upstream-count failure retained. Completed helper only; notification-aware drain, interruption and full lifecycle remain open. |
 | M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | not_started | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); synthetic artifact controls retained, actual probe boundary unqualified. No confirmatory cohort or later research release selected. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
@@ -6392,3 +6396,22 @@ fixture processes remain, and both evidence bundles are independently sealed.
 Only named M1.3b.3 is verified. Next selected-profile lifecycle/retirement and
 cross-team communication; full root/helper/probe and G1 obligations stay open.
 Ledger/current handoff updated; no unrelated M2-M7 or gate promotion.
+
+
+### 2026-09-24 — M1.3b.4 selected helper retirement
+
+Added selected-model retirement fixture mode;40 existing retirement tests and
+66 selected verifier cases pass. Actual native profile admits15 requests and
+rejects one old-helper resume before forwarding, proves post-fence retirement,
+then admits a fresh replacement under the one-slot limit. Native FINALIZED,
+three CLOSED envelopes,210 synthetic units counted once. Original33/34 report
+retained: its upstream-credential count wrongly included the refused request.
+Corrected verifier joins forwarded operation/digest identities; independent16/16
+audit reads raw issuance/result/ingress/catalog/receipt and cell-drain evidence.
+[Report and seal](docs/verification/2026-09-24-m1-retirement-boundary.md).
+
+All40 real authority tables remain unchanged, no owned fixture processes remain;
+full Ruff and whitespace pass. No paid inference, Minecraft or new allowance.
+Next resolve the discovered notification/cell-drain parser gap, including
+spoofed terminal text and retained pending holds, then cross-team boundaries.
+M1.3b.4 verifies completed-helper retirement only; M1/G1 remain open.

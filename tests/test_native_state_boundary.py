@@ -37,6 +37,58 @@ def test_incompatible_selected_state_profile_refuses_before_setup(tmp_path, chan
     assert not (tmp_path / "absent-output").exists()
 
 
+@pytest.mark.parametrize("change", [
+    {"selected_retirement_boundary": 1}, {"retirement_mode": False}, {"bootstrap_mode": False},
+    {"ingress_mode": False}, {"oauth_mode": False}, {"model": "gpt-5.6-luna"},
+    {"tool_projections": None}, {"no_patch_catalog": None}, {"canary_mode": True},
+    {"inherited_helper": True}, {"gateway_mode": True}, {"skills_mode": True},
+    {"state_mode": True}, {"interrupt_mode": True}, {"activation_source": "other"},
+    {"game_probe": object()}, {"piloting_contract": True}, {"runtime_boundary": True},
+    {"selected_state_boundary": True},
+])
+def test_incompatible_selected_retirement_profile_refuses_before_setup(tmp_path, change, monkeypatch):
+    monkeypatch.syspath_prepend(str(TOOLS))
+    options = dict(broker_mode=True, admission_mode=True, retirement_mode=True, bootstrap_mode=True,
+                   ingress_mode=True, oauth_mode=True, model="gpt-6-luna", tool_projections={},
+                   no_patch_catalog=tmp_path / "absent-catalog", selected_retirement_boundary=True)
+    options.update(change)
+    with pytest.raises(Fault, match="SELECTED_RETIREMENT_BOUNDARY_REQUIRED"):
+        fixture.run(tmp_path / "absent-binary", tmp_path / "absent-output", **options)
+    assert not (tmp_path / "absent-output").exists()
+
+
+@pytest.mark.parametrize("case", ["positive", "missing", "rejected_forwarded", "wrong_digest", "duplicate",
+                                  "no_credential", "unknown_forwarded", "duplicate_admitted", "empty",
+                                  "received_unforwarded", "malformed_identity"])
+def test_upstream_credentials_join_only_exact_forwarded_requests(case):
+    rows = [{"operation_id": "accepted", "request_digest": "a" * 64, "forwarded": True},
+            {"operation_id": "denied", "request_digest": "b" * 64, "forwarded": False}]
+    upstream = [{"operation_id": "accepted", "request_digest": "a" * 64, "authorization_present": True}]
+    if case == "missing":
+        upstream.clear()
+    elif case == "rejected_forwarded":
+        upstream.append({"operation_id": "denied", "request_digest": "b" * 64, "authorization_present": True})
+    elif case == "wrong_digest":
+        upstream[0]["request_digest"] = "b" * 64
+    elif case == "duplicate":
+        upstream.append(copy.deepcopy(upstream[0]))
+    elif case == "no_credential":
+        upstream[0]["authorization_present"] = False
+    elif case == "unknown_forwarded":
+        rows[1]["forwarded"] = None
+    elif case == "duplicate_admitted":
+        rows.append(copy.deepcopy(rows[0]))
+    elif case == "empty":
+        rows.clear()
+        upstream.clear()
+    elif case == "received_unforwarded":
+        rows[1].pop("forwarded")
+        rows[1]["state"] = "RECEIVED"
+    elif case == "malformed_identity":
+        rows[0]["operation_id"] = upstream[0]["operation_id"] = None
+    assert fixture.upstream_credential_coverage(rows, upstream) == (case in {"positive", "received_unforwarded"})
+
+
 @pytest.fixture
 def notification_fixture(monkeypatch):
     monkeypatch.syspath_prepend(str(TOOLS))

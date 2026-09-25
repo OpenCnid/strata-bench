@@ -64,13 +64,32 @@ def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
         return {"state": runtime.status(plan.job_id)["state"], "closure_error": exc.code}
 
 
+def upstream_credential_coverage(requests, upstream):
+    """Credentials belong only to forwarded requests, joined by exact identity."""
+    if any(not isinstance(row, dict) or not isinstance(row.get("operation_id"), str)
+           or not row["operation_id"] or not isinstance(row.get("request_digest"), str)
+           or len(row["request_digest"]) != 64 or not set(row["request_digest"]) <= set("0123456789abcdef")
+           for row in [*requests, *upstream]):
+        return False
+    if not requests or any(type(row.get("forwarded")) is not bool and not (
+            "forwarded" not in row and row.get("state") == "RECEIVED") for row in requests):
+        return False
+    expected = {(row.get("operation_id"), row.get("request_digest"))
+                for row in requests if row.get("forwarded") is True}
+    actual = {(row.get("operation_id"), row.get("request_digest")) for row in upstream}
+    return bool(expected) and len(expected) == sum(row.get("forwarded") is True for row in requests) and (
+        len(actual) == len(upstream) and actual == expected and all(
+            row.get("authorization_present") is True for row in upstream))
+
+
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
-        pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False):
+        pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
+        selected_retirement_boundary=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -88,6 +107,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from native_broker_canaries import Canaries
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(type(selected_retirement_boundary) is bool and (not selected_retirement_boundary or
+            retirement_mode and bootstrap_mode and ingress_mode and oauth_mode and
+            model == "gpt-6-luna" and tool_projections is not None and no_patch_catalog is not None
+            and not any((canary_mode, inherited_helper, gateway_mode, skills_mode, state_mode,
+                         interrupt_mode, activation_source, game_probe, piloting_contract, runtime_boundary,
+                         selected_state_boundary))), "SELECTED_RETIREMENT_BOUNDARY_REQUIRED")
     require(type(selected_state_boundary) is bool and (not selected_state_boundary or
             state_mode and bootstrap_mode and ingress_mode and oauth_mode and
             model == "gpt-6-luna" and tool_projections is not None and no_patch_catalog is not None
@@ -566,7 +591,7 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
                 cas, plan, tool_projections, helper_collaboration=pilot_helper,
-                conformance_helpers=runtime_boundary or selected_state_boundary)})
+                conformance_helpers=runtime_boundary or selected_state_boundary or selected_retirement_boundary)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -796,8 +821,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             result["checks"].update({
                 "native_oauth_headers_all_requests": all(r["authorization_present"] and
                     "chatgpt-account-id" in r.get("header_names", []) for r in provider.requests),
-                "upstream_credential_all_requests": len(provider.upstream_requests) == len(provider.requests)
-                    and all(r["authorization_present"] for r in provider.upstream_requests),
+                "upstream_credential_forwarded_requests": upstream_credential_coverage(
+                    provider.requests, provider.upstream_requests),
                 "native_protocol_headers_preserved": all(r["native_headers_preserved"]
                                                           for r in provider.upstream_requests),
                 "oauth_secrets_absent_from_context_and_journal": all(secret not in visible and

@@ -63,7 +63,15 @@ UNSETTLED with its synthetic reservation; no real authority changed. Original
 45/46 review-pending report remains unchanged. Both private state bundles are
 sealed; their exact profiles and seals are in the report.
 
-Next bounded work: qualify selected-profile helper lifecycle/retirement,
+M1.3b.4 has [selected retirement evidence](verification/2026-09-24-m1-retirement-boundary.md):
+40 retirement tests plus66 selected verifier cases;15 settled requests and one
+denied old-helper resume, independent16/16 reconstruction. Original33/34 false
+upstream-count failure retained. All40 authority tables remain unchanged and
+the private bundle is sealed. Completed-helper retirement only.
+
+Next bounded work: fix source-bound native cell-drain handling of additional
+notify outputs without accepting notification text as terminal evidence; test
+spoofed completions and retained pending holds. Then selected interruption/drain,
 correct-team versus cross-team communication and remaining
 restricted execution routes. Use owned canaries and positive controls; preserve
 permitted gameplay. Compose exact profile evidence before actual-game/credential

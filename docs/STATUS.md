@@ -32,3 +32,8 @@ adds49 verifier passes and33/33 independent reconstruction, retaining its
 adds36 focused cases and34/34 independent reconstruction; its failed first run
 and original45/46 review-pending result remain retained. Cross-team/lifecycle,
 probe-disposal and actual-game boundaries remain unqualified.
+
+The [selected retirement slice](verification/2026-09-24-m1-retirement-boundary.md)
+adds16/16 independent reconstruction: rejected old-helper resume, proved slot
+release and fresh replacement. Next fix notification-aware cell-drain evidence;
+notification prose must never stand in for native completion.

@@ -273,17 +273,39 @@ class ProbePairs:
         return plan
 
     def verify(self, principal, pair_id):
-        """Reconstruct and inspect both complete trees, without launching either."""
+        """Recheck both trees; failed or interrupted checks consume this pair.
+
+        The committed VERIFYING intent survives controller death. A later caller
+        cannot repair bytes and silently reuse an uncertain fixture. Successful
+        checks still grant no dispatch authority or custody of mutable files.
+        """
         self._authorize(principal)
         with self.db.transaction() as db:
             row = db.execute("SELECT * FROM probe_pair_staging WHERE namespace=? AND id=?",
                              (self.namespace, pair_id)).fetchone()
             require(row is not None and row["state"] == "PREPARED", "PROBE_PAIR_NOT_PREPARED")
-            request = ProbePairRequest.model_validate_json(row["request"])
-            plan = self._derive(principal, request)
-            require(canonical(plan).decode() == row["plan"], "PROBE_SOURCE_CHANGED")
-            target = extended_path(Path(row["target"]))
-            self._check(target, plan)
-            self.db.event(db, "probe.pair_verified", {"namespace": self.namespace, "pair": pair_id,
-                "plan_digest": digest(plan), "dispatch_authorized": False})
+            db.execute("UPDATE probe_pair_staging SET state='VERIFYING' WHERE namespace=? AND id=?",
+                       (self.namespace, pair_id))
+            self.db.event(db, "probe.pair_verifying", {"namespace": self.namespace, "pair": pair_id,
+                "dispatch_authorized": False})
+        try:
+            with self.db.transaction() as db:
+                request = ProbePairRequest.model_validate_json(row["request"])
+                plan = self._derive(principal, request)
+                require(canonical(plan).decode() == row["plan"], "PROBE_SOURCE_CHANGED")
+                target = extended_path(Path(row["target"]))
+                self._check(target, plan)
+                changed = db.execute("UPDATE probe_pair_staging SET state='PREPARED' "
+                    "WHERE namespace=? AND id=? AND state='VERIFYING'", (self.namespace, pair_id))
+                require(changed.rowcount == 1, "PROBE_PAIR_NOT_PREPARED")
+                self.db.event(db, "probe.pair_verified", {"namespace": self.namespace, "pair": pair_id,
+                    "plan_digest": digest(plan), "dispatch_authorized": False})
+        except BaseException:
+            with self.db.transaction() as db:
+                changed = db.execute("UPDATE probe_pair_staging SET state='FAILED' "
+                    "WHERE namespace=? AND id=? AND state='VERIFYING'", (self.namespace, pair_id))
+                if changed.rowcount:
+                    self.db.event(db, "probe.pair_verification_failed", {"namespace": self.namespace,
+                        "pair": pair_id, "dispatch_authorized": False})
+            raise
         return plan

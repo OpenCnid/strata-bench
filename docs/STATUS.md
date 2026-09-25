@@ -48,6 +48,10 @@ One-use fixture/world reservations and exact common/source/byte checks precede
 PREPARED; no launch permit. Actual paired native/world execution and one-way
 disposal remain open. Old synthetic source has five unresolved config refs and
 cannot be backfilled into this contract. All40 authority tables unchanged, USD0.
+M1.6b.1 [verification failure fence](verification/2026-09-25-m1-probe-verification-fence.md)
+adds42 focused passes and19/19 reconstruction. Actual abrupt controller exits
+retain PREPARING/VERIFYING; repaired files cannot revive a failed pair. This
+preparation boundary is verified; native probe launch/disposal and G1 remain open.
 
 M1.4b [actual native no-self-play evidence](verification/2026-09-25-m1-no-self-play-native.md)
 passes37/37 plus22/22 independent reconstruction. The separate agents.enabled=false

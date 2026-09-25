@@ -115,6 +115,20 @@ preparation, runtime resets, resources, development-only practice, canary dispos
 and remaining client/log/registry, T05 and scorer gates. M1.6b stays
 implemented_unverified and G1 not_run. No M1 paid authority exists.
 
+M1.6b.1 [verification failure fence](verification/2026-09-25-m1-probe-verification-fence.md)
+closes the intervening preparation defect: failed verification previously left
+PREPARED and could pass after byte repair. VERIFYING now commits before any
+source/tree read; a caught failure leaves FAILED and controller death can leave
+VERIFYING. Both remain consumed, with original files and costs retained.
+42 focused cases pass, including two actual abrupt Python child-process exits;
+read-only reconstruction19/19. Initial six-pass/two-fail wrapper run is retained,
+with neither failed child reaching its crash boundary. Source/world/native records
+remain synthetic. Bundle `2026-09-25-m1-probe-verification-fence-01` is sealed;
+hash in report. All40 real authority tables unchanged, $4.887796 exposure/holds,
+no owned runtime or paid/native/game run. M1.6b.1 verified for preparation only;
+the adapter and all remaining M1.6/G1 work above remain next. No launch permit
+may be inferred from PREPARED or a successful check.
+
 The new M1.4b section below records the prerequisite helper-disable enforcement
 and its native follow-up records37/37 plus22/22 reconstruction. Next matched
 frozen controls and complete reset/category/probe qualification.

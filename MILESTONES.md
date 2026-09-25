@@ -130,6 +130,12 @@ Five unresolved policy/config references in old matched-retention03/r11 prevent
 its reuse as a complete new pair source; preserve it unchanged. Next implement
 a disposable probe runtime adapter with fresh resolved source, local adaptation
 and one-way disposal, retaining campaign activation/import fences. USD0.
+M1.6b.1 [failed/interrupted verification](docs/verification/2026-09-25-m1-probe-verification-fence.md)
+now passes42 focused cases and19/19 read-only reconstruction. VERIFYING intent
+survives actual controller death; failed checks cannot revive after byte repair.
+Initial two crash-wrapper failures are retained. This preparation boundary is
+verified; native launch/disposal and full M1.6/G1 remain open. All40 real authority
+tables and $4.887796 exposure/holds are unchanged; no paid/native/game execution.
 
 M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
 37/37 plus22/22 independent reconstruction. The live guard additionally requires
@@ -557,6 +563,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
+| M1.6b.1 | RS/AR/SI/QA | Irreversible failed/interrupted pair verification and actual controller-death reservation checks; inherits M1.6b, F08/F09/F16, N01/N05/N06/N08, T01/T06/T07/T11 | verified | [Preparation-boundary evidence](docs/verification/2026-09-25-m1-probe-verification-fence.md):42 focused passes and19/19 read-only reconstruction. Durable VERIFYING intent, repaired-byte refusal, journal faults, auth-before-intent and actual abrupt Python process exits/reopen. Initial crash-wrapper failures retained. Synthetic world/native records, no model/game/native launch. Held launch custody and disposal remain M1.6 gaps; no G1/G2 suite promotion. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -7130,3 +7137,33 @@ Next actual paired native/world execution with held custody, matched live initia
 state, resources, development-only practice and canary disposal. N>1 preparation,
 real process-interruption custody and all remaining client/T05/scorer gates remain
 open. D18/D19 do not authorize paid M1 inference.
+
+
+### 2026-09-25 — M1.6b.1 irreversible verification failure and controller death
+
+Found that failed pair verification left PREPARED and allowed repaired bytes to
+pass again. `ProbePairs.verify` now commits VERIFYING before source/tree reads,
+returns PREPARED only after complete success, and leaves FAILED or interrupted
+VERIFYING consumed. Authentication precedes intent; intent-journal failure does
+not start inspection. Preserve files, reservations, fault history and costs.
+No native launch, campaign import, model/tool profile or paid authority changes.
+
+IDs: M1.6b.1, F08/F09/F16, N01/N05/N06/N08, C12/C20/C22/C23/C24/C36,
+T01/T06/T07/T11; parent M1.6b remains implemented_unverified, M1.6 in_progress,
+G1 not_run. This bounded preparation dependency does not start broader G2 work.
+
+Initial new selection six pass/two fail: crash wrapper passed str instead of
+Path to Database; neither failed case reached process-death injection. Preserve
+artifacts. Corrected focused selection42 pass (eight new plus34 staging cases),
+Ruff and whitespace pass. Two real Python processes exit83 without finalizers
+at first-copy and post-check/precommit boundaries. Reopened stores retain
+PREPARING/VERIFYING and refuse identity/world reuse. Read-only reconstruction
+19/19; all40 real authority tables unchanged, $4.887796/$10 exposure with holds,
+no owned runtime, USD0 actual inference. No native/game process was launched.
+
+[Report](docs/verification/2026-09-25-m1-probe-verification-fence.md) records the
+exact procedure, limits and private bundle seal. M1.6b.1 verified for this
+preparation boundary only. Continue the disposable native probe adapter and held
+launch/disposal fence with fresh resolved sources, permitted probe-local
+adaptation and unchanged campaign import guards. Actual matched worlds, resources,
+N>1 preparation, one-way canaries and remaining runtime/T05/scorer gates stay open.

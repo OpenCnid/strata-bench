@@ -1631,6 +1631,11 @@ case requires zero recorded exposure and identical artifact surfaces.
 [Pair staging evidence](docs/verification/2026-09-25-m1-probe-pair-staging.md)
 has no dispatch authority: actual native/world initial state, resource admission,
 held launch custody, isolation and one-way disposal remain separately required.
+Subsequent verification commits a private VERIFYING intent before reading the
+source or staged tree. A failed check leaves FAILED; controller death can leave
+VERIFYING. Both remain consumed even if files are repaired. The
+[controller-death checks](docs/verification/2026-09-25-m1-probe-verification-fence.md)
+cover this preparation boundary, not native launch custody or probe disposal.
 
 ### 13.2 Controls and artifact survival
 

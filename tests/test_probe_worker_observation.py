@@ -8,7 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from mcbench.storage import Fault, canonical
+from mcbench.contracts import Observation
+from mcbench.storage import Fault, canonical, digest
 from strata_evaluator.probe_worker_observation import verify_initial_worker
 from test_probe_saved_bodies import PLAYER, payload, player
 from test_worker_identity import values
@@ -58,6 +59,55 @@ def test_join_is_private_projection_only_and_reader_closes_handles(stopped):
     # All reader handles closed; retained evidence can be renamed by its owner.
     path = state / "actions.sqlite"
     path.rename(state / "retained.sqlite")
+
+
+def inventory_window(obs):
+    # Match the pinned Mineflayer wire shape: optional machine is omitted.
+    obs["state"]["window"] = {"id": 0, "revision": 47, "type": "minecraft:inventory",
+                              "cursor_item": None, "slots": deepcopy(obs["state"]["inventory"])}
+
+
+def replace_delivery(state, obs):
+    with sqlite3.connect(state / "actions.sqlite") as db:
+        db.execute("UPDATE events SET body=? WHERE cursor=2", (canonical(obs).decode(),))
+
+
+def test_ordinary_inventory_preserves_exact_delivery_with_omitted_default(stopped):
+    worker, obs, raw, state = stopped
+    inventory_window(obs)
+    replace_delivery(state, obs)
+    result = verify_initial_worker(worker, obs, raw)
+    assert result["observation_digest"] == digest(obs)
+    assert result["own_state_projection_verified"] and not result["live_initial_state_verified"]
+    normalized = Observation.model_validate(obs).model_dump()
+    assert normalized != obs and normalized["state"]["window"]["machine"] is None
+    with pytest.raises(Fault, match="PROBE_INITIAL_JOURNAL_JOIN"):
+        verify_initial_worker(worker, normalized, raw)
+
+
+@pytest.mark.parametrize("change", ["id", "type", "cursor", "slots", "disconnected", "held", "gap"])
+def test_initial_inventory_refuses_open_foreign_or_inconsistent_state(stopped, change):
+    worker, obs, raw, state = stopped
+    inventory_window(obs)
+    window = obs["state"]["window"]
+    if change == "id":
+        window["id"] = 1
+    elif change == "type":
+        window["type"] = "minecraft:generic_9x3"
+    elif change == "cursor":
+        window["cursor_item"] = {"item_id": "minecraft:stone", "count": 1, "component_summary": {}}
+    elif change == "slots":
+        window["slots"][0]["count"] += 1
+    elif change == "disconnected":
+        obs["state"]["connected"] = False
+    elif change == "held":
+        obs["held_keys"] = [{"backend": "glfw", "representation": "keysym", "code": 87,
+                             "name": "key.keyboard.w", "persisted": "key.keyboard.w", "modifiers": []}]
+    else:
+        obs["event_gap"] = True
+    replace_delivery(state, obs)
+    with pytest.raises(Fault, match="PROBE_INITIAL_OBSERVATION"):
+        verify_initial_worker(worker, obs, raw)
 
 
 @pytest.mark.parametrize("change", ["example", "health", "scope", "active", "window", "uuid", "journal", "order", "duplicate", "action", "primitive", "epoch", "missing_import"])

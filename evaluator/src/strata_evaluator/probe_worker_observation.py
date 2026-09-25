@@ -28,10 +28,17 @@ def verify_initial_worker(worker, observation, saved_player):
     require(config["schema"] == "strata/DevelopmentWorker/2", "PROBE_BODY_POLICY_REQUIRED")
     require(saved_body(saved_player)["player_uuid"] == config["expected_player_uuid"], "PROBE_INITIAL_IDENTITY")
     observed = Observation.model_validate(observation)
+    window = observed.state.window if observed.state is not None else None
+    ordinary_inventory = window is None or (
+        window.id == 0 and window.type == "minecraft:inventory"
+        and window.cursor_item is None and window.machine is None
+        and window.slots == observed.state.inventory
+    )
     require(not observed.is_example and observed.mode == "structured" and observed.state is not None
+            and observed.state.connected
             and all(getattr(observed, k) == config[k] for k in ("campaign_id", "agent_id", "epoch"))
             and observed.last_action_seq is None and observed.state.active_request_id is None
-            and not observed.event_gap and not observed.held_keys and observed.state.window is None,
+            and not observed.event_gap and not observed.held_keys and ordinary_inventory,
             "PROBE_INITIAL_OBSERVATION")
     player = NbtReader(unpack_chunk(saved_player, 1)).root()
     require(player_matches(player, observed.state.model_dump()), "PROBE_INITIAL_PLAYER_CHANGED")
@@ -54,11 +61,12 @@ def verify_initial_worker(worker, observation, saved_player):
     require(len(identities) == 1 and identities[0][1].spawn_seq == 1, "PROBE_INITIAL_IDENTITY")
     matches = [(cursor, strict_json(raw)) for cursor, kind, raw in rows
                if kind == "observation_delivery" and strict_json(raw).get("observation_id") == observed.observation_id]
-    require(len(matches) == 1 and canonical(matches[0][1]) == canonical(observed.model_dump())
+    # Keep exact delivered JSON; model_dump can add omitted optional defaults.
+    require(len(matches) == 1 and canonical(matches[0][1]) == canonical(observation)
             and identities[0][0] < matches[0][0]
             and identities[0][1].mono_ms <= observed.captured_mono_ms,
             "PROBE_INITIAL_JOURNAL_JOIN")
     return {"policy": POLICY, "identity": identities[0][1].model_dump(),
-            "observation_digest": digest(observed.model_dump()), "own_state_projection_verified": True,
+            "observation_digest": digest(observation), "own_state_projection_verified": True,
             "live_initial_state_verified": False, "native_probe_admission": False,
             "worker_custody": custody}

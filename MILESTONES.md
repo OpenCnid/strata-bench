@@ -2,6 +2,24 @@
 
 ## Current position
 
+M1.6q.4 [initial worker projection](docs/verification/2026-09-25-m1-initial-worker-projection.md) is implemented_unverified for authentic paired integration.
+Accept only ordinary inventory window0 matching own slots, retain exact delivered
+JSON, and persist stop/custody before later state validation.37 distinct source
+cases pass after a retained malformed-key fixture failure. A post-readiness
+binding change still blocks worker dispatch; adjacent duplicate validation is
+removed. Case05 passes the first worker's exact identity/journal/saved projection
+and normal stop, with persisted job/stop receipts (seven total/zero active processes,
+supervisor37.7704ms,owner94ms). The paired run fails224.87s: server60s watchdog
+REFERENCE_PAIR_HARD_DEADLINE precedes stop send PROCESS_NOT_RUNNING, outer close
+uncertain. Server forced125/all12 held terminal; second server/worker unstarted.
+Writers UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next reduce
+repeated full pack resolution under held custody and avoid unnecessary validation
+before normal stop, preserving authority/bytes/membership and pre-dispatch checks.
+Original windows,cases01-04,profile identities and all G1 contracts remain.
+All40 real tables unchanged at$4.887796,no owned runtime,no model call or M1 paid
+authority. Full live-state/tool parity,native admission,clocks/disposal,T05/T10 and
+isolation remain open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.3 [composed worker checks](docs/verification/2026-09-25-m1-worker-check-composition.md) is implemented_unverified for authentic paired integration.
 Shared software custody is checked once per composed call; every member and
 standalone check retains its validation. Import receipts persist before phase
@@ -813,6 +831,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.1 | AR/GI/SI/QA | Reduce repeated worker/path validation under unchanged source, link, custody and deadline requirements; inherits M1.6q mappings | implemented_unverified | [Cost and retained case02](docs/verification/2026-09-25-m1-worker-preparation-cost.md):108 distinct source cases pass,3 privilege skips; deferred whole-roster config commit retains custody/no-dispatch. Client profile23.937s vs33.687s. Authentic case02 fails118.32s at first copier deadline; zero processes,FAILED row,FENCED parent,holds retained. Remaining preparation cost must be resolved before changed-case retry; no full paired/native/G1 pass. |
 | M1.6q.2 | AR/GI/SI/QA | Retain exact worker-resolution runtime custody through launch without duplicate opening; inherits M1.6q mappings | implemented_unverified | [Retained custody and case03](docs/verification/2026-09-25-m1-retained-worker-resolution.md):93 source cases pass; genuine deferred entry23.844s/one runtime lease under cProfile. Both copiers stop10/10, imports log success; no server/gameplay worker/model. Case03 fails176.62s with inner deadline/outer close uncertainty; holds remain. Next remove redundant software validation while preserving complete checks and retain import receipts and surface recorded inner errors before changed-case retry. |
 | M1.6q.3 | AR/GI/SI/QA | Compose software/member validation and persist import/root-cause evidence; preserve inventory checks; inherits M1.6q mappings plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-check-composition.md):94 distinct source passes, one explicit native skip; case04 fails ordinary inventory observation after first server/worker, forced server125/12 terminal. Imports now persist; later worker stop/job receipt still missing. All holds/history/windows retained; fix window/journal contract and persist stop before further validation. |
+| M1.6q.4 | AR/GI/SI/QA | Exact initial worker observation and ordinary inventory projection; persist stop/custody before later validation; inherits M1.6q mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-initial-worker-projection.md):37 distinct source cases pass after retained fixture failure; case05 first worker projection/normal stop passes with receipts, pair fails hard server deadline then stop send. All holds/history/windows retained; reduce held software-resolution cost and normal-stop delay. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8347,4 +8366,49 @@ no-dispatch diagnostic8 files/69,342 bytes
 All independently verify with extended paths.94 distinct source cases pass,
 435 source pins match,414 prior IDs retained/415 current,1,629 links resolve.
 Append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real
+tables unchanged,no owned runtime. Pointers follow the archived docs snapshot.
+
+### 2026-09-25 — M1.6q.4 exact initial projection and normal worker stop evidence
+
+- Reconcile pinned Mineflayer ordinary inventory window0 with the private initial
+  verifier: own slots only,no cursor/machine,connected state and all scope/zero
+  action/identity/saved-player checks remain. Preserve exact delivered JSON and
+  digest without model-added defaults; normalized substitution fails exact join.
+  Persist/fsync normal worker stop and job custody before later validation.
+- First source selection35 pass/one malformed held-key fixture fails348.79s;
+  corrected typed fixture,final positive lifecycle and new ready-binding negative
+  pass3/34 deselected55.69s:37 distinct passing cases. Initial source/failure kept.
+  Stop/custody write failures and later state failure retain correct evidence/holds.
+  Remove only the adjacent redundant worker-start check; complete post-ready
+  validation still rejects changed bindings before worker dispatch. Ruff passes.
+- Read-only sealed case04 journal/saved-player projection matches. The initial
+  diagnostic SQLite extended-path URI fails; retained script/output. Corrected
+  drive URI succeeds without changing old failed outcome or fabricating custody.
+- Fresh case05 preserves300/200-170/60-60s bounds and profile02/runtime02/world.
+  Both copiers normal10/10,both persisted imports3 total/zero active. First worker
+  exact journal/identity/saved projection passes; persisted normal stop/job receipts
+  agree (worker seven total/zero active or terminated,supervisor37.7704ms,owner94ms).
+  Pair fails224.87s: server watchdog REFERENCE_PAIR_HARD_DEADLINE,stop send
+  PROCESS_NOT_RUNNING,outer PROBE_WORLD_CLOSE_UNCERTAIN. Server forced125/all12
+  held terminal,no normal-stop event or saved export; second arm never dispatches.
+  Writers UNCERTAIN,world FAILED,parent FENCED,all reservations held.
+- Audit435 source pins,receipt/journal/watchdog joins and all40 unchanged real
+  tables at$4.887796;old$0.7554/four$1 holds and consumed decisions remain. No
+  owned runtime,no model calls,no M1 paid authority. Synthetic agent/protocol/
+  capacity source remains distinct from authentic game/runtime evidence.
+- [Report](docs/verification/2026-09-25-m1-initial-worker-projection.md).
+  M1.6q.4 implemented_unverified; inherits M1.6q mappings/partial T01/T06/T11.
+  Next reduce repeated full pack resolution under held custody and work delaying
+  normal stop,retaining authority/bytes/membership and pre-dispatch refusal. No
+  unchanged retry or larger window. Cases01-04 retained. Full live-state/tool
+  parity,native admission,clocks/disposal,T05/T10 and isolation remain open;
+  G1-G5 not_run,M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.4 final seals: source6,087 files/23,827,018 bytes
+`ac3ad129113f0dd20f9c875890eb8932ca9ed50bc4d562a8c62fa21a47e1211c`;
+failed native695 files/48,972,664 bytes
+`5f0aba48171015a17136e7063ac4ee3c2aeb88121f0ff2a0e211372e711223b5`.
+Both independently verify with extended paths.37 distinct source cases pass,
+435 source pins match,415 prior IDs retained/416 current,1,634 links resolve;
+append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real
 tables unchanged,no owned runtime. Pointers follow the archived docs snapshot.

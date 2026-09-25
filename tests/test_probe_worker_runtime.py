@@ -19,7 +19,7 @@ from test_probe_worker_inputs import (
     copies, custody, configs, base_pair_source, unbound_pair_source, pair_source,
     software_plans, fake_writers, candidate, installed, runtime, account, values,
 )
-from test_probe_worker_observation import journal, observation
+from test_probe_worker_observation import inventory_window, journal, observation
 
 (source, inputs, base_candidate, base_installed, sealed_installation, copies, custody,
  configs, base_pair_source, unbound_pair_source, pair_source, software_plans, fake_writers,
@@ -71,6 +71,7 @@ def worker_processes(monkeypatch, example):
         worker.processes[mode] = process
         if not preflight:
             observed = observation(example, config)
+            inventory_window(observed)
             if failures["kind"] == "example":
                 observed["is_example"] = True
             if failures["kind"] == "state":
@@ -113,6 +114,12 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
     software_check = VanillaProbeInputs.check
     coordinator_check = module.PairedWorkerReference.check
     software_calls = []
+    standalone_calls = []
+    member_check = module.PairedWorkerReference.check_workers
+
+    def checked_members(self):
+        standalone_calls.append(self)
+        return member_check(self)
 
     def checked_software(self):
         software_calls.append(self)
@@ -126,6 +133,7 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
 
     monkeypatch.setattr(VanillaProbeInputs, "check", checked_software)
     monkeypatch.setattr(module.PairedWorkerReference, "check", checked_pair)
+    monkeypatch.setattr(module.PairedWorkerReference, "check_workers", checked_members)
 
     def event(self, arm, phase):
         events.append((arm, phase))
@@ -141,6 +149,13 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
                 state = Path(invocations["initial"]["a1"]["state_directory"])
                 with pytest.raises(PermissionError):
                     (state / "actions.sqlite").write_bytes(b"changed")
+                output = Path(invocations["initial"]["a1"]["configuration_path"] + ".evidence")
+                stopped = json.loads((output / "worker-stop.json").read_bytes())
+                custody = json.loads((output / "worker-custody.json").read_bytes())
+                delivered = json.loads((output / "initial-observation.json").read_bytes())
+                assert stopped["receipt"]["status"] == "pass"
+                assert custody["owned_processes"]["worker"]["returncode"] == 0
+                assert "machine" not in delivered["state"]["window"]
         if phase == "stop_requested":
             assert all(p.poll() == 0 for p in processes)
         original(self, arm, phase)
@@ -150,6 +165,7 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
                                                  pack_binding=binding.model_dump())
     assert result["policy"] == module.POLICY
     assert process_fixture[0] == ["initial", "experienced"]
+    assert len(standalone_calls) == 2  # One live-body barrier per arm.
     assert [v[0] for v in order] == ["preflight", "preflight", "worker", "worker"]
     assert not result["native_launch_authorized"] and not result["live_initial_state_verified"]
     for group in result["runtime"]["workers"].values():
@@ -162,7 +178,8 @@ def test_complete_pair_imports_before_servers_then_workers_drain_before_save(
 
 
 @pytest.mark.parametrize("failure", ["import", "scope", "state", "early_exit", "stop", "between_arms", "example",
-                                     "import_receipt", "member_binding", "runtime_recheck", "software_scope"])
+                                     "import_receipt", "member_binding", "runtime_recheck", "software_scope",
+                                     "stop_receipt", "custody_receipt", "ready_binding"])
 def test_worker_failure_fences_pair_without_second_server_or_refund(
     runtime, candidate, process_fixture, worker_processes, tmp_path, directory_fixture, per_arm_disk_bytes, failure, monkeypatch,
 ):
@@ -171,20 +188,23 @@ def test_worker_failure_fences_pair_without_second_server_or_refund(
     _, processes, failures = worker_processes
     failures["kind"] = failure
     invocations = values(service, tmp_path)
-    if failure == "import_receipt":
+    if failure in {"import_receipt", "stop_receipt", "custody_receipt"}:
         original_write = module.PairedWorkerReference._write
         def write(self, output, name, value):
-            if name == "preflight-receipt.json" and "experienced" in output.name:
+            if failure == "import_receipt" and name == "preflight-receipt.json" and "experienced" in output.name:
+                raise Fault("WORKER_RECEIPT_WRITE_FAILED")
+            if name == {"stop_receipt": "worker-stop.json", "custody_receipt": "worker-custody.json"}.get(failure):
                 raise Fault("WORKER_RECEIPT_WRITE_FAILED")
             return original_write(self, output, name, value)
         monkeypatch.setattr(module.PairedWorkerReference, "_write", write)
-    if failure in {"member_binding", "runtime_recheck", "software_scope"}:
+    if failure in {"member_binding", "runtime_recheck", "software_scope", "ready_binding"}:
         original = module.PairedWorkerReference.event
         def changed(self, arm, phase):
-            if arm == "experienced" and phase == "initial_state_held":
+            if ((failure == "ready_binding" and arm == "initial" and phase == "server_ready")
+                    or (failure != "ready_binding" and arm == "experienced" and phase == "initial_state_held")):
                 if failure == "software_scope":
                     self.inputs.software = object()
-                elif failure == "member_binding":
+                elif failure in {"member_binding", "ready_binding"}:
                     self.inputs._binding_refs[arm, "a1"] = "cas:sha256:" + "a" * 64
                 else:
                     def invalid():
@@ -207,6 +227,13 @@ def test_worker_failure_fences_pair_without_second_server_or_refund(
     if failure == "import_receipt":
         assert Path(invocations["initial"]["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").is_file()
         assert not Path(invocations["experienced"]["a1"]["configuration_path"] + ".evidence/preflight-receipt.json").exists()
+    if failure in {"state", "stop_receipt", "custody_receipt"}:
+        output = Path(invocations["initial"]["a1"]["configuration_path"] + ".evidence")
+        assert (output / "worker-stop.json").is_file() == (failure != "stop_receipt")
+        assert (output / "worker-custody.json").is_file() == (failure == "state")
+        assert not (output / "worker-result.json").exists()
+    if failure == "ready_binding":
+        assert len(processes) == 2 and all(not p.interactive for p in processes)
     assert all(p.poll() is not None for p in processes)
     assert service.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
     assert service.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"

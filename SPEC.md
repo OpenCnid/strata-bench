@@ -1875,7 +1875,13 @@ launch. Returned writer failures retain the first inner cause alongside the
 unchanged outer close refusal, without releasing reservations or claiming disposal.
 Its private `registered-worker-initial-own-projection/1` checks normal owned stop,
 saved UUID, single identity/epoch, zero actions/primitives and exact journalled
-delivery, then compares the existing own-state projection. This does not cover
+delivery, then compares the existing own-state projection.
+The ordinary player inventory window is permitted only at id0 with the inventory
+type, no cursor item or machine and the same projected slots as own inventory;
+opened/foreign windows are refused. Preserve delivered observation JSON without
+adding optional defaults before its exact journal join. Persist normal worker
+stop and owned custody receipts before subsequent projection validation.
+This does not cover
 unprojected live NBT fields or establish full matched state, simultaneous all-N
 readiness, tool/policy parity, authoritative clocks or disposal. Genuine game
 observations retain their identity when agent/protocol reference fixtures are

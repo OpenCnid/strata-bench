@@ -144,7 +144,8 @@ class PairedWorkerReference(PairedVanillaRuntime):
                         and all(getattr(observation, k) == config[k] for k in ("campaign_id", "agent_id", "epoch")),
                         "PROBE_INITIAL_OBSERVATION")
                 if observation.state is not None and observation.state.connected:
-                    return observation.model_dump()
+                    # Validate without rewriting the delivered journal identity.
+                    return response["result"]
             else:
                 require(response.get("error", {}).get("code") == "PRECONDITION_FAILED", "PROBE_WORKER_OBSERVE_REFUSED")
             time.sleep(.25)
@@ -152,7 +153,9 @@ class PairedWorkerReference(PairedVanillaRuntime):
 
     def _arm(self, arm, session):
         self.session = session
-        self.check_workers()
+        # Base run just performed the complete composed check after readiness,
+        # immediately before calling this private continuation. Recheck after
+        # observations so every body is still live at the arm barrier.
         group = self.workers[arm]
         observed, logs = {}, {}
         require(all(self.phases[arm, agent] == "IMPORTED" for agent in group), "PROBE_WORKER_PHASE")
@@ -179,7 +182,9 @@ class PairedWorkerReference(PairedVanillaRuntime):
         for agent, worker in group.items():
             output = self.outputs[arm, agent]
             stop = stop_owned_worker(worker.processes["worker"], worker.resolved["worker_configuration"], output, self._wait)
+            self._write(output, "worker-stop.json", stop)
             logs[agent].finish()
+            self._write(output, "worker-custody.json", worker.receipt())
             self.phases[arm, agent] = "STOPPED"
             body = self.inputs.software.record["saved_bodies"]["bodies"][agent]["state"]
             prep = self.held.preparation

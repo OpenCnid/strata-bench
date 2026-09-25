@@ -3,6 +3,24 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.4 [initial worker projection](verification/2026-09-25-m1-initial-worker-projection.md) is implemented_unverified for authentic paired integration.
+Accept only ordinary inventory window0 matching own slots, retain exact delivered
+JSON, and persist stop/custody before later state validation.37 distinct source
+cases pass after a retained malformed-key fixture failure. A post-readiness
+binding change still blocks worker dispatch; adjacent duplicate validation is
+removed. Case05 passes the first worker's exact identity/journal/saved projection
+and normal stop, with persisted job/stop receipts (seven total/zero active processes,
+supervisor37.7704ms,owner94ms). The paired run fails224.87s: server60s watchdog
+REFERENCE_PAIR_HARD_DEADLINE precedes stop send PROCESS_NOT_RUNNING, outer close
+uncertain. Server forced125/all12 held terminal; second server/worker unstarted.
+Writers UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next reduce
+repeated full pack resolution under held custody and avoid unnecessary validation
+before normal stop, preserving authority/bytes/membership and pre-dispatch checks.
+Original windows,cases01-04,profile identities and all G1 contracts remain.
+All40 real tables unchanged at$4.887796,no owned runtime,no model call or M1 paid
+authority. Full live-state/tool parity,native admission,clocks/disposal,T05/T10 and
+isolation remain open; G1-G5 not_run. Earlier next actions are historical.
+
 M1.6q.3 [composed worker checks](verification/2026-09-25-m1-worker-check-composition.md) is implemented_unverified for authentic paired integration.
 Shared software custody is checked once per composed call; every member and
 standalone check retains its validation. Import receipts persist before phase

@@ -2,6 +2,19 @@
 
 ## Current position
 
+M1.6q.6 [borrowed worker materialization](docs/verification/2026-09-25-m1-worker-materialization.md) is implemented_unverified for authentic paired integration.
+Private member preparation now borrows the live installation lease, preserving
+fresh authority/layout checks and separate runtime/configuration/account custody.
+97 focused source cases pass. Real-profile read-only entry falls from 13.672s to
+11.078s with identical output, no configuration writes and no dispatch. This work
+precedes writer acquisition, so it does not resolve case06's writer-window refusal;
+no native retry was made. Next reduce work delaying normal stop inside that window,
+keeping full validation before export acceptance and sibling dispatch. Original
+300/200-170/60-60s bounds and all six failed native cases remain. All 40 real tables
+are unchanged at $4.887796; no owned runtime or M1 paid authority. Full live-state/
+tool parity, native admission, clocks/disposal, T05/T10 and isolation remain open;
+G1-G5 remain not_run. Earlier next actions are historical.
+
 M1.6q.5 [held materialization checks](docs/verification/2026-09-25-m1-held-materialization-checks.md) is implemented_unverified for authentic paired integration.
 Private server rechecks use hashes verified through live Windows file handles;
 fresh authority, complete layout/type/size/hardlink/membership and external
@@ -852,6 +865,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.3 | AR/GI/SI/QA | Compose software/member validation and persist import/root-cause evidence; preserve inventory checks; inherits M1.6q mappings plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-check-composition.md):94 distinct source passes, one explicit native skip; case04 fails ordinary inventory observation after first server/worker, forced server125/12 terminal. Imports now persist; later worker stop/job receipt still missing. All holds/history/windows retained; fix window/journal contract and persist stop before further validation. |
 | M1.6q.4 | AR/GI/SI/QA | Exact initial worker observation and ordinary inventory projection; persist stop/custody before later validation; inherits M1.6q mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-initial-worker-projection.md):37 distinct source cases pass after retained fixture failure; case05 first worker projection/normal stop passes with receipts, pair fails hard server deadline then stop send. All holds/history/windows retained; reduce held software-resolution cost and normal-stop delay. |
 | M1.6q.5 | AR/GI/SI/QA | Private resolution from still-held verified materialization bytes with fresh authority/layout checks; inherits M1.6q plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-materialization-checks.md):134 distinct source passes, three privilege skips, retained initial refusal-ordering failure. Case06 first server stops normally12/12 with27-file export; second launch refuses insufficient exposure. All holds/bounds/history retained; next reuse held materialization in private member resolution. |
+| M1.6q.6 | AR/GI/SI/QA | Borrow live materialization for private worker resolution; retain per-member runtime/config/account and whole-roster custody. Inherits M1.6q.5 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-materialization.md): 97 source passes; genuine read-only entry 13.672s to 11.078s, equal output. No new native attempt: savings precede the writer clock. Next reduce validation delaying normal stop within the original bounds; retain case06 and all holds. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -8486,3 +8500,44 @@ two complete test parts and main, with empty directories and failures preserved.
 134 distinct source passes,436 source pins,416 prior IDs retained/417 current,
 1,639 links,append-only progress,SPEC history/JSON,Ruff and whitespace pass.
 All40 real tables unchanged,no owned runtime. Pointers follow archived docs.
+
+### 2026-09-25 — M1.6q.6 private workers borrow held materialization
+
+- Factor the exact live-tree custody guard into private resolution. Fresh vanilla
+  clients can reuse verified installation hashes; their external Node executable
+  and runtime still validate independently. Public resolution is unchanged.
+  Simulation/restored/Forge/own-server borrowing remains unsupported. Every member
+  holds its own runtime/configuration; account declarations validate for the entire
+  roster before configuration commit. Lost borrowed custody refuses commit,
+  import/worker dispatch and receipts. Child close never closes its parent's lease.
+- Focused synthetic profiles with actual Windows leases: 88 passes in 38.79s;
+  whole-pair input/lifecycle checks: 9 passes in 161.938s. No skips or
+  failures. Covers equal public/private output without installation rehashing,
+  client executable hashing, separate member leases, closed/foreign/untyped
+  custody, changed authority/layout/runtime, loss before later effects/receipts,
+  late account mismatch, partial config failure, closed parent and retained holds.
+- Read-only genuine profile02/runtime02 diagnostic: ordinary entry 13.672s,
+  borrowed 11.078s, identical resolution digest; two write-open denials each,
+  separate runtimes released while parent custody stays held. No config, game,
+  model or account mutation. Timing is diagnostic, not an operating-envelope pass.
+- Case06 records place worker preparation before writer acquisition. This saves
+  parent preparation time, not the later writer exposure; no native rerun follows.
+  Retain case06's normal first server/export and second-launch refusal, all six
+  failures, original finite bounds, UNCERTAIN writers/FAILED world/FENCED parent,
+  all budget holds and consumed decisions. All 40 real tables remain unchanged
+  at $4.887796; no owned runtime or M1 inference authority.
+- [Report](docs/verification/2026-09-25-m1-worker-materialization.md).
+  M1.6q.6 implemented_unverified for authentic paired integration; inherits
+  M1.6q.5 mappings. Next move validation that delays normal stop into the drain
+  period, preserving complete acceptance checks before export/sibling dispatch,
+  and verify failure handling before any changed native attempt. Full live-state,
+  tool/policy, native-admission, clocks/disposal, T05/T10 and isolation contracts
+  remain open; G1-G5 not_run, M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.6 final seal: 10,776 files / 23,160,725 bytes,
+`22c284a5fd2b4b574d619b1bed0c17919683fc1822638fd5c933d0463ec48eb9`.
+The complete source/test/diagnostic archive independently verifies. 97 source
+passes, 437 source files, all 417 prior IDs retained / 418 current, 1,644 local
+links, append-only progress, SPEC history/JSON, Ruff and whitespace checks pass.
+All 40 real tables remain unchanged; no owned runtime or new native trial.
+This pointer follows the archived documentation snapshot.

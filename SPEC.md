@@ -1867,6 +1867,14 @@ types, sizes, hardlinks and source membership on every call. Unknown paths, fore
 trees and closed custody refuse; ordinary public resolution still hashes bytes.
 Hashes come from verified handles, not later edits to an inventory dictionary.
 
+Private fresh vanilla worker preparation may borrow that exact installation
+lease while keeping independent per-member runtime and configuration custody.
+Resolve current authority and full layouts for each member; hash and retain the
+external client executable through its own runtime. Refuse unsupported scopes
+and lost borrowed custody before configuration, dispatch or stop receipts.
+Closing a member releases only its own resources. Whole-roster account checks,
+normal public resolution and every finite exposure bound remain unchanged.
+
 `held-pair-protected-vanilla-worker-reference/1` connects complete held worker
 inputs to saved-body paired server references. Import-check all workers before
 either finite server window, reserve complete runtime/log/state storage, validate

@@ -76,7 +76,8 @@ class HeldProbeWorkerInputs:
                 self._workers[arm] = {}
                 for agent, invocation in group.items():
                     worker = resources.enter_context(HeldPackWorker(
-                        self.software.binding, invocation, defer_configuration=True))
+                        self.software.binding, invocation, defer_configuration=True,
+                        _materialization_lease=self.software.lease))
                     self._workers[arm][agent] = worker
                     resolved = worker.resolved
                     configuration = resolved["worker_configuration"]

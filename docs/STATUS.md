@@ -3,6 +3,19 @@
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 
+M1.6q.6 [borrowed worker materialization](verification/2026-09-25-m1-worker-materialization.md) is implemented_unverified for authentic paired integration.
+Private member preparation now borrows the live installation lease, preserving
+fresh authority/layout checks and separate runtime/configuration/account custody.
+97 focused source cases pass. Real-profile read-only entry falls from 13.672s to
+11.078s with identical output, no configuration writes and no dispatch. This work
+precedes writer acquisition, so it does not resolve case06's writer-window refusal;
+no native retry was made. Next reduce work delaying normal stop inside that window,
+keeping full validation before export acceptance and sibling dispatch. Original
+300/200-170/60-60s bounds and all six failed native cases remain. All 40 real tables
+are unchanged at $4.887796; no owned runtime or M1 paid authority. Full live-state/
+tool parity, native admission, clocks/disposal, T05/T10 and isolation remain open;
+G1-G5 remain not_run. Earlier next actions are historical.
+
 M1.6q.5 [held materialization checks](verification/2026-09-25-m1-held-materialization-checks.md) is implemented_unverified for authentic paired integration.
 Private server rechecks use hashes verified through live Windows file handles;
 fresh authority, complete layout/type/size/hardlink/membership and external

@@ -80,14 +80,19 @@ credential, runtime dependency and mutable-world boundaries.
 
 def _resolve_held_materialization(binding, lease):
     """Private fresh vanilla-server recheck using bytes under continuous custody."""
+    require(lease is not None, "MATERIALIZATION_CUSTODY_REQUIRED")
+    with _held_pack_launch(binding, "server", _materialization_lease=lease) as (result, _):
+        return result
+
+
+def _check_materialization_custody(binding, lease):
+    """Check a borrowed owner's exact live tree without taking its ownership."""
     from .launch_integrity import FileLease, safe
     require(type(lease) is FileLease and type(binding) is PackLaunchBinding,
             "MATERIALIZATION_CUSTODY_REQUIRED")
     lease.recheck()
     require({t["path"] for t in lease.inventory["trees"]} == {str(safe(binding.instance))},
             "MATERIALIZATION_CUSTODY_SCOPE")
-    with _held_pack_launch(binding, "server", _materialization_lease=lease) as (result, _):
-        return result
 
 
 @contextmanager
@@ -95,6 +100,10 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
                       _materialization_lease=None):
     """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
+    if _materialization_lease is not None:
+        _check_materialization_custody(binding, _materialization_lease)
+        require(not simulation and forge_invocation is None
+                and (role == "server" or worker_invocation is not None), "MATERIALIZATION_CUSTODY_SCOPE")
     store = _absolute(binding.store)
     database = store / "controller.sqlite"
     objects = store / "objects"
@@ -157,8 +166,7 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
     instance = _absolute(binding.instance)
     restored = isinstance(binding, RestoredPackLaunchBinding)
     if _materialization_lease is not None:
-        require(type(binding) is PackLaunchBinding and not simulation and role == "server"
-                and target == "vanilla" and isinstance(launch, VanillaLaunchProfile),
+        require(target == "vanilla" and isinstance(launch, VanillaLaunchProfile),
                 "MATERIALIZATION_CUSTODY_SCOPE")
     if restored:
         require(target == "vanilla" and isinstance(launch, VanillaLaunchProfile) and not simulation,
@@ -196,7 +204,7 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
     require(working_directory.is_dir(), "AWAITING_ARTIFACT")
     executable = _absolute(str(instance / role / command.executable_path)
                            if isinstance(launch, E9ELaunchProfile) else command.executable_path)
-    executable_hash = (file_hash(executable) if _materialization_lease is None
+    executable_hash = (file_hash(executable) if _materialization_lease is None or role == "client"
                        else _materialization_lease.held_digest(executable))
     require(executable.stat().st_nlink == 1 and executable_hash == command.executable.digest,
             "HASH_MISMATCH")

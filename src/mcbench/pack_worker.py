@@ -197,11 +197,14 @@ class HeldPackWorker:
     Nothing dispatches inference or accepts account terms here.
     """
 
-    def __init__(self, binding, invocation, *, simulation=False, own_server=False, defer_configuration=False):
+    def __init__(self, binding, invocation, *, simulation=False, own_server=False, defer_configuration=False,
+                 _materialization_lease=None):
         require(type(own_server) is bool and type(defer_configuration) is bool, "WORKER_LAUNCH_PROFILE")
+        require(_materialization_lease is None or not own_server, "MATERIALIZATION_CUSTODY_SCOPE")
         self.binding, self.invocation, self.simulation = deepcopy(binding), deepcopy(invocation), simulation
         self.own_server = own_server
         self.defer_configuration = defer_configuration
+        self._materialization_lease = _materialization_lease
         self._entered = False
         self._configuration_attempted = False
         self.config_lease = None
@@ -228,7 +231,8 @@ class HeldPackWorker:
         resources = ExitStack()
         try:
             resolved, self.runtime = resources.enter_context(_held_pack_launch(
-                self.binding, "client", simulation=self.simulation, worker_invocation=self.invocation))
+                self.binding, "client", simulation=self.simulation, worker_invocation=self.invocation,
+                _materialization_lease=self._materialization_lease))
             require(self.runtime is not None, "WORKER_LAUNCH_PROFILE")
             # Resolve both roles while materialization is pristine, retaining
             # the worker runtime already checked by the client resolver.
@@ -264,6 +268,7 @@ class HeldPackWorker:
                 and self.config_lease is None and not self.processes, "WORKER_CONFIGURATION_ORDER")
         self._configuration_attempted = True
         try:
+            self._check_borrowed_materialization()
             self.runtime.recheck()
             resolved = self._resolved
             state = _path(resolved["worker_configuration"]["state_directory"])
@@ -282,6 +287,11 @@ class HeldPackWorker:
         except BaseException:
             self.__exit__()
             raise
+
+    def _check_borrowed_materialization(self):
+        if self._materialization_lease is not None:
+            from .pack_launch import _check_materialization_custody
+            _check_materialization_custody(self.binding, self._materialization_lease)
 
     def start_server(self):
         require(self._resources is not None and self._server_resolved is not None, "SERVER_LAUNCH_NOT_HELD")
@@ -329,6 +339,7 @@ class HeldPackWorker:
         require(self.restored_journal is not None and not preflight
                 or not any(_path(self._resolved["worker_configuration"]["state_directory"]).iterdir()),
                 "WORKER_INVOCATION_NOT_FRESH")
+        self._check_borrowed_materialization()
         self.runtime.recheck()
         self.config_lease.recheck()
         if self.restored_journal is not None:
@@ -347,6 +358,7 @@ class HeldPackWorker:
 
     def receipt(self):
         require(self._resources is not None and self.processes, "WORKER_LAUNCH_NOT_HELD")
+        self._check_borrowed_materialization()
         owned = {}
         for name, process in self.processes.items():
             require(process.poll() == 0 and process.job is not None, "WORKER_LAUNCH_STOP_UNPROVEN")

@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.5 [native operation05](verification/2026-09-26-m1-machine-reference-native.md) fails at deposit preflight REVISION_CONFLICT: no deposit click or replay. The authentic M1.5b.3e diagnostic identifies current_match, with only untouched player-relative35 backpack component identity differing between server reply and current view. Selected/cursor/machine resources and all IDs/counts match. Exact field/caller remains unknown; earlier failures retain their original scope.
+
+V4 plan/authority/seal/reservation bytes bind before launch, but all four rows remain UNCERTAIN/consumed. Actual import correctly refuses without a receipt.227 signed records, zero completions; saved furnace empty/20,000RF, late cursor dust3. Guardian505.8518ms passes;96/96 client and29/29 server parents terminal, session retired/no owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+
+Next implement bounded preflight reacquisition for this evidenced reply/current drift while preserving the original exact server baseline, input fence, budgets and no replay; focused negatives precede a changed-profile native attempt. Positive V4 import and protected scoring/full G1 remain open. Operation04 and all earlier outcomes remain unchanged.
+
 M1.5b.5 adds the [sealed machine resource plan](verification/2026-09-26-m1-machine-reference.md) to the existing private fixture/launch path.218 distinct focused tests pass;25 native opt-in cases remain skipped. Machine location, recipe/registration, output threshold and tick window now enter the prior seal and authenticated inspection. Reopen is idempotent; changed seals, duplicate/partial streams and unmatched resources reject. Initial fixture/lint failures are retained.
 
 Retained operation04 still yields three matching outputs under the new reader, but this audit plan is post-hoc. Next perform one fresh reference with the V4 machine plan sealed before launch, using the existing ordinary furnace checker and unchanged bounds. Protected scorer/loaded-code/setup/team/RF/window/parity/isolation and full G1 remain open. No new game/model run; D18/D19 remain M0-only.

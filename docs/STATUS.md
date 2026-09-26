@@ -1,5 +1,9 @@
 # Strata current status
 
+M1.5b.5 adds the [sealed machine resource plan](verification/2026-09-26-m1-machine-reference.md) to the existing private fixture/launch path.218 distinct focused tests pass;25 native opt-in cases remain skipped. Machine location, recipe/registration, output threshold and tick window now enter the prior seal and authenticated inspection. Reopen is idempotent; changed seals, duplicate/partial streams and unmatched resources reject. Initial fixture/lint failures are retained.
+
+Retained operation04 still yields three matching outputs under the new reader, but this audit plan is post-hoc. Next perform one fresh reference with the V4 machine plan sealed before launch, using the existing ordinary furnace checker and unchanged bounds. Protected scorer/loaded-code/setup/team/RF/window/parity/isolation and full G1 remain open. No new game/model run; D18/D19 remain M0-only.
+
 M1.5b.4 adds the [native resource verifier](verification/2026-09-26-m1-native-resource.md) for one actual furnace completion, preserving its single event identity and registration lineage.105 focused tests pass; read-only reconstruction authenticates operation04's230 records and verifies all three completion deltas. No gameplay/model rerun. The audit expectation is post-hoc, so protected fixture/scorer admission remains unqualified. Prior failures/holds and full G1 obligations remain unchanged.
 
 Next bind a prior machine recipe/fixture plan to protected launch/setup/team and authenticated transformed producer, then complete T10 controls. Full T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.

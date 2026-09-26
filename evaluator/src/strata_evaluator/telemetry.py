@@ -26,6 +26,7 @@ from .setup_history import (HistorySupport, HistorySupportV2, HistorySupportV3, 
 from .telemetry_clocks import ServerClock, reconcile_clock
 from .machine_capture import (FurnaceSupport, FurnaceSupportV2, KINDS as MACHINE_KINDS,
                               PAYLOADS as MACHINE_PAYLOADS, require_capture_scope, known_capture_schema)
+from .machine_reference import MachineReferenceInspection
 
 KINDS = {
     "server_started": "strata/ServerStarted/1",
@@ -237,7 +238,8 @@ def unique_object(pairs):
     return value
 
 
-def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=None):
+def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=None,
+                  machine_reference=None):
     """Require a complete single-boot stream and return private inspection evidence."""
     reject_links(path.absolute())
     require(path.is_file() and path.stat().st_nlink == 1, "UNSAFE_PATH")
@@ -256,6 +258,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     machine_policy = None
     machine_generation = 0
     machine_ids = set()
+    machine_inspection = (MachineReferenceInspection(machine_reference)
+                          if machine_reference is not None else None)
     craft_stack, witnesses, craft_ids = [], [], set()
     startup_setup, pending_setup, setup_support = None, None, None
     craft_setups = {}
@@ -343,6 +347,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                     machine_generation = registration.generation
                 require(captured.transaction_id not in machine_ids, "MACHINE_CAPTURE_DUPLICATE")
                 machine_ids.add(captured.transaction_id)
+                if machine_inspection is not None:
+                    require(machine_policy == "thermal1192-native-furnace-phases/2",
+                            "MACHINE_REFERENCE_PROFILE")
+                    machine_inspection.observe(event, captured)
             if event.kind == "setup_history":
                 require(history_support is not None and event.payload_schema == HISTORY_SCHEMAS[history_support.policy],
                         "SETUP_HISTORY_MODULE")
@@ -521,6 +529,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
         report["machine_capture"] = {"supported": machine_supported, "transactions": len(machine_ids),
                                      "recipe_registration_bound": False, "loaded_code_authenticated": False,
                                      "scoring_eligible": False}
+    if machine_inspection is not None:
+        require(machine_supported and machine_policy == "thermal1192-native-furnace-phases/2",
+                "MACHINE_REFERENCE_PROFILE")
+        report["machine_reference"] = machine_inspection.report()
     if authentication is not None:
         report["authentication"] = authentication.receipt(boot, count)
     if issubclass(startup_model, ServerStartedV5):

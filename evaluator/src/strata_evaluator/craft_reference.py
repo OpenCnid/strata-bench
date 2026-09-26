@@ -22,6 +22,7 @@ from mcbench.storage import Database, canonical, digest, reject_links, require, 
 
 from .scorer import Predicate
 from .setup_facts import SetupSnapshot, qualify_points
+from .machine_reference import MachineReference
 from .telemetry_auth import (
     BoundSpoolAuthority, inspect_authenticated_spool, issue_authority, parse_authority, private_read,
 )
@@ -89,11 +90,24 @@ class CraftReferencePlanV3(CraftReferencePlanV2):
     required_history_policy: Literal["native-e9e-setup-mutation-watch/1", "native-e9e-setup-mutation-watch/2", "native-e9e-setup-mutation-watch/3", "native-e9e-setup-mutation-watch/4", "native-e9e-setup-mutation-watch/5", "native-e9e-setup-mutation-watch/6"]
 
 
+class CraftReferencePlanV4(CraftReferencePlanV3):
+    schema_: Literal["strata/PrivateCraftReferencePlan/4"] = Field(alias="schema")
+    machine_reference: MachineReference
+
+    @model_validator(mode="after")
+    def machine_window(self):
+        require((self.start_server_tick, self.cutoff_server_tick) ==
+                (self.machine_reference.start_server_tick, self.machine_reference.cutoff_server_tick),
+                "MACHINE_REFERENCE_WINDOW")
+        return self
+
+
 def parse_plan(value):
     if isinstance(value, CraftReferencePlan):
         return value
     model = {"strata/PrivateCraftReferencePlan/2": CraftReferencePlanV2,
-             "strata/PrivateCraftReferencePlan/3": CraftReferencePlanV3}.get(value.get("schema"), CraftReferencePlan)
+             "strata/PrivateCraftReferencePlan/3": CraftReferencePlanV3,
+             "strata/PrivateCraftReferencePlan/4": CraftReferencePlanV4}.get(value.get("schema"), CraftReferencePlan)
     return model.model_validate(value)
 
 
@@ -283,7 +297,8 @@ class CraftReferenceStore:
         launch_body = strict_json(launch["body"])
         require(launch_body["setup_digest"] == row["digest"] and launch_body["authority_digest"] == row["authority"],
                 "CRAFT_LAUNCH_CHANGED")
-        report = inspect_authenticated_spool(Path(spool), path)
+        report = inspect_authenticated_spool(Path(spool), path,
+            machine_reference=plan.machine_reference if isinstance(plan, CraftReferencePlanV4) else None)
         if isinstance(plan, CraftReferencePlanV3):
             require(report.get("setup_history", {}).get("policy") == plan.required_history_policy,
                     "CRAFT_NATIVE_HISTORY_MISSING")
@@ -361,6 +376,9 @@ class CraftReferenceStore:
         if isinstance(plan, CraftReferencePlanV3):
             result.update(schema="strata/PrivateCraftReferenceInspection/3",
                           required_history_policy=plan.required_history_policy)
+        if isinstance(plan, CraftReferencePlanV4):
+            result.update(schema="strata/PrivateCraftReferenceInspection/4",
+                          machine_reference=report["machine_reference"])
         # Legacy source-only references retain their original report shape.
         # A tracked dispatch may not be replaced by that weaker path after an
         # uncertain launch, failed identity binding or incomplete stop.

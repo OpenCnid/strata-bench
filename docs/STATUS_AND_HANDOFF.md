@@ -1,5 +1,27 @@
 # M1/G1 implementation handoff
 
+M1.5b.3c [authentic diagnostic operation02](verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
+diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
+unique action (deposit), prediction/reply differ only in component identity of
+player-relative slot35, visible slot42: the untouched Sophisticated Backpacks
+backpack. IDs/counts match, received/current match exactly, no refresh was used.
+The changed field/caller is not established. No metadata is ignored or replayed.
+
+Three authenticated expert-furnace completions and saved output3/8,000RF remain
+partial evidence. Independent diagnostic and failure audits pass; the operation
+audit fails its public-action/stopped-state checks. Explicit stop-all,516.0927ms
+guardian,94/94 client and29/29 server terminal histories; session retired and no
+owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+Installed client is d0e30db0; prior54568cb1 and log are preserved privately.
+
+Next inspect pre-click baseline custody and exact component differences before
+choosing a correction. Historical minor39 restores reply/current drift; this
+prediction/reply failure is different and cannot inherit that result. Preserve
+both consumed failed references and original deadlines/holds. M1.5b.3c remains
+in_progress; full T01/T04/T05/T06/T10/T11 and G1 remain open. D18/D19 are M0-only.
+
+Earlier checkpoints below retain their original time-specific claims.
+
 M1.5b.3c [private acknowledgment diagnosis](verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
 for authentic integration.50 distinct focused Java cases pass across the retained
 selections, including8 diagnostic cases; offline client build succeeds. Preserve
@@ -1484,3 +1506,12 @@ Private source/build/test archive2026-09-26-m1-machine-ack-diagnostic-01:
 7ba6a132287b7c1bc720858b8ddecbd3b04638bcbd0fc1750252556522f1607e.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic diagnostic integration and full G1 not_run.
+
+Final integrity audit passes492 unchanged source pins,443 unique milestone IDs
+and1,648 local links. SPEC/progress history and all40 authority tables preserved,
+exposure$4.887796. Preparation/audit archive16files/6,022,454bytes, seal
+9f5241f5e5b0b6ae59c7c86aeb71267f03149909effebed48505a49e9a8c2600.
+Authentic operation02 archive561files/96,528,579bytes, seal
+38630f898ff2c778cd4627a0ee9522c124de64403212fed25e025a039dc0a6c8.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Diagnostic passes; reference stays failed/consumed and G1 not_run.

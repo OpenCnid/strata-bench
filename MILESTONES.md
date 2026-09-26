@@ -2,6 +2,28 @@
 
 ## Current position
 
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
+diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
+unique action (deposit), prediction/reply differ only in component identity of
+player-relative slot35, visible slot42: the untouched Sophisticated Backpacks
+backpack. IDs/counts match, received/current match exactly, no refresh was used.
+The changed field/caller is not established. No metadata is ignored or replayed.
+
+Three authenticated expert-furnace completions and saved output3/8,000RF remain
+partial evidence. Independent diagnostic and failure audits pass; the operation
+audit fails its public-action/stopped-state checks. Explicit stop-all,516.0927ms
+guardian,94/94 client and29/29 server terminal histories; session retired and no
+owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+Installed client is d0e30db0; prior54568cb1 and log are preserved privately.
+
+Next inspect pre-click baseline custody and exact component differences before
+choosing a correction. Historical minor39 restores reply/current drift; this
+prediction/reply failure is different and cannot inherit that result. Preserve
+both consumed failed references and original deadlines/holds. M1.5b.3c remains
+in_progress; full T01/T04/T05/T06/T10/T11 and G1 remain open. D18/D19 are M0-only.
+
+Earlier checkpoints below retain their original time-specific claims.
+
 M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
 for authentic integration.50 distinct focused Java cases pass across the retained
 selections, including8 diagnostic cases; offline client build succeeds. Preserve
@@ -1115,7 +1137,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
 | M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
-| M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | implemented_unverified | [Bounded diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, including8 diagnostic cases; both initial fixture/assertion failures retained. New artifact archived but not installed; authentic receipt and mismatch cause remain unverified. No changed acceptance or game replay. |
+| M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -9968,3 +9990,42 @@ Private source/build/test archive2026-09-26-m1-machine-ack-diagnostic-01:
 7ba6a132287b7c1bc720858b8ddecbd3b04638bcbd0fc1750252556522f1607e.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic diagnostic integration and full G1 not_run.
+
+### 2026-09-26 — M1.5b.3c changed client native reference
+
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) prepares one fresh changed-
+client reference. Old installed artifact/log preserved; candidate d0e30db0 is now
+installed. Same fixture/checker/deadlines, new scope/grant/session and private
+post-stop log retention. Operation01 remains failed/consumed; all40 authority
+tables unchanged at$4.887796. Native result pending; no model calls or G1 claim.
+
+### 2026-09-26 — M1.5b.3c authentic diagnostic result
+
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
+diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
+unique action (deposit), prediction/reply differ only in component identity of
+player-relative slot35, visible slot42: the untouched Sophisticated Backpacks
+backpack. IDs/counts match, received/current match exactly, no refresh was used.
+The changed field/caller is not established. No metadata is ignored or replayed.
+
+Three authenticated expert-furnace completions and saved output3/8,000RF remain
+partial evidence. Independent diagnostic and failure audits pass; the operation
+audit fails its public-action/stopped-state checks. Explicit stop-all,516.0927ms
+guardian,94/94 client and29/29 server terminal histories; session retired and no
+owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+Installed client is d0e30db0; prior54568cb1 and log are preserved privately.
+
+Next inspect pre-click baseline custody and exact component differences before
+choosing a correction. Historical minor39 restores reply/current drift; this
+prediction/reply failure is different and cannot inherit that result. Preserve
+both consumed failed references and original deadlines/holds. M1.5b.3c remains
+in_progress; full T01/T04/T05/T06/T10/T11 and G1 remain open. D18/D19 are M0-only.
+
+Final integrity audit passes492 unchanged source pins,443 unique milestone IDs
+and1,648 local links. SPEC/progress history and all40 authority tables preserved,
+exposure$4.887796. Preparation/audit archive16files/6,022,454bytes, seal
+9f5241f5e5b0b6ae59c7c86aeb71267f03149909effebed48505a49e9a8c2600.
+Authentic operation02 archive561files/96,528,579bytes, seal
+38630f898ff2c778cd4627a0ee9522c124de64403212fed25e025a039dc0a6c8.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Diagnostic passes; reference stays failed/consumed and G1 not_run.

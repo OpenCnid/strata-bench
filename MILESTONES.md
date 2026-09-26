@@ -2,6 +2,14 @@
 
 ## Current position
 
+M1.6r.2 [private callback observer](docs/verification/2026-09-25-m1-player-body-callback.md)
+is implemented_unverified for live capture. Nine final-candidate checks pass:
+actual transformed-method JVM verification/refusals plus synthetic same-tick
+roster/lifecycle cases. Complete private capture, owned launch/custody, output
+inspection and overhead/parity remain unverified. No game/model dispatch; old
+clock/native11 identities are unchanged. Next connect owned launch and an
+independent stopped-output verifier before a fresh authentic capture. G1 not_run.
+
 M1.6r.1 [private player NBT codec](docs/verification/2026-09-25-m1-player-nbt-codec.md)
 is implemented_unverified for live capture; M1.6r remains in_progress. Five
 focused installed-code/synthetic-data cases pass, retaining the first signed-zero
@@ -1000,8 +1008,9 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
 | M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
 | M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
-| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | Native11 verifies only own-state projection. Full item tags, selected slot, game mode, abilities, effects and other unprojected live state need a private authenticated witness. Start with retained source/state comparison and exact installed serializer bindings; native admission remains closed. |
+| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | Native11 verifies only own-state projection. R1 save-format codec and R2 distinct callback observer are implemented_unverified for live capture; retained stopped fields differ. Next owned launch/custody and independent output verification, then real capture and complete save/transient-state matching. Full item tags, selected slot, mode, abilities/effects remain unqualified; native admission stays closed. |
 | M1.6r.1 | GI/SI/QA | Pin the actual vanilla player save-format serializer, retain complete emitted typed NBT with bounded output and strict UUID/thread checks; inherits M1.6r | implemented_unverified | [Installed-code format checks](docs/verification/2026-09-25-m1-player-nbt-codec.md): five distinct cases pass; original negative-zero failure retained. Actual capture/provenance/thread/UUID and transient-state coverage remain unverified. |
+| M1.6r.2 | GI/SI/QA | Bind exact loaded game bytes and real server/player callbacks to private same-tick roster capture, scoped process/sequence and bounded output; inherits M1.6r | implemented_unverified | [Distinct private observer](docs/verification/2026-09-25-m1-player-body-callback.md): nine final-candidate checks pass, including actual JVM transformed-method verification and named refusals; roster lifecycle is synthetic. Owned launch/custody, output verification, authentic capture/parity and transient-state coverage remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9308,3 +9317,40 @@ R1 evidence is sealed and independently verified: 48 files, 19,421,731 bytes,
 SHA-256 `9b23142694d2f3ebb08fedfa7b2ba480f57ceaf784eb54cd1612b5c2147a30b0`.
 This pointer follows the archived documentation snapshot. No milestone/gate is
 promoted by archive sealing; M1.6r.1 remains implemented_unverified.
+
+### 2026-09-25 — M1.6r.2 authentic callback binding begins
+
+R1 made concrete progress and is retained. Verify current HEAD f916666 and clean
+worktree, all 40 WAL-aware authority tables unchanged at $4.887796 and no owned
+runtime. Implement a distinct private body observer using inspected exact server
+and player methods, preserving the old clock agent/profile. Require byte, thread,
+receiver, roster and lifecycle scope; do not claim live evidence from fixtures.
+No game replay, inference spending or weakened matching criterion is authorized.
+
+### 2026-09-25 — M1.6r.2 distinct body observer implemented
+
+Added exact loaded-class/code-source/loader validation, receiver-preserving
+server/player instrumentation, immediate-caller checks, private one-shot same-tick
+roster capture and bounded create-once output. A closed final binding inventory
+prevents a terminal-record race; configuration reads are bounded and digest-bound.
+Post-capture player references are released, preserving ordinary respawn outcomes.
+Nine final-candidate checks pass in 7.66s; earlier five/seven-case runs are retained.
+Actual JVM cases verify methods without game initialization and reject forged
+callbacks, changed bytes/source/loader, absent attach protection and bad config.
+Synthetic roster cases do not prove real capture. See [report](docs/verification/2026-09-25-m1-player-body-callback.md).
+No game/model/native-probe dispatch, paid authority change, clock-profile mutation
+or native11 replay. M1.6r.2 implemented_unverified; next owned launch/custody and
+independent output verification, then authentic capture/parity and full matching.
+G1 remains not_run, including every unrelated still-required acceptance contract.
+
+R2 final audit passes: 454 source pins, all 430 milestone IDs, append-only
+history and 1,706 local links. All 40 real authority tables remain unchanged at
+$4.887796; no owned runtime. Candidate JAR is 143,995 bytes, SHA-256
+`999ad44d16b5d6255963c3571e70842ec4c4c642f28d993665c513671855cba6`.
+Eight native JVM cases are terminal: one normal noninitializing verification,
+four exit-126 producer refusals, three exit-1 configuration/agent refusals.
+No capture file exists; none of these cases is real player-state evidence.
+
+R2 archive sealed and independently verified: 230 files, 3,158,224 bytes,
+SHA-256 `60a824ed3aa2169df716fd34c4d449b7e6ba982bbfb9124fd0b12927335fa1eb`.
+This pointer follows the archived documentation snapshot; no gate promotion.

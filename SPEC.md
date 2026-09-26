@@ -1969,6 +1969,19 @@ callback/tick/sequence, all-N readiness or admission authority. Authenticate
 loaded bytes and owned process separately; keep raw captures private. Preserve
 format limitations, original bytes and every mismatch rather than silently
 normalizing comparisons or extending ordinary gameplay observations.
+The distinct `vanilla1192-private-roster-nbt/1` observer pins every loaded class
+from the official implementation JAR, its code source and one game loader. Its
+server/player hooks verify the actual caller and receiver, retain one complete
+declared roster within one server tick, and commit private save-format output
+only after every member is written. Partial rosters cannot accumulate across
+ticks; initial identity/thread/order failures invalidate the attempt. Release
+player references after capture and do not convert subsequent ordinary respawn
+into an initial-state identity fault. Bind configuration/module/server/PID/scope,
+sequence, tick and capture duration. Require owned launch/custody, independent
+output inspection and authentic capture/parity evidence before accepting the
+witness. Refuse unsupported whole-roster capacity rather than reducing N.
+This distinct observer does not inherit the clock agent's qualification or
+grant native probe admission, full transient-state equality or G1 acceptance.
 [Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
 distinguish passing source cases from failed authentic-input execution.
 

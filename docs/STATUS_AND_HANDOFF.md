@@ -1,5 +1,30 @@
 # M1/G1 implementation handoff
 
+M1.6r.2 [private callback observer](verification/2026-09-25-m1-player-body-callback.md)
+is implemented_unverified for live capture. Nine final-candidate checks pass in
+7.66s; all test processes are terminal. Actual JVM tests verify transformed
+official methods without game initialization and reject forged/changed producers;
+roster lifecycle is synthetic. R1 codec source and old clock/native11 profiles
+are unchanged. No game/model/native-probe dispatch or paid authority change.
+Next implement independent stopped-output inspection and owned launch/custody
+under this distinct observer identity before selecting fresh real capture.
+Private root `C:/Users/Darian/.strata/evidence/2026-09-25-m1-live-body-callback-01`.
+Keep all earlier candidate outputs. Full transient-state/matching/tools/clocks/
+disposal and other G1 contracts remain unverified; catalogs 7/8 stay closed.
+
+R2 final audit passes: 454 source pins, 430 milestone IDs, 1,706 local links;
+all 40 real authority tables unchanged at $4.887796 and no owned runtime.
+Final candidate build is under `tests-bound-config/body-agent0/build` in the
+private root: 143,995-byte JAR, SHA-256
+`999ad44d16b5d6255963c3571e70842ec4c4c642f28d993665c513671855cba6`.
+Other candidate builds are retained history, not this final profile. All eight
+native JVM cases are terminal; no capture files or active sessions remain.
+
+R2 archive sealed and independently verified: 230 files, 3,158,224 bytes,
+SHA-256 `60a824ed3aa2169df716fd34c4d449b7e6ba982bbfb9124fd0b12927335fa1eb`.
+This pointer follows its documentation snapshot. Preserve all files unchanged;
+there is no running handle to resume or game attempt to replay.
+
 M1.6r.1 [private player NBT codec](verification/2026-09-25-m1-player-nbt-codec.md)
 is implemented_unverified for live capture; M1.6r remains in_progress. Five
 focused installed-code/synthetic-data cases pass, retaining the first signed-zero

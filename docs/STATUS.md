@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.6r.2 [private callback observer](verification/2026-09-25-m1-player-body-callback.md)
+is implemented_unverified for live capture. Nine final-candidate checks pass:
+actual transformed-method JVM verification/refusals plus synthetic same-tick
+roster/lifecycle cases. Owned launch/custody, output verification, authentic
+capture and overhead/parity remain open. No game/model dispatch or clock-profile
+change. Next integrate owned launch and independent stopped-output verification.
+G1 remains not_run.
+
 M1.6r.1 [private player NBT codec](verification/2026-09-25-m1-player-nbt-codec.md)
 is implemented_unverified for live capture; M1.6r remains in_progress. Five
 focused installed-code/synthetic-data cases pass, retaining the first signed-zero

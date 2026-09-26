@@ -454,6 +454,10 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
             public void mismatch(GameInventory.View reply, GameInventory.View current) { NativeItemDiagnostics.mismatch(reply,current); }
         };
     }
+    public void privateMotorDiagnostic(String requestId, JsonObject diagnostic) {
+        com.mojang.logging.LogUtils.getLogger().warn("STRATA_PRIVATE_MACHINE_ACK_DIAGNOSTIC request={} {}",
+            requestId, diagnostic);
+    }
     private GameMenuClose.Port closePort() throws IOException {
         var base = inventoryPort(false); base.validate();
         var menu = client.player.containerMenu; var inventory = client.player.inventoryMenu;

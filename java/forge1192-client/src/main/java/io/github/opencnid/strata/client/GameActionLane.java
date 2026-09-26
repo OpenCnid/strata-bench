@@ -27,6 +27,7 @@ final class GameActionLane implements AutoCloseable {
         void resetObservations() throws IOException;
         default void delivered(JsonObject snapshot) throws IOException {}
         default void activeRequest(String id) {}
+        default void privateMotorDiagnostic(String requestId, JsonObject diagnostic) {}
         void validate(GameBatch batch, JsonObject observation) throws IOException;
         Motor begin(GameBatch batch, JsonObject observation, Emitter emitter) throws IOException;
         void releaseInputs() throws IOException;
@@ -270,8 +271,15 @@ final class GameActionLane implements AutoCloseable {
             System.getLogger(GameActionLane.class.getName()).log(System.Logger.Level.WARNING,
                 "STRATA_MOTOR_FAILURE code="+code(error)+" request="+(active == null ? "none" : active.batch.id)+" sites="+sites);
             boolean uncertain = active != null && active.attempted > 0;
+            String diagnosticRequest = active == null ? null : active.batch.id;
             if (uncertain) markFenced(code(error));
             finish(uncertain ? "unknown" : "failed", code(error));
+            // Publish only after existing release and durable terminal handling.
+            // Diagnostics cannot change the receipt or trigger another input.
+            if (error instanceof GameMachineMismatch mismatch && diagnosticRequest != null) {
+                try { runtime.privateMotorDiagnostic(diagnosticRequest, mismatch.diagnostic()); }
+                catch (RuntimeException ignored) { /* Private output is not acceptance authority. */ }
+            }
         }
     }
     JsonObject cancel(String id) throws IOException {

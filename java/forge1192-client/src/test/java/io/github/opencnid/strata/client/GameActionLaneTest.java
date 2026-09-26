@@ -62,6 +62,10 @@ class GameActionLaneTest {
     static final class Port implements GameActionLane.RuntimePort, NativeGameProtocol.RuntimePort {
         interface Begin { GameActionLane.Motor create(GameActionLane.Emitter emitter) throws IOException; }
         Begin customMotor;
+        java.util.function.BiConsumer<String,JsonObject> diagnostic;
+        public void privateMotorDiagnostic(String id, JsonObject value) {
+            if (diagnostic != null) diagnostic.accept(id, value);
+        }
         GameActionLane.Operation customRelease;
         final Time time; final Path root; final Thread owner = Thread.currentThread();
         final Map<String, Long> snapshots = new HashMap<>();

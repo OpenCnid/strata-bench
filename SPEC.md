@@ -311,6 +311,17 @@ Operator native-client startup must reserve sufficient authenticated session lif
 
 The Java guardian confirms stop only after the held root signals, the held Windows Job reports zero active processes, and every process in its cumulative accounting has a signaled observation handle. Zero active accounting alone is insufficient. Retain only membership-verified read-only handles from that job, beginning at attachment and updating during the guard loop and before termination; do not terminate rediscovered PIDs. The bounded inventory holds at most 256 lifetime handles. Missing members, truncated inventories, quota exhaustion or query failure leave termination unconfirmed, including a short-lived process that escaped observation; this is a fail-closed development limit, not a full lifetime qualification. The root wait and subsequent accounting/handle checks share one unchanged 500 ms bound starting at the root wait; no retry or new descendant allowance is introduced. Remaining or unsignaled processes, or proof obtained after the deadline, cannot pass. This does not enroll descendants created before attachment or qualify the launch gap. The Forge-aware guardian retains private diagnostics under `job-call-wait-tree-qpc/2`, extending historical `job-call-wait-qpc/1`: a QPC start timestamp, clock resolution, relative job-call/wait/tree-check boundaries, active/total/held/signaled process counts, the unchanged wait bound and distinct job/wait/tree outcomes. Queue evidence only after guardian handle cleanup; evidence backpressure must not delay termination. These process-local timestamps include scheduling/Python call overhead and are not kernel-internal events. The broker rejects malformed, contradictory or duplicate timing records and requires timely complete handle/accounting evidence plus a separate confirmed-stop receipt. Timing cannot establish input release, clean checkpoints or successful termination by itself; a timed-out wait remains a failure despite later process absence. Private diagnostics and source fingerprints change without adding gameplay capabilities or extending lease, action or stop deadlines. The base guardian wire format remains unchanged.
 
+Private machine acknowledgment diagnosis uses `machine-owned-mismatch-masks/1`.
+A failed owned-state comparison captures only fixed difference masks for the
+already-read before, predicted, received and current views; bit0 is cursor and
+bits1-36 are player slots. Item-ID/count/component comparisons reveal no values
+or hashes, and exclude machine/hidden slots. Capture adds no game reads, clicks,
+refreshes or retries. Publish through the private operator logger only after
+existing fence, input release and durable terminal handling; output failure or
+absence cannot change the original unknown/resync receipt. This diagnostic does
+not confirm transfer, qualify isolation or replay an action; native artifact
+identity changes with its implementation. [Evidence](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md).
+
 Private Forge health diagnosis uses `forge-native-health-phase/1`. Retain at most
 one terminal diagnostic per guard: fixed authority/identity/lane-status read or
 scope/listener/state validation phase, elapsed monotonic milliseconds, original

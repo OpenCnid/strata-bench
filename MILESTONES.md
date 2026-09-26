@@ -2,6 +2,22 @@
 
 ## Current position
 
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
+for authentic integration.50 distinct focused Java cases pass across the retained
+selections, including8 diagnostic cases; offline client build succeeds. Preserve
+the first missing-directory fixture failure and the release-test assertion that
+incorrectly expected the earlier cause to remain the terminal code. Corrected
+checks retain GAME_RELEASE_UNCONFIRMED precedence. No production acceptance rule,
+read/refresh count, action replay, deadline or installed client changed.
+
+The new bounded masks distinguish prediction/reply from reply/current mismatch,
+exclude hidden/machine slots and all item/component values, and publish only after
+existing fence/release/terminal handling. Logger failure cannot change the stored
+receipt. New client artifactd0e30db0 is archived; installed54568cb1 remains intact.
+Next validate the native operator-log receipt on a fresh changed-artifact operation,
+then resolve the observed cause. Operation01 stays failed/consumed; no game/model
+run in this increment, all40 authority tables unchanged at$4.887796. Full G1 open.
+
 M1.5b.3b [authentic furnace operation01](docs/verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
 The protected reference fails at deposit acknowledgment:
 GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
@@ -1099,6 +1115,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
 | M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
+| M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | implemented_unverified | [Bounded diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, including8 diagnostic cases; both initial fixture/assertion failures retained. New artifact archived but not installed; authentic receipt and mismatch cause remain unverified. No changed acceptance or game replay. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -9918,3 +9935,36 @@ Actual operation01 archive:562files/96,120,115bytes,
 seala6bde2d4a71be1810b645349fe8749d076c0d68335c26a9128ed68663562a94d.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Reference remains failed/consumed; partial capture is not G1 completion.
+
+### 2026-09-26 — M1.5b.3c private acknowledgment diagnosis
+
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md)
+begins after the retained operation01 unknown receipt. Capture only bounded
+owned-state difference masks after normal failure handling; no acceptance or
+replay changes. Source/native evidence pending; full G1 remains open.
+
+### 2026-09-26 — M1.5b.3c source verification
+
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
+for authentic integration.50 distinct focused Java cases pass across the retained
+selections, including8 diagnostic cases; offline client build succeeds. Preserve
+the first missing-directory fixture failure and the release-test assertion that
+incorrectly expected the earlier cause to remain the terminal code. Corrected
+checks retain GAME_RELEASE_UNCONFIRMED precedence. No production acceptance rule,
+read/refresh count, action replay, deadline or installed client changed.
+
+The new bounded masks distinguish prediction/reply from reply/current mismatch,
+exclude hidden/machine slots and all item/component values, and publish only after
+existing fence/release/terminal handling. Logger failure cannot change the stored
+receipt. New client artifactd0e30db0 is archived; installed54568cb1 remains intact.
+Next validate the native operator-log receipt on a fresh changed-artifact operation,
+then resolve the observed cause. Operation01 stays failed/consumed; no game/model
+run in this increment, all40 authority tables unchanged at$4.887796. Full G1 open.
+
+Final integrity audit passes492 source pins,443 unique milestone IDs and1,797
+local links, preserving previous progress and all40 authority tables at$4.887796.
+Private source/build/test archive2026-09-26-m1-machine-ack-diagnostic-01:
+48files/2,938,735bytes, seal
+7ba6a132287b7c1bc720858b8ddecbd3b04638bcbd0fc1750252556522f1607e.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and full G1 not_run.

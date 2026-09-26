@@ -1,5 +1,21 @@
 # M1/G1 implementation handoff
 
+M1.5b.3c [private acknowledgment diagnosis](verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
+for authentic integration.50 distinct focused Java cases pass across the retained
+selections, including8 diagnostic cases; offline client build succeeds. Preserve
+the first missing-directory fixture failure and the release-test assertion that
+incorrectly expected the earlier cause to remain the terminal code. Corrected
+checks retain GAME_RELEASE_UNCONFIRMED precedence. No production acceptance rule,
+read/refresh count, action replay, deadline or installed client changed.
+
+The new bounded masks distinguish prediction/reply from reply/current mismatch,
+exclude hidden/machine slots and all item/component values, and publish only after
+existing fence/release/terminal handling. Logger failure cannot change the stored
+receipt. New client artifactd0e30db0 is archived; installed54568cb1 remains intact.
+Next validate the native operator-log receipt on a fresh changed-artifact operation,
+then resolve the observed cause. Operation01 stays failed/consumed; no game/model
+run in this increment, all40 authority tables unchanged at$4.887796. Full G1 open.
+
 M1.5b.3b [authentic furnace operation01](verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
 The protected reference fails at deposit acknowledgment:
 GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
@@ -1460,3 +1476,11 @@ Actual operation01 archive:562files/96,120,115bytes,
 seala6bde2d4a71be1810b645349fe8749d076c0d68335c26a9128ed68663562a94d.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Reference remains failed/consumed; partial capture is not G1 completion.
+
+Final integrity audit passes492 source pins,443 unique milestone IDs and1,797
+local links, preserving previous progress and all40 authority tables at$4.887796.
+Private source/build/test archive2026-09-26-m1-machine-ack-diagnostic-01:
+48files/2,938,735bytes, seal
+7ba6a132287b7c1bc720858b8ddecbd3b04638bcbd0fc1750252556522f1607e.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and full G1 not_run.

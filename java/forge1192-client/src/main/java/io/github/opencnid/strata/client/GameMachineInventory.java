@@ -80,11 +80,15 @@ final class GameMachineInventory {
                     emit.invoke(() -> ticket = port.requestSync());
                     return false;
                 }
-                throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+                throw new GameMachineMismatch(layout, GameMachineMismatch.Phase.PREDICTION_REPLY,
+                    echoedBefore, before, predicted, received, current);
             }
             // A later GUI update may advance processing, but cannot alter the
             // confirmed owned inventory/cursor before this terminal receipt.
-            var current = port.view(); layout.check(current); requireOwned(layout, received, current);
+            var current = port.view(); layout.check(current);
+            if (!sameOwned(layout, received, current))
+                throw new GameMachineMismatch(layout, GameMachineMismatch.Phase.REPLY_CURRENT,
+                    echoedBefore, before, predicted, received, current);
             return true;
         }
     }
@@ -101,9 +105,6 @@ final class GameMachineInventory {
             if (!before.cursor().equals(after.cursor()) || !end.empty() && (!end.same(start) || end.count() >= start.count()))
                 throw new IOException("PRECONDITION_FAILED");
         }
-    }
-    private static void requireOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) throws IOException {
-        if (!sameOwned(layout, expected, actual)) throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
     }
     private static boolean sameOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) {
         if (!expected.cursor().equals(actual.cursor())) return false;

@@ -1,5 +1,24 @@
 # M1/G1 implementation handoff
 
+M1.5b.3a [private guard-phase diagnosis](verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
 Final integrity audit:483 source pins,440 preserved unique milestone IDs,
 1,623 local links,11 focused passing cases;40 authority tables unchanged at
 $4.887796. Native01 seal435files/88,054,545bytes:
@@ -1404,3 +1423,12 @@ unchanged at$4.887796; no owned runtime/model/game dispatch. Source/audit archiv
 78cf77ca8e620c6f0c2ed82fa8a9c644e6f2ceab6a16a40aabec73e023b60bdf.
 This pointer follows the archived documentation snapshot. No authentic machine
 capture or protected scorer qualification; T10/G1 not_run.
+
+Final integrity audit passes486 source pins,441 unique milestone IDs and1,783
+local links; append-only history and all40 authority tables remain unchanged.
+Source diagnostics archive2026-09-26-m1-guard-phase-01:36files/2,191,939bytes,
+seal4db8e097354d4faf584c9ba9da0b57ecee4d09ff9b96c1bd6996e2b972b1e5fd.
+Authentic reference2026-09-26-m1-furnace-native-03:492files/87,414,445bytes,
+seal4d17ace6759b9cc21d0cd850ae85deda2b322f65a77a958704cc33d0dcae2107.
+Both bundles independently verify. This pointer follows the archived source/
+documentation snapshot. Native01/02 failures remain; full M1/G1 remains open.

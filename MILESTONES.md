@@ -2,6 +2,25 @@
 
 ## Current position
 
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
 M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
 remains in_progress. Native02 reaches authenticated startup16 with the exact
 module/artifacts and registration-hook support, then fails worker startup with
@@ -1059,7 +1078,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b | GI/RS/QA | Verify causal completion resource deltas for the pinned unaugmented Thermal furnace before any machine scorer adapter; inherits M1.5a and required M3.1b dependency | implemented_unverified | [Source-backed completion contract](docs/verification/2026-09-26-m1-scorer-coverage.md):53 synthetic cases/1 package exclusion pass. Exact ordered input/output deltas and unchanged unrelated resources; raw boundaries remain unscorable. Native producer/ingestion, full RF/fluid/window/setup/team/parity/isolation controls remain open. |
 | M1.5b.1 | GI/RS/QA | Capture exact native furnace completion phases and resolved internal recipe facts; inherits M1.5b, F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10 | implemented_unverified | [Native producer/private ingestion](docs/verification/2026-09-26-m1-machine-producer.md):126 distinct Python cases plus6 Java cases pass; actual installed call sites inspected, raw completions/refusals stay unscorable. Native registration/loaded-code/custody/effects/parity and wider G1 qualification remain open. |
 | M1.5b.2 | GI/RS/QA | Bind native internal furnace recipes to actual direct/converted source registration and refresh lifetime; inherits M1.5b.1 and its requirement/contract/test mappings | implemented_unverified | [Native registration lineage](docs/verification/2026-09-26-m1-machine-registration.md):113 Python/14 Java cases pass,1 native opt-in skip. Exact direct/converted object chains, rebuild invalidation, poisoned failures, source domains and reader generation guards. Actual transformed/protected capture, fixture binding, effects/parity and full G1 remain open. |
-| M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. Full completion/effects, loaded-code authentication/parity and G1 remain open. |
+| M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
+| M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -9781,3 +9801,55 @@ e87a1b633a885534334a2ac41cc24e60dbceee59500aa87d39d2440fb39fc993.
 Both reference attempts remain failed/consumed; native02 supplies partial
 startup evidence only. No model calls or remaining owned runtime. This pointer
 follows the archived documentation snapshot; M1/G1 remain open.
+
+### 2026-09-26 — M1.5b.3a private guard-phase diagnosis
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md)
+is in_progress from3933ee4. Add bounded failure phase/timing to the private
+supervisor journal after startup rejection or guard cleanup; retain original
+failure codes/deadlines and exclude contents/credentials.15 Python/9 TypeScript
+cases pass; exact installed FTB library resolves the first offline classpath
+failure. Real Java/HTTP phase checks pending. No game/model dispatch selected;
+all40 authority tables unchanged at$4.887796. Native02/full G1 remain failed/open.
+
+### 2026-09-26 — M1.5b.3a source/native-fixture phase checks
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md)
+is implemented_unverified for authentic diagnosis.19 distinct Python cases
+(including4 real synthetic Java/HTTP/process cases) and9 TypeScript cases pass.
+Retain first classpath failure and3 test failures caused by assuming the frozen
+fixture resumes. Corrected tests compare its actual unchanged action journal.
+Diagnostics are memory-only until rejection/cleanup and accepted only after a
+failure or confirmed stop; no read/lease/stop bound changes. Native02's exact
+failed phase remains unknown. Next fresh native03 with the changed diagnostic,
+original fixture/deadlines and zero model calls; full G1 remains open.
+
+### 2026-09-26 — M1.5b.3a protected native03 outcome
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
+Final integrity audit passes486 source pins,441 unique milestone IDs and1,783
+local links; append-only history and all40 authority tables remain unchanged.
+Source diagnostics archive2026-09-26-m1-guard-phase-01:36files/2,191,939bytes,
+seal4db8e097354d4faf584c9ba9da0b57ecee4d09ff9b96c1bd6996e2b972b1e5fd.
+Authentic reference2026-09-26-m1-furnace-native-03:492files/87,414,445bytes,
+seal4d17ace6759b9cc21d0cd850ae85deda2b322f65a77a958704cc33d0dcae2107.
+Both bundles independently verify. This pointer follows the archived source/
+documentation snapshot. Native01/02 failures remain; full M1/G1 remains open.

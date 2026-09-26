@@ -3,11 +3,47 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { recordGuardFailure, recordTerminationTiming, SupervisorEvidence } from '../src/forge_guard.js';
+import { recordGuardFailure, recordNativeHealthFailure, recordTerminationTiming, SupervisorEvidence } from '../src/forge_guard.js';
 import { digest, Fault } from '../src/protocol.js';
 
 const failed = {schema:'strata/ProcessGuardEvent/1',kind:'failed',
   reason:'PROCESS_STOP_UNCONFIRMED',termination_confirmed:false};
+
+const healthFailure = {schema:'strata/ProcessGuardEvent/1',kind:'native_health_failure',
+  policy:'forge-native-health-phase/1',phase:'identity',elapsed_ms:501,read_timeout_ms:500,
+  initialized:false,reason:'GAME_OBSERVATION_UNAVAILABLE'};
+
+test('native health phase evidence is private, chained, and never a stop or renewal receipt',t=>{
+  const root=mkdtempSync(join(tmpdir(),'strata-guard-phase-'));const evidence=new SupervisorEvidence(root,1);
+  t.after(()=>{evidence.close();unlinkSync(join(root,'supervisor-1.jsonl'));rmdirSync(root);});
+  recordGuardFailure(evidence,failed);
+  for(const phase of ['authority','identity','lane_status','authority_scope','listener','state']) {
+    recordNativeHealthFailure(evidence,{...healthFailure,phase,
+      read_timeout_ms:['authority','identity','lane_status'].includes(phase)?500:null},true);
+  }
+  let previous='0'.repeat(64);
+  const records=readFileSync(join(root,'supervisor-1.jsonl'),'utf8').trim().split('\n').map(line=>JSON.parse(line));
+  for(const {hash,...record} of records) {assert.equal(hash,digest(record));assert.equal(record.previous,previous);previous=hash;}
+  assert.equal(records[0].kind,'guard_failed');assert.equal(records.length,7);
+  for(const record of records.slice(1)) {
+    assert.equal(record.kind,'guard_native_health_failure');
+    assert.equal(record.value.termination_confirmed,undefined);assert.equal(record.value.lease_ms,undefined);
+  }
+});
+
+test('health diagnostics reject arbitrary fields, secret strings, bad phases and altered read bounds',t=>{
+  const root=mkdtempSync(join(tmpdir(),'strata-guard-phase-'));const evidence=new SupervisorEvidence(root,1);
+  t.after(()=>{evidence.close();unlinkSync(join(root,'supervisor-1.jsonl'));rmdirSync(root);});
+  assert.throws(()=>recordNativeHealthFailure(evidence,healthFailure,false),Fault);
+  for(const patch of [{schema:'unknown'},{kind:'ready'},{policy:'unknown'},{phase:'private/token'},
+    {phase:'state'},{read_timeout_ms:1000},{read_timeout_ms:null},{elapsed_ms:-1},{elapsed_ms:true},
+    {elapsed_ms:NaN},{elapsed_ms:Infinity},{elapsed_ms:Number.MAX_SAFE_INTEGER+1},
+    {initialized:1},{reason:'private/token'},{reason:'A'.repeat(97)},{reason:'X\nY'},
+    {phase:'authority',initialized:true},{response:'private response'},{termination_confirmed:true}]) {
+    assert.throws(()=>recordNativeHealthFailure(evidence,{...healthFailure,...patch},true),Fault);
+    assert.equal(readFileSync(join(root,'supervisor-1.jsonl'),'utf8'),'');
+  }
+});
 
 test('guardian failure retains its typed private cause and never confirms termination', t => {
   const root=mkdtempSync(join(tmpdir(),'strata-guard-failure-'));

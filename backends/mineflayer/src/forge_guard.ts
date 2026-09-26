@@ -53,6 +53,22 @@ export function recordGuardFailure(evidence: SupervisorEvidence, message: Record
   evidence.event('guard_failed',message);
 }
 
+/** One private terminal phase; no response contents, health renewal, or stop proof. */
+export function recordNativeHealthFailure(evidence: SupervisorEvidence, message: Record<string,unknown>,
+  terminal:boolean): void {
+  fields(message,['schema','kind','policy','phase','elapsed_ms','read_timeout_ms','initialized','reason']);
+  const reads=['authority','identity','lane_status'];
+  requireThat(terminal === true && message.schema === 'strata/ProcessGuardEvent/1' && message.kind === 'native_health_failure'
+    && message.policy === 'forge-native-health-phase/1' && typeof message.phase === 'string'
+    && [...reads,'authority_scope','listener','state'].includes(message.phase)
+    && Number.isSafeInteger(message.elapsed_ms) && Number(message.elapsed_ms)>=0
+    && message.read_timeout_ms === (reads.includes(message.phase) ? 500 : null)
+    && typeof message.initialized === 'boolean' && typeof message.reason === 'string'
+    && (!['authority','authority_scope'].includes(message.phase) || message.initialized === false)
+    && /^[A-Z_]{1,96}$/.test(message.reason), 'PROCESS_GUARD_PROTOCOL');
+  evidence.event('guard_native_health_failure',message);
+}
+
 /** Diagnostic timestamps never replace a separate confirmed-stop receipt. */
 export function recordTerminationTiming(evidence: SupervisorEvidence, message: Record<string,unknown>,
   stopPolicy:'java-tree500-lease1500/1'|'java-tree1000-lease750/1'='java-tree500-lease1500/1'): string {
@@ -161,7 +177,7 @@ export class ForgeProcessGuard {
     const startup = setTimeout(() => {this.fail('PROCESS_GUARD_START_TIMEOUT'); this.child.kill();},5000);
     const renew = setInterval(() => this.renew(),20);
     this.exited.then(() => {clearTimeout(startup); clearInterval(renew);}).catch(() => {});
-    let pending = '';
+    let pending = ''; let healthDiagnostic = false;
     this.child.stdout.on('data',(chunk:Buffer) => {
       try {
         pending += chunk.toString('utf8'); requireThat(pending.length <= 16384,'PROCESS_GUARD_PROTOCOL');
@@ -209,6 +225,10 @@ export class ForgeProcessGuard {
           } else if (message.kind === 'failed') {
             recordGuardFailure(this.evidence,message);
             this.fail('PROCESS_GUARD_FAILED');
+          } else if (message.kind === 'native_health_failure') {
+            requireThat(!healthDiagnostic, 'PROCESS_GUARD_PROTOCOL');
+            recordNativeHealthFailure(this.evidence,message,this.failure !== null || this.stoppedReceipt);
+            healthDiagnostic = true;
           } else throw new Fault('PROCESS_GUARD_PROTOCOL');
         }
       } catch {this.fail('PROCESS_GUARD_PROTOCOL'); this.child.stdin.destroy();}

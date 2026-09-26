@@ -125,11 +125,18 @@ class NativeHealth:
         self.identity = None
         self.initial_epoch = None
         self.armed = False
+        self._phase = ("authority", time.monotonic_ns())
+        self._failure_diagnostic = None
         threading.Thread(target=self._run, daemon=True).start()
+
+    def _enter(self, phase):
+        self._phase = (phase, time.monotonic_ns())
 
     def _run(self):
         try:
+            self._enter("authority")
             authority = self.client.call("authority", {}, timeout_ms=500)
+            self._enter("authority_scope")
             require(authority["campaign_id"] == self.grant.campaign_id
                     and authority["agent_id"] == self.grant.agent_id
                     and authority["capability_digest"] == self.grant.capability_digest
@@ -138,9 +145,13 @@ class NativeHealth:
                     and authority["expires_unix_ms"] >= time.time_ns() // 1000000,
                     "PROCESS_NATIVE_AUTHORITY_MISMATCH")
             while not self.stop.is_set():
+                self._enter("listener")
                 listener_owned_by(self.client.connection.port, self.grant.process.pid)
+                self._enter("identity")
                 identity = self.client.call("identity", {}, timeout_ms=500)
+                self._enter("lane_status")
                 health = self.client.call("lane_status", {}, timeout_ms=500)
+                self._enter("state")
                 require(identity["body_fingerprint"] == self.grant.body_fingerprint,
                         "PROCESS_NATIVE_IDENTITY_MISMATCH")
                 require(health["journal_healthy"], "PROCESS_NATIVE_HEALTH_FAILED")
@@ -159,7 +170,22 @@ class NativeHealth:
                 self.latest = time.monotonic()
                 self.stop.wait(self.period_s)
         except Exception as error:
+            phase, started = self._phase
+            # Memory only on the health path. Publish after guard cleanup, never
+            # block native health checks or termination on diagnostic output.
+            self._failure_diagnostic = {
+                "schema": "strata/ProcessGuardEvent/1", "kind": "native_health_failure",
+                "policy": "forge-native-health-phase/1", "phase": phase,
+                "elapsed_ms": (time.monotonic_ns() - started) // 1_000_000,
+                "read_timeout_ms": 500 if phase in {"authority", "identity", "lane_status"} else None,
+                "initialized": self.identity is not None,
+                "reason": failure_event(error)["reason"],
+            }
             self.error = error.code if isinstance(error, Fault) else "PROCESS_NATIVE_HEALTH_FAILED"
+
+    def failure_diagnostic(self):
+        value = self._failure_diagnostic
+        return None if value is None else dict(value)
 
     def prepare(self):
         # No Job Object attachment or worker arming while startup reads are
@@ -212,6 +238,17 @@ def main():
     finally:
         if monitor:
             monitor.stop.set()
+            diagnostic = monitor.failure_diagnostic()
+            if diagnostic is not None:
+                # Startup has not attached a Job, or guard() has returned from
+                # its cleanup. Missing output cannot change the failure verdict.
+                try:
+                    if pipes:
+                        pipes.emit(diagnostic)
+                    else:
+                        print(json.dumps(diagnostic), flush=True)
+                except (Fault, OSError):
+                    pass
     if pipes:
         until = time.monotonic() + .1
         while pipes.outgoing.unfinished_tasks and time.monotonic() < until:

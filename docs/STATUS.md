@@ -1,5 +1,24 @@
 # Strata current status
 
+M1.5b.3a [private guard-phase diagnosis](verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
 M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
 remains in_progress. Native02 reaches authenticated startup16 with the exact
 module/artifacts and registration-hook support, then fails worker startup with

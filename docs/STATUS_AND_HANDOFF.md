@@ -1,5 +1,24 @@
 # M1/G1 implementation handoff
 
+Final audit:474 source pins,438 preserved unique milestone IDs,1,753 local
+links,126 distinct Python passes and6 Java passes; four native opt-in skips.
+All40 real authority tables unchanged at$4.887796; no owned runtime/model/game
+calls. Source/evidence archive62files/2,640,219bytes, seal
+bb2dd188df41fc6369e0acb3a4d3d01ad560542ae5cedf566334c77702cd20ed.
+Module0.3.14 SHA25655477d9e33adfaf89d4c0b0ea42219b5e7120b72a5fdc19009356c1cee226d26.
+This pointer follows the archived documentation snapshot; authentic capture,
+registration/loaded-code authority and full G1 remain unverified.
+
+M1.5b.1 [native furnace capture candidate](verification/2026-09-26-m1-machine-producer.md)
+is implemented_unverified for authentic capture. New telemetry0.3.14/startup15
+records actual completion phases and internal recipe facts; no public recipe ID
+is guessed. Private offline/pipe readers enforce exact new-profile scope and
+retain unscorable completions/refusals.126 distinct Python cases and6 Java cases
+pass; four opt-in native skips are not evidence. Initial test-fixture failures
+remain retained. No game/model dispatch;40 authority tables unchanged at$4.887796.
+Next registration binding and transformed-code authentication, then protected
+native reference/parity. Full T10/G1 remain not_run.
+
 M1.5a/b [scorer audit and machine resource verifier](verification/2026-09-26-m1-scorer-coverage.md)
 from1dbbd96. M1.5a verified for coverage audit only; M1.5b implemented_unverified
 for authentic capture. Final53 synthetic cases plus1 compiled package check

@@ -70,7 +70,7 @@ public final class StrataTelemetry {
             spool = new EventSpool(config);
             SetupHistory.activate();
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.13");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.14");
             boot.addProperty("clock_policy", ServerClock.POLICY);
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
@@ -88,9 +88,12 @@ public final class StrataTelemetry {
             boot.add("setup_capture_support",SetupCapture.support());
             boot.add("setup_history_support",SetupHistory.support());
             boot.addProperty("telemetry_transport", config.broker() == null ? "private-file/1" : "windows-owned-pipe/1");
-            emit("server_started", "strata/ServerStarted/14", boot, new JsonArray());
+            boot.addProperty("machine_capture_policy",FurnaceCapture.POLICY);
+            boot.add("machine_capture_support",FurnaceCapture.support());
+            emit("server_started", "strata/ServerStarted/15", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
+            FurnaceCapture.activate(event.getServer(),this::emit);
             lastSample = System.nanoTime();
         } catch (IOException error) { throw failed(error); }
     }
@@ -213,6 +216,7 @@ public final class StrataTelemetry {
         if (spool == null) return;
         try {
             CraftCapture.close();
+            FurnaceCapture.close();
             emit("server_clock", "strata/ServerClock/1", clock.stop(), new JsonArray());
             emit("setup_history", "strata/NativeSetupHistory/6", SetupHistory.close(), new JsonArray());
             emit("server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());

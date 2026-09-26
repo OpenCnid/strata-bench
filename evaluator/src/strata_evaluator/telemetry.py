@@ -24,6 +24,8 @@ from .setup_facts import SetupSnapshot, SetupSupport
 from .setup_history import (HistorySupport, HistorySupportV2, HistorySupportV3, HistorySupportV4, HistorySupportV5, HistorySupportV6, SetupHistory,
                             HISTORY_MODELS, HISTORY_SCHEMAS, advance, qualify_history)
 from .telemetry_clocks import ServerClock, reconcile_clock
+from .machine_capture import (FurnaceSupport, KINDS as MACHINE_KINDS,
+                              PAYLOADS as MACHINE_PAYLOADS, require_capture_scope)
 
 KINDS = {
     "server_started": "strata/ServerStarted/1",
@@ -147,6 +149,12 @@ class ServerStartedV14(ServerStartedV13):
     setup_history_support: HistorySupportV6
 
 
+class ServerStartedV15(ServerStartedV14):
+    module: Literal["strata-forge1192-telemetry/0.3.14"]
+    machine_capture_policy: Literal["thermal1192-native-furnace-phases/1"]
+    machine_capture_support: FurnaceSupport
+
+
 LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/6": ServerStartedV6,
                         "strata/ServerStarted/7": ServerStartedV7,
@@ -156,7 +164,8 @@ LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/11": ServerStartedV11,
                         "strata/ServerStarted/12": ServerStartedV12,
                         "strata/ServerStarted/13": ServerStartedV13,
-                        "strata/ServerStarted/14": ServerStartedV14}
+                        "strata/ServerStarted/14": ServerStartedV14,
+                        "strata/ServerStarted/15": ServerStartedV15}
 
 
 class RecipeSnapshot(Strict):
@@ -209,6 +218,9 @@ PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
                           RawCraftCallback, Strict, ConfigSnapshot, CraftBegin, CraftEnd, SetupSnapshot,
                           SetupHistory, ServerClock), strict=True))
 
+KINDS.update(MACHINE_KINDS)
+PAYLOADS.update(MACHINE_PAYLOADS)
+
 
 def unique_object(pairs):
     value = {}
@@ -233,6 +245,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     stopped = False
     startup_model = ServerStarted
     craft_policy = None
+    machine_supported = False
+    machine_ids = set()
     craft_stack, witnesses, craft_ids = [], [], set()
     startup_setup, pending_setup, setup_support = None, None, None
     craft_setups = {}
@@ -270,9 +284,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version12 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/12"
             version13 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/13"
             version14 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/14"
+            version15 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/15"
             history_versioned = event.kind == "setup_history" and event.payload_schema in HISTORY_SCHEMAS.values()
             version9 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/9"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or history_versioned),
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or history_versioned),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -291,10 +306,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                             or (version11 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.10")
                             or (version12 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.11")
                             or (version13 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.12")
-                            or (version14 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.13"),
+                            or (version14 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.13")
+                            or (version15 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.14"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV15 if version15 else ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.14" if version15 else "strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -308,22 +324,28 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 require(event.server_boot_id == boot, "TELEMETRY_BOOT_MISMATCH")
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
+            if event.kind in MACHINE_KINDS:
+                captured = require_capture_scope(event, machine_supported)
+                require(captured.transaction_id not in machine_ids, "MACHINE_CAPTURE_DUPLICATE")
+                machine_ids.add(captured.transaction_id)
             if event.kind == "setup_history":
                 require(history_support is not None and event.payload_schema == HISTORY_SCHEMAS[history_support.policy],
                         "SETUP_HISTORY_MODULE")
             parsed = (startup_model if event.kind == "server_started" else
                       HISTORY_MODELS[history_support.policy] if event.kind == "setup_history" else PAYLOADS[event.kind]).model_validate(data)
-            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version15:
+                machine_supported = parsed.machine_capture_support.status == "supported"
+            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 startup_transport = parsed.telemetry_transport
-            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 history_support = parsed.setup_history_support
-            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14:
+            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15:
                 craft_policy = parsed.craft_capture_policy
             if terminal_clock is not None:
                 require(event.server_tick == terminal_clock.completed_server_ticks
@@ -479,6 +501,10 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             "craft_witnesses": witnesses,
             "transport_identity_verified": False, "mechanics_parity_verified": False,
             "gate_result": "not_run"}
+    if issubclass(startup_model, ServerStartedV15):
+        report["machine_capture"] = {"supported": machine_supported, "transactions": len(machine_ids),
+                                     "recipe_registration_bound": False, "loaded_code_authenticated": False,
+                                     "scoring_eligible": False}
     if authentication is not None:
         report["authentication"] = authentication.receipt(boot, count)
     if issubclass(startup_model, ServerStartedV5):

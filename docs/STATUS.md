@@ -1,5 +1,15 @@
 # Strata current status
 
+M1.5b.1 [native furnace capture candidate](verification/2026-09-26-m1-machine-producer.md)
+is implemented_unverified for authentic capture. New telemetry0.3.14/startup15
+records actual completion phases and internal recipe facts; no public recipe ID
+is guessed. Private offline/pipe readers enforce exact new-profile scope and
+retain unscorable completions/refusals.126 distinct Python cases and6 Java cases
+pass; four opt-in native skips are not evidence. Initial test-fixture failures
+remain retained. No game/model dispatch;40 authority tables unchanged at$4.887796.
+Next registration binding and transformed-code authentication, then protected
+native reference/parity. Full T10/G1 remain not_run.
+
 M1.5a/b [scorer audit and completion verifier](verification/2026-09-26-m1-scorer-coverage.md):
 all T10 controls mapped to exact evidence/gaps;53 synthetic cases plus1 compiled
 package check pass. Machine resource verifier is implemented_unverified for

@@ -90,6 +90,24 @@ def _quantity(stack, expected):
     return stack.count
 
 
+def require_furnace_deltas(states: tuple[FurnaceState, FurnaceState, FurnaceState],
+                           plan: FurnaceRecipe):
+    """Shared arithmetic only; callers retain their original evidence framing."""
+    a, b, c = states
+    require(all(not any(s.count for s in state.augments) for state in states),
+            "MACHINE_AUGMENTS_UNSUPPORTED")
+    unchanged = a.model_dump(exclude={"slots"})
+    require(all(state.model_dump(exclude={"slots"}) == unchanged for state in states)
+            and a.process <= 0 and a.slots[2] == b.slots[2] == c.slots[2],
+            "MACHINE_OTHER_RESOURCES_CHANGED")
+    require(a.slots[0] == b.slots[0] and b.slots[1] == c.slots[1],
+            "MACHINE_RESOLUTION_ORDER")
+    input_before, input_after = (_quantity(s.slots[0], plan.input) for s in (a, c))
+    output_before, output_after = (_quantity(s.slots[1], plan.output) for s in (a, b))
+    require(input_before - input_after == plan.input.count, "MACHINE_CONSUMPTION_UNPROVEN")
+    require(output_after - output_before == plan.output.count, "MACHINE_OUTPUT_UNPROVEN")
+
+
 def qualify_furnace_completion(begin: GameEvent, outputs: GameEvent, end: GameEvent,
                                recipe: dict):
     """Verify all three supplied boundaries; retain every failed witness upstream.
@@ -119,22 +137,7 @@ def qualify_furnace_completion(begin: GameEvent, outputs: GameEvent, end: GameEv
     identity = a.model_dump(exclude={"state"})
     require(b.model_dump(exclude={"state"}) == c.model_dump(exclude={"state"}) == identity
             and a.recipe_digest == expected, "MACHINE_BOUNDARY_IDENTITY")
-    states = (a.state, b.state, c.state)
-    require(all(not any(s.count for s in state.augments) for state in states),
-            "MACHINE_AUGMENTS_UNSUPPORTED")
-    # Process progress and energy cannot be assigned to completion. Charge and
-    # full component identities of unrelated slots must remain unchanged.
-    unchanged = a.state.model_dump(exclude={"slots"})
-    require(all(state.model_dump(exclude={"slots"}) == unchanged for state in states)
-            and a.state.process <= 0
-            and a.state.slots[2] == b.state.slots[2] == c.state.slots[2],
-            "MACHINE_OTHER_RESOURCES_CHANGED")
-    require(a.state.slots[0] == b.state.slots[0] and b.state.slots[1] == c.state.slots[1],
-            "MACHINE_RESOLUTION_ORDER")
-    input_before, input_after = (_quantity(s.slots[0], plan.input) for s in (a.state, c.state))
-    output_before, output_after = (_quantity(s.slots[1], plan.output) for s in (a.state, b.state))
-    require(input_before - input_after == plan.input.count, "MACHINE_CONSUMPTION_UNPROVEN")
-    require(output_after - output_before == plan.output.count, "MACHINE_OUTPUT_UNPROVEN")
+    require_furnace_deltas((a.state, b.state, c.state), plan)
     return {"policy": POLICY, "resource_witness": "pass", "transaction_id": a.transaction_id,
         "campaign_id": begin.campaign_id, "epoch": begin.epoch,
         "server_boot_id": begin.server_boot_id, "server_tick": begin.server_tick,

@@ -1,5 +1,9 @@
 # M1/G1 implementation handoff
 
+M1.5b.4 adds the [native resource verifier](verification/2026-09-26-m1-native-resource.md) for one actual furnace completion, preserving its single event identity and registration lineage.105 focused tests pass; read-only reconstruction authenticates operation04's230 records and verifies all three completion deltas. No gameplay/model rerun. The audit expectation is post-hoc, so protected fixture/scorer admission remains unqualified. Prior failures/holds and full G1 obligations remain unchanged.
+
+Next bind a prior machine recipe/fixture plan to protected launch/setup/team and authenticated transformed producer, then complete T10 controls. Full T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
 M1.5b.3b/.3d [authentic operation04](verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
 eight unique actions/27 action primitives, three signed furnace completions,
 output withdrawal and normal closure. Saved player counts add exactly three iron

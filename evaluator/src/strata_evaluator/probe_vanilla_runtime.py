@@ -18,12 +18,14 @@ from mcbench.storage import canonical, digest, require
 from mcbench.vanilla_persistence import RegisteredProbeWorld, VanillaPersistence, verify_snapshot
 
 from .craft_reference import PrivateFile, check_file, check_tree
+from .player_body_custody import BodyObserverLaunch, HeldBodyObserver, STORAGE_BOUND
 from .probe_vanilla_inputs import DIRECTORY_POLICY, BODY_POLICY as BODY_SOFTWARE_POLICY
 from .vanilla_writer import ARGUMENTS, VanillaWriterSession, check_vanilla_settings
 from .writer_preparation import WriterPreparationPlanV4, pinned_inventory
 
 POLICY = "held-pair-protected-vanilla-reference/1"
 BODY_POLICY = "held-pair-protected-vanilla-reference/2"
+CAPTURE_POLICY = "held-pair-protected-vanilla-reference/3"
 
 
 class ProbeVanillaLaunch(Strict):
@@ -39,6 +41,12 @@ class ProbeVanillaLaunch(Strict):
 class ProbeVanillaBodyLaunch(ProbeVanillaLaunch):
     schema_: Literal["strata/PrivateProbeVanillaLaunch/2"] = Field(alias="schema")
     policy: Literal["held-pair-protected-vanilla-reference/2"]
+
+
+class ProbeVanillaCaptureLaunch(ProbeVanillaBodyLaunch):
+    schema_: Literal["strata/PrivateProbeVanillaLaunch/3"] = Field(alias="schema")
+    policy: Literal["held-pair-protected-vanilla-reference/3"]
+    body_observer: BodyObserverLaunch
 
 
 class ProbeVanillaSession(VanillaWriterSession):
@@ -137,6 +145,14 @@ class ProbeVanillaSession(VanillaWriterSession):
             "-Djava.io.tmpdir=" + str(writer.workspace.path / "tmp"),
             *ARGUMENTS,
         ]
+        self.observer = None
+        if isinstance(plan, ProbeVanillaCaptureLaunch):
+            self.observer = HeldBodyObserver(writer, plan.body_observer.model_dump(by_alias=True))
+            arguments = [*self.observer.arguments, *arguments]
+            self.result["body_observer_binding"] = self.observer.binding
+            writer.result["capability"] = "native-private-paired-vanilla-custody/2"
+            inputs = {"schema": inputs["schema"], "trees": inputs["trees"],
+                      "files": [*inputs["files"], *self.observer.inventory["files"]]}
         self.result["arguments"] = arguments
         self.owner, self.inputs, self.arguments = owner, inputs, arguments
         self.started, self.native = False, None
@@ -175,11 +191,20 @@ class PairedVanillaRuntime:
         require(
             isinstance(values, dict) and set(values) == set(pair["arm_order"]), "PROBE_WORLD_ROSTER"
         )
-        self.plans = {arm: TypeAdapter(ProbeVanillaLaunch | ProbeVanillaBodyLaunch).validate_python(v)
+        self.plans = {arm: TypeAdapter(ProbeVanillaLaunch | ProbeVanillaBodyLaunch | ProbeVanillaCaptureLaunch).validate_python(v)
                       for arm, v in values.items()}
         require(len({p.policy for p in self.plans.values()}) == 1, "PROBE_UNMATCHED_RUNTIME")
         self.policy = next(iter(self.plans.values())).policy
-        self.software_policy = BODY_SOFTWARE_POLICY if self.policy == BODY_POLICY else DIRECTORY_POLICY
+        self.capture_bodies = self.policy == CAPTURE_POLICY
+        self.software_policy = BODY_SOFTWARE_POLICY if self.policy in {BODY_POLICY, CAPTURE_POLICY} else DIRECTORY_POLICY
+        if self.capture_bodies:
+            for arm, plan in self.plans.items():
+                observer = plan.body_observer
+                require(observer.campaign_id == pair["pair_id"] and observer.epoch == 1
+                        and observer.run_id == pair["pair_id"] + ":" + arm, "PROBE_BODY_CAPTURE_SCOPE")
+            require(len({(p.body_observer.module.sha256, p.body_observer.module.bytes,
+                          tuple(p.body_observer.roster)) for p in self.plans.values()}) == 1,
+                    "PROBE_UNMATCHED_RUNTIME")
         require(
             all(p.pair_id == pair["pair_id"] and p.arm == arm for arm, p in self.plans.items()),
             "PROBE_WORLD_IDENTITY",
@@ -210,6 +235,8 @@ class PairedVanillaRuntime:
         self.storage_bound = sum(
             2 * p.max_stopped_state_bytes + 8 * 1024**2 for p in self.plans.values()
         )
+        if self.capture_bodies:
+            self.storage_bound += len(self.plans) * STORAGE_BOUND
         self.held, self.sessions = None, {}
         self.result = {
             "policy": self.policy,
@@ -234,6 +261,12 @@ class PairedVanillaRuntime:
             "PROBE_PACK_DIRECTORY_POLICY",
         )
         require(set(held.writers) == set(self.plans), "PROBE_WORLD_ROSTER")
+        if self.capture_bodies:
+            bodies = held.software.record["saved_bodies"]["bodies"]
+            roster = [bodies[a]["state"]["player_uuid"] for a in sorted(bodies)]
+            require(len(roster) == held.pair["common"]["n"]
+                    and all(p.body_observer.roster == roster for p in self.plans.values()),
+                    "PROBE_BODY_CAPTURE_ROSTER")
         return held
 
     def check(self):
@@ -269,7 +302,7 @@ class PairedVanillaRuntime:
         # Validate this coordinator's scope here; full checks below and in
         # session.start remain mandatory before any physical dispatch.
         self._scope()
-        if self.policy == BODY_POLICY:
+        if self.policy == BODY_POLICY or self.capture_bodies:
             self.result["saved_bodies"] = held.software.record["saved_bodies"]
         # Validate and hold both initial states before starting either server.
         # Slow profile validation cannot consume the sibling's finite game window.

@@ -1998,6 +1998,19 @@ gameplay/helper contexts. A valid save-format capture does not establish equal
 initial or transient state, external-writer exclusion, instrumentation parity,
 campaign clocks, probe disposal or full G1 acceptance.
 [Owned-capture evidence and retained failures](docs/verification/2026-09-25-m1-player-body-custody.md).
+The distinct paired capture profile joins both registered arms to that private
+observer with identical module and complete roster, exact pair/epoch/run scope,
+and owned producer/input/output custody. Compare all emitted typed save-format
+fields, including unknown fields, list order and exact floating-point bits;
+compound insertion order is not state. Preserve original bytes and mismatches.
+Bound diagnostic output separately from the complete comparison and reserve
+its storage. Persist private mismatch evidence before fencing the pair; never
+return it to gameplay or training. Equal save-format captures alone cannot
+qualify full initial/transient state, instrumentation parity, native admission,
+clocks or disposal. Zero-seed initialization is a retained mismatch cause, not
+permission to remove that field or import later probe output into training.
+[Paired comparison evidence](docs/verification/2026-09-26-m1-paired-player-body.md)
+distinguishes passing source checks from the failed authentic preparation.
 [Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
 distinguish passing source cases from failed authentic-input execution.
 

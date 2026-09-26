@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.6r.4 [paired private state comparison](verification/2026-09-26-m1-paired-player-body.md)
+is implemented_unverified:46 distinct source cases pass. Authentic body-pair
+native01 fails before admission with PROBE_WORLD_DEADLINE; first worker input
+entry98.891s leaves insufficient time for its200s writer. No imports/game/model
+dispatch, all461 pins/40 authority tables unchanged at$4.887796, parent fenced
+and resources held. Intended unequal-state refusal remains unverified. Next
+diagnose preparation latency before a changed authentic attempt. G1 not_run.
+
 M1.6r.3/.3a [owned save-format capture](verification/2026-09-25-m1-player-body-custody.md)
 passes for fresh native02: 38 fields, normal12/12 server and7/7 worker exits;
 independent audit and107 current source checks pass. Native01 remains failed,

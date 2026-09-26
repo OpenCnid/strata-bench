@@ -16,8 +16,10 @@ import pytest
 from mcbench.controller import reserved_resources
 from mcbench.storage import Fault, canonical, require
 from strata_evaluator.probe_saved_bodies import saved_body
-from strata_evaluator.probe_vanilla_runtime import BODY_POLICY
-from strata_evaluator.probe_worker_runtime import PairedWorkerReference, POLICY
+from strata_evaluator.probe_vanilla_runtime import BODY_POLICY, CAPTURE_POLICY
+from strata_evaluator.probe_worker_runtime import PairedWorkerReference, POLICY, CAPTURE_WORKER_POLICY
+from strata_evaluator.player_body_evidence import MODULE_SHA
+from strata_evaluator.craft_reference import PrivateFile, check_file
 from strata_evaluator.probe_world_copies import ProbeWorldCopies
 from test_probe_pairs import EVALUATOR
 from test_probe_vanilla_runtime_native import configs, base_pair_source, custody, source, pin, pair_source as source_pair
@@ -35,8 +37,17 @@ def actual_inputs():
     raw = Path(os.environ["STRATA_PROBE_WORKER_REFERENCE"]).read_bytes()
     require(hashlib.sha256(raw).hexdigest() == os.environ.get("STRATA_PROBE_WORKER_REFERENCE_SHA256"), "NATIVE_REFERENCE_INPUT_CHANGED")
     body = json.loads(raw)
-    require(body["scope"] == "actual-vanilla-workers-synthetic-agent-protocol-reference/1"
+    require(body["scope"] in {"actual-vanilla-workers-synthetic-agent-protocol-reference/1",
+                              "actual-vanilla-workers-synthetic-agent-protocol-reference/2"}
             and body["model_calls"] == 0, "NATIVE_REFERENCE_SCOPE")
+    if body["scope"].endswith("/2"):
+        module = PrivateFile.model_validate(body["body_observer"])
+        require(module.sha256 == MODULE_SHA and type(body.get("expected_save_format_equal")) is bool,
+                "NATIVE_REFERENCE_CAPTURE_SCOPE")
+        check_file(Path(module.path), module)
+    else:
+        require("body_observer" not in body and "expected_save_format_equal" not in body,
+                "NATIVE_REFERENCE_CAPTURE_SCOPE")
     require(isinstance(body.get("player_uuid"), str) and re.fullmatch(r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", body["player_uuid"]), "NATIVE_REFERENCE_PLAYER")
     parent = Path(body["writer_evidence_parent"])
     require(parent.is_absolute() and not parent.exists(), "NATIVE_REFERENCE_EVIDENCE_REUSED")
@@ -96,6 +107,13 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     launches = {arm: {"schema": "strata/PrivateProbeVanillaLaunch/2", "policy": BODY_POLICY,
         "pair_id": "p1", "arm": arm, "helper_class": actual_inputs["launch_helper"],
         "max_wall_s": 60, "max_stopped_state_bytes": 64 * 1024**2} for arm in pair["arm_order"]}
+    captured = "body_observer" in actual_inputs
+    if captured:
+        for arm, launch in launches.items():
+            launch.update(schema="strata/PrivateProbeVanillaLaunch/3", policy=CAPTURE_POLICY,
+                body_observer={"schema": "strata/PrivateBodyObserverLaunch/1", "campaign_id": pair["pair_id"],
+                    "epoch": 1, "run_id": pair["pair_id"]+":"+arm, "roster": [actual_inputs["player_uuid"]],
+                    "module": actual_inputs["body_observer"]})
     invocations = {arm: {} for arm in pair["arm_order"]}
     for row in prep.db.connection.execute("SELECT * FROM native_probe_bindings").fetchall():
         state = tmp_path / ("worker-" + row["arm"])
@@ -144,7 +162,11 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
 
     original = PairedWorkerReference.event
     checks = []
+    owners = []
     def event(owner, arm, phase):
+        if not owners:
+            owners.append(owner)
+        require(owners[0] is owner, "NATIVE_REFERENCE_CAPTURE_SCOPE")
         phases.append({"phase": arm + ":" + phase, "at_s": time.monotonic() - started})
         if phase == "server_ready":
             session = owner.sessions[arm]
@@ -167,13 +189,30 @@ def test_actual_registered_workers_join_initial_projection_and_stop_before_save(
     monkeypatch.setattr(PairedWorkerReference, "event", event)
     service = ProbeWorldCopies(prep)
     try:
-        result = service.run_vanilla_worker_reference(EVALUATOR, plans, launches, invocations,
-                                                     pack_binding=source[0].model_dump())
+        try:
+            result = service.run_vanilla_worker_reference(EVALUATOR, plans, launches, invocations,
+                                                         pack_binding=source[0].model_dump())
+        except Fault as error:
+            if not (captured and actual_inputs["expected_save_format_equal"] is False
+                    and error.code == "PROBE_BODY_SAVE_STATE_MISMATCH"):
+                raise
+            require(len(owners) == 1, "NATIVE_REFERENCE_CAPTURE_SCOPE")
+            assert prep.db.connection.execute("SELECT state FROM probe_world_copies").fetchone()[0] == "FAILED"
+            assert prep.db.connection.execute("SELECT state FROM probe_pair_custody").fetchone()[0] == "FENCED"
+            result = {"policy": CAPTURE_WORKER_POLICY, "runtime": owners[0].result,
+                      "live_initial_state_verified": False, "native_launch_authorized": False,
+                      "status": "expected_save_format_mismatch"}
     finally:
         (tmp_path / "preparation-timing.json").write_bytes(canonical({
             "diagnostic_only": True, "intervals_may_overlap": True, "phases": phases,
             "elapsed_since_parent_acquire_s": time.monotonic() - started}))
-    assert result["policy"] == POLICY and set(result["runtime"]["workers"]) == set(pair["arm_order"])
+    assert result["policy"] == (CAPTURE_WORKER_POLICY if captured else POLICY)
+    assert set(result["runtime"]["workers"]) == set(pair["arm_order"])
+    if captured:
+        comparison = result["runtime"]["body_comparison"]
+        assert comparison["owned_producers_verified"]
+        assert comparison["save_format_state_equal"] is actual_inputs["expected_save_format_equal"]
+        assert not comparison["live_initial_state_verified"] and not comparison["native_probe_admission"]
     assert len(checks) == 2
     assert len(import_barriers) == 2 and result["runtime"]["import_preparation"]["complete"]
     for group in result["runtime"]["workers"].values():

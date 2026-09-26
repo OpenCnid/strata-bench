@@ -21,11 +21,14 @@ from mcbench.storage import Fault, canonical, digest, require
 from mcbench.worker_stop import stop_owned_worker
 
 from .probe_saved_bodies import MAX_COMPRESSED
-from .probe_vanilla_runtime import BODY_POLICY, PairedVanillaRuntime
+from .probe_vanilla_runtime import BODY_POLICY, CAPTURE_POLICY, PairedVanillaRuntime
+from .player_body_match import MAX_COMPARISON_BYTES, compare_player_bodies
+from .player_body_evidence import MAX_NBT, sha
 from .probe_worker_observation import verify_initial_worker
 from .telemetry_auth import private_read
 
 POLICY = "held-pair-protected-vanilla-worker-reference/1"
+CAPTURE_WORKER_POLICY = "held-pair-protected-vanilla-worker-reference/2"
 STATE_LIMIT = 64 * 1024**2
 # Four existing 64MiB private logs, bounded worker state, config and receipts.
 MEMBER_STORAGE = 328 * 1024**2
@@ -34,12 +37,19 @@ MEMBER_STORAGE = 328 * 1024**2
 class PairedWorkerReference(PairedVanillaRuntime):
     def __init__(self, pair, launches, inputs):
         super().__init__(pair, launches)
-        require(self.policy == BODY_POLICY, "PROBE_BODY_POLICY_REQUIRED")
+        require(self.policy in {BODY_POLICY, CAPTURE_POLICY}, "PROBE_BODY_POLICY_REQUIRED")
+        server_policy = self.policy
         self.input_record = inputs.check()
         self.inputs = inputs
-        self.policy = POLICY
-        self.record.update(policy=POLICY, server_policy=BODY_POLICY, worker_inputs=self.input_record)
-        self.result.update(policy=POLICY, saved_bodies=inputs.software.record["saved_bodies"], workers={})
+        if self.capture_bodies:
+            bodies = inputs.software.record["saved_bodies"]["bodies"]
+            roster = [bodies[a]["state"]["player_uuid"] for a in sorted(bodies)]
+            require(len(roster) == pair["common"]["n"]
+                    and all(p.body_observer.roster == roster for p in self.plans.values()),
+                    "PROBE_BODY_CAPTURE_ROSTER")
+        self.policy = CAPTURE_WORKER_POLICY if self.capture_bodies else POLICY
+        self.record.update(policy=self.policy, server_policy=server_policy, worker_inputs=self.input_record)
+        self.result.update(policy=self.policy, saved_bodies=inputs.software.record["saved_bodies"], workers={})
         self.workers = inputs._workers
         self.phases = {(arm, agent): "HELD" for arm, group in self.workers.items() for agent in group}
         self.outputs, self.logs, self.exports = {}, [], []
@@ -54,6 +64,8 @@ class PairedWorkerReference(PairedVanillaRuntime):
                     runtime_files[item["path"]] = item["bytes"]
                 runtime_files[str(worker.runtime.path)] = len(worker.runtime.raw)
         self.storage_bound += len(self.phases) * MEMBER_STORAGE + sum(runtime_files.values())
+        if self.capture_bodies:
+            self.storage_bound += MAX_COMPARISON_BYTES
 
     def check_workers(self):
         require(self._scope().software is self.inputs.software, "PROBE_WORKER_SOFTWARE_SCOPE")
@@ -207,6 +219,9 @@ class PairedWorkerReference(PairedVanillaRuntime):
             observed[agent] = self._observe(worker, WorkerTransport(descriptor))
             self._write(self.outputs[arm, agent], "initial-observation.json", observed[agent])
         self.check_workers()  # Every body must still be live at the arm barrier.
+        if self.capture_bodies:
+            self._wait(lambda: session.observer.capture_ready(session.native.process), 10, "BODY_CAPTURE_TIMEOUT")
+            self.check_workers()
         result = {"complete_roster_observed_connected": True, "members": {}, "live_initial_state_verified": False,
                   "native_probe_admission": False}
         self.result["workers"][arm] = result
@@ -226,6 +241,35 @@ class PairedWorkerReference(PairedVanillaRuntime):
             self.exports.append(FileLease(snapshot([], [Path(worker.invocation["state_directory"]), output])))
         self.session = None
         return result
+
+    def verify_stopped(self):
+        super().verify_stopped()
+        if not self.capture_bodies:
+            return
+        reports = {}
+        for arm, session in self.sessions.items():
+            observer = session.observer
+            report = session.writer.result["vanilla"].get("body_observer")
+            require(observer is not None and observer.captured and report is not None
+                    and report["owned_producer_verified"] is True and report["content_verified"] is True
+                    and report["launch_binding"] == observer.binding, "PROBE_BODY_CAPTURE_UNPROVEN")
+            reports[arm] = report
+        roster = self.plans["initial"].body_observer.roster
+
+        def read(arm, identity):
+            raw = private_read(self.sessions[arm].observer.output / (identity + ".nbt"), MAX_NBT)
+            require(sha(raw) == reports[arm]["bodies"][identity]["nbt_sha256"], "BODY_OUTPUT_CHANGED")
+            return raw
+
+        comparison = compare_player_bodies(lambda identity: read("initial", identity),
+            lambda identity: read("experienced", identity), roster)
+        comparison.update(owned_producers_verified=True, pair_plan_digest=self.pair_digest,
+                          capture_reports_sha256={arm: digest(v) for arm, v in reports.items()})
+        self.result["body_comparison"] = comparison
+        require(len(canonical(comparison)) <= MAX_COMPARISON_BYTES, "BODY_COMPARISON_QUOTA")
+        self._write(self.sessions["initial"].evidence, "body-comparison.json", comparison)
+        self.check()  # Retain both exports and all source/authority custody.
+        require(comparison["save_format_state_equal"], "PROBE_BODY_SAVE_STATE_MISMATCH")
 
     def run(self, held, continuation):
         require(self.consumed and self.prepared and not self.run_started and self.held is None,

@@ -2,6 +2,16 @@
 
 ## Current position
 
+M1.6r.4 [paired private save-format comparison](docs/verification/2026-09-26-m1-paired-player-body.md)
+is implemented_unverified:46 distinct source cases pass. M1.6r.4a's authentic
+body-pair native01 fails PROBE_WORLD_DEADLINE before admission or game/model
+dispatch. First worker input entry98.891s leaves insufficient time for the200s
+writer. All461 source pins/40 authority tables unchanged at$4.887796, parent
+FENCED/resources held, no owned runtime. Failure evidence sealed; the intended
+mismatch refusal remains unverified. Next diagnose preparation latency before
+a changed authentic dispatch. Preserve all state fields and historical inputs;
+full initial/transient equality, parity and remaining G1 boundaries stay open.
+
 M1.6r.3/.3a [owned save-format capture](docs/verification/2026-09-25-m1-player-body-custody.md)
 passes for fresh body-native02: 1,175 bytes/38 fields at tick106, stop164,
 3,852 pinned loaded classes, normal 12/12 server and 7/7 worker exits. Independent
@@ -1017,11 +1027,13 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
 | M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
 | M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
-| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | Native11 verifies only own-state projection. R1 save-format codec and R2 distinct callback observer are implemented_unverified for live capture; retained stopped fields differ. Next owned launch/custody and independent output verification, then real capture and complete save/transient-state matching. Full item tags, selected slot, mode, abilities/effects remain unqualified; native admission stays closed. |
+| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | R3 verifies owned single-reference save-format capture; R4 complete typed paired comparison passes46 source cases but authentic body-pair native01 fails preparation. [Current evidence](docs/verification/2026-09-26-m1-paired-player-body.md). Full initial/transient-state matching, instrumentation parity, all-N/tool/clock/disposal and native admission remain open. |
 | M1.6r.1 | GI/SI/QA | Pin the actual vanilla player save-format serializer, retain complete emitted typed NBT with bounded output and strict UUID/thread checks; inherits M1.6r | implemented_unverified | [Installed-code format checks](docs/verification/2026-09-25-m1-player-nbt-codec.md): five distinct cases pass; original negative-zero failure retained. Actual capture/provenance/thread/UUID and transient-state coverage remain unverified. |
 | M1.6r.2 | GI/SI/QA | Bind exact loaded game bytes and real server/player callbacks to private same-tick roster capture, scoped process/sequence and bounded output; inherits M1.6r | implemented_unverified | [Distinct private observer](docs/verification/2026-09-25-m1-player-body-callback.md): nine final-candidate checks pass, including actual JVM transformed-method verification and named refusals; roster lifecycle is synthetic. Owned launch/custody, output verification, authentic capture/parity and transient-state coverage remain open. |
 | M1.6r.3 | GI/SI/QA | Independently verify complete private body output and bind it to held module/configuration/server inputs and owned launch/exit; inherits M1.6r | verified | [Named source/native evidence](docs/verification/2026-09-25-m1-player-body-custody.md): 107 current source checks and native02 audit pass. Exact live authenticated Job/member handle survives normal exit; held input/output export rejects corruption and foreign scope. Save-format custody only; full state matching, external-writer exclusion and parity remain unverified. |
 | M1.6r.3a | GI/SI/QA | Authentic changed-profile body capture through the existing protected single-writer/worker reference; inherits M1.6r.3 | verified | [Native02](docs/verification/2026-09-25-m1-player-body-custody.md) captures 1,175 bytes/38 fields at tick106, stop164, 3,852 loaded classes; normal12/12 server and7/7 worker exits, zero model/actions. Original480/180s bounds preserved. Failed native01, archive-sidecar incident and initial audit-script failure retained. This named positive reference does not prove paired/transient equality, isolation, parity or native probe admission. |
+| M1.6r.4 | GI/SI/QA | Join private body capture to both complete registered worker arms; compare every typed save-format field with float bits preserved and no state-field exclusion; inherits M1.6r | implemented_unverified | [Source46 and retained native failure](docs/verification/2026-09-26-m1-paired-player-body.md). Distinct profile/custody and complete comparator implemented with bounded diagnostics. Authentic paired capture, initial/transient equality and parity remain unverified. |
+| M1.6r.4a | GI/SI/QA | Authentic paired capture and refusal of unequal save-format state before any native probe admission; inherits M1.6r.4 | in_progress | [Body-pair native01 fails](docs/verification/2026-09-26-m1-paired-player-body.md) PROBE_WORLD_DEADLINE before admission, first entry98.891s. Original300/200-170/60-60s limits preserved; intended mismatch refusal not reached. Terminal/fenced, resources held, zero model/actions. Next diagnose first-entry delay before any changed authentic attempt; no unchanged rerun. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9452,3 +9464,53 @@ all40 authority tables and$4.887796 exposure/holds remain unchanged.
 R3 source archive sealed/independently verified:15,862files/436,387,761bytes,
 SHA-256 c31284fe15136bcf59eec26f8a04a343043803721c322317671c24bf36c91f31.
 This pointer follows the archived documentation snapshot; G1 remains not_run.
+
+### 2026-09-26 — M1.6r.4 paired complete-state comparison
+
+Previous goal work is progress: component capture committed9697edd. Recheck the
+clean baseline/all40 real authority tables unchanged at$4.887796/no owned runtime.
+R4 source root retains its preparation-date name2026-09-25-m1-body-matching-source-01.
+Exact official Player load bytecode confirms zero XpSeed invokes RNG. Original
+R1/native11 baseline is zero; body-native02 standalone saved state is also zero.
+Native11's stopped paired bodies are nonzero but remain probe-reference outputs,
+not authorized training imports. Existing authentic source loader accepts only
+StoppedVanillaSnapshot/2; do not loosen that boundary to reuse /3 probe outputs.
+
+Add separate paired server/3 and worker/2 observer profiles, complete registered
+roster/scope/module checks, all capture storage reservations, live roster barrier,
+retained producer/output joins and exact typed save-format comparison. Preserve
+all unknown/nested fields, integer types, array/list order and float bits;
+compound order alone is not state. Raw hashes remain. Bound diagnostic names/
+field listings and reserve8MiB while comparing all fields; overflow/refusal
+cannot silently pass. Persist mismatches before fencing; holds stay reserved.
+No full transient/initial-state or native admission flag is enabled.
+
+Initial comparator28pass/1fail was a test-fixture mistake (uppercasing an all-
+numeric UUID); retained source/output, corrected29pass. Initial paired15pass
+includes the unchanged legacy route. Review added bounded diagnostics; final
+45 comparator/paired cases pass116.93s, plus retained legacy case =46 distinct
+current source cases. Two existing Typer warnings; Ruff/whitespace pass.
+
+Select fresh2026-09-26-m1-body-pair-native-01 for the actual refusal path using
+the unchanged zero-seed source, with new observer profile and expected unequal
+captured state. Preserve parent300s, writers200/170s, servers60/60s; no model or
+gameplay action. Preparation/dispatch recheck private authority/source/host/port.
+Outcome pending. This is a negative integration case, not fair initial matching
+or full G1 completion. M1.6r/M1 remain in_progress; unrelated M2-M7 untouched.
+
+
+### 2026-09-26 — M1.6r.4 authentic preparation failure retained
+
+Body-pair native01 fails146.60s with PROBE_WORLD_DEADLINE before import/world-row/
+writer/server/worker dispatch. Worker entries98.891s/1.906s and preparation
+133.609s leave insufficient time for the first200s writer under the300s parent.
+No bound changes or unchanged rerun. Source46 distinct cases pass; R4 is
+implemented_unverified and R4a remains in_progress, intended mismatch refusal
+unverified. All461 pins/40 authority tables unchanged at$4.887796, parentFENCED,
+resources held, no owned runtime/model/actions. Independent audit passes after
+retaining the initial absent-parent assumption failure; fixture creates an empty
+parent and corrected audit requires that exact condition. Native root sealed236
+files/39,726,406bytes at bf2df15cbe1a06431aac114a4eebd3880245c5400eda94a633eacb19a32743d7.
+[Changed contracts, source checks and actual failure](docs/verification/2026-09-26-m1-paired-player-body.md).
+Next diagnose first-entry latency before selecting changed authentic execution;
+full initial/transient equality, parity and G1 remain open. D18/D19 stay M0-only.

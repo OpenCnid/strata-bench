@@ -1,5 +1,38 @@
 # M1/G1 implementation handoff
 
+September26 terminal update: M1.6r.4 [paired comparison](verification/2026-09-26-m1-paired-player-body.md)
+implemented_unverified;46 distinct source cases pass. Body-pair native01 is
+terminal/failed/consumed: PROBE_WORLD_DEADLINE before imports/world-row/writers/
+servers/workers. First/second worker entries98.891s/1.906s; preparation133.609s;
+pytest146.60s. Intended mismatch refusal not reached. No model/actions. All461
+source pins and40 authority tables match at$4.887796, parentFENCED/resources
+held, no owned runtime. Audit corrected absent-parent assumption to exact empty
+parent; first script/failure retained, no run repeated. Sealed236files/39,726,406
+bytes: bf2df15cbe1a06431aac114a4eebd3880245c5400eda94a633eacb19a32743d7.
+Next diagnose first-entry latency with bounded phase evidence before a changed
+authentic dispatch; preserve original limits. G1 not_run. Earlier pending-state
+text below is historical.
+
+M1.6r.4 in_progress from HEAD9697edd. All40 real authority tables unchanged at
+$4.887796; no owned runtime. Source root2026-09-25-m1-body-matching-source-01.
+Exact official Player bytecode confirms saved XpSeed=0 is replaced from RNG on
+load; retained common R1/native11 source has zero. Keep historical mismatches.
+Next distinct paired observer integration and complete typed save-format
+comparison, including float bits/unknown fields/whole roster and all custody.
+Only authentic later saved nonzero state may seed a fresh fixture; no old input
+or consumed run is changed. No game/model dispatch selected. G1 not_run.
+
+September26 continuation: source45 bounded comparator/paired cases pass116.93s,
+plus retained legacy-route case (46 current distinct). Initial comparator28/29
+failure was the all-numeric uppercase UUID fixture; retain it and corrected29.
+Initial paired15 also passes. Diagnostic listing is bounded, every field still
+compared; add8MiB reservation. Native11's initialized /3 saves are not training
+inputs; existing source loader's /2-only restriction remains. Do not reuse /3
+outputs to bypass one-way probe boundaries. Standalone body-native02 remains
+zero-seed. Fresh2026-09-26-m1-body-pair-native-01 is preparing as an expected
+mismatch case with new observer profile, original300/200-170/60-60s limits and
+zero model/actions. No actual result yet; no initial-equality or G1 claim.
+
 M1.6r.3/.3a [owned save-format capture](verification/2026-09-25-m1-player-body-custody.md)
 passes the named vanilla1192 reference. Current source selection107 passes:
 reader44, corrected custody/writer/inherited paired-runtime63 in684.69s. Real
@@ -1235,3 +1268,11 @@ projection. Native no-self-play has a distinct fixture prompt and cannot be
 called a scientific matched-arm result. Full/native session/cache reset,
 combined-profile isolation, capable settings, scorer and one-way probe boundaries
 remain required. M1.4b/M1 in_progress; G1 not_run; unrelated M2-M7 untouched.
+
+
+R4 final audit passes:461 source pins,434 unique milestone IDs,1,724 local links,
+46 distinct source cases, append-only history and all40 real authority tables
+preserved. Source archive3,504 files/12,406,745 bytes, seal
+b8c8d1ceaf75c10514feef09630405882bba4f44efd0da6c16fe63c2a84bb0a2.
+This pointer follows the archived documentation snapshot; authentic body-pair01
+remains failed and G1 not_run.

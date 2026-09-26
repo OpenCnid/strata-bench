@@ -1,5 +1,23 @@
 # Strata current status
 
+M1.5b.3b [authentic furnace operation01](verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
+The protected reference fails at deposit acknowledgment:
+GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
+reference states remain UNCERTAIN/consumed. Separately, the authenticated server
+stream records three actual furnace completions, consistent generation2 direct
+expert recipe registration and all three correct resource boundaries. Saved
+terminal machine holds three iron ingots, no dust and8,000RF; this is partial
+capture evidence, not a client-action/scorer or G1 pass.
+
+Independent failure audit preserves six unique requests, explicit stop-all,
+370.5986ms guardian tree stop, normal server stop and complete94/94 client plus
+29/29 server parent histories. Session retired; no owned runtime; all40 authority
+tables unchanged at$4.887796 and no model calls. Late private samples show empty
+cursor/unchanged player inventory, but the owned snapshot at failure was not
+recorded. Next diagnose that precise acknowledgment mismatch without relaxing
+confirmation, replaying the deposit or relabeling the failed reference. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 stay M0-only.
+
 M1.5b.3a [private guard-phase diagnosis](verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
 (19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
 Native03 passes26 independent reference checks: protected Forge startup16,

@@ -2,6 +2,24 @@
 
 ## Current position
 
+M1.5b.3b [authentic furnace operation01](docs/verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
+The protected reference fails at deposit acknowledgment:
+GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
+reference states remain UNCERTAIN/consumed. Separately, the authenticated server
+stream records three actual furnace completions, consistent generation2 direct
+expert recipe registration and all three correct resource boundaries. Saved
+terminal machine holds three iron ingots, no dust and8,000RF; this is partial
+capture evidence, not a client-action/scorer or G1 pass.
+
+Independent failure audit preserves six unique requests, explicit stop-all,
+370.5986ms guardian tree stop, normal server stop and complete94/94 client plus
+29/29 server parent histories. Session retired; no owned runtime; all40 authority
+tables unchanged at$4.887796 and no model calls. Late private samples show empty
+cursor/unchanged player inventory, but the owned snapshot at failure was not
+recorded. Next diagnose that precise acknowledgment mismatch without relaxing
+confirmation, replaying the deposit or relabeling the failed reference. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 stay M0-only.
+
 M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
 (19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
 Native03 passes26 independent reference checks: protected Forge startup16,
@@ -1080,6 +1098,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.2 | GI/RS/QA | Bind native internal furnace recipes to actual direct/converted source registration and refresh lifetime; inherits M1.5b.1 and its requirement/contract/test mappings | implemented_unverified | [Native registration lineage](docs/verification/2026-09-26-m1-machine-registration.md):113 Python/14 Java cases pass,1 native opt-in skip. Exact direct/converted object chains, rebuild invalidation, poisoned failures, source domains and reader generation guards. Actual transformed/protected capture, fixture binding, effects/parity and full G1 remain open. |
 | M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
+| M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -9853,3 +9872,49 @@ Authentic reference2026-09-26-m1-furnace-native-03:492files/87,414,445bytes,
 seal4d17ace6759b9cc21d0cd850ae85deda2b322f65a77a958704cc33d0dcae2107.
 Both bundles independently verify. This pointer follows the archived source/
 documentation snapshot. Native01/02 failures remain; full M1/G1 remains open.
+
+### 2026-09-26 — M1.5b.3b authentic operation preparation
+
+M1.5b.3b begins the [actual furnace operation reference](docs/verification/2026-09-26-m1-furnace-operation.md).
+Verify a fresh declared fixture from archived clean-stop machine inputs before
+protected dispatch, then join ordinary scoped client effects to authenticated
+native recipe/completion facts. No new game/model dispatch yet; G1 remains open.
+
+### 2026-09-26 — M1.5b.3b fresh operation01 registered
+
+Declared composite preparation verifies8,609 files, two exact archived setup
+replacements, empty energized furnace, supplied dust3 and clean player counts.
+All40 authority tables unchanged at$4.887796; no existing Java. Fresh protected
+operation01 with554 input pins selects ordinary scoped dust/furnace actions,
+original deadlines and zero model calls. Outcome pending; no completion/scorer
+or G1 pass. [Evidence](docs/verification/2026-09-26-m1-furnace-operation.md).
+
+### 2026-09-26 — M1.5b.3b partial native capture and failed acknowledgment
+
+M1.5b.3b [authentic furnace operation01](docs/verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
+The protected reference fails at deposit acknowledgment:
+GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
+reference states remain UNCERTAIN/consumed. Separately, the authenticated server
+stream records three actual furnace completions, consistent generation2 direct
+expert recipe registration and all three correct resource boundaries. Saved
+terminal machine holds three iron ingots, no dust and8,000RF; this is partial
+capture evidence, not a client-action/scorer or G1 pass.
+
+Independent failure audit preserves six unique requests, explicit stop-all,
+370.5986ms guardian tree stop, normal server stop and complete94/94 client plus
+29/29 server parent histories. Session retired; no owned runtime; all40 authority
+tables unchanged at$4.887796 and no model calls. Late private samples show empty
+cursor/unchanged player inventory, but the owned snapshot at failure was not
+recorded. Next diagnose that precise acknowledgment mismatch without relaxing
+confirmation, replaying the deposit or relabeling the failed reference. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 stay M0-only.
+
+Final integrity audit passes486 unchanged source pins,442 unique milestone IDs
+and1,636 local links; SPEC and append-only history remain intact. All40 real
+authority tables/holds unchanged at$4.887796. Preparation/audit archive
+2026-09-26-m1-furnace-operation-preparation-01:18files/4,673,072bytes,
+sealb6da4668315d1dcca060d1bee784270247be870be37a34f46f584df2d3b7a61e.
+Actual operation01 archive:562files/96,120,115bytes,
+seala6bde2d4a71be1810b645349fe8749d076c0d68335c26a9128ed68663562a94d.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference remains failed/consumed; partial capture is not G1 completion.

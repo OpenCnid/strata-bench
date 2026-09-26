@@ -1,5 +1,23 @@
 # M1/G1 implementation handoff
 
+M1.5b.3d [native operation03](verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
+passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
+native journal binds exactly one refresh and one release to that request: no
+deposit click or replay. Exact failing comparison was not captured; operation02's
+backpack cause cannot be assigned to this run. No furnace completion occurs.
+
+Stopped save: empty furnace/20,000RF; late private cursor still holds three dust.
+Failure audit passes; overall operation audit fails. Guardian409.3859ms passes,
+98/98 client and29/29 server parent histories are terminal, session retired and
+no owned runtime. All40 authority tables remain unchanged at$4.887796. Installed
+candidate5fbb4eca stays unqualified. No model calls or shared-desktop input.
+
+Next retain bounded private preflight comparison evidence and resolve the failing
+comparison without replacing post-input baselines, stripping metadata or replay.
+The older exact-server/current restoration rule is a candidate to examine, not
+this run's proven cause. Prior failures and all G1 obligations remain intact.
+M1.5b.3d/M1 in_progress; full G1 not_run.
+
 M1.5b.3d adds an [authoritative machine preflight](verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
 one charged server read establishes the exact baseline, followed by the original
 observation/revision/age/input checks. Only untouched player metadata may be
@@ -1534,3 +1552,12 @@ Private source/test/build archive2026-09-26-m1-machine-baseline-source-01:
 8d139879678d967c776db049afb47b686e3e7f79a1e04f722d6b87231668c67b.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic preflight and full G1 remain not_run.
+
+Final integrity audit passes498 unchanged source pins,444 unique milestone IDs
+and1,659 local links. SPEC/progress history and all40 authority tables preserved
+at$4.887796. Preparation/audit archive17files/6,036,854bytes, seal
+9b0452155be39707f2f37d8494b082dbd0a6284dfc4df3937e5f3f55f8df1270.
+Authentic operation03 archive565files/96,981,802bytes, seal
+dd52dd86a7d01ec8fd051d5266a7048a0c5c384a7c27cada9853e8e65ce65bf7.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference stays failed/consumed; M1/G1 remains open.

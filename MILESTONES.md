@@ -2,6 +2,24 @@
 
 ## Current position
 
+M1.5b.3d [native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
+passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
+native journal binds exactly one refresh and one release to that request: no
+deposit click or replay. Exact failing comparison was not captured; operation02's
+backpack cause cannot be assigned to this run. No furnace completion occurs.
+
+Stopped save: empty furnace/20,000RF; late private cursor still holds three dust.
+Failure audit passes; overall operation audit fails. Guardian409.3859ms passes,
+98/98 client and29/29 server parent histories are terminal, session retired and
+no owned runtime. All40 authority tables remain unchanged at$4.887796. Installed
+candidate5fbb4eca stays unqualified. No model calls or shared-desktop input.
+
+Next retain bounded private preflight comparison evidence and resolve the failing
+comparison without replacing post-input baselines, stripping metadata or replay.
+The older exact-server/current restoration rule is a candidate to examine, not
+this run's proven cause. Prior failures and all G1 obligations remain intact.
+M1.5b.3d/M1 in_progress; full G1 not_run.
+
 M1.5b.3d adds an [authoritative machine preflight](docs/verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
 one charged server read establishes the exact baseline, followed by the original
 observation/revision/age/input checks. Only untouched player metadata may be
@@ -1149,7 +1167,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
 | M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
 | M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
-| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | implemented_unverified | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. Native integration remains unverified; prior failures/consumed state intact. |
+| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | in_progress | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. [Native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) passes pickup but stops before deposit at REVISION_CONFLICT; precise preflight comparison unrecorded. Failure audit confirms no deposit input, empty furnace and terminal cleanup. Full native conformance remains incomplete; all failures/consumed state intact. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -10062,3 +10080,40 @@ Private source/test/build archive2026-09-26-m1-machine-baseline-source-01:
 8d139879678d967c776db049afb47b686e3e7f79a1e04f722d6b87231668c67b.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic preflight and full G1 remain not_run.
+
+### 2026-09-26 — M1.5b.3d fresh native qualification
+
+M1.5b.3d [native server-baseline verification](docs/verification/2026-09-26-m1-machine-baseline-native.md) prepares fresh operation03.
+The source-tested client5fbb4eca is installed, with prior d0e30db0 and its log
+preserved. Both earlier failed references remain consumed. Same declared fixture,
+checker and limits; new protected scope/session. All40 durable authority tables
+match at$4.887796; no M1 paid allowance. Authentic result pending, G1 not_run.
+
+### 2026-09-26 — M1.5b.3d native preflight refusal
+
+M1.5b.3d [native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
+passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
+native journal binds exactly one refresh and one release to that request: no
+deposit click or replay. Exact failing comparison was not captured; operation02's
+backpack cause cannot be assigned to this run. No furnace completion occurs.
+
+Stopped save: empty furnace/20,000RF; late private cursor still holds three dust.
+Failure audit passes; overall operation audit fails. Guardian409.3859ms passes,
+98/98 client and29/29 server parent histories are terminal, session retired and
+no owned runtime. All40 authority tables remain unchanged at$4.887796. Installed
+candidate5fbb4eca stays unqualified. No model calls or shared-desktop input.
+
+Next retain bounded private preflight comparison evidence and resolve the failing
+comparison without replacing post-input baselines, stripping metadata or replay.
+The older exact-server/current restoration rule is a candidate to examine, not
+this run's proven cause. Prior failures and all G1 obligations remain intact.
+M1.5b.3d/M1 in_progress; full G1 not_run.
+
+Final integrity audit passes498 unchanged source pins,444 unique milestone IDs
+and1,659 local links. SPEC/progress history and all40 authority tables preserved
+at$4.887796. Preparation/audit archive17files/6,036,854bytes, seal
+9b0452155be39707f2f37d8494b082dbd0a6284dfc4df3937e5f3f55f8df1270.
+Authentic operation03 archive565files/96,981,802bytes, seal
+dd52dd86a7d01ec8fd051d5266a7048a0c5c384a7c27cada9853e8e65ce65bf7.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference stays failed/consumed; M1/G1 remains open.

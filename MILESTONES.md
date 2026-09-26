@@ -2,6 +2,16 @@
 
 ## Current position
 
+M1.6r.1 [private player NBT codec](docs/verification/2026-09-25-m1-player-nbt-codec.md)
+is implemented_unverified for live capture; M1.6r remains in_progress. Five
+focused installed-code/synthetic-data cases pass, retaining the first signed-zero
+failure and its explicit format limitation. All 38 retained saved fields were
+compared; XpSeed and warden_spawn_tracker differ from source in both stopped
+exports. This is not evidence of live initial equality. Next authenticate the
+loaded producer and callback, then verify live UUID/thread scope and the full
+state contract. Gameplay observations and native probe admission remain scoped.
+Native11 is retained/pass and is not rerun. G1 remains not_run.
+
 Native11 [paired worker reference](docs/verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
 independent audit passes. Both arms import before writers, join with scoped
 identity/exact own-state observation journals, stop workers normally7/7 before
@@ -990,6 +1000,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
 | M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
 | M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
+| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | Native11 verifies only own-state projection. Full item tags, selected slot, game mode, abilities, effects and other unprojected live state need a private authenticated witness. Start with retained source/state comparison and exact installed serializer bindings; native admission remains closed. |
+| M1.6r.1 | GI/SI/QA | Pin the actual vanilla player save-format serializer, retain complete emitted typed NBT with bounded output and strict UUID/thread checks; inherits M1.6r | implemented_unverified | [Installed-code format checks](docs/verification/2026-09-25-m1-player-nbt-codec.md): five distinct cases pass; original negative-zero failure retained. Actual capture/provenance/thread/UUID and transient-state coverage remain unverified. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9254,3 +9266,45 @@ bytes, SHA-256
 This pointer follows the archived documentation snapshot. All sessions are
 terminal; keep the archive and original writer evidence unchanged. No replay
 of the successful case or any prior failed input is authorized.
+
+### 2026-09-25 — M1.6r complete private live-state witness begins
+
+Native11's actual paired lifecycle passes but cannot witness unprojected live
+player state. Inspect existing private vanilla callback instrumentation and
+retained saved-body/export evidence, then pin the installed official serializer
+rather than invent an API or expose additional state through Mineflayer. M1.6r.1
+covers bounded complete serialization, exact class/method bindings and strict
+UUID/thread scope. Live callback/provenance, full matching, native admission,
+clocks/disposal and all other G1 obligations remain open.
+All40 real authority tables match native11 at$4.887796; no owned runtime. Fresh
+private root:`C:/Users/Darian/.strata/evidence/2026-09-25-m1-live-body-witness-01`.
+No paid allowance, game rerun or deadline change is selected.
+
+### 2026-09-25 — M1.6r.1 save-format codec and retained-state findings
+
+Added the evaluator-only Java codec, exact inspected serializer/thread/UUID
+bindings, 16 MiB output cap and focused installed-code conformance tests.
+Five distinct cases pass: first run three passes/one negative-zero failure,
+then corrected ordinary-value round-trip and explicit normalization tests pass.
+Keep the original diagnostic API failure and all test outputs. No live capture
+is claimed; save NBT omits transient state and does not prove producer identity.
+All 38 retained player fields were compared; both stopped arms differ from the
+source in XpSeed and warden_spawn_tracker. Do not normalize those differences
+away or infer live initial equality. Native11 is unchanged and not replayed.
+See [report](docs/verification/2026-09-25-m1-player-nbt-codec.md). Next bind actual
+loaded bytes/owned callback provenance and verify real capture, then complete
+matching/tools/clocks/disposal and remaining G1 obligations. M1.6r in_progress,
+M1.6r.1 implemented_unverified; no model/game dispatch or changed paid authority.
+
+Final audit: 447 source pins, all 429 milestone IDs, append-only history and
+1,550 local links pass. All 40 real authority tables remain unchanged at
+$4.887796 exposure and no owned runtime remains. Both stopped arms also differ
+from each other in XpSeed and warden_spawn_tracker; initial live equality remains
+unknown. A failed documentation write left the file intact; patch edits then
+succeeded. Actual loaded bytes/callbacks, live UUID/thread failures, transient
+state, overhead/parity and all remaining G1 contracts stay unverified.
+
+R1 evidence is sealed and independently verified: 48 files, 19,421,731 bytes,
+SHA-256 `9b23142694d2f3ebb08fedfa7b2ba480f57ceaf784eb54cd1612b5c2147a30b0`.
+This pointer follows the archived documentation snapshot. No milestone/gate is
+promoted by archive sealing; M1.6r.1 remains implemented_unverified.

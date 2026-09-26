@@ -1,5 +1,31 @@
 # M1/G1 implementation handoff
 
+M1.6r.1 [private player NBT codec](verification/2026-09-25-m1-player-nbt-codec.md)
+is implemented_unverified for live capture; M1.6r remains in_progress. Five
+focused installed-code/synthetic-data cases pass, retaining the first signed-zero
+failure and its explicit format limitation. All 38 retained saved fields were
+compared; XpSeed and warden_spawn_tracker differ from source in both stopped
+exports. This is not evidence of live initial equality. Next authenticate the
+loaded producer and callback, then verify live UUID/thread scope and the full
+state contract. Gameplay observations and native probe admission remain scoped.
+Native11 is retained/pass and is not rerun. G1 remains not_run.
+
+R1 codec checks are terminal: three passes/one retained format failure, followed
+by two focused passes; five distinct cases pass. No game/model dispatch or owned
+runtime. Final audit: 447 source pins, 429 retained/new milestone IDs, 1,550 local
+links and all 40 authority tables unchanged at $4.887796 exposure. Both stopped
+arms also differ from each other in XpSeed and warden_spawn_tracker; do not infer
+their initial values. Next qualify loaded-byte/owned-callback provenance and real
+UUID/thread capture. Save-format data alone cannot cover transient live state.
+Private evidence: `C:/Users/Darian/.strata/evidence/2026-09-25-m1-live-body-witness-01`.
+The old clock agent/profile has not changed; its evidence cannot qualify this
+new codec. Catalogs 7/8 remain closed and M1 paid authority is still absent.
+
+R1 evidence is sealed and independently verified: 48 files, 19,421,731 bytes,
+SHA-256 `9b23142694d2f3ebb08fedfa7b2ba480f57ceaf784eb54cd1612b5c2147a30b0`.
+This pointer follows the archived documentation snapshot. Preserve the archive;
+there are no active sessions to resume or live attempts to replay.
+
 Native11 [paired worker reference](verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
 independent audit passes. Both arms import before writers, join with scoped
 identity/exact own-state observation journals, stop workers normally7/7 before

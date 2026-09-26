@@ -1,5 +1,15 @@
 # Strata current status
 
+M1.6r.1 [private player NBT codec](verification/2026-09-25-m1-player-nbt-codec.md)
+is implemented_unverified for live capture; M1.6r remains in_progress. Five
+focused installed-code/synthetic-data cases pass, retaining the first signed-zero
+failure and its explicit format limitation. All 38 retained saved fields were
+compared; XpSeed and warden_spawn_tracker differ from source in both stopped
+exports. This is not evidence of live initial equality. Next authenticate the
+loaded producer and callback, then verify live UUID/thread scope and the full
+state contract. Gameplay observations and native probe admission remain scoped.
+Native11 is retained/pass and is not rerun. G1 remains not_run.
+
 Native11 [paired worker reference](verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
 independent audit passes. Both arms import before writers, join with scoped
 identity/exact own-state observation journals, stop workers normally7/7 before

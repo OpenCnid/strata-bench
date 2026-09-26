@@ -1959,6 +1959,16 @@ unprojected live NBT fields or establish full matched state, simultaneous all-N
 readiness, tool/policy parity, authoritative clocks or disposal. Genuine game
 observations retain their identity when agent/protocol reference fixtures are
 synthetic; example labels never substitute for producer provenance.
+The private vanilla player save-format codec may invoke the pinned actual
+serializer on the owning server thread, binding the expected UUID before and
+after capture and in the emitted compound. Retain every emitted field and
+refuse oversized or failed output without returning partial evidence. The
+output cap does not bound the game's temporary allocations or execution time.
+Save-format data does not cover all transient player state or supply producer,
+callback/tick/sequence, all-N readiness or admission authority. Authenticate
+loaded bytes and owned process separately; keep raw captures private. Preserve
+format limitations, original bytes and every mismatch rather than silently
+normalizing comparisons or extending ordinary gameplay observations.
 [Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
 distinguish passing source cases from failed authentic-input execution.
 

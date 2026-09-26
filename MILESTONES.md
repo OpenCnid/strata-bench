@@ -2,6 +2,17 @@
 
 ## Current position
 
+M1.5b.3d adds an [authoritative machine preflight](docs/verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
+one charged server read establishes the exact baseline, followed by the original
+observation/revision/age/input checks. Only untouched player metadata may be
+reacquired before input; clicked/cursor/resources stay exact. Post-click exact
+confirmation, no replay and original deadlines/budgets remain mandatory.
+Forge minor44/policy3 is a new unqualified identity; installed client is unchanged.
+Source verification passes40 distinct Java cases,2 TypeScript cases and1 Python
+cross-language case. Initial budget-fixture admission failure is retained.
+Next qualify the changed native client on a fresh protected operation. Both prior
+references remain failed/consumed. No paid model authority or G1 pass follows.
+
 M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
 diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
 unique action (deposit), prediction/reply differ only in component identity of
@@ -1138,6 +1149,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
 | M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
 | M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
+| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | implemented_unverified | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. Native integration remains unverified; prior failures/consumed state intact. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -10029,3 +10041,24 @@ Authentic operation02 archive561files/96,528,579bytes, seal
 38630f898ff2c778cd4627a0ee9522c124de64403212fed25e025a039dc0a6c8.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Diagnostic passes; reference stays failed/consumed and G1 not_run.
+
+### 2026-09-26 — M1.5b.3d authoritative pre-click baseline
+
+M1.5b.3d adds an [authoritative machine preflight](docs/verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
+one charged server read establishes the exact baseline, followed by the original
+observation/revision/age/input checks. Only untouched player metadata may be
+reacquired before input; clicked/cursor/resources stay exact. Post-click exact
+confirmation, no replay and original deadlines/budgets remain mandatory.
+Forge minor44/policy3 is a new unqualified identity; installed client is unchanged.
+Source verification passes40 distinct Java cases,2 TypeScript cases and1 Python
+cross-language case. Initial budget-fixture admission failure is retained.
+Next qualify the changed native client on a fresh protected operation. Both prior
+references remain failed/consumed. No paid model authority or G1 pass follows.
+
+Final integrity audit passes498 source pins,444 unique milestone IDs and1,808
+local links, preserving original progress and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-machine-baseline-source-01:
+41files/3,088,998bytes, seal
+8d139879678d967c776db049afb47b686e3e7f79a1e04f722d6b87231668c67b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic preflight and full G1 remain not_run.

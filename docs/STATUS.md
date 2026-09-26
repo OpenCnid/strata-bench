@@ -1,5 +1,16 @@
 # Strata current status
 
+M1.5b.3d adds an [authoritative machine preflight](verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
+one charged server read establishes the exact baseline, followed by the original
+observation/revision/age/input checks. Only untouched player metadata may be
+reacquired before input; clicked/cursor/resources stay exact. Post-click exact
+confirmation, no replay and original deadlines/budgets remain mandatory.
+Forge minor44/policy3 is a new unqualified identity; installed client is unchanged.
+Source verification passes40 distinct Java cases,2 TypeScript cases and1 Python
+cross-language case. Initial budget-fixture admission failure is retained.
+Next qualify the changed native client on a fresh protected operation. Both prior
+references remain failed/consumed. No paid model authority or G1 pass follows.
+
 M1.5b.3c [authentic diagnostic operation02](verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
 diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
 unique action (deposit), prediction/reply differ only in component identity of
@@ -708,3 +719,11 @@ Authentic operation02 archive561files/96,528,579bytes, seal
 38630f898ff2c778cd4627a0ee9522c124de64403212fed25e025a039dc0a6c8.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Diagnostic passes; reference stays failed/consumed and G1 not_run.
+
+Final integrity audit passes498 source pins,444 unique milestone IDs and1,808
+local links, preserving original progress and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-machine-baseline-source-01:
+41files/3,088,998bytes, seal
+8d139879678d967c776db049afb47b686e3e7f79a1e04f722d6b87231668c67b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic preflight and full G1 remain not_run.

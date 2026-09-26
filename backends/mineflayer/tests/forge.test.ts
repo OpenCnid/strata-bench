@@ -11,7 +11,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { createServer } from 'node:http';
 import { ForgeLane } from '../src/forge_lane.js';
 import { forgeCapabilities } from '../src/forge_capabilities.js';
-import { NativeGameClient, NativeOutcomeUnknown, RECIPE_QUERY_POLICY, QUEST_POLICY, QUEST_TEXT_POLICY, QUEST_COMPONENTS_POLICY, QUEST_MENU_POLICY, strictJson, type NativeOperation, type NativeResults } from '../src/native_game.js';
+import { NativeGameClient, NativeOutcomeUnknown, nativeCapabilities, RECIPE_QUERY_POLICY, QUEST_POLICY, QUEST_TEXT_POLICY, QUEST_COMPONENTS_POLICY, QUEST_MENU_POLICY, strictJson, type NativeOperation, type NativeResults } from '../src/native_game.js';
 import { Journal } from '../src/journal.js';
 import { serve, type GameLane } from '../src/server.js';
 import { workerConfig, type ForgeConfig } from '../src/worker_config.js';
@@ -125,13 +125,33 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/2');
   assert.equal(manifest.backend,'forge_client'); assert.equal(manifest.campaign_admission,false);
   assert.equal(manifest.keybindings,false); assert.equal(manifest.motor.completion,'emitted-input-only');
-  assert.equal(manifest.contract_minor,43);
+  assert.equal(manifest.contract_minor,44);
   assert.equal(manifest.motor.block_target,'observed-outline-centers64-local16/1');
   for (const patch of [{backend:'mineflayer'},{server_kind:'vanilla'},{pack_version:'latest'},
     {private_extra:true},{purpose:'campaign'},{connection_file:repo},{schema:'strata/ForgeDevelopmentWorker/1'},
     {process_guard_file:undefined},{guard_python:'relative-python.exe'}]) {
     writeFileSync(path,JSON.stringify({...config,...patch})); assert.throws(() => workerConfig(path,repo));
   }
+});
+
+test('machine server-baseline capability rejects the old immediate-click identity', async t => {
+  let policy = 'thermal-visible-slot-server-baseline-owned-transfer/3'; let posts = 0;
+  const server = createServer(async (req,res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    posts++; const request = JSON.parse(body);
+    res.writeHead(200,{'Content-Type':'application/json'});
+    res.end(JSON.stringify({schema:'strata/NativeGameResponse/1',request_id:request.request_id,
+      session_id:'session',status:'completed',result:{...nativeCapabilities(true),machine_inventory_policy:policy},error_code:null}));
+  });
+  await new Promise<void>(resolve => server.listen(0,'127.0.0.1',resolve));
+  t.after(() => new Promise<void>(resolve => server.close(() => resolve())));
+  const address = server.address(); assert.ok(address && typeof address !== 'string');
+  const client = new NativeGameClient({schema:'strata/NativeGameConnection/1',host:'127.0.0.1',port:address.port,
+    session_id:'session',bearer_token:'b'.repeat(64),fingerprint,operator_development_only:true});
+  assert.equal((await client.call('capabilities')).machine_inventory_policy,policy);
+  assert.equal(manifest.machine_inventory.policy,policy);
+  policy = 'thermal-visible-slot-owned-transfer-feedback/2';
+  await assert.rejects(client.call('capabilities'),/CAPABILITY_MISSING/); assert.equal(posts,2);
 });
 
 test('native transport polls one POST, validates identities and never replays a lost mutation', async t => {

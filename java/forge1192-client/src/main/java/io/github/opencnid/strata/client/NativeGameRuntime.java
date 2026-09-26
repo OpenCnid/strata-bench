@@ -770,7 +770,11 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
                 var menu = client.player.containerMenu;
                 requireInventoryMotor(menu, slot, quick);
                 if (NativeThermalMenu.known(menu))
-                    return GameMachineInventory.click(inventoryPort(false), NativeThermalMenu.layout(menu), slot, right, quick, emitter);
+                    return GameMachinePreflight.start(inventoryPort(false), NativeThermalMenu.layout(menu), slot, right, quick, () -> {
+                        if (SettingsJson.integer(snapshot(SettingsJson.string(snapshot, "snapshot_id")), "age_ms") > 2000)
+                            throw new IOException("STALE_OBSERVATION");
+                        validate(batch, snapshot);
+                    }, emitter);
                 return GameInventory.click(inventoryPort(false), slot, right, quick, emitter);
             }
             case "interact_block", "dig" -> {

@@ -203,7 +203,7 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
         value.addProperty("crafting_policy", GameCrafting.POLICY);
         value.addProperty("manual_crafting_policy", GameRecipeGrid.POLICY);
         value.addProperty("machine_observation_policy", GameMachineMenu.POLICY);
-        value.addProperty("machine_inventory_policy", GameMachineInventory.POLICY);
+        value.addProperty("machine_inventory_policy", GameMachinePreflight.POLICY);
         value.addProperty("machine_input_policy", GameMachineMenu.INPUT_POLICY);
         value.addProperty("navigation_policy", GameRoute.POLICY);
         value.addProperty("collision_policy", NativeCollisionView.POLICY);

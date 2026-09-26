@@ -29,6 +29,16 @@ final class GameMachineInventory {
     }
     static GameActionLane.Motor click(GameInventory.Port port, Layout layout, int slot, boolean right, boolean quick,
                                      GameActionLane.Emitter emit) throws IOException {
+        var before = validateClick(port, layout, slot, quick);
+        return new Step(port, layout, before, slot, right, quick, emit);
+    }
+    static GameActionLane.Motor clickConfirmed(GameInventory.Port port, Layout layout,
+                                               GameInventory.View baseline, int slot, boolean right, boolean quick,
+                                               GameActionLane.Emitter emit) throws IOException {
+        if (!validateClick(port, layout, slot, quick).equals(baseline)) throw new IOException("REVISION_CONFLICT");
+        return new Step(port, layout, baseline, slot, right, quick, emit);
+    }
+    static GameInventory.View validateClick(GameInventory.Port port, Layout layout, int slot, boolean quick) throws IOException {
         port.validate(); var before = port.view(); layout.check(before);
         if (!layout.visible(slot) || quick && layout.player(slot)) throw new IOException("MECHANIC_UNSUPPORTED");
         var target = before.slots().get(slot); var cursor = before.cursor();
@@ -37,7 +47,7 @@ final class GameMachineInventory {
         if (!target.empty() && !port.mayPickup(slot)) throw new IOException("PRECONDITION_FAILED");
         if (!quick && !cursor.empty() && !port.mayPlace(slot, cursor)
                 && (target.empty() || !target.same(cursor))) throw new IOException("PRECONDITION_FAILED");
-        return new Step(port, layout, before, slot, right, quick, emit);
+        return before;
     }
     private static final class Step implements GameActionLane.Motor {
         final GameInventory.Port port; final Layout layout;

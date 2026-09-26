@@ -21,9 +21,11 @@ def test_native_block_target_policy_agrees_with_compiled_broker_and_rejects_old_
                             capture_output=True, text=True, timeout=10, check=True)
     value = json.loads(result.stdout)
     caps = GameCapabilities.model_validate(value)
+    assert caps.machine_inventory_policy == "thermal-visible-slot-server-baseline-owned-transfer/3"
     assert caps.block_target_policy == "observed-outline-centers64-local16/1"
     assert caps.crafting_policy == "known-recipe-server-preview-transition-bound20/6"
-    for patch in ({"native_action_policy": "durable-intent-client-thread-nineteen-actions/1"},
+    for patch in ({"machine_inventory_policy": "thermal-visible-slot-owned-transfer-feedback/2"},
+                  {"native_action_policy": "durable-intent-client-thread-nineteen-actions/1"},
                   {"block_target_policy": "unqualified"},
                   {"crafting_policy": "known-recipe-fill-final-server-output-remainders/2"},
                   {"crafting_policy": "known-recipe-fill-output-exact-metadata-reacquire/3"}):

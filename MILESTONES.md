@@ -2,6 +2,24 @@
 
 ## Current position
 
+M1.5b.3b/.3d [authentic operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
+eight unique actions/27 action primitives, three signed furnace completions,
+output withdrawal and normal closure. Saved player counts add exactly three iron
+ingots; furnace is empty at8,000RF. All four reference states STOPPED/consumed.
+Guardian653.8858ms passes;140/140 client and29/29 server parents terminal, session
+retired and no owned runtime. All40 authority tables unchanged at$4.887796.
+
+M1.5b.3e's failure diagnostic was not exercised: no preflight refusal occurred,
+so its authentic diagnostic result stays not_run. Prior operation01/02/03 failures
+and unknown causes remain; this is no retrospective fix or general reliability
+claim. Installed1d4935ed is the exact successful profile. No model calls.
+
+Next use this retained positive trajectory to audit/complete the protected
+machine-scorer admission boundary, including loaded-code/custody/setup/team,
+full RF/window history, parity/isolation and T10 negative controls. Raw captures
+remain unscorable. Do not rerun unchanged gameplay solely to trigger diagnosis.
+Full T01/T04/T05/T06/T10/T11 and G1 remain open.
+
 M1.5b.3e adds [private preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
 Fixed phases distinguish input-fence failures from current/selection/final-baseline
 comparisons. Value-free masks use already-read projected state, never hidden
@@ -1173,10 +1191,10 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.2 | GI/RS/QA | Bind native internal furnace recipes to actual direct/converted source registration and refresh lifetime; inherits M1.5b.1 and its requirement/contract/test mappings | implemented_unverified | [Native registration lineage](docs/verification/2026-09-26-m1-machine-registration.md):113 Python/14 Java cases pass,1 native opt-in skip. Exact direct/converted object chains, rebuild invalidation, poisoned failures, source domains and reader generation guards. Actual transformed/protected capture, fixture binding, effects/parity and full G1 remain open. |
 | M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
 | M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
-| M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
+| M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open.  [Operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes17 reference checks, eight actions, three signed completions and saved output collection. Prior failures retained; loaded-code/scorer/full-gate qualification remains open. |
 | M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
-| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | in_progress | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. [Native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) passes pickup but stops before deposit at REVISION_CONFLICT; precise preflight comparison unrecorded. Failure audit confirms no deposit input, empty furnace and terminal cleanup. Full native conformance remains incomplete; all failures/consumed state intact. |
-| M1.5b.3e | GI/QA | Retain private preflight phase/comparison evidence; inherits M1.5b.3d mappings plus N04/T06 log boundary | implemented_unverified | [Source evidence](docs/verification/2026-09-26-m1-preflight-diagnostic.md):61 focused Java cases pass, including4 new cases exercising all11 phases, masks/privacy and terminal publication. No altered acceptance/read count/budget; authentic diagnostic integration remains unverified. Operation03 exact failing comparison still unknown. |
+| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | in_progress | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. [Native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) passes pickup but stops before deposit at REVISION_CONFLICT; precise preflight comparison unrecorded. Failure audit confirms no deposit input, empty furnace and terminal cleanup. Full native conformance remains incomplete; all failures/consumed state intact.  [Operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes17 reference checks, eight actions, three signed completions and saved output collection. Prior failures retained; loaded-code/scorer/full-gate qualification remains open. |
+| M1.5b.3e | GI/QA | Retain private preflight phase/comparison evidence; inherits M1.5b.3d mappings plus N04/T06 log boundary | implemented_unverified | [Source evidence](docs/verification/2026-09-26-m1-preflight-diagnostic.md):61 focused Java cases pass, including4 new cases exercising all11 phases, masks/privacy and terminal publication. No altered acceptance/read count/budget; authentic diagnostic integration remains unverified. Operation04 completes without failure, so authentic failure-diagnostic branch remains not_run; operation03 exact failing comparison still unknown. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -10144,3 +10162,39 @@ Private source/test/build archive2026-09-26-m1-preflight-diagnostic-source-01:
 b54aa40a4c57ca6e8abe1e4d6a4b8615ca355e964dfd7eb102de9d77807ba18b.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic diagnostic integration and G1 not_run.
+
+### 2026-09-26 — M1.5b.3e native diagnostic preparation
+
+M1.5b.3e [native preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) prepares fresh operation04 with
+candidate1d4935ed installed; prior5fbb4eca and its log are preserved. Same fixture,
+checker and limits, new protected scope/session. All40 authority tables unchanged
+at$4.887796. Earlier failures remain consumed; result pending, no model calls.
+
+### 2026-09-26 — M1.5b.3b/.3d successful native furnace reference
+
+M1.5b.3b/.3d [authentic operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
+eight unique actions/27 action primitives, three signed furnace completions,
+output withdrawal and normal closure. Saved player counts add exactly three iron
+ingots; furnace is empty at8,000RF. All four reference states STOPPED/consumed.
+Guardian653.8858ms passes;140/140 client and29/29 server parents terminal, session
+retired and no owned runtime. All40 authority tables unchanged at$4.887796.
+
+M1.5b.3e's failure diagnostic was not exercised: no preflight refusal occurred,
+so its authentic diagnostic result stays not_run. Prior operation01/02/03 failures
+and unknown causes remain; this is no retrospective fix or general reliability
+claim. Installed1d4935ed is the exact successful profile. No model calls.
+
+Next use this retained positive trajectory to audit/complete the protected
+machine-scorer admission boundary, including loaded-code/custody/setup/team,
+full RF/window history, parity/isolation and T10 negative controls. Raw captures
+remain unscorable. Do not rerun unchanged gameplay solely to trigger diagnosis.
+Full T01/T04/T05/T06/T10/T11 and G1 remain open.
+
+Final integrity audit passes500 unchanged source pins,445 unique milestone IDs
+and1,671 local links, preserving SPEC/history and all40 authority tables at
+$4.887796. Preparation/audit archive17files/6,053,712bytes, seal
+8e7d3b58e6269b34c7eb6bbf21903e59c32d9333149c19e19aeea83de3a278f2.
+Authentic operation04 archive617files/99,056,420bytes, seal
+f0963cc8d19fcb2ba763901c4ac2880c7043161a0929b316cd72d108c19b537c.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference passes; failure diagnostic not_run; full G1 remains open.

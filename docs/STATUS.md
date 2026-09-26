@@ -1,5 +1,23 @@
 # Strata current status
 
+M1.5b.3b/.3d [authentic operation04](verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
+eight unique actions/27 action primitives, three signed furnace completions,
+output withdrawal and normal closure. Saved player counts add exactly three iron
+ingots; furnace is empty at8,000RF. All four reference states STOPPED/consumed.
+Guardian653.8858ms passes;140/140 client and29/29 server parents terminal, session
+retired and no owned runtime. All40 authority tables unchanged at$4.887796.
+
+M1.5b.3e's failure diagnostic was not exercised: no preflight refusal occurred,
+so its authentic diagnostic result stays not_run. Prior operation01/02/03 failures
+and unknown causes remain; this is no retrospective fix or general reliability
+claim. Installed1d4935ed is the exact successful profile. No model calls.
+
+Next use this retained positive trajectory to audit/complete the protected
+machine-scorer admission boundary, including loaded-code/custody/setup/team,
+full RF/window history, parity/isolation and T10 negative controls. Raw captures
+remain unscorable. Do not rerun unchanged gameplay solely to trigger diagnosis.
+Full T01/T04/T05/T06/T10/T11 and G1 remain open.
+
 M1.5b.3e adds [private preflight diagnosis](verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
 Fixed phases distinguish input-fence failures from current/selection/final-baseline
 comparisons. Value-free masks use already-read projected state, never hidden
@@ -770,3 +788,12 @@ Private source/test/build archive2026-09-26-m1-preflight-diagnostic-source-01:
 b54aa40a4c57ca6e8abe1e4d6a4b8615ca355e964dfd7eb102de9d77807ba18b.
 Exact bundle verifies. This pointer follows the archived documentation snapshot.
 Installed client unchanged; authentic diagnostic integration and G1 not_run.
+
+Final integrity audit passes500 unchanged source pins,445 unique milestone IDs
+and1,671 local links, preserving SPEC/history and all40 authority tables at
+$4.887796. Preparation/audit archive17files/6,053,712bytes, seal
+8e7d3b58e6269b34c7eb6bbf21903e59c32d9333149c19e19aeea83de3a278f2.
+Authentic operation04 archive617files/99,056,420bytes, seal
+f0963cc8d19fcb2ba763901c4ac2880c7043161a0929b316cd72d108c19b537c.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference passes; failure diagnostic not_run; full G1 remains open.

@@ -2,6 +2,14 @@
 
 ## Current position
 
+M1.5b.3e adds [private preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
+Fixed phases distinguish input-fence failures from current/selection/final-baseline
+comparisons. Value-free masks use already-read projected state, never hidden
+augment slots. Original errors and release precedence survive; publication occurs
+after the terminal receipt.61 focused Java cases pass with no failures/skips;
+new artifact is archived, installed5fbb4eca unchanged. Next authentic diagnostic
+capture on a fresh changed profile. Operation03 remains failed/consumed; G1 open.
+
 M1.5b.3d [native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
 passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
 native journal binds exactly one refresh and one release to that request: no
@@ -1168,6 +1176,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open. |
 | M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
 | M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | in_progress | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. [Native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) passes pickup but stops before deposit at REVISION_CONFLICT; precise preflight comparison unrecorded. Failure audit confirms no deposit input, empty furnace and terminal cleanup. Full native conformance remains incomplete; all failures/consumed state intact. |
+| M1.5b.3e | GI/QA | Retain private preflight phase/comparison evidence; inherits M1.5b.3d mappings plus N04/T06 log boundary | implemented_unverified | [Source evidence](docs/verification/2026-09-26-m1-preflight-diagnostic.md):61 focused Java cases pass, including4 new cases exercising all11 phases, masks/privacy and terminal publication. No altered acceptance/read count/budget; authentic diagnostic integration remains unverified. Operation03 exact failing comparison still unknown. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -10117,3 +10126,21 @@ Authentic operation03 archive565files/96,981,802bytes, seal
 dd52dd86a7d01ec8fd051d5266a7048a0c5c384a7c27cada9853e8e65ce65bf7.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Reference stays failed/consumed; M1/G1 remains open.
+
+### 2026-09-26 — M1.5b.3e private preflight diagnostic source
+
+M1.5b.3e adds [private preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
+Fixed phases distinguish input-fence failures from current/selection/final-baseline
+comparisons. Value-free masks use already-read projected state, never hidden
+augment slots. Original errors and release precedence survive; publication occurs
+after the terminal receipt.61 focused Java cases pass with no failures/skips;
+new artifact is archived, installed5fbb4eca unchanged. Next authentic diagnostic
+capture on a fresh changed profile. Operation03 remains failed/consumed; G1 open.
+
+Final integrity audit passes500 source pins,445 unique milestone IDs and1,819
+local links, preserving earlier history and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-preflight-diagnostic-source-01:
+29files/2,835,191bytes, seal
+b54aa40a4c57ca6e8abe1e4d6a4b8615ca355e964dfd7eb102de9d77807ba18b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and G1 not_run.

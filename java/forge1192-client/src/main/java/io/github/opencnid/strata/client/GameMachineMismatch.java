@@ -25,7 +25,7 @@ final class GameMachineMismatch extends IOException {
 
     JsonObject diagnostic() { return diagnostic.deepCopy(); }
 
-    private static JsonObject masks(GameMachineInventory.Layout layout,
+    static JsonObject masks(GameMachineInventory.Layout layout,
                                     GameInventory.View first, GameInventory.View second) {
         long ids = 0, counts = 0, components = 0;
         // Bit0 is cursor; bits1-36 are owned player slots. No hidden/machine slot.

@@ -322,6 +322,8 @@ absence cannot change the original unknown/resync receipt. This diagnostic does
 not confirm transfer, qualify isolation or replay an action; native artifact
 identity changes with its implementation. [Evidence](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md).
 
+Private preflight diagnosis uses `machine-preflight-comparison-masks/1`. Record the fixed failure phase (context, reply, wait, reply layout, original input fence, current view/layout, current match, selection match, final baseline, or transfer start). Where the failing comparison already has two valid projected views, retain value-free ID/count/component difference masks for cursor/player slots and visible machine base slots, plus three selected-slot equality flags. Otherwise comparison is explicitly null; do not read game state to fill it. Never inspect augment slots or export item/component values, hashes or exception text. Preserve the original public error and release-error precedence; publish only to the private operator logger after fencing/release/durable terminal handling. Diagnostic sink failure changes no receipt. This adds no read, click, refresh, replay, accepted state or deadline/budget. It does not prove a specific mod field/caller or qualify isolation merely because the log is private.
+
 Private Forge health diagnosis uses `forge-native-health-phase/1`. Retain at most
 one terminal diagnostic per guard: fixed authority/identity/lane-status read or
 scope/listener/state validation phase, elapsed monotonic milliseconds, original

@@ -35,7 +35,10 @@ final class GameMachineInventory {
     static GameActionLane.Motor clickConfirmed(GameInventory.Port port, Layout layout,
                                                GameInventory.View baseline, int slot, boolean right, boolean quick,
                                                GameActionLane.Emitter emit) throws IOException {
-        if (!validateClick(port, layout, slot, quick).equals(baseline)) throw new IOException("REVISION_CONFLICT");
+        var actual = validateClick(port, layout, slot, quick);
+        if (!actual.equals(baseline)) throw new GameMachinePreflightFailure(
+            GameMachinePreflightFailure.Phase.FINAL_BASELINE, new IOException("REVISION_CONFLICT"),
+            layout, slot, baseline, actual);
         return new Step(port, layout, baseline, slot, right, quick, emit);
     }
     static GameInventory.View validateClick(GameInventory.Port port, Layout layout, int slot, boolean quick) throws IOException {

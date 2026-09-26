@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.5b.3e adds [private preflight diagnosis](verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
+Fixed phases distinguish input-fence failures from current/selection/final-baseline
+comparisons. Value-free masks use already-read projected state, never hidden
+augment slots. Original errors and release precedence survive; publication occurs
+after the terminal receipt.61 focused Java cases pass with no failures/skips;
+new artifact is archived, installed5fbb4eca unchanged. Next authentic diagnostic
+capture on a fresh changed profile. Operation03 remains failed/consumed; G1 open.
+
 M1.5b.3d [native operation03](verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
 passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
 native journal binds exactly one refresh and one release to that request: no
@@ -754,3 +762,11 @@ Authentic operation03 archive565files/96,981,802bytes, seal
 dd52dd86a7d01ec8fd051d5266a7048a0c5c384a7c27cada9853e8e65ce65bf7.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Reference stays failed/consumed; M1/G1 remains open.
+
+Final integrity audit passes500 source pins,445 unique milestone IDs and1,819
+local links, preserving earlier history and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-preflight-diagnostic-source-01:
+29files/2,835,191bytes, seal
+b54aa40a4c57ca6e8abe1e4d6a4b8615ca355e964dfd7eb102de9d77807ba18b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and G1 not_run.

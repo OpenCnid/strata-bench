@@ -280,6 +280,10 @@ final class GameActionLane implements AutoCloseable {
                 try { runtime.privateMotorDiagnostic(diagnosticRequest, mismatch.diagnostic()); }
                 catch (RuntimeException ignored) { /* Private output is not acceptance authority. */ }
             }
+            if (error instanceof GameMachinePreflightFailure failure && diagnosticRequest != null) {
+                try { runtime.privateMotorDiagnostic(diagnosticRequest, failure.diagnostic()); }
+                catch (RuntimeException ignored) { /* Preserve the stored receipt. */ }
+            }
         }
     }
     JsonObject cancel(String id) throws IOException {

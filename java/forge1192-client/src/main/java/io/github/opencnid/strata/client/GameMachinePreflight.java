@@ -17,21 +17,41 @@ final class GameMachinePreflight {
             GameActionLane.Motor transfer;
             public boolean tick(GameActionLane.Emitter next) throws IOException {
                 if (transfer != null) return transfer.tick(next);
-                port.validate();
-                var received = port.reply(ticket[0]);
-                if (received == null) { next.invoke(() -> {}); return false; }
-                layout.check(received);
-                // A read may take time: recheck the original delivered observation,
-                // age, window revision and input permissions before any mutation.
-                inputFence.run();
-                var current = port.view(); layout.check(current);
-                if (!received.equals(current) || !sameSelection(layout, initial, received, slot))
-                    throw new IOException("REVISION_CONFLICT");
-                // This is the first click, on the same client-thread call stack.
-                // The transfer freezes this exact server-applied state and keeps
-                // all existing prediction/conservation/post-click comparisons.
-                transfer = GameMachineInventory.clickConfirmed(port, layout, received, slot, right, quick, next);
-                return false;
+                var phase = GameMachinePreflightFailure.Phase.CONTEXT;
+                GameInventory.View expected = null, actual = null;
+                try {
+                    port.validate();
+                    phase = GameMachinePreflightFailure.Phase.REPLY;
+                    var received = port.reply(ticket[0]);
+                    if (received == null) {
+                        phase = GameMachinePreflightFailure.Phase.WAIT;
+                        next.invoke(() -> {}); return false;
+                    }
+                    phase = GameMachinePreflightFailure.Phase.REPLY_LAYOUT;
+                    layout.check(received);
+                    // Recheck original observation age/revision before input.
+                    phase = GameMachinePreflightFailure.Phase.INPUT_FENCE;
+                    inputFence.run();
+                    phase = GameMachinePreflightFailure.Phase.CURRENT_VIEW;
+                    var current = port.view();
+                    phase = GameMachinePreflightFailure.Phase.CURRENT_LAYOUT;
+                    layout.check(current);
+                    phase = GameMachinePreflightFailure.Phase.CURRENT_MATCH;
+                    expected = received; actual = current;
+                    if (!received.equals(current)) throw new IOException("REVISION_CONFLICT");
+                    phase = GameMachinePreflightFailure.Phase.SELECTION_MATCH;
+                    expected = initial; actual = received;
+                    if (!sameSelection(layout, initial, received, slot)) throw new IOException("REVISION_CONFLICT");
+                    phase = GameMachinePreflightFailure.Phase.TRANSFER_START;
+                    expected = null; actual = null;
+                    // Same client-thread stack; original exact transfer rules.
+                    transfer = GameMachineInventory.clickConfirmed(port, layout, received, slot, right, quick, next);
+                    return false;
+                } catch (GameMachinePreflightFailure failure) {
+                    throw failure; // Keep the final-baseline comparison, if present.
+                } catch (IOException failure) {
+                    throw new GameMachinePreflightFailure(phase, failure, layout, slot, expected, actual);
+                }
             }
         };
     }

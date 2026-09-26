@@ -7,6 +7,7 @@ fenced. It cannot pass paired runtime or native gameplay acceptance.
 
 import cProfile
 import hashlib
+import heapq
 import io
 import json
 import os
@@ -16,7 +17,7 @@ import time
 
 import pytest
 
-from mcbench import pack_launch, pack_worker
+from mcbench import launch_integrity, pack_launch, pack_worker
 from mcbench.controller import reserved_resources
 from mcbench.launch_integrity import FileLease
 from mcbench.storage import canonical, require
@@ -60,6 +61,7 @@ def test_registered_preparation_without_dispatch(custody, source, tmp_path, monk
     controller.certify("probe-worker", "fixture-pins", capacity, "cas:sha256:" + "a" * 64, simulation=True)
     started = time.perf_counter()
     phases = []
+    active_phases = []
     entries = 0
 
     def no_dispatch(*args, **kwargs):
@@ -68,11 +70,13 @@ def test_registered_preparation_without_dispatch(custody, source, tmp_path, monk
     def timed(name, original):
         def call(*args, **kwargs):
             start, cpu = time.perf_counter(), time.process_time()
+            active_phases.append(name)
             try:
                 return original(*args, **kwargs)
             finally:
                 phases.append({"phase": name, "start_s": start - started,
                     "wall_s": time.perf_counter() - start, "cpu_s": time.process_time() - cpu})
+                active_phases.pop()
         return call
 
     original_entry = pack_worker.HeldPackWorker.__enter__
@@ -81,15 +85,59 @@ def test_registered_preparation_without_dispatch(custody, source, tmp_path, monk
         nonlocal entries
         entries += 1
         profiler = cProfile.Profile()
+        # Private diagnostic only: bounded slow intervals within this entry.
+        # Call the real path check unchanged and never replace native file I/O.
+        original_link = launch_integrity._check_link
+        slowest, totals = [], {}
+        previous = None
+        serial = 0
+
+        def record(kind, wall, cpu, before, after, phase):
+            nonlocal serial
+            serial += 1
+            row = totals.setdefault(kind, {"count": 0, "wall_s": 0., "cpu_s": 0.})
+            row["count"] += 1
+            row["wall_s"] += wall
+            row["cpu_s"] += cpu
+            item = (wall, serial, {"kind": kind, "wall_s": wall, "cpu_s": cpu,
+                "previous_path": before, "path": after, "phase": phase})
+            if len(slowest) < 32:
+                heapq.heappush(slowest, item)
+            elif wall > slowest[0][0]:
+                heapq.heapreplace(slowest, item)
+
+        def checked(path):
+            nonlocal previous
+            start, cpu = time.perf_counter(), time.process_time()
+            shown, phase = str(path), list(active_phases)
+            if previous is not None:
+                record("between_path_checks", start - previous[0], cpu - previous[1],
+                       previous[2], shown, {"before": previous[3], "after": phase})
+            try:
+                return original_link(path)
+            finally:
+                end, end_cpu = time.perf_counter(), time.process_time()
+                record("path_check", end - start, end_cpu - cpu, shown, shown, phase)
+                previous = (time.perf_counter(), time.process_time(), shown, phase)
+
         profiler.enable()
         try:
-            return original_entry(*args, **kwargs)
+            with monkeypatch.context() as scoped:
+                scoped.setattr(launch_integrity, "_check_link", checked)
+                return original_entry(*args, **kwargs)
         finally:
             profiler.disable()
             profiler.dump_stats(str(tmp_path / f"worker{entries}.prof"))
             out = io.StringIO()
             pstats.Stats(profiler, stream=out).strip_dirs().sort_stats("cumulative").print_stats(70)
             (tmp_path / f"worker{entries}-profile.txt").write_text(out.getvalue(), encoding="utf-8")
+            (tmp_path / f"worker{entries}-path-intervals.json").write_bytes(canonical({
+                "diagnostic_only": True, "policy": "private-path-check-intervals/1",
+                "instrumented_entry": entries, "totals": totals,
+                "slowest": [row[2] for row in sorted(slowest, reverse=True)],
+                "coverage": "path checks and intervening Python/native work; not all entry time",
+                "native_io_replaced": False, "timing_qualified": False,
+            }))
 
     monkeypatch.setattr(pack_worker, "ManagedProcess", no_dispatch)
     monkeypatch.setattr(pack_worker.HeldPackWorker, "__enter__", timed("worker_entry", profile_entry))

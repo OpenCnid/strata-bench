@@ -2,6 +2,13 @@
 
 ## Current position
 
+M1.6r.4b [preparation diagnosis](docs/verification/2026-09-26-m1-worker-entry-intervals.md)
+remains in_progress: actual diagnostic1pass59.65s, preparation46.437s and worker
+entries14.341s/4.390s. The98.891s stall does not recur; cause still unknown. Real
+I/O/custody and original deadlines unchanged, no game/model dispatch. No lucky
+paired rerun selected. Continue independent G1 scorer qualification coverage
+while retaining open paired capture/full initial-state and all other G1 gaps.
+
 M1.6r.4 [paired private save-format comparison](docs/verification/2026-09-26-m1-paired-player-body.md)
 is implemented_unverified:46 distinct source cases pass. M1.6r.4a's authentic
 body-pair native01 fails PROBE_WORLD_DEADLINE before admission or game/model
@@ -1034,6 +1041,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6r.3a | GI/SI/QA | Authentic changed-profile body capture through the existing protected single-writer/worker reference; inherits M1.6r.3 | verified | [Native02](docs/verification/2026-09-25-m1-player-body-custody.md) captures 1,175 bytes/38 fields at tick106, stop164, 3,852 loaded classes; normal12/12 server and7/7 worker exits, zero model/actions. Original480/180s bounds preserved. Failed native01, archive-sidecar incident and initial audit-script failure retained. This named positive reference does not prove paired/transient equality, isolation, parity or native probe admission. |
 | M1.6r.4 | GI/SI/QA | Join private body capture to both complete registered worker arms; compare every typed save-format field with float bits preserved and no state-field exclusion; inherits M1.6r | implemented_unverified | [Source46 and retained native failure](docs/verification/2026-09-26-m1-paired-player-body.md). Distinct profile/custody and complete comparator implemented with bounded diagnostics. Authentic paired capture, initial/transient equality and parity remain unverified. |
 | M1.6r.4a | GI/SI/QA | Authentic paired capture and refusal of unequal save-format state before any native probe admission; inherits M1.6r.4 | in_progress | [Body-pair native01 fails](docs/verification/2026-09-26-m1-paired-player-body.md) PROBE_WORLD_DEADLINE before admission, first entry98.891s. Original300/200-170/60-60s limits preserved; intended mismatch refusal not reached. Terminal/fenced, resources held, zero model/actions. Next diagnose first-entry delay before any changed authentic attempt; no unchanged rerun. |
+| M1.6r.4b | GI/SI/QA | Diagnose slow first worker input entry without game/model dispatch or weakening custody/deadlines; inherits M1.6r.4a | in_progress | [Actual diagnostic1pass59.65s](docs/verification/2026-09-26-m1-worker-entry-intervals.md); preparation46.437s, entries14.341s/4.390s. Original stall not reproduced or explained. Source/native I/O/custody/deadlines unchanged; no paired rerun. Continue independent G1 work. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9514,3 +9522,28 @@ files/39,726,406bytes at bf2df15cbe1a06431aac114a4eebd3880245c5400eda94a633eacb1
 [Changed contracts, source checks and actual failure](docs/verification/2026-09-26-m1-paired-player-body.md).
 Next diagnose first-entry latency before selecting changed authentic execution;
 full initial/transient equality, parity and G1 remain open. D18/D19 stay M0-only.
+
+
+### 2026-09-26 — M1.6r.4b bounded first-entry interval diagnosis
+
+From f937f83, extend the existing preparation-only diagnostic with real path
+check/intervening-work wall/CPU intervals, bounded to32 slow samples per entry,
+plus aggregate counts/totals. No native I/O replacement or custody weakening.
+Fresh2026-09-26-m1-worker-entry-intervals-01 checks461 source pins, authentic
+sealed source, all40 real authority tables and host state before consuming its
+one diagnostic. Original300s parent and game/model dispatch prohibition remain.
+Ruff/whitespace pass; actual diagnostic pending. Preserve body-pair01 failure
+and all original timing limits. No game rerun selected; G1 not_run.
+
+
+### 2026-09-26 — M1.6r.4b diagnostic terminal; latency unresolved
+
+One authentic-input preparation diagnostic passes59.65s; preparation46.437s,
+entries14.341s/4.390s and one shared bundle acquisition8.267s. Top32 bounded
+private intervals per entry retained; largest2.102s is mostly CPU. Original
+98.891s body-pair01 and148.437s native10 stalls remain unexplained, not fixed.
+No native I/O/custody/time-limit changes or game/model dispatch. Source Ruff/
+whitespace pass. [Measurement and limits](docs/verification/2026-09-26-m1-worker-entry-intervals.md).
+M1.6r.4b remains in_progress; do not select an unchanged game rerun from this
+faster diagnostic. Next independent M1.5 scorer qualification coverage audit,
+with required G1 dependencies only. G1 not_run and M1 paid authority unchanged.

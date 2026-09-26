@@ -1,5 +1,15 @@
 # M1/G1 implementation handoff
 
+M1.6r.4b [preparation diagnosis](verification/2026-09-26-m1-worker-entry-intervals.md)
+terminal1pass59.65s, preparation46.437s, entries14.341s/4.390s. Largest sampled
+intervening gap2.102s, mostly CPU, within bundle acquisition. The98.891s stall
+did not recur and is not explained. Keep row in_progress and original failure
+sealed; no unchanged paired rerun. Diagnostic root2026-09-26-m1-worker-entry-
+intervals-01, zero game/model dispatch, original300s parent/custody preserved.
+Next independent M1.5 scorer qualification coverage audit using existing
+development/protected-reference evidence; do not conflate it with later M3
+studies. All remaining G1 requirements and paid-authority limit remain open.
+
 September26 terminal update: M1.6r.4 [paired comparison](verification/2026-09-26-m1-paired-player-body.md)
 implemented_unverified;46 distinct source cases pass. Body-pair native01 is
 terminal/failed/consumed: PROBE_WORLD_DEADLINE before imports/world-row/writers/
@@ -1276,3 +1286,12 @@ preserved. Source archive3,504 files/12,406,745 bytes, seal
 b8c8d1ceaf75c10514feef09630405882bba4f44efd0da6c16fe63c2a84bb0a2.
 This pointer follows the archived documentation snapshot; authentic body-pair01
 remains failed and G1 not_run.
+
+
+Final audit passes461 source pins,435 unique milestone IDs,1,575 local links,
+append-only history, unchanged SPEC and all40 real authority tables at$4.887796.
+No owned runtime; parentFENCED/resources held. Diagnostic archive229 files/
+40,998,856 bytes, seal
+bdd8a14a06e92ab27c2999abfcf394d1e16af66b480bd627999b4aff95cf25b0.
+This pointer follows the archived documentation snapshot. Original latency
+cause remains unknown and G1 not_run.

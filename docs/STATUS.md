@@ -1,5 +1,10 @@
 # Strata current status
 
+M1.6r.4b [preparation diagnosis](verification/2026-09-26-m1-worker-entry-intervals.md)
+passes its one diagnostic59.65s but does not explain the earlier stall. No game/
+model dispatch or deadline change. Paired capture remains unverified; continue
+independent M1.5 scorer qualification coverage without repeating unchanged runs.
+
 M1.6r.4 [paired private state comparison](verification/2026-09-26-m1-paired-player-body.md)
 is implemented_unverified:46 distinct source cases pass. Authentic body-pair
 native01 fails before admission with PROBE_WORLD_DEADLINE; first worker input

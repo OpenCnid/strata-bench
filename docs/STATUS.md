@@ -1,5 +1,15 @@
 # Strata current status
 
+M1.5b.2 [native recipe registration candidate](verification/2026-09-26-m1-machine-registration.md)
+is implemented_unverified for authentic capture. Telemetry0.3.15/startup16 binds
+observed direct/converted source objects, both recipe IDs and refresh generation.
+Old bindings invalidate on rebuild; structural faults poison the observer. Raw
+completion/refusal2 remains unscorable.113 Python and14 Java cases pass; one
+native opt-in skip is not evidence. No game/model dispatch; authority40 tables
+unchanged at$4.887796. Next actual transformed/protected Forge reference with
+fresh required client/fixture custody; do not bypass client-binding guards.
+Full T10/G1 and all other required M1 contracts remain open.
+
 M1.5b.1 [native furnace capture candidate](verification/2026-09-26-m1-machine-producer.md)
 is implemented_unverified for authentic capture. New telemetry0.3.14/startup15
 records actual completion phases and internal recipe facts; no public recipe ID

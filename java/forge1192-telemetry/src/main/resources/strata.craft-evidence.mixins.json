@@ -6,6 +6,8 @@
   "server": [
     "CraftClickMixin",
     "FurnaceCaptureMixin",
+    "FurnaceRegistrationMixin",
+    "RecipeRegistrationMixin",
     "GameModeHistoryMixin",
     "OperatorHistoryMixin",
     "PlayerListHistoryMixin",

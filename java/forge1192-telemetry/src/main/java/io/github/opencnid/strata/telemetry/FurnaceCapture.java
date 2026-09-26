@@ -22,7 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 /** Private native facts only. No recipe ID, player attribution, or score is inferred. */
 public final class FurnaceCapture {
-    static final String POLICY = "thermal1192-native-furnace-phases/1";
+    static final String POLICY = "thermal1192-native-furnace-phases/2";
     static final String MACHINE = "cofh.thermal.lib.block.entity.MachineBlockEntity";
     static final String FURNACE = "cofh.thermal.expansion.block.entity.machine.MachineFurnaceTile";
     static final String AUGMENTABLE = "cofh.thermal.lib.block.entity.AugmentableBlockEntity";
@@ -46,6 +46,7 @@ public final class FurnaceCapture {
         final JsonObject base = new JsonObject();
         Object recipe;
         JsonObject resolved;
+        JsonObject registration;
         Frame(BlockEntity tile) {
             this.tile=tile; level=(ServerLevel)tile.getLevel(); tick=level.getGameTime();
             position=tile.getBlockPos().immutable();
@@ -81,9 +82,11 @@ public final class FurnaceCapture {
         if(matches) try {
             machineClass=Class.forName(MACHINE);furnaceClass=Class.forName(FURNACE);
             if(!FurnaceCaptureMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_CAPTURE_HOOK_MISSING");
-        } catch(ClassNotFoundException error) { throw new IOException("MACHINE_CAPTURE_CLASS",error); }
+            if(!FurnaceRegistration.support()) throw new IOException("MACHINE_REGISTRATION_HOOK_MISSING");
+        } catch(ReflectiveOperationException error) { throw new IOException("MACHINE_CAPTURE_CLASS",error); }
         var value=new JsonObject();value.addProperty("status",matches?"supported":"unsupported");
         value.add("artifacts",artifacts);value.addProperty("loaded_code_authenticated",false);
+        value.addProperty("registration_hooks_verified",matches);
         return value;
     }
     static void activate(MinecraftServer value, CraftCapture.Sink destination) {
@@ -93,6 +96,7 @@ public final class FurnaceCapture {
     }
     static void close() {
         if(current!=null) throw new IllegalStateException("MACHINE_CAPTURE_INCOMPLETE");
+        FurnaceRegistration.close();
         sink=null;server=null;
     }
     private static boolean active(Object tile) {
@@ -130,12 +134,19 @@ public final class FurnaceCapture {
             exact(recipe,RECIPE);
             if(phase==1) frame.recipe=recipe;
             if(frame.recipe!=recipe) throw unsupported();
+            JsonObject registration=FurnaceRegistration.observe(server,recipe);
+            if(phase==1) frame.registration=registration;
+            if(!frame.registration.equals(registration)) throw new UnsupportedOperationException("MACHINE_REGISTRATION_CHANGED");
             JsonObject resolved=recipe(recipe,value);
             if(phase==1) frame.resolved=resolved;
             if(!frame.resolved.equals(resolved)) throw unsupported();
             frame.phases.snapshot(state(value));
         } catch(ReflectiveOperationException | UnsupportedOperationException error) {
-            frame.phases.refusal="native_profile_unsupported";
+            frame.phases.refusal=switch(String.valueOf(error.getMessage())) {
+                case "MACHINE_REGISTRATION_UNOBSERVED" -> "native_registration_unobserved";
+                case "MACHINE_REGISTRATION_CHANGED" -> "native_registration_changed";
+                default -> "native_profile_unsupported";
+            };
         }
     }
     public static void exit(Object value) {
@@ -146,11 +157,12 @@ public final class FurnaceCapture {
         boolean complete=frame.phases.complete(value);
         if(complete) {
             frame.base.add("resolved_recipe",frame.resolved);
+            frame.base.add("registration",frame.registration);
             frame.base.add("states",frame.phases.states);
-            sink.emit("machine_completion","strata/NativeFurnaceCompletion/1",frame.base,new JsonArray());
+            sink.emit("machine_completion","strata/NativeFurnaceCompletion/2",frame.base,new JsonArray());
         } else {
             frame.base.addProperty("reason",frame.phases.refusal);
-            sink.emit("machine_capture_refused","strata/NativeFurnaceRefusal/1",frame.base,new JsonArray());
+            sink.emit("machine_capture_refused","strata/NativeFurnaceRefusal/2",frame.base,new JsonArray());
         }
         current=null;
     }

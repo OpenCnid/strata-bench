@@ -1,5 +1,24 @@
 # M1/G1 implementation handoff
 
+Final audit:483 source pins,439 preserved unique milestone IDs,1,765 local links,
+113 Python passes/14 Java passes and1 native opt-in skip. All40 real authority
+tables unchanged at$4.887796; no owned runtime or game/model dispatch. Source/
+evidence archive66files/2,481,012bytes, seal
+312be18a0b9df81015e578e48d8bd29728971bd4439c396d6ce6c18bce7d6012.
+Module0.3.15 SHA256c462f6dfbbe675236c19b6d0d91b5f301053d1e15eef46ede712311972e72571.
+This pointer follows the archived documentation snapshot; authentic transformed
+capture, protected qualification and full G1 remain unverified.
+
+M1.5b.2 [native recipe registration candidate](verification/2026-09-26-m1-machine-registration.md)
+is implemented_unverified for authentic capture. Telemetry0.3.15/startup16 binds
+observed direct/converted source objects, both recipe IDs and refresh generation.
+Old bindings invalidate on rebuild; structural faults poison the observer. Raw
+completion/refusal2 remains unscorable.113 Python and14 Java cases pass; one
+native opt-in skip is not evidence. No game/model dispatch; authority40 tables
+unchanged at$4.887796. Next actual transformed/protected Forge reference with
+fresh required client/fixture custody; do not bypass client-binding guards.
+Full T10/G1 and all other required M1 contracts remain open.
+
 Final audit:474 source pins,438 preserved unique milestone IDs,1,753 local
 links,126 distinct Python passes and6 Java passes; four native opt-in skips.
 All40 real authority tables unchanged at$4.887796; no owned runtime/model/game

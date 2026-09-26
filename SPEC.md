@@ -2102,6 +2102,25 @@ Actual protected capture, registration binding, complete setup/team/window/RF/
 fluid evidence, overhead/parity and isolation remain required; no gate changes.
 [Implementation and focused checks](docs/verification/2026-09-26-m1-machine-producer.md).
 
+**Private native recipe-registration candidate.** Telemetry0.3.15/startup16 and
+native furnace phases/2 add the observed registration lineage. Capture actual
+server recipe-manager refresh, direct registration, cooking-recipe conversion
+and returned internal objects. Use object identity, not equality/output/ID
+matching. Retain both the registered source ID and observed machine-recipe ID;
+converted recipe IDs may collide and must not merge their distinct source
+objects. Each refresh invalidates prior bindings and increments a bounded
+generation. Require complete refresh/clear/registration pairing, one owner
+thread, bounded entries/names and current live-server registry/source-object
+identity. Structural failures poison the observer rather than silently evicting
+evidence or allowing a later callback to repair it. Readers bind the new schemas
+to the new module, reject registration-generation rollback and retain typed
+unobserved/changed-registration refusals. Observing this lineage is not loaded-
+code authentication or protected scoring: those authority flags remain false.
+Existing phases/1 evidence keeps its original unbound identity. Actual
+transformed integration, protected capture, resource/fixture qualification,
+parity and the full G1 controls remain required.
+[Implementation and checks](docs/verification/2026-09-26-m1-machine-registration.md).
+
 **Private telemetry authentication candidate.** `private-telemetry-hmac-sha256-chain/1` binds an operator-issued per-boot key/challenge to the private instance, campaign and epoch. Forge telemetry 0.3.3, configuration version 3, consumes a durable exclusive boot claim before emitting signed wrappers containing the exact original GameEvent bytes. Bind the authority fingerprint, challenge, ordered sequence, previous MAC and event-byte hash; validate the separately issued scope, boot claim and complete telemetry contract before returning an inspection. Count encoded bytes against the existing storage quota. Reject altered, mixed, replayed/out-of-order or incomplete streams; never delete a consumed claim to enable an automatic restart. Legacy unsigned evidence remains explicitly unauthenticated. Key possession/byte integrity do not qualify OS process identity, setup/team facts, parity or scoring; raw records remain ineligible and the authenticated online endpoint, recovery and full T06/T10 remain required. These private wrappers do not add a fourteenth top-level record or expose evaluator records to gameplay. [Source, synthetic Java/Python and selected authentic dedicated-stream evidence](docs/verification/2026-09-20-authenticated-telemetry.md) remains separate from process isolation and authoritative scoring qualification.
 
 **Private craft reference seal.** Before a reference boot, pin the complete selected fixture file inventory, supporting evidence bytes, benchmark team/unique agent-to-Minecraft-UUID roster, complete predicate, exact recipe digests and registered server-tick window. Verify and preserve independent private copies; publish the seal only after copying and verification. Bind the canonical setup digest through `TelemetrySpoolAuthority/2` into the existing signed stream. Recheck live/archived inputs before durably reserving one launch; retain partial publication and ambiguous reservations rather than automatically renewing them. Inspection recomputes authenticated native witnesses and checks roster, recipes, resource deltas and tick window. Identical complete imports are idempotent; changed imports or missing/corrupt archive bytes reject. Candidate resource results remain private and do not update scorer state or grant credit. This byte-integrity seam alone does not prove the actual launched world, setup validity, expert mode, FTB-team membership, isolation, mechanical parity, complete wall-time cutoff or recovery. [Implemented source and synthetic CLI/JVM evidence](docs/verification/2026-09-20-craft-reference-seal.md).

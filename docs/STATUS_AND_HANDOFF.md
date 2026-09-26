@@ -1,5 +1,29 @@
 # M1/G1 implementation handoff
 
+M1.5a/b [scorer audit and machine resource verifier](verification/2026-09-26-m1-scorer-coverage.md)
+from1dbbd96. M1.5a verified for coverage audit only; M1.5b implemented_unverified
+for authentic capture. Final53 synthetic cases plus1 compiled package check
+pass. Original38 fixture setup errors (tuple not JSON), corrected38, two guessed
+Java class failures and initial visibility concern all retained honestly; schema
+already rejects public visibility and scorer remains unchanged. Exact five-class
+Thermal/CoFH javap succeeds with empty stderr. RF processing is separate from
+completion; new private three-boundary verifier checks exact resource/order/scope
+without granting score, continuous-window, RF/fluid or producer authority.
+
+Private root2026-09-26-m1-scorer-admission-01. Next actual producer authenticated
+to exact loaded code/callback/thread/recipe/machine lifetime; then continuous
+RF history, setup/team/controls/parity/isolation. Only required G1 M3.1b dependency
+started, no later studies/game/model dispatch. Full M1/G1 remains open.
+
+Archive incident: original2026-09-24-development-negative-01 has added
+__pycache__/authority.cpython-312.pyc and fails exact inventory. All329 original
+files/seal unchanged; extra retained, creator unknown. Exact original inventory
+verifies at2026-09-24-development-negative-01-original-sealed-copy with seal
+6743b2fc6f2945965eab54c9c2c37f0eb22bc75108dccf741813b30213d89e82.
+Use that copy for EvidenceBundle, never mutate/reseal old root. Preservation
+receipt initially exceeded RFC8785 integer range for nanosecond timestamps;
+decimal-string correction follows successful copy verification, no replay.
+
 M1.6r.4b [preparation diagnosis](verification/2026-09-26-m1-worker-entry-intervals.md)
 terminal1pass59.65s, preparation46.437s, entries14.341s/4.390s. Largest sampled
 intervening gap2.102s, mostly CPU, within bundle acquisition. The98.891s stall
@@ -1295,3 +1319,12 @@ No owned runtime; parentFENCED/resources held. Diagnostic archive229 files/
 bdd8a14a06e92ab27c2999abfcf394d1e16af66b480bd627999b4aff95cf25b0.
 This pointer follows the archived documentation snapshot. Original latency
 cause remains unknown and G1 not_run.
+
+
+Final audit passes463 source pins,437 unique milestone IDs,1,736 local links,
+append-only history and54 distinct focused cases. All40 real authority tables
+unchanged at$4.887796; no owned runtime/model/game dispatch. Source/audit archive
+47files/7,235,005bytes, seal
+78cf77ca8e620c6f0c2ed82fa8a9c644e6f2ceab6a16a40aabec73e023b60bdf.
+This pointer follows the archived documentation snapshot. No authentic machine
+capture or protected scorer qualification; T10/G1 not_run.

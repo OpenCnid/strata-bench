@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.5a/b [scorer audit and completion verifier](verification/2026-09-26-m1-scorer-coverage.md):
+all T10 controls mapped to exact evidence/gaps;53 synthetic cases plus1 compiled
+package check pass. Machine resource verifier is implemented_unverified for
+authentic capture, with all scoring/energy/window authority false. Next pinned
+native producer and owned ingestion, then full controls. No game/model dispatch;
+T10/G1 not_run. Negative archive cache addition is retained; original329 sealed
+files verify in the exact copy documented in the report.
+
 M1.6r.4b [preparation diagnosis](verification/2026-09-26-m1-worker-entry-intervals.md)
 passes its one diagnostic59.65s but does not explain the earlier stall. No game/
 model dispatch or deadline change. Paired capture remains unverified; continue

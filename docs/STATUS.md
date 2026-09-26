@@ -1,5 +1,15 @@
 # Strata current status
 
+Native11 [paired worker reference](verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
+independent audit passes. Both arms import before writers, join with scoped
+identity/exact own-state observation journals, stop workers normally7/7 before
+normal12/12 server exits, and export27 verified state files each. Original
+300/200-170/60-60s bounds hold. M1.6q.13/.15 are verified for this named vanilla
+N=1-per-arm reference; full live-state/native admission/clocks/disposal remain
+open.443 source pins and40 real tables unchanged at$4.887796, no owned runtime
+or model calls. Preserve native01-10 and consumed11; next private live-state/
+tool-policy witness and remaining G1 boundaries. G1-G5 remain not_run.
+
 M1.6q.15 [shared immutable runtime](verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
 for authentic paired gameplay.105 source cases pass after a retained tracking-
 hook failure and one-line test correction. Authentic preparation passes66.16s:

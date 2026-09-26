@@ -1,5 +1,29 @@
 # M1/G1 implementation handoff
 
+Native11 [paired worker reference](verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
+independent audit passes. Both arms import before writers, join with scoped
+identity/exact own-state observation journals, stop workers normally7/7 before
+normal12/12 server exits, and export27 verified state files each. Original
+300/200-170/60-60s bounds hold. M1.6q.13/.15 are verified for this named vanilla
+N=1-per-arm reference; full live-state/native admission/clocks/disposal remain
+open.443 source pins and40 real tables unchanged at$4.887796, no owned runtime
+or model calls. Preserve native01-10 and consumed11; next private live-state/
+tool-policy witness and remaining G1 boundaries. G1-G5 remain not_run.
+
+Native11 exec10935 is terminal/pass and independently audited. Preparation54002
+also terminal/pass. No active test or runtime remains. Input11 is consumed and
+must not be replayed. Private root:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-11`.
+Earlier selection/next-action text below is historical.
+
+
+Native11 evidence is sealed and independently verified:792 files,83,461,489
+bytes, SHA-256
+`54d8b771f7fef9d8d14a4bcd81129682b3d514c88de7071bb5456f3cd7028615`.
+This pointer follows the archived documentation snapshot. All sessions are
+terminal; keep the archive and original writer evidence unchanged. No replay
+of the successful case or any prior failed input is authorized.
+
 M1.6q.15 [shared immutable runtime](verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
 for authentic paired gameplay.105 source cases pass after a retained tracking-
 hook failure and one-line test correction. Authentic preparation passes66.16s:

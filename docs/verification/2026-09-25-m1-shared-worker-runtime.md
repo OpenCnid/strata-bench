@@ -1,5 +1,10 @@
 # M1.6q.15 pair-owned immutable worker runtime
 
+**Successor verification:** [native11](2026-09-25-m1-worker-pair-native.md)
+passes the named actual vanilla N=1-per-arm paired reference under original
+bounds. This child is now verified for that scope; full G1 remains open.
+Earlier status/results below are preserved history; sealed archives unchanged.
+
 Status: implemented_unverified for authentic paired gameplay integration.
 105 source cases and one authentic preparation-only case pass; G1-G5 not_run.
 

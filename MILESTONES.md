@@ -2,6 +2,16 @@
 
 ## Current position
 
+Native11 [paired worker reference](docs/verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
+independent audit passes. Both arms import before writers, join with scoped
+identity/exact own-state observation journals, stop workers normally7/7 before
+normal12/12 server exits, and export27 verified state files each. Original
+300/200-170/60-60s bounds hold. M1.6q.13/.15 are verified for this named vanilla
+N=1-per-arm reference; full live-state/native admission/clocks/disposal remain
+open.443 source pins and40 real tables unchanged at$4.887796, no owned runtime
+or model calls. Preserve native01-10 and consumed11; next private live-state/
+tool-policy witness and remaining G1 boundaries. G1-G5 remain not_run.
+
 M1.6q.15 [shared immutable runtime](docs/verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
 for authentic paired gameplay.105 source cases pass after a retained tracking-
 hook failure and one-line test correction. Authentic preparation passes66.16s:
@@ -964,7 +974,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6o.1 | AR/GI/SI/QA | Qualify identity-bound worker on authentic protected vanilla server with private journal/live/save joins; inherits M1.6o mappings | verified | [Case02 and wrong-identity negative](docs/verification/2026-09-25-m1-worker-identity-native.md):118.188s, scoped identity/live/save join, normal copier10/10/worker7/7/server12/12 and26-file capture. Actual mismatch fences, refuses observation and stops7/7 normally.35+19 sealed audit checks pass; case01 refusal/forced exit125 preserved. Bounded operator contract only; registered-pair/native admission/matched initial state remain open. |
 | M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
 | M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
-| M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | implemented_unverified | [Lifecycle and retained failure](docs/verification/2026-09-25-m1-probe-worker-runtime.md):31 distinct source cases pass; first authentic-input attempt fails pre-dispatch PROBE_WORLD_DEADLINE178.93s. Both configs created, zero copier/import/worker/server dispatch; parent fenced, holds intact. Profile identifies repeated validation; reduce duplication under unchanged300/200-170/60s bounds before changed-case retry. Full live matching/native admission/clocks/disposal remain open. |
+| M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | in_progress | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md) passes the actual vanilla N=1-per-arm operator reference: matched own-state projection, complete normal stops/exports and preserved reservations. Cases01-10 retained. Complete live-state/tool parity, native admission, clocks/disposal remain open; no full T11/G1 promotion. |
 | M1.6q.1 | AR/GI/SI/QA | Reduce repeated worker/path validation under unchanged source, link, custody and deadline requirements; inherits M1.6q mappings | implemented_unverified | [Cost and retained case02](docs/verification/2026-09-25-m1-worker-preparation-cost.md):108 distinct source cases pass,3 privilege skips; deferred whole-roster config commit retains custody/no-dispatch. Client profile23.937s vs33.687s. Authentic case02 fails118.32s at first copier deadline; zero processes,FAILED row,FENCED parent,holds retained. Remaining preparation cost must be resolved before changed-case retry; no full paired/native/G1 pass. |
 | M1.6q.2 | AR/GI/SI/QA | Retain exact worker-resolution runtime custody through launch without duplicate opening; inherits M1.6q mappings | implemented_unverified | [Retained custody and case03](docs/verification/2026-09-25-m1-retained-worker-resolution.md):93 source cases pass; genuine deferred entry23.844s/one runtime lease under cProfile. Both copiers stop10/10, imports log success; no server/gameplay worker/model. Case03 fails176.62s with inner deadline/outer close uncertainty; holds remain. Next remove redundant software validation while preserving complete checks and retain import receipts and surface recorded inner errors before changed-case retry. |
 | M1.6q.3 | AR/GI/SI/QA | Compose software/member validation and persist import/root-cause evidence; preserve inventory checks; inherits M1.6q mappings plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-check-composition.md):94 distinct source passes, one explicit native skip; case04 fails ordinary inventory observation after first server/worker, forced server125/12 terminal. Imports now persist; later worker stop/job receipt still missing. All holds/history/windows retained; fix window/journal contract and persist stop before further validation. |
@@ -977,9 +987,9 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
 | M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
 | M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
-| M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md):95 source passes; native10 fails233.02s pre-admission before imports/copies/servers because first input entry takes148.437s. Parent FENCED/holds intact/no world row or writer table. New ordering unexercised authentically; next read-only first-entry diagnosis. |
+| M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
 | M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
-| M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-shared-worker-runtime.md):105 distinct source passes after retained test-hook failure; authentic preparation1 pass66.16s, entries15.578s/4.787s with one acquisition. Full paired gameplay unverified. Next fresh changed pair after final checks; original bounds/failures retained. |
+| M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9189,3 +9199,58 @@ Source failures/correction, both source runs, authentic preparation, complete
 private fixtures and final audits are retained. This seal pointer follows the
 archived documentation snapshot. Sealing57176 is terminal/pass; use fresh
 storage for the next attempt and never alter this root or native01-10.
+
+### 2026-09-25 — M1.6q.15 fresh changed native11 selected
+
+Recheck clean commit1c0f9f5, sealed Q15 evidence,105 distinct source passes and
+one authentic preparation pass.443 source pins and all40 real authority tables
+match; no owned runtime, port25565 free and capacity checked. Preparation54002
+terminates/pass. Native11 uses original profile02 software/save/UUID, fresh
+writer state and no model calls. Input SHA-256:
+`77f8851bcdce1bd6fa9583b350a09f9165bd8948e1ef2f753c58500bf462271f`.
+Original parent300s, writers200/170s, servers60/60s and all reservations remain.
+This one changed attempt exercises Q15 shared custody and Q13 pre-writer imports;
+no prior attempt is replayed and native10's delay is not assumed explained.
+Private root:`C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-11`.
+Fresh external writer parent:`C:/Users/Darian/.codex/native-evidence/m1-worker-pair-native-11`.
+Outcome pending; no native probe, full-state, disposal or G1 claim.
+
+### 2026-09-25 — M1.6q.15 native11 dispatched once
+
+Final dispatch preflight passes105 source cases plus authentic preparation,443
+source pins, all40 real authority tables, capacity/free port and absent prior
+writer evidence. One-use dispatch-selected.json is persisted. Native session10935
+is active; poll that handle and retain the consumed input rather than restarting.
+No result or gate promotion yet; all original deadlines and holds remain.
+
+### 2026-09-25 — M1.6q.15 native11 paired worker reference passes
+
+Session10935 terminates/pass257.12s, JUnit256.489s, no skips/failures. Independent
+audit passes actual identity/journal/zero-action/stop/copy/export joins. Both
+imports stop3/3 before writer barriers; each copier10/10, worker7/7, server12/12
+normal. Both stopped exports have27 state files and independently verified
+private manifests; first worker export is held through sibling. No watchdog,
+resource refund or scope promotion. World STOPPED_REFERENCE, writers STOPPED,
+parent FENCED/resources held.443 source pins and40 real authority tables remain
+unchanged at$4.887796; no owned runtime or model calls.
+
+M1.6q.13 and M1.6q.15 become verified for this named vanilla N=1-per-arm operator
+reference. M1.6q remains in_progress for the outstanding complete integration.
+Own-state projection only: full live initial state/native admission/disposal and
+complete-checkpoint/clean-save flags remain false. Original300/200-170/60-60s
+bounds and all cases01-10 remain. No unchanged successful rerun.
+[Evidence](docs/verification/2026-09-25-m1-worker-pair-native.md). Next private
+full-state/tool-policy witness, native admission, clocks and disposal; T05/T10
+and root/helper isolation still gate G1. No unrelated later work selected.
+
+Final source/document audit passes443 unchanged source pins, all427 milestone
+IDs retained,1,695 local links, append-only history, unchanged SPEC and whitespace
+checks. Only M1.6q.13/.15 gain the named reference verification; wider G1 and all
+unrelated milestones remain open/unchanged.
+
+Native11 evidence is sealed and independently verified:792 files,83,461,489
+bytes, SHA-256
+`54d8b771f7fef9d8d14a4bcd81129682b3d514c88de7071bb5456f3cd7028615`.
+This pointer follows the archived documentation snapshot. All sessions are
+terminal; keep the archive and original writer evidence unchanged. No replay
+of the successful case or any prior failed input is authorized.

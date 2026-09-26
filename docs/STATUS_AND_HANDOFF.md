@@ -1,5 +1,43 @@
 # M1/G1 implementation handoff
 
+Final integrity audit:483 source pins,440 preserved unique milestone IDs,
+1,623 local links,11 focused passing cases;40 authority tables unchanged at
+$4.887796. Native01 seal435files/88,054,545bytes:
+f0bd12d57206bddf5909cebdbe15dc7785ae64ee935a00ad2f023e4f2fb89096.
+Native02 seal488files/88,078,316bytes:
+e87a1b633a885534334a2ac41cc24e60dbceee59500aa87d39d2440fb39fc993.
+Both reference attempts remain failed/consumed; native02 supplies partial
+startup evidence only. No model calls or remaining owned runtime. This pointer
+follows the archived documentation snapshot; M1/G1 remain open.
+
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
 Final audit:483 source pins,439 preserved unique milestone IDs,1,765 local links,
 113 Python passes/14 Java passes and1 native opt-in skip. All40 real authority
 tables unchanged at$4.887796; no owned runtime or game/model dispatch. Source/

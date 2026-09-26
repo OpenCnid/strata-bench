@@ -1,5 +1,33 @@
 # Strata current status
 
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+M1.5b.3 [protected Forge observer integration](verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
 M1.5b.2 [native recipe registration candidate](verification/2026-09-26-m1-machine-registration.md)
 is implemented_unverified for authentic capture. Telemetry0.3.15/startup16 binds
 observed direct/converted source objects, both recipe IDs and refresh generation.

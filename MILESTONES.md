@@ -2,6 +2,34 @@
 
 ## Current position
 
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
 M1.5b.2 [native recipe registration candidate](docs/verification/2026-09-26-m1-machine-registration.md)
 is implemented_unverified for authentic capture. Telemetry0.3.15/startup16 binds
 observed direct/converted source objects, both recipe IDs and refresh generation.
@@ -1031,6 +1059,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.5b | GI/RS/QA | Verify causal completion resource deltas for the pinned unaugmented Thermal furnace before any machine scorer adapter; inherits M1.5a and required M3.1b dependency | implemented_unverified | [Source-backed completion contract](docs/verification/2026-09-26-m1-scorer-coverage.md):53 synthetic cases/1 package exclusion pass. Exact ordered input/output deltas and unchanged unrelated resources; raw boundaries remain unscorable. Native producer/ingestion, full RF/fluid/window/setup/team/parity/isolation controls remain open. |
 | M1.5b.1 | GI/RS/QA | Capture exact native furnace completion phases and resolved internal recipe facts; inherits M1.5b, F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10 | implemented_unverified | [Native producer/private ingestion](docs/verification/2026-09-26-m1-machine-producer.md):126 distinct Python cases plus6 Java cases pass; actual installed call sites inspected, raw completions/refusals stay unscorable. Native registration/loaded-code/custody/effects/parity and wider G1 qualification remain open. |
 | M1.5b.2 | GI/RS/QA | Bind native internal furnace recipes to actual direct/converted source registration and refresh lifetime; inherits M1.5b.1 and its requirement/contract/test mappings | implemented_unverified | [Native registration lineage](docs/verification/2026-09-26-m1-machine-registration.md):113 Python/14 Java cases pass,1 native opt-in skip. Exact direct/converted object chains, rebuild invalidation, poisoned failures, source domains and reader generation guards. Actual transformed/protected capture, fixture binding, effects/parity and full G1 remain open. |
+| M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. Full completion/effects, loaded-code authentication/parity and G1 remain open. |
 | M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
 | M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
 | M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
@@ -9685,3 +9714,70 @@ evidence archive66files/2,481,012bytes, seal
 Module0.3.15 SHA256c462f6dfbbe675236c19b6d0d91b5f301053d1e15eef46ede712311972e72571.
 This pointer follows the archived documentation snapshot; authentic transformed
 capture, protected qualification and full G1 remain unverified.
+
+### 2026-09-26 — M1.5b.3 protected Forge observer preparation
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
+Initial private preflight looked for an absent authority-after.json filename;
+actual authority-final.json used successfully. No dispatch occurred. Fresh
+private source copy/preparation is in progress; preserve original references.
+
+### 2026-09-26 — M1.5b.3 native01 admission failure and early pin check
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+Initial test selection skipped11 because the local JVM classpath file was absent.
+Offline writeTestClasspath succeeds; bound selection11passes5.90s, no skipped
+cases. Ten bad interpreter/bootstrap inventories reject before reservation or
+dispatch; one valid owned Python/JVM pair completes. Ruff/diff pass. Native01
+failure audit passes, preserving205 executed-source files and UNCERTAIN pair/
+protected/preparation states; no craft launch grant or server dispatch row.
+Native01 sealed435files/88,054,545bytes:
+f0bd12d57206bddf5909cebdbe15dc7785ae64ee935a00ad2f023e4f2fb89096.
+
+### 2026-09-26 — M1.5b.3 native02 startup evidence and retained guard failure
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+Native02 pair604.844s/client startup233.391s. Private startup identity probe
+passes360ms with a5s bound, but subsequent guard reports unavailable under its
+500ms call policy. The retained record does not identify authority/identity/
+lane-status phase or establish cause; do not infer a timeout fix or lucky rerun.
+All24 client/29 server parent Job members and14 native server members are
+terminal; guardian has no passing timing and remains failed. Independent failure
+audit and complete signed-stream inspection pass only their named checks.
+Ledger440unique IDs preserve439 previous IDs;483 prior source pins unchanged
+except the declared pair/test change. SPEC unchanged; all G1 criteria retained.
+
+Final integrity audit:483 source pins,440 preserved unique milestone IDs,
+1,623 local links,11 focused passing cases;40 authority tables unchanged at
+$4.887796. Native01 seal435files/88,054,545bytes:
+f0bd12d57206bddf5909cebdbe15dc7785ae64ee935a00ad2f023e4f2fb89096.
+Native02 seal488files/88,078,316bytes:
+e87a1b633a885534334a2ac41cc24e60dbceee59500aa87d39d2440fb39fc993.
+Both reference attempts remain failed/consumed; native02 supplies partial
+startup evidence only. No model calls or remaining owned runtime. This pointer
+follows the archived documentation snapshot; M1/G1 remain open.

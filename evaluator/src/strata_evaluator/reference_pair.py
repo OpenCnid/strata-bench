@@ -326,6 +326,14 @@ class ReferencePair:
             and Path(plan.bootstrap.path).resolve() == source / "src/mcbench/process_bootstrap.py",
             "REFERENCE_PAIR_BOOTSTRAP",
         )
+        # The child launcher must pin the same interpreter/bootstrap as this
+        # pair. Reject stale worktree pins before reserving or copying a world.
+        for required in (plan.python, plan.bootstrap):
+            matching = [pin for pin in launch.immutable_files
+                        if str(Path(pin.path).resolve()).casefold()
+                        == str(Path(required.path).resolve()).casefold()]
+            require(matching and all((pin.sha256, pin.bytes) == (required.sha256, required.bytes)
+                                     for pin in matching), "REFERENCE_PAIR_LAUNCH_BOOTSTRAP")
         private_path(plan.client_driver.path)
         pins = [plan.launch_file, plan.client_driver, plan.python, plan.bootstrap, *plan.inputs]
         if protected:

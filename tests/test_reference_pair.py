@@ -186,6 +186,35 @@ def test_actual_owned_pair_completes_only_coordination_and_preserves_exact_repor
     ]
 
 
+@pytest.mark.parametrize("role", ["python", "bootstrap"])
+@pytest.mark.parametrize("fault", ["missing", "stale_path", "hash", "bytes", "conflict"])
+def test_launch_bootstrap_mismatch_rejects_before_reservation_or_dispatch(pair, monkeypatch, role, fault):
+    runner, plan, launch_plan, _ = pair
+    expected = Path(plan[role]["path"]).resolve()
+    target = next(pin for pin in launch_plan["immutable_files"]
+                  if Path(pin["path"]).resolve() == expected)
+    if fault == "missing":
+        launch_plan["immutable_files"].remove(target)
+    elif fault == "stale_path":
+        target["path"] = str(expected.with_name("old-worktree-" + expected.name))
+    elif fault == "hash":
+        target["sha256"] = "0" * 64
+    elif fault == "bytes":
+        target["bytes"] += 1
+    else:
+        launch_plan["immutable_files"].append({**target, "sha256": "0" * 64})
+    path = Path(plan["launch_file"]["path"])
+    path.write_bytes(canonical(launch_plan))
+    plan["launch_file"] = {"path": str(path), **pin(path)}
+    monkeypatch.setattr(module, "ManagedProcess", lambda *args, **kwargs: pytest.fail("dispatched"))
+    before = list(runner.database.connection.iterdump())
+    with pytest.raises(Fault, match="^REFERENCE_PAIR_LAUNCH_BOOTSTRAP$"):
+        runner.run(plan)
+    assert list(runner.database.connection.iterdump()) == before
+    assert not Path(plan["evidence_directory"]).exists()
+    assert not Path(launch_plan["evidence_directory"]).exists()
+
+
 def test_owned_pair_observes_dynamic_desktop_guardian_jobs_through_close(pair):
     """The real nested lifecycle used by the client, with a disposable JVM body."""
     java = os.environ.get("STRATA_CLIENT_TEST_JAVA")

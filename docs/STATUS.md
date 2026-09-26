@@ -1,5 +1,14 @@
 # Strata current status
 
+M1.6q.14 [worker-entry diagnosis](verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
+read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
+passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's
+148.437s delay does not reproduce and its cause stays unknown. Both diagnostics
+retain full custody; no game/model dispatch or bounds change. Original native
+cases01-10 stay failed/consumed. Next inspect shared immutable runtime custody
+to remove repeated complete acquisition while preserving member ownership.
+No native11 selected; full G1 remains not_run.
+
 **M1/G1 implementation is authorized and active under D20.** M0 remains
 verified; G0 passes the D14 development slice. G1-G5 remain not_run.
 

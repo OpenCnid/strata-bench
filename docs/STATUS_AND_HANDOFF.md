@@ -1,5 +1,26 @@
 # M1/G1 implementation handoff
 
+M1.6q.14 [worker-entry diagnosis](verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
+read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
+passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's
+148.437s delay does not reproduce and its cause stays unknown. Both diagnostics
+retain full custody; no game/model dispatch or bounds change. Original native
+cases01-10 stay failed/consumed. Next inspect shared immutable runtime custody
+to remove repeated complete acquisition while preserving member ownership.
+No native11 selected; full G1 remains not_run.
+
+Diagnostic exec72468 and preparation exec48739 are terminal/pass. The first
+preparation collection attempt is terminal/fail and retained; no process remains
+under either session. Private root:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-entry-phases-01`.
+
+
+Q14 diagnostic evidence is sealed and independently verified:688 files,
+46,737,787 bytes, SHA-256
+`022401e06fb38ee1703a90ef3b50f941972c95c3ab15a66525ba0f15d237d453`.
+This pointer follows the archived documentation snapshot. Preserve this root
+and native01-10 unchanged; use fresh storage for subsequent implementation.
+
 D20 authorizes completing M1 and its full G1 gate, including necessary scorer
 and probe dependencies. The long-horizon goal is active. M0 remains verified;
 G0 passes its named D14 development slice; G1-G5 remain not_run.

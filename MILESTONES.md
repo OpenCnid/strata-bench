@@ -2,6 +2,15 @@
 
 ## Current position
 
+M1.6q.14 [worker-entry diagnosis](docs/verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
+read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
+passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's
+148.437s delay does not reproduce and its cause stays unknown. Both diagnostics
+retain full custody; no game/model dispatch or bounds change. Original native
+cases01-10 stay failed/consumed. Next inspect shared immutable runtime custody
+to remove repeated complete acquisition while preserving member ownership.
+No native11 selected; full G1 remains not_run.
+
 M1.6q.13 [pre-writer imports](docs/verification/2026-09-25-m1-prewriter-imports.md)
 is implemented_unverified for authentic paired integration.95 focused cases
 pass; imports now precede writer acquisition after durable admission, with
@@ -959,6 +968,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
 | M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
 | M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md):95 source passes; native10 fails233.02s pre-admission before imports/copies/servers because first input entry takes148.437s. Parent FENCED/holds intact/no world row or writer table. New ordering unexercised authentically; next read-only first-entry diagnosis. |
+| M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9047,3 +9057,59 @@ These pointers follow the archived documentation snapshot.
   and prior SPEC text/JSON pass. Ruff/whitespace pass; all sessions terminal.
 - Next isolate the148.437s first-entry delay with read-only phase profiling;
   no unchanged native replay, no bounds change, no G1 promotion.
+
+### 2026-09-25 — M1.6q.14 read-only worker-entry phase diagnosis
+
+Native10 remains failed and consumed; no launch is selected. Fresh diagnostic
+custody holds two deferred workers using its unchanged profile02 binding.
+Record nested wall/CPU phases and cProfile for each entry without committing
+configuration, opening account sessions or spawning a game/model process.
+All40 real authority tables match native10's final readback at$4.887796; no
+owned runtime exists. Inherits M1.6q.13 F/N/C and partial T01/T02/T06/T07/T11
+mappings. This resolves a named preparation blocker; wider G1 remains open.
+Private root: `C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-entry-phases-01`.
+
+### 2026-09-25 — M1.6q.14 phase result and complete preparation diagnostic
+
+Read-only two-worker entries pass14.327s/13.865s; the148.437s native10 delay
+does not reproduce. Both complete pinned runtimes (11,725 files each) remain
+held together; all custody closes, four write-opens denied, zero config/game/
+model writes or dispatches. All379 Python source pins and40 authority tables
+match. Cause remains unknown; no fix or native11 selected.
+
+Add an explicitly opt-in preparation-only test using the real registered-pair
+fixture path, pinned authentic software/save and synthetic agent/protocol/budget
+records. It profiles both entries, permits fresh private configurations only,
+blocks ManagedProcess, stops before world-copy admission, and preserves original
+300s parent/fenced reservations. This checks the larger context omitted by the
+first diagnostic without selecting a game rerun. Result pending.
+
+### 2026-09-25 — M1.6q.14 registered preparation diagnostic verified
+
+The new opt-in diagnostic initially fails collection due to missing
+directory_fixture argument; retain that source/output. Corrected case passes
+73.46s, no skips and two existing warnings. Original300s parent includes59.711s
+preparation/cleanup. Worker entries14.499s/14.629s; bundle acquisitions7.999s/
+7.959s dominate routine input cost. Nested profile intervals are not additive.
+Actual pinned software/save and account declarations with synthetic agent/
+protocol/budget records; both configs held, states empty, no game/model/import/
+copier dispatch. All handles close; parent FENCED, full resources/budgets held;
+no world/writer tables. Delay not reproduced; no causal fix or native11 claim.
+Next inspect sharing continuously held exact immutable runtime across members
+without sharing member configurations, accounts, processes or cleanup ownership.
+[Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md). M1.6q.14 remains
+in_progress; wider G1 remains not_run and all prior failures remain.
+
+Final audit confirms442 source pins (all441 prior pins unchanged),426 unique
+milestone IDs preserving all425 prior IDs,1,685 local links, append-only history,
+unchanged SPEC content, Ruff and whitespace checks. An initial audit compared
+Windows CRLF worktree bytes against Git LF bytes and failed SPEC_CHANGED; both
+that script/output and the corrected normalized-text check are retained. The
+independent existing source hash check passes in both audits. All40 authority
+tables remain unchanged at$4.887796; no owned runtime remains.
+
+Q14 diagnostic evidence is sealed and independently verified:688 files,
+46,737,787 bytes, SHA-256
+`022401e06fb38ee1703a90ef3b50f941972c95c3ab15a66525ba0f15d237d453`.
+This pointer follows the archived documentation snapshot. Preserve this root
+and native01-10 unchanged; use fresh storage for subsequent implementation.

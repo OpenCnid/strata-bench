@@ -1,5 +1,42 @@
 # M1/G1 implementation handoff
 
+M1.6r.3/.3a [owned save-format capture](verification/2026-09-25-m1-player-body-custody.md)
+passes the named vanilla1192 reference. Current source selection107 passes:
+reader44, corrected custody/writer/inherited paired-runtime63 in684.69s. Real
+Windows diagnostic confirms stopped image-query error31; authenticated exact
+Job/member handles now remain bound through normal process exit before export.
+
+Fresh body-native02 passes and independent audit passes: 1,175 bytes/38 fields,
+capturetick106/stop164, 15.8526ms capture interval, 3,852 exact loaded classes,
+normal12/12 server and7/7 worker exits. Original480/180s limits; zero model/actions,
+458 trial source pins and all40 real authority tables unchanged at$4.887796;
+no owned runtime remains. Native02 seal86files/17,975,544bytes:
+c1d39d45ea8b06e45b5ffe88407ca18eac0dd0bfd40eeea5df9e223598770ecc.
+Keep first BODY_JOB_JOIN audit failure: script omitted two existing custody
+fields, corrected comparison preserves complete-history=true/external-writers=false.
+No game replay followed that audit correction.
+
+Native01 remains terminal/failed/consumed with PROCESS_IDENTITY_UNAVAILABLE,
+normal12/12 exit and post-stop content-only diagnostic. Its original83files/
+17,779,726bytes retain sealed hash ed3bf66417dbf26ad10d6a0cdbffc3a5604450483c36fd9f8aa80adab3f3b114.
+Post-seal mode=ro query added empty WAL/SHM, so the original folder inventory
+fails. Preserve extras and receipt; exact original inventory verifies at
+2026-09-25-m1-live-body-native-01-original-sealed-copy under that same seal.
+Use frozen/immutable reads; never replay either consumed run.
+
+Source root: C:/Users/Darian/.strata/evidence/2026-09-25-m1-live-body-custody-01.
+Next M1.6r: define/verify remaining full live-state and initial matching contract,
+capture overhead/mechanics parity, and required tool/clock/disposal boundaries.
+Save-format custody is not external-writer exclusion, transient-state equality,
+native probe admission or RuntimeQualification. Preserve old clock/native11
+profiles and all other G1 requirements; catalogs7/8 stay closed. G1 not_run.
+
+R3 final audit:458 source pins,432 milestone IDs,1,715 local links,107 source
+cases; append-only history and40 authority tables preserved. Source archive:
+15,862 files/436,387,761 bytes, seal
+c31284fe15136bcf59eec26f8a04a343043803721c322317671c24bf36c91f31.
+This pointer follows the archived documentation snapshot; no gate promotion.
+
 M1.6r.2 [private callback observer](verification/2026-09-25-m1-player-body-callback.md)
 is implemented_unverified for live capture. Nine final-candidate checks pass in
 7.66s; all test processes are terminal. Actual JVM tests verify transformed

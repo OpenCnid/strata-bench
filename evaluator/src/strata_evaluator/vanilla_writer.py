@@ -12,7 +12,7 @@ import time
 import uuid
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Strict, RpcRequest
 from mcbench.broker_stdio import WorkerTransport
@@ -28,9 +28,11 @@ from mcbench.worker_stop import stop_owned_worker
 from .craft_reference import PrivateFile, check_file, check_tree
 from .writer_preparation import WriterPreparationPlanV4, java_identity
 from .telemetry_auth import private_read
+from .player_body_custody import BodyObserverLaunch, HeldBodyObserver
 
 POLICY = "protected-sealed-restored-vanilla-server/1"
 ARGUMENTS = ["-XX:ActiveProcessorCount=2", "-Xms1G", "-Xmx2G", "-jar", "server.jar", "nogui"]
+BODY_POLICY = "protected-sealed-restored-vanilla-server/2"
 
 
 def check_vanilla_settings(root):
@@ -61,13 +63,23 @@ class VanillaWriterLaunch(Strict):
     max_wall_s: int = Field(ge=30, le=600)
 
 
+class VanillaWriterObservedLaunch(VanillaWriterLaunch):
+    schema_: Literal["strata/PrivateVanillaWriterLaunch/2"] = Field(alias="schema")
+    policy: Literal["protected-sealed-restored-vanilla-server/2"]
+    body_observer: BodyObserverLaunch
+
+
+def parse_vanilla_writer_launch(value):
+    return TypeAdapter(VanillaWriterLaunch | VanillaWriterObservedLaunch).validate_python(value)
+
+
 class VanillaWriterSession:
     def __init__(self, writer, value):
         writer.check()
         require(not writer.launched, "WRITER_CUSTODY_ALREADY_LAUNCHED")
         writer.launched = True  # Failed preflight is consumed too.
         self.writer = writer
-        self.plan = plan = VanillaWriterLaunch.model_validate(value)
+        self.plan = plan = parse_vanilla_writer_launch(value)
         require(
             isinstance(writer.plan, WriterPreparationPlanV4)
             and writer.plan.evidence_kind == "authentic_operator_reference",
@@ -128,7 +140,7 @@ class VanillaWriterSession:
         self.ready = threading.Event()
         self.evidence = Path(writer.plan.evidence_directory) / "launch"
         self.result = {
-            "policy": POLICY,
+            "policy": plan.policy,
             "source_resolution": resolved,
             "protected_working_directory": str(writer.tree.path),
             "ready": False,
@@ -142,6 +154,14 @@ class VanillaWriterSession:
             "-Djava.io.tmpdir=" + str(writer.workspace.path / "tmp"),
             *ARGUMENTS,
         ]
+        self.observer = None
+        if isinstance(plan, VanillaWriterObservedLaunch):
+            self.observer = HeldBodyObserver(writer, plan.body_observer.model_dump(by_alias=True))
+            arguments = [*self.observer.arguments, *arguments]
+            self.result["body_observer_binding"] = self.observer.binding
+            writer.result["capability"] = "native-private-vanilla-custody/2"
+            inputs = {"schema": inputs["schema"], "trees": inputs["trees"],
+                      "files": [*inputs["files"], *self.observer.inventory["files"]]}
         self.result["arguments"] = arguments
         writer.body["game_launch_attempted"] = True
         self.native = writer._dispatch(plan, inputs, arguments, self.ready, self.evidence)
@@ -166,6 +186,8 @@ class VanillaWriterSession:
             writer.tree.group_sid,
             writer.tree.scope_sid,
         )
+        if getattr(self, "observer", None) is not None:
+            self.observer.observe(self.native.process, child)
         self.result.update(
             ready=True, owned_jvm=child, jvm_token=token, ready_mono_ns=time.monotonic_ns()
         )
@@ -196,6 +218,8 @@ class VanillaWriterSession:
             self.native.process,
             plan_digest=digest(self.plan.model_dump(by_alias=True)),
         )
+        body_report = (self.observer.capture(writer, self.native.process, self.evidence / "body-output")
+                       if getattr(self, "observer", None) is not None else None)
         terminal = self.native.finish()
         writer.native = None
         writer.result["terminal"] = terminal
@@ -215,6 +239,8 @@ class VanillaWriterSession:
             "SERVER_RUNTIME_FAILURE",
         )
         writer.check()
+        if body_report is not None:
+            self.result["body_observer"] = body_report
         writer._record("STOPPED")
         writer.completed = True
         return dict(writer.result)
@@ -228,7 +254,11 @@ def run_vanilla_worker(writer, value, invocation, output):
     worker connects to the protected copy at its exact sealed loopback port.
     """
     writer.check()
-    plan = VanillaWriterLaunch.model_validate(value)
+    plan = parse_vanilla_writer_launch(value)
+    if isinstance(plan, VanillaWriterObservedLaunch):
+        require(plan.body_observer.roster == [invocation.get("expected_player_uuid")]
+                and plan.body_observer.campaign_id == invocation.get("campaign_id")
+                and plan.body_observer.epoch == invocation.get("epoch"), "BODY_WORKER_SCOPE")
     output = safe(output)
     require(output.is_dir(), "VANILLA_WRITER_EVIDENCE")
     require(
@@ -244,7 +274,7 @@ def run_vanilla_worker(writer, value, invocation, output):
         ),
         "VANILLA_WRITER_EVIDENCE",
     )
-    result = {"policy": POLICY, "model_calls": 0, "probe_admission": False, "phases": {}}
+    result = {"policy": plan.policy, "model_calls": 0, "probe_admission": False, "phases": {}}
     session = None
     started = time.monotonic()
 
@@ -311,6 +341,9 @@ def run_vanilla_worker(writer, value, invocation, output):
             time.sleep(0.25)
         record("connected-observation.json", observed)
         phase("worker_connected")
+        if session.observer is not None:
+            wait(lambda: session.observer.capture_ready(session.native.process), 10, "BODY_CAPTURE_TIMEOUT")
+            phase("private_body_capture_recorded")
         result["worker_stop"] = stop_owned_worker(worker, config, output, wait)
         logs.finish()
         result["worker_custody"] = held.receipt()

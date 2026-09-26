@@ -2,6 +2,15 @@
 
 ## Current position
 
+M1.6r.3/.3a [owned save-format capture](docs/verification/2026-09-25-m1-player-body-custody.md)
+passes for fresh body-native02: 1,175 bytes/38 fields at tick106, stop164,
+3,852 pinned loaded classes, normal 12/12 server and 7/7 worker exits. Independent
+audit passes; 107 focused source checks pass. Retain failed/consumed native01,
+the archive sidecar incident and first audit-script failure. All458 trial source
+pins and40 real authority tables match at$4.887796; no owned runtime or model
+calls. M1.6r stays in_progress: next full live-state contract and initial matching,
+overhead/parity, all-N/tool/clock/disposal and other G1 boundaries. G1 not_run.
+
 M1.6r.2 [private callback observer](docs/verification/2026-09-25-m1-player-body-callback.md)
 is implemented_unverified for live capture. Nine final-candidate checks pass:
 actual transformed-method JVM verification/refusals plus synthetic same-tick
@@ -1011,6 +1020,8 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | Native11 verifies only own-state projection. R1 save-format codec and R2 distinct callback observer are implemented_unverified for live capture; retained stopped fields differ. Next owned launch/custody and independent output verification, then real capture and complete save/transient-state matching. Full item tags, selected slot, mode, abilities/effects remain unqualified; native admission stays closed. |
 | M1.6r.1 | GI/SI/QA | Pin the actual vanilla player save-format serializer, retain complete emitted typed NBT with bounded output and strict UUID/thread checks; inherits M1.6r | implemented_unverified | [Installed-code format checks](docs/verification/2026-09-25-m1-player-nbt-codec.md): five distinct cases pass; original negative-zero failure retained. Actual capture/provenance/thread/UUID and transient-state coverage remain unverified. |
 | M1.6r.2 | GI/SI/QA | Bind exact loaded game bytes and real server/player callbacks to private same-tick roster capture, scoped process/sequence and bounded output; inherits M1.6r | implemented_unverified | [Distinct private observer](docs/verification/2026-09-25-m1-player-body-callback.md): nine final-candidate checks pass, including actual JVM transformed-method verification and named refusals; roster lifecycle is synthetic. Owned launch/custody, output verification, authentic capture/parity and transient-state coverage remain open. |
+| M1.6r.3 | GI/SI/QA | Independently verify complete private body output and bind it to held module/configuration/server inputs and owned launch/exit; inherits M1.6r | verified | [Named source/native evidence](docs/verification/2026-09-25-m1-player-body-custody.md): 107 current source checks and native02 audit pass. Exact live authenticated Job/member handle survives normal exit; held input/output export rejects corruption and foreign scope. Save-format custody only; full state matching, external-writer exclusion and parity remain unverified. |
+| M1.6r.3a | GI/SI/QA | Authentic changed-profile body capture through the existing protected single-writer/worker reference; inherits M1.6r.3 | verified | [Native02](docs/verification/2026-09-25-m1-player-body-custody.md) captures 1,175 bytes/38 fields at tick106, stop164, 3,852 loaded classes; normal12/12 server and7/7 worker exits, zero model/actions. Original480/180s bounds preserved. Failed native01, archive-sidecar incident and initial audit-script failure retained. This named positive reference does not prove paired/transient equality, isolation, parity or native probe admission. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9354,3 +9365,90 @@ No capture file exists; none of these cases is real player-state evidence.
 R2 archive sealed and independently verified: 230 files, 3,158,224 bytes,
 SHA-256 `60a824ed3aa2169df716fd34c4d449b7e6ba982bbfb9124fd0b12927335fa1eb`.
 This pointer follows the archived documentation snapshot; no gate promotion.
+
+### 2026-09-25 — M1.6r.3 output and launch custody begins
+
+R2 is concrete progress, not a wait or completed gate. Recheck clean HEAD 5c9ef23,
+all 40 WAL-aware authority tables unchanged at $4.887796 and no owned runtime.
+Implement independent stopped-output inspection and integrate the distinct
+observer with existing protected writer ownership. Derive transformation pins
+from actual retained bytes; never accept success from a header or script alone.
+Retain old clock/native11 identities and all consumed inputs. No game/model
+dispatch or new spending authority is selected.
+
+### 2026-09-25 — M1.6r.3a fresh authentic body capture selected
+
+Independent reader44 cases, custody/launch36 cases and wait/scope4 cases pass.
+Use the existing successful standalone identity-native02 reference as a source
+of pinned profile/runtime/input facts, not as a replay. Fresh native01 has a new
+writer ID/workspace, private evidence, worker configuration and observer run;
+writer/2 carries the exact R2 module/configuration identity. Keep predecessor
+480s writer/180s server limits; this is separate from native11's paired profile.
+Wait for a complete private capture record before stopping the worker, within
+existing deadlines. No model call, gameplay action or paid allowance is involved.
+Recheck authority, process/port/resources and exact source pins immediately before
+dispatch. Actual capture/parity/full matching remain unverified until evidence.
+
+### 2026-09-25 — M1.6r.3a native01 failure and retained-handle correction
+
+Native01 is terminal/failed/consumed with PROCESS_IDENTITY_UNAVAILABLE after
+normal 12/12 server exit. A complete real capture exists: 1,175 bytes/38 fields,
+tick118, stop185, 3,845 exact loaded classes. The independent post-stop diagnostic
+passes content only; no owned-producer or initial-equality claim is backfilled.
+All458 source pins and40 real authority tables match; exposure$4.887796 and all
+holds remain, no owned game runtime or model calls. Retain original480/180s bounds.
+
+The correction retains the Job/member handle authenticated live, then checks
+continuity and complete normal terminal history before export. An actual Windows
+child reproduces stopped image-query error31 while held creation time remains
+correct and all5 processes are signaled. Focused custody/writer/inherited-pair
+regression runs once, with real process lifetime and synthetic body bytes.
+Fresh native02 is prepared but not dispatched until those checks pass.
+
+Native01 originally sealed83files/17,779,726bytes, SHA-256
+ed3bf66417dbf26ad10d6a0cdbffc3a5604450483c36fd9f8aa80adab3f3b114.
+A post-seal mode=ro SQLite inspection created an empty WAL and SHM: original
+folder inventory now fails, all83 original bytes remain unchanged. Retain both
+sidecars and the failed check; exact original inventory copy verifies under the
+same seal at2026-09-25-m1-live-body-native-01-original-sealed-copy. The source
+archive records reconstruction. Use frozen/immutable DB reads subsequently.
+[Current report](docs/verification/2026-09-25-m1-player-body-custody.md) preserves
+these distinctions. G1 not_run; complete matching/parity and other gates remain.
+
+### 2026-09-25 — M1.6r.3a corrected native02 selected
+
+Retained-handle custody, writer and inherited paired-runtime regression passes
+63/63 in684.69s with two existing Typer warnings. With unchanged reader44, the
+current source selection totals107 distinct passes; no unchanged Java suite or
+native11 replay. Select fresh body-native02 with458 unchanged prepared source
+pins, new workspace/input/run identity and original480/180s limits. Dispatch
+rechecks complete authority/process/port/resource state. No model/actions;
+native02 outcome pending, native01 remains failed/consumed, G1 not_run.
+
+### 2026-09-25 — M1.6r.3/.3a owned capture verified, full gate still open
+
+Fresh body-native02 and independent audit pass: 1,175 bytes/38 save-format fields,
+capturetick106/stop164, single15.8526ms capture interval, 3,852 exact loaded class
+bindings. Normal12/12 server and7/7 worker exits; complete owned history but no
+all-external-writers exclusion claim. Source107 checks pass. Native02's first
+BODY_JOB_JOIN audit failure came from omitting two existing custody fields;
+corrected exact comparison retains both and passes without a game rerun.
+458 trial source pins/40 authority tables unchanged at$4.887796, zero model/actions
+and no owned runtime. Native02 sealed86files/17,975,544bytes:
+c1d39d45ea8b06e45b5ffe88407ca18eac0dd0bfd40eeea5df9e223598770ecc.
+
+[Report](docs/verification/2026-09-25-m1-player-body-custody.md) preserves native01,
+archive-sidecar incident, original limits and all failed checks. M1.6r.3/.3a gain
+only named save-format custody/reference verification. Full live initial and
+transient equality, overhead/mechanics parity, all-N/tools/clocks/disposal and
+remaining G1 contracts remain unverified. No catalog7/8 admission or qualification.
+M1.6r/M1 in_progress, G1-G5 not_run; unrelated M2-M7 untouched.
+
+R3 final source audit passes:458 source pins,432 unique/preserved milestone IDs,
+append-only progress history,1,715 local links and107 current source cases.
+Both native evidence bundles verify at their stated retained-copy/current roots;
+all40 authority tables and$4.887796 exposure/holds remain unchanged.
+
+R3 source archive sealed/independently verified:15,862files/436,387,761bytes,
+SHA-256 c31284fe15136bcf59eec26f8a04a343043803721c322317671c24bf36c91f31.
+This pointer follows the archived documentation snapshot; G1 remains not_run.

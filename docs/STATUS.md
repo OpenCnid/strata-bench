@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.6r.3/.3a [owned save-format capture](verification/2026-09-25-m1-player-body-custody.md)
+passes for fresh native02: 38 fields, normal12/12 server and7/7 worker exits;
+independent audit and107 current source checks pass. Native01 remains failed,
+with archive-sidecar and first audit-script failures retained. All40 authority
+tables match at$4.887796; no model/actions or owned runtime. Full live initial
+matching, transient state, overhead/parity and remaining G1 boundaries stay open.
+M1.6r/M1 in_progress, G1 not_run.
+
 M1.6r.2 [private callback observer](verification/2026-09-25-m1-player-body-callback.md)
 is implemented_unverified for live capture. Nine final-candidate checks pass:
 actual transformed-method JVM verification/refusals plus synthetic same-tick

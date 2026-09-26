@@ -1982,6 +1982,22 @@ output inspection and authentic capture/parity evidence before accepting the
 witness. Refuse unsupported whole-roster capacity rather than reducing N.
 This distinct observer does not inherit the clock agent's qualification or
 grant native probe admission, full transient-state equality or G1 acceptance.
+The independent private body-output verifier requires complete ordered
+start/running/capture/stop records, exact configuration/scope/roster, all expected
+NBT files and a complete loaded-class inventory. Derive original class hashes
+from the exact official JAR and bind transformed hashes independently. Content
+consistency alone is not producer provenance. The distinct protected writer/2
+launch holds module/configuration/server/callback bytes, authenticates the live
+Java child, and retains its exact Job/member handle through normal owned exit.
+Do not re-open a PID or require an image-path query after process exit. Inspect
+and export immutable output before closing native handles; incomplete history,
+forced exit, changed inputs or output cannot promote the capture. Single-worker
+reference admission requires exactly its registered one-player roster before
+import and never substitutes for all-N readiness. Private output remains outside
+gameplay/helper contexts. A valid save-format capture does not establish equal
+initial or transient state, external-writer exclusion, instrumentation parity,
+campaign clocks, probe disposal or full G1 acceptance.
+[Owned-capture evidence and retained failures](docs/verification/2026-09-25-m1-player-body-custody.md).
 [Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
 distinguish passing source cases from failed authentic-input execution.
 

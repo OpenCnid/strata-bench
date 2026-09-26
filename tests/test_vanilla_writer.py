@@ -129,6 +129,66 @@ def test_sealed_restored_clone_uses_exact_launch_and_holds_software(vanilla):
         VanillaWriterSession(writer, value)
 
 
+def test_distinct_body_observer_plan_composes_before_dispatch(vanilla, monkeypatch):
+    from strata_evaluator import vanilla_writer
+    writer, value, dispatched, _ = vanilla
+    value.update(schema="strata/PrivateVanillaWriterLaunch/2", policy=vanilla_writer.BODY_POLICY,
+        body_observer={"schema": "strata/PrivateBodyObserverLaunch/1", "campaign_id": "c", "epoch": 1,
+            "run_id": "r", "roster": ["00000000-0000-0000-0000-000000000001"], "module": value["helper_class"]})
+    observer = SimpleNamespace(arguments=["-XX:+DisableAttachMechanism", "-javaagent:synthetic"],
+        binding={"synthetic_binding": True}, inventory={"files": [{"synthetic_module": True}]})
+    monkeypatch.setattr(vanilla_writer, "HeldBodyObserver", lambda *_: observer)
+    session = VanillaWriterSession(writer, value)
+    assert session.observer is observer and dispatched[0][2][:2] == observer.arguments
+    assert dispatched[0][1]["files"][-1] == {"synthetic_module": True}
+    assert writer.result["capability"] == "native-private-vanilla-custody/2"
+    assert session.result["policy"] == vanilla_writer.BODY_POLICY and not session.result["probe_admission"]
+
+
+@pytest.mark.parametrize("field,value", [("campaign_id", "foreign"), ("epoch", 2), ("expected_player_uuid", "foreign")])
+def test_observed_single_worker_scope_refuses_before_import(vanilla, tmp_path, monkeypatch, field, value):
+    from strata_evaluator import vanilla_writer
+    writer, launch, dispatched, _ = vanilla
+    player = "00000000-0000-0000-0000-000000000001"
+    launch.update(schema="strata/PrivateVanillaWriterLaunch/2", policy=vanilla_writer.BODY_POLICY,
+        body_observer={"schema": "strata/PrivateBodyObserverLaunch/1", "campaign_id": "c", "epoch": 1,
+            "run_id": "r", "roster": [player], "module": launch["helper_class"]})
+    invocation = {"campaign_id": "c", "epoch": 1, "expected_player_uuid": player, field: value}
+    monkeypatch.setattr(vanilla_writer, "HeldPackWorker", lambda *_: pytest.fail("unexpected worker import"))
+    with pytest.raises(Fault, match="BODY_WORKER_SCOPE"):
+        vanilla_writer.run_vanilla_worker(writer, launch, invocation, tmp_path)
+    assert not writer.launched and not dispatched
+
+
+@pytest.mark.parametrize("failure", [None, "body", "terminal"])
+def test_body_capture_precedes_job_close_and_cannot_promote_failed_stop(vanilla, monkeypatch, failure):
+    from strata_evaluator import vanilla_writer
+    writer, value, _, _ = vanilla
+    session = VanillaWriterSession(writer, value)
+    events = []
+    session.result.update(ready=True, stop_requested=True)
+    monkeypatch.setattr(session.persistence, "capture", lambda *a, **kw: {"synthetic_snapshot": True})
+    monkeypatch.setattr(vanilla_writer, "inspect_server_log", lambda *_: {"result": "pass"})
+    def capture(*_):
+        events.append("capture")
+        if failure == "body":
+            raise Fault("BODY_SYNTHETIC_FAILURE")
+        return {"synthetic_body": True}
+    def finish():
+        events.append("job_close")
+        return {"terminal_verified": failure != "terminal", "logs_complete": True, "exit_code": 0, "forced": False}
+    session.observer = SimpleNamespace(capture=capture)
+    session.native = SimpleNamespace(observe=lambda: 0, finish=finish, process=object())
+    if failure:
+        with pytest.raises(Fault):
+            session.finish()
+        assert not writer.completed and "body_observer" not in session.result
+    else:
+        session.finish()
+        assert writer.completed and session.result["body_observer"] == {"synthetic_body": True}
+    assert events == (["capture"] if failure == "body" else ["capture", "job_close"])
+
+
 @pytest.mark.parametrize(
     "change,code",
     [

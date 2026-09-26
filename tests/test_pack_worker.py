@@ -157,7 +157,7 @@ def test_deferred_configuration_holds_runtime_and_refuses_every_dispatch_until_c
 
 
 def test_resolved_runtime_is_continuously_owned_until_launcher_exit(pack, monkeypatch):
-    import mcbench.pack_worker as module
+    import mcbench.worker_bundle as module
     binding, invocation, _ = pack
     entered, exited = [], []
     original = module.HeldWorkerBundle

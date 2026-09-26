@@ -5,6 +5,7 @@ copied. Preparation does not authenticate, start an avatar or admit a campaign.
 """
 
 import hashlib
+from contextlib import ExitStack, contextmanager
 import json
 import os
 from pathlib import Path
@@ -112,6 +113,58 @@ class HeldWorkerBundle:
     def __exit__(self, *_):
         if self.lease:
             self.lease.close()
+
+
+class HeldWorkerRuntimePool:
+    """Private owner of immutable runtimes shared by a bounded member lifetime.
+
+    Enter before member contexts and close after their owned processes. This is
+    never a persistent cache or a container for member state/configuration.
+    """
+
+    def __init__(self):
+        self._resources = None
+        self._runtimes = {}
+        self._entered = False
+
+    def __enter__(self):
+        require(not self._entered, "WORKER_RUNTIME_POOL_CONSUMED")
+        self._entered = True
+        self._resources = ExitStack()
+        return self
+
+    def acquire(self, reference):
+        require(self._resources is not None, "WORKER_RUNTIME_POOL_CLOSED")
+        require(isinstance(reference, dict) and set(reference) == {"path", "sha256"}
+                and isinstance(reference["path"], str) and isinstance(reference["sha256"], str),
+                "WORKER_BUNDLE_REFERENCE")
+        reference = {"path": launch_path(Path(reference["path"])), "sha256": reference["sha256"]}
+        key = (reference["path"], reference["sha256"])
+        runtime = self._runtimes.get(key)
+        if runtime is None:
+            runtime = self._resources.enter_context(HeldWorkerBundle(reference))
+            self._runtimes[key] = runtime
+        else:
+            require(runtime.reference == reference, "WORKER_BUNDLE_CHANGED")
+            runtime.recheck()
+        return runtime
+
+    def __exit__(self, *_):
+        if self._resources is not None:
+            try:
+                self._resources.close()
+            finally:
+                self._resources = None
+
+
+@contextmanager
+def _held_worker_runtime(reference, pool=None):
+    if pool is None:
+        with HeldWorkerBundle(reference) as runtime:
+            yield runtime
+    else:
+        require(type(pool) is HeldWorkerRuntimePool, "WORKER_RUNTIME_POOL_REQUIRED")
+        yield pool.acquire(reference)
 
 
 def launch_path(path: Path) -> str:

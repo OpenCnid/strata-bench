@@ -15,6 +15,7 @@ from mcbench.native_probe_binding import read_binding
 from mcbench.pack_worker import HeldPackWorker, _path
 from mcbench.storage import digest, require
 from mcbench.worker_stop import ARGUMENT
+from mcbench.worker_bundle import HeldWorkerRuntimePool
 
 from .telemetry_auth import private_read
 
@@ -70,6 +71,9 @@ class HeldProbeWorkerInputs:
             self._invocations = self.software.worker_invocations(self.principal, self.values)
             self._binding_refs = self._bindings()
             accounts = {}
+            # Registered first so ExitStack drains every member before releasing
+            # their shared immutable runtime. Configs/accounts remain separate.
+            runtimes = resources.enter_context(HeldWorkerRuntimePool())
             # Validate ALL members before creating even the first config file.
             for arm, group in self._invocations.items():
                 self._resolved[arm] = {}
@@ -77,7 +81,7 @@ class HeldProbeWorkerInputs:
                 for agent, invocation in group.items():
                     worker = resources.enter_context(HeldPackWorker(
                         self.software.binding, invocation, defer_configuration=True,
-                        _materialization_lease=self.software.lease))
+                        _materialization_lease=self.software.lease, _runtime_pool=runtimes))
                     self._workers[arm][agent] = worker
                     resolved = worker.resolved
                     configuration = resolved["worker_configuration"]

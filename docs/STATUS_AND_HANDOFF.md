@@ -1,5 +1,29 @@
 # M1/G1 implementation handoff
 
+M1.6q.15 [shared immutable runtime](verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
+for authentic paired gameplay.105 source cases pass after a retained tracking-
+hook failure and one-line test correction. Authentic preparation passes66.16s:
+one full runtime acquisition, entries15.578s/4.787s, total51.673s versus Q14's
+59.711s. Member config/account/process ownership and full custody remain; parent
+FENCED/resources held, no game/model dispatch.443 source pins and40 real tables
+unchanged at$4.887796. Next select one fresh changed paired-worker integration
+after final source/custody/capacity checks, with original bounds and all failures
+retained. Native10's148.437s cause stays unknown; G1 remains not_run.
+
+Q15 source3141 and preparation8976 are terminal. The source run retains104
+passes/one tracking-hook failure; the corrected case passes0.71s. No active
+sessions remain. Fresh evidence:
+`C:/Users/Darian/.strata/evidence/2026-09-25-m1-shared-worker-runtime-01`.
+No native11 has been selected. Earlier next actions below are historical.
+
+
+Q15 evidence is sealed and independently verified:14,391 files,78,805,077 bytes,
+SHA-256`b1a146fb9ef69eacd32f7cffeccd1ce24130e16ff559e6f6dd4b380f97cb18b0`.
+Source failures/correction, both source runs, authentic preparation, complete
+private fixtures and final audits are retained. This seal pointer follows the
+archived documentation snapshot. Sealing57176 is terminal/pass; use fresh
+storage for the next attempt and never alter this root or native01-10.
+
 M1.6q.14 [worker-entry diagnosis](verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
 read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
 passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's

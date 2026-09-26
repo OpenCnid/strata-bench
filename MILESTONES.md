@@ -2,6 +2,16 @@
 
 ## Current position
 
+M1.6q.15 [shared immutable runtime](docs/verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
+for authentic paired gameplay.105 source cases pass after a retained tracking-
+hook failure and one-line test correction. Authentic preparation passes66.16s:
+one full runtime acquisition, entries15.578s/4.787s, total51.673s versus Q14's
+59.711s. Member config/account/process ownership and full custody remain; parent
+FENCED/resources held, no game/model dispatch.443 source pins and40 real tables
+unchanged at$4.887796. Next select one fresh changed paired-worker integration
+after final source/custody/capacity checks, with original bounds and all failures
+retained. Native10's148.437s cause stays unknown; G1 remains not_run.
+
 M1.6q.14 [worker-entry diagnosis](docs/verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
 read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
 passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's
@@ -969,6 +979,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
 | M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md):95 source passes; native10 fails233.02s pre-admission before imports/copies/servers because first input entry takes148.437s. Parent FENCED/holds intact/no world row or writer table. New ordering unexercised authentically; next read-only first-entry diagnosis. |
 | M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
+| M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-shared-worker-runtime.md):105 distinct source passes after retained test-hook failure; authentic preparation1 pass66.16s, entries15.578s/4.787s with one acquisition. Full paired gameplay unverified. Next fresh changed pair after final checks; original bounds/failures retained. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
@@ -9113,3 +9124,68 @@ Q14 diagnostic evidence is sealed and independently verified:688 files,
 `022401e06fb38ee1703a90ef3b50f941972c95c3ab15a66525ba0f15d237d453`.
 This pointer follows the archived documentation snapshot. Preserve this root
 and native01-10 unchanged; use fresh storage for subsequent implementation.
+
+### 2026-09-25 — M1.6q.15 pair-owned immutable runtime custody begins
+
+Q14 measures two full acquisitions of the identical pinned runtime at7.999s/
+7.959s under cProfile. Add a private pair-owned pool whose contexts outlive all
+member contexts/processes, keyed by exact manifest path/hash and checked live
+on every borrow. No global cache, mutable state sharing or byte-check bypass
+on first acquisition. Preserve configuration/account/process ownership and
+full fresh authority/layout/member checks. Inherits M1.6q.14 mappings. All40
+real authority tables match Q14 at$4.887796; native10 cause remains unknown.
+No native11 selected, paid call or original deadline change.
+
+### 2026-09-25 — M1.6q.15 implementation under focused verification
+
+Private HeldWorkerRuntimePool owns exact path/hash runtimes for one pair
+lifetime. First acquisition remains complete; later borrow checks live custody
+and membership. Pool registered before member contexts; member config/process
+cleanup precedes runtime release. Standalone ownership unchanged. Added focused
+closed/changed/invalid/independent-owner tests and paired cleanup-order assertions.
+Source session3141 is active with separate evidence/basetemp; poll it instead
+of restarting. No authentic preparation/game dispatch selected yet. SPEC records
+the lifetime rule without changing prior acceptance text or deadlines.
+
+### 2026-09-25 — M1.6q.15 source checks complete; authentic preparation selected
+
+Session3141 terminates with104 passes and one failure in660.87s. The ownership
+tracking test patches the old pack_worker constructor alias after acquisition
+moved into worker_bundle; preserve its complete failure/source. Change only
+that test import and rerun the exact case: pass.105 distinct source cases now
+pass, no skips, production source unchanged across both runs. Closed custody,
+changed references/membership, whole-pair partial failures, expiry, receipts
+and cleanup ordering pass. No broad rerun.
+
+Selection audit verifies all tested sources, the one-line test-only correction,
+443 source pins and all40 real authority tables unchanged. Fresh authentic
+preparation session8976 is active using the same pinned profile02 software/save
+and new synthetic pair records, with process dispatch blocked. Preserve original
+300s parent and all resource/cost holds; no Minecraft or model call is selected.
+
+### 2026-09-25 — M1.6q.15 authentic preparation and source verification complete
+
+Session8976 passes66.16s, original300s parent; preparation/cleanup51.673s versus
+Q14's59.711s. First entry15.578s, second4.787s; one full bundle acquisition8.651s.
+Same pinned runtime/whole registered source, with separate private configs and
+synthetic agent/protocol/reservations. No game/import/copier/model dispatch;
+all handles closed, empty worker states, parent FENCED, resources/budgets retained,
+no world/writer tables. This measures reduced repeated acquisition, not native10's
+unexplained148.437s delay or a full paired runtime pass.105 source cases pass after
+retained tracking-hook failure and test-only correction. M1.6q.15 becomes
+implemented_unverified for authentic paired gameplay; full G1 stays not_run.
+Next final source/custody/capacity checks, then one fresh changed paired-worker
+trial under original300/200-170/60-60s. Keep all native01-10 failures and consumed
+inputs. No M1 paid authority inferred.
+
+Final audit passes443 current source pins,427 unique milestone IDs with all426
+prior IDs retained,1,689 local links, append-only history, prior SPEC text/JSON
+preservation, Ruff and whitespace checks. All40 real authority tables remain
+unchanged at$4.887796; no owned runtime remains. No native11 is selected yet.
+
+Q15 evidence is sealed and independently verified:14,391 files,78,805,077 bytes,
+SHA-256`b1a146fb9ef69eacd32f7cffeccd1ce24130e16ff559e6f6dd4b380f97cb18b0`.
+Source failures/correction, both source runs, authentic preparation, complete
+private fixtures and final audits are retained. This seal pointer follows the
+archived documentation snapshot. Sealing57176 is terminal/pass; use fresh
+storage for the next attempt and never alter this root or native01-10.

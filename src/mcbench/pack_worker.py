@@ -26,7 +26,7 @@ from .processes import ManagedProcess
 from .provisioning import VanillaLaunchProfile, WORKER_CONFIG_ARGUMENT, validate_launch_environment
 from .server_health import inspect_server_log
 from .storage import Fault, canonical, digest, require
-from .worker_bundle import HeldWorkerBundle, launch_path
+from .worker_bundle import HeldWorkerBundle, _held_worker_runtime, launch_path
 from .worker_stop import ARGUMENT
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -150,7 +150,7 @@ def resolve_worker_invocation(profile, value, binding):
 
 
 @contextmanager
-def _held_worker_invocation(profile, value, binding):
+def _held_worker_invocation(profile, value, binding, *, _runtime_pool=None):
     """Keep the exact validated runtime continuously held for an owning caller."""
     require(value is not None, "WORKER_INVOCATION_REQUIRED")
     invocation = WorkerInvocation.model_validate(value)
@@ -166,7 +166,7 @@ def _held_worker_invocation(profile, value, binding):
         for second in (_path(binding.store), _path(binding.instance), cache, safe(ROOT), manifest):
             _apart(first, second)
     _apart(state, config)
-    with HeldWorkerBundle(profile.worker_runtime.model_dump()) as runtime:
+    with _held_worker_runtime(profile.worker_runtime.model_dump(), _runtime_pool) as runtime:
         check_worker_command(profile, runtime)
         for first in (state, config):
             _apart(first, runtime.root)
@@ -199,13 +199,16 @@ class HeldPackWorker:
     """
 
     def __init__(self, binding, invocation, *, simulation=False, own_server=False, defer_configuration=False,
-                 _materialization_lease=None):
+                 _materialization_lease=None, _runtime_pool=None):
         require(type(own_server) is bool and type(defer_configuration) is bool, "WORKER_LAUNCH_PROFILE")
         require(_materialization_lease is None or not own_server, "MATERIALIZATION_CUSTODY_SCOPE")
+        require(_runtime_pool is None or _materialization_lease is not None and not own_server,
+                "WORKER_RUNTIME_POOL_SCOPE")
         self.binding, self.invocation, self.simulation = deepcopy(binding), deepcopy(invocation), simulation
         self.own_server = own_server
         self.defer_configuration = defer_configuration
         self._materialization_lease = _materialization_lease
+        self._runtime_pool = _runtime_pool
         self._entered = False
         self._configuration_attempted = False
         self.config_lease = None
@@ -233,7 +236,7 @@ class HeldPackWorker:
         try:
             resolved, self.runtime = resources.enter_context(_held_pack_launch(
                 self.binding, "client", simulation=self.simulation, worker_invocation=self.invocation,
-                _materialization_lease=self._materialization_lease))
+                _materialization_lease=self._materialization_lease, _runtime_pool=self._runtime_pool))
             require(self.runtime is not None, "WORKER_LAUNCH_PROFILE")
             # Resolve both roles while materialization is pristine, retaining
             # the worker runtime already checked by the client resolver.

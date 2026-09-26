@@ -103,9 +103,11 @@ def _materialization_scope(binding, lease):
 
 @contextmanager
 def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None, forge_invocation=None,
-                      _materialization_lease=None):
+                      _materialization_lease=None, _runtime_pool=None):
     """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
+    require(_runtime_pool is None or _materialization_lease is not None and role == "client"
+            and worker_invocation is not None and forge_invocation is None, "WORKER_RUNTIME_POOL_SCOPE")
     if _materialization_lease is not None:
         _materialization_scope(binding, _materialization_lease)
         require(not simulation and forge_invocation is None
@@ -237,7 +239,7 @@ def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None
         result.update(scope=restoration_scope(binding), restoration=binding.restoration.model_dump())
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
         from .pack_worker import _held_worker_invocation
-        with _held_worker_invocation(launch, worker_invocation, binding) as (worker, runtime):
+        with _held_worker_invocation(launch, worker_invocation, binding, _runtime_pool=_runtime_pool) as (worker, runtime):
             result.update(worker)
             yield result, runtime
         return

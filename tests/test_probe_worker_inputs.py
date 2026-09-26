@@ -69,8 +69,17 @@ def test_registered_whole_pair_held_without_dispatch_or_parent_release(runtime, 
             record = holder.check()
             workers = [w for group in holder._workers.values() for w in group.values()]
             assert all(w._materialization_lease is software.lease for w in workers)
-            assert len({id(w.runtime) for w in workers}) == len(workers)
+            assert len({id(w.runtime) for w in workers}) == 1
             assert len({id(w.config_lease) for w in workers}) == len(workers)
+            # Member contexts close before the shared immutable runtime owner.
+            # This includes already-stopped process close callbacks on failures.
+            closed_members = []
+            for index, worker in enumerate(workers):
+                def close_member(worker=worker, index=index):
+                    assert not worker.runtime.lease.closed
+                    worker.runtime.recheck()
+                    closed_members.append(index)
+                worker._resources.callback(close_member)
             assert record["whole_roster_held"] and not record["worker_dispatch_authorized"]
             assert not record["authenticated_identity_verified"] and not record["live_initial_state_verified"]
             assert set(record["invocations"]) == {"initial", "experienced"}
@@ -90,6 +99,8 @@ def test_registered_whole_pair_held_without_dispatch_or_parent_release(runtime, 
             assert not service.db.connection.execute("SELECT * FROM probe_world_copies").fetchall()
         with pytest.raises(Fault, match="PROBE_WORKER_INPUTS_CLOSED"):
             holder.check()
+        assert closed_members == list(reversed(range(len(workers))))
+        assert all(w.runtime.lease.closed and w.config_lease.closed for w in workers)
         with pytest.raises(Fault, match="PROBE_WORKER_INPUTS_CONSUMED"):
             holder.__enter__()
         declaration.write_bytes(raw)  # Own hold closed, parent reservation retained.

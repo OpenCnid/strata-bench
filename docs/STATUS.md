@@ -1,5 +1,15 @@
 # Strata current status
 
+M1.6q.15 [shared immutable runtime](verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
+for authentic paired gameplay.105 source cases pass after a retained tracking-
+hook failure and one-line test correction. Authentic preparation passes66.16s:
+one full runtime acquisition, entries15.578s/4.787s, total51.673s versus Q14's
+59.711s. Member config/account/process ownership and full custody remain; parent
+FENCED/resources held, no game/model dispatch.443 source pins and40 real tables
+unchanged at$4.887796. Next select one fresh changed paired-worker integration
+after final source/custody/capacity checks, with original bounds and all failures
+retained. Native10's148.437s cause stays unknown; G1 remains not_run.
+
 M1.6q.14 [worker-entry diagnosis](verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
 read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
 passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's

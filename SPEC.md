@@ -1905,6 +1905,18 @@ scoped grants and gather ordinary connected observations for the whole arm.
 Drain all workers before server save; retain the first worker export through its
 sibling, stop remaining owned workers on failure and preserve parent holds.
 This operator reference exposes no model/action or native probe authority.
+Paired worker inputs may share an exact pinned immutable runtime under one
+private, one-use lifetime owner. The first acquisition still validates the full
+manifest and hashes every retained file handle. Later borrows require the same
+manifest path/hash, live custody and unchanged tree membership; no persistent
+cache or unchecked reference substitution is allowed. Register this owner before
+all member contexts so owned processes and configuration leases close before
+runtime custody is released, including partial preparation failures. Each member
+retains independent configuration, account binding and process ownership, with
+fresh authority, materialization and dispatch checks. Standalone workers retain
+their own runtime ownership. Sharing software grants no gameplay isolation or
+native probe authority and does not change deadlines or budget/resource holds.
+
 Worker import checks may finish before either writer is acquired, after durable
 pair admission, complete namespace/storage checks and native-input custody.
 Keep parent time charged throughout and check its deadline after worker input

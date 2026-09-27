@@ -22,6 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 /** Private native facts only. No recipe ID, player attribution, or score is inferred. */
 public final class FurnaceCapture {
+    static final String INTERVAL_POLICY = "thermal1192-native-furnace-server-tick/1";
     static final String TRANSITION_POLICY = "thermal1192-native-furnace-transitions/1";
     static final String TICK_POLICY = "thermal1192-native-furnace-process-tick/1";
     static final String POLICY = "thermal1192-native-furnace-phases/2";
@@ -45,6 +46,12 @@ public final class FurnaceCapture {
     private static JsonObject transitionBefore;
     private static String transitionOperation, transitionRefusal;
     private static int baseProcessTick;
+    private static FurnaceLifetimes lifetimes;
+    private static Frame interval;
+    private static FurnaceLifetimes.Entry intervalLife;
+    private static JsonObject intervalBefore, stepBefore;
+    private static JsonArray intervalSteps, intervalChildren;
+    private static String intervalRefusal, stepName;
 
     private static final class Frame {
         final FurnacePhases phases;
@@ -73,7 +80,7 @@ public final class FurnaceCapture {
     }
 
     static JsonObject support() throws IOException {
-        if(sink!=null || current!=null || ticking!=null || transitioning!=null) throw new IOException("MACHINE_CAPTURE_ACTIVE");
+        if(sink!=null || current!=null || ticking!=null || transitioning!=null || interval!=null) throw new IOException("MACHINE_CAPTURE_ACTIVE");
         machineClass=null;furnaceClass=null;
         var artifacts=new JsonObject(); boolean matches=true;
         for(var entry:PINS.entrySet()) {
@@ -93,6 +100,9 @@ public final class FurnaceCapture {
             if(!FurnaceCaptureMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_CAPTURE_HOOK_MISSING");
             if(!FurnaceTickMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_TICK_HOOK_MISSING");
             if(!FurnaceTransitionMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_TRANSITION_HOOK_MISSING");
+            if(!FurnaceIntervalMarker.class.isAssignableFrom(machineClass)
+                    || !FurnaceLifetimeMarker.class.isAssignableFrom(BlockEntity.class))
+                throw new IOException("MACHINE_INTERVAL_HOOK_MISSING");
             if(!FurnaceRegistration.support()) throw new IOException("MACHINE_REGISTRATION_HOOK_MISSING");
         } catch(ReflectiveOperationException error) { throw new IOException("MACHINE_CAPTURE_CLASS",error); }
         var value=new JsonObject();value.addProperty("status",matches?"supported":"unsupported");
@@ -101,14 +111,14 @@ public final class FurnaceCapture {
         return value;
     }
     static void activate(MinecraftServer value, CraftCapture.Sink destination) {
-        if(sink!=null || current!=null || ticking!=null || transitioning!=null || !value.isDedicatedServer() || !value.isSameThread())
+        if(sink!=null || current!=null || ticking!=null || transitioning!=null || interval!=null || !value.isDedicatedServer() || !value.isSameThread())
             throw new IllegalStateException("MACHINE_CAPTURE_ACTIVATION");
-        server=value;sink=destination;
+        server=value;sink=destination;lifetimes=new FurnaceLifetimes();
     }
     static void close() {
-        if(current!=null || ticking!=null || transitioning!=null) throw new IllegalStateException("MACHINE_CAPTURE_INCOMPLETE");
+        if(current!=null || ticking!=null || transitioning!=null || interval!=null) throw new IllegalStateException("MACHINE_CAPTURE_INCOMPLETE");
         FurnaceRegistration.close();
-        sink=null;server=null;
+        sink=null;server=null;lifetimes=null;
     }
     private static boolean active(Object tile, String method) {
         if(sink==null || furnaceClass==null) return false;
@@ -166,6 +176,7 @@ public final class FurnaceCapture {
         if(frame==null) throw new IllegalStateException("MACHINE_CAPTURE_UNPAIRED");
         lifetime(frame);
         boolean complete=frame.phases.complete(value);
+        child(frame);
         if(complete) {
             frame.base.add("resolved_recipe",frame.resolved);
             frame.base.add("registration",frame.registration);
@@ -207,6 +218,7 @@ public final class FurnaceCapture {
         } catch(ReflectiveOperationException | UnsupportedOperationException error) {
             tickRefusal=tickReason(error);
         }
+        child(frame);
         if(tickRefusal==null) {
             var states=new JsonArray();states.add(tickBefore);states.add(after);
             frame.base.add("states",states);frame.base.addProperty("returned",returned);
@@ -263,6 +275,7 @@ public final class FurnaceCapture {
         } catch(ReflectiveOperationException | UnsupportedOperationException error) {
             transitionRefusal=tickReason(error);
         }
+        child(frame);
         if(transitionRefusal==null) {
             var states=new JsonArray();states.add(transitionBefore);states.add(after);frame.base.add("states",states);
             if("start".equals(operation)) {
@@ -275,6 +288,93 @@ public final class FurnaceCapture {
             sink.emit("machine_process_transition_refused","strata/NativeFurnaceProcessTransitionRefusal/1",frame.base,new JsonArray());
         }
         transitioning=null;transitionBefore=null;transitionRefusal=null;transitionOperation=null;baseProcessTick=0;
+    }
+    private static void child(Frame frame) {
+        if(interval==null || interval.tile!=frame.tile || stepName!=null || intervalChildren.size()>=4 || intervalSteps.size()>=10)
+            throw new IllegalStateException("MACHINE_INTERVAL_CHILD");
+        lifetime(interval);
+        var ref=new JsonObject();ref.addProperty("kind","child");
+        ref.add("transaction_id",frame.base.get("transaction_id"));intervalSteps.add(ref);
+        intervalChildren.add(frame.base.get("transaction_id"));
+    }
+    public static void serverEnter(Object value) {
+        if(!active(value,"tickServer")) return;
+        if(interval!=null || current!=null || ticking!=null || transitioning!=null)
+            throw new IllegalStateException("MACHINE_INTERVAL_NESTED");
+        if(!(value instanceof BlockEntity tile) || !(tile.getLevel() instanceof ServerLevel level)
+                || level.getServer()!=server) throw new IllegalStateException("MACHINE_INTERVAL_LIFETIME");
+        interval=new Frame(tile);lifetime(interval);
+        intervalLife=lifetimes.begin(tile,level,interval.position.toString(),interval.tick);
+        intervalSteps=new JsonArray();intervalChildren=new JsonArray();intervalRefusal=null;
+        intervalBefore=null;stepBefore=null;stepName=null;
+        try { intervalBefore=state(value,false,true); }
+        catch(ReflectiveOperationException | UnsupportedOperationException error) { intervalRefusal="native_profile_unsupported"; }
+    }
+    private static void intervalScope(Object value) {
+        if(interval==null || interval.tile!=value || current!=null || ticking!=null || transitioning!=null)
+            throw new IllegalStateException("MACHINE_INTERVAL_UNPAIRED");
+        lifetime(interval);
+    }
+    public static void stepEnter(Object value,String name) {
+        if(!active(value,"tickServer")) return;
+        intervalScope(value);
+        if(stepName!=null || intervalSteps.size()>=10 || !List.of("transfer_input","transfer_output","charge","off","activate").contains(name))
+            throw new IllegalStateException("MACHINE_INTERVAL_STAGE");
+        stepName=name;stepBefore=null;
+        if(intervalRefusal==null) try { stepBefore=state(value,false,true); }
+        catch(ReflectiveOperationException | UnsupportedOperationException error) { intervalRefusal="native_profile_unsupported"; }
+    }
+    public static void stepExit(Object value,String name) {
+        if(!active(value,"tickServer")) return;
+        intervalScope(value);
+        if(!name.equals(stepName)) throw new IllegalStateException("MACHINE_INTERVAL_STAGE_PAIR");
+        if(intervalRefusal==null) try {
+            var states=new JsonArray();states.add(stepBefore);states.add(state(value,false,true));
+            var stage=new JsonObject();stage.addProperty("kind","stage");stage.addProperty("stage",name);
+            stage.add("states",states);intervalSteps.add(stage);
+        } catch(ReflectiveOperationException | UnsupportedOperationException error) { intervalRefusal="native_profile_unsupported"; }
+        stepBefore=null;stepName=null;
+    }
+    private static void intervalIdentity(Frame frame,FurnaceLifetimes.Entry entry) {
+        frame.base.addProperty("policy",INTERVAL_POLICY);frame.base.addProperty("lifetime_id",entry.id);
+        frame.base.addProperty("ordinal",entry.ordinal);frame.base.addProperty("world_tick",frame.tick);
+    }
+    public static void serverExit(Object value) {
+        if(!active(value,"tickServer")) return;
+        intervalScope(value);
+        if(stepName!=null) throw new IllegalStateException("MACHINE_INTERVAL_STAGE_INCOMPLETE");
+        JsonObject after=null;
+        if(intervalRefusal==null) try { after=state(value,false,true); }
+        catch(ReflectiveOperationException | UnsupportedOperationException error) { intervalRefusal="native_profile_unsupported"; }
+        intervalIdentity(interval,intervalLife);
+        interval.base.add("child_ids",intervalChildren);
+        if(intervalRefusal==null) {
+            var states=new JsonArray();states.add(intervalBefore);states.add(after);
+            interval.base.add("states",states);interval.base.add("steps",intervalSteps);
+            sink.emit("machine_server_tick","strata/NativeFurnaceServerTick/1",interval.base,new JsonArray());
+        } else {
+            interval.base.addProperty("reason",intervalRefusal);
+            sink.emit("machine_server_tick_refused","strata/NativeFurnaceServerTickRefusal/1",interval.base,new JsonArray());
+        }
+        interval=null;intervalLife=null;intervalBefore=null;intervalSteps=null;intervalChildren=null;intervalRefusal=null;
+    }
+    public static void retire(Object value,String reason) {
+        if(sink==null || furnaceClass==null || value.getClass()!=furnaceClass) return;
+        if(!server.isSameThread()) throw new IllegalStateException("MACHINE_LIFETIME_THREAD");
+        String method=switch(reason) { case "removed" -> "m_7651_";case "unloaded" -> "onChunkUnloaded";
+            case "reactivated" -> "m_6339_";default -> throw new IllegalStateException("MACHINE_LIFETIME_REASON"); };
+        var callers=StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(s ->
+            s.dropWhile(f -> f.getDeclaringClass()==FurnaceCapture.class).limit(2).toList());
+        if(callers.size()!=2 || callers.get(0).getDeclaringClass()!=BlockEntity.class
+                || callers.get(1).getDeclaringClass()!=BlockEntity.class || !callers.get(1).getMethodName().equals(method))
+            throw new IllegalStateException("MACHINE_LIFETIME_CALLER");
+        if(interval!=null) throw new IllegalStateException("MACHINE_LIFETIME_DURING_TICK");
+        var entry=lifetimes.retire(value);if(entry==null) return;
+        var tile=(BlockEntity)value;
+        if(tile.getLevel()!=entry.level || !tile.getBlockPos().toString().equals(entry.position))
+            throw new IllegalStateException("MACHINE_LIFETIME_IDENTITY");
+        var frame=new Frame(tile);intervalIdentity(frame,entry);frame.base.addProperty("reason",reason);
+        sink.emit("machine_lifetime_end","strata/NativeFurnaceLifetimeEnd/1",frame.base,new JsonArray());
     }
     private static String tickReason(Exception error) {
         return switch(String.valueOf(error.getMessage())) {

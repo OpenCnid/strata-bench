@@ -137,6 +137,7 @@ class TelemetryPipeBroker:
         from .machine_capture import KINDS as MACHINE_KINDS, require_capture_scope
         from .machine_energy import KINDS as TICK_KINDS, POLICY as TICK_POLICY, parse_tick
         from .machine_transitions import KINDS as TRANSITION_KINDS, POLICY as TRANSITION_POLICY, parse_transition
+        from .machine_interval import KINDS as INTERVAL_KINDS, POLICY as INTERVAL_POLICY, parse_interval
         require(0 < len(raw) <= MAX_RECORD and raw.endswith(b"\n"), "TELEMETRY_PIPE_EVENT_FRAMING")
         event = GameEvent.model_validate(strict_json(raw))
         require(not self.stopped and not event.is_example and event.visibility == "evaluator"
@@ -146,8 +147,9 @@ class TelemetryPipeBroker:
                 "TELEMETRY_PIPE_EVENT_SCOPE")
         if self.count:
             require(event.kind != "server_started", "TELEMETRY_PIPE_EVENT_SCOPE")
-            if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS:
-                captured = (parse_transition(event, self.transition_supported) if event.kind in TRANSITION_KINDS else
+            if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS:
+                captured = (parse_interval(event, self.interval_supported) if event.kind in INTERVAL_KINDS else
+                            parse_transition(event, self.transition_supported) if event.kind in TRANSITION_KINDS else
                             parse_tick(event, self.tick_supported) if event.kind in TICK_KINDS else
                             require_capture_scope(event, self.machine_supported, self.machine_policy))
                 registration = getattr(captured, "registration", None)
@@ -170,7 +172,7 @@ class TelemetryPipeBroker:
                     "TELEMETRY_PIPE_FIRST_EVENT")
             model = LAUNCH_STARTUP_MODELS[event.payload_schema]
             payload = model.model_validate(event.payload)
-            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14", "strata/ServerStarted/15", "strata/ServerStarted/16", "strata/ServerStarted/17", "strata/ServerStarted/18"}
+            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14", "strata/ServerStarted/15", "strata/ServerStarted/16", "strata/ServerStarted/17", "strata/ServerStarted/18", "strata/ServerStarted/19"}
                     or payload.telemetry_transport == "windows-owned-pipe/1", "TELEMETRY_PIPE_TRANSPORT")
             from .reference_launch import bind_identity
             binding = bind_identity(self.plan, self.setup, payload.launch_identity, identity)
@@ -183,6 +185,8 @@ class TelemetryPipeBroker:
                 and getattr(payload, "machine_process_tick_policy", None) == TICK_POLICY)
             self.transition_supported = (self.machine_supported
                 and getattr(payload, "machine_transition_policy", None) == TRANSITION_POLICY)
+            self.interval_supported = (self.machine_supported
+                and getattr(payload, "machine_interval_policy", None) == INTERVAL_POLICY)
             self.machine_generation = 0
             self.machine_ids = set()
             self.boot = event.server_boot_id

@@ -32,6 +32,8 @@ from .machine_energy import KINDS as TICK_KINDS, POLICY as TICK_POLICY, parse_ti
 from .machine_transitions import (KINDS as TRANSITION_KINDS, POLICY as TRANSITION_POLICY,
                                   parse_transition, qualify_transition)
 
+from .machine_interval import KINDS as INTERVAL_KINDS, parse_interval, IntervalInspection
+
 KINDS = {
     "server_started": "strata/ServerStarted/1",
     "recipe_snapshot": "strata/RecipeSnapshot/1",
@@ -178,6 +180,11 @@ class ServerStartedV18(ServerStartedV17):
     machine_transition_policy: Literal["thermal1192-native-furnace-transitions/1"]
 
 
+class ServerStartedV19(ServerStartedV18):
+    module: Literal["strata-forge1192-telemetry/0.3.18"]
+    machine_interval_policy: Literal["thermal1192-native-furnace-server-tick/1"]
+
+
 LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/6": ServerStartedV6,
                         "strata/ServerStarted/7": ServerStartedV7,
@@ -191,7 +198,8 @@ LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/15": ServerStartedV15,
                         "strata/ServerStarted/16": ServerStartedV16,
                         "strata/ServerStarted/17": ServerStartedV17,
-                        "strata/ServerStarted/18": ServerStartedV18}
+                        "strata/ServerStarted/18": ServerStartedV18,
+                        "strata/ServerStarted/19": ServerStartedV19}
 
 
 class RecipeSnapshot(Strict):
@@ -247,6 +255,7 @@ PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
 KINDS.update(MACHINE_KINDS)
 KINDS.update(TICK_KINDS)
 KINDS.update(TRANSITION_KINDS)
+KINDS.update(INTERVAL_KINDS)
 PAYLOADS.update(MACHINE_PAYLOADS)
 
 
@@ -280,6 +289,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     machine_ids = set()
     tick_supported = False
     transition_supported = False
+    interval_supported = False
+    interval_inspection = None
     transition_accepted, transition_rejected = [], []
     tick_accepted, tick_rejected = [], []
     machine_inspection = (MachineReferenceInspection(machine_reference)
@@ -322,12 +333,13 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version13 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/13"
             version14 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/14"
             version15 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/15"
+            version19 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/19"
             version18 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/18"
             version17 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/17"
             version16 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/16"
             history_versioned = event.kind == "setup_history" and event.payload_schema in HISTORY_SCHEMAS.values()
             version9 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/9"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or history_versioned or known_capture_schema(event)),
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or history_versioned or known_capture_schema(event)),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -350,10 +362,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                             or (version15 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.14")
                             or (version16 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.15")
                             or (version17 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.16")
-                            or (version18 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.17"),
+                            or (version18 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.17")
+                            or (version19 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.18"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV18 if version18 else ServerStartedV17 if version17 else ServerStartedV16 if version16 else ServerStartedV15 if version15 else ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.17" if version18 else "strata-forge1192-telemetry/0.3.16" if version17 else "strata-forge1192-telemetry/0.3.15" if version16 else "strata-forge1192-telemetry/0.3.14" if version15 else "strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV19 if version19 else ServerStartedV18 if version18 else ServerStartedV17 if version17 else ServerStartedV16 if version16 else ServerStartedV15 if version15 else ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.18" if version19 else "strata-forge1192-telemetry/0.3.17" if version18 else "strata-forge1192-telemetry/0.3.16" if version17 else "strata-forge1192-telemetry/0.3.15" if version16 else "strata-forge1192-telemetry/0.3.14" if version15 else "strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -367,8 +380,9 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                 require(event.server_boot_id == boot, "TELEMETRY_BOOT_MISMATCH")
                 require(event.kind != "server_started", "TELEMETRY_DUPLICATE_START")
             data = event.payload
-            if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS:
-                captured = (parse_transition(event, transition_supported) if event.kind in TRANSITION_KINDS else
+            if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS:
+                captured = (parse_interval(event, interval_supported) if event.kind in INTERVAL_KINDS else
+                            parse_transition(event, transition_supported) if event.kind in TRANSITION_KINDS else
                             parse_tick(event, tick_supported) if event.kind in TICK_KINDS else
                             require_capture_scope(event, machine_supported, machine_policy))
                 registration = getattr(captured, "registration", None)
@@ -377,7 +391,14 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                     machine_generation = registration.generation
                 require(captured.transaction_id not in machine_ids, "MACHINE_CAPTURE_DUPLICATE")
                 machine_ids.add(captured.transaction_id)
-                if event.kind in TRANSITION_KINDS:
+                if interval_inspection is not None:
+                    if event.kind in INTERVAL_KINDS:
+                        interval_inspection.observe(event, captured)
+                    else:
+                        interval_inspection.child(event, captured)
+                if event.kind in INTERVAL_KINDS:
+                    pass
+                elif event.kind in TRANSITION_KINDS:
                     require(len(transition_accepted) + len(transition_rejected) < MAX_PROCESS_TRANSITIONS,
                             "MACHINE_TRANSITION_QUOTA")
                     reason = "MACHINE_TRANSITION_NATIVE_REFUSED" if event.kind.endswith("_refused") else None
@@ -407,26 +428,29 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             if event.kind == "setup_history":
                 require(history_support is not None and event.payload_schema == HISTORY_SCHEMAS[history_support.policy],
                         "SETUP_HISTORY_MODULE")
-            parsed = captured if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS else (startup_model if event.kind == "server_started" else
+            parsed = captured if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS else (startup_model if event.kind == "server_started" else
                       HISTORY_MODELS[history_support.policy] if event.kind == "setup_history" else PAYLOADS[event.kind]).model_validate(data)
-            if version18:
+            if version19:
+                interval_supported = parsed.machine_capture_support.status == "supported"
+                interval_inspection = IntervalInspection()
+            if version18 or version19:
                 transition_supported = parsed.machine_capture_support.status == "supported"
-            if version17 or version18:
+            if version17 or version18 or version19:
                 tick_supported = parsed.machine_capture_support.status == "supported"
-            if version15 or version16 or version17 or version18:
+            if version15 or version16 or version17 or version18 or version19:
                 machine_policy = parsed.machine_capture_policy
                 machine_supported = parsed.machine_capture_support.status == "supported"
-            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 startup_transport = parsed.telemetry_transport
-            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 history_support = parsed.setup_history_support
-            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18:
+            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
                 craft_policy = parsed.craft_capture_policy
             if terminal_clock is not None:
                 require(event.server_tick == terminal_clock.completed_server_ticks
@@ -597,6 +621,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             "accepted": transition_accepted, "rejected": transition_rejected,
             "energy_refunded_rf": sum(v.get("energy_refunded_rf", 0) for v in transition_accepted),
             "sustained_operation_verified": False, "scoring_eligible": False}
+    if interval_inspection is not None:
+        report["machine_intervals"] = interval_inspection.report()
     if machine_inspection is not None:
         require(machine_supported and machine_policy == "thermal1192-native-furnace-phases/2",
                 "MACHINE_REFERENCE_PROFILE")

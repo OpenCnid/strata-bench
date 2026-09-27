@@ -1,5 +1,11 @@
 # M1/G1 implementation handoff
 
+M1.5b.8 adds [complete native furnace tick/lifetime capture](verification/2026-09-26-m1-furnace-interval.md), telemetry0.3.18/startup19. Actual object identities retire on removal/unload/reactivation; ordered child and resource stages expose gaps instead of filling them. Exact sampled windows remain unregistered, private and unscorable.
+
+285 distinct Python cases pass,4 existing native opt-in skips;20 Java cases and the offline artifact build pass. All329 operation08 records reconstruct unchanged. Final candidate061712ce is archived; installed artifacts unchanged. Initial lint and hierarchy lookup failures remain retained.
+
+M1.5b.8 implemented_unverified; M1 in_progress and G1 not_run. Next prepare a fresh bounded native reference with interval criteria fixed before launch, then exercise retirement/replacement and rejection controls. Window registration, setup/team/loaded-code, alternate/negative scorer controls, parity/isolation and remaining keybinding/native-host/probe contracts remain open. All40 authority tables unchanged at4,887,796microUSD; no game/model run or M1 paid authority. Prior failures and holds remain.
+
 M1.5b.7 [operation08](verification/2026-09-26-m1-furnace-transitions-native.md) passes the prior-bound two-item native reference on telemetry0.3.17/startup18.329 signed records prove84 processing calls/8,064RF debit, starts with0/−32 carry, two completions and64RF final refund.17 operation/9 V4 import checks and processing/transition/terminal audits pass; saved player +2 ingots/+1 dust, furnace empty/12,000RF.
 
 All four rows STOPPED/consumed;745.6213ms guardian,134/134+29/29 terminal parent histories, session retired/no runtime. All40 authority tables unchanged at4,887,796microUSD; no model calls. The first processing audit's stale startup17 assertion is retained and corrected to the prelaunch startup18 identity without replay or criterion changes.

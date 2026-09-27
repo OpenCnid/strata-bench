@@ -8,6 +8,8 @@
     "FurnaceCaptureMixin",
     "FurnaceTickMixin",
     "FurnaceTransitionMixin",
+    "FurnaceIntervalMixin",
+    "FurnaceLifetimeMixin",
     "FurnaceRegistrationMixin",
     "RecipeRegistrationMixin",
     "GameModeHistoryMixin",

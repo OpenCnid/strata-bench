@@ -1,5 +1,15 @@
 # M1/G1 implementation handoff
 
+M1.5b.9c [operation16](verification/2026-09-27-m1-replacement-corrected-native.md) fails at action18/GAME_MACHINE_TRANSFER_UNCONFIRMED after actual replacement placement. Eighteen requests/75 primitives; the unknown transfer is not replayed. The authenticated clean-stop stream and saved furnace confirm distinct removed/replacement lifetimes, but no replacement production window. The failed reference is refused without import.
+
+Guardian469.457ms and252/252 client plus29/29 server terminal histories pass this sample; operation15's original guardian failure remains. All four lifecycle rows UNCERTAIN; a third separate256MiB hold remains alongside operation10/15. All40 authority tables unchanged/4,887,796microUSD; no model calls. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
+Next follow the acceptance closure plan and fix the reproduced T01 KeybindingPatch semantic parity defect. No further furnace run is selected; original failures, holds and full G1 scope remain.
+
+Execution priority reassessed after the user raised slow milestone progress: finish the active operation16, then close finite T01 coverage and keybinding/probe end-to-end deliverables before expanding furnace controls. Consolidate T10 and qualify the final T04/T06 profile. [Closure path](verification/2026-09-27-m1-closure-path.md) preserves all acceptance criteria, authority and historical failures; no suite or G1 pass is claimed.
+
+M1.5b.9c operation16 is prepared with the corrected dirt/grass support check, the full 21-action replacement control and unchanged 1,000ms guardian. All 571 pair inputs and eight unchanged acceptance audit scripts are pinned. Prelaunch authority/process checks pass; both operation10 and operation15 256 MiB holds remain. The original operation15 checker and shutdown failures remain authoritative history. No model calls or M1 inference authority; M1/G1 remain open. Native execution is next, with no result claimed.
+
 M1.5b.9c [operation15](verification/2026-09-27-m1-replacement-native.md) failed before placement: the checker observed dirt where it required grass. Fifteen actions/65 primitives remove the original furnace and equip the unplaced replacement; no placement request exists. Separately, the 1,000ms guardian fails, corroborated by a 1,038.4428–1,068.2396ms exit interval. Outer histories eventually terminate 206/206 client and 29/29 server, with no owned runtime and session retired.
 
 The authenticated 1,455-record stream and saved world confirm one removed lifetime, air at the old furnace and dirt support. The actual V5 store refuses the failed reference without creating a receipt. All four lifecycle rows remain UNCERTAIN; the new 256 MiB reservation stays held alongside operation10's separate 256 MiB hold. All 40 authority tables unchanged/4,887,796 microUSD; no model calls.

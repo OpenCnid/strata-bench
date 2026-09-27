@@ -1,5 +1,9 @@
 # Strata current status
 
+M1.5b.7 adds [native process-start carry and stop-refund capture](verification/2026-09-26-m1-furnace-transitions.md), telemetry0.3.17/startup18.244 Python cases pass,4 native opt-in skips;13 Java cases and offline artifact build pass. All412 operation07 records reconstruct unchanged. Candidate8a18fb62 is archived; installed artifacts unchanged.
+
+Authentic changed-producer execution remains unverified. Next prepare a fresh prior-bound two-item reference to exercise both nonzero carry and final refund, retaining existing limits. Complete machine lifetime/operating intervals, setup/team/loaded-code, controls/parity/isolation and all other G1 contracts remain open. All40 authority tables unchanged at4,887,796microUSD; no game/model call or M1 spending authority. Prior failures/holds remain. G1 not_run.
+
 M1.5b.6 [operation07](verification/2026-09-26-m1-furnace-energy-native.md) passes the changed telemetry0.3.16/startup17 native reference.412 signed records include125 processing calls with12,000RF debited, two progress overshoots and three exact processing-to-completion joins. All17 operation and9 prior-plan import checks plus processing/terminal audits pass; saved inventory adds three iron ingots, furnace empty/8,000RF.
 
 All four rows STOPPED/consumed;556.0106ms guardian,126/126 client and29/29 server parent histories terminal, session retired/no runtime. All40 authority tables unchanged at$4.887796, zero model calls. Initial stale client server-module binding failed before database/session/grant and was retained/corrected without changing validation or bounds.
@@ -833,3 +837,10 @@ Authentic operation04 archive617files/99,056,420bytes, seal
 f0963cc8d19fcb2ba763901c4ac2880c7043161a0929b316cd72d108c19b537c.
 Both exact bundles verify. This pointer follows the archived documentation
 snapshot. Reference passes; failure diagnostic not_run; full G1 remains open.
+
+Final audit verifies804 source pins,450 unique/preserved milestone IDs and1,874
+local links, unchanged40 authority tables at4,887,796microUSD, exact installed
+client/server pins and no owned runtime. Private archive40files/2,767,172bytes
+verifies under seal `b0ff2833d925db85c7d65f82df7a6a90b0a74972922ad5a807c7d5d323bde06a`.
+This pointer follows the archived document snapshot; the archive is unchanged.
+Authentic transition integration and full G1 remain not_run.

@@ -22,6 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 /** Private native facts only. No recipe ID, player attribution, or score is inferred. */
 public final class FurnaceCapture {
+    static final String TRANSITION_POLICY = "thermal1192-native-furnace-transitions/1";
     static final String TICK_POLICY = "thermal1192-native-furnace-process-tick/1";
     static final String POLICY = "thermal1192-native-furnace-phases/2";
     static final String MACHINE = "cofh.thermal.lib.block.entity.MachineBlockEntity";
@@ -40,6 +41,10 @@ public final class FurnaceCapture {
     private static Frame ticking;
     private static JsonObject tickBefore;
     private static String tickRefusal;
+    private static Frame transitioning;
+    private static JsonObject transitionBefore;
+    private static String transitionOperation, transitionRefusal;
+    private static int baseProcessTick;
 
     private static final class Frame {
         final FurnacePhases phases;
@@ -68,7 +73,7 @@ public final class FurnaceCapture {
     }
 
     static JsonObject support() throws IOException {
-        if(sink!=null || current!=null || ticking!=null) throw new IOException("MACHINE_CAPTURE_ACTIVE");
+        if(sink!=null || current!=null || ticking!=null || transitioning!=null) throw new IOException("MACHINE_CAPTURE_ACTIVE");
         machineClass=null;furnaceClass=null;
         var artifacts=new JsonObject(); boolean matches=true;
         for(var entry:PINS.entrySet()) {
@@ -87,6 +92,7 @@ public final class FurnaceCapture {
             machineClass=Class.forName(MACHINE);furnaceClass=Class.forName(FURNACE);
             if(!FurnaceCaptureMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_CAPTURE_HOOK_MISSING");
             if(!FurnaceTickMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_TICK_HOOK_MISSING");
+            if(!FurnaceTransitionMarker.class.isAssignableFrom(machineClass)) throw new IOException("MACHINE_TRANSITION_HOOK_MISSING");
             if(!FurnaceRegistration.support()) throw new IOException("MACHINE_REGISTRATION_HOOK_MISSING");
         } catch(ReflectiveOperationException error) { throw new IOException("MACHINE_CAPTURE_CLASS",error); }
         var value=new JsonObject();value.addProperty("status",matches?"supported":"unsupported");
@@ -95,12 +101,12 @@ public final class FurnaceCapture {
         return value;
     }
     static void activate(MinecraftServer value, CraftCapture.Sink destination) {
-        if(sink!=null || current!=null || ticking!=null || !value.isDedicatedServer() || !value.isSameThread())
+        if(sink!=null || current!=null || ticking!=null || transitioning!=null || !value.isDedicatedServer() || !value.isSameThread())
             throw new IllegalStateException("MACHINE_CAPTURE_ACTIVATION");
         server=value;sink=destination;
     }
     static void close() {
-        if(current!=null || ticking!=null) throw new IllegalStateException("MACHINE_CAPTURE_INCOMPLETE");
+        if(current!=null || ticking!=null || transitioning!=null) throw new IllegalStateException("MACHINE_CAPTURE_INCOMPLETE");
         FurnaceRegistration.close();
         sink=null;server=null;
     }
@@ -121,7 +127,7 @@ public final class FurnaceCapture {
     }
     public static void enter(Object value) {
         if(!active(value,"processFinish")) return;
-        if(current!=null || ticking!=null) throw new IllegalStateException("MACHINE_CAPTURE_NESTED");
+        if(current!=null || ticking!=null || transitioning!=null) throw new IllegalStateException("MACHINE_CAPTURE_NESTED");
         if(!(value instanceof BlockEntity tile) || !(tile.getLevel() instanceof ServerLevel level)
                 || level.getServer()!=server || tile.isRemoved()
                 || level.getBlockEntity(tile.getBlockPos())!=tile)
@@ -173,7 +179,7 @@ public final class FurnaceCapture {
     }
     public static void tickEnter(Object value) {
         if(!active(value,"processTick")) return;
-        if(ticking!=null || current!=null) throw new IllegalStateException("MACHINE_TICK_NESTED");
+        if(ticking!=null || current!=null || transitioning!=null) throw new IllegalStateException("MACHINE_TICK_NESTED");
         if(!(value instanceof BlockEntity tile) || !(tile.getLevel() instanceof ServerLevel level)
                 || level.getServer()!=server) throw new IllegalStateException("MACHINE_TICK_LIFETIME");
         ticking=new Frame(tile);tickBefore=null;tickRefusal=null;
@@ -212,6 +218,64 @@ public final class FurnaceCapture {
         }
         ticking=null;tickBefore=null;tickRefusal=null;
     }
+    public static void transitionEnter(Object value,String operation) {
+        if(!"start".equals(operation) && !"refund".equals(operation))
+            throw new IllegalStateException("MACHINE_TRANSITION_OPERATION");
+        if(!active(value,"start".equals(operation)?"processStart":"tickServer")) return;
+        if(transitioning!=null || current!=null || ticking!=null)
+            throw new IllegalStateException("MACHINE_TRANSITION_NESTED");
+        if(!(value instanceof BlockEntity tile) || !(tile.getLevel() instanceof ServerLevel level)
+                || level.getServer()!=server) throw new IllegalStateException("MACHINE_TRANSITION_LIFETIME");
+        transitioning=new Frame(tile);transitionBefore=null;transitionRefusal=null;
+        transitionOperation=operation;baseProcessTick=0;lifetime(transitioning);
+        transitioning.base.addProperty("policy",TRANSITION_POLICY);
+        transitioning.base.addProperty("operation",operation);
+        try {
+            transitionBefore=state(value,false,true);
+            if("start".equals(operation)) {
+                baseProcessTick=number(field(value,MACHINE,"baseProcessTick"));
+                if(baseProcessTick<=0) throw unsupported();
+                transitioning.recipe=field(value,MACHINE,"curRecipe");exact(transitioning.recipe,RECIPE);
+                transitioning.registration=FurnaceRegistration.observe(server,transitioning.recipe);
+                transitioning.resolved=recipe(transitioning.recipe,value);
+            }
+        } catch(ReflectiveOperationException | UnsupportedOperationException error) {
+            transitionRefusal=tickReason(error);
+        }
+    }
+    public static void transitionExit(Object value,String operation) {
+        if(!"start".equals(operation) && !"refund".equals(operation))
+            throw new IllegalStateException("MACHINE_TRANSITION_OPERATION");
+        if(!active(value,"start".equals(operation)?"processStart":"tickServer")) return;
+        var frame=transitioning;
+        if(frame==null || frame.tile!=value || !operation.equals(transitionOperation))
+            throw new IllegalStateException("MACHINE_TRANSITION_UNPAIRED");
+        lifetime(frame);JsonObject after=null;
+        if(transitionRefusal==null) try {
+            if("start".equals(operation)) {
+                if(frame.recipe!=field(value,MACHINE,"curRecipe")
+                        || baseProcessTick!=number(field(value,MACHINE,"baseProcessTick"))) throw unsupported();
+                if(!frame.registration.equals(FurnaceRegistration.observe(server,frame.recipe)))
+                    throw new UnsupportedOperationException("MACHINE_REGISTRATION_CHANGED");
+                if(!frame.resolved.equals(recipe(frame.recipe,value))) throw unsupported();
+            }
+            after=state(value,false,true);
+        } catch(ReflectiveOperationException | UnsupportedOperationException error) {
+            transitionRefusal=tickReason(error);
+        }
+        if(transitionRefusal==null) {
+            var states=new JsonArray();states.add(transitionBefore);states.add(after);frame.base.add("states",states);
+            if("start".equals(operation)) {
+                frame.base.addProperty("base_process_tick",baseProcessTick);
+                frame.base.add("registration",frame.registration);frame.base.add("resolved_recipe",frame.resolved);
+            }
+            sink.emit("machine_process_transition","strata/NativeFurnaceProcessTransition/1",frame.base,new JsonArray());
+        } else {
+            frame.base.addProperty("reason",transitionRefusal);
+            sink.emit("machine_process_transition_refused","strata/NativeFurnaceProcessTransitionRefusal/1",frame.base,new JsonArray());
+        }
+        transitioning=null;transitionBefore=null;transitionRefusal=null;transitionOperation=null;baseProcessTick=0;
+    }
     private static String tickReason(Exception error) {
         return switch(String.valueOf(error.getMessage())) {
             case "MACHINE_REGISTRATION_UNOBSERVED" -> "native_registration_unobserved";
@@ -229,6 +293,9 @@ public final class FurnaceCapture {
     }
     private static JsonObject state(Object tile) throws ReflectiveOperationException { return state(tile,true); }
     private static JsonObject state(Object tile,boolean completed) throws ReflectiveOperationException {
+        return state(tile,completed,false);
+    }
+    private static JsonObject state(Object tile,boolean completed,boolean dormant) throws ReflectiveOperationException {
         int augments=number(call(tile,"augSize"));
         if(augments<0 || augments>16 || number(call(tile,"invSize"))!=3+augments
                 || field(tile,MACHINE,"curCatalyst")!=null) throw unsupported();
@@ -244,7 +311,7 @@ public final class FurnaceCapture {
         int rf=number(call(energy,"getEnergyStored")),process=number(field(tile,MACHINE,"process")),
             max=number(field(tile,MACHINE,"processMax")),step=number(field(tile,MACHINE,"processTick"));
         Object active=field(tile,AUGMENTABLE,"isActive");
-        if(rf<0 || max<=0 || step<=0 || !(active instanceof Boolean)
+        if(rf<0 || max<(dormant?0:1) || step<(dormant?0:1) || !(active instanceof Boolean)
                 || (completed && (process>0 || !Boolean.TRUE.equals(active)))) throw unsupported();
         var out=new JsonObject();out.add("slots",slots);out.add("augments",aug);
         out.addProperty("energy_rf",rf);out.addProperty("process",process);out.addProperty("process_max",max);

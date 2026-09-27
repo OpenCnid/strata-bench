@@ -108,7 +108,7 @@ class SettingsEffectRunTest {
             var result = run.status(); assertEquals("observed", result.get("state").getAsString());
             assertFalse(result.get("verified").getAsBoolean()); assertFalse(result.get("committed").getAsBoolean());
             assertEquals(6, result.getAsJsonArray("observations").size()); assertEquals(List.of(true, false), f.inputs);
-            assertEquals("strata/NativeSettingsEffects/3", result.get("schema").getAsString());
+            assertEquals("strata/NativeSettingsEffects/4", result.get("schema").getAsString());
             var observations = result.getAsJsonArray("observations");
             assertEquals("input_release", observations.get(3).getAsJsonObject().get("phase").getAsString());
             assertEquals("released", observations.get(4).getAsJsonObject().get("phase").getAsString());

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/** Bounded ordinary key gesture. Completion means released input, never verified effects. */
+/** Bounded ordinary keyboard or mouse gesture. Completion means released input, never verified effects. */
 final class KeyInputSession implements GameActionLane.Motor {
     static final long MAX_HOLD_MS = 2000;
     enum Modifier {
@@ -13,10 +13,12 @@ final class KeyInputSession implements GameActionLane.Motor {
         final int key, mask;
         Modifier(int key, int mask) { this.key = key; this.mask = mask; }
     }
-    record Request(int key, Modifier modifier, long holdMs) {
+    enum Device { KEYBOARD, MOUSE }
+    record Request(int key, Modifier modifier, long holdMs, Device device) {
+        Request(int key, Modifier modifier, long holdMs) { this(key, modifier, holdMs, Device.KEYBOARD); }
         void validate(Set<Integer> pool) throws IOException {
-            if (modifier == null || holdMs < 1 || holdMs > MAX_HOLD_MS
-                    || key < 32 || key > 342 || key >= 340 && modifier != Modifier.NONE
+            if (device == null || modifier == null || holdMs < 1 || holdMs > MAX_HOLD_MS
+                    || (device == Device.KEYBOARD ? key < 32 || key > 342 || key >= 340 && modifier != Modifier.NONE : key < 0 || key > 1)
                     || !pool.contains(key) || modifier != Modifier.NONE && !pool.contains(modifier.key)) {
                 throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
             }
@@ -27,6 +29,9 @@ final class KeyInputSession implements GameActionLane.Motor {
         long monotonicMillis();
         // The port updates its window's polled state BEFORE delivering each callback.
         void event(int key, boolean down, int modifiers) throws IOException;
+        default void mouseEvent(int button, boolean down, int modifiers) throws IOException {
+            throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
+        }
         void clear() throws IOException;
     }
     private final Port port;
@@ -63,15 +68,20 @@ final class KeyInputSession implements GameActionLane.Motor {
             int modifiers = request.modifier.mask;
             // Standalone vanilla sneak/sprint keys must carry their ordinary
             // modifier flag without pressing the same physical key twice.
-            if (request.key >= 340) modifiers = 1 << (request.key - 340);
-            port.event(key, true, modifiers);
+            if (request.device == Device.KEYBOARD && request.key >= 340) modifiers = 1 << (request.key - 340);
+            event(key, true, modifiers);
         });
+    }
+    private void event(int key, boolean pressed, int modifiers) throws IOException {
+        if (request.device == Device.MOUSE && key == request.key) port.mouseEvent(key, pressed, modifiers);
+        else port.event(key, pressed, modifiers);
     }
     boolean closed() { return closed; }
     com.google.gson.JsonObject releaseReceipt() throws IOException {
         if (!releaseConfirmed) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED");
         var value = new com.google.gson.JsonObject();
-        value.addProperty("schema", "strata/NativeInputRelease/1");
+        value.addProperty("schema", "strata/NativeInputRelease/2");
+        value.addProperty("device", request.device.name().toLowerCase(java.util.Locale.ROOT));
         value.addProperty("key", request.key);
         value.addProperty("modifier", request.modifier.name());
         var order = new com.google.gson.JsonArray(); order.add(request.key);
@@ -130,10 +140,10 @@ final class KeyInputSession implements GameActionLane.Motor {
             int modifiers = key == request.modifier.key ? 0 : request.modifier.mask;
             boolean[] invoked = {false};
             try {
-                safetyEmitter.invoke(() -> { invoked[0] = true; port.event(key, false, modifiers); });
+                safetyEmitter.invoke(() -> { invoked[0] = true; event(key, false, modifiers); });
             } catch (IOException | RuntimeException | Error error) {
                 if (primary == null) primary = error; else primary.addSuppressed(error);
-                if (!invoked[0]) try { port.event(key, false, modifiers); }
+                if (!invoked[0]) try { event(key, false, modifiers); }
                 catch (IOException | RuntimeException | Error cleanup) { primary.addSuppressed(cleanup); }
             }
         }

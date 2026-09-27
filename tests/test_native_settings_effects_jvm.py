@@ -191,3 +191,32 @@ def test_process_death_fences_old_input_and_recovers_owned_values_without_refund
         assert client.call("settings_rollback", {"transaction_id": "tx"})["phase"] == "rolled_back"
         assert (profile / "options.txt").read_bytes() == ORIGINAL.encode()
         assert game.call("lane_status", {})["attempted_primitive_events"] > consumed
+
+
+@pytest.mark.parametrize("action,button,modifier,predicate", [
+    ("attack", "left", "SHIFT", "attack_swing"), ("use", "right", "NONE", "item_use_hold")])
+def test_native_mouse_binding_roundtrip_is_charged_released_and_observed(effects_jvm, action, button, modifier, predicate):
+    from mcbench.native_effect_evidence import evaluate_effect
+    suffix = "" if modifier == "NONE" else ":" + modifier
+    options = ORIGINAL + "key_key." + action + ":key.mouse." + button + suffix + "\r\n"
+    with effects_jvm(options_text=options) as (client, process, profile, game_root):
+        head = apply(client)
+        request = effect(head, hold=100).model_copy(update={"binding_id": "minecraft:key." + action + ":0"})
+        client.call("settings_effect_start", request.model_dump())
+        raw = terminal(client, request)
+        assert raw["schema"] == "strata/NativeSettingsEffects/4" and raw["state"] == "observed"
+        receipt = next(o["value"] for o in raw["observations"] if o["phase"] == "input_release")
+        assert receipt["schema"] == "strata/NativeInputRelease/2" and receipt["device"] == "mouse"
+        assert receipt["key"] == (0 if button == "left" else 1) and receipt["modifier"] == modifier
+        expected = {"schema": "strata/NativeEffectExpectation/2", "request": request.model_dump(),
+            "settings_fingerprint": client.settings_fingerprint, "predicate": predicate,
+            "initial_screen": "none", "final_screen": "none", "required_openings": [], "forbidden_openings": [],
+            "min_horizontal_distance": 0.0, "max_horizontal_distance": .25}
+        assert evaluate_effect(expected, raw)["status"] == "pass"
+        health = NativeGameClient(client.connection).call("lane_status", {})
+        assert health["fenced"] is True and health["attempted_primitive_events"] > 0
+        journal = (game_root / "game-actions.jsonl").read_text()
+        assert "NativeInputRelease/2" in journal
+        assert client.call("settings_rollback", {"transaction_id": "tx"})["phase"] == "rolled_back"
+        assert (profile / "options.txt").read_bytes() == options.encode()
+        assert process.poll() is None

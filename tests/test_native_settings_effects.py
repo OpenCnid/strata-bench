@@ -252,3 +252,48 @@ def test_missing_ambiguous_or_reordered_release_cannot_be_accepted(failure):
         observation["index"] = i
     with pytest.raises(ValueError):
         EffectResult.model_validate(raw)
+
+
+
+def device_release_result(device="mouse", key=0, modifier="NONE"):
+    value = release_result(key=key, modifier=modifier)
+    value["schema"] = "strata/NativeSettingsEffects/4"
+    for observation in value["observations"]:
+        if observation["phase"] == "input_release":
+            observation["value"] |= {"schema": "strata/NativeInputRelease/2", "device": device}
+        elif observation["phase"] in {"before", "held", "released"}:
+            observation["value"] |= {"swinging": False, "mouse_grabbed": True, "mouse_left": False, "mouse_right": False}
+    return value
+
+
+@pytest.mark.parametrize("device,key", [("mouse", 0), ("mouse", 1), ("keyboard", 69), ("keyboard", 340)])
+def test_device_release_is_explicit_and_typed(device, key):
+    assert EffectResult.model_validate(device_release_result(device, key)).state == "observed"
+
+
+@pytest.mark.parametrize("failure", ["keyboard_mouse_code", "mouse_key_code", "middle", "old_receipt",
+    "old_result", "missing_activity", "bad_boolean", "unbound", "extra_device", "wrong_order"])
+def test_device_and_profile_confusion_cannot_be_accepted(failure):
+    raw = device_release_result()
+    receipt = raw["observations"][2]["value"]
+    if failure == "keyboard_mouse_code":
+        receipt["device"] = "keyboard"
+    elif failure in {"mouse_key_code", "middle", "unbound"}:
+        key = {"mouse_key_code": 69, "middle": 2, "unbound": -1}[failure]
+        receipt |= {"key": key, "release_order": [key]}
+    elif failure == "old_receipt":
+        receipt["schema"] = "strata/NativeInputRelease/1"
+        receipt.pop("device")
+        receipt |= {"key": 302, "release_order": [302]}
+    elif failure == "old_result":
+        raw["schema"] = "strata/NativeSettingsEffects/3"
+    elif failure == "missing_activity":
+        raw["observations"][1]["value"].pop("swinging")
+    elif failure == "bad_boolean":
+        raw["observations"][1]["value"]["mouse_grabbed"] = 1
+    elif failure == "extra_device":
+        receipt["device"] = "unicode"
+    else:
+        receipt["release_order"] = [340, 0]
+    with pytest.raises(ValueError):
+        EffectResult.model_validate(raw)

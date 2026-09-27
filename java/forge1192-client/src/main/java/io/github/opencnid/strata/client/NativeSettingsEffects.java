@@ -93,6 +93,10 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
         value.addProperty("x", client.player.getX()); value.addProperty("y", client.player.getY()); value.addProperty("z", client.player.getZ());
         value.addProperty("sneaking", client.player.isShiftKeyDown()); value.addProperty("sprinting", client.player.isSprinting());
         value.addProperty("using_item", client.player.isUsingItem());
+        value.addProperty("swinging", client.player.swinging);
+        value.addProperty("mouse_grabbed", client.mouseHandler.isMouseGrabbed());
+        value.addProperty("mouse_left", client.mouseHandler.isLeftPressed());
+        value.addProperty("mouse_right", client.mouseHandler.isRightPressed());
         return value;
     }
     @Override public void close() throws IOException { try { stop(); } finally { store.close(); } }

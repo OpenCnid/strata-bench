@@ -130,7 +130,7 @@ final class SettingsEffectRun {
         if (cleanupFailure != null) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED", cause);
     }
     JsonObject status() {
-        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/3");
+        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/4");
         value.add("request", json(request)); value.addProperty("state", state); value.addProperty("error_code", error);
         value.addProperty("verified", false); value.addProperty("committed", false);
         value.add("observations", observations.deepCopy()); return value;

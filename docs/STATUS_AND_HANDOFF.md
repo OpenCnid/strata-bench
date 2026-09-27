@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, complete effect matrix and release evidence
+## Current position — September 27, essential-control mouse input candidate
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -86,6 +86,15 @@ Native input policy /3 requires its own authentic qualification; old /2 evidence
 is retained without promotion. Next supply the complete essential-control cases,
 qualified projection, real launcher/accounting and explicit resume. No complete
 G1 suite closes.
+
+A remaining essential-control dependency now supports bounded ordinary mouse
+callbacks for the actual attack/use mappings, with explicit device release and
+local swing/use observations. [Input evidence](verification/2026-09-27-m1-essential-input.md)
+passes Java/Python/HTTP and connected restart checks with synthetic body/input.
+The /4 candidate JAR is built but not installed or qualified in Minecraft.
+Next connect a complete essential-control manifest, including fixed Escape and
+actual host recovery, then authentic integration/accounting/resume. Full G1
+acceptance remains unchanged and open.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

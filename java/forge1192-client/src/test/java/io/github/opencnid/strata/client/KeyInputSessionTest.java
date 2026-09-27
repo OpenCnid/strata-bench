@@ -18,7 +18,7 @@ class KeyInputSessionTest {
         final List<String> events = new ArrayList<>();
         final Set<Integer> down = new HashSet<>();
         long now = 100;
-        int charges, clears, failCharge = -1;
+        int charges, clears, mouseEvents, failCharge = -1;
         String failEvent, contextFailure = "CONTEXT_CHANGED";
         boolean valid = true, failClear;
         public void validate() throws IOException { if (!valid) throw new IOException(contextFailure); }
@@ -27,6 +27,9 @@ class KeyInputSessionTest {
             if (pressed) down.add(key); else down.remove(key);
             String value = key + ":" + pressed + ":" + modifiers; events.add(value);
             if (value.equals(failEvent)) throw new IOException("CALLBACK_FAILED");
+        }
+        public void mouseEvent(int button, boolean pressed, int modifiers) throws IOException {
+            mouseEvents++; event(button, pressed, modifiers);
         }
         public void clear() throws IOException {
             clears++; down.clear(); if (failClear) throw new IOException("CLEAR_FAILED");
@@ -52,7 +55,7 @@ class KeyInputSessionTest {
         assertEquals(expected, p.events); assertEquals(expected.size() + 2, p.charges);
         assertTrue(p.down.isEmpty()); assertEquals(1, p.clears);
         var receipt = session.releaseReceipt();
-        assertEquals("strata/NativeInputRelease/1", receipt.get("schema").getAsString());
+        assertEquals("strata/NativeInputRelease/2", receipt.get("schema").getAsString());
         assertEquals(modifier.name(), receipt.get("modifier").getAsString());
         assertEquals(modifier == KeyInputSession.Modifier.NONE ? 1 : 2, receipt.getAsJsonArray("release_order").size());
         assertEquals(65, receipt.getAsJsonArray("release_order").get(0).getAsInt());
@@ -186,5 +189,57 @@ class KeyInputSessionTest {
         assertThrows(IOException.class, () -> session.tick(p::emit));
         assertEquals("SETTINGS_INPUT_FAILED", assertThrows(IOException.class, () -> session.tick(p::emit)).getMessage());
         assertTrue(p.down.isEmpty());
+    }
+
+    @ParameterizedTest @EnumSource(KeyInputSession.Modifier.class)
+    void mouseButtonsUseOrdinaryCallbackThenReverseRelease(KeyInputSession.Modifier modifier) throws Exception {
+        for (int button : new int[]{0, 1}) {
+            Port p = new Port();
+            var request = new KeyInputSession.Request(button, modifier, 50, KeyInputSession.Device.MOUSE);
+            var session = KeyInputSession.start(p, request, Set.of(0, 1, 340, 341, 342), p::emit, p::emit);
+            assertTrue(p.down.contains(button));
+            assertFalse(session.tick(p::emit)); p.now = 150; assertTrue(session.tick(p::emit));
+            assertEquals(2, p.mouseEvents); assertTrue(p.down.isEmpty());
+            assertEquals("mouse", session.releaseReceipt().get("device").getAsString());
+            assertEquals(button, session.releaseReceipt().getAsJsonArray("release_order").get(0).getAsInt());
+            if (modifier != KeyInputSession.Modifier.NONE)
+                assertEquals(modifier.key, session.releaseReceipt().getAsJsonArray("release_order").get(1).getAsInt());
+            session.cancel(); assertEquals(2, p.mouseEvents);
+        }
+    }
+    @ParameterizedTest @ValueSource(ints = {-1, 2, 7, 32, 65, 340})
+    void unsupportedMouseButtonsNeverReachCallbacks(int button) {
+        Port p = new Port();
+        assertThrows(IOException.class, () -> KeyInputSession.start(p,
+            new KeyInputSession.Request(button, KeyInputSession.Modifier.NONE, 50, KeyInputSession.Device.MOUSE),
+            Set.of(button), p::emit, p::emit));
+        assertEquals(0, p.mouseEvents); assertEquals(0, p.charges);
+    }
+    @Test void ambiguousMousePressStillReleasesButtonThenModifier() {
+        Port p = new Port(); p.failEvent = "0:true:1";
+        assertThrows(IOException.class, () -> KeyInputSession.start(p,
+            new KeyInputSession.Request(0, KeyInputSession.Modifier.SHIFT, 50, KeyInputSession.Device.MOUSE),
+            Set.of(0, 340), p::emit, p::emit));
+        assertEquals(List.of("340:true:1", "0:true:1", "0:false:1", "340:false:0"), p.events);
+        assertEquals(2, p.mouseEvents); assertTrue(p.down.isEmpty());
+    }
+    @Test void mouseReleaseFailureDoesNotSkipModifierAndCannotProduceReceipt() throws Exception {
+        Port p = new Port();
+        var session = KeyInputSession.start(p,
+            new KeyInputSession.Request(1, KeyInputSession.Modifier.CONTROL, 50, KeyInputSession.Device.MOUSE),
+            Set.of(1, 341), p::emit, p::emit);
+        p.failEvent = "1:false:2"; p.now = 150;
+        assertThrows(IOException.class, () -> session.tick(p::emit));
+        assertEquals(List.of("341:true:2", "1:true:2", "1:false:2", "341:false:0"), p.events);
+        assertTrue(p.down.isEmpty()); assertThrows(IOException.class, session::releaseReceipt);
+    }
+    @Test void timedOutMouseHoldReleasesWithoutNewAuthority() throws Exception {
+        Port p = new Port();
+        var session = KeyInputSession.start(p,
+            new KeyInputSession.Request(0, KeyInputSession.Modifier.NONE, 50, KeyInputSession.Device.MOUSE),
+            Set.of(0), p::emit, p::emit);
+        p.now = 2101; assertThrows(IOException.class, session::watchdog);
+        assertTrue(p.down.isEmpty()); assertEquals(2, p.mouseEvents);
+        assertThrows(IOException.class, () -> session.tick(p::emit));
     }
 }

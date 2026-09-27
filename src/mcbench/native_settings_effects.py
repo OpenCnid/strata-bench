@@ -79,6 +79,13 @@ class ScreenOpening(Strict):
     cancelled_at_observer: bool
 
 
+class ActiveVisibleState(VisibleState):
+    swinging: bool
+    mouse_grabbed: bool
+    mouse_left: bool
+    mouse_right: bool
+
+
 class AdmissionObservation(Strict):
     phase: Literal["admission"]
     index: int = Field(ge=0, le=255)
@@ -88,7 +95,7 @@ class AdmissionObservation(Strict):
 class StateObservation(Strict):
     phase: Literal["before", "held", "released"]
     index: int = Field(ge=0, le=255)
-    value: VisibleState
+    value: VisibleState | ActiveVisibleState
 
 
 class OpeningObservation(Strict):
@@ -114,17 +121,35 @@ class InputRelease(Strict):
         return self
 
 
+class DeviceInputRelease(Strict):
+    wire_schema: Literal["strata/NativeInputRelease/2"] = Field(alias="schema")
+    device: Literal["keyboard", "mouse"]
+    key: int = Field(ge=0, le=342)
+    modifier: Literal["NONE", "SHIFT", "CONTROL", "ALT"]
+    release_order: list[int] = Field(min_length=1, max_length=2)
+    callbacks_confirmed: bool
+    clear_confirmed: bool
+
+    @model_validator(mode="after")
+    def complete(self):
+        modifier = {"NONE": None, "SHIFT": 340, "CONTROL": 341, "ALT": 342}[self.modifier]
+        require((self.key in {0, 1} if self.device == "mouse" else self.key >= 32 and (self.key < 340 or modifier is None))
+                and self.release_order == [self.key] + ([] if modifier is None else [modifier])
+                and self.callbacks_confirmed and self.clear_confirmed, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
+        return self
+
+
 class ReleaseObservation(Strict):
     phase: Literal["input_release"]
     index: int = Field(ge=0, le=255)
-    value: InputRelease
+    value: Annotated[InputRelease | DeviceInputRelease, Field(discriminator="wire_schema")]
 
 
 Observation = Annotated[AdmissionObservation | StateObservation | OpeningObservation | ReleaseObservation, Field(discriminator="phase")]
 
 
 class EffectResult(Strict):
-    wire_schema: Literal["strata/NativeSettingsEffects/2", "strata/NativeSettingsEffects/3"] = Field(alias="schema")
+    wire_schema: Literal["strata/NativeSettingsEffects/2", "strata/NativeSettingsEffects/3", "strata/NativeSettingsEffects/4"] = Field(alias="schema")
     request: EffectRequest
     state: Literal["prepared", "running", "observed", "unknown", "refused"]
     error_code: str | None = Field(pattern=r"^[A-Z][A-Z0-9_]{1,95}$")
@@ -153,14 +178,18 @@ class EffectResult(Strict):
             else:
                 require(item.phase in {"held", "released", "screen_opening", "input_release"}, "SETTINGS_EFFECT_RESPONSE_INVALID")
             if isinstance(item, ReleaseObservation):
-                require(self.wire_schema.endswith("/3") and released == 0 and receipts == 0,
+                require(not self.wire_schema.endswith("/2") and released == 0 and receipts == 0
+                        and isinstance(item.value, DeviceInputRelease) == self.wire_schema.endswith("/4"),
                         "SETTINGS_EFFECT_RESPONSE_INVALID")
                 receipts += 1
             elif not isinstance(item, AdmissionObservation):
+                if isinstance(item, StateObservation):
+                    require(isinstance(item.value, ActiveVisibleState) == self.wire_schema.endswith("/4"),
+                            "SETTINGS_EFFECT_RESPONSE_INVALID")
                 require(item.value.client_tick >= tick, "SETTINGS_EFFECT_RESPONSE_INVALID")
                 tick = item.value.client_tick
             if item.phase == "released":
-                require(not self.wire_schema.endswith("/3") or receipts == 1, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
+                require(self.wire_schema.endswith("/2") or receipts == 1, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
                 released += 1
             if item.phase == "held":
                 require(released == 0 and receipts == 0, "SETTINGS_EFFECT_RESPONSE_INVALID")

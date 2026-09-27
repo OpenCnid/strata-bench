@@ -15,8 +15,16 @@ public final class SettingsEffectsBridgeFixture {
         private KeyInputSession input;
         private SettingsEffectsCoordinator coordinator;
         private long tick;
-        private boolean down, screen;
-        Runtime(Path profile) throws IOException { settings = new SettingsBridgeFixture.SyntheticRuntime(profile); }
+        private boolean down, screen, left, right;
+        Runtime(Path profile) throws IOException {
+            settings = new SettingsBridgeFixture.SyntheticRuntime(profile);
+            var persisted = KeyOptions.parse(SettingsFiles.readOptions(profile.resolve("options.txt")));
+            for (String action : new String[]{"attack", "use"}) {
+                String translation = "key." + action;
+                if (persisted.values().containsKey(translation)) settings.bindings.put("minecraft:" + translation + ":0",
+                    new SettingsStore.Binding(translation, persisted.values().get(translation), false));
+            }
+        }
         public void requireClientThread() throws IOException { settings.requireClientThread(); }
         public Map<String, SettingsStore.Binding> bindings() { return settings.bindings(); }
         public void validateKeys(Map<String, String> changes) throws IOException { settings.validateKeys(changes); }
@@ -35,30 +43,43 @@ public final class SettingsEffectsBridgeFixture {
         public JsonObject settingsRequest(JsonObject request) throws IOException { return coordinator.execute(request); }
         public void stopSettingsEffects() throws IOException { coordinator.stop(); }
         public void validateBinding(String binding, long hold) throws IOException {
-            if (!Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+            if (!bindings().containsKey(binding) || !Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0",
+                    "minecraft:key.attack:0", "minecraft:key.use:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
         public KeyInputSession start(String binding, long hold, GameActionLane.Emitter ordinary,
                 GameActionLane.Emitter safety) throws IOException {
             validateBinding(binding, hold);
-            int key = switch (bindings().get(binding).value()) {
+            String[] parts = bindings().get(binding).value().split(":", -1);
+            var modifier = parts.length == 2 ? KeyInputSession.Modifier.valueOf(parts[1]) : KeyInputSession.Modifier.NONE;
+            var device = parts[0].startsWith("key.mouse.") ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD;
+            int key = switch (parts[0]) {
+                case "key.mouse.left" -> 0;
+                case "key.mouse.right" -> 1;
                 case "key.keyboard.f13" -> 302;
                 case "key.keyboard.e" -> 69;
                 default -> 71;
             };
-            input = KeyInputSession.start(this, new KeyInputSession.Request(key, KeyInputSession.Modifier.NONE, hold),
-                Set.of(key), ordinary, safety); return input;
+            var pool = new java.util.HashSet<Integer>(); pool.add(key);
+            if (modifier != KeyInputSession.Modifier.NONE) pool.add(modifier.key);
+            input = KeyInputSession.start(this, new KeyInputSession.Request(key, modifier, hold, device),
+                pool, ordinary, safety); return input;
         }
         public void validate() throws IOException { requireClientThread(); }
         public long monotonicMillis() { return System.nanoTime() / 1000000; }
-        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed) screen = key == 69 || key == 71 ? !screen : true; }
-        public void clear() { down = false; }
+        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed && key < 340) screen = key == 69 || key == 71 ? !screen : true; }
+        public void mouseEvent(int button, boolean pressed, int modifiers) {
+            if (button == 0) left = pressed; else right = pressed;
+        }
+        public void clear() { down = false; left = false; right = false; }
         public JsonObject observe() {
             JsonObject value = new JsonObject(); value.addProperty("client_tick", tick);
             value.addProperty("context", screen ? "GUI" : "IN_GAME");
             value.addProperty("screen", screen ? "fixture.Screen" : "none"); value.addProperty("window_active", true);
             value.addProperty("menu_id", 0); value.addProperty("menu_type", "fixture.Menu");
             value.addProperty("x", 1.0); value.addProperty("y", 64.0); value.addProperty("z", 2.0);
-            value.addProperty("sneaking", false); value.addProperty("sprinting", false); value.addProperty("using_item", false);
+            value.addProperty("swinging", left); value.addProperty("mouse_grabbed", !screen);
+            value.addProperty("mouse_left", left); value.addProperty("mouse_right", right);
+            value.addProperty("sneaking", false); value.addProperty("sprinting", false); value.addProperty("using_item", right);
             return value;
         }
     }

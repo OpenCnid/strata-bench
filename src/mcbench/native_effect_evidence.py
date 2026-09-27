@@ -23,10 +23,10 @@ from .worker_restart import WorkerRestartState
 
 
 class EffectExpectation(Strict):
-    schema_: Literal["strata/NativeEffectExpectation/1"] = Field(alias="schema")
+    schema_: Literal["strata/NativeEffectExpectation/1", "strata/NativeEffectExpectation/2"] = Field(alias="schema")
     request: EffectRequest
     settings_fingerprint: Digest
-    predicate: Literal["screen_transition", "screen_unchanged", "sneak_hold", "horizontal_motion"]
+    predicate: Literal["screen_transition", "screen_unchanged", "sneak_hold", "horizontal_motion", "attack_swing", "item_use_hold"]
     initial_screen: ClassName
     final_screen: ClassName
     required_openings: list[ClassName] = Field(max_length=16)
@@ -36,6 +36,8 @@ class EffectExpectation(Strict):
 
     @model_validator(mode="after")
     def declared(self):
+        require(self.predicate not in {"attack_swing", "item_use_hold"} or self.schema_.endswith("/2"),
+                "EFFECT_EXPECTATION_VERSION_REQUIRED")
         require(len(set(self.required_openings)) == len(self.required_openings)
                 and len(set(self.forbidden_openings)) == len(self.forbidden_openings)
                 and not set(self.required_openings) & set(self.forbidden_openings)
@@ -53,6 +55,8 @@ def evaluate_effect(expectation, raw):
     expected = EffectExpectation.model_validate(expectation)
     observed = EffectResult.model_validate(raw)
     require(observed.request == expected.request, "EFFECT_EVIDENCE_IDENTITY_MISMATCH")
+    if expected.predicate in {"attack_swing", "item_use_hold"}:
+        require(observed.wire_schema == "strata/NativeSettingsEffects/4", "EFFECT_ACTIVITY_EVIDENCE_REQUIRED")
     reasons = []
     if observed.state != "observed":
         reasons.append("EFFECT_NOT_OBSERVED")
@@ -86,6 +90,19 @@ def evaluate_effect(expectation, raw):
             reasons.append("SNEAK_PRESS_OR_RELEASE_MISSING")
         if expected.predicate == "horizontal_motion" and max(distances) < expected.min_horizontal_distance:
             reasons.append("MOVEMENT_EFFECT_MISSING")
+        if expected.predicate == "attack_swing" and (states[0].swinging or not any(item.swinging for item in states[1:])):
+            reasons.append("ATTACK_SWING_MISSING")
+        if expected.predicate == "item_use_hold" and (states[0].using_item or not any(item.using_item for item in held)
+                or released[-1].using_item):
+            reasons.append("ITEM_USE_PRESS_OR_RELEASE_MISSING")
+        if observed.wire_schema.endswith("/4"):
+            if released[-1].mouse_left or released[-1].mouse_right:
+                reasons.append("MOUSE_RELEASE_UNCONFIRMED")
+            receipt = next(item.value for item in observed.observations if item.phase == "input_release")
+            if receipt.device == "mouse":
+                field = "mouse_left" if receipt.key == 0 else "mouse_right"
+                if not any(getattr(item, field) for item in held) or not states[0].mouse_grabbed:
+                    reasons.append("MOUSE_PRESS_OR_CONTEXT_MISSING")
     return {"schema": "strata/NativeEffectVerdict/1", "expectation_digest": digest(expected.model_dump()),
         "result_digest": digest(observed.model_dump()), "status": "fail" if reasons else "pass", "reasons": reasons,
         "qualification_implied": False, "input_resume_authorized": False}
@@ -238,10 +255,11 @@ class NativeEffectEvidence:
                 verdict = evaluate_effect(expected.model_dump(), witness["result"])
                 require(verdict == witness["verdict"], "EFFECT_EVIDENCE_INVALID")
                 observed = EffectResult.model_validate(witness["result"])
-                require(observed.wire_schema == "strata/NativeSettingsEffects/3", "EFFECT_RELEASE_EVIDENCE_REQUIRED")
+                require(observed.wire_schema in {"strata/NativeSettingsEffects/3", "strata/NativeSettingsEffects/4"}, "EFFECT_RELEASE_EVIDENCE_REQUIRED")
                 release = [o.value for o in observed.observations if o.phase == "input_release"]
                 key = plan["changes"].get(expected.request.binding_id, {}).get("after", plan["backup"][expected.request.binding_id])
-                require(len(release) == 1 and key["backend"] == "glfw" and key["representation"] == "keysym"
+                require(len(release) == 1 and key["backend"] == "glfw"
+                        and key["representation"] == ("mouse_button" if getattr(release[0], "device", "keyboard") == "mouse" else "keysym")
                         and release[0].key == key["code"] and release[0].modifier == (key["modifiers"] or ["NONE"])[0],
                         "EFFECT_RELEASE_EVIDENCE_MISMATCH")
                 slot = slots[self._slot(expected.request)]

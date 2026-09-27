@@ -200,3 +200,40 @@ def test_complete_matrix_uses_recorded_release_and_effects_without_essential_cla
         with pytest.raises(Fault, match="EFFECT_VERIFICATION_FAILED"):
             flow.commit("tx", "owner", e.epoch, worker, native, proofs)
         assert "settings_commit" not in calls
+
+
+@pytest.mark.parametrize("predicate", ["attack_swing", "item_use_hold"])
+@pytest.mark.parametrize("failure", [None, "missing_effect", "prior_effect", "held_button", "stuck_button", "ungrabbed", "legacy"])
+def test_mouse_activity_predicates_require_visible_effect_and_release(predicate, failure):
+    from test_native_settings_effects import device_release_result
+    raw = device_release_result(key=0 if predicate == "attack_swing" else 1)
+    for item in raw["observations"]:
+        if item["phase"] == "released":
+            item["value"] |= {"screen": "none", "context": "IN_GAME"}
+    held = copy.deepcopy(raw["observations"][1])
+    held["phase"] = "held"
+    button = "mouse_left" if predicate == "attack_swing" else "mouse_right"
+    activity = "swinging" if predicate == "attack_swing" else "using_item"
+    held["value"] |= {button: True, activity: True}
+    raw["observations"].insert(2, held)
+    for i, item in enumerate(raw["observations"]):
+        item["index"] = i
+    expected = expectation(raw) | {"schema": "strata/NativeEffectExpectation/2", "predicate": predicate, "final_screen": "none"}
+    if failure == "legacy":
+        expected["schema"] = "strata/NativeEffectExpectation/1"
+        with pytest.raises(ValueError, match="EFFECT_EXPECTATION_VERSION_REQUIRED"):
+            evaluate_effect(expected, raw)
+        return
+    if failure == "missing_effect":
+        held["value"][activity] = False
+    elif failure == "prior_effect":
+        raw["observations"][1]["value"][activity] = True
+    elif failure == "held_button":
+        held["value"][button] = False
+    elif failure == "stuck_button":
+        raw["observations"][-1]["value"][button] = True
+    elif failure == "ungrabbed":
+        raw["observations"][1]["value"]["mouse_grabbed"] = False
+    verdict = evaluate_effect(expected, raw)
+    assert verdict["status"] == ("pass" if failure is None else "fail")
+    assert verdict["qualification_implied"] is False

@@ -74,17 +74,19 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
         if (mapping == null || !(mapping == owned || mapping == options.keyInventory
                 || mapping == options.keyUp || mapping == options.keyDown || mapping == options.keyLeft
                 || mapping == options.keyRight || mapping == options.keyJump || mapping == options.keyShift
-                || mapping == options.keySprint || mapping == options.keyChat)) {
+                || mapping == options.keySprint || mapping == options.keyChat || mapping == options.keyAttack || mapping == options.keyUse)) {
             throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
-        if (mapping.getKey().getType() != InputConstants.Type.KEYSYM) throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
+        var type = mapping.getKey().getType();
+        if (type != InputConstants.Type.KEYSYM && type != InputConstants.Type.MOUSE) throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
         KeyInputSession.Modifier modifier = switch (mapping.getKeyModifier()) {
             case NONE -> KeyInputSession.Modifier.NONE;
             case SHIFT -> KeyInputSession.Modifier.SHIFT;
             case CONTROL -> KeyInputSession.Modifier.CONTROL;
             case ALT -> KeyInputSession.Modifier.ALT;
         };
-        return new KeyInputSession.Request(mapping.getKey().getValue(), modifier, holdMs);
+        return new KeyInputSession.Request(mapping.getKey().getValue(), modifier, holdMs,
+            type == InputConstants.Type.MOUSE ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD);
     }
 
     JsonObject ownershipEvidence() {

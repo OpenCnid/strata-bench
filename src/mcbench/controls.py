@@ -238,11 +238,13 @@ class Controls:
                                                          "receipt": receipt, "simulation": self.simulation})
 
     def apply(self, transaction_id):
+        self._generic_writer(transaction_id)
         transaction = self.status(transaction_id)
         if transaction["phase"] in {"committed", "rolled_back", "failed"}:
             return transaction
         self._version(transaction["plan"])
         with profile_operation(self.database, transaction["plan"]["profile_id"]):
+            self._generic_writer(transaction_id)
             return self._apply(transaction_id)
 
     def _apply(self, transaction_id):
@@ -272,22 +274,7 @@ class Controls:
             self._phase(transaction_id, "verifying")
             verification = self.adapter.verify_and_restart(after, transaction_id=transaction_id,
                 plan_digest=digest(plan), binding_checks=plan["binding_checks"])
-            require(isinstance(verification, dict) and verification.get("transaction_id") == transaction_id
-                    and verification.get("plan_digest") == digest(plan), "EFFECT_VERIFICATION_FAILED")
-            checks = verification.get("checks", {})
-            evidence_budget = {"remaining": plan["verification_byte_limit"], "sources": set()}
-            require(set(plan["required_checks"]) <= set(checks) and all(
-                self._valid_check(checks[name], plan, {"check": name, "binding_id": None,
-                                  "context": None, "stage": None}, evidence_budget)
-                for name in plan["required_checks"]), "EFFECT_VERIFICATION_FAILED")
-            effects = verification.get("binding_checks", [])
-            require(isinstance(effects, list) and len(effects) == len(plan["binding_checks"]),
-                    "EFFECT_VERIFICATION_FAILED")
-            for expected_check in plan["binding_checks"]:
-                matches = [item for item in effects if isinstance(item, dict) and
-                           all(item.get(key) == value for key, value in expected_check.items())]
-                require(len(matches) == 1 and self._valid_check(matches[0], plan, expected_check, evidence_budget),
-                        "EFFECT_VERIFICATION_FAILED")
+            self.validate_verification(plan, verification)
             current = self.adapter.snapshot()
             self._qualified(current)
             require(self._policy(current) == plan["policy_digest"], "SETTINGS_POLICY_CHANGED")
@@ -302,6 +289,27 @@ class Controls:
             self._rollback(transaction_id)
             raise
         return self.status(transaction_id)
+
+    def validate_verification(self, plan, verification):
+        """Validate complete plan-bound checks and source bytes before any commit."""
+        self._version(plan)
+        transaction_id = plan["transaction_id"]
+        require(isinstance(verification, dict) and verification.get("transaction_id") == transaction_id
+                and verification.get("plan_digest") == digest(plan), "EFFECT_VERIFICATION_FAILED")
+        checks = verification.get("checks", {})
+        evidence_budget = {"remaining": plan["verification_byte_limit"], "sources": set()}
+        require(isinstance(checks, dict) and set(plan["required_checks"]) <= set(checks) and all(
+            self._valid_check(checks[name], plan, {"check": name, "binding_id": None,
+                              "context": None, "stage": None}, evidence_budget)
+            for name in plan["required_checks"]), "EFFECT_VERIFICATION_FAILED")
+        effects = verification.get("binding_checks", [])
+        require(isinstance(effects, list) and len(effects) == len(plan["binding_checks"]),
+                "EFFECT_VERIFICATION_FAILED")
+        for expected_check in plan["binding_checks"]:
+            matches = [item for item in effects if isinstance(item, dict) and
+                       all(item.get(key) == value for key, value in expected_check.items())]
+            require(len(matches) == 1 and self._valid_check(matches[0], plan, expected_check, evidence_budget),
+                    "EFFECT_VERIFICATION_FAILED")
 
     def _valid_check(self, check, plan, expected, evidence_budget):
         valid = (isinstance(check, dict) and check.get("status") == "pass"
@@ -353,14 +361,23 @@ class Controls:
         return True
 
     def rollback(self, transaction_id):
+        self._generic_writer(transaction_id)
         transaction = self.status(transaction_id)
         if transaction["phase"] == "rolled_back":
             return transaction
         self._version(transaction["plan"])
         with profile_operation(self.database, transaction["plan"]["profile_id"]):
+            self._generic_writer(transaction_id)
             with self.database.transaction() as db:
                 self._idle(db, transaction["plan"]["profile_id"], transaction_id, transaction["agent"])
             return self._rollback(transaction_id)
+
+    def _generic_writer(self, transaction_id):
+        exists = self.database.connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                                                  "AND name='repair_native_handoffs'").fetchone()
+        require(exists is None or self.database.connection.execute(
+            "SELECT 1 FROM repair_native_handoffs WHERE id=?", (transaction_id,)).fetchone() is None,
+            "NATIVE_SETTINGS_ADAPTER_REQUIRED")
 
     def _rollback(self, transaction_id):
         transaction = self.status(transaction_id)

@@ -328,7 +328,8 @@ class Reconfigurations:
         connection["bearer_token"] = native.connection.bearer_token.get_secret_value()
         binding = digest({"connection": connection, "target": target.model_dump()})
         self.quiesce_worker(transaction_id, owner, epoch, worker)
-        with profile_operation(self.database, "repair:" + transaction_id):
+        profile = self.controls.status(transaction_id)["plan"]["profile_id"]
+        with profile_operation(self.database, "repair:" + transaction_id), profile_operation(self.database, profile):
             with self.database.transaction() as db:
                 repair = self.status(transaction_id)
                 self._owned(db, repair, owner, epoch)
@@ -436,9 +437,9 @@ class Reconfigurations:
                 self._owned(db, repair, owner, epoch, unexpired=not rollback)
                 allowed = {"QUIESCING", "RECONFIGURING", "APPLYING", "AWAITING_OBSERVATION", "RECOVERY_REQUIRED"}
                 require(repair["phase"] in (allowed if rollback else {"RECONFIGURING"}), "REPAIR_RECOVERY_REQUIRED")
+                require(db.execute("SELECT 1 FROM repair_native_handoffs WHERE id=?", (transaction_id,)).fetchone()
+                        is None, "NATIVE_SETTINGS_ADAPTER_REQUIRED")
                 if not rollback:
-                    require(db.execute("SELECT 1 FROM repair_native_handoffs WHERE id=?", (transaction_id,)).fetchone()
-                            is None, "NATIVE_SETTINGS_ADAPTER_REQUIRED")
                     self._budget(db, repair["request"])
                     require(self.budgets.status(repair["request"]["account"])["dispatch_allowed"], "BUDGET_EXHAUSTED")
                 db.execute("UPDATE repairs SET phase='APPLYING',forward_started=MAX(forward_started,?) WHERE id=?",

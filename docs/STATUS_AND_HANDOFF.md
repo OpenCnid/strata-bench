@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, native commit decision path implemented
+## Current position — September 27, controller native repair writes connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -34,8 +34,7 @@ stop proof from the actual private response. Lost replies reconcile by status;
 failed confirmed pauses revoke controller repair permission. The Python→Node→
 Windows guardian→Java fixture path passes active cancellation and expiry checks.
 [Handoff evidence](verification/2026-09-27-m1-repair-handoff.md).
-Settings/body are synthetic; final controller-to-native mapping and full repair/resume
-remain unfinished. No complete G1 suite is newly closed.
+Settings/body are synthetic; full qualified repair/resume remains unfinished. No complete G1 suite is newly closed.
 
 The private native settings endpoint now binds one exact worker repair plan,
 patch, allowed effect bindings and fixed deadline. Connected Python/Node/Windows
@@ -51,9 +50,13 @@ The native store now durably records a controller commit decision under a
 separate explicit opt-in profile. Exact pending-head checks, uncertain-reply
 status, reopen and owned rollback pass synthetic JVM checks; commit never grants
 input resume or claims native effect verification. [Commit evidence](verification/2026-09-27-m1-native-commit.md).
-The qualified adapter's complete verification/commit producer, restart/rejoin,
-explicit worker resume and authentic gameplay repair remain unfinished. No
-complete G1 suite is newly closed.
+The controller now connects native apply, complete supplied-proof validation,
+commit and owned rollback, with one durable dispatch per operation and status-only
+reconciliation. Actual controller/worker/guardian/JVM checks pass with a synthetic
+body and verification producer. [Connected repair evidence](verification/2026-09-27-m1-native-repair-flow.md).
+The qualified control projection, authentic verification producer, complete
+consumption/settlement join, restart/rejoin and explicit resume remain unfinished.
+No complete G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -64,8 +67,8 @@ complete G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next complete M1.1c.3.2's qualified adapter and verification-decision producer,
-worker restart/rejoin and explicit resume/recovery using the native admission and commit path. Complete remaining
+Next complete M1.1c.3.2's qualified control projection and authentic verification
+producer, then owned restart/rejoin, accounting and explicit resume/recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

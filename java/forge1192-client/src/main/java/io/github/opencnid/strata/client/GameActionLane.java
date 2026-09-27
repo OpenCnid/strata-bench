@@ -67,6 +67,10 @@ final class GameActionLane implements AutoCloseable {
     private Delivery activeDelivery;
     private Motor motor;
     private boolean fenced = true, healthy = true, closed, awaitingDispatch;
+    private String reconfiguration;
+    private final Set<String> usedReconfigurations = new java.util.HashSet<>();
+    private long reconfigurationUntil, reconfigurationDeadline, reconfigurationGeneration;
+    private boolean recoveredReconfiguration;
 
     GameActionLane(Path root, String fingerprint, Authority authority, RuntimePort runtime) throws IOException {
         this(root, fingerprint, authority, runtime, new Clock() {
@@ -101,10 +105,43 @@ final class GameActionLane implements AutoCloseable {
             long wall = SettingsJson.integer(event, "wall_ms");
             if (wall < lastWall) throw new IOException("GAME_JOURNAL_INVALID"); lastWall = wall;
             switch (SettingsJson.string(event, "kind")) {
+                case "reconfiguration_begin" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "id", "deadline_unix_ms", "generation");
+                    String id = GameBatch.id(event, "id");
+                    if (reconfiguration != null || !usedReconfigurations.add(id)
+                            || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
+                    SettingsJson.integer(event, "deadline_unix_ms"); SettingsJson.integer(event, "generation");
+                    reconfiguration = id;
+                    // Reopening never grants a new clock or authority for an interrupted input.
+                    reconfigurationUntil = -1;
+                    recoveredReconfiguration = true;
+                }
+                case "reconfiguration_primitive" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "id", "safety_release");
+                    if (!GameBatch.id(event, "id").equals(reconfiguration)
+                            || !event.get("safety_release").isJsonPrimitive()
+                            || !event.get("safety_release").getAsJsonPrimitive().isBoolean()) throw new IOException("GAME_JOURNAL_INVALID");
+                    charged++;
+                }
+                case "reconfiguration_observation" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "id", "observation");
+                    if (!GameBatch.id(event, "id").equals(reconfiguration)
+                            || !event.get("observation").isJsonObject()
+                            || event.get("observation").toString().length() > 8192) throw new IOException("GAME_JOURNAL_INVALID");
+                }
+                case "reconfiguration_end" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "id", "result");
+                    if (!GameBatch.id(event, "id").equals(reconfiguration)
+                            || !Set.of("completed", "cancelled", "unknown").contains(SettingsJson.string(event, "result"))) {
+                        throw new IOException("GAME_JOURNAL_INVALID");
+                    }
+                    reconfiguration = null;
+                    recoveredReconfiguration = false;
+                }
                 case "lease" -> {
                     SettingsJson.fields(event, "kind", "wall_ms", "epoch", "lease_id");
                     long epoch = SettingsJson.integer(event, "epoch");
-                    if (epoch <= lastEpoch || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
+                    if (reconfiguration != null || epoch <= lastEpoch || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
                     lastEpoch = epoch; lease = GameBatch.id(event, "lease_id"); lastSequence = -1;
                 }
                 case "renew" -> {
@@ -163,6 +200,7 @@ final class GameActionLane implements AutoCloseable {
 
     JsonObject arm(long epoch, String leaseId, long until, String expectedFenceToken) throws IOException {
         thread(); NativeSettingsProtocol.identifier(leaseId);
+        if (reconfiguration != null) throw new IOException("RECONFIGURING");
         if (!fenceToken.equals(expectedFenceToken)) throw new IOException("STALE_FENCE_TOKEN");
         if (!healthy || active != null || epoch <= lastEpoch) throw new IOException("STALE_EPOCH");
         absoluteLimit(); body();
@@ -295,8 +333,67 @@ final class GameActionLane implements AutoCloseable {
         if (active != null && active.batch.id.equals(id)) fence("CANCELLED");
         return status(id);
     }
-    JsonObject stopAll() throws IOException { thread(); fence("STOP_ALL"); return health(); }
+    JsonObject stopAll() throws IOException {
+        thread(); reconfigurationUntil = -1; fence("STOP_ALL"); return health();
+    }
+
+    void beginReconfiguration(String id, long deadline) throws IOException {
+        thread(); NativeSettingsProtocol.identifier(id); absoluteLimit(); body();
+        if (!healthy || reconfiguration != null) throw new IOException("RECONFIGURING");
+        if (usedReconfigurations.contains(id)) throw new IOException("SETTINGS_VERIFICATION_CONSUMED");
+        long remaining = deadline - clock.wall();
+        if (remaining < 1 || remaining > 30000 || deadline > authority.expires) throw new IOException("SETTINGS_DEADLINE_INVALID");
+        long until = clock.mono() + remaining;
+        fence("RECONFIGURING");
+        if (!healthy) throw new IOException("GAME_RELEASE_UNCONFIRMED");
+        JsonObject event = event("reconfiguration_begin"); event.addProperty("id", id);
+        event.addProperty("deadline_unix_ms", deadline); event.addProperty("generation", runtime.connectionGeneration());
+        append(event); reconfiguration = id; usedReconfigurations.add(id);
+        recoveredReconfiguration = false;
+        reconfigurationUntil = until; reconfigurationDeadline = deadline; reconfigurationGeneration = runtime.connectionGeneration();
+    }
+    void reconfigurationReady(String id) throws IOException {
+        thread();
+        if (!id.equals(reconfiguration)) throw new IOException("SETTINGS_VERIFICATION_NOT_OWNED");
+        if (!healthy || reconfigurationUntil < 0 || clock.mono() >= reconfigurationUntil
+                || clock.wall() >= reconfigurationDeadline) throw new IOException("SETTINGS_VERIFICATION_EXPIRED");
+        absoluteLimit(); body();
+        if (runtime.connectionGeneration() != reconfigurationGeneration) throw new IOException("CONNECTION_CHANGED");
+    }
+    String interruptedReconfiguration() throws IOException {
+        thread(); return recoveredReconfiguration ? reconfiguration : null;
+    }
+    void reconfigurationEmit(String id, boolean safety, Operation operation) throws IOException {
+        thread();
+        if (!id.equals(reconfiguration)) throw new IOException("SETTINGS_VERIFICATION_NOT_OWNED");
+        if (!safety) {
+            reconfigurationReady(id);
+            // Reserve two key-up callbacks and logical cleanup for a modifier chord.
+            if (charged + 3 >= authority.primitiveLimit) throw new IOException("BUDGET_EXHAUSTED");
+        }
+        JsonObject event = event("reconfiguration_primitive"); event.addProperty("id", id);
+        event.addProperty("safety_release", safety); append(event); charged++;
+        operation.run();
+    }
+    void reconfigurationObservation(String id, JsonObject observation) throws IOException {
+        reconfigurationReady(id);
+        if (observation == null || observation.toString().length() > 8192) throw new IOException("SETTINGS_EFFECT_BOUNDS");
+        JsonObject event = event("reconfiguration_observation"); event.addProperty("id", id);
+        event.add("observation", observation.deepCopy()); append(event);
+    }
+    void endReconfiguration(String id, String result) throws IOException {
+        thread();
+        if (!id.equals(reconfiguration)) throw new IOException("SETTINGS_VERIFICATION_NOT_OWNED");
+        if (!Set.of("completed", "cancelled", "unknown").contains(result)) throw new IOException("SETTINGS_EFFECT_RESULT_INVALID");
+        if (result.equals("completed")) reconfigurationReady(id);
+        if (!release(null)) throw new IOException("GAME_RELEASE_UNCONFIRMED");
+        JsonObject event = event("reconfiguration_end"); event.addProperty("id", id); event.addProperty("result", result);
+        append(event); reconfiguration = null; reconfigurationUntil = -1;
+        recoveredReconfiguration = false;
+        markFenced("RECONFIGURATION_ENDED"); deliveries.clear();
+    }
     private void fence(String reason) throws IOException {
+        if (reconfiguration != null) reconfigurationUntil = -1;
         markFenced(reason);
         if (active != null) finish("cancelled", reason); else release(null);
         deliveries.clear();
@@ -378,6 +475,7 @@ final class GameActionLane implements AutoCloseable {
         if (!authority.body.equals(runtime.bodyFingerprint())) throw new IOException("GAME_BODY_MISMATCH");
     }
     private void ready() throws IOException {
+        if (reconfiguration != null) throw new IOException("RECONFIGURING");
         if (fenced || !healthy || clock.mono() >= leaseUntil) throw new IOException("LEASE_EXPIRED");
         absoluteLimit(); body();
         if (generation != runtime.connectionGeneration()) throw new IOException("CONNECTION_CHANGED");
@@ -428,7 +526,7 @@ final class GameActionLane implements AutoCloseable {
     }
     @Override public void close() throws IOException {
         if (closed) return;
-        try { runtime.requireClientThread(); if (active != null || !fenced) fence("CLOSED"); }
+        try { runtime.requireClientThread(); if (active != null || !fenced || reconfiguration != null) fence("CLOSED"); }
         finally { closed = true; lock.release(); lockFile.close(); }
     }
 }

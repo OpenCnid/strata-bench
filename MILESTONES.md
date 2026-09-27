@@ -7,13 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b is now in_progress: a bounded native key-input engine routes ordinary
-keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
-reserved safety release, context checks and cancellation. Focused synthetic checks
-and affected lane/settings regressions pass. [Current evidence](docs/verification/2026-09-27-m1-key-input.md).
-This is implemented but unverified in Minecraft. No input capability is advertised.
-Next integrate transaction-owned effect observation and admission, then prove the
-actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
+M1.1b now connects native key input to transaction-owned verification under the
+existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
+concurrent-input fencing, bounded raw observations and interruption/recovery
+controls pass source/synthetic integration checks, including actual loopback HTTP.
+[Current evidence](docs/verification/2026-09-27-m1-settings-lane.md).
+The opt-in native route remains private and unqualified; results never assert
+verified effects or commit. Next add the strict Python operator bindings/source
+joins, then prepare and run the authentic intended/competing-control cycle.
+T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay open.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -40,6 +42,14 @@ No game/model execution was performed for this change.
 ## Historical position updates
 
 Earlier next actions below are retained history and superseded by the current position.
+
+M1.1b is now in_progress: a bounded native key-input engine routes ordinary
+keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
+reserved safety release, context checks and cancellation. Focused synthetic checks
+and affected lane/settings regressions pass. [Current evidence](docs/verification/2026-09-27-m1-key-input.md).
+This is implemented but unverified in Minecraft. No input capability is advertised.
+Next integrate transaction-owned effect observation and admission, then prove the
+actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
 
 M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
 values are now rejected by Java at admission. Shared cases and actual Python-to-Java
@@ -1468,7 +1478,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1a.2.3c.2b.6 | GI/QA | Authentic rollback_options_written crash and fresh status/rollback | not_started | Expected rollback_prepared journal with restored runtime/disk, no terminal receipt; separate sample required. |
 | M1.1a.2.3c.3 | GI/QA | Actual foreign runtime/options revision conflicts, no overwrite of unrelated changes and explicit owned-intervention cleanup | in_progress | [Authentic disk cases](docs/verification/2026-09-20-native-settings-conflicts.md) pass stale apply plus unrelated/owned-third-value rollback conflicts and two forward fences; one prepared transaction, exact known-injection removal, 253 runtime/persisted mappings and original bytes restored. In-memory foreign changes and OS-writer exclusion remain unrun. Cooperating profile locks/operator byte comparisons do not qualify isolation/CAS. |
 | M1.1a.2.4 | GI/PL | Transaction-aware private native transport and Python adapter; strict schema, session/deadline fencing, uncertain-response recovery | implemented_unverified | [Java bridge](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsHttpBridge.java), [Python client](src/mcbench/native_settings.py): five Java transport tests, 15 Python validation tests and four actual JVM/HTTP cases with synthetic runtime pass, including lost acknowledgement, process restart, duplicate transaction and foreign-edit recovery fencing. Native Minecraft, OS isolation, qualified Controls projection/verified commit, lifecycle/accounting and gameplay CLI integration remain open. Capability stays disabled. |
-| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | in_progress | [Native key input](docs/verification/2026-09-27-m1-key-input.md) implements bounded callback/polling state and release; synthetic tests/build pass. Transaction-owned admission, actual intended/competing effects, complete matrix and restart/rollback remain open; no supported capability claim. |
+| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | in_progress | [Transaction-owned effects](docs/verification/2026-09-27-m1-settings-lane.md) connects the callback/polling engine to the existing avatar lane and pending settings head. Strict private native admission, raw observation, budget/epoch/recovery and synthetic HTTP checks pass. Python bindings/source joins, authentic effects, complete controls/conflict matrix, restart/rollback and exact-profile isolation remain open. |
 | M1.1c | GI/PL | Host workflow profile ownership, durable phase fencing, rollback-conflict holds, qualification drift and verification coverage | in_progress | [Workflow](src/mcbench/controls.py), [contract](docs/operations/settings-workflow.md); c.1–c.3 distinguish implemented host checks from missing authentic provider/supervisor integration. |
 | M1.1c.1 | PL/QA | Profile/avatar recovery holds, cross-process operation lock, phase/idempotency/metadata/revision fencing and legacy-plan rejection | implemented_unverified | [Fencing tests](tests/test_controls_fencing.py), actual Windows lock exclusion and normal/crash release; persistent failed holds survive database reopening. Native profile lock and full supervisor/action-lane coupling remain separate requirements. |
 | M1.1c.2 | GI/PL | Transaction/plan/binding/context/restart evidence matrix, bounded hashed proof/source reads and simulation separation | implemented_unverified | [Controls tests](tests/test_controls.py) and [evidence tests](tests/test_controls_fencing.py); actual private CAS integration with synthetic proofs passes. No authentic effect producer/provenance, physical input or verified native commit yet. |
@@ -10643,3 +10653,10 @@ This pointer follows the archived documentation snapshot. T01/T05/G1 not_run.
 Implemented the ordinary keyboard callback/polling engine and integrated safety release with native game/settings paths. [Evidence](docs/verification/2026-09-27-m1-key-input.md): 37 new synthetic cases plus 40 affected lane/store cases pass; offline compile/reobfuscation and diff check pass. Source-bound Curios consumer uses ordinary key consumption and actual window activity. F06/N02/N06, SPEC8.2 and T05/G1 remain incomplete: no native trial, effect observer/admission or public capability yet. Next connect the transaction-owned verification lane, then prove intended/competing effects and restart/rollback on the exact isolated profile. Forty authority tables and three distinct telemetry holds preserved, no model calls or new spending authority. Full M1/G1 remains active; no further furnace trial selected.
 
 Private key-input evidence sealed: 39 files/2,764,907 bytes, `4f3a3b20445f92abaaa4c40c3915b24a47a6e15b1993d6c23e7156fc64b611be`. Final audit preserves 458 milestone IDs, append-only history and 1,814 local links, with no Java process remaining. No native/game capability or gate pass is inferred from the rebuilt artifact.
+
+
+### September 27 — M1.1b transaction-owned native effects
+
+Connected the native input engine to the private game bridge, pending settings store and existing avatar lane/budget/journal. [Evidence](docs/verification/2026-09-27-m1-settings-lane.md): 22 new and 43 affected existing cases pass across the final applicable Java results, including actual loopback HTTP over synthetic game state; offline build/reobfuscation and diff check pass. Pending map/disk/metadata admission, durable plan/source joins, concurrent-action fencing, bounded observations and interrupted/consumed-ID handling remain explicit. Every effect result stays verified=false/committed=false. F04/F06/F09/F16, N01/N02/N03/N06 and T01/T05/T06 dependencies remain incomplete; next strict Python bindings/source joins, exact native preparation and authentic effects. No installation/game/model calls; forty authority tables and all three distinct telemetry holds preserved. M1/G1 active, no aggregate suite closed.
+
+Private settings-lane evidence sealed: 33 files/2,630,864 bytes, `f672512e5a15f2cbc18a72b18337bb0b6c23ffb0a2dc0768896ea282fb2de6f0`. Final audit preserves 458 milestone IDs and append-only history, validates 1,818 local links and confirms no Java process remains. Authentic effect, rendered-context and final-profile claims remain unverified.

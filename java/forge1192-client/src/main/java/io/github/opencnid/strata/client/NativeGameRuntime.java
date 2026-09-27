@@ -55,6 +55,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     private long windowRevision;
     private long generation, lastCapturedRevision;
     private String activeRequest;
+    private NativeSettingsEffects settingsEffects;
     private String entitySalt = UUID.randomUUID().toString();
     private boolean ownedUse, permittedUseEvent;
     private boolean ownedMovement, expectedForward;
@@ -82,11 +83,23 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
         identity.addProperty("java_runtime", System.getProperty("java.runtime.version"));
         identity.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
         identity.add("capabilities", NativeGameProtocol.capabilities());
+        if (NativeSettingsEffects.enabled()) identity.addProperty("settings_effects_candidate_policy", NativeKeyInput.POLICY);
         fingerprint = KeyOptions.sha256(identity.toString());
         runtimeIdentity = identity.deepCopy();
     }
     String fingerprint() { return fingerprint; }
     JsonObject bootstrapIdentity() { return runtimeIdentity.deepCopy(); }
+    void attachSettingsEffects(NativeSettingsEffects effects) throws IOException {
+        requireClientThread();
+        if (settingsEffects != null) throw new IOException("SETTINGS_PROFILE_BUSY");
+        settingsEffects = effects;
+    }
+    public boolean settingsEffectsEnabled() { return settingsEffects != null; }
+    public JsonObject settingsRequest(JsonObject request) throws IOException {
+        if (settingsEffects == null) throw new IOException("CAPABILITY_MISSING");
+        return settingsEffects.execute(request);
+    }
+    public void stopSettingsEffects() throws IOException { if (settingsEffects != null) settingsEffects.stop(); }
     public void requireClientThread() throws IOException {
         if (!client.isSameThread()) throw new IOException("CLIENT_THREAD_REQUIRED");
     }

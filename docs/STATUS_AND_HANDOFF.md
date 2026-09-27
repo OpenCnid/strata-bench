@@ -1,19 +1,21 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, key input implementation
+## Current position — September 27, transaction-owned effects
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b is now in_progress: a bounded native key-input engine routes ordinary
-keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
-reserved safety release, context checks and cancellation. Focused synthetic checks
-and affected lane/settings regressions pass. [Current evidence](verification/2026-09-27-m1-key-input.md).
-This is implemented but unverified in Minecraft. No input capability is advertised.
-Next integrate transaction-owned effect observation and admission, then prove the
-actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
+M1.1b now connects native key input to transaction-owned verification under the
+existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
+concurrent-input fencing, bounded raw observations and interruption/recovery
+controls pass source/synthetic integration checks, including actual loopback HTTP.
+[Current evidence](verification/2026-09-27-m1-settings-lane.md).
+The opt-in native route remains private and unqualified; results never assert
+verified effects or commit. Next add the strict Python operator bindings/source
+joins, then prepare and run the authentic intended/competing-control cycle.
+T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay open.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -40,6 +42,14 @@ No game/model execution was performed for this change.
 ## Historical updates — superseded next steps
 
 The entries below preserve history. Use the current position above for execution priority.
+
+M1.1b is now in_progress: a bounded native key-input engine routes ordinary
+keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
+reserved safety release, context checks and cancellation. Focused synthetic checks
+and affected lane/settings regressions pass. [Current evidence](verification/2026-09-27-m1-key-input.md).
+This is implemented but unverified in Minecraft. No input capability is advertised.
+Next integrate transaction-owned effect observation and admission, then prove the
+actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
 
 M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
 values are now rejected by Java at admission. Shared cases and actual Python-to-Java

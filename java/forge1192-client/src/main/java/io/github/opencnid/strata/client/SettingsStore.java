@@ -48,6 +48,8 @@ final class SettingsStore implements AutoCloseable {
     private String observedDigest;
     private boolean closed;
 
+    String fingerprint() { return fingerprint; }
+
     SettingsStore(Path profile, Path privateDirectory, String fingerprint, RuntimePort runtime) throws IOException {
         this(profile, privateDirectory, fingerprint, runtime, 16777216);
     }
@@ -178,6 +180,29 @@ final class SettingsStore implements AutoCloseable {
         ready();
         if (!phases.containsKey(id)) throw new IOException("SETTINGS_TRANSACTION_MISSING");
         return new Receipt(id, phases.get(id), journal.revision(), false);
+    }
+
+    /** Read-only admission for effects: the complete applied map and owned disk values must still agree. */
+    Snapshot verificationHead(String id) throws IOException {
+        ready();
+        if (!id.equals(active) || !"applied_pending_verification".equals(phases.get(id))) {
+            throw new IOException("SETTINGS_VERIFICATION_NOT_PENDING");
+        }
+        JsonObject transaction = prepared.get(id);
+        Map<String, String> desired = new TreeMap<>(SettingsJson.strings(transaction, "before_runtime"));
+        Map<String, String> after = SettingsJson.strings(transaction, "after"); desired.putAll(after);
+        assertRuntime(desired, SettingsJson.string(transaction, "runtime_metadata_digest"));
+        Map<String, String> expectedDisk = translate(after, SettingsJson.strings(transaction, "translations"));
+        String diskText = SettingsFiles.readOptions(options);
+        KeyOptions disk = KeyOptions.parse(diskText);
+        if (!SettingsFiles.nonOwnedDigest(diskText, expectedDisk)
+                .equals(SettingsJson.string(transaction, "non_owned_options_digest"))) throw new IOException("SETTINGS_RUNTIME_CONFLICT");
+        for (var entry : expectedDisk.entrySet()) {
+            if (disk.ambiguous().contains(entry.getKey()) || !entry.getValue().equals(disk.values().get(entry.getKey()))) {
+                throw new IOException("SETTINGS_RUNTIME_CONFLICT");
+            }
+        }
+        return new Snapshot(journal.revision(), currentDigest());
     }
 
     private static JsonObject request(String id, Snapshot expected, Map<String, Change> changes) throws IOException {

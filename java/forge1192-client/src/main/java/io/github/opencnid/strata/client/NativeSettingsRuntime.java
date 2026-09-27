@@ -65,6 +65,25 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
 
     String fingerprint() { return fingerprint; }
 
+    KeyInputSession.Request effectKey(String id, long holdMs) throws IOException {
+        KeyMapping mapping = mappings().get(id);
+        var options = client.options;
+        if (mapping == null || !(mapping == owned || mapping == options.keyInventory
+                || mapping == options.keyUp || mapping == options.keyDown || mapping == options.keyLeft
+                || mapping == options.keyRight || mapping == options.keyJump || mapping == options.keyShift
+                || mapping == options.keySprint || mapping == options.keyChat)) {
+            throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+        }
+        if (mapping.getKey().getType() != InputConstants.Type.KEYSYM) throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
+        KeyInputSession.Modifier modifier = switch (mapping.getKeyModifier()) {
+            case NONE -> KeyInputSession.Modifier.NONE;
+            case SHIFT -> KeyInputSession.Modifier.SHIFT;
+            case CONTROL -> KeyInputSession.Modifier.CONTROL;
+            case ALT -> KeyInputSession.Modifier.ALT;
+        };
+        return new KeyInputSession.Request(mapping.getKey().getValue(), modifier, holdMs);
+    }
+
     JsonObject ownershipEvidence() {
         JsonObject result = new JsonObject();
         result.addProperty("mod", "curios");

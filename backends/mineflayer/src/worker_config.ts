@@ -4,6 +4,7 @@ import type { Scope } from './actions.js';
 import { fields, strictJson } from './native_game.js';
 import { requireThat } from './protocol.js';
 import { profileId } from './player_identity.js';
+import { WORKER_REPAIR_POLICY } from './worker_repair.js';
 
 interface Common extends Scope {
   purpose: 'manual-conformance'; state_directory: string; max_wall_ms: number; primitive_limit: number;
@@ -19,7 +20,11 @@ export interface ForgeConfig extends Common {
   connection_file:string; native_fingerprint:string; body_fingerprint:string;
   process_guard_file:string; guard_python:string;
 }
-export type WorkerConfig = VanillaConfig | BoundVanillaConfig | ForgeConfig;
+export interface ForgeRepairConfig extends Omit<ForgeConfig,'schema'> {
+  schema:'strata/ForgeDevelopmentWorker/3'; repair_policy:typeof WORKER_REPAIR_POLICY;
+}
+export type ForgeWorkerConfig=ForgeConfig|ForgeRepairConfig;
+export type WorkerConfig = VanillaConfig | BoundVanillaConfig | ForgeWorkerConfig;
 export function outside(path: string, repository: string): string {
   requireThat(typeof path === 'string' && isAbsolute(path), 'FORBIDDEN');
   const full = realpathSync(path); const rel = relative(realpathSync(repository), full);
@@ -41,8 +46,10 @@ export function workerConfig(path: string, repository: string): WorkerConfig {
     requireThat(Number.isSafeInteger(c.port) && Number(c.port) > 0 && Number(c.port) < 65536, 'CONFIG_RANGE');
     c.auth_cache = outside(c.auth_cache as string, repository);
   } else {
-    fields(c, [...common,'backend','pack_version','connection_file','native_fingerprint','body_fingerprint','process_guard_file','guard_python']);
-    requireThat(c.schema === 'strata/ForgeDevelopmentWorker/2' && c.server_kind === 'e9e'
+    fields(c, [...common,'backend','pack_version','connection_file','native_fingerprint','body_fingerprint','process_guard_file','guard_python',
+      ...(c.schema==='strata/ForgeDevelopmentWorker/3' ? ['repair_policy'] : [])]);
+    requireThat((c.schema === 'strata/ForgeDevelopmentWorker/2' || c.schema==='strata/ForgeDevelopmentWorker/3'
+      && c.repair_policy===WORKER_REPAIR_POLICY) && c.server_kind === 'e9e'
       && c.backend === 'forge_client' && c.pack_version === '1.27.0', 'CAPABILITY_MISSING');
     for (const name of ['native_fingerprint','body_fingerprint']) requireThat(typeof c[name] === 'string'
       && /^[a-f0-9]{64}$/.test(c[name]), 'CAPABILITY_MISSING');
@@ -57,7 +64,7 @@ export function workerConfig(path: string, repository: string): WorkerConfig {
     && /^[A-Za-z0-9_.:-]{1,128}$/.test(c[name]), 'SCHEMA_UNSUPPORTED');
   requireThat(Number.isSafeInteger(c.epoch) && Number(c.epoch) >= 1, 'CONFIG_RANGE');
   requireThat(Number.isSafeInteger(c.max_wall_ms) && Number(c.max_wall_ms) > 0 && Number(c.max_wall_ms) <= 600000, 'CONFIG_RANGE');
-  requireThat(Number.isSafeInteger(c.primitive_limit) && Number(c.primitive_limit) >= (c.schema === 'strata/ForgeDevelopmentWorker/2' ? 2 : 1)
+  requireThat(Number.isSafeInteger(c.primitive_limit) && Number(c.primitive_limit) >= (c.server_kind==='e9e' ? 2 : 1)
     && Number(c.primitive_limit) <= 100000, 'CONFIG_RANGE');
   c.state_directory = outside(c.state_directory as string, repository);
   return c as unknown as WorkerConfig;

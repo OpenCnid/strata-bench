@@ -13,6 +13,9 @@ import { ForgeProcessGuard, SupervisorEvidence, type ForgeGuardReady } from './f
 import { WorkerStartup, WORKER_STARTUP_MS, WORKER_STARTUP_POLICY } from './worker_startup.js';
 import { OPERATOR_STOP_ARGUMENT, WorkerControl } from './worker_control.js';
 import { WorkerHealth } from './worker_health.js';
+import { serveRepair, WORKER_REPAIR_POLICY } from './worker_repair.js';
+import { ForgeLane } from './forge_lane.js';
+import type { Server } from 'node:http';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
@@ -27,10 +30,30 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   const {lane,capabilities} = await workerLane(c,journal,guard).catch(error => {
     try {metrics.close();} finally {journal.close();} throw error;
   });
+  let repairServer:Server|undefined;
   const server = await serve(lane,token,capabilities).catch(async error => {
     try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}} throw error;
   });
   const address = server.address(); requireThat(address && typeof address !== 'string', 'INTERNAL_ERROR');
+  if(c.schema==='strata/ForgeDevelopmentWorker/3') {
+    try {
+      requireThat(lane instanceof ForgeLane,'CAPABILITY_MISSING');
+      const repairToken=randomBytes(32).toString('hex');
+      repairServer=await serveRepair(lane,repairToken);
+      const repairAddress=repairServer.address();
+      requireThat(repairAddress && typeof repairAddress!=='string','INTERNAL_ERROR');
+      const grant={schema:'strata/WorkerRepairGrant/1',policy:WORKER_REPAIR_POLICY,
+        url:`http://127.0.0.1:${repairAddress.port}/v1/repair`,token:repairToken,
+        campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+      const fd=openSync(resolve(c.state_directory,`repair-grant-${c.epoch}.json`),'wx',0o600);
+      try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);} finally {closeSync(fd);}
+      journal.event('repair_gateway',{policy:WORKER_REPAIR_POLICY,epoch:c.epoch,port:repairAddress.port});
+    } catch(error) {
+      repairServer?.close();server.close();
+      try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}}
+      throw error;
+    }
+  }
   const beat = setInterval(() => process.send?.({kind: 'alive', health: lane.health()}), 100);
   const disk = setInterval(() => {
     try {
@@ -41,7 +64,7 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   let shutdown: Promise<void> | undefined;
   const stop = () => {
     shutdown ??= (async () => {
-      clearInterval(beat); clearInterval(disk); server.close();
+      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();
       let code = healthFailed ? 1 : 0;
       try { await lane.close(); } catch { code = 1; }
       finally {
@@ -99,7 +122,7 @@ async function main(): Promise<void> {
   let executorExit:Promise<number>|undefined;
   let acceptExitEvidence=true;
   let guard: ForgeProcessGuard | undefined;
-  const evidence = c.schema === 'strata/ForgeDevelopmentWorker/2' ? new SupervisorEvidence(c.state_directory,c.epoch) : undefined;
+  const evidence = c.server_kind==='e9e' ? new SupervisorEvidence(c.state_directory,c.epoch) : undefined;
   let startup:WorkerStartup|undefined;
   let rejectBoot:((error:Fault)=>void)|undefined;
   let stopping = false;
@@ -187,7 +210,7 @@ async function main(): Promise<void> {
     await booted;rejectBoot=undefined;
     requireThat(!forced && !stopping && lifecycle.canRenew(),'WORKER_BOOT_UNAVAILABLE');
     let binding: ForgeGuardReady | undefined;
-    if (c.schema === 'strata/ForgeDevelopmentWorker/2') {
+    if (c.server_kind==='e9e') {
       guard = new ForgeProcessGuard(c,digest(forgeCapabilities(c.native_fingerprint)),evidence!,
         () => !forced && lifecycle.canRenew(),fail);
       binding = await guard.ready;

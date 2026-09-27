@@ -9,7 +9,7 @@ import type { ForgeGuardReady } from './forge_guard.js';
 import { PLAYER_IDENTITY_POLICY, type PlayerIdentityMatch } from './player_identity.js';
 
 export async function workerLane(c: WorkerConfig, journal: Journal, guard?: ForgeGuardReady): Promise<{lane: GameLane; capabilities: unknown}> {
-  if (c.schema === 'strata/ForgeDevelopmentWorker/2') {
+  if (c.server_kind==='e9e') {
     const client = NativeGameClient.fromFile(c.connection_file);
     requireThat(client.connection.fingerprint === c.native_fingerprint, 'CAPABILITY_MISSING');
     requireThat(guard && guard.connection_digest === digest(client.connection)
@@ -18,7 +18,7 @@ export async function workerLane(c: WorkerConfig, journal: Journal, guard?: Forg
     const manifest = forgeCapabilities(c.native_fingerprint); const capability = digest(manifest);
     journal.event('guard_binding',guard);
     const lane = await ForgeLane.connect(c,capability,client,journal,c.body_fingerprint,c.primitive_limit,c.max_wall_ms,
-      guard.connection_generation);
+      guard.connection_generation,c.schema==='strata/ForgeDevelopmentWorker/3' ? c.repair_policy : undefined);
     return {lane,capabilities:{...manifest,digest:capability,lease_id:c.lease_id,epoch:c.epoch}};
   }
   // The Forge executor must not pay Mineflayer's module/data initialization cost.

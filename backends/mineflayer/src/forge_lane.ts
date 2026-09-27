@@ -4,6 +4,7 @@ import type { Scope } from './actions.js';
 import { RELEASE_TIMEOUT_MS } from './actions.js';
 import { Journal } from './journal.js';
 import { Signals } from './signals.js';
+import { repairPlan, WORKER_REPAIR_POLICY, type RepairPlan } from './worker_repair.js';
 import type { GameLane } from './server.js';
 import type { DiscoveryQuery as RecipeQuery, QuestQuery, QuestTextQuery, QuestComponentsQuery, QuestMenuQuery } from './native_game.js';
 import { FORGE_ACTIONS, NativeGameClient, nativeCapabilities, nativeFailureCode, type NativeLane, type NativeReceipt } from './native_game.js';
@@ -44,14 +45,21 @@ export class ForgeLane implements GameLane {
   private closed = false;
   private closeTask: Promise<void> | null = null;
   private usageKey = '';
+  private repair:RepairPlan|null = null;
+  private repairPhase:'quiescing'|'paused'|'failed'|null = null;
+  private repairUntil = 0;
+  private repairTask:Promise<unknown>|null = null;
+  private repairAbort:Promise<void>|null = null;
   private constructor(readonly scope: Scope, readonly capabilityDigest: string,
     private client: NativeGameClient, readonly journal: Journal, private body: string,
-    private primitiveLimit: number, maxWallMs: number) {
+    private primitiveLimit: number, maxWallMs: number, private repairPolicy?:typeof WORKER_REPAIR_POLICY) {
     this.deadline = mono() + maxWallMs; this.signals = new Signals(journal);
   }
   static async connect(scope: Scope, capabilityDigest: string, client: NativeGameClient,
-    journal: Journal, body: string, primitiveLimit: number, maxWallMs: number, guardedGeneration?: number): Promise<ForgeLane> {
-    const lane = new ForgeLane(scope, capabilityDigest, client, journal, body, primitiveLimit, maxWallMs);
+    journal: Journal, body: string, primitiveLimit: number, maxWallMs: number, guardedGeneration?: number,
+    repairPolicy?:typeof WORKER_REPAIR_POLICY): Promise<ForgeLane> {
+    requireThat(repairPolicy===undefined || repairPolicy===WORKER_REPAIR_POLICY,'CAPABILITY_MISSING');
+    const lane = new ForgeLane(scope, capabilityDigest, client, journal, body, primitiveLimit, maxWallMs,repairPolicy);
     let armAttempted = false;
     try {
       const caps = await client.call('capabilities');
@@ -76,6 +84,10 @@ export class ForgeLane implements GameLane {
       const armed = await client.call('arm', {...lane.lease(),expected_fence_token:health.fence_token});
       lane.checkHealth(armed); lane.charge(armed);
       lane.watchdog = setInterval(() => {
+        if(lane.repair && lane.repairPhase!=='failed' && (mono()>=lane.repairUntil
+          || Date.now()>=lane.repair.expires_unix_ms || mono()>=lane.deadline)) {
+          lane.background(lane.abortRepair('REPAIR_DEADLINE_EXPIRED'));return;
+        }
         if (!lane.fenced && (mono() >= lane.deadline || mono() >= lane.leaseUntil)) lane.background(lane.fence('LEASE_EXPIRED'));
       }, 25);
       return lane;
@@ -105,6 +117,77 @@ export class ForgeLane implements GameLane {
     requireThat(value.journal_healthy && !value.fenced && value.epoch === this.scope.epoch, 'LEASE_EXPIRED');
   }
   health() {return {connected:this.connected,connected_once:true,fenced:this.fenced,reason:this.reason};}
+  repairStatus(raw:RepairPlan) {
+    const plan=repairPlan(raw);
+    requireThat(this.repair && canonical(plan)===canonical(this.repair),'REPAIR_NOT_OWNED');
+    return {schema:'strata/WorkerRepairState/1',policy:WORKER_REPAIR_POLICY,plan:this.repair,
+      phase:this.repairPhase,reason:this.repairPhase==='failed' ? this.reason : null,
+      inputs_released:this.lastRelease,primitive_events:this.journal.counter('primitive_events'),
+      gameplay_suspended:true,resume_authorized:false};
+  }
+  pauseRepair(raw:RepairPlan):Promise<unknown> {
+    requireThat(this.repairPolicy===WORKER_REPAIR_POLICY,'CAPABILITY_MISSING');
+    const plan=repairPlan(raw);
+    for(const name of ['campaign_id','agent_id','epoch','lease_id'] as const)
+      requireThat(plan[name]===this.scope[name],'REPAIR_NOT_OWNED');
+    if(this.repair) {
+      requireThat(canonical(plan)===canonical(this.repair),'REPAIR_NOT_OWNED');
+      return this.repairPhase==='quiescing' ? this.repairTask! : Promise.resolve(this.repairStatus(plan));
+    }
+    const remaining=plan.expires_unix_ms-Date.now();
+    requireThat(!this.closed && !this.fenced && remaining>0 && remaining<=900000
+      && remaining<=this.deadline-mono(),'REPAIR_DEADLINE_INVALID');
+    try {this.write(()=>this.journal.holdRepair(plan));}
+    catch(error) {
+      // Intent failure cannot leave an already executing motor running while
+      // the local admission lane merely reports itself fenced.
+      return this.fence('EVIDENCE_UNAVAILABLE').then(()=>{throw error;});
+    }
+    this.repair=Object.freeze(plan);this.repairPhase='quiescing';this.repairUntil=mono()+remaining;
+    const started=mono();const activeId=this.active?.batch.request_id;
+    const renewing=this.renewTask;
+    this.repairTask=(async()=>{
+      try {
+        if(renewing)await renewing;
+        requireThat(!this.closed && !this.fenced && this.repairPhase==='quiescing','REPAIR_INTERRUPTED');
+        await this.fence('RECONFIGURING');
+        requireThat(mono()-started<=1000 && this.lastRelease && this.active===null,'REPAIR_QUIESCE_UNCONFIRMED');
+        if(activeId)requireThat(!['accepted','executing','unknown'].includes(this.journal.status(activeId).status),
+          'REPAIR_ACTION_UNCERTAIN');
+        await this.pollRepair();
+        requireThat(mono()-started<=1000 && this.repairPhase==='quiescing','REPAIR_QUIESCE_UNCONFIRMED');
+        this.repairPhase='paused';
+        this.write(()=>this.journal.event('repair_paused',this.repairStatus(plan)));
+        return this.repairStatus(plan);
+      } catch(error) {
+        await this.abortRepair(error instanceof Fault ? error.code : 'REPAIR_UNAVAILABLE');throw error;
+      }
+    })();
+    return this.repairTask;
+  }
+  private repairLive():boolean {
+    return this.repair!==null && this.repairPhase!=='failed' && !this.closed
+      && mono()<this.repairUntil && mono()<this.deadline && Date.now()<this.repair.expires_unix_ms;
+  }
+  private async pollRepair():Promise<void> {
+    requireThat(this.repairLive(),'REPAIR_DEADLINE_EXPIRED');
+    const identity=await this.client.call('identity',{},500);
+    requireThat(identity.body_fingerprint===this.body && identity.connection_generation===this.generation,
+      'CONNECTION_CHANGED');
+    const health=await this.client.call('lane_status',{},500);
+    this.charge(health); // Retain consumption even when a subsequent ownership check fails.
+    requireThat(health.fenced && health.journal_healthy && health.active_request_id===null
+      && health.epoch===this.scope.epoch,'REPAIR_FENCE_LOST');
+    requireThat(this.repairLive(),'REPAIR_DEADLINE_EXPIRED');
+  }
+  private abortRepair(code:string):Promise<void> {
+    if(this.repairAbort)return this.repairAbort;
+    this.repairPhase='failed';this.reason=code;this.markFenced(code);
+    this.repairAbort=(async()=>{
+      try {if(this.repair)this.write(()=>this.journal.failRepair(this.repair!,code));}
+      finally {requireThat(await this.releaseNative(),'INPUT_RELEASE_FAILED');}
+    })();return this.repairAbort;
+  }
   private async recipeList(after:number) {
     requireThat(!this.closed && this.connected && !this.fenced && mono() < this.deadline && mono() < this.leaseUntil, 'LEASE_EXPIRED');
     const result = await this.client.call('recipes', {after});
@@ -192,6 +275,14 @@ export class ForgeLane implements GameLane {
       revision:result.revision,entries:result.entries,next_cursor:result.next_cursor};
   }
   renewLease(): Promise<void> {
+    if(this.repair) {
+      if(this.repairPhase==='quiescing')return Promise.resolve();
+      if(this.renewTask)return this.renewTask;
+      this.renewTask=this.pollRepair().catch(async error=>{
+        await this.abortRepair(error instanceof Fault ? error.code : 'REPAIR_UNAVAILABLE');throw error;
+      }).finally(()=>{this.renewTask=null;});
+      return this.renewTask;
+    }
     if (this.fenced || this.closed) return Promise.resolve();
     if (this.renewTask) return this.renewTask;
     this.renewTask = (async () => {
@@ -301,6 +392,7 @@ export class ForgeLane implements GameLane {
     const b = validate<ActionBatch>('ActionBatch', raw); actionSemantics(b);
     requireThat(b.campaign_id === this.scope.campaign_id && b.agent_id === this.scope.agent_id, 'FORBIDDEN');
     const previous = this.journal.previous(b); if (previous) return previous;
+    requireThat(!this.repair,'RECONFIGURING');
     requireThat(b.epoch === this.scope.epoch, 'STALE_EPOCH');
     requireThat(!this.fenced && !this.closed && mono() < this.leaseUntil && b.lease_id === this.scope.lease_id, 'LEASE_EXPIRED');
     requireThat(!this.active && !this.observing, 'ACTION_IN_PROGRESS');
@@ -437,13 +529,17 @@ export class ForgeLane implements GameLane {
     if (this.active?.batch.request_id === id) {try {await this.fence('CANCELLED');} catch { /* receipt retains uncertainty */ }}
     return this.journal.status(id);
   }
-  async stopAll(): Promise<void> {await this.fence('STOPPED'); requireThat(this.lastRelease, 'INPUT_RELEASE_FAILED');}
+  async stopAll(): Promise<void> {
+    if(this.repair)await this.abortRepair('STOPPED');
+    else await this.fence('STOPPED');
+    requireThat(this.lastRelease, 'INPUT_RELEASE_FAILED');
+  }
   private background(task: Promise<unknown>): void {void task.catch(() => this.markFenced(this.evidenceFailed ? 'EVIDENCE_UNAVAILABLE' : 'ACTION_UNKNOWN'));}
   close(): Promise<void> {
     if (!this.closeTask) {
       clearInterval(this.watchdog); this.closed = true;
-      this.closeTask = this.fence('STOPPED').finally(async () => {
-        await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve()]); this.signals.close();
+      this.closeTask = (this.repair ? this.abortRepair('STOPPED') : this.fence('STOPPED')).finally(async () => {
+        await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve(),this.repairTask ?? Promise.resolve()]); this.signals.close();
       });
     }
     return this.closeTask;

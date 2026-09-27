@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import { hashFile } from './capability_pins.js';
 import { fields, NativeGameClient, strictJson } from './native_game.js';
 import { canonical, digest, Fault, mono, requireThat } from './protocol.js';
-import type { ForgeConfig } from './worker_config.js';
+import type { ForgeWorkerConfig } from './worker_config.js';
 
 export function guardImplementationDigest(): string {
   const names = ['forge_guard.py','process_guard.py','processes.py','native_game.py',
@@ -137,7 +137,7 @@ export class ForgeProcessGuard {
   private pendingRenew: {kind:'renew';seq:number;nonce:string} | null = null;
   private challengeSeq = 0;
 
-  constructor(c: ForgeConfig, capability: string, private evidence: SupervisorEvidence,
+  constructor(c: ForgeWorkerConfig, capability: string, private evidence: SupervisorEvidence,
     private canRenew: () => boolean, private onFailure: (reason: string) => void) {
     requireThat(process.platform === 'win32', 'PROCESS_GUARD_UNSUPPORTED');
     requireThat(statSync(c.process_guard_file).size <= 8192,'PROCESS_GRANT_QUOTA');

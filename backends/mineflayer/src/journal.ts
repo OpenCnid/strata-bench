@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { closeSync, openSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
+import type { RepairPlan } from './worker_repair.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
@@ -23,7 +24,9 @@ export class Journal {
           seq INTEGER NOT NULL, digest TEXT NOT NULL, request TEXT NOT NULL, ack TEXT NOT NULL,
           UNIQUE(epoch, seq));
         CREATE TABLE IF NOT EXISTS events(cursor INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT NULL);
-        CREATE TABLE IF NOT EXISTS counters(name TEXT PRIMARY KEY, value INTEGER NOT NULL);`);
+        CREATE TABLE IF NOT EXISTS counters(name TEXT PRIMARY KEY, value INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS repair_holds(transaction_id TEXT PRIMARY KEY,epoch INTEGER NOT NULL,
+          plan TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('HELD','RECOVERY_REQUIRED')));`);
       const last = this.db.prepare('SELECT MAX(epoch) AS epoch FROM epochs').get() as { epoch: number | null };
       requireThat(last.epoch === null || epoch > last.epoch, 'STALE_EPOCH');
       this.db.prepare('INSERT INTO epochs VALUES (?)').run(epoch);
@@ -45,6 +48,22 @@ export class Journal {
   next(kind: string): number { return this.counter(`${this.epoch}:${kind}`, 1); }
   event(kind: string, body: unknown): void {
     this.db.prepare('INSERT INTO events(kind,body) VALUES (?,?)').run(kind, JSON.stringify(body));
+  }
+  holdRepair(plan:RepairPlan):void {
+    this.transaction(()=>{
+      requireThat(plan.epoch===this.epoch && !this.db.prepare('SELECT 1 FROM repair_holds LIMIT 1').get(),
+        'REPAIR_RECOVERY_REQUIRED');
+      this.db.prepare("INSERT INTO repair_holds VALUES (?,?,?,'HELD')").run(plan.transaction_id,this.epoch,JSON.stringify(plan));
+      this.event('repair_pause_intent',{schema:'strata/WorkerRepairIntent/1',plan});
+    });
+  }
+  failRepair(plan:RepairPlan,reason:string):void {
+    this.transaction(()=>{
+      const result=this.db.prepare("UPDATE repair_holds SET state='RECOVERY_REQUIRED' WHERE transaction_id=? AND epoch=?")
+        .run(plan.transaction_id,this.epoch);
+      requireThat(result.changes===1,'REPAIR_NOT_OWNED');
+      this.event('repair_pause_failed',{plan,reason});
+    });
   }
   beginPrimitiveAccounting(scope: {campaign_id:string; agent_id:string; epoch:number}): void {
     this.transaction(() => {
@@ -111,6 +130,9 @@ export class Journal {
     });
   }
   recover(): void {
+    // A new executor epoch is not authority to bypass a pending settings repair.
+    // Release requires the forthcoming qualified native repair/resume workflow.
+    requireThat(!this.db.prepare('SELECT 1 FROM repair_holds LIMIT 1').get(),'REPAIR_RECOVERY_REQUIRED');
     const rows = this.db.prepare('SELECT ack FROM actions').all() as {ack: string}[];
     for (const row of rows) {
       const ack = JSON.parse(row.ack) as ActionAck;

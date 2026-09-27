@@ -13,6 +13,7 @@ import { ForgeLane } from '../src/forge_lane.js';
 import { forgeCapabilities } from '../src/forge_capabilities.js';
 import { NativeGameClient, NativeOutcomeUnknown, nativeCapabilities, RECIPE_QUERY_POLICY, QUEST_POLICY, QUEST_TEXT_POLICY, QUEST_COMPONENTS_POLICY, QUEST_MENU_POLICY, strictJson, type NativeOperation, type NativeResults } from '../src/native_game.js';
 import { Journal } from '../src/journal.js';
+import { WORKER_REPAIR_POLICY, type RepairPlan } from '../src/worker_repair.js';
 import { serve, type GameLane } from '../src/server.js';
 import { workerConfig, type ForgeConfig } from '../src/worker_config.js';
 import { workerLane } from '../src/worker_lane.js';
@@ -123,6 +124,12 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
     campaign_id:'campaign',agent_id:'avatar',epoch:1,lease_id:'lease',process_guard_file:connection,guard_python:process.execPath};
   const path = join(root,'worker.json'); writeFileSync(path,JSON.stringify(config));
   assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/2');
+  writeFileSync(path,JSON.stringify({...config,schema:'strata/ForgeDevelopmentWorker/3',repair_policy:WORKER_REPAIR_POLICY}));
+  assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/3');
+  for(const patch of [{repair_policy:WORKER_REPAIR_POLICY},{schema:'strata/ForgeDevelopmentWorker/3'},
+    {schema:'strata/ForgeDevelopmentWorker/3',repair_policy:'automatic-resume'}]) {
+    writeFileSync(path,JSON.stringify({...config,...patch}));assert.throws(()=>workerConfig(path,repo));
+  }
   assert.equal(manifest.backend,'forge_client'); assert.equal(manifest.campaign_admission,false);
   assert.equal(manifest.keybindings,false); assert.equal(manifest.motor.completion,'emitted-input-only');
   assert.equal(manifest.contract_minor,45);
@@ -512,9 +519,9 @@ async function fixture(t: test.TestContext, hold = false, recipeMode = false) {
       writeFileSync(config.process_guard_file,JSON.stringify(grant)); return {...config,max_wall_ms:maxWallMs};
     },
     own(j: Journal, l?: GameLane) {journal = j; lane = l;},
-    async start(changes: Partial<ForgeConfig> = {}) {
+    async start(changes: Partial<ForgeConfig> = {}, repairPolicy?:typeof WORKER_REPAIR_POLICY) {
       const c = {...config,...changes}; journal = new Journal(c.state_directory,c.epoch);
-      const result = await ForgeLane.connect(c,capability,client,journal,c.body_fingerprint,c.primitive_limit,c.max_wall_ms);
+      const result = await ForgeLane.connect(c,capability,client,journal,c.body_fingerprint,c.primitive_limit,c.max_wall_ms,undefined,repairPolicy);
       lane = result; return {lane:result,journal};
     }};
 }
@@ -532,6 +539,161 @@ async function terminal(journal: Journal, id = 'request'): Promise<ActionAck> {
     await delay(20);
   }
   assert.fail('No terminal action receipt');
+}
+
+function repairRequest(duration=10000):RepairPlan {
+  return {schema:'strata/WorkerRepairPlan/1',policy:WORKER_REPAIR_POLICY,campaign_id:'campaign',agent_id:'avatar',
+    epoch:1,lease_id:'lease',transaction_id:'repair',plan_digest:'b'.repeat(64),expires_unix_ms:Date.now()+duration};
+}
+
+test('repair pause is absent from the old JVM worker profile',jvm,async t=>{
+  const f=await fixture(t);const {lane}=await f.start();
+  assert.throws(()=>lane.pauseRepair(repairRequest()),/CAPABILITY_MISSING/);
+  assert.equal((await f.client.call('lane_status')).fenced,false);
+});
+
+test('repair pause cancels an actual JVM action, retains receipts and charges private cleanup',jvm,async t=>{
+  const f=await fixture(t,true);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);
+  const request=batch(await lane.observe());lane.act(request);
+  const until=mono()+1000;
+  while((await f.client.call('lane_status')).active_request_id===null && mono()<until)await delay(10);
+  assert.equal((await f.client.call('lane_status')).active_request_id,'request');
+  const p=repairRequest();await lane.pauseRepair(p);
+  assert.equal(lane.repairStatus(p).phase,'paused');assert.equal(lane.repairStatus(p).inputs_released,true);
+  assert.equal(journal.status('request').status,'cancelled');assert.equal(lane.act(request).status,'cancelled');
+  assert.throws(()=>lane.act({...request,request_id:'another',seq:2}),/RECONFIGURING/);
+  const count=journal.counter('primitive_events');
+  assert.deepEqual(await lane.pauseRepair(p),lane.repairStatus(p));assert.equal(journal.counter('primitive_events'),count);
+  assert.throws(()=>lane.pauseRepair({...p,expires_unix_ms:p.expires_unix_ms+1}),/REPAIR_NOT_OWNED/);
+  await f.client.call('stop_all');await lane.renewLease();
+  assert.ok(journal.counter('primitive_events')>count);
+  assert.equal(journal.counter('primitive_events'),(await f.client.call('lane_status')).attempted_primitive_events);
+  assert.equal(lane.repairStatus(p).resume_authorized,false);
+});
+
+test('repair pause validates scope and fixed lifetime before consuming an intent',jvm,async t=>{
+  const f=await fixture(t);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);const p=repairRequest();
+  for(const patch of [{agent_id:'other'},{campaign_id:'other'},{epoch:2},{lease_id:'other'}])
+    assert.throws(()=>lane.pauseRepair({...p,...patch}),/REPAIR_NOT_OWNED/);
+  for(const expires_unix_ms of [Date.now()-1,Date.now()+61000,Date.now()+900001])
+    assert.throws(()=>lane.pauseRepair({...p,expires_unix_ms}),/REPAIR_DEADLINE_INVALID/);
+  journal.recover();assert.equal((await f.client.call('lane_status')).fenced,false);
+  await lane.pauseRepair(p);assert.equal(lane.repairStatus(p).phase,'paused');
+});
+
+test('repair pause expires without extending or returning a stale success',jvm,async t=>{
+  const f=await fixture(t);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);const p=repairRequest(700);
+  await lane.pauseRepair(p);const count=journal.counter('primitive_events');
+  const until=mono()+2000;
+  while(lane.repairStatus(p).phase!=='failed' && mono()<until)await delay(20);
+  assert.equal(lane.repairStatus(p).phase,'failed');assert.equal(lane.repairStatus(p).reason,'REPAIR_DEADLINE_EXPIRED');
+  await assert.rejects(lane.renewLease(),/REPAIR_DEADLINE_EXPIRED/);
+  assert.deepEqual(await lane.pauseRepair(p),lane.repairStatus(p));
+  assert.ok(journal.counter('primitive_events')>count);assert.equal((await f.client.call('lane_status')).fenced,true);
+});
+
+test('repair pause waits for an in-flight renewal and never renews a paused native lease',jvm,async t=>{
+  const f=await fixture(t);const {lane}=await f.start({},WORKER_REPAIR_POLICY);
+  const call=f.client.call.bind(f.client);let renewals=0;let release!:()=>void;
+  const pending=new Promise<void>(resolve=>{release=resolve;});
+  f.client.call=async <K extends NativeOperation>(op:K,args:Record<string,unknown>={},timeout?:number):Promise<NativeResults[K]>=>{
+    if(op==='renew'){renewals++;await pending;}return call(op,args,timeout);
+  };
+  const renewal=lane.renewLease(),p=repairRequest(),pause=lane.pauseRepair(p);
+  assert.equal(lane.repairStatus(p).phase,'quiescing');release();await renewal;await pause;
+  await lane.renewLease();assert.equal(renewals,1);assert.equal(lane.repairStatus(p).phase,'paused');
+});
+
+test('repair pause refuses an externally rearmed JVM and fences it again',jvm,async t=>{
+  const f=await fixture(t);const {lane}=await f.start({},WORKER_REPAIR_POLICY);const p=repairRequest();
+  await lane.pauseRepair(p);const health=await f.client.call('lane_status');
+  await f.client.call('arm',{epoch:2,lease_id:'foreign',lease_until_unix_ms:Date.now()+6000,expected_fence_token:health.fence_token});
+  await assert.rejects(lane.renewLease(),/REPAIR_FENCE_LOST/);
+  assert.equal(lane.repairStatus(p).phase,'failed');assert.equal((await f.client.call('lane_status')).fenced,true);
+});
+
+test('repair intent storage failure still releases a running JVM motor',jvm,async t=>{
+  const f=await fixture(t,true);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);
+  lane.act(batch(await lane.observe()));
+  const until=mono()+1000;
+  while((await f.client.call('lane_status')).active_request_id===null && mono()<until)await delay(10);
+  assert.equal((await f.client.call('lane_status')).active_request_id,'request');
+  journal.holdRepair=()=>{throw new Error('synthetic durable-intent failure');};
+  await assert.rejects(lane.pauseRepair(repairRequest()),/EVIDENCE_UNAVAILABLE/);
+  const health=await f.client.call('lane_status');assert.equal(health.fenced,true);assert.equal(health.active_request_id,null);
+  assert.equal(journal.status('request').release_confirmed,true);
+});
+
+test('repair pause refuses an unknown active receipt and retains recovery ownership',jvm,async t=>{
+  const f=await fixture(t,true);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);
+  lane.act(batch(await lane.observe()));
+  const until=mono()+1000;
+  while((await f.client.call('lane_status')).active_request_id===null && mono()<until)await delay(10);
+  assert.equal((await f.client.call('lane_status')).active_request_id,'request');
+  const call=f.client.call.bind(f.client);
+  f.client.call=async <K extends NativeOperation>(op:K,args:Record<string,unknown>={},timeout?:number):Promise<NativeResults[K]>=>{
+    if(op==='action_status')throw new Fault('GAME_RESPONSE_INVALID');return call(op,args,timeout);
+  };
+  const p=repairRequest();await assert.rejects(lane.pauseRepair(p),/REPAIR_ACTION_UNCERTAIN/);
+  assert.equal(journal.status('request').status,'unknown');assert.equal(lane.repairStatus(p).phase,'failed');
+  assert.throws(()=>journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
+});
+
+test('repair pause close drains its pending identity read before journal disposal',jvm,async t=>{
+  const f=await fixture(t);const {lane,journal}=await f.start({},WORKER_REPAIR_POLICY);
+  const call=f.client.call.bind(f.client);let entered!:()=>void;let release!:()=>void;
+  const reading=new Promise<void>(resolve=>{entered=resolve;}),pending=new Promise<void>(resolve=>{release=resolve;});
+  f.client.call=async <K extends NativeOperation>(op:K,args:Record<string,unknown>={},timeout?:number):Promise<NativeResults[K]>=>{
+    if(op==='identity'){entered();await pending;}return call(op,args,timeout);
+  };
+  const p=repairRequest(),pause=lane.pauseRepair(p);const refused=assert.rejects(pause,/REPAIR_DEADLINE_EXPIRED/);
+  await reading;let closed=false;const closing=lane.close().then(()=>{closed=true;});
+  await delay(50);assert.equal(closed,false);release();await refused;await closing;
+  assert.equal(lane.repairStatus(p).phase,'failed');assert.ok(journal.counter('primitive_events')>0);
+});
+
+for(const failure of ['deadline','parent_kill'] as const) {
+  test(`repair gateway uses a separate private grant and guarded cleanup after ${failure}`,guardedJvm,async t=>{
+    const f=await fixture(t),base=await f.guardConfig(12000);
+    const c={...base,schema:'strata/ForgeDevelopmentWorker/3',repair_policy:WORKER_REPAIR_POLICY};
+    const configPath=join(f.root,'repair-worker.json');writeFileSync(configPath,JSON.stringify(c));
+    const workerPath=fileURLToPath(new URL('../src/worker.js',import.meta.url));
+    const parent=spawn(process.execPath,[workerPath,configPath],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+    let stdout='',stderr='';parent.stdout.on('data',b=>{stdout+=b;});parent.stderr.on('data',b=>{stderr+=b;});
+    const ended=once(parent,'exit');
+    t.after(async()=>{if(parent.exitCode===null && parent.signalCode===null)parent.kill();await ended;});
+    const publicFile=join(c.state_directory,'grant-1.json'),privateFile=join(c.state_directory,'repair-grant-1.json');
+    const until=mono()+8000;
+    while(!existsSync(publicFile) && mono()<until){assert.equal(parent.exitCode,null,stderr);await delay(20);}
+    assert.ok(existsSync(publicFile),stderr);assert.ok(existsSync(privateFile));
+    const pub=JSON.parse(readFileSync(publicFile,'utf8')),priv=JSON.parse(readFileSync(privateFile,'utf8'));
+    assert.notEqual(priv.token,pub.token);assert.notEqual(new URL(priv.url).port,new URL(pub.url).port);
+    assert.equal(priv.schema,'strata/WorkerRepairGrant/1');assert.doesNotMatch(JSON.stringify(pub),/repair/i);
+    const p=repairRequest(failure==='deadline'?1300:8000);
+    const request={schema:'strata/WorkerRepairRequest/1',request_id:'pause',operation:'pause',plan:p};
+    const post=(url:string,token:string)=>fetch(url,{method:'POST',headers:{authorization:`Bearer ${token}`,
+      'content-type':'application/json'},body:JSON.stringify(request)});
+    assert.equal((await post(priv.url,pub.token)).status,403);
+    assert.equal((await post(pub.url,priv.token)).status,403);
+    const paused=await post(priv.url,priv.token);assert.equal(paused.status,200);
+    const value=await paused.json() as {result:{phase:string;resume_authorized:boolean}};
+    assert.equal(value.result.phase,'paused');assert.equal(value.result.resume_authorized,false);
+    assert.equal((await f.client.call('lane_status')).fenced,true);
+    assert.doesNotMatch(stdout+stderr,new RegExp(priv.token+'|'+pub.token));
+    if(failure==='parent_kill')parent.kill('SIGKILL');
+    const stoppedBy=mono()+6000;
+    while((parent.exitCode===null && parent.signalCode===null || f.process.exitCode===null && f.process.signalCode===null)
+      && mono()<stoppedBy)await delay(20);
+    assert.ok(parent.exitCode!==null || parent.signalCode!==null,'repair worker survived cleanup');
+    assert.ok(f.process.exitCode!==null || f.process.signalCode!==null,'native fixture survived cleanup');
+    await ended;
+    assert.equal((readFileSync(join(f.nativeRoot,'game-actions.jsonl'),'utf8').match(/"kind":"intent"/g)??[]).length,0);
+    if(failure==='deadline') {
+      const j=new Journal(c.state_directory,2);
+      try {assert.throws(()=>j.recover(),/REPAIR_RECOVERY_REQUIRED/);assert.ok(j.counter('primitive_events')>=2);}
+      finally {j.close();}
+    }
+  });
 }
 
 test('actual JVM bound observations, public lane, fresh receipts and charges preserve at-most-once input',jvm,async t => {

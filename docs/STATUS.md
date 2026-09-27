@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, native keybinding cycle passes
+## Current position — September 27, worker repair pause implemented
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -19,6 +19,16 @@ context/failure matrix or gameplay-worker repair integration. All six G1 suites
 and G1 remain not_run.
 
 
+M1.1c.3.2 now implements an owned gameplay-worker repair pause in the distinct
+ForgeDevelopmentWorker/3 manual-conformance profile. Active input is cancelled,
+confirmed released and kept fenced under a durable fixed-expiry hold; changed
+plans cannot extend it or silently rearm through a new executor epoch. Separate
+private/public grants and guarded cleanup pass actual JVM/Windows process checks
+with synthetic game input. [Evidence](verification/2026-09-27-m1-worker-repair.md).
+The settings adapter, native transaction admission, restart/rejoin and explicit
+resume/rollback recovery remain unfinished. This is implemented but unverified
+in Minecraft; it closes no complete G1 suite.
+
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
 | T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
@@ -28,8 +38,8 @@ and G1 remain not_run.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next implement M1.1c.3.2's owned gameplay-worker repair pause, settings adapter and
-restart/resume integration using the new native cycle evidence. Complete remaining
+Next connect M1.1c.3.2's worker-owned pause to actual settings transaction/effect
+admission, restart/rejoin and explicit resume/rollback recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

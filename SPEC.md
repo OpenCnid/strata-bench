@@ -882,6 +882,18 @@ supplied settings/settlement producers, or complete campaign permission. Actual
 controller settlement/publication, restored rollback, skill and authentic
 qualification remain required. [Evidence](docs/verification/2026-09-27-m1-control-publication.md).
 
+Before a new native resume intent, freeze the original repair's inference window
+and require all its tracked dispatches settled. Pending calls keep the pause;
+they do not consume a resume decision or renew the repair deadline. Bind the
+immutable inference audit to the resume intent in the same transaction, checking
+it again under the writer lock after evidence publication. New
+`ControllerResumeWitness/2` receipts carry that reference; retries and subsequent
+worker measurements must revalidate it against retained accounting. Missing new
+bindings cannot fall back to a historical zero-call claim. Legacy `/1` receipts
+remain readable for status reconciliation but cannot supply the new measurement
+prerequisite. This joins inference closure only; primitive/body accounting and
+campaign permission remain separate. [Resume integration evidence](docs/verification/2026-09-27-m1-resume-inference.md).
+
 Worker/6 records a durable charge opening with pause intent before quiescence.
 `WorkerRepairAccounting/1` uses `durable-worker-charge-interval/1`: original full
 plan, same-worker clock identity, journal cursors, per-native-source high-water

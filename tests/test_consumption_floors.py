@@ -110,7 +110,11 @@ def test_actual_repair_ledger_retains_native_measurement_before_cas_failure(nati
     monkeypatch.setattr(joined, "_evidence", lambda *args: (
         SimpleNamespace(verification_ref=decision.verification_ref), "native-1", 1, None))
     resume_ref = e.put({"fixture": "resume"})
+    inference_ref = e.put(joined.inference.freeze("tx", "owner", e.epoch))
     with e.database.transaction() as db:
+        db.execute("INSERT INTO repair_resume_inference VALUES (?,?)", ("tx", inference_ref))
+        e.database.event(db, "repair.resume_intent", {"transaction_id": "tx",
+            "decision": decision.model_dump(), "inference_ref": inference_ref})
         db.execute("INSERT INTO repair_worker_resumes VALUES (?,?,?,?,'CONFIRMED',?)",
             ("tx", resume.binding_digest, canonical(decision.model_dump()).decode(), "native-1", resume_ref))
     raw = measured(example)

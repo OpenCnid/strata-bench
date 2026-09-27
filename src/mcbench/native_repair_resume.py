@@ -19,18 +19,37 @@ from .worker_repair import WorkerRepairState
 from .worker_restart import WorkerRestartClient, WorkerRestartState
 from .worker_resume import WorkerResumeClient
 from .worker_publication import WorkerPublicationClient
+from .repair_inference import RepairInference
 
 
 class NativeRepairResume:
     def __init__(self, repairs):
         self.repairs, self.controls, self.database = repairs, repairs.controls, repairs.database
         self.flow = NativeRepairFlow(repairs)
+        self.inference = RepairInference(repairs)
         with self.database.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS repair_worker_resumes (id TEXT PRIMARY KEY, "
                        "binding TEXT NOT NULL, request TEXT NOT NULL, native_instance TEXT NOT NULL, "
                        "phase TEXT NOT NULL CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), source_ref TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS repair_worker_measurements (id TEXT PRIMARY KEY, "
                        "binding TEXT NOT NULL, receipt TEXT NOT NULL, source_ref TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_resume_inference (id TEXT PRIMARY KEY, "
+                       "source_ref TEXT NOT NULL)")
+
+    def _inference(self, transaction, owner, epoch, *, required=True):
+        row = self.database.connection.execute("SELECT source_ref FROM repair_resume_inference WHERE id=?",
+                                               (transaction,)).fetchone()
+        intents = self.database.connection.execute("SELECT json_extract(body,'$.inference_ref') FROM outbox "
+            "WHERE kind='repair.resume_intent' AND json_extract(body,'$.transaction_id')=?", (transaction,)).fetchall()
+        if not required and row is None:
+            require(not any(item[0] is not None for item in intents), "REPAIR_INFERENCE_REQUIRED")
+            return None  # Historical resume status only; never a measurement prerequisite.
+        require(row is not None, "REPAIR_INFERENCE_REQUIRED")
+        require(len(intents) == 1 and intents[0][0] == row["source_ref"], "REPAIR_INFERENCE_CHANGED")
+        proof = self._read(row["source_ref"])
+        require(proof == self.inference.audit(transaction, owner, epoch)
+                and proof["tracked_dispatches_settled"], "REPAIR_INFERENCE_CHANGED")
+        return row["source_ref"]
 
     def _read(self, ref):
         return strict_json(self.repairs.controller.cas.read(Principal("operator", "operator"),
@@ -122,24 +141,36 @@ class NativeRepairResume:
                     "expected_digest": head.digest, "completion_phase": "committed", "verification_ref": commit.verification_ref,
                     "connection_generation": generation, "lease_until_unix_ms": int((now + remaining) * 1000)})
             resume.validate_worker(worker, restart, decision)
+            inference_ref = self._inference(transaction, owner, epoch, required=False) if old else None
             if not old:
+                audit = self.inference.freeze(transaction, owner, epoch)
+                require(audit["tracked_dispatches_settled"], "REPAIR_INFERENCE_PENDING")
+                inference_ref = self.flow._put(audit)
                 with self.database.transaction() as db:
                     self.repairs._owned(db, self.repairs.status(transaction), owner, epoch)
                     self.repairs._budget(db, repair["request"])
                     require(self.repairs.budgets.status(repair["request"]["account"])["dispatch_allowed"], "BUDGET_EXHAUSTED")
+                    require(self.inference.audit_in_transaction(db, transaction, owner, epoch) == audit,
+                            "REPAIR_INFERENCE_CHANGED")
+                    require(self.repairs.clock() * 1000 < decision.lease_until_unix_ms, "REPAIR_DEADLINE_EXPIRED")
+                    db.execute("INSERT INTO repair_resume_inference VALUES (?,?)", (transaction, inference_ref))
                     db.execute("INSERT INTO repair_worker_resumes VALUES (?,?,?,?,'INTENT',NULL)",
                         (transaction, resume.binding_digest, canonical(decision.model_dump()).decode(), native_instance))
-                    self.database.event(db, "repair.resume_intent", {"transaction_id": transaction, "decision": decision.model_dump()})
+                    self.database.event(db, "repair.resume_intent", {"transaction_id": transaction,
+                        "decision": decision.model_dump(), "inference_ref": inference_ref})
             result = None
             try:
                 result = resume.call("status" if old else "resume", decision,
                     timeout_ms=1000 if old else min(2000, int(remaining * 1000))).result
                 require(result.native.source_instance == result.native.current_instance == native_instance,
                         "RESUME_INSTANCE_MISMATCH")
-                source = self.flow._put({"schema": "strata/ControllerResumeWitness/1",
+                witness = {"schema": "strata/ControllerResumeWitness/2" if inference_ref else "strata/ControllerResumeWitness/1",
                     "is_example": self.repairs.controller.simulation, "transaction_id": transaction,
                     "worker_binding": resume.binding_digest, "worker_state": result.model_dump(),
-                    "campaign_permission_published": False, "consumption_settled": False})
+                    "campaign_permission_published": False, "consumption_settled": False}
+                if inference_ref:
+                    witness["inference_ref"] = inference_ref
+                source = self.flow._put(witness)
                 with self.database.transaction() as db:
                     self.repairs._owned(db, self.repairs.status(transaction), owner, epoch, unexpired=False)
                     db.execute("UPDATE repair_worker_resumes SET phase='CONFIRMED',source_ref=? WHERE id=?", (source, transaction))
@@ -175,6 +206,7 @@ class NativeRepairResume:
             decision = NativeResumeDecision.model_validate_json(row["request"])
             require(decision.worker_plan == admission.worker_plan and decision.verification_ref == committed.verification_ref,
                     "REPAIR_NOT_OWNED")
+            self._inference(transaction, owner, epoch)
             with self.database.transaction() as db:
                 self.repairs._owned(db, repair, owner, epoch)
                 self.repairs._budget(db, repair["request"])

@@ -100,51 +100,55 @@ class RepairInference:
 
     def audit(self, transaction, owner, epoch):
         with self.database.transaction() as db:
-            repair = self.repairs.status(transaction)
-            self.repairs._owned(db, repair, owner, epoch, unexpired=False)
-            window = _window(db, repair)
-            members = db.execute("SELECT * FROM repair_inference_members WHERE repair=? ORDER BY operation",
-                                 (transaction,)).fetchall()
-            expected = set()
-            if _exists(db, "inference_attempts"):
-                for attempt in db.execute("SELECT * FROM inference_attempts WHERE "
-                        "json_extract(reservation,'$.campaign_id')=? AND json_extract(reservation,'$.agent_id')=?",
-                        (window["campaign"], window["agent"])).fetchall():
-                    intents = db.execute("SELECT cursor FROM outbox WHERE kind='inference.dispatch_intent' "
-                                         "AND json_extract(body,'$.operation_id')=?", (attempt["operation"],)).fetchall()
-                    settled = db.execute("SELECT cursor FROM outbox WHERE kind='inference.settled' "
-                                         "AND json_extract(body,'$.operation_id')=?", (attempt["operation"],)).fetchall()
-                    require(len(intents) == 1 and len(settled) == int(attempt["state"] == "SETTLED"),
-                            "REPAIR_INFERENCE_CHANGED")
-                    if window["closing_cursor"] is not None:
-                        require(intents[0][0] < window["closing_cursor"], "REPAIR_INFERENCE_CHANGED")
-                    if not settled or settled[0][0] > window["opening_cursor"]:
-                        expected.add(attempt["operation"])
-            require(expected == {m["operation"] for m in members}, "REPAIR_INFERENCE_CHANGED")
-            calls = []
-            for member in members:
-                attempt = db.execute("SELECT * FROM inference_attempts WHERE operation=?", (member["operation"],)).fetchone()
-                op = db.execute("SELECT * FROM operations WHERE id=?", (member["operation"],)).fetchone()
-                require(attempt is not None and op is not None and attempt["fingerprint"] == member["fingerprint"]
-                        and attempt["account"] == op["account"], "REPAIR_INFERENCE_CHANGED")
-                reserve = BudgetLedger.model_validate_json(attempt["reservation"])
-                require(reserve.campaign_id == window["campaign"] and reserve.agent_id == window["agent"]
-                        and reserve.epoch == window["epoch"] and reserve.parent_operation_id == op["parent"]
-                        and reserve.kind == op["kind"], "REPAIR_INFERENCE_CHANGED")
-                settled = (attempt["state"] == "SETTLED" and op["actual"] is not None and not op["uncertain"]
-                           and attempt["receipt_digest"] is not None and attempt["provider_event"] is not None)
-                calls.append({"operation_id": op["id"], "account": op["account"], "parent_operation_id": op["parent"],
-                    "kind": op["kind"], "attribution": member["basis"], "state": attempt["state"],
-                    "settled": bool(settled), "receipt_digest": attempt["receipt_digest"],
-                    "provider_event_digest": attempt["provider_event"],
-                    "actual": json.loads(op["actual"]) if op["actual"] is not None else None,
-                    "reserved": json.loads(op["reserved"]), "uncertain": bool(op["uncertain"])})
-            result = {"schema": "strata/RepairInferenceAudit/1", "is_example": self.repairs.controller.simulation,
-                "transaction_id": transaction, "campaign_id": window["campaign"], "agent_id": window["agent"],
-                "epoch": window["epoch"], "opening_cursor": window["opening_cursor"],
-                "closing_cursor": window["closing_cursor"], "admission_closed": window["closing_cursor"] is not None,
-                "calls": calls, "tracked_dispatches_settled": window["closing_cursor"] is not None
-                    and all(c["settled"] for c in calls), "costs_reposted": False,
-                "complete_repair_accounting": False, "campaign_permission_published": False}
-            require(len(canonical(result)) <= 1024 * 1024, "REPAIR_INFERENCE_AUDIT_QUOTA")
-            return result
+            return self.audit_in_transaction(db, transaction, owner, epoch)
+
+    def audit_in_transaction(self, db, transaction, owner, epoch):
+        require(db is self.database.connection and db.in_transaction, "TRANSACTION_REQUIRED")
+        repair = self.repairs.status(transaction)
+        self.repairs._owned(db, repair, owner, epoch, unexpired=False)
+        window = _window(db, repair)
+        members = db.execute("SELECT * FROM repair_inference_members WHERE repair=? ORDER BY operation",
+                             (transaction,)).fetchall()
+        expected = set()
+        if _exists(db, "inference_attempts"):
+            for attempt in db.execute("SELECT * FROM inference_attempts WHERE "
+                    "json_extract(reservation,'$.campaign_id')=? AND json_extract(reservation,'$.agent_id')=?",
+                    (window["campaign"], window["agent"])).fetchall():
+                intents = db.execute("SELECT cursor FROM outbox WHERE kind='inference.dispatch_intent' "
+                                     "AND json_extract(body,'$.operation_id')=?", (attempt["operation"],)).fetchall()
+                settled = db.execute("SELECT cursor FROM outbox WHERE kind='inference.settled' "
+                                     "AND json_extract(body,'$.operation_id')=?", (attempt["operation"],)).fetchall()
+                require(len(intents) == 1 and len(settled) == int(attempt["state"] == "SETTLED"),
+                        "REPAIR_INFERENCE_CHANGED")
+                if window["closing_cursor"] is not None:
+                    require(intents[0][0] < window["closing_cursor"], "REPAIR_INFERENCE_CHANGED")
+                if not settled or settled[0][0] > window["opening_cursor"]:
+                    expected.add(attempt["operation"])
+        require(expected == {m["operation"] for m in members}, "REPAIR_INFERENCE_CHANGED")
+        calls = []
+        for member in members:
+            attempt = db.execute("SELECT * FROM inference_attempts WHERE operation=?", (member["operation"],)).fetchone()
+            op = db.execute("SELECT * FROM operations WHERE id=?", (member["operation"],)).fetchone()
+            require(attempt is not None and op is not None and attempt["fingerprint"] == member["fingerprint"]
+                    and attempt["account"] == op["account"], "REPAIR_INFERENCE_CHANGED")
+            reserve = BudgetLedger.model_validate_json(attempt["reservation"])
+            require(reserve.campaign_id == window["campaign"] and reserve.agent_id == window["agent"]
+                    and reserve.epoch == window["epoch"] and reserve.parent_operation_id == op["parent"]
+                    and reserve.kind == op["kind"], "REPAIR_INFERENCE_CHANGED")
+            settled = (attempt["state"] == "SETTLED" and op["actual"] is not None and not op["uncertain"]
+                       and attempt["receipt_digest"] is not None and attempt["provider_event"] is not None)
+            calls.append({"operation_id": op["id"], "account": op["account"], "parent_operation_id": op["parent"],
+                "kind": op["kind"], "attribution": member["basis"], "state": attempt["state"],
+                "settled": bool(settled), "receipt_digest": attempt["receipt_digest"],
+                "provider_event_digest": attempt["provider_event"],
+                "actual": json.loads(op["actual"]) if op["actual"] is not None else None,
+                "reserved": json.loads(op["reserved"]), "uncertain": bool(op["uncertain"])})
+        result = {"schema": "strata/RepairInferenceAudit/1", "is_example": self.repairs.controller.simulation,
+            "transaction_id": transaction, "campaign_id": window["campaign"], "agent_id": window["agent"],
+            "epoch": window["epoch"], "opening_cursor": window["opening_cursor"],
+            "closing_cursor": window["closing_cursor"], "admission_closed": window["closing_cursor"] is not None,
+            "calls": calls, "tracked_dispatches_settled": window["closing_cursor"] is not None
+                and all(c["settled"] for c in calls), "costs_reposted": False,
+            "complete_repair_accounting": False, "campaign_permission_published": False}
+        require(len(canonical(result)) <= 1024 * 1024, "REPAIR_INFERENCE_AUDIT_QUOTA")
+        return result

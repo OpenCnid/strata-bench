@@ -23,7 +23,27 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, repair inference closure
+## Current position — September27, inference-gated native resume
+
+Private evidence sealed: 285 files / 9,591,768 bytes,
+SHA-256 `295aaaede79d6c26db9ba6bab48ce4ae1b51e6bf18bba6511216a309e31f7376`.
+All 40 authority tables, eight telemetry holds and both installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,177 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now requires frozen, settled inference accounting in the actual
+native resume path. Pending helper/model calls refuse resume before a durable
+intent or worker call. New resume witnesses bind the immutable audit; status
+and measurement cannot silently discard that binding.31 distinct focused source
+cases and two selected controller/Node/JVM cases pass with synthetic game/helper/
+verification producers. [Resume integration evidence](verification/2026-09-27-m1-resume-inference.md).
+The first publication process attempt correctly failed at21 primitives against
+20 reserved; the fixture now waits for the worker's terminal preplay receipt.
+The final case measured19 under the unchanged20 cap. Failure history is retained.
+Complete primitive/body allocation, controller settlement/original lease and
+authentic gameplay qualification remain open. No aggregate G1 suite closes.
+
+### Previous inference-closure checkpoint
 
 Private evidence sealed:171 files/11,019,900 bytes,
 SHA-256 `b31830bbdae0f03c501746924bc171b77039218cfb3841f309cb38dcefb7c511`.

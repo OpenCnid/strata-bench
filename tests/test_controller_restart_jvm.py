@@ -43,7 +43,7 @@ effects_jvm, repair_env = _effects_jvm, _repair_env
 
 @pytest.mark.parametrize("repair_env", ["real-clock"], indirect=True)
 @pytest.mark.parametrize("lost", [None, "prepare", "detach", "attach", "resume", "resume_lost", "publish"])
-def test_controller_adopts_replacement_and_finishes_native_writes_without_replay(effects_jvm, repair_env, tmp_path, monkeypatch, lost):
+def test_controller_adopts_replacement_and_finishes_native_writes_without_replay(effects_jvm, repair_env, tmp_path, monkeypatch, lost, example):
     resuming = lost in {"resume", "resume_lost", "publish"}
     node = os.environ.get("STRATA_CLIENT_TEST_NODE")
     if os.name != "nt" or not node:
@@ -117,6 +117,19 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         break
                     time.sleep(.01)
                 assert outcome["status"] == "emitted" and outcome["release_confirmed"]
+                # Native completion precedes the worker's observation/charge
+                # join. The preplay baseline must include that terminal receipt.
+                until = time.monotonic() + 2
+                while True:
+                    settled = subprocess.run([node, str(worker_js.with_name("cli.js")), "action-status",
+                        "--request-id", initial_ack["request_id"], "--json"], capture_output=True, timeout=3,
+                        creationflags=subprocess.CREATE_NO_WINDOW, env=os.environ | {"STRATA_GAME_GRANT": str(public_grant)})
+                    assert settled.returncode in (0, 2), settled.stdout
+                    preplay = json.loads(settled.stdout)["result"]
+                    if preplay["status"] not in {"accepted", "executing"} or time.monotonic() > until:
+                        break
+                assert preplay["status"] == "emitted" and preplay["release_confirmed"]
+                (tmp_path / "initial-worker-terminal.json").write_bytes(canonical(preplay))
             e.controller.heartbeat("c1", "owner", e.epoch)
             e.repairs.request("c1", "owner", e.epoch, "tx", "a1", "repair-op", deadline_unix=time.time() + 15)
             target = target_for(e, client)
@@ -389,6 +402,37 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     def resume_once():
                         e.controller.heartbeat("c1", "owner", e.epoch)
                         return joined.resume_committed("tx", "owner", e.epoch, worker, restart, resume, replacement)
+                    if lost == "publish":
+                        from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
+                        from mcbench.records import BudgetLedger
+                        gate = InferenceDispatches(e.database, e.cas, simulation=True)
+                        price = e.put({"is_example": True, "fixture": "synthetic pricing"})
+                        reserve = BudgetLedger.model_validate(example("BudgetLedger") | {
+                            "is_example": False, "campaign_id": "c1", "agent_id": "a1", "epoch": e.epoch,
+                            "ledger_id": "helper-reserve", "operation_id": "helper-pending", "parent_operation_id": None,
+                            "source_event_id": "helper-reserve", "campaign_account": "training", "posting": "reserve",
+                            "kind": "helper", "model_identity": "synthetic-no-model", "pricing_ref": price,
+                            "raw_usage_ref": None, "metering": "estimated", "reason": "synthetic helper",
+                            "usage": {key: 0 for key in example("BudgetLedger")["usage"]} | {
+                                "input_tokens": 1, "output_tokens": 1, "model_calls": 1, "spend_microusd": 1}})
+                        fields = {"runtime_job_id": "synthetic-helper", "profile_digest": "a" * 64,
+                            "provider": "openai", "auth_mode": "chatgpt_oauth", "request_digest": "b" * 64}
+                        bound = e.put({"schema": "strata/InferenceDispatchBound/1", "is_example": True, **fields,
+                            "reservation_digest": digest(reserve.model_dump()), "pricing_ref": price, "currency": "USD",
+                            "finite_dispatch_bound_verified": True, "pricing_semantics_verified": True,
+                            "expires_unix_ms": int(time.time() * 1000) + 60000})
+                        attempt = InferenceAttempt.model_validate({"schema": "strata/InferenceAttempt/1", **fields, "bound_ref": bound})
+                        gate._begin("a1", attempt, reserve)
+                        with pytest.raises(Fault, match="REPAIR_INFERENCE_PENDING"):
+                            resume_once()
+                        assert resume_calls == []
+                        assert e.database.connection.execute("SELECT count(*) FROM repair_worker_resumes").fetchone()[0] == 0
+                        assert e.database.connection.execute("SELECT count(*) FROM repair_resume_inference").fetchone()[0] == 0
+                        assert joined.inference.audit("tx", "owner", e.epoch)["admission_closed"]
+                        settlement = BudgetLedger.model_validate(reserve.model_dump() | {
+                            "ledger_id": "helper-settle", "source_event_id": "helper-settle", "posting": "settle",
+                            "metering": "reported", "raw_usage_ref": e.put({"is_example": True, "fixture": "synthetic usage receipt"})})
+                        gate.settle("helper-pending", "synthetic-helper-event", settlement)
                     if lost == "resume_lost":
                         with pytest.raises(WorkerResumeUnknown):
                             resume_once()
@@ -404,6 +448,13 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     assert e.repairs.status("tx")["phase"] == "AWAITING_OBSERVATION"
                     row = e.database.connection.execute("SELECT * FROM repair_worker_resumes WHERE id='tx'").fetchone()
                     witness = e.cas.json(e.operator, "operator", row["source_ref"])
+                    assert witness["schema"] == "strata/ControllerResumeWitness/2"
+                    inference = e.cas.json(e.operator, "operator", witness["inference_ref"])
+                    assert inference["tracked_dispatches_settled"] and inference["admission_closed"]
+                    assert not inference["costs_reposted"] and not inference["complete_repair_accounting"]
+                    if lost == "publish":
+                        assert [c["operation_id"] for c in inference["calls"]] == ["helper-pending"]
+                        assert inference["calls"][0]["actual"]["model_calls"] == 1
                     assert not witness["campaign_permission_published"] and not witness["consumption_settled"]
                     assert witness["worker_state"]["decision"]["worker_plan"]["lease_id"] == lease
                     with pytest.raises(Fault, match="REPAIR_WORKER_RESUME_REQUIRED"):

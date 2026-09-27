@@ -15,6 +15,9 @@ from mcbench.storage import canonical
 from mcbench.worker_restart import WorkerRestartClient
 from mcbench.worker_resume import WorkerResumeClient, WorkerResumeState
 from test_worker_resume import state
+from test_reconfiguration import repair_env as _repair_env
+
+repair_env = _repair_env
 
 
 @pytest.mark.parametrize("ledger_failure", [False, True])
@@ -57,3 +60,32 @@ def test_known_resume_stops_even_when_evidence_and_recovery_writes_fail(database
     stop.call.assert_called_once_with("stop_all", {}, timeout_ms=200)
     repairs._fail.assert_called_once_with(transaction, "RESUME_EVIDENCE_UNAVAILABLE")
     assert database.connection.execute("SELECT phase FROM repair_worker_resumes").fetchone()[0] == "UNKNOWN"
+
+
+@pytest.mark.parametrize("damage", [None, "missing_binding", "changed_binding", "changed_window"])
+def test_resume_inference_binding_cannot_be_lost_or_replaced(repair_env, damage):
+    e = repair_env
+    e.begin()
+    e.request()
+    joined = NativeRepairResume(e.repairs)
+    # No historical proof becomes an implicit empty-call certificate.
+    assert joined._inference("tx", "owner", e.epoch, required=False) is None
+    with pytest.raises(ValueError, match="REPAIR_INFERENCE_REQUIRED"):
+        joined._inference("tx", "owner", e.epoch)
+    proof = joined.inference.freeze("tx", "owner", e.epoch)
+    ref = e.put(proof)
+    with e.database.transaction() as db:
+        db.execute("INSERT INTO repair_resume_inference VALUES ('tx',?)", (ref,))
+        e.database.event(db, "repair.resume_intent", {"transaction_id": "tx", "inference_ref": ref})
+    assert joined._inference("tx", "owner", e.epoch) == ref
+    if damage is None:
+        return
+    with e.database.transaction() as db:
+        if damage == "missing_binding":
+            db.execute("DELETE FROM repair_resume_inference")
+        elif damage == "changed_binding":
+            db.execute("UPDATE repair_resume_inference SET source_ref=?", ("cas:sha256:" + "0" * 64,))
+        else:
+            db.execute("UPDATE repair_inference_windows SET closing_cursor=NULL")
+    with pytest.raises(ValueError, match="REPAIR_INFERENCE_REQUIRED|REPAIR_INFERENCE_CHANGED"):
+        joined._inference("tx", "owner", e.epoch, required=False)

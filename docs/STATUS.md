@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.9 adds [prior-bound machine operating windows](verification/2026-09-26-m1-machine-window.md): new private plan5/machine-reference2 seals an exact or deterministic first-episode selector. Require complete same-lifetime funded work, registered recipes, exact input/output/net-RF joins and no gap/replacement/idle/resource borrowing. The store verifies prior seal/consumed-launch order; raw/post-hoc comparisons cannot claim prior registration or protected scoring.
+
+200 distinct focused Python cases pass,3 native opt-in cases skipped, including45 new window cases. Initial synthetic fixture and formatting failures remain archived. Read-only reconstruction preserves operation11's exact1,708-record inspection; the post-hoc comparison derives84 ticks/two cycles/8,000RF net but correctly keeps prior registration false. Original seal unchanged.
+
+M1.5b.9 implemented_unverified for authentic prior-bound execution. Next a fresh V5 reference with the window contract sealed before launch, followed by actual replacement/refusal and remaining scorer/G1 controls. No game/model run or installation; all40 authority tables unchanged at4,887,796microUSD, prior failures/holds preserved and D18/D19 M0-only. M1 in_progress/G1 not_run.
+
 M1.5b.8/.8a [operation11](verification/2026-09-26-m1-pending-abort-native.md) passes the fresh changed-coordinator native reference:1,708 authenticated records,1,400 complete furnace ticks, the prior84-tick processing interval, all89 child joins, actual unload retirement and clean stop. All17 operation/9 prior-plan import checks plus processing/transition/interval/capacity audits pass.
 
 The256 MiB logical reservation settles atomically with STOPPED at12,277,501 actual bytes. Eight actions/28 primitives yield two ingots and one leftover dust; furnace empty/12,000RF. Pair479.907s, guardian913.6575ms,134/134 client and29/29 server terminal histories, session retired/no owned runtime. All40 accounting tables unchanged at4,887,796microUSD; no model calls.

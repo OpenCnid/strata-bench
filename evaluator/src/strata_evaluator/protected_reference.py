@@ -11,7 +11,7 @@ from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
 from mcbench.storage import Database, canonical, digest, require
 from .craft_reference import (
-    CraftReferencePlan, CraftReferencePlanV2, CraftReferencePlanV3, CraftReferencePlanV4,
+    CraftReferencePlan, CraftReferencePlanV2, CraftReferencePlanV3, CraftReferencePlanV4, CraftReferencePlanV5,
     CraftReferenceStore, private_path, write_new,
 )
 from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLaunchPlanV8, ReferenceLauncher, same_path
@@ -22,7 +22,7 @@ from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, 
 class ProtectedReferencePlan(Strict):
     schema_: Literal["strata/ProtectedReferencePlan/1"] = Field(alias="schema")
     preparation: WriterPreparationPlan
-    setup: CraftReferencePlan | CraftReferencePlanV2 | CraftReferencePlanV3 | CraftReferencePlanV4
+    setup: CraftReferencePlan | CraftReferencePlanV2 | CraftReferencePlanV3 | CraftReferencePlanV4 | CraftReferencePlanV5
     launch: ReferenceLaunchPlanV4
     evidence_directory: str
 

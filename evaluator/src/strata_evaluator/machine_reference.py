@@ -13,6 +13,8 @@ from mcbench.storage import Fault, digest, require
 
 from .machine_resource import qualify_native_furnace_completion
 from .machine_witness import FurnaceRecipe
+from .machine_window import ExactWindow, OperatingWindow, inspect_operating_windows
+from .machine_interval import MAX_TICKS
 
 
 class FurnaceTarget(Strict):
@@ -52,14 +54,43 @@ class MachineReference(Strict):
         return self
 
 
+class MachineReferenceV2(MachineReference):
+    policy: Literal["thermal1192-private-machine-reference/2"]
+    operating_windows: dict[Id, OperatingWindow] = Field(min_length=1, max_length=16)
+
+    @model_validator(mode="after")
+    def windows(self):
+        require(set(self.operating_windows) == set(self.targets), "MACHINE_OPERATING_TARGETS")
+        for window in self.operating_windows.values():
+            if isinstance(window, ExactWindow):
+                require(self.start_server_tick <= window.start_server_tick <= window.end_server_tick
+                        <= self.cutoff_server_tick, "MACHINE_OPERATING_BOUNDS")
+        return self
+
+
+def parse_machine_reference(value):
+    if isinstance(value, MachineReference):
+        return value
+    model = (MachineReferenceV2 if value.get("policy") == "thermal1192-private-machine-reference/2"
+             else MachineReference)
+    return model.model_validate(value)
+
+
 class MachineReferenceInspection:
     """Private accumulator, returned only after the entire stream is verified."""
 
     def __init__(self, plan):
-        self.plan = MachineReference.model_validate(plan)
+        self.plan = parse_machine_reference(plan)
         self.accepted = []
         self.rejected = []
         self.output = {key: 0 for key in self.plan.targets}
+        self.children = {}
+
+    def child(self, event, captured):
+        if isinstance(self.plan, MachineReferenceV2):
+            require(len(self.children) < MAX_TICKS * 4
+                    and captured.transaction_id not in self.children, "MACHINE_OPERATING_CHILD_QUOTA")
+            self.children[captured.transaction_id] = (event, captured)
 
     def observe(self, event, captured):
         # Stream parser has already validated producer profile, ordering, schema,
@@ -97,8 +128,8 @@ class MachineReferenceInspection:
             self.accepted.append({"target_id": target_id, "witness": witness})
             self.output[target_id] += sum(witness["produced"].values())
 
-    def report(self):
-        return {"policy": self.plan.policy, "plan_digest": digest(self.plan.model_dump()),
+    def report(self, intervals=None):
+        result = {"policy": self.plan.policy, "plan_digest": digest(self.plan.model_dump()),
             "targets": {key: {"candidate_output": value,
                 "candidate_complete": value >= self.plan.targets[key].minimum_output}
                 for key, value in self.output.items()},
@@ -106,3 +137,10 @@ class MachineReferenceInspection:
             "rejected_resource_witnesses": self.rejected,
             "setup_team_qualified": False, "loaded_code_authenticated": False,
             "sustained_operation_verified": False, "scoring_eligible": False}
+        if isinstance(self.plan, MachineReferenceV2):
+            windows = inspect_operating_windows(self.plan, intervals, self.children, self.accepted)
+            result["operating_windows"] = windows
+            result["completion_candidates"] = result["targets"]
+            result["targets"] = {key: {name: value[name] for name in ("candidate_output", "candidate_complete")}
+                                 for key, value in windows["targets"].items()}
+        return result

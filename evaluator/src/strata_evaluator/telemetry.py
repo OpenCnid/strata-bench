@@ -391,6 +391,8 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                     machine_generation = registration.generation
                 require(captured.transaction_id not in machine_ids, "MACHINE_CAPTURE_DUPLICATE")
                 machine_ids.add(captured.transaction_id)
+                if machine_inspection is not None and event.kind not in INTERVAL_KINDS:
+                    machine_inspection.child(event, captured)
                 if interval_inspection is not None:
                     if event.kind in INTERVAL_KINDS:
                         interval_inspection.observe(event, captured)
@@ -626,7 +628,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     if machine_inspection is not None:
         require(machine_supported and machine_policy == "thermal1192-native-furnace-phases/2",
                 "MACHINE_REFERENCE_PROFILE")
-        report["machine_reference"] = machine_inspection.report()
+        report["machine_reference"] = machine_inspection.report(report.get("machine_intervals"))
     if authentication is not None:
         report["authentication"] = authentication.receipt(boot, count)
     if issubclass(startup_model, ServerStartedV5):

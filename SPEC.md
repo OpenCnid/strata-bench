@@ -2216,7 +2216,38 @@ These boundaries do not independently establish a full operating interval,
 machine lifetime, net recipe energy, setup/team/loaded-code/parity/isolation or
 protected scoring. [Source verification](docs/verification/2026-09-26-m1-furnace-transitions.md).
 
-**Private native tick/lifetime candidate (M1.5b.8).** Telemetry0.3.18/ServerStarted19 adds `thermal1192-native-furnace-server-tick/1`: exact native server-tick entry/return, ordered processing/completion/start/refund child IDs and transfer/charge/activation/off state boundaries. Identity follows the actual tile object and level, with retirement on removal, unload or reactivation; a replaced or retired object cannot resume an old lifetime. Bound the activation to64 ever-issued lifetimes and16,384 total ticks, without resetting quotas on retirement. Require strict ordinals, clocks, scope, child order and state joins; retain native refusals, reject orphan children and never fill gaps. Exact inclusive sampled windows require every tick and no intervening lifetime end or state mismatch. This establishes only sampled continuity: separate prior window/recipe registration, setup/team, resource provenance and authenticated loaded-producer evidence remain required. Transfer/charge changes do not infer a resource source. All scoring/registration/authority claims remain false until their own acceptance evidence passes. The new records stay private, share the transaction duplicate fence and require a complete authenticated clean-stop stream. Existing processing/transition/completion profile identities and historical evidence remain unchanged. [Candidate evidence](docs/verification/2026-09-26-m1-furnace-interval.md); authentic transformed integration, replacement/retirement and full T10/G1 remain unverified.
+**Private native tick/lifetime candidate (M1.5b.8).** Telemetry0.3.18/ServerStarted19 adds `thermal1192-native-furnace-server-tick/1`: exact native server-tick entry/return, ordered processing/completion/start/refund child IDs and transfer/charge/activation/off state boundaries. Identity follows the actual tile object and level, with retirement on removal, unload or reactivation; a replaced or retired object cannot resume an old lifetime. Bound the activation to64 ever-issued lifetimes and16,384 total ticks, without resetting quotas on retirement. Require strict ordinals, clocks, scope, child order and state joins; retain native refusals, reject orphan children and never fill gaps. Exact inclusive sampled windows require every tick and no intervening lifetime end or state mismatch. This establishes only sampled continuity: separate prior window/recipe registration, setup/team, resource provenance and authenticated loaded-producer evidence remain required. Transfer/charge changes do not infer a resource source. All scoring/registration/authority claims remain false until their own acceptance evidence passes. The new records stay private, share the transaction duplicate fence and require a complete authenticated clean-stop stream. Existing processing/transition/completion profile identities and historical evidence remain unchanged. [Candidate evidence](docs/verification/2026-09-26-m1-furnace-interval.md). [Operation11](docs/verification/2026-09-26-m1-pending-abort-native.md) verifies the positive84-tick interval, actual unload retirement and complete authenticated clean-stop stream. Replacement/refusal controls, registered scoring admission, full producer/setup/team authority and T10/G1 remain open.
+
+**Prior private operating-window contract (M1.5b.9).**
+`PrivateCraftReferencePlan/5` binds `thermal1192-private-machine-reference/2`,
+including one declared operating-window rule for every registered target.
+Selection is either exact inclusive ticks within the enclosing plan or the
+first observed start through its first subsequent refund. Never choose a later
+successful episode after a refused, replaced or incomplete first episode.
+Require the same actual lifetime, every tick/child/state join, no intervening
+retirement, and a closed inactive-to-inactive episode with zero boundary
+progress. Each tick must perform fully funded work; idle padding cannot satisfy
+sustained duration. Every start, processing call and completion must match the
+registered recipe and maintain recipe/registration identity within its cycle.
+Count only joined completion input/output deltas. Account for all processing RF
+and the final unclamped refund; net endpoint RF must equal completed recipe
+energy and the prior minimum. Reject unproven transfers/charging, borrowed
+resources, partial cycles, unsupported profiles and quota excess. Alternate
+registered direct/converted recipes remain possible under the same checks.
+
+The complete authenticated clean-stop reader returns comparison evidence with
+prior-registration and scoring flags false. Only the sealed store may establish
+prior registration, after verifying the immutable plan/authority, consumed
+one-use launch, matching ordered seal/reservation records and applicable stopped
+custody/dispatch/pair proofs. `PrivateCraftReferenceInspection/5` retains those
+cursors and digests and is idempotent across reopening. Missing, changed,
+duplicate or reversed registration prevents receipt publication. Rejected
+windows return zero candidate output with a typed reason; later success does not
+replace them. Legacy plan/report shapes are unchanged. Window registration does
+not grant protected scoring, loaded-code, setup/team, fluid/automation provenance
+or isolation qualification. Old references cannot be retroactively upgraded.
+[Implementation and verification](docs/verification/2026-09-26-m1-machine-window.md).
+
 
 **Private telemetry authentication candidate.** `private-telemetry-hmac-sha256-chain/1` binds an operator-issued per-boot key/challenge to the private instance, campaign and epoch. Forge telemetry 0.3.3, configuration version 3, consumes a durable exclusive boot claim before emitting signed wrappers containing the exact original GameEvent bytes. Bind the authority fingerprint, challenge, ordered sequence, previous MAC and event-byte hash; validate the separately issued scope, boot claim and complete telemetry contract before returning an inspection. Count encoded bytes against the existing storage quota. Reject altered, mixed, replayed/out-of-order or incomplete streams; never delete a consumed claim to enable an automatic restart. Legacy unsigned evidence remains explicitly unauthenticated. Key possession/byte integrity do not qualify OS process identity, setup/team facts, parity or scoring; raw records remain ineligible and the authenticated online endpoint, recovery and full T06/T10 remain required. These private wrappers do not add a fourteenth top-level record or expose evaluator records to gameplay. [Source, synthetic Java/Python and selected authentic dedicated-stream evidence](docs/verification/2026-09-20-authenticated-telemetry.md) remains separate from process isolation and authoritative scoring qualification.
 

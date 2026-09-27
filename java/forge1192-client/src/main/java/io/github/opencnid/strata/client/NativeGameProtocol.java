@@ -64,7 +64,7 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
                 switch (SettingsJson.string(request, "operation")) {
                     case "settings_snapshot", "settings_apply", "settings_status", "settings_rollback",
                             "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status",
-                            "settings_commit", "settings_commit_status" -> {
+                            "settings_commit", "settings_commit_status", "settings_restart_prepare", "settings_restart_continue", "settings_restart_status" -> {
                         if (!runtime.settingsEffectsEnabled()) throw new IOException("CAPABILITY_MISSING");
                         SettingsEffectsCoordinator.validate(request, session, now);
                     }

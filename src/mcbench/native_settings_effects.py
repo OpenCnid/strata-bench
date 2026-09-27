@@ -12,6 +12,7 @@ from pydantic import Field, TypeAdapter, model_validator
 from .client_discovery import bounded_read
 from .contracts import Digest, Id, Positive, Ref, Strict, UInt
 from .native_game import GameConnection, GameResponse
+from .native_restart import NativeRestartCheckpoint, NativeRestartRequest, NativeRestartState
 from .native_settings import (
     MAX_REQUEST, NativePatch, NativeReceipt, NativeSettingsClient, NativeSnapshot, strict_json,
 )
@@ -20,8 +21,9 @@ from .worker_repair import WorkerRepairPlan
 
 OPERATIONS = frozenset({"settings_snapshot", "settings_apply", "settings_status", "settings_rollback",
                         "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status",
-                        "settings_commit", "settings_commit_status"})
-MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start", "settings_repair_bind", "settings_commit"})
+                        "settings_commit", "settings_commit_status", "settings_restart_prepare", "settings_restart_continue", "settings_restart_status"})
+MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start", "settings_repair_bind", "settings_commit",
+                      "settings_restart_prepare", "settings_restart_continue"})
 Context = Literal["IN_GAME", "GUI", "CHAT"]
 ClassName = Annotated[str, Field(min_length=1, max_length=512, pattern=r"^[A-Za-z_$][A-Za-z0-9_.$]*$")]
 
@@ -252,10 +254,14 @@ class NativeSettingsEffectsClient:
             return NativeRepairAdmission.model_validate(args).model_dump(mode="json")
         if operation == "settings_commit":
             return NativeCommitDecision.model_validate(args).model_dump(mode="json")
+        if operation == "settings_restart_prepare":
+            return NativeRestartRequest.model_validate(args).model_dump(mode="json")
+        if operation == "settings_restart_continue":
+            return NativeRestartCheckpoint.model_validate(args).model_dump(mode="json")
         if operation == "settings_effect_start":
             return EffectRequest.model_validate(args).model_dump(mode="json")
-        if operation in {"settings_status", "settings_rollback", "settings_effect_status", "settings_repair_status", "settings_commit_status"}:
-            field = "id" if operation == "settings_effect_status" else "transaction_id"
+        if operation in {"settings_status", "settings_rollback", "settings_effect_status", "settings_repair_status", "settings_commit_status", "settings_restart_status"}:
+            field = "restart_id" if operation == "settings_restart_status" else "id" if operation == "settings_effect_status" else "transaction_id"
             require(isinstance(args, dict) and set(args) == {field}
                     and isinstance(args[field], str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", args[field]),
                     "SETTINGS_EFFECT_REQUEST_INVALID")
@@ -265,7 +271,8 @@ class NativeSettingsEffectsClient:
 
     def call(self, operation: str, args: dict, *, timeout_ms: int = 5000,
              expected_effect: EffectRequest | None = None, expected_repair: NativeRepairAdmission | None = None,
-             expected_commit: NativeCommitDecision | None = None) -> dict:
+             expected_commit: NativeCommitDecision | None = None,
+             expected_restart: NativeRestartRequest | NativeRestartCheckpoint | None = None) -> dict:
         require(operation in OPERATIONS, "CAPABILITY_MISSING")
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 30000, "SETTINGS_DEADLINE_INVALID")
         try:
@@ -288,6 +295,13 @@ class NativeSettingsEffectsClient:
                 require(expected_commit.transaction_id == args["transaction_id"], "SETTINGS_COMMIT_INVALID")
             else:
                 require(expected_commit is None, "SETTINGS_COMMIT_INVALID")
+            if operation == "settings_restart_status":
+                require(isinstance(expected_restart, (NativeRestartRequest, NativeRestartCheckpoint)), "SETTINGS_RESTART_INVALID")
+                expected_restart = type(expected_restart).model_validate(expected_restart.model_dump())
+                request = expected_restart.request if isinstance(expected_restart, NativeRestartCheckpoint) else expected_restart
+                require(request.restart_id == args["restart_id"], "SETTINGS_RESTART_INVALID")
+            else:
+                require(expected_restart is None, "SETTINGS_RESTART_INVALID")
         except ValueError:
             raise Fault("SETTINGS_EFFECT_REQUEST_INVALID") from None
         request_id = str(uuid.uuid4())
@@ -304,7 +318,7 @@ class NativeSettingsEffectsClient:
                 if response.status == "failed":
                     raise Fault(response.error_code)
                 if response.status == "completed":
-                    return self._result(operation, args, response.result, expected_effect, expected_repair, expected_commit)
+                    return self._result(operation, args, response.result, expected_effect, expected_repair, expected_commit, expected_restart)
                 remaining = expires - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError()
@@ -317,11 +331,19 @@ class NativeSettingsEffectsClient:
             # Even a typed server error can follow a durable write or partial input.
             if operation in MUTATIONS:
                 transaction = args["worker_plan"]["transaction_id"] if operation == "settings_repair_bind" else args.get("transaction_id")
+                if operation == "settings_restart_continue":
+                    transaction = args["request"]["transaction_id"]
                 raise EffectOutcomeUnknown(request_id, operation, transaction, args.get("id")) from None
             raise Fault("SETTINGS_EFFECT_READ_UNAVAILABLE") from None
 
-    def _result(self, operation, args, value, expected_effect=None, expected_repair=None, expected_commit=None):
-        if operation in {"settings_commit", "settings_commit_status"}:
+    def _result(self, operation, args, value, expected_effect=None, expected_repair=None, expected_commit=None, expected_restart=None):
+        if operation.startswith("settings_restart_"):
+            result = NativeRestartState.model_validate(value)
+            expected = (NativeRestartRequest.model_validate(args) if operation == "settings_restart_prepare" else
+                        NativeRestartCheckpoint.model_validate(args) if operation == "settings_restart_continue" else expected_restart)
+            require(result.checkpoint == expected if isinstance(expected, NativeRestartCheckpoint) else
+                    result.checkpoint.request == expected, "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")
+        elif operation in {"settings_commit", "settings_commit_status"}:
             result = NativeCommitState.model_validate(value)
             expected = NativeCommitDecision.model_validate(args) if operation == "settings_commit" else expected_commit
             require(result.decision == expected, "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")

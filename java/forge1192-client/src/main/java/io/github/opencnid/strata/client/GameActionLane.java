@@ -74,6 +74,10 @@ final class GameActionLane implements AutoCloseable {
     private NativeRepairAdmission repair;
     private long repairUntil, repairGeneration;
     private String repairFailure;
+    private final String instance = java.util.UUID.randomUUID().toString();
+    private JsonObject restartCheckpoint;
+    private boolean restartRecovered, restartContinued;
+    private String continuedInstance;
 
     GameActionLane(Path root, String fingerprint, Authority authority, RuntimePort runtime) throws IOException {
         this(root, fingerprint, authority, runtime, new Clock() {
@@ -122,6 +126,27 @@ final class GameActionLane implements AutoCloseable {
                     String reason = SettingsJson.string(event, "reason");
                     if (!reason.matches("[A-Z][A-Z0-9_]{1,95}")) throw new IOException("GAME_JOURNAL_INVALID");
                     repairFailure = reason;
+                }
+                case "repair_restart_prepared" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "checkpoint");
+                    var checkpoint = event.getAsJsonObject("checkpoint");
+                    var request = NativeRepairRestart.checkpoint(checkpoint);
+                    if (repair == null || restartCheckpoint != null || reconfiguration != null
+                            || !repair.transaction.equals(request.transaction) || !repair.planDigest.equals(request.planDigest)
+                            || !"REPAIR_RECOVERY_REQUIRED".equals(repairFailure)) throw new IOException("GAME_JOURNAL_INVALID");
+                    restartCheckpoint = checkpoint.deepCopy(); restartRecovered = true;
+                    repairFailure = "REPAIR_RESTART_PENDING";
+                }
+                case "repair_restart_continued" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "restart_id", "instance", "generation");
+                    if (restartCheckpoint == null || restartContinued || !"REPAIR_RESTART_PENDING".equals(repairFailure)
+                            || !NativeRepairRestart.checkpoint(restartCheckpoint).id.equals(GameBatch.id(event, "restart_id"))) {
+                        throw new IOException("GAME_JOURNAL_INVALID");
+                    }
+                    continuedInstance = GameBatch.id(event, "instance");
+                    if (continuedInstance.equals(GameBatch.id(restartCheckpoint, "source_instance"))) throw new IOException("GAME_JOURNAL_INVALID");
+                    restartContinued = true; repairGeneration = SettingsJson.integer(event, "generation");
+                    repairFailure = "REPAIR_RECOVERY_REQUIRED";
                 }
                 case "reconfiguration_begin" -> {
                     SettingsJson.fields(event, "kind", "wall_ms", "id", "deadline_unix_ms", "generation");
@@ -412,6 +437,67 @@ final class GameActionLane implements AutoCloseable {
         repairFailure = reason; repairUntil = -1;
         JsonObject event = event("repair_failed"); event.addProperty("transaction_id", repair.transaction);
         event.addProperty("reason", reason); append(event);
+    }
+
+    JsonObject prepareRepairRestart(NativeRepairRestart request) throws IOException {
+        thread();
+        if (restartCheckpoint != null) {
+            if (!restartCheckpoint.getAsJsonObject("request").equals(request.value)) throw new IOException("SETTINGS_RESTART_NOT_OWNED");
+            return repairRestartStatus(request.id);
+        }
+        repairReady();
+        if (!repair.transaction.equals(request.transaction) || !repair.planDigest.equals(request.planDigest)
+                || reconfiguration != null) throw new IOException("SETTINGS_RESTART_NOT_OWNED");
+        if (!release(null)) throw new IOException("GAME_RELEASE_UNCONFIRMED");
+        JsonObject checkpoint = new JsonObject(); checkpoint.addProperty("schema", "strata/NativeSettingsRestartCheckpoint/1");
+        checkpoint.add("request", request.value.deepCopy()); checkpoint.addProperty("source_instance", instance);
+        JsonObject event = event("repair_restart_prepared"); event.add("checkpoint", checkpoint.deepCopy()); append(event);
+        restartCheckpoint = checkpoint; repairFailure = "REPAIR_RESTART_PENDING"; repairUntil = -1;
+        markFenced("REPAIR_RESTART_PENDING"); deliveries.clear();
+        return repairRestartStatus(request.id);
+    }
+    JsonObject continueRepairRestart(JsonObject checkpoint) throws IOException {
+        thread(); var request = NativeRepairRestart.checkpoint(checkpoint);
+        if (restartCheckpoint == null || !restartCheckpoint.equals(checkpoint)) throw new IOException("SETTINGS_RESTART_NOT_OWNED");
+        if (restartContinued) {
+            if (!instance.equals(continuedInstance) || repairFailure != null) throw new IOException("REPAIR_RECOVERY_REQUIRED");
+            repairReady(); return repairRestartStatus(request.id);
+        }
+        if (!restartRecovered || instance.equals(GameBatch.id(checkpoint, "source_instance"))
+                || !"REPAIR_RESTART_PENDING".equals(repairFailure)) throw new IOException("SETTINGS_RESTART_NOT_REOPENED");
+        absoluteLimit(); body(); repairScope(repair);
+        long remaining = repair.expires - clock.wall();
+        if (remaining < 1 || remaining > 900000 || repair.expires > authority.expires) throw new IOException("REPAIR_DEADLINE_EXPIRED");
+        if (!healthy || !fenced || active != null || reconfiguration != null
+                || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("INPUT_RELEASE_REQUIRED");
+        if (!release(null)) throw new IOException("GAME_RELEASE_UNCONFIRMED");
+        JsonObject event = event("repair_restart_continued"); event.addProperty("restart_id", request.id);
+        event.addProperty("instance", instance); event.addProperty("generation", runtime.connectionGeneration()); append(event);
+        restartContinued = true; continuedInstance = instance; repairFailure = null;
+        repairUntil = clock.mono() + remaining; repairGeneration = runtime.connectionGeneration();
+        return repairRestartStatus(request.id);
+    }
+    JsonObject repairRestartStatus(String id) throws IOException {
+        thread();
+        if (restartCheckpoint == null || !NativeRepairRestart.checkpoint(restartCheckpoint).id.equals(id)) throw new IOException("SETTINGS_RESTART_NOT_OWNED");
+        if (restartContinued && instance.equals(continuedInstance) && repairFailure == null) {
+            try { repairReady(); }
+            catch (IOException error) { try { failRepair(code(error)); } finally { fence(code(error)); } }
+        }
+        JsonObject result = new JsonObject(); result.addProperty("schema", "strata/NativeSettingsRestartState/1");
+        result.add("checkpoint", restartCheckpoint.deepCopy());
+        result.addProperty("phase", restartContinued && instance.equals(continuedInstance) && repairFailure == null
+            ? "continued" : !restartContinued && "REPAIR_RESTART_PENDING".equals(repairFailure) ? "prepared" : "recovery_required");
+        result.addProperty("current_instance", instance); result.addProperty("continued_instance", continuedInstance);
+        result.addProperty("primitive_events", charged); result.addProperty("expires_unix_ms", repair.expires);
+        result.addProperty("input_resumed", false); return result;
+    }
+    void repairRestartStage(String stage) throws IOException {
+        repairReady();
+        if (!(stage.equals("before_restart") && restartCheckpoint == null
+                || stage.equals("after_restart") && restartContinued && instance.equals(continuedInstance))) {
+            throw new IOException("SETTINGS_RESTART_STAGE_INVALID");
+        }
     }
 
     void beginReconfiguration(String id, long deadline) throws IOException {

@@ -909,6 +909,24 @@ uses a synthetic body/proof producer; qualified control projection, authentic
 proof production, complete consumption/settlement, owned restart/rejoin and
 explicit resume remain required. No broader capability or gate is advertised.
 
+**Private owned restart candidate (M1.1c.3.2).** Explicit
+`strata.settingsRestartOwner=true` requires effects/repair ownership and adds
+`operator-owned-settings-restart/1` to the native identity. Prepare one immutable
+NativeSettingsRestartRequest/1 against the complete pending native head, original
+plan and transaction. Journal a NativeSettingsRestartCheckpoint/1 with the source
+lane instance before suspending forward work. On reopening the same authority
+and journal, require that exact checkpoint and unchanged pending head; continue
+only within the original remaining deadline and retained primitive cap. Never
+refund previous work, rearm gameplay or permit a second continuation after
+another reopen. Enforce before/after effect stages against the actual handoff.
+NativeSettingsRestartState/1/status reports the consumed checkpoint and usage,
+not worker process-death/rejoin proof or permission to resume. The worker must
+separately prove terminal old processes, same-server/team continuity, replacement
+identity, downtime/consumption and controller rebinding. Default recovery remains
+closed without this explicit handoff. [Candidate evidence](docs/verification/2026-09-27-m1-native-restart.md)
+uses actual JVM exit/reopen with synthetic body/input; full Minecraft workflow
+and G1 qualification remain required.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

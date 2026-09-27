@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.5b.5's [operation06](verification/2026-09-26-m1-preflight-reacquire-native.md) passes17 operation checks,9 prior-plan import checks and the terminal-resource audit on changed Forge minor45/policy4. Eight actions collect three iron ingots;235 signed records contain three matching furnace completions. The actual V4 importer verifies the prelaunch seal and reopens idempotently. Candidate resources remain private/unscorable.
+
+All four rows STOPPED/consumed,704.1699ms guardian,138/138 client and29/29 server parent histories terminal, session retired and no owned runtime. Installed client31facc27 is the tested artifact; prior1d4935ed/log retained. All40 authority tables unchanged at$4.887796; zero model calls.
+
+M1.5b.3f's authentic additional-reacquisition branch remains unverified: no failure diagnostic or success-branch marker identifies its execution. Positive changed-profile behavior does not establish that branch. Preserve operation05 and all prior failures; do not rerun unchanged to seek branch evidence. Next qualify producer/setup/team/scorer controls and remaining G1 isolation, native integration, keybinding and probe contracts. Full G1 not_run; D18/D19 remain M0-only.
+
+Earlier checkpoints below retain their time-specific claims.
+
 M1.5b.3f adds [bounded preflight reacquisition](verification/2026-09-26-m1-preflight-reacquire.md) for operation05's observed untouched-component reply/current drift. New Forge minor45/policy4 permits one charged pre-input read, freezing the first exact server reply. The renewed reply/current view must restore that baseline; original selection, observation fence, deadlines/budgets and post-click checks remain mandatory. No replay or metadata stripping.
 
 69 Java,2 TypeScript and1 Python focused cases pass. Diagnostic policy2 adds the private reacquired_baseline comparison. Candidate31facc27 is archived; installed1d4935ed remains unchanged. Next one fresh V4 reference with the changed client and capability binding. Operation05 and all prior failures remain consumed; actual correction/positive machine import and full G1 remain open. No game/model run or allowance change.

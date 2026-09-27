@@ -148,6 +148,11 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
 
     @Override public void releaseInputs() throws IOException {
         requireClientThread();
+        try { NativeKeyInput.stopActive(); }
+        finally { releaseMappings(); }
+    }
+
+    private void releaseMappings() throws IOException {
         KeyMapping.releaseAll();
         for (KeyMapping mapping : client.options.keyMappings) {
             int drained = 0;

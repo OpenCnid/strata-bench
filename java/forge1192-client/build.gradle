@@ -40,7 +40,7 @@ tasks.named('test', Test).configure {
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('jar', Jar).configure {
-    manifest.attributes('MixinConfigs': 'strata.jei-render.mixins.json,strata.private-frame.mixins.json')
+    manifest.attributes('MixinConfigs': 'strata.jei-render.mixins.json,strata.private-frame.mixins.json,strata.key-input.mixins.json')
     finalizedBy 'reobfJar'
 }
 tasks.register('writeTestClasspath') {

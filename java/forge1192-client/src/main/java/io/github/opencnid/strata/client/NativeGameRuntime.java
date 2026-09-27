@@ -815,14 +815,20 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     }
     public void releaseInputs() throws IOException {
         requireClientThread(); Throwable primary = null;
+        try { NativeKeyInput.stopActive(); }
+        catch (IOException | RuntimeException | Error failure) { primary = failure; }
         try { releasePlayerInputs(); }
-        catch (IOException | RuntimeException | Error failure) { primary = failure; throw failure; }
+        catch (IOException | RuntimeException | Error failure) {
+            if (primary != null) failure.addSuppressed(primary);
+            primary = failure; throw failure;
+        }
         finally {
             try { JeiRecipeInput.release(); }
             catch (IOException | RuntimeException | Error cleanup) {
                 if (primary != null) primary.addSuppressed(cleanup); else throw cleanup;
             }
         }
+        if (primary != null) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED", primary);
     }
     private void releasePlayerInputs() throws IOException {
         requireClientThread(); ownedUse = false; permittedUseEvent = false;

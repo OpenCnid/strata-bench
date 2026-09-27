@@ -1,18 +1,19 @@
 # Strata current status
 
-## Current position — September 27, settings contracts
+## Current position — September 27, key input implementation
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
-values are now rejected by Java at admission. Shared cases and actual Python-to-Java
-store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](verification/2026-09-27-m1-settings-contracts.md).
-The next implementation is M1.1b ordinary-input intended/competing effects. Its
-missing capable-extension interface is also required for final T01 reconciliation.
-T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
+M1.1b is now in_progress: a bounded native key-input engine routes ordinary
+keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
+reserved safety release, context checks and cancellation. Focused synthetic checks
+and affected lane/settings regressions pass. [Current evidence](verification/2026-09-27-m1-key-input.md).
+This is implemented but unverified in Minecraft. No input capability is advertised.
+Next integrate transaction-owned effect observation and admission, then prove the
+actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -39,6 +40,13 @@ No game/model execution was performed for this change.
 ## Historical updates — superseded next steps
 
 The entries below preserve history. Use the current position above for execution priority.
+
+M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
+values are now rejected by Java at admission. Shared cases and actual Python-to-Java
+store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](verification/2026-09-27-m1-settings-contracts.md).
+The next implementation is M1.1b ordinary-input intended/competing effects. Its
+missing capable-extension interface is also required for final T01 reconciliation.
+T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
 
 M1.2b fixes the reproduced keybinding commit/schema disagreement and related public wire semantics for skills, actions, receipts and observations. [Contract evidence](verification/2026-09-27-m1-contract-parity.md): shared140-case corpus agrees across Python/TypeScript;297 distinct Python and311 Node cases pass with43 unchanged opt-in skips. Initial fixture and earlier-rejection test failures are retained and resolved without weakening validation. Worker bundles include the six compiled startup schemas; gameplay packaging remains restricted.
 

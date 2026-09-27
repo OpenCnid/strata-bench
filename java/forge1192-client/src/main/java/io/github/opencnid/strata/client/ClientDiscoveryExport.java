@@ -22,6 +22,7 @@ final class ClientDiscoveryExport {
     static void install() {
         // Reject an armed crash/other diagnostic combination before installing any listener.
         ClientSettingsCrashProbe.validateModes(System.getProperties(), System.getenv());
+        NativeKeyInput.install();
         MinecraftForge.EVENT_BUS.addListener(ClientDiscoveryExport::tick);
         ClientSettingsProbe.install();
         ClientSettingsCrashProbe.install();

@@ -2,6 +2,19 @@
 
 ## Current position
 
+**September 27 fresh-session checkpoint requested.** The user requested updated
+documentation and a PR/merge to main, then continuation in a fresh session.
+M1 remains `in_progress`; G1 and complete T01/T04/T05/T06/T10/T11 remain `not_run`.
+No milestone or acceptance gate closes through publication. Read the concise
+[handoff](docs/STATUS_AND_HANDOFF.md) and
+[dated checkpoint](docs/verification/2026-09-27-session-handoff.md) first.
+Next implementation: finish complete wall/disconnected-time and settlement joins,
+original-lease controller completion and authentic repair/restore/resume, while
+preserving every other required G1 contract/native/isolation/scorer/probe case.
+D20 persists; D18/D19 remain M0-only. Unrelated M2–M7 work stays outside scope.
+
+### Last implementation checkpoint — `07737f3`
+
 Private evidence sealed: 58 files / 4,293,003 bytes,
 SHA-256 `61717c2c1283d35f92df46dd90635822ca0e47acf120672b776952939d849e85`.
 All 40 authority tables, eight telemetry holds and two installed-file hashes
@@ -11570,3 +11583,19 @@ Wall/disconnected-time accounting, controller completion, authentic gameplay and
 all aggregate G1 suites remain open. No Minecraft or paid model run occurred.
 
 Changed evaluator body-tick source/budget integration and repair operation exclusivity, with source and actual-pipe tests. F02/F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1 dependency. Retain the first synthetic causal-order failure; original holds, budgets, native-health failure and wider gates remain. Next join full wall/disconnected-time and original-lease completion.
+
+### 2026-09-27 — requested source/documentation checkpoint and fresh-session handoff
+
+The user requested refreshing AGENTS, BUILD_PLAN, MILESTONES, README, SPEC and
+supporting handoff docs, creating a PR and merging to main, then resuming in a
+fresh session. This is checkpoint/publication authority, not a G1 pass or M1 paid
+allowance. The 141 implementation commits through `07737f3` are included so the
+merged handoff has its referenced code. Current STATUS/handoff are concise; their
+full previous text is preserved in linked archives. Product scope, all 460
+milestone IDs, M0–M7/T01–T17/G0–G5 and failures/holds remain unchanged.
+
+See [checkpoint verification](docs/verification/2026-09-27-session-handoff.md) for
+actual merge-check results, publication binding and evidence. No paid model or
+Minecraft trial is part of this task. Next session must verify actual merged
+main and durable process/accounting state, then continue M1/G1 under D20; the
+goal is paused for handoff, not closed as achieved.

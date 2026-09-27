@@ -1,5 +1,16 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**September 27 handoff checkpoint:** M1 remains `in_progress`; G1 and all six
+complete T01/T04/T05/T06/T10/T11 suites remain `not_run`. The user requested a
+documentation/source checkpoint PR merged to main and continuation in a fresh
+session. This changes neither the product nor its acceptance criteria or paid
+authority. Read [the current handoff](docs/STATUS_AND_HANDOFF.md) and
+[checkpoint evidence](docs/verification/2026-09-27-session-handoff.md) before
+using historical progress paragraphs as execution instructions. Latest
+implementation checkpoint: `07737f3`, continuous body ticks across repair;
+full wall/disconnected-time accounting, controller completion and authentic
+qualification remain open. M0/G0 history and the full later roadmap are retained.
+
 **D20 — M1/G1 scope transition (2026-09-24):** the user authorizes completing
 M1 and its full G1 acceptance gate from merged PR8, beginning with an exact-profile
 coverage audit and qualified gameplay-root/helper isolation. Include the scorer

@@ -9,11 +9,19 @@ native Codex loop, with typed `mcgame` commands to a persistent game worker.
 Mineflayer is the first backend; the separately identified Forge extension is
 the authorized development fallback for exact E9E compatibility work.
 
-**Status: M0 verified; G0 passes the D14 development feasibility slice.** The
-complete later roadmap remains in SPEC and MILESTONES; this task starts no M1–M7 work.
-Narrow authentic vanilla and separate Forge checks have passed. Exact E9E's
-Mineflayer handshake failed, and fallback evidence remains a separate backend
-qualification. G1–G5 are not_run.
+**Status: M1 in progress; G1 incomplete.** M0 verified that an LLM can choose
+actions and control a Minecraft character. G0 passes only its named D14
+development slice. M1 adds complete typed contracts, trustworthy agent/helper
+boundaries, verified keybinding repair, protected scoring and matched probes.
+None of G1's six complete acceptance suites has closed. Unrelated M2–M7 work
+remains outside the current scope; G1–G5 are `not_run`.
+
+The current integration target is ordinary play → diagnose a control conflict →
+pause → repair → restart/verify → account for all costs → resume, with verified
+restoration on failure. A narrow authentic Curios repair/restart/restore cycle
+passed; the complete workflow and final isolation profile remain unqualified.
+Exact E9E's Mineflayer handshake failed, and the Forge fallback retains its own
+identity. See the [September 27 checkpoint](docs/verification/2026-09-27-session-handoff.md).
 
 The implemented development harness gives GPT-6 Luna filtered observations and
 typed game tools. The model chooses its targets and actions; Mineflayer executes
@@ -30,7 +38,7 @@ This is a short integration slice, not autonomous expert-pack completion.
 [September 24 checkpoint](docs/verification/2026-09-24-session-handoff.md).
 
 - [Current review and next-session handoff](docs/STATUS_AND_HANDOFF.md)
-- [Current status](docs/STATUS.md): M0 closure and remaining qualification boundaries
+- [Current status](docs/STATUS.md): M1 progress, remaining G1 suites and immediate blockers
 - [Specification](SPEC.md): complete target contract and acceptance gates
 - [Milestone ledger](MILESTONES.md): coverage, decisions, failures and evidence
 - [Project instructions](AGENTS.md): implementation and verification process
@@ -53,7 +61,8 @@ evidence reconstruction. All prior failures remain; full recovery qualification 
 | Forge 1.19.2 extension | Structured state/actions, settings transactions, quest/JEI/Thermal adapters, private frame/reference diagnostics | Full menu/mechanics/input parity, T05 keybindings and reliable shutdown |
 | Native Codex adapter | Pinned CLI/Dovetail, actual GPT-6 Luna gameplay, delivered helper reply and accounting; scripted recovery separately retained | Full helper/isolation and authentic joint recovery qualification |
 | Inference accounting | Actual root/helper receipts, nested envelopes, deduplication and retained uncertainty; D18/D19 fresh-job admission | General campaign admission and exact subscription billing unqualified; no refund or replay of unknown requests |
-| Restricted native broker candidate | Pinned tool projection, scoped artifacts, actual executor-only game forwarding and clean-context helper delivery | Full runtime/file/process/network conformance deferred under D14; raw canary failures remain |
+| Restricted native broker candidate | Pinned tool projection, scoped artifacts, actual executor-only game forwarding and clean-context helper delivery; further M1 boundary/control evidence | Final integrated root/helper filesystem/process/network/credential/tool qualification remains open; historical failures remain |
+| In-play repair integration | Owned pause, native replacement/resume, immutable publication boundary, frozen inference audit and continuous body-tick reservations | Full wall/disconnected-time accounting, original controller lease completion, restored rollback, selected skill and authentic integrated qualification |
 | Evaluator source | Private development craft milestone and controls; joined action/refusal, source/lock, stopped player, costs and clocks | Full setup/scientific scoring authority, isolation, matched experiments and confirmation |
 
 Authentic evidence includes selected vanilla mechanics and separate Forge modded
@@ -128,8 +137,8 @@ its hash is enforced. No game or modpack binaries are distributed here. See the
 [settings extension runbook](docs/operations/forge-client-settings.md) for build
 inputs and limitations. A clean-machine build has not been qualified.
 
-See the [session checkpoint verification](docs/verification/2026-09-24-session-handoff.md)
-for current merge checks and the historical baseline. These are local contract,
+See the [session checkpoint verification](docs/verification/2026-09-27-session-handoff.md)
+for current merge checks and the retained historical baseline. These are local contract,
 process and fixture checks; they do not substitute for real integration gates.
 
 ## Operator boundaries

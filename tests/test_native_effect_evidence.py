@@ -135,3 +135,68 @@ def test_failed_or_unpublished_effect_cannot_be_rerun_or_reinterpreted(flow_env,
         with pytest.raises(Fault, match="EFFECT_VERIFICATION_FAILED"):
             flow.commit("tx", "owner", e.epoch, worker, native, proofs)
         assert "settings_commit" not in calls
+
+
+@pytest.mark.parametrize("failure", [None, "missing", "legacy", "wrong_key", "failed_effect", "forged_verdict", "foreign_source"])
+def test_complete_matrix_uses_recorded_release_and_effects_without_essential_claim(flow_env, monkeypatch, failure):
+    from test_native_settings_effects import release_result
+    e, worker, native, flow, calls, _, snapshot = flow_env
+    flow.apply("tx", "owner", e.epoch, worker, native)
+    producer = NativeEffectEvidence(e.repairs)
+    plan = e.controls.status("tx")["plan"]
+    values = []
+    for i, slot in enumerate(plan["binding_checks"]):
+        raw = effect_result()
+        raw["request"] |= {"id": "matrix-" + str(i), "transaction_id": "tx", "plan_digest": digest(plan),
+            "expected_revision": snapshot["revision"], "expected_digest": snapshot["digest"],
+            **{k: slot[k] for k in ("binding_id", "context", "stage")}}
+        values.append(expectation(raw) | {"settings_fingerprint": native.settings_fingerprint})
+    producer.register("tx", "owner", e.epoch, worker, native, values)
+    original = native.call
+    def effect(operation, args, **kwargs):
+        if operation != "settings_effect_start":
+            return original(operation, args, **kwargs)
+        key = plan["changes"].get(args["binding_id"], {}).get("after", plan["backup"][args["binding_id"]])
+        raw = effect_result() if failure == "legacy" else release_result(key["code"] if failure != "wrong_key" else 69)
+        raw["request"] = args
+        raw["observations"][0]["value"] |= {"request": args, "settings_fingerprint": native.settings_fingerprint}
+        if failure == "failed_effect":
+            raw["observations"][-1]["value"]["window_active"] = False
+        return raw
+    monkeypatch.setattr(native, "call", effect)
+    for value in values[:-1] if failure == "missing" else values:
+        producer.capture("tx", "owner", e.epoch, worker, native, value["request"]["id"])
+    if failure in {"forged_verdict", "foreign_source"}:
+        row = e.database.connection.execute("SELECT * FROM repair_effects WHERE id='tx' LIMIT 1").fetchone()
+        body = e.cas.json(e.operator, "operator", row["source_ref"])
+        if failure == "forged_verdict":
+            body["verdict"]["reasons"] = ["fabricated"]
+        else:
+            body["transaction_id"] = "foreign"
+        bad = producer.flow._put(body)
+        with e.database.transaction() as db:
+            db.execute("UPDATE repair_effects SET source_ref=? WHERE id='tx' AND effect_id=?", (bad, row["effect_id"]))
+    errors = {"missing": "EFFECT_EVIDENCE_INCOMPLETE", "legacy": "EFFECT_RELEASE_EVIDENCE_REQUIRED",
+        "wrong_key": "EFFECT_RELEASE_EVIDENCE_MISMATCH", "forged_verdict": "EFFECT_EVIDENCE_INVALID",
+        "foreign_source": "EFFECT_EVIDENCE_IDENTITY_MISMATCH"}
+    if failure in errors:
+        with pytest.raises(Fault, match=errors[failure]):
+            producer.effect_checks("tx", "owner", e.epoch, worker, native)
+        return
+    actual = producer.effect_checks("tx", "owner", e.epoch, worker, native)
+    assert set(actual["checks"]) == {"intended-effect", "competing-effect", "keys-released"}
+    assert all(c["status"] == ("fail" if failure == "failed_effect" else "pass") for c in actual["checks"].values())
+    assert len(actual["binding_checks"]) == len(values)
+    assert "settings_commit" not in calls
+    assert producer.effect_checks("tx", "owner", e.epoch, worker, native) == actual
+    if failure is None:
+        original_reader = e.controls.evidence_reader
+        e.controls.evidence_reader = lambda ref, max_bytes: (original_reader(ref, max_bytes=max_bytes)
+            if ref in e.adapter.evidence else e.cas.read(e.operator, "operator", ref, max_bytes=max_bytes))
+        proofs = verification(e)
+        proofs["checks"].update(actual["checks"])
+        proofs["binding_checks"] = actual["binding_checks"]
+        del proofs["checks"]["essential-controls"]
+        with pytest.raises(Fault, match="EFFECT_VERIFICATION_FAILED"):
+            flow.commit("tx", "owner", e.epoch, worker, native, proofs)
+        assert "settings_commit" not in calls

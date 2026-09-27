@@ -76,6 +76,38 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             plan = receipt["admission"]
             flow = NativeRepairFlow(e.repairs)
             assert flow.apply("tx", "owner", e.epoch, worker, client)["control"]["phase"] == "verifying"
+            producer = NativeEffectEvidence(e.repairs)
+            expectations = []
+            if lost is None:
+                head = client.call("settings_snapshot", {})
+                for i, slot in enumerate(e.controls.status("tx")["plan"]["binding_checks"]):
+                    selected = slot["binding_id"] == ID and slot["stage"] == "after_restart"
+                    req = EffectRequest(id="after" if selected else "declared-" + str(i), transaction_id="tx",
+                        expected_revision=head["revision"], expected_digest=head["digest"],
+                        plan_digest=plan["worker_plan"]["plan_digest"], binding_id=slot["binding_id"],
+                        context=slot["context"], stage=slot["stage"], hold_ms=50, settle_ticks=2)
+                    expectations.append({"schema": "strata/NativeEffectExpectation/1", "request": req.model_dump(),
+                        "settings_fingerprint": client.settings_fingerprint, "predicate": "screen_transition",
+                        "initial_screen": "none", "final_screen": "fixture.Screen", "required_openings": [],
+                        "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25})
+                producer.register("tx", "owner", e.epoch, worker, client, expectations)
+                with pytest.raises(Fault, match="EFFECT_EVIDENCE_INCOMPLETE"):
+                    producer.effect_checks("tx", "owner", e.epoch, worker, client)
+
+            def capture_stage(native, stage):
+                for expected in expectations:
+                    e.controller.heartbeat("c1", "owner", e.epoch)
+                    request = EffectRequest.model_validate(expected["request"])
+                    if request.stage != stage:
+                        continue
+                    if request.binding_id != ID:
+                        # A charged ordinary inventory gesture prepares the next synthetic context.
+                        close = request.model_copy(update={"id": "close-" + stage, "context": "GUI"})
+                        native.call("settings_effect_start", close.model_dump())
+                        assert terminal(native, close)["state"] == "observed"
+                    producer.capture("tx", "owner", e.epoch, worker, native, request.id)
+            if lost is None:
+                capture_stage(client, "before_restart")
             coordinator = NativeRepairRestart(e.repairs)
             restart = WorkerRestartClient.from_file(state / f"restart-grant-{e.epoch}.json")
             handoff_before = tuple(e.database.connection.execute("SELECT * FROM repair_native_handoffs WHERE id='tx'").fetchone())
@@ -149,17 +181,6 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     context="IN_GAME", stage="after_restart", hold_ms=50, settle_ticks=2)
                 proofs = verification(e)
                 if lost is None:
-                    producer = NativeEffectEvidence(e.repairs)
-                    expectations = []
-                    for i, slot in enumerate(e.controls.status("tx")["plan"]["binding_checks"]):
-                        selected = slot["binding_id"] == ID and slot["stage"] == "after_restart"
-                        req = effect.model_copy(update={"id": "after" if selected else "declared-" + str(i),
-                            "binding_id": slot["binding_id"], "context": slot["context"], "stage": slot["stage"]})
-                        expectations.append({"schema": "strata/NativeEffectExpectation/1", "request": req.model_dump(),
-                            "settings_fingerprint": replacement.settings_fingerprint, "predicate": "screen_transition",
-                            "initial_screen": "none", "final_screen": "fixture.Screen", "required_openings": [],
-                            "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25})
-                    producer.register("tx", "owner", e.epoch, worker, replacement, expectations)
                     with pytest.raises(Fault, match="IDEMPOTENCY_CONFLICT"):
                         producer.register("tx", "owner", e.epoch, worker, replacement,
                             [dict(x, final_screen="fixture.Other") for x in expectations])
@@ -167,7 +188,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     emitted = []
                     def lose_effect(operation, *args, **kwargs):
                         value = original_result(operation, *args, **kwargs)
-                        if operation == "settings_effect_start":
+                        if operation == "settings_effect_start" and args[0]["id"] == "after":
                             emitted.append(operation)
                             raise TimeoutError("synthetic reply loss after native effect dispatch")
                         return value
@@ -177,17 +198,23 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     checked = producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
                     assert checked == producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
                     assert emitted == ["settings_effect_start"] and checked["check"]["status"] == "pass"
+                    capture_stage(replacement, "after_restart")
+                    e.controller.heartbeat("c1", "owner", e.epoch)
+                    matrix = producer.effect_checks("tx", "owner", e.epoch, worker, replacement)
+                    assert all(c["status"] == "pass" for c in matrix["checks"].values())
+                    assert "essential-controls" not in matrix["checks"]
                     original_reader = e.controls.evidence_reader
                     e.controls.evidence_reader = lambda ref, max_bytes: (original_reader(ref, max_bytes=max_bytes)
                         if ref in e.adapter.evidence else e.cas.read(e.operator, "operator", ref, max_bytes=max_bytes))
-                    proofs["binding_checks"] = [checked["check"] if x["binding_id"] == ID and x["stage"] == "after_restart"
-                                               else x for x in proofs["binding_checks"]]
+                    proofs["binding_checks"] = matrix["binding_checks"]
+                    proofs["checks"].update(matrix["checks"])
                     retained = coordinator._row("tx")["source_ref"]
                     retained_body = e.cas.json(e.operator, "operator", retained)
                     for path, wrong in [("worker_state.old_terminal.termination_confirmed", False),
                                         ("native_state.input_resumed", True), ("native_head.digest", "0" * 64),
                                         ("native_head.options_sha256", "0" * 64), ("old_binding", "0" * 64),
                                         ("is_example", False)]:
+                        e.controller.heartbeat("c1", "owner", e.epoch)
                         altered = copy.deepcopy(retained_body)
                         target_body = altered
                         parts = path.split(".")

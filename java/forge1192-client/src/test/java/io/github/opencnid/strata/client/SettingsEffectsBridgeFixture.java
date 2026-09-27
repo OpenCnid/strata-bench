@@ -35,18 +35,22 @@ public final class SettingsEffectsBridgeFixture {
         public JsonObject settingsRequest(JsonObject request) throws IOException { return coordinator.execute(request); }
         public void stopSettingsEffects() throws IOException { coordinator.stop(); }
         public void validateBinding(String binding, long hold) throws IOException {
-            if (!binding.equals("fixture:key.mod.action:0")) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+            if (!Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
         public KeyInputSession start(String binding, long hold, GameActionLane.Emitter ordinary,
                 GameActionLane.Emitter safety) throws IOException {
             validateBinding(binding, hold);
-            int key = bindings().get(binding).value().equals("key.keyboard.f13") ? 302 : 71;
+            int key = switch (bindings().get(binding).value()) {
+                case "key.keyboard.f13" -> 302;
+                case "key.keyboard.e" -> 69;
+                default -> 71;
+            };
             input = KeyInputSession.start(this, new KeyInputSession.Request(key, KeyInputSession.Modifier.NONE, hold),
                 Set.of(key), ordinary, safety); return input;
         }
         public void validate() throws IOException { requireClientThread(); }
         public long monotonicMillis() { return System.nanoTime() / 1000000; }
-        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed) screen = true; }
+        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed) screen = key == 69 || key == 71 ? !screen : true; }
         public void clear() { down = false; }
         public JsonObject observe() {
             JsonObject value = new JsonObject(); value.addProperty("client_tick", tick);

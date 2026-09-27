@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, native effect/restart evidence connected
+## Current position — September 27, complete effect matrix and release evidence
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -76,6 +76,16 @@ reproduces13 retained native04 effects and preserves native02's original failure
 The integrated body and remaining checks are still synthetic. Qualified
 projection, the complete authentic verification bundle, real launcher, full
 settlement and explicit resume remain unfinished. No complete G1 suite closes.
+
+The complete declared effect matrix now supplies intended/competing summaries
+and explicit local key-release evidence across an actual guarded JVM replacement.
+[Release/matrix evidence](verification/2026-09-27-m1-release-evidence.md)
+feeds these checks plus adopted-restart evidence into commit/rollback. The game
+body remains synthetic and the essential-controls proof remains a fixture.
+Native input policy /3 requires its own authentic qualification; old /2 evidence
+is retained without promotion. Next supply the complete essential-control cases,
+qualified projection, real launcher/accounting and explicit resume. No complete
+G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

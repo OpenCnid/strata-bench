@@ -107,7 +107,12 @@ class SettingsEffectRunTest {
             run.tick(); f.game.time.advance(50); f.context = "GUI"; run.tick(); run.tick();
             var result = run.status(); assertEquals("observed", result.get("state").getAsString());
             assertFalse(result.get("verified").getAsBoolean()); assertFalse(result.get("committed").getAsBoolean());
-            assertEquals(5, result.getAsJsonArray("observations").size()); assertEquals(List.of(true, false), f.inputs);
+            assertEquals(6, result.getAsJsonArray("observations").size()); assertEquals(List.of(true, false), f.inputs);
+            assertEquals("strata/NativeSettingsEffects/3", result.get("schema").getAsString());
+            var observations = result.getAsJsonArray("observations");
+            assertEquals("input_release", observations.get(3).getAsJsonObject().get("phase").getAsString());
+            assertEquals("released", observations.get(4).getAsJsonObject().get("phase").getAsString());
+            assertTrue(observations.get(3).getAsJsonObject().getAsJsonObject("value").get("clear_confirmed").getAsBoolean());
             String journal = Files.readString(f.game.root.resolve("game-actions.jsonl"));
             assertTrue(journal.indexOf("NativeSettingsEffectAdmission/2") < journal.indexOf("reconfiguration_primitive"));
             assertTrue(journal.contains("plan_digest")); assertTrue(journal.contains("settings_fingerprint"));

@@ -51,6 +51,13 @@ class KeyInputSessionTest {
         if (modifier != KeyInputSession.Modifier.NONE) expected.add(modifier.key + ":false:0");
         assertEquals(expected, p.events); assertEquals(expected.size() + 2, p.charges);
         assertTrue(p.down.isEmpty()); assertEquals(1, p.clears);
+        var receipt = session.releaseReceipt();
+        assertEquals("strata/NativeInputRelease/1", receipt.get("schema").getAsString());
+        assertEquals(modifier.name(), receipt.get("modifier").getAsString());
+        assertEquals(modifier == KeyInputSession.Modifier.NONE ? 1 : 2, receipt.getAsJsonArray("release_order").size());
+        assertEquals(65, receipt.getAsJsonArray("release_order").get(0).getAsInt());
+        if (modifier != KeyInputSession.Modifier.NONE)
+            assertEquals(modifier.key, receipt.getAsJsonArray("release_order").get(1).getAsInt());
         assertTrue(session.tick(p::emit)); session.cancel(); assertEquals(1, p.clears);
     }
     @ParameterizedTest @ValueSource(ints = {-1, 0, 31, 66, 343, 348, 349, 0x1f642})
@@ -141,11 +148,14 @@ class KeyInputSessionTest {
         assertThrows(IOException.class, session::cancel);
         assertEquals(List.of("340:true:1", "65:true:1", "65:false:1", "340:false:0"), p.events);
         assertEquals(1, p.clears); assertTrue(p.down.isEmpty());
+        assertThrows(IOException.class, session::releaseReceipt);
         assertEquals("SETTINGS_INPUT_RELEASE_UNCONFIRMED", assertThrows(IOException.class, () -> session.tick(p::emit)).getMessage());
     }
     @Test void clearFailureCannotBecomeSuccess() throws Exception {
         Port p = new Port(); var session = p.start(KeyInputSession.Modifier.NONE); p.failClear = true; p.now = 150;
+        assertThrows(IOException.class, session::releaseReceipt);
         assertThrows(IOException.class, () -> session.tick(p::emit));
+        assertThrows(IOException.class, session::releaseReceipt);
         assertEquals("SETTINGS_INPUT_RELEASE_UNCONFIRMED", assertThrows(IOException.class, () -> session.tick(p::emit)).getMessage());
     }
     @Test void noSessionNeverOverridesNativePolling() {

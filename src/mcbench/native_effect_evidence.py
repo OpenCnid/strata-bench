@@ -195,6 +195,80 @@ class NativeEffectEvidence:
         return {"source_ref": row["source_ref"], "check": {k: proof[k] for k in ("binding_id", "context", "stage", "check", "status")}
                 | {"refs": [row["check_ref"]]}}
 
+    def effect_checks(self, transaction, owner, epoch, worker, native):
+        """Summarize the complete declared matrix; never supply essential-control proof."""
+        profile = self.controls.status(transaction)["plan"]["profile_id"]
+        with profile_operation(self.database, "repair:" + transaction), profile_operation(self.database, profile):
+            _, control, _ = self.flow._context(transaction, owner, epoch, worker, native, False)
+            require(control["phase"] == "verifying", "REPAIR_RECOVERY_REQUIRED")
+            plan = control["plan"]
+            declared = self.database.connection.execute("SELECT * FROM repair_effect_plans WHERE id=?", (transaction,)).fetchone()
+            require(declared is not None, "EFFECT_EXPECTATION_REQUIRED")
+            expectations = [EffectExpectation.model_validate(e) for e in json.loads(declared["manifest"])]
+            slots = {(c["binding_id"], c["context"], c["stage"]): c for c in plan["binding_checks"]}
+            require(len(expectations) == len(slots) and {self._slot(e.request) for e in expectations} == set(slots),
+                    "EFFECT_EXPECTATION_INCOMPLETE")
+            simulation = self.repairs.controller.simulation or self.controls.simulation
+            budget = plan["verification_byte_limit"]
+
+            def read(ref, limit):
+                nonlocal budget
+                require(budget > 0, "EFFECT_EVIDENCE_QUOTA")
+                raw = self.repairs.controller.cas.read(Principal("operator", "operator"),
+                    self.repairs.controller.evidence_namespace, ref, max_bytes=min(limit, budget))
+                budget -= len(raw)
+                return strict_json(raw)
+
+            require(read(declared["source_ref"], 4 * 1024 * 1024) == {
+                "schema": "strata/NativeEffectVerificationPlan/1", "transaction_id": transaction,
+                "plan_digest": digest(plan), "is_example": simulation, "expectations": json.loads(declared["manifest"])},
+                "EFFECT_EVIDENCE_IDENTITY_MISMATCH")
+            results, sources = [], []
+            for expected in expectations:
+                row = self.database.connection.execute("SELECT * FROM repair_effects WHERE id=? AND effect_id=?",
+                    (transaction, expected.request.id)).fetchone()
+                require(row is not None and row["phase"] == "TERMINAL", "EFFECT_EVIDENCE_INCOMPLETE")
+                witness = read(row["source_ref"], 262144)
+                require(isinstance(witness, dict) and set(witness) == {"schema", "is_example", "transaction_id",
+                    "effect_id", "binding_digest", "expectation_ref", "result", "verdict"}
+                    and witness["schema"] == "strata/NativeEffectCheckWitness/1" and witness["is_example"] is simulation
+                    and witness["transaction_id"] == transaction and witness["effect_id"] == expected.request.id
+                    and witness["binding_digest"] == row["binding_digest"] and witness["expectation_ref"] == declared["source_ref"],
+                    "EFFECT_EVIDENCE_IDENTITY_MISMATCH")
+                verdict = evaluate_effect(expected.model_dump(), witness["result"])
+                require(verdict == witness["verdict"], "EFFECT_EVIDENCE_INVALID")
+                observed = EffectResult.model_validate(witness["result"])
+                require(observed.wire_schema == "strata/NativeSettingsEffects/3", "EFFECT_RELEASE_EVIDENCE_REQUIRED")
+                release = [o.value for o in observed.observations if o.phase == "input_release"]
+                key = plan["changes"].get(expected.request.binding_id, {}).get("after", plan["backup"][expected.request.binding_id])
+                require(len(release) == 1 and key["backend"] == "glfw" and key["representation"] == "keysym"
+                        and release[0].key == key["code"] and release[0].modifier == (key["modifiers"] or ["NONE"])[0],
+                        "EFFECT_RELEASE_EVIDENCE_MISMATCH")
+                slot = slots[self._slot(expected.request)]
+                proof = read(row["check_ref"], 65536)
+                require(proof == {"schema": "strata/ControlCheck/1", "transaction_id": transaction,
+                    "plan_digest": digest(plan), **slot, "status": verdict["status"], "is_example": simulation,
+                    "source_refs": [declared["source_ref"], row["source_ref"]]}, "EFFECT_EVIDENCE_INVALID")
+                results.append(dict(slot, status=verdict["status"], refs=[row["check_ref"]]))
+                sources.append(row["source_ref"])
+            # One bounded summary witness avoids manufacturing independent generic verdicts.
+            summary = self.flow._put({"schema": "strata/NativeEffectMatrixWitness/1", "transaction_id": transaction,
+                "plan_digest": digest(plan), "is_example": simulation, "expectation_ref": declared["source_ref"],
+                "effect_refs": sources, "binding_checks": results, "input_resume_authorized": False})
+            checks = {}
+            for name in ("intended-effect", "competing-effect", "keys-released"):
+                relevant = results if name == "keys-released" else [r for r in results if r["check"] == name]
+                # Empty effect categories are not manufactured as verified behavior.
+                status = "pass" if relevant and all(r["status"] == "pass" for r in relevant) else "fail"
+                proof = self.flow._put({"schema": "strata/ControlCheck/1", "transaction_id": transaction,
+                    "plan_digest": digest(plan), "check": name, "binding_id": None, "context": None, "stage": None,
+                    "status": status, "is_example": simulation, "source_refs": [summary]})
+                checks[name] = {"status": status, "refs": [proof]}
+            with self.database.transaction() as db:
+                self.repairs._owned(db, self.repairs.status(transaction), owner, epoch)
+                self.database.event(db, "repair.effect_checks", {"transaction_id": transaction, "source_ref": summary})
+            return {"checks": checks, "binding_checks": results}
+
     def restart_check(self, transaction, owner, epoch, worker, native):
         """Derive persistence only from an adopted, process-owned native checkpoint."""
         profile = self.controls.status(transaction)["plan"]["profile_id"]

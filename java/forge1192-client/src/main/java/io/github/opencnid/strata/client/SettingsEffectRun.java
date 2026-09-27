@@ -101,6 +101,7 @@ final class SettingsEffectRun {
         try {
             lane.reconfigurationReady(request.id); verifyHead();
             boolean released = input.tick(operation -> lane.reconfigurationEmit(request.id, false, operation));
+            if (released && settling == 0) append("input_release", input.releaseReceipt());
             append(released ? "released" : "held", port.observe());
             if (released) {
                 // Continue observing normal game ticks for delayed server/GUI effects.
@@ -129,7 +130,7 @@ final class SettingsEffectRun {
         if (cleanupFailure != null) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED", cause);
     }
     JsonObject status() {
-        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/2");
+        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/3");
         value.add("request", json(request)); value.addProperty("state", state); value.addProperty("error_code", error);
         value.addProperty("verified", false); value.addProperty("committed", false);
         value.add("observations", observations.deepCopy()); return value;

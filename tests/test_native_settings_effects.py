@@ -208,3 +208,47 @@ def test_descriptor_requires_both_pins_and_never_prints_credentials(tmp_path):
         with pytest.raises(Fault) as caught:
             NativeSettingsEffectsClient.from_file(path, game_fingerprint="a" * 64, settings_fingerprint=FP)
         assert "private-canary" not in str(caught.value) and "c" * 64 not in str(caught.value)
+
+
+def release_result(key=302, modifier="NONE"):
+    value = result()
+    value["schema"] = "strata/NativeSettingsEffects/3"
+    modifier_key = {"NONE": None, "SHIFT": 340, "CONTROL": 341, "ALT": 342}[modifier]
+    value["observations"].insert(2, {"index": 2, "phase": "input_release", "value": {
+        "schema": "strata/NativeInputRelease/1", "key": key, "modifier": modifier,
+        "release_order": [key] + ([] if modifier_key is None else [modifier_key]),
+        "callbacks_confirmed": True, "clear_confirmed": True}})
+    for i, observation in enumerate(value["observations"]):
+        observation["index"] = i
+    return value
+
+
+@pytest.mark.parametrize("modifier", ["NONE", "SHIFT", "CONTROL", "ALT"])
+def test_explicit_native_release_precedes_settlement(modifier):
+    assert EffectResult.model_validate(release_result(modifier=modifier)).state == "observed"
+
+
+@pytest.mark.parametrize("failure", ["absent", "late", "duplicate", "held_after", "reverse", "wrong_key",
+    "clear", "callback", "legacy", "boolean_integer", "modifier_as_chord"])
+def test_missing_ambiguous_or_reordered_release_cannot_be_accepted(failure):
+    raw = release_result(modifier="SHIFT")
+    receipt = raw["observations"][2]
+    if failure == "absent":
+        raw["observations"].pop(2)
+    elif failure == "late":
+        raw["observations"][2], raw["observations"][3] = raw["observations"][3], raw["observations"][2]
+    elif failure == "duplicate":
+        raw["observations"].insert(3, copy.deepcopy(receipt))
+    elif failure == "held_after":
+        raw["observations"].insert(3, {"phase": "held", "value": visible()})
+    elif failure == "legacy":
+        raw["schema"] = "strata/NativeSettingsEffects/2"
+    else:
+        field, value = {"reverse": ("release_order", [340, 302]), "wrong_key": ("key", 69),
+            "clear": ("clear_confirmed", False), "callback": ("callbacks_confirmed", False),
+            "boolean_integer": ("clear_confirmed", 1), "modifier_as_chord": ("key", 340)}[failure]
+        receipt["value"][field] = value
+    for i, observation in enumerate(raw["observations"]):
+        observation["index"] = i
+    with pytest.raises(ValueError):
+        EffectResult.model_validate(raw)

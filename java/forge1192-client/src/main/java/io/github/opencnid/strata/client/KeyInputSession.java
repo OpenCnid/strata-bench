@@ -35,6 +35,7 @@ final class KeyInputSession implements GameActionLane.Motor {
     private final List<Integer> held = new ArrayList<>();
     private final long started;
     private boolean closed;
+    private boolean releaseConfirmed;
     private String failure;
 
     private KeyInputSession(Port port, Request request, GameActionLane.Emitter emitter,
@@ -67,6 +68,19 @@ final class KeyInputSession implements GameActionLane.Motor {
         });
     }
     boolean closed() { return closed; }
+    com.google.gson.JsonObject releaseReceipt() throws IOException {
+        if (!releaseConfirmed) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED");
+        var value = new com.google.gson.JsonObject();
+        value.addProperty("schema", "strata/NativeInputRelease/1");
+        value.addProperty("key", request.key);
+        value.addProperty("modifier", request.modifier.name());
+        var order = new com.google.gson.JsonArray(); order.add(request.key);
+        if (request.modifier != Modifier.NONE) order.add(request.modifier.key);
+        value.add("release_order", order);
+        value.addProperty("callbacks_confirmed", true);
+        value.addProperty("clear_confirmed", true);
+        return value;
+    }
     private static String failureCode(Throwable error) {
         return error instanceof IOException && error.getMessage() != null
             ? error.getMessage() : "SETTINGS_INPUT_FAILED";
@@ -135,5 +149,6 @@ final class KeyInputSession implements GameActionLane.Motor {
             failure = "SETTINGS_INPUT_RELEASE_UNCONFIRMED";
             throw new IOException(failure, primary);
         }
+        releaseConfirmed = true;
     }
 }

@@ -97,11 +97,34 @@ class OpeningObservation(Strict):
     value: ScreenOpening
 
 
-Observation = Annotated[AdmissionObservation | StateObservation | OpeningObservation, Field(discriminator="phase")]
+class InputRelease(Strict):
+    wire_schema: Literal["strata/NativeInputRelease/1"] = Field(alias="schema")
+    key: int = Field(ge=32, le=342)
+    modifier: Literal["NONE", "SHIFT", "CONTROL", "ALT"]
+    release_order: list[int] = Field(min_length=1, max_length=2)
+    callbacks_confirmed: bool
+    clear_confirmed: bool
+
+    @model_validator(mode="after")
+    def complete(self):
+        modifier = {"NONE": None, "SHIFT": 340, "CONTROL": 341, "ALT": 342}[self.modifier]
+        require((self.key < 340 or modifier is None)
+                and self.release_order == [self.key] + ([] if modifier is None else [modifier])
+                and self.callbacks_confirmed and self.clear_confirmed, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
+        return self
+
+
+class ReleaseObservation(Strict):
+    phase: Literal["input_release"]
+    index: int = Field(ge=0, le=255)
+    value: InputRelease
+
+
+Observation = Annotated[AdmissionObservation | StateObservation | OpeningObservation | ReleaseObservation, Field(discriminator="phase")]
 
 
 class EffectResult(Strict):
-    wire_schema: Literal["strata/NativeSettingsEffects/2"] = Field(alias="schema")
+    wire_schema: Literal["strata/NativeSettingsEffects/2", "strata/NativeSettingsEffects/3"] = Field(alias="schema")
     request: EffectRequest
     state: Literal["prepared", "running", "observed", "unknown", "refused"]
     error_code: str | None = Field(pattern=r"^[A-Z][A-Z0-9_]{1,95}$")
@@ -118,7 +141,7 @@ class EffectResult(Strict):
             require(not self.observations, "SETTINGS_EFFECT_RESPONSE_INVALID")
         if self.state in {"running", "observed"}:
             require(len(self.observations) >= 2, "SETTINGS_EFFECT_RESPONSE_INVALID")
-        released, tick, total = 0, -1, 0
+        released, receipts, tick, total = 0, 0, -1, 0
         for index, item in enumerate(self.observations):
             require(item.index == index, "SETTINGS_EFFECT_RESPONSE_INVALID")
             if index == 0:
@@ -128,14 +151,19 @@ class EffectResult(Strict):
                 require(isinstance(item, StateObservation) and item.phase == "before"
                         and item.value.context == self.request.context, "SETTINGS_EFFECT_RESPONSE_INVALID")
             else:
-                require(item.phase in {"held", "released", "screen_opening"}, "SETTINGS_EFFECT_RESPONSE_INVALID")
-            if not isinstance(item, AdmissionObservation):
+                require(item.phase in {"held", "released", "screen_opening", "input_release"}, "SETTINGS_EFFECT_RESPONSE_INVALID")
+            if isinstance(item, ReleaseObservation):
+                require(self.wire_schema.endswith("/3") and released == 0 and receipts == 0,
+                        "SETTINGS_EFFECT_RESPONSE_INVALID")
+                receipts += 1
+            elif not isinstance(item, AdmissionObservation):
                 require(item.value.client_tick >= tick, "SETTINGS_EFFECT_RESPONSE_INVALID")
                 tick = item.value.client_tick
             if item.phase == "released":
+                require(not self.wire_schema.endswith("/3") or receipts == 1, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
                 released += 1
             if item.phase == "held":
-                require(released == 0, "SETTINGS_EFFECT_RESPONSE_INVALID")
+                require(released == 0 and receipts == 0, "SETTINGS_EFFECT_RESPONSE_INVALID")
             total += len(canonical(item.model_dump(mode="json", by_alias=True)))
         require(total <= 196608 and released <= self.request.settle_ticks, "SETTINGS_EFFECT_RESPONSE_INVALID")
         if self.state == "observed":

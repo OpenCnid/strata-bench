@@ -16,7 +16,7 @@ final class KeyInputSession implements GameActionLane.Motor {
     record Request(int key, Modifier modifier, long holdMs) {
         void validate(Set<Integer> pool) throws IOException {
             if (modifier == null || holdMs < 1 || holdMs > MAX_HOLD_MS
-                    || key < 32 || key > 348 || key >= 340
+                    || key < 32 || key > 342 || key >= 340 && modifier != Modifier.NONE
                     || !pool.contains(key) || modifier != Modifier.NONE && !pool.contains(modifier.key)) {
                 throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
             }
@@ -59,7 +59,11 @@ final class KeyInputSession implements GameActionLane.Motor {
         emitter.invoke(() -> {
             // A throwing callback has an ambiguous effect and still needs release.
             held.add(key);
-            port.event(key, true, request.modifier.mask);
+            int modifiers = request.modifier.mask;
+            // Standalone vanilla sneak/sprint keys must carry their ordinary
+            // modifier flag without pressing the same physical key twice.
+            if (request.key >= 340) modifiers = 1 << (request.key - 340);
+            port.event(key, true, modifiers);
         });
     }
     boolean closed() { return closed; }

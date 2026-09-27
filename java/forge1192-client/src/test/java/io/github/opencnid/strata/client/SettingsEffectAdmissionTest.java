@@ -12,6 +12,33 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SettingsEffectAdmissionTest {
+    @Test void baselineRequiresNullTransactionAndPatchedStagesRequireAnId() throws Exception {
+        var request = SettingsEffectRun.json(new SettingsEffectRun.Request("id", null, 2, "a".repeat(64),
+            "b".repeat(64), "owner:key:0", "IN_GAME", "baseline", 50, 2));
+        assertNull(SettingsEffectRun.Request.read(request).transaction());
+        request.addProperty("transaction_id", "fake-transaction");
+        assertThrows(IOException.class, () -> SettingsEffectRun.Request.read(request));
+        request.add("transaction_id", com.google.gson.JsonNull.INSTANCE);
+        for (String stage : new String[]{"before_restart", "after_restart"}) {
+            request.addProperty("stage", stage);
+            assertThrows(IOException.class, () -> SettingsEffectRun.Request.read(request));
+        }
+    }
+    @Test void conflictCandidatesRequireThePrivateEffectsProfile() throws Exception {
+        for (String value : new String[]{"key.keyboard.e", "key.keyboard.e:SHIFT", "key.keyboard.e:CONTROL",
+                "key.keyboard.e:ALT", "key.keyboard.f13:SHIFT", "key.keyboard.f13:CONTROL", "key.keyboard.f13:ALT"}) {
+            NativeSettingsRuntime.validateDevelopmentValue(value, true);
+            assertThrows(IOException.class, () -> NativeSettingsRuntime.validateDevelopmentValue(value, false));
+        }
+        for (String value : new String[]{"key.keyboard.unknown", "key.keyboard.f13"}) {
+            NativeSettingsRuntime.validateDevelopmentValue(value, false);
+            NativeSettingsRuntime.validateDevelopmentValue(value, true);
+        }
+        for (String value : new String[]{"key.keyboard.f25", "key.keyboard.e:SUPER", "key.keyboard.e:SHIFT:ALT",
+                "key.keyboard.unknown:SHIFT", "key.mouse.left", "U+0045", "", "key.keyboard.f13:NONE"}) {
+            assertThrows(IOException.class, () -> NativeSettingsRuntime.validateDevelopmentValue(value, true));
+        }
+    }
     @Test void enabledModeNeedsItsGameBridgeAndRejectsCompetingWriters() {
         Properties p = new Properties(); p.setProperty(NativeSettingsEffects.PROPERTY, "true");
         assertThrows(IllegalStateException.class, () -> NativeSettingsEffects.validateModes(p, Map.of()));

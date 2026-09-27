@@ -112,6 +112,24 @@ def test_production_python_java_apply_observe_status_duplicate_and_rollback(effe
         assert process.poll() is None
 
 
+def test_baseline_before_patch_and_after_rollback_never_invents_a_transaction(effects_jvm):
+    with effects_jvm() as (client, process, profile, game_root):
+        for phase in ("original", "restored"):
+            snapshot = client.call("settings_snapshot", {})
+            request = effect(snapshot).model_copy(update={"id": phase, "transaction_id": None, "stage": "baseline",
+                "context": "IN_GAME" if phase == "original" else "GUI"})
+            client.call("settings_effect_start", request.model_dump(mode="json"))
+            assert terminal(client, request)["state"] == "observed"
+            assert client.call("settings_snapshot", {}) == snapshot
+            assert (profile / "options.txt").read_bytes() == ORIGINAL.encode()
+            if phase == "original":
+                pending = apply(client)
+                refused = effect(pending).model_copy(update={"id": "pending-baseline", "transaction_id": None, "stage": "baseline"})
+                with pytest.raises(EffectOutcomeUnknown):
+                    client.call("settings_effect_start", refused.model_dump(mode="json"))
+                client.call("settings_rollback", {"transaction_id": "tx"})
+
+
 def test_lost_start_reply_queries_same_effect_without_replaying(effects_jvm, monkeypatch):
     with effects_jvm() as (client, process, profile, game_root):
         request = effect(apply(client))

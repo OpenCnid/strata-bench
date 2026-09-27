@@ -34,9 +34,9 @@ def visible(tick=1, context="IN_GAME"):
 
 
 def result():
-    return {"schema": "strata/NativeSettingsEffects/1", "request": request(), "state": "observed",
+    return {"schema": "strata/NativeSettingsEffects/2", "request": request(), "state": "observed",
         "error_code": None, "verified": False, "committed": False, "observations": [
-            {"index": 0, "phase": "admission", "value": {"schema": "strata/NativeSettingsEffectAdmission/1",
+            {"index": 0, "phase": "admission", "value": {"schema": "strata/NativeSettingsEffectAdmission/2",
                 "settings_fingerprint": FP, "request": request()}},
             {"index": 1, "phase": "before", "value": visible()},
             {"index": 2, "phase": "released", "value": visible(2, "GUI")},
@@ -51,6 +51,18 @@ def test_valid_trace_is_observed_never_verified_or_committed():
     value = EffectResult.model_validate(result())
     assert value.state == "observed" and value.verified is False and value.committed is False
     assert client()._result("settings_effect_start", request(), result()) == result()
+
+
+def test_baseline_has_no_transaction_and_never_accepts_legacy_result_schema():
+    baseline = request() | {"stage": "baseline", "transaction_id": None}
+    assert EffectRequest.model_validate(baseline).transaction_id is None
+    for invalid in [baseline | {"transaction_id": "invented"},
+                    request() | {"transaction_id": None},
+                    request() | {"stage": "after_restart", "transaction_id": None}]:
+        with pytest.raises((ValidationError, Fault)):
+            EffectRequest.model_validate(invalid)
+    with pytest.raises(ValidationError):
+        EffectResult.model_validate(result() | {"schema": "strata/NativeSettingsEffects/1"})
 
 
 @pytest.mark.parametrize("field,value", [("hold_ms", 0), ("hold_ms", 2001), ("hold_ms", True),

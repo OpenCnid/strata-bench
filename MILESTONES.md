@@ -7,14 +7,19 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b now has strict Python operator bindings to the production Java transaction,
-lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
-process-death recovery pass with synthetic body/input. The first recovery run
-exposed a decimal-coordinate journal parsing defect; it is fixed, with the
-original failure and journals retained. [Current evidence](docs/verification/2026-09-27-m1-settings-client.md).
-No authentic Minecraft effects or complete G1 suite are newly verified. Next
-prepare the intended/competing-control cycle on the changed exact client profile,
-then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
+M1.1b now supports explicit baseline observations without a fake settings
+transaction, alongside pending-patch observations. Candidate E/F13 chords and
+standalone Shift/Ctrl/Alt enable the planned conflict and essential-control checks.
+[Cycle plan and preparation](docs/verification/2026-09-27-m1-settings-cycle-plan.md).
+Focused synthetic and actual JVM/HTTP checks pass. Attempt01 failed before launch.
+Attempt02 joined Minecraft, but its first E-key baseline opened inventory and
+failed the original Curios-screen expectation. No patch, F13, restart or rollback
+occurred. Both failures are sealed. Source inspection identifies the invalid
+both-screens assumption: Forge click lookup selects one active binding. A separate
+corrected shadowing procedure is prepared but undispatched; original criteria
+and failure remain retained. Client/server are terminal and session arguments retired.
+The private conformance driver does not yet qualify the gameplay worker's repair
+integration. All six G1 suites and G1 remain not_run.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -26,8 +31,9 @@ then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_ru
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next verify the implemented keybinding effect boundary in Minecraft, reconcile T01 against
-the resulting interface, complete matched probes, consolidate T10, and qualify
+Next bind fresh authority and pins for the corrected native keybinding cycle,
+complete repair/restart/rollback, then reconcile T01 against the resulting interface,
+complete matched probes, consolidate T10, and qualify
 final T04/T06 before assembling G1. This follows the
 [closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
 remains outside scope. Report closed acceptance cases or end-to-end deliverables,
@@ -35,12 +41,21 @@ not passing assertion counts as a proxy for completion.
 
 D20 implementation authority persists; D18/D19 inference authority remains M0-only.
 All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
-failures, consumed decisions and the three separate 256 MiB telemetry holds.
-No game/model execution was performed for this change.
+failures, consumed decisions and four separate 256 MiB telemetry holds, including
+attempt02. Its 25 primitives are retained; no model calls or new inference authority.
 
 ## Historical position updates
 
 Earlier next actions below are retained history and superseded by the current position.
+
+M1.1b now has strict Python operator bindings to the production Java transaction,
+lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
+process-death recovery pass with synthetic body/input. The first recovery run
+exposed a decimal-coordinate journal parsing defect; it is fixed, with the
+original failure and journals retained. [Current evidence](docs/verification/2026-09-27-m1-settings-client.md).
+No authentic Minecraft effects or complete G1 suite are newly verified. Next
+prepare the intended/competing-control cycle on the changed exact client profile,
+then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
 
 M1.1b now connects native key input to transaction-owned verification under the
 existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
@@ -1487,7 +1502,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1a.2.3c.2b.6 | GI/QA | Authentic rollback_options_written crash and fresh status/rollback | not_started | Expected rollback_prepared journal with restored runtime/disk, no terminal receipt; separate sample required. |
 | M1.1a.2.3c.3 | GI/QA | Actual foreign runtime/options revision conflicts, no overwrite of unrelated changes and explicit owned-intervention cleanup | in_progress | [Authentic disk cases](docs/verification/2026-09-20-native-settings-conflicts.md) pass stale apply plus unrelated/owned-third-value rollback conflicts and two forward fences; one prepared transaction, exact known-injection removal, 253 runtime/persisted mappings and original bytes restored. In-memory foreign changes and OS-writer exclusion remain unrun. Cooperating profile locks/operator byte comparisons do not qualify isolation/CAS. |
 | M1.1a.2.4 | GI/PL | Transaction-aware private native transport and Python adapter; strict schema, session/deadline fencing, uncertain-response recovery | implemented_unverified | [Java bridge](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsHttpBridge.java), [Python client](src/mcbench/native_settings.py): five Java transport tests, 15 Python validation tests and four actual JVM/HTTP cases with synthetic runtime pass, including lost acknowledgement, process restart, duplicate transaction and foreign-edit recovery fencing. Native Minecraft, OS isolation, qualified Controls projection/verified commit, lifecycle/accounting and gameplay CLI integration remain open. Capability stays disabled. |
-| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | in_progress | [Private Python/Java integration](docs/verification/2026-09-27-m1-settings-client.md) passes apply/observe/query/rollback and actual JVM death/reopen with synthetic input. Original coordinate-journal recovery failure retained and fixed. Authentic effects, complete controls/conflict matrix, restart/rollback, skill and exact-profile isolation remain open. |
+| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | in_progress | [Native cycle evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md): baseline/pending contracts and focused source/JVM checks pass. Native attempt02 observes E→inventory, then fails the original expected Curios screen before any patch. Failure sealed; Forge single-match lookup explains the invalid both-screens fixture assumption. Corrected shadowing cycle prepared, undispatched. Authentic repair/restart/rollback, full T05 matrix, gameplay repair/commit and exact-profile isolation remain open. |
 | M1.1c | GI/PL | Host workflow profile ownership, durable phase fencing, rollback-conflict holds, qualification drift and verification coverage | in_progress | [Workflow](src/mcbench/controls.py), [contract](docs/operations/settings-workflow.md); c.1–c.3 distinguish implemented host checks from missing authentic provider/supervisor integration. |
 | M1.1c.1 | PL/QA | Profile/avatar recovery holds, cross-process operation lock, phase/idempotency/metadata/revision fencing and legacy-plan rejection | implemented_unverified | [Fencing tests](tests/test_controls_fencing.py), actual Windows lock exclusion and normal/crash release; persistent failed holds survive database reopening. Native profile lock and full supervisor/action-lane coupling remain separate requirements. |
 | M1.1c.2 | GI/PL | Transaction/plan/binding/context/restart evidence matrix, bounded hashed proof/source reads and simulation separation | implemented_unverified | [Controls tests](tests/test_controls.py) and [evidence tests](tests/test_controls_fencing.py); actual private CAS integration with synthetic proofs passes. No authentic effect producer/provenance, physical input or verified native commit yet. |
@@ -10674,3 +10689,19 @@ Private settings-lane evidence sealed: 33 files/2,630,864 bytes, `f672512e5a15f2
 ### September 27 — M1.1b Python/native effects and journal recovery
 
 Strict private Python bindings now join the production Java coordinator, store, lane and HTTP bridge. Apply/observe/query/rollback and actual JVM death/reopen pass with synthetic body/input. Original decimal-coordinate recovery failure and failed journals retained; game-only parser correction preserves integer sequence validation and hash fencing. [Evidence](docs/verification/2026-09-27-m1-settings-client.md): 46 distinct Python and 69 relevant Java cases pass across scoped runs, build/reobfuscation and changed-file lint pass. No Minecraft/model execution or paid authority change; full T01/T05/G1 remain not_run. Next authentic intended/competing effects, then restart/rollback and full T05 matrix.
+
+
+### September 27 — M1.1b baseline effects and native cycle preparation
+
+Added explicit /2 baseline effect/admission contracts with null transaction IDs and no pending/recovery transaction, retaining exact revision/budget/lane fencing; pending stages still require the actual transaction. Private E/F13 chord candidates and standalone modifiers enable conflict/essential-control checks while old title-only policy stays narrower. [Preparation evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md): 65 distinct focused Java and 47 Python cases pass across scoped runs; baseline fixture-context failure retained and corrected without relaxing checks. Candidate client and E-overlap options staged with original files backed up; preparation metadata collisions and stale compiled pins retained and corrected. No native game/model launch yet. Next dispatch the exact two-client/same-server repair/restart/rollback cycle after launch validation; T05/G1 remain not_run.
+
+
+### September 27 — native settings cycle preparation failure and corrected dispatch
+
+Attempt01 failed before Minecraft launch on the reproduced missing supplied_inputs declaration field. Preserve UNCERTAIN pair/protected/writer rows and unused issued authority; 15/15 pair and 10/10 writer process histories terminal, zero Java, unused session arguments retired. No model/game or new telemetry hold; all40 controller authority tables and old three holds unchanged. [Sealed failure and correction](docs/verification/2026-09-27-m1-settings-cycle-plan.md). Attempt02 now dispatched with fresh IDs/workspace and explicit typed supplied-input equality; follow its live handle, do not restart due to an observation timeout. Actual outcome pending; full T05/G1 remain not_run.
+
+### September 27 — M1.1b native baseline failure and source diagnosis
+
+Attempt02 reaches the real world but fails INTENDED_SCREEN_NOT_OBSERVED at the first E-key baseline: one inventory opening, no Curios opening. No patch/F13/restart/rollback; no post-input rendered frame. [Sealed result and corrected procedure](docs/verification/2026-09-27-m1-settings-cycle-plan.md). Native runtime/disk E overlap, 24 raw observations and hash-chain joins audited; 23 reconfiguration primitives plus two safety releases retained. Guardian full tree check677.3700ms, client18/18/server29/29 terminal, session arguments retired/zero Java. All40 authority tables unchanged; fourth separate256MiB hold retained with all UNCERTAIN lifecycle rows. No model calls or spending extension. Mapped Forge click lookup returns one active binding, invalidating the original both-screens fixture expectation. Separate undispatched procedure checks explicit inventory shadowing, then unchanged repaired separation/restart/rollback, capturing actual frames before assertions. Original failed criteria remain sealed; no retrospective pass. M1 in_progress, T05/G1 and all six aggregate suites not_run. Next fresh pinned corrected cycle, then full T05 and remaining G1 acceptance deliverables.
+
+Preparation/source seal:38files/2,445,032bytes, `3f1f3cceb677abb2e60b3780c3f575de461927aa8b86b946638b20604dde6052`. Native02 failure seal:271files/86,894,791bytes, `9e4f93f3c49b0b254440bbd15c84cb8627563c4fc8fb1cfade7f0b7ccca7e950`. All458 milestone IDs preserved;1,609 local ledger links checked. Changed Python lint and diff checks pass; no unchanged suite rerun. These pointers follow archived source/documentation snapshots.

@@ -1,20 +1,25 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, transaction-owned effects
+## Current position — September 27, native keybinding baseline failure
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b now has strict Python operator bindings to the production Java transaction,
-lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
-process-death recovery pass with synthetic body/input. The first recovery run
-exposed a decimal-coordinate journal parsing defect; it is fixed, with the
-original failure and journals retained. [Current evidence](verification/2026-09-27-m1-settings-client.md).
-No authentic Minecraft effects or complete G1 suite are newly verified. Next
-prepare the intended/competing-control cycle on the changed exact client profile,
-then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
+M1.1b now supports explicit baseline observations without a fake settings
+transaction, alongside pending-patch observations. Candidate E/F13 chords and
+standalone Shift/Ctrl/Alt enable the planned conflict and essential-control checks.
+[Cycle plan and preparation](verification/2026-09-27-m1-settings-cycle-plan.md).
+Focused synthetic and actual JVM/HTTP checks pass. Attempt01 failed before launch.
+Attempt02 joined Minecraft, but its first E-key baseline opened inventory and
+failed the original Curios-screen expectation. No patch, F13, restart or rollback
+occurred. Both failures are sealed. Source inspection identifies the invalid
+both-screens assumption: Forge click lookup selects one active binding. A separate
+corrected shadowing procedure is prepared but undispatched; original criteria
+and failure remain retained. Client/server are terminal and session arguments retired.
+The private conformance driver does not yet qualify the gameplay worker's repair
+integration. All six G1 suites and G1 remain not_run.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -26,8 +31,9 @@ then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_ru
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next verify the implemented keybinding effect boundary in Minecraft, reconcile T01 against
-the resulting interface, complete matched probes, consolidate T10, and qualify
+Next bind fresh authority and pins for the corrected native keybinding cycle,
+complete repair/restart/rollback, then reconcile T01 against the resulting interface,
+complete matched probes, consolidate T10, and qualify
 final T04/T06 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
 remains outside scope. Report closed acceptance cases or end-to-end deliverables,
@@ -35,12 +41,21 @@ not passing assertion counts as a proxy for completion.
 
 D20 implementation authority persists; D18/D19 inference authority remains M0-only.
 All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
-failures, consumed decisions and the three separate 256 MiB telemetry holds.
-No game/model execution was performed for this change.
+failures, consumed decisions and four separate 256 MiB telemetry holds, including
+attempt02. Its 25 primitives are retained; no model calls or new inference authority.
 
 ## Historical updates — superseded next steps
 
 The entries below preserve history. Use the current position above for execution priority.
+
+M1.1b now has strict Python operator bindings to the production Java transaction,
+lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
+process-death recovery pass with synthetic body/input. The first recovery run
+exposed a decimal-coordinate journal parsing defect; it is fixed, with the
+original failure and journals retained. [Current evidence](verification/2026-09-27-m1-settings-client.md).
+No authentic Minecraft effects or complete G1 suite are newly verified. Next
+prepare the intended/competing-control cycle on the changed exact client profile,
+then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
 
 M1.1b now connects native key input to transaction-owned verification under the
 existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,

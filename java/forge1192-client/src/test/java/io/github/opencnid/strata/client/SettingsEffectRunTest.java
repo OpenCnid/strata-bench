@@ -58,6 +58,46 @@ class SettingsEffectRunTest {
         public void clear() { down = false; }
         public void close() throws Exception { try { store.close(); } finally { lane.close(); } }
     }
+    private static SettingsEffectRun baseline(Fixture f, String id, SettingsStore.Snapshot head) throws IOException {
+        return new SettingsEffectRun(new SettingsEffectRun.Request(id, null, head.revision(), head.digest(),
+            "d".repeat(64), SettingsStoreTest.ID, "IN_GAME", "baseline", 50, 2), f.store, f.lane, f);
+    }
+    @Test void baselineObservesRestoredMapWithoutCreatingAPatch(@TempDir Path root) throws Exception {
+        try (var f = new Fixture(root, 100)) {
+            f.store.rollback("transaction");
+            var head = f.store.snapshot();
+            String options = Files.readString(f.settings.options());
+            var run = baseline(f, "baseline", head);
+            run.start(f.game.time.wall() + 1000);
+            f.game.time.advance(50); run.tick(); run.tick();
+            assertEquals("observed", run.status().get("state").getAsString());
+            assertTrue(run.status().getAsJsonObject("request").get("transaction_id").isJsonNull());
+            assertEquals(head, f.store.snapshot());
+            assertEquals(options, Files.readString(f.settings.options()));
+            assertEquals("rolled_back", f.store.status("transaction").phase());
+            assertEquals(List.of(true, false), f.inputs);
+            assertTrue(f.lane.health().get("fenced").getAsBoolean());
+            assertTrue(f.lane.health().get("attempted_primitive_events").getAsLong() > 0);
+        }
+    }
+    @Test void baselineCannotBypassAPendingTransaction(@TempDir Path root) throws Exception {
+        try (var f = new Fixture(root, 100)) {
+            var head = f.store.verificationHead("transaction");
+            assertThrows(IOException.class, () -> baseline(f, "baseline", head));
+            assertTrue(f.inputs.isEmpty());
+        }
+    }
+    @Test void baselineHeadChangeReleasesInputAndCannotPass(@TempDir Path root) throws Exception {
+        try (var f = new Fixture(root, 100)) {
+            f.store.rollback("transaction");
+            var run = baseline(f, "baseline", f.store.snapshot());
+            run.start(f.game.time.wall() + 1000);
+            f.settings.runtime().external(SettingsStoreTest.PROTECTED, "key.keyboard.g");
+            assertThrows(IOException.class, run::tick);
+            assertEquals("unknown", run.status().get("state").getAsString());
+            assertFalse(f.down);
+        }
+    }
     @Test void fullPendingTransactionToObservedRunStaysUnverifiedAndRequiresFreshGameEpoch(@TempDir Path root) throws Exception {
         try (var f = new Fixture(root, 100)) {
             f.game.arm(f.lane, 1); f.game.deliver(f.lane);
@@ -69,7 +109,7 @@ class SettingsEffectRunTest {
             assertFalse(result.get("verified").getAsBoolean()); assertFalse(result.get("committed").getAsBoolean());
             assertEquals(5, result.getAsJsonArray("observations").size()); assertEquals(List.of(true, false), f.inputs);
             String journal = Files.readString(f.game.root.resolve("game-actions.jsonl"));
-            assertTrue(journal.indexOf("NativeSettingsEffectAdmission/1") < journal.indexOf("reconfiguration_primitive"));
+            assertTrue(journal.indexOf("NativeSettingsEffectAdmission/2") < journal.indexOf("reconfiguration_primitive"));
             assertTrue(journal.contains("plan_digest")); assertTrue(journal.contains("settings_fingerprint"));
             assertEquals("applied_pending_verification", f.store.status("transaction").phase());
             assertTrue(f.lane.health().get("fenced").getAsBoolean()); f.game.arm(f.lane, 2);

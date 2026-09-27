@@ -17,8 +17,13 @@ final class SettingsEffectRun {
             long revision = SettingsJson.integer(value, "expected_revision");
             if (revision < 1 || hold < 1 || hold > KeyInputSession.MAX_HOLD_MS || ticks < 1 || ticks > 200
                     || !Set.of("IN_GAME", "GUI", "CHAT").contains(context)
-                    || !Set.of("before_restart", "after_restart").contains(stage)) throw new IOException("SETTINGS_EFFECT_REQUEST_INVALID");
-            return new Request(GameBatch.id(value, "id"), GameBatch.id(value, "transaction_id"), revision,
+                    || !Set.of("baseline", "before_restart", "after_restart").contains(stage)) throw new IOException("SETTINGS_EFFECT_REQUEST_INVALID");
+            String transaction;
+            if (stage.equals("baseline")) {
+                if (!value.get("transaction_id").isJsonNull()) throw new IOException("SETTINGS_EFFECT_REQUEST_INVALID");
+                transaction = null;
+            } else transaction = GameBatch.id(value, "transaction_id");
+            return new Request(GameBatch.id(value, "id"), transaction, revision,
                 GameBatch.digest(value, "expected_digest"), GameBatch.digest(value, "plan_digest"),
                 GameBatch.id(value, "binding_id"), context, stage, hold, (int) ticks);
         }
@@ -60,7 +65,7 @@ final class SettingsEffectRun {
         try {
             verifyHead(); before = port.observe();
             if (!request.context.equals(SettingsJson.string(before, "context"))) throw new IOException("SETTINGS_CONTEXT_UNVERIFIED");
-            JsonObject admission = new JsonObject(); admission.addProperty("schema", "strata/NativeSettingsEffectAdmission/1");
+            JsonObject admission = new JsonObject(); admission.addProperty("schema", "strata/NativeSettingsEffectAdmission/2");
             admission.addProperty("settings_fingerprint", store.fingerprint()); admission.add("request", json(request));
             append("admission", admission);
             append("before", before);
@@ -79,7 +84,10 @@ final class SettingsEffectRun {
         v.addProperty("hold_ms", r.holdMs); v.addProperty("settle_ticks", r.settleTicks); return v;
     }
     private void verifyHead() throws IOException {
-        if (!head.equals(store.verificationHead(request.transaction))) throw new IOException("SETTINGS_REVISION_CONFLICT");
+        // Baseline input measures the unmodified or restored map. It never
+        // fabricates a pending transaction and cannot bypass recovery ownership.
+        var actual = request.stage.equals("baseline") ? store.snapshot() : store.verificationHead(request.transaction);
+        if (!head.equals(actual)) throw new IOException("SETTINGS_REVISION_CONFLICT");
     }
     private void append(String phase, JsonObject value) throws IOException {
         JsonObject observation = new JsonObject(); observation.addProperty("phase", phase);
@@ -121,7 +129,7 @@ final class SettingsEffectRun {
         if (cleanupFailure != null) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED", cause);
     }
     JsonObject status() {
-        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/1");
+        JsonObject value = new JsonObject(); value.addProperty("schema", "strata/NativeSettingsEffects/2");
         value.add("request", json(request)); value.addProperty("state", state); value.addProperty("error_code", error);
         value.addProperty("verified", false); value.addProperty("committed", false);
         value.add("observations", observations.deepCopy()); return value;

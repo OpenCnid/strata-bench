@@ -20,9 +20,11 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
     private final Minecraft client;
     private final KeyMapping owned;
     private final String fingerprint;
+    private final boolean effectCandidates;
 
     NativeSettingsRuntime(Minecraft client) throws IOException {
         this.client = client;
+        effectCandidates = NativeSettingsEffects.enabled();
         requireClientThread();
         var mod = ModList.get().getModFileById("curios");
         if (mod == null || !CURIOS_SHA256.equals(fileHash(mod.getFile().getFilePath()))) {
@@ -55,7 +57,8 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
         artifacts.addProperty("artifact_hash_policy", ArtifactFiles.POLICY);
         artifacts.addProperty("java_runtime", System.getProperty("java.runtime.version"));
         artifacts.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
-        artifacts.addProperty("policy", "strata/native-settings-development/1");
+        artifacts.addProperty("policy", effectCandidates
+            ? "strata/native-settings-effect-candidates/1" : "strata/native-settings-development/1");
         fingerprint = KeyOptions.sha256(artifacts.toString());
     }
 
@@ -138,11 +141,17 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
             throw new IOException("PROTECTED_OR_UNKNOWN_BINDING");
         }
         String value = changes.get(TARGET);
-        // A narrowly scoped configuration-write probe, NOT a tested physical key pool.
-        if (!"key.keyboard.unknown".equals(value) && !"key.keyboard.f13".equals(value)) {
-            throw new IOException("SETTINGS_DEVELOPMENT_KEY_UNSUPPORTED");
-        }
+        validateDevelopmentValue(value, effectCandidates);
         parse(value);
+    }
+
+    static void validateDevelopmentValue(String value, boolean effects) throws IOException {
+        // Private candidates permit an E/inventory conflict and its repair. None
+        // is a qualified free key until ordinary-input/context verification passes.
+        boolean base = "key.keyboard.unknown".equals(value) || "key.keyboard.f13".equals(value);
+        boolean candidate = effects && value != null && value.matches(
+            "key\\.keyboard\\.(?:e|f13)(?::(?:SHIFT|CONTROL|ALT))?");
+        if (!base && !candidate) throw new IOException("SETTINGS_DEVELOPMENT_KEY_UNSUPPORTED");
     }
 
     private record Parsed(InputConstants.Key key, KeyModifier modifier) {}

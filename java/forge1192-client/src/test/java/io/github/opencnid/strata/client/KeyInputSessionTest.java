@@ -53,12 +53,29 @@ class KeyInputSessionTest {
         assertTrue(p.down.isEmpty()); assertEquals(1, p.clears);
         assertTrue(session.tick(p::emit)); session.cancel(); assertEquals(1, p.clears);
     }
-    @ParameterizedTest @ValueSource(ints = {-1, 0, 31, 66, 340, 348, 349, 0x1f642})
+    @ParameterizedTest @ValueSource(ints = {-1, 0, 31, 66, 343, 348, 349, 0x1f642})
     void unsupportedKeysFailBeforeInput(int key) {
         Port p = new Port();
         assertThrows(IOException.class, () -> KeyInputSession.start(p,
             new KeyInputSession.Request(key, KeyInputSession.Modifier.NONE, 50), POOL, p::emit, p::emit));
         assertEquals(0, p.charges); assertTrue(p.events.isEmpty());
+    }
+    @ParameterizedTest @ValueSource(ints = {340, 341, 342})
+    void standaloneModifierPressesOnceAndReleasesWithNoModifier(int key) throws Exception {
+        Port p = new Port();
+        var session = KeyInputSession.start(p,
+            new KeyInputSession.Request(key, KeyInputSession.Modifier.NONE, 50), POOL, p::emit, p::emit);
+        assertEquals(Set.of(key), p.down);
+        p.now = 150; assertTrue(session.tick(p::emit));
+        assertEquals(List.of(key + ":true:" + (1 << (key - 340)), key + ":false:0"), p.events);
+        assertTrue(p.down.isEmpty()); assertEquals(3, p.charges); assertEquals(1, p.clears);
+    }
+    @ParameterizedTest @ValueSource(ints = {340, 341, 342})
+    void standaloneModifierCannotAlsoRequestAChord(int key) {
+        Port p = new Port();
+        assertThrows(IOException.class, () -> KeyInputSession.start(p,
+            new KeyInputSession.Request(key, KeyInputSession.Modifier.SHIFT, 50), POOL, p::emit, p::emit));
+        assertTrue(p.events.isEmpty()); assertEquals(0, p.charges);
     }
     @ParameterizedTest @ValueSource(longs = {-1, 0, 2001, Long.MAX_VALUE})
     void invalidHoldFailsBeforeInput(long hold) {

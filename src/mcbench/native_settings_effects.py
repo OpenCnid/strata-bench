@@ -26,19 +26,24 @@ ClassName = Annotated[str, Field(min_length=1, max_length=512, pattern=r"^[A-Za-
 
 class EffectRequest(Strict):
     id: Id
-    transaction_id: Id
+    transaction_id: Id | None
     expected_revision: Positive
     expected_digest: Digest
     plan_digest: Digest
     binding_id: Id
     context: Context
-    stage: Literal["before_restart", "after_restart"]
+    stage: Literal["baseline", "before_restart", "after_restart"]
     hold_ms: int = Field(ge=1, le=2000)
     settle_ticks: int = Field(ge=1, le=200)
 
+    @model_validator(mode="after")
+    def transaction_scope(self):
+        require((self.stage == "baseline") == (self.transaction_id is None), "SETTINGS_EFFECT_REQUEST_INVALID")
+        return self
+
 
 class EffectAdmission(Strict):
-    wire_schema: Literal["strata/NativeSettingsEffectAdmission/1"] = Field(alias="schema")
+    wire_schema: Literal["strata/NativeSettingsEffectAdmission/2"] = Field(alias="schema")
     settings_fingerprint: Digest
     request: EffectRequest
 
@@ -92,7 +97,7 @@ Observation = Annotated[AdmissionObservation | StateObservation | OpeningObserva
 
 
 class EffectResult(Strict):
-    wire_schema: Literal["strata/NativeSettingsEffects/1"] = Field(alias="schema")
+    wire_schema: Literal["strata/NativeSettingsEffects/2"] = Field(alias="schema")
     request: EffectRequest
     state: Literal["prepared", "running", "observed", "unknown", "refused"]
     error_code: str | None = Field(pattern=r"^[A-Z][A-Z0-9_]{1,95}$")

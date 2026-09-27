@@ -1,5 +1,9 @@
 # Strata current status
 
+M1.5b.9c [replacement preparation](verification/2026-09-27-m1-replacement-preparation.md) now has a fresh, verified 8,609-file fixture copy and a bounded 21-action checker. Only two declared chest items were added: a diamond pickaxe and a separate 20,000 RF furnace; the original furnace remains at 5,000 RF. Exact NBT/region invariants and source hashes pass. No game/model run occurred.
+
+The unchanged V5 rule must reject work spanning actual removal and replacement. This remains unexecuted: next bind the proposed limits into operation15, pin exact audits, prepare a fresh native session and recheck durable/process state before dispatch. All 40 authority tables remain unchanged at 4,887,796 microUSD; old failures/holds and M0-only inference authority persist. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
 M1.5b.9b [operation14](verification/2026-09-26-m1-low-energy-native.md) passes the authentic low-energy interruption control. A new5,000 RF fixture differs only in the selected Energy field. The furnace completes one item, starts another and stops after52 funded ticks with8 RF/one input remaining. Native processOff clears3,008 unfinished progress without refunding the992 RF spent on partial work. The unchanged prior V5 rule returns zero credit with MACHINE_OPERATING_REFUND_MISSING.
 
 2,001 authenticated records/1,647 complete ticks; 17 operation/17 actual import checks and all interruption/capacity/saved-state/terminal audits pass. Eight actions/30 primitives; pair 688.125s, guardian 841.8733ms. All rows STOPPED, session retired/no owned runtime. All40 authority tables unchanged/4,887,796 microUSD, historical holds preserved; no model calls or new inference authority. Initial temporary-region filename failure is retained; validation and limits unchanged.

@@ -110,7 +110,7 @@ public final class SettingsEffectsBridgeFixture {
                 var lane = new GameActionLane(gameRoot, "a".repeat(64), authority, runtime)) {
             runtime.coordinator = new SettingsEffectsCoordinator(store, runtime, lane, runtime,
                 Boolean.getBoolean(NativeSettingsEffects.REPAIR_PROPERTY), Boolean.getBoolean(NativeSettingsEffects.COMMIT_PROPERTY),
-                Boolean.getBoolean(NativeSettingsEffects.RESTART_PROPERTY));
+                Boolean.getBoolean(NativeSettingsEffects.RESTART_PROPERTY), Boolean.getBoolean(NativeSettingsEffects.RESUME_PROPERTY));
             NativeGameProtocol protocol = new NativeGameProtocol(runtime, lane);
             try (var bridge = new SettingsHttpBridge(protocol::execute, protocol)) {
                 SettingsFiles.writeNew(descriptor, (bridge.descriptor("a".repeat(64)) + "\n").getBytes(StandardCharsets.UTF_8));

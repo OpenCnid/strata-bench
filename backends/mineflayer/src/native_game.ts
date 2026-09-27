@@ -3,6 +3,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { restartCheckpoint, restartState, type RestartState } from './native_restart.js';
+import { resumeDecision, resumeState, type ResumeState } from './native_resume.js';
 import type { RpcRequest } from './generated/RpcRequest.js';
 export type DiscoveryQuery = NonNullable<RpcRequest['recipe_query']>;
 export type QuestQuery = NonNullable<RpcRequest['quest_query']>;
@@ -28,8 +29,8 @@ export const QUEST_TEXT_POLICY='ftb-visible-own-quest-plain-text-pages32/1';
 export const QUEST_POLICY = 'ftb-visible-chapters-quests-own-team-pages32/1';
 export const RECIPE_QUERY_POLICY = 'jei-thermal-emi-crafting-visible-focus-pages32/3';
 const LANE = ['arm','renew','deliver','act','action_status','cancel','stop_all','lane_status','authority'];
-const PRIVATE_RESTART = ['settings_restart_status','settings_restart_continue'];
-const MUTATIONS = new Set(['arm','renew','deliver','act','cancel','stop_all','settings_restart_continue']);
+const PRIVATE_RESTART = ['settings_restart_status','settings_restart_continue','settings_resume','settings_resume_status'];
+const MUTATIONS = new Set(['arm','renew','deliver','act','cancel','stop_all','settings_restart_continue','settings_resume']);
 type ObjectValue = Record<string, unknown>;
 export function fields(value: unknown, names: string[]): asserts value is ObjectValue {
   requireThat(value !== null && typeof value === 'object' && !Array.isArray(value), 'GAME_RESPONSE_INVALID');
@@ -126,6 +127,7 @@ export interface NativeReceipt {
 }
 export interface NativeResults {
   settings_restart_status:RestartState; settings_restart_continue:RestartState;
+  settings_resume:ResumeState; settings_resume_status:ResumeState;
   quest_screen:{schema:string;body_fingerprint:string;connection_generation:number;policy:string;source_generation:number;
     screen_generation:number;revision:number;kind:'closed'|'quest_book'|'task_recipes';chapter_id:string|null;quest_id:string|null};
   recipe_page:{schema:string;body_fingerprint:string;connection_generation:number;policy:string;source:'jei';coverage:'slot_header_control_draw_operands';complete:false;
@@ -200,6 +202,11 @@ export const nativeCapabilities = (mutation: boolean) => ({
   movement_policy:'level-forward-coast-neutral8-charged-ticks/1', keybindings:false, screenshots:false,
 });
 function result(operation: NativeOperation, args: ObjectValue, value: unknown): unknown {
+  if(operation==='settings_resume' || operation==='settings_resume_status') {
+    const parsed=resumeState(value,health=>result('lane_status',{},health) as NativeLane);
+    requireThat(operation==='settings_resume' ? canonical(parsed.decision)===canonical(resumeDecision(args))
+      : parsed.decision.worker_plan.transaction_id===args.transaction_id,'GAME_RESPONSE_INVALID');return parsed;
+  }
   if(operation==='settings_restart_status' || operation==='settings_restart_continue') {
     const parsed=restartState(value);
     requireThat(operation==='settings_restart_status' ? parsed.checkpoint.request.restart_id===args.restart_id
@@ -525,6 +532,8 @@ export class NativeGameClient {
     else if (operation === 'action_status' || operation === 'cancel') {fields(args, ['request_id']); requireThat(id(args.request_id), 'GAME_ARGUMENTS_INVALID');}
     else if(operation==='settings_restart_continue')restartCheckpoint(args);
     else if(operation==='settings_restart_status'){fields(args,['restart_id']);requireThat(id(args.restart_id),'GAME_ARGUMENTS_INVALID');}
+    else if(operation==='settings_resume')resumeDecision(args);
+    else if(operation==='settings_resume_status'){fields(args,['transaction_id']);requireThat(id(args.transaction_id),'GAME_ARGUMENTS_INVALID');}
     else fields(args, []);
     requireThat(this.inFlight < 8, 'CAPACITY_EXCEEDED');
     const requestId = randomUUID(); const expires = mono() + timeoutMs;

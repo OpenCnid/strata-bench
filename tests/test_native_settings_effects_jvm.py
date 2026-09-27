@@ -34,7 +34,7 @@ def effects_jvm(tmp_path):
     launches = 0
 
     @contextlib.contextmanager
-    def launch(*, repair_owner=False, commit_owner=False, restart_owner=False, capability_digest=None, scope=None, options_text=None):
+    def launch(*, repair_owner=False, commit_owner=False, restart_owner=False, resume_owner=False, capability_digest=None, scope=None, options_text=None):
         nonlocal launches
         launches += 1
         if capability_digest is not None or scope is not None or options_text is not None:
@@ -55,6 +55,8 @@ def effects_jvm(tmp_path):
             args.insert(0, "-Dstrata.settingsCommitOwner=true")
         if restart_owner:
             args.insert(0, "-Dstrata.settingsRestartOwner=true")
+        if resume_owner:
+            args.insert(0, "-Dstrata.settingsResumeOwner=true")
         argfile.write_text("\n".join('"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
                                    for value in args), encoding="utf-8")
         process = subprocess.Popen([java, "@" + str(argfile)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,

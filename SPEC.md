@@ -816,6 +816,25 @@ The skill is a required reasoning workflow over a narrow capability-gated settin
 
 Initial bindings are verified before scored play. In-play repair enters `RECONFIGURING`: suspend only that avatar's input lane, cancel pending batches, preserve world and agent continuity, and log start/end/profile hashes. The server and other agents continue, with all real time, thinking, restart downtime and verification actions charged. No free evaluator-created items/fixtures. Automatic success from checking configuration bytes alone is forbidden. If no safe available effect test exists, roll back/defer the repair.
 
+**Private native resume candidate (M1.1c.3.4).** Explicit
+`strata.settingsResumeOwner=true` requires owned repair/effects and selects
+`operator-owned-settings-resume/1`. A private NativeSettingsResumeDecision/1
+binds the entire original worker plan, one resume ID, exact terminal settings
+head/phase, verification reference, connection generation and a finite lease.
+Committed settings must match their stored commit plan and verification reference;
+restored rollback requires its actual terminal head. The native lane requires
+healthy released input and a live unchanged repair, persists the decision before
+opening input, clears stale deliveries and retains action history, epoch, lease
+identity, charges and overall expiry. The initial resumed lease is at most6s and
+inside the original repair deadline. Repetition/status cannot rearm or refresh;
+stop, different executor, recovery or journal reopen cannot turn an old receipt
+into current authority. NativeSettingsResumeState/1 explicitly does not certify
+effects. In this profile only, a healthy confirmed rollback may remain held for
+restored-state verification; existing failure state is never cleared. The worker
+hold, guardian transition, complete accounting, fresh controller observation and
+public permission publication must still be joined before gameplay use. This
+candidate is not full T05/G1 qualification.
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

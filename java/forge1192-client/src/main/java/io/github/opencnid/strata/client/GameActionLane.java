@@ -78,6 +78,8 @@ final class GameActionLane implements AutoCloseable {
     private JsonObject restartCheckpoint;
     private boolean restartRecovered, restartContinued;
     private String continuedInstance;
+    private final Map<String, JsonObject> resumedRepairs = new LinkedHashMap<>();
+    private String lastResume;
 
     GameActionLane(Path root, String fingerprint, Authority authority, RuntimePort runtime) throws IOException {
         this(root, fingerprint, authority, runtime, new Clock() {
@@ -147,6 +149,19 @@ final class GameActionLane implements AutoCloseable {
                     if (continuedInstance.equals(GameBatch.id(restartCheckpoint, "source_instance"))) throw new IOException("GAME_JOURNAL_INVALID");
                     restartContinued = true; repairGeneration = SettingsJson.integer(event, "generation");
                     repairFailure = "REPAIR_RECOVERY_REQUIRED";
+                }
+                case "repair_resumed" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "decision", "source_instance");
+                    var decision = new NativeRepairResume(event.getAsJsonObject("decision"));
+                    GameBatch.id(event, "source_instance");
+                    if (repair == null || !repair.plan.equals(decision.plan) || reconfiguration != null
+                            || !"REPAIR_RECOVERY_REQUIRED".equals(repairFailure)
+                            || resumedRepairs.size() >= 256 || resumedRepairs.containsKey(decision.transaction)
+                            || resumeIdUsed(decision.id)) {
+                        throw new IOException("GAME_JOURNAL_INVALID");
+                    }
+                    resumedRepairs.put(decision.transaction, event.deepCopy()); lastResume = decision.id;
+                    clearRepair(); // Recovery retains the receipt, never the live lease.
                 }
                 case "reconfiguration_begin" -> {
                     SettingsJson.fields(event, "kind", "wall_ms", "id", "deadline_unix_ms", "generation");
@@ -398,6 +413,7 @@ final class GameActionLane implements AutoCloseable {
     }
     JsonObject admitRepair(NativeRepairAdmission value) throws IOException {
         thread();
+        if (resumedRepairs.containsKey(value.transaction)) throw new IOException("SETTINGS_REPAIR_CONSUMED");
         if (repair != null) {
             if (!repair.value.equals(value.value)) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
             return repairStatus();
@@ -437,6 +453,60 @@ final class GameActionLane implements AutoCloseable {
         repairFailure = reason; repairUntil = -1;
         JsonObject event = event("repair_failed"); event.addProperty("transaction_id", repair.transaction);
         event.addProperty("reason", reason); append(event);
+    }
+
+    private void clearRepair() {
+        repair = null; repairUntil = -1; repairFailure = null;
+        restartCheckpoint = null; restartRecovered = false; restartContinued = false; continuedInstance = null;
+    }
+    boolean hasResume(String transaction) { return resumedRepairs.containsKey(transaction); }
+    private boolean resumeIdUsed(String id) {
+        return resumedRepairs.values().stream().anyMatch(row -> row.getAsJsonObject("decision").get("resume_id").getAsString().equals(id));
+    }
+    JsonObject resumeRepair(NativeRepairResume decision) throws IOException {
+        thread();
+        JsonObject old = resumedRepairs.get(decision.transaction);
+        if (old != null) {
+            if (!old.getAsJsonObject("decision").equals(decision.value)) throw new IOException("SETTINGS_IDEMPOTENCY_CONFLICT");
+            return resumeStatus(decision.transaction);
+        }
+        repairReady();
+        if (!repair.plan.equals(decision.plan) || decision.generation != repairGeneration || reconfiguration != null
+                || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("SETTINGS_RESUME_NOT_OWNED");
+        if (resumeIdUsed(decision.id)) throw new IOException("SETTINGS_RESUME_CONSUMED");
+        if (resumedRepairs.size() >= 256 || decision.leaseUntil > repair.expires) throw new IOException("SETTINGS_DEADLINE_INVALID");
+        long remaining = leaseRemaining(decision.leaseUntil);
+        if (!release(null)) throw new IOException("GAME_RELEASE_UNCONFIRMED");
+        runtime.resetObservations(); deliveries.clear();
+        repairReady();
+        remaining = Math.min(remaining, leaseRemaining(decision.leaseUntil));
+        long resumeUntil = Math.min(clock.mono() + remaining, repairUntil);
+        JsonObject event = event("repair_resumed"); event.add("decision", decision.value.deepCopy());
+        event.addProperty("source_instance", instance); append(event);
+        resumedRepairs.put(decision.transaction, event.deepCopy()); lastResume = decision.id;
+        clearRepair();
+        // A slow durable append consumes the original window. It cannot buy a
+        // fresh lease merely by finishing later; retain a consumed, fenced receipt.
+        absoluteLimit(); body();
+        if (clock.wall() >= decision.leaseUntil || clock.mono() >= resumeUntil
+                || runtime.connectionGeneration() != decision.generation) return resumeStatus(decision.transaction);
+        generation = runtime.connectionGeneration(); leaseUntil = resumeUntil;
+        fenced = false; fenceReason = null; fenceToken = java.util.UUID.randomUUID().toString();
+        return resumeStatus(decision.transaction);
+    }
+    JsonObject resumeStatus(String transaction) throws IOException {
+        thread(); JsonObject saved = resumedRepairs.get(transaction);
+        if (saved == null) throw new IOException("SETTINGS_RESUME_MISSING");
+        var decision = new NativeRepairResume(saved.getAsJsonObject("decision"));
+        JsonObject current = health();
+        JsonObject result = new JsonObject(); result.addProperty("schema", "strata/NativeSettingsResumeState/1");
+        result.add("decision", decision.value.deepCopy()); result.addProperty("source_instance", SettingsJson.string(saved, "source_instance"));
+        result.addProperty("current_instance", instance); result.add("health", current);
+        result.addProperty("input_resumed", instance.equals(SettingsJson.string(saved, "source_instance"))
+            && decision.id.equals(lastResume) && repair == null && !current.get("fenced").getAsBoolean()
+            && lastEpoch == SettingsJson.integer(decision.plan, "epoch")
+            && lease.equals(GameBatch.id(decision.plan, "lease_id")) && generation == decision.generation);
+        result.addProperty("effects_verified_by_native", false); return result;
     }
 
     JsonObject prepareRepairRestart(NativeRepairRestart request) throws IOException {

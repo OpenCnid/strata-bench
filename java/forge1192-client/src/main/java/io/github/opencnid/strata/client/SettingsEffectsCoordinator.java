@@ -15,6 +15,7 @@ final class SettingsEffectsCoordinator {
     private final boolean requireRepair;
     private final boolean allowCommit;
     private final boolean allowRestart;
+    private final boolean allowResume;
     private final LinkedHashMap<String, SettingsEffectRun> runs = new LinkedHashMap<>();
     private SettingsEffectRun active;
     SettingsEffectsCoordinator(SettingsStore store, SettingsStore.RuntimePort runtime,
@@ -31,20 +32,29 @@ final class SettingsEffectsCoordinator {
     }
     SettingsEffectsCoordinator(SettingsStore store, SettingsStore.RuntimePort runtime,
             GameActionLane lane, SettingsEffectRun.Port port, boolean requireRepair, boolean allowCommit, boolean allowRestart) throws IOException {
+        this(store, runtime, lane, port, requireRepair, allowCommit, allowRestart, false);
+    }
+    SettingsEffectsCoordinator(SettingsStore store, SettingsStore.RuntimePort runtime,
+            GameActionLane lane, SettingsEffectRun.Port port, boolean requireRepair, boolean allowCommit,
+            boolean allowRestart, boolean allowResume) throws IOException {
         runtime.requireClientThread();
         if (lane == null) throw new IOException("CAPABILITY_MISSING");
         if (allowCommit && !requireRepair) throw new IOException("SETTINGS_COMMIT_MODE_INVALID");
         if (allowRestart && !requireRepair) throw new IOException("SETTINGS_RESTART_MODE_INVALID");
+        if (allowResume && !requireRepair) throw new IOException("SETTINGS_RESUME_MODE_INVALID");
         this.store = store; this.runtime = runtime; this.lane = lane; this.port = port;
         this.requireRepair = requireRepair;
         this.allowCommit = allowCommit;
         this.allowRestart = allowRestart;
+        this.allowResume = allowResume;
         protocol = new NativeSettingsProtocol(store, runtime);
     }
     static void validate(JsonObject request, String session, long now) throws IOException {
         String operation = SettingsJson.string(request, "operation");
         JsonObject args = request.getAsJsonObject("args");
-        if (operation.equals("settings_repair_bind")) new NativeRepairAdmission(args);
+        if (operation.equals("settings_resume")) new NativeRepairResume(args);
+        else if (operation.equals("settings_resume_status")) { SettingsJson.fields(args, "transaction_id"); GameBatch.id(args, "transaction_id"); }
+        else if (operation.equals("settings_repair_bind")) new NativeRepairAdmission(args);
         else if (operation.equals("settings_restart_prepare")) new NativeRepairRestart(args);
         else if (operation.equals("settings_restart_continue")) NativeRepairRestart.checkpoint(args);
         else if (operation.equals("settings_restart_status")) { SettingsJson.fields(args, "restart_id"); GameBatch.id(args, "restart_id"); }
@@ -67,6 +77,25 @@ final class SettingsEffectsCoordinator {
         runtime.requireClientThread();
         String operation = SettingsJson.string(request, "operation");
         JsonObject args = request.getAsJsonObject("args");
+        if (operation.equals("settings_resume") || operation.equals("settings_resume_status")) {
+            if (!allowResume || !requireRepair) throw new IOException("CAPABILITY_MISSING");
+            if (operation.equals("settings_resume_status")) return lane.resumeStatus(GameBatch.id(args, "transaction_id"));
+            var decision = new NativeRepairResume(args);
+            if (lane.hasResume(decision.transaction)) return lane.resumeRepair(decision);
+            if (active != null) throw new IOException("RECONFIGURING");
+            if (!lane.repairAdmission().plan.equals(decision.plan)
+                    || !store.fingerprint().equals(lane.repairAdmission().settingsFingerprint)) throw new IOException("SETTINGS_RESUME_NOT_OWNED");
+            if (!store.status(decision.transaction).phase().equals(decision.phase)
+                    || !store.snapshot().equals(decision.expected)) throw new IOException("SETTINGS_REVISION_CONFLICT");
+            if (decision.phase.equals("committed")) {
+                JsonObject committed = store.commitStatus(decision.transaction).getAsJsonObject("decision");
+                if (!allowCommit || !decision.verificationRef.equals(SettingsJson.string(committed, "verification_ref"))
+                        || !GameBatch.digest(decision.plan, "plan_digest").equals(GameBatch.digest(committed, "plan_digest"))) {
+                    throw new IOException("SETTINGS_RESUME_VERIFICATION_MISMATCH");
+                }
+            }
+            return lane.resumeRepair(decision);
+        }
         if (operation.equals("settings_restart_status")) return lane.repairRestartStatus(GameBatch.id(args, "restart_id"));
         if (operation.equals("settings_restart_prepare") || operation.equals("settings_restart_continue")) {
             if (!allowRestart || !requireRepair) throw new IOException("CAPABILITY_MISSING");
@@ -162,7 +191,9 @@ final class SettingsEffectsCoordinator {
             JsonObject[] result = {null};
             lane.reconfigurationEmit(id, operation.equals("settings_rollback"),
                 () -> result[0] = decision == null ? protocol.execute(nested) : store.commit(decision));
-            lane.endReconfiguration(id, "completed", repairRollback); return result[0];
+            // The resume profile keeps a healthy, confirmed rollback held for
+            // restored-state verification. Existing failures are never cleared.
+            lane.endReconfiguration(id, "completed", repairRollback && !allowResume); return result[0];
         } catch (IOException | RuntimeException error) {
             try { lane.endReconfiguration(id, "unknown"); } catch (IOException cleanup) { error.addSuppressed(cleanup); }
             throw error;

@@ -17,6 +17,7 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
     static final String COMMIT_POLICY = "operator-recorded-settings-commit/1";
     static final String RESTART_PROPERTY = "strata.settingsRestartOwner";
     static final String RESTART_POLICY = "operator-owned-settings-restart/1";
+    static final String RESUME_PROPERTY = "strata.settingsResumeOwner";
     private final Minecraft client;
     private final NativeSettingsRuntime runtime;
     private final SettingsStore store;
@@ -32,7 +33,7 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
         runtime = new NativeSettingsRuntime(client);
         store = new SettingsStore(client.gameDirectory.toPath().toAbsolutePath().normalize(), root, runtime.fingerprint(), runtime);
         coordinator = new SettingsEffectsCoordinator(store, runtime, lane, this, Boolean.getBoolean(REPAIR_PROPERTY),
-            Boolean.getBoolean(COMMIT_PROPERTY), Boolean.getBoolean(RESTART_PROPERTY));
+            Boolean.getBoolean(COMMIT_PROPERTY), Boolean.getBoolean(RESTART_PROPERTY), Boolean.getBoolean(RESUME_PROPERTY));
     }
     static boolean enabled() { return Boolean.getBoolean(PROPERTY); }
     static void validateModes(java.util.Properties properties, java.util.Map<String, String> environment) {
@@ -40,6 +41,10 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
         String repair = properties.getProperty(REPAIR_PROPERTY);
         String commit = properties.getProperty(COMMIT_PROPERTY);
         String restart = properties.getProperty(RESTART_PROPERTY);
+        String resume = properties.getProperty(RESUME_PROPERTY);
+        if (resume != null && !resume.equals("false") && (!resume.equals("true") || !"true".equals(repair))) {
+            throw new IllegalStateException("SETTINGS_RESUME_MODE_INVALID");
+        }
         if (restart != null && !restart.equals("false") && (!restart.equals("true") || !"true".equals(repair))) {
             throw new IllegalStateException("SETTINGS_RESTART_MODE_INVALID");
         }

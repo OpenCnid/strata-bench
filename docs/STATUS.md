@@ -7,6 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now supplies the private native resume decision and durable receipt,
+with strict Python/TypeScript transports. Actual JVM/HTTP tests pass commit and
+healthy rollback, same-epoch continuation after JVM replacement, lost-reply
+status recovery and refusal cases, using synthetic game bodies/verification.
+[Native resume evidence](verification/2026-09-27-m1-native-resume.md).
+The worker hold, replacement guardian transition and controller readiness/
+settlement are still closed. The installed game JAR is unchanged; full gameplay
+repair/resume and all G1 suites remain incomplete.
+
 Latest checkpoint: essential-native04 passed client admission and joined
 Minecraft, then the750ms native-health guard interrupted its first effect.
 Input was released, but only1/20 required settled observations were recorded;

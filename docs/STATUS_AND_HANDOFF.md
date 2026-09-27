@@ -1,5 +1,11 @@
 # M1/G1 implementation handoff
 
+M1.5b.8 [operation09](verification/2026-09-26-m1-furnace-interval-native.md) fails at the launcher's hard-coded8 MiB telemetry cap. All eight gameplay actions pass; the authenticated1,225-record prefix includes925 tick traces and the declared84-tick processing interval, but lacks retirement/clock/clean-stop records. Full inspection and V4 import correctly refuse acceptance.
+
+All four rows UNCERTAIN/consumed; no replay. The130/130+29/29 outer parent histories are terminal; inner custody cleanup was forced. Guardian acceptance fails without a timing sample. Session retired/no owned runtime; all40 accounting tables unchanged at4,887,796microUSD and zero model calls.
+
+M1.5b.8/M1 in_progress, G1 not_run. Next M1.5b.8a: declare and reserve finite telemetry capacity in the prior launch contract, test its limits, then a fresh changed-profile native reference. Preserve operation09's failure and original capacity. Full retirement/replacement, registered windows, setup/team/loaded-code, controls/parity/isolation and remaining keybinding/native-host/probe contracts remain open; D18/D19 stay M0-only.
+
 M1.5b.8 adds [complete native furnace tick/lifetime capture](verification/2026-09-26-m1-furnace-interval.md), telemetry0.3.18/startup19. Actual object identities retire on removal/unload/reactivation; ordered child and resource stages expose gaps instead of filling them. Exact sampled windows remain unregistered, private and unscorable.
 
 285 distinct Python cases pass,4 existing native opt-in skips;20 Java cases and the offline artifact build pass. All329 operation08 records reconstruct unchanged. Final candidate061712ce is archived; installed artifacts unchanged. Initial lint and hierarchy lookup failures remain retained.

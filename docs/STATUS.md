@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.9a [operation13](verification/2026-09-26-m1-first-episode-native.md) passes the native first-episode negative control: the first42-tick/one-output/4,000 RF episode is rejected, even though a later84-tick/two-output/8,000 RF episode is sufficient. The unchanged registered V5 rule returns zero selected credit with MACHINE_OPERATING_DURATION. The later comparison stays explicitly unregistered/unscorable.
+
+2,075 authenticated records/1,648 complete ticks,126 processing calls and134 child joins. 17 operation/17 actual import checks plus episode/capacity/saved-state/terminal audits pass. Twelve actions/44 primitives yield three saved ingots, empty furnace/8,000 RF. Pair 668.219s, guardian 841.9155ms; all rows STOPPED, session retired and no owned runtime. All40 authority tables unchanged/4,887,796 microUSD; historical holds preserved, no model calls.
+
+M1.5b.9a verified for this named control; M1.5b.9/M1 in_progress and G1 not_run. Next prepare a distinct sealed5,000 RF interruption reference, then remaining replacement/refusal/setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. The predicted52-tick/no-final-refund failure is source-only. This verified control is a short completed episode, not a mid-cycle interruption proof. D18/D19 remain M0-only.
+
 M1.5b.9 [operation12](verification/2026-09-26-m1-machine-window-native.md) passes the positive authentic V5 prior-window reference:1,798 signed records,1,485 complete ticks and the registered84-tick/two-cycle/8,000RF net window. 17 operation/17 actual store checks pass, including prior seal/launch order and idempotent reopening. Raw comparison remains unregistered; protected scoring remains false.
 
 Eight actions/27 primitives, two saved ingots/one leftover dust, furnace empty/12,000RF. Pair489.547s, guardian791.4342ms, complete terminal histories/session retirement/no owned runtime. Capacity settles at12,975,661 bytes; old operation10 hold remains. All40 authority tables unchanged/4,887,796microUSD; no model calls or new inference authority.

@@ -1,5 +1,11 @@
 # M1/G1 implementation handoff
 
+M1.5b.8/.8a [operation10](verification/2026-09-26-m1-telemetry-capacity-native.md) fails during server preparation: process inventory reports12 assigned/11 listed/12 retained. No client dispatch or telemetry stream. The declared256 MiB spool reservation is durable before server dispatch and remains held; complete interval/retirement/settlement acceptance is unverified.
+
+The outer watchdog forces cleanup at187s. Final history has29 held/27 signaled and zero active, so terminal proof remains unqualified despite a later empty process inventory. Pair UNCERTAIN, protected DISPATCHING and dispatch RUNNING remain preserved; the one-use launch is consumed. The unused client session is retired. All40 accounting tables remain unchanged at4,887,796microUSD; no model calls.
+
+The failure audit passes. Next fix early pending-abort publication when the server evidence directory appears later, and retain diagnostic reasons for unsuccessful history reconciliation. Do not weaken inventory proof, refund holds or rerun unchanged. M1.5b.8/.8a/M1 in_progress, G1 not_run; remaining isolation/native-host/keybinding/scorer/probe gates and M0-only inference authority remain unchanged.
+
 M1.5b.8a adds [prior telemetry capacity and reservation](verification/2026-09-26-m1-telemetry-capacity.md): launch8/protected3 bind finite byte/event limits and reserve spool space before native launch. Broker limits must match; uncertainty retains holds and successful closure settles atomically with STOPPED. Old profiles retain8 MiB/2,000 events.
 
 163 distinct focused Python cases pass;62 existing native opt-in cases remain skipped. The34 new cases include concurrent SQLite holds, restart/rollback/terminal-proof failures and quota refusal. Operation08's329-record inspection and operation09's clean-stop refusal remain unchanged; both original seals verify. No game/model run or artifact installation.

@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, same-worker client replacement implemented
+## Current position — September 27, controller replacement adoption connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -63,9 +63,14 @@ retains its epoch, action history and budget counters; the old process tree
 must be terminal before a separately guarded replacement continues the repair.
 Original expiry still stops the chain and gameplay remains fenced.
 [Replacement evidence](verification/2026-09-27-m1-worker-restart.md).
-Controller-owned launch/adoption and exact descriptor rebinding, qualified
-projection/authentic verification, complete settlement and explicit resume
-remain unfinished. No complete G1 suite is newly closed.
+Controller prepare/detach/attach and exact descriptor adoption now pass through
+the actual worker/guardian/JVM into native commit and rollback. Lost replies
+reconcile by status; old-descriptor writes are refused. Original admission,
+repair deadline, reservation and input hold remain intact.
+[Controller adoption evidence](verification/2026-09-27-m1-controller-restart.md)
+uses a synthetic body and verification producer. Real launch orchestration,
+qualified projection/authentic verification, complete settlement and explicit
+resume remain unfinished. No complete G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -76,9 +81,8 @@ remain unfinished. No complete G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's durable controller launch/adoption and descriptor
-rebinding to the worker-owned replacement proof, then complete projection/verification,
-accounting and explicit resume/recovery. Complete remaining
+Next complete M1.1c.3.2's real launch orchestration, qualified control projection
+and authentic proof producer, full accounting and explicit resume/recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

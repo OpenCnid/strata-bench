@@ -948,6 +948,22 @@ Windows guardian/JVM processes and a synthetic body. Controller-owned launch,
 adoption/rebinding, authentic server/team continuity, qualified verification,
 complete accounting and explicit resume remain required before full qualification.
 
+**Private controller replacement adoption (M1.1c.3.2).** WorkerRestartGrant/2
+binds the actual worker repair capability digest; /1 cannot authorize this route.
+Record one immutable native prepare request and durable prepare/detach/attach
+intents before dispatch. Unknown outcomes permit status-only reconciliation,
+never automatic replay. Require confirmed old-terminal and guarded-replacement
+evidence, exact checkpoint and original deadline, matching native/settings/body
+and current guardian identities, retained repair holds and the complete pending
+keymap head before adopting the exact replacement descriptor. Preserve the
+original native admission; an explicit successor record authorizes subsequent
+native writes only through the adopted connection. Pending adoption blocks
+forward writes. Adoption, commit and rollback grant no gameplay resume, refund,
+new epoch or extended time. [Connected candidate evidence](docs/verification/2026-09-27-m1-controller-restart.md)
+uses actual controller/worker/guardian/JVM processes with synthetic body and
+verification producer. Real launch orchestration, qualified projection/authentic
+proofs, complete accounting and explicit resume remain required.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

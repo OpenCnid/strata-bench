@@ -70,8 +70,11 @@ def effects_jvm(tmp_path):
             yield client, process, profile, game_root
         finally:
             if process.poll() is None:
-                process.stdin.write(b"stop\n")
-                process.stdin.flush()
+                # A guardian may concurrently terminate this fixture; still wait
+                # for actual exit even when its input pipe has already closed.
+                with contextlib.suppress(OSError):
+                    process.stdin.write(b"stop\n")
+                    process.stdin.flush()
                 try:
                     process.wait(timeout=5)
                 except subprocess.TimeoutExpired:

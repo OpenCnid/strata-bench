@@ -56,11 +56,12 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
         const restartToken=randomBytes(32).toString('hex');
         restartServer=await serveRestart((...args)=>lane.restartControl(...args),restartToken);
         const address=restartServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
-        const grant={schema:'strata/WorkerRestartGrant/1',policy:c.restart_policy,
+        const repairGrantDigest=digest(grant);
+        const restartGrant={schema:'strata/WorkerRestartGrant/2',policy:c.restart_policy,repair_binding_digest:repairGrantDigest,
           url:`http://127.0.0.1:${address.port}/v1/restart`,token:restartToken,
           campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
         const fd=openSync(resolve(c.state_directory,`restart-grant-${c.epoch}.json`),'wx',0o600);
-        try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+        try {writeFileSync(fd,JSON.stringify(restartGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
         journal.event('restart_gateway',{policy:c.restart_policy,epoch:c.epoch,port:address.port});
       }
     } catch(error) {

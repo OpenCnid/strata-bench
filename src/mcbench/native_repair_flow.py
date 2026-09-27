@@ -18,6 +18,11 @@ class NativeRepairFlow:
                        "request TEXT NOT NULL, verification_digest TEXT, phase TEXT NOT NULL "
                        "CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), source_ref TEXT, "
                        "PRIMARY KEY(id,operation))")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_native_restarts (id TEXT PRIMARY KEY, request TEXT NOT NULL, "
+                       "restart_binding TEXT NOT NULL, old_binding TEXT NOT NULL, old_connection TEXT NOT NULL, "
+                       "checkpoint TEXT, phase TEXT NOT NULL CHECK(phase IN "
+                       "('PREPARING','PREPARED','DETACHING','DETACHED','ATTACHING','ADOPTED')), "
+                       "new_binding TEXT, paths TEXT, source_ref TEXT)")
 
     def _put(self, value):
         return self.repairs.controller.cas.put(Principal("operator", "operator"),
@@ -32,7 +37,7 @@ class NativeRepairFlow:
         require(remaining >= 0.1, "REPAIR_DEADLINE_EXPIRED")
         return int(remaining * 1000)
 
-    def _context(self, transaction, owner, epoch, worker, native, cleanup):
+    def _context(self, transaction, owner, epoch, worker, native, cleanup, *, restart_operation=False, observe=True):
         require(isinstance(native, NativeSettingsEffectsClient) and isinstance(worker, WorkerRepairClient),
                 "REPAIR_PROFILE_MISMATCH")
         with self.database.transaction() as db:
@@ -51,14 +56,21 @@ class NativeRepairFlow:
             admission = NativeRepairAdmission.model_validate_json(handoff["admission"])
             connection = native.connection.model_dump(mode="json")
             connection["bearer_token"] = native.connection.bearer_token.get_secret_value()
-            require(digest({"connection": connection, "target": target.model_dump()}) == handoff["binding_digest"]
+            restart = db.execute("SELECT * FROM repair_native_restarts WHERE id=?", (transaction,)).fetchone()
+            binding = handoff["binding_digest"]
+            if restart is not None:
+                require(restart["old_binding"] == binding, "REPAIR_NOT_OWNED")
+                require(cleanup or restart_operation or restart["phase"] == "ADOPTED", "REPAIR_RESTART_IN_PROGRESS")
+                if restart["phase"] == "ADOPTED" and not restart_operation:
+                    binding = restart["new_binding"]
+            require(digest({"connection": connection, "target": target.model_dump()}) == binding
                     and native.settings_fingerprint == target.settings_fingerprint
                     and worker.binding_digest == worker_row["binding_digest"]
                     and admission.worker_plan.model_dump() == json.loads(worker_row["plan"]), "REPAIR_NOT_OWNED")
             control = self.controls.status(transaction)
             require(digest(control["plan"]) == admission.worker_plan.plan_digest == repair["request"]["plan_digest"],
                     "REPAIR_NOT_OWNED")
-        if not cleanup:
+        if not cleanup and observe:
             # These calls observe existing holds. They never redispatch pause/bind.
             try:
                 reply = worker.call("status", admission.worker_plan, timeout_ms=self._timeout(repair))

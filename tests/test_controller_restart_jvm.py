@@ -12,6 +12,8 @@ import pytest
 
 from mcbench.native_settings_effects import EffectRequest
 from mcbench.native_repair_restart import NativeRepairRestart
+from mcbench.native_repair_resume import NativeRepairResume
+from mcbench.worker_resume import WorkerResumeClient, WorkerResumeUnknown
 from mcbench.worker_restart import WorkerRestartClient, WorkerRestartUnknown
 from mcbench.native_settings_effects import EffectOutcomeUnknown
 from mcbench.storage import Fault
@@ -33,8 +35,9 @@ effects_jvm, repair_env = _effects_jvm, _repair_env
 
 
 @pytest.mark.parametrize("repair_env", ["real-clock"], indirect=True)
-@pytest.mark.parametrize("lost", [None, "prepare", "detach", "attach"])
+@pytest.mark.parametrize("lost", [None, "prepare", "detach", "attach", "resume", "resume_lost"])
 def test_controller_adopts_replacement_and_finishes_native_writes_without_replay(effects_jvm, repair_env, tmp_path, monkeypatch, lost):
+    resuming = lost in {"resume", "resume_lost"}
     node = os.environ.get("STRATA_CLIENT_TEST_NODE")
     if os.name != "nt" or not node:
         pytest.skip("explicit pinned Node and Windows guardian required")
@@ -47,7 +50,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
     options = ORIGINAL.replace("key_key.inventory:key.keyboard.e", "key_key.inventory:key.keyboard.g")
     if lost is None:
         options += "key_key.forward:key.keyboard.w\r\nkey_key.sprint:key.keyboard.left.control\r\n"
-    with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True, capability_digest=capability, scope=("c1", "a1"), options_text=options) as (client, game, profile, game_root):
+    with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True, resume_owner=resuming, capability_digest=capability, scope=("c1", "a1"), options_text=options) as (client, game, profile, game_root):
         if lost is None:
             # Real HTTP state drives the controller plan. Qualification reports
             # and the remaining generic essential proof are explicitly synthetic.
@@ -72,7 +75,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             "epoch": e.epoch, "process": identity, "expires_unix_ms": int(time.time() * 1000) + 60000, "max_wall_ms": 25000,
             "connection_file": str(descriptor), "connection_digest": digest(json.loads(descriptor.read_text())),
             "native_fingerprint": "a" * 64, "body_fingerprint": "b" * 64, "capability_digest": capability, "primitive_limit": 1000}))
-        config.write_bytes(canonical({"schema": "strata/ForgeDevelopmentWorker/4", "restart_policy": "operator-owned-client-replacement/1", "repair_policy": "operator-owned-fixed-repair-pause/1",
+        config.write_bytes(canonical({**({"schema": "strata/ForgeDevelopmentWorker/5", "resume_policy": "operator-owned-settings-resume/1"} if resuming else {"schema": "strata/ForgeDevelopmentWorker/4"}), "restart_policy": "operator-owned-client-replacement/1", "repair_policy": "operator-owned-fixed-repair-pause/1",
             "purpose": "manual-conformance", "server_kind": "e9e", "backend": "forge_client", "pack_version": "1.27.0",
             "connection_file": str(descriptor), "native_fingerprint": "a" * 64, "body_fingerprint": "b" * 64,
             "state_directory": str(state), "max_wall_ms": 20000, "primitive_limit": 1000,
@@ -203,12 +206,12 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             supervisor_before = [json.loads(line) for line in (state / f"supervisor-{e.epoch}.jsonl").read_text().splitlines()]
             child_pid = next(x["value"]["pid"] for x in supervisor_before if x["kind"] == "worker_started")
             assert detach()["phase"] == "DETACHED"
-            with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True) as (replacement, second, _, _):
+            with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True, resume_owner=resuming) as (replacement, second, _, _):
                 descriptor2 = tmp_path / "connection-2.json"
                 identity2 = json.loads(run([sys.executable, "-I", "-m", "mcbench.process_guard", "--inspect", str(second.pid)]).stdout)
                 guard2 = tmp_path / "guard-2.json"
                 old_guard = json.loads(guard.read_text())
-                guard2.write_bytes(canonical(old_guard | {"schema": "strata/ForgeProcessGuardGrant/3",
+                guard2.write_bytes(canonical(old_guard | {**({"schema": "strata/ForgeProcessGuardGrant/4", "resume_policy": "operator-owned-settings-resume/1"} if resuming else {"schema": "strata/ForgeProcessGuardGrant/3"}),
                     "restart_checkpoint": checkpoint, "repair_plan": plan["worker_plan"],
                     "process": identity2, "connection_file": str(descriptor2),
                     "connection_digest": digest(json.loads(descriptor2.read_text()))}))
@@ -304,8 +307,84 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     replacement.call("settings_effect_start", effect.model_dump(), timeout_ms=500)
                     assert terminal(replacement, effect)["state"] == "observed"
                 assert flow.commit("tx", "owner", e.epoch, worker, replacement, proofs)["control"]["phase"] == "committed"
-                assert flow.rollback("tx", "owner", e.epoch, worker, replacement)["control"]["phase"] == "rolled_back"
-                assert (profile / "options.txt").read_bytes() == options.encode()
+                if resuming:
+                    resume = WorkerResumeClient.from_file(state / f"resume-grant-{e.epoch}.json")
+                    joined = NativeRepairResume(e.repairs)
+                    wrong = WorkerResumeClient(resume.grant.model_copy(update={"restart_binding_digest": "0" * 64}))
+                    with pytest.raises(Fault, match="RESUME_WORKER_MISMATCH"):
+                        joined.resume_committed("tx", "owner", e.epoch, worker, restart, wrong, replacement)
+                    # Corrupt only this synthetic fixture's private evidence;
+                    # every refusal must precede durable resume intent/input.
+                    retained_ref = coordinator._row("tx")["source_ref"]
+                    retained_body = e.cas.json(e.operator, "operator", retained_ref)
+                    mutations = [
+                        [("worker_state.replacement.connection_digest", "0" * 64)],
+                        [("worker_state.replacement.body_fingerprint", "0" * 64)],
+                        [("worker_state.old_connection_digest", "0" * 64),
+                         ("worker_state.old_terminal.connection_digest", "0" * 64)],
+                        [("native_state.current_instance", "other-instance"),
+                         ("native_state.continued_instance", "other-instance")],
+                        [("is_example", False)],
+                    ]
+                    try:
+                        for changes in mutations:
+                            altered = copy.deepcopy(retained_body)
+                            for path, value in changes:
+                                target_body = altered
+                                parts = path.split(".")
+                                for part in parts[:-1]:
+                                    target_body = target_body[part]
+                                target_body[parts[-1]] = value
+                            bad_ref = e.cas.put(e.operator, "operator", "operator", canonical(altered))
+                            with e.database.transaction() as db:
+                                db.execute("UPDATE repair_native_restarts SET source_ref=? WHERE id='tx'", (bad_ref,))
+                            with pytest.raises(Fault, match="RESTART_EVIDENCE_INVALID|RESUME_INSTANCE_MISMATCH"):
+                                joined.resume_committed("tx", "owner", e.epoch, worker, restart, resume, replacement)
+                    finally:
+                        with e.database.transaction() as db:
+                            db.execute("UPDATE repair_native_restarts SET source_ref=? WHERE id='tx'", (retained_ref,))
+                    with e.database.transaction() as db:
+                        db.execute("UPDATE operations SET uncertain=1 WHERE id='repair-op'")
+                    try:
+                        with pytest.raises(Fault, match="REPAIR_BUDGET_REQUIRED"):
+                            joined.resume_committed("tx", "owner", e.epoch, worker, restart, resume, replacement)
+                    finally:
+                        with e.database.transaction() as db:
+                            db.execute("UPDATE operations SET uncertain=0 WHERE id='repair-op'")
+                    assert e.database.connection.execute("SELECT count(*) FROM repair_worker_resumes").fetchone()[0] == 0
+                    original_resume = resume.call
+                    resume_calls = []
+                    def dispatch(operation, *args, **kwargs):
+                        reply = original_resume(operation, *args, **kwargs)
+                        resume_calls.append(operation)
+                        if operation == "resume" and lost == "resume_lost":
+                            raise WorkerResumeUnknown("lost-worker-reply")
+                        return reply
+                    monkeypatch.setattr(resume, "call", dispatch)
+                    def resume_once():
+                        e.controller.heartbeat("c1", "owner", e.epoch)
+                        return joined.resume_committed("tx", "owner", e.epoch, worker, restart, resume, replacement)
+                    if lost == "resume_lost":
+                        with pytest.raises(WorkerResumeUnknown):
+                            resume_once()
+                        assert e.database.connection.execute("SELECT phase FROM repair_worker_resumes").fetchone()[0] == "UNKNOWN"
+                    resumed = resume_once()
+                    assert resumed["worker_state"]["gameplay_resumed"] and not resumed["campaign_permission_published"]
+                    again = resume_once()
+                    assert again["worker_state"]["decision"] == resumed["worker_state"]["decision"]
+                    assert resume_calls.count("resume") == 1
+                    assert resume_calls.count("status") >= 1
+                    assert e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"] is None
+                    assert e.repairs.status("tx")["phase"] == "AWAITING_OBSERVATION"
+                    row = e.database.connection.execute("SELECT * FROM repair_worker_resumes WHERE id='tx'").fetchone()
+                    witness = e.cas.json(e.operator, "operator", row["source_ref"])
+                    assert not witness["campaign_permission_published"] and not witness["consumption_settled"]
+                    assert witness["worker_state"]["decision"]["worker_plan"]["lease_id"] == lease
+                    with pytest.raises(Fault, match="REPAIR_WORKER_RESUME_REQUIRED"):
+                        e.repairs.finish("tx", "owner", e.epoch, "cas:sha256:" + "0" * 64)
+                else:
+                    assert flow.rollback("tx", "owner", e.epoch, worker, replacement)["control"]["phase"] == "rolled_back"
+                    assert (profile / "options.txt").read_bytes() == options.encode()
                 assert native_calls.count("settings_restart_prepare") == 1
                 assert worker_calls.count("detach") == 1 and worker_calls.count("attach") == 1
                 assert e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"] is None

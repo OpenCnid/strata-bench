@@ -848,6 +848,18 @@ Worker/4 and guardian/3 retain their prior behavior. The candidate does not
 settle controller budgets, publish a qualified keymap, grant campaign readiness
 or qualify repeated repair chains; those joins remain required before T05/G1.
 
+The private controller resume candidate consumes a confirmed commit and its
+complete verification bundle, an adopted replacement checkpoint and the exact
+private worker bindings. Recheck the native instance, committed head and original
+repair budget before journaling one resume intent. After uncertain delivery,
+query that identical decision only; do not refresh its lease. Known physical
+resume followed by failed evidence publication attempts native stop even if the
+recovery ledger also fails. This component records a private witness with
+campaign permission and consumption settlement explicitly false. The generic
+campaign completion path stays closed until qualified public control metadata,
+the original worker lease and complete repair accounting are joined. Restored
+rollback requires its own actual effect verification before controller resume.
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

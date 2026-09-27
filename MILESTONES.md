@@ -7,6 +7,16 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now joins the controller's confirmed commit and supplied verification
+to one private worker resume intent. Actual process tests pass normal and lost-
+reply recovery; altered adoption evidence and uncertain accounting are refused.
+The body and verification producer remain synthetic. Four fault cases confirm
+that failed evidence/ledger publication still reaches an emergency stop attempt.
+[Controller resume evidence](docs/verification/2026-09-27-m1-controller-resume.md).
+Campaign completion stays closed: public control metadata, complete settlement,
+restored rollback verification and authentic qualification remain unfinished.
+No G1 suite closes and no unchanged Minecraft or paid model run was performed.
+
 M1.1c.3.4 now connects native resume to the same worker and a replacement
 Windows guardian. Commit, rollback and lost-reply status recovery execute a
 subsequent scoped action through the actual Node/JVM process chain, with a
@@ -11105,3 +11115,33 @@ read-only authority/hold audits. All40 authority tables and eight holds match
 before/after. Installed JAR/options are unchanged; no owned runtime remains.
 All460 ledger IDs survive and2,109 local links in the five reviewed documents
 resolve. This is a candidate component checkpoint, not a G1 pass.
+
+### September27 — controller consumes verified native commit for resume
+
+M1.1c.3.4 continues fromb77a97a. Join the confirmed controller commit, private
+verification evidence, exact replacement adoption, native head and original
+worker scope to one durable resume intent and status-only reconciliation.
+Campaign completion stays closed until qualified keymap observation, original
+lease publication and complete accounting are joined. Rollback requires actual
+restored-effect verification, not a settings-byte-only success. All40 authority
+tables and eight holds match the previous sealed checkpoint before execution.
+
+Controller resume implementation and focused checks now pass for the candidate
+process profile. Changes: src/mcbench/native_repair_resume.py and its connected
+and synthetic fault tests; SPEC section8, current status and handoff record the
+remaining publication boundary. Two distinct connected JVM scenarios pass,
+including altered private evidence/uncertain accounting rejection; four focused
+storage/stop fault cases pass. No authentic Minecraft or model call was made.
+F06/F09/F11/F16/N01/N02/N04/N08 are affected; T01/T04/T05/T06 and full G1 remain
+not_run. [Evidence](docs/verification/2026-09-27-m1-controller-resume.md).
+Next complete public keymap/original-lease publication and full repair accounting,
+then restored-effect rollback and authentic qualification; retain all prior
+failures, consumed IDs, eight holds and M0-only spending authority.
+
+Private evidence bundle `2026-09-27-m1-controller-resume-01` is sealed:21 files,
+2,415,996 bytes, SHA-256
+`3f005fef69fdbf0868733a44cfaa98dd2b9bb01dafacbcc66d22df26e33a9f44`.
+All40 authority tables and eight retained telemetry holds remain unchanged.
+Installed JAR/options are unchanged and no owned runtime remains. All460 ledger
+IDs are preserved;2,113 local links in the five reviewed documents resolve.
+The bundle contains the source snapshot before this seal pointer was appended.

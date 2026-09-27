@@ -7,6 +7,16 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now joins the controller's confirmed commit and supplied verification
+to one private worker resume intent. Actual process tests pass normal and lost-
+reply recovery; altered adoption evidence and uncertain accounting are refused.
+The body and verification producer remain synthetic. Four fault cases confirm
+that failed evidence/ledger publication still reaches an emergency stop attempt.
+[Controller resume evidence](verification/2026-09-27-m1-controller-resume.md).
+Campaign completion stays closed: public control metadata, complete settlement,
+restored rollback verification and authentic qualification remain unfinished.
+No G1 suite closes and no unchanged Minecraft or paid model run was performed.
+
 M1.1c.3.4 now connects native resume to the same worker and a replacement
 Windows guardian. Commit, rollback and lost-reply status recovery execute a
 subsequent scoped action through the actual Node/JVM process chain, with a

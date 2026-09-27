@@ -150,7 +150,7 @@ export class ForgeProcessGuard {
     const connection = NativeGameClient.fromFile(c.connection_file).connection;
     requireThat((grant.schema === 'strata/ForgeProcessGuardGrant/2' || grant.schema==='strata/ForgeProcessGuardGrant/3'
       && c.schema==='strata/ForgeDevelopmentWorker/4' || grant.schema==='strata/ForgeProcessGuardGrant/4'
-      && c.schema==='strata/ForgeDevelopmentWorker/5' && grant.resume_policy===c.resume_policy)
+      && (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6') && grant.resume_policy===c.resume_policy)
       && grant.shutdown_policy === 'java-tree1000-lease750/1'
       && grant.purpose === 'dedicated-development-client-lifetime'
       && grant.campaign_id === c.campaign_id && grant.agent_id === c.agent_id && grant.epoch === c.epoch

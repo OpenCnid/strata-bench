@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
 import type { RepairPlan } from './worker_repair.js';
 import type { ResumeDecision, ResumeState } from './native_resume.js';
+import type { ControlPublication } from './control_publication.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
@@ -29,7 +30,9 @@ export class Journal {
         CREATE TABLE IF NOT EXISTS repair_holds(transaction_id TEXT PRIMARY KEY,epoch INTEGER NOT NULL,
           plan TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('HELD','RECOVERY_REQUIRED')));
         CREATE TABLE IF NOT EXISTS repair_resumes(transaction_id TEXT PRIMARY KEY,resume_id TEXT UNIQUE NOT NULL,
-          decision TEXT NOT NULL,receipt TEXT,observation TEXT);`);
+          decision TEXT NOT NULL,receipt TEXT,observation TEXT);
+        CREATE TABLE IF NOT EXISTS repair_publications(transaction_id TEXT PRIMARY KEY,
+          decision TEXT,observation TEXT);`);
       const last = this.db.prepare('SELECT MAX(epoch) AS epoch FROM epochs').get() as { epoch: number | null };
       requireThat(last.epoch === null || epoch > last.epoch, 'STALE_EPOCH');
       this.db.prepare('INSERT INTO epochs VALUES (?)').run(epoch);
@@ -70,7 +73,9 @@ export class Journal {
   }
   private unresolvedRepair():boolean {
     return !!this.db.prepare(`SELECT 1 FROM repair_holds h LEFT JOIN repair_resumes r USING(transaction_id)
-      WHERE h.state='RECOVERY_REQUIRED' OR r.receipt IS NULL LIMIT 1`).get();
+      LEFT JOIN repair_publications p USING(transaction_id)
+      WHERE h.state='RECOVERY_REQUIRED' OR r.receipt IS NULL
+        OR (p.transaction_id IS NOT NULL AND p.observation IS NULL) LIMIT 1`).get();
   }
   resumeRecord(transaction:string):{decision:ResumeDecision;receipt:ResumeState|null;observation:unknown}|null {
     const row=this.db.prepare('SELECT decision,receipt,observation FROM repair_resumes WHERE transaction_id=?')
@@ -78,7 +83,7 @@ export class Journal {
     return row?{decision:JSON.parse(row.decision),receipt:row.receipt?JSON.parse(row.receipt):null,
       observation:row.observation?JSON.parse(row.observation):null}:null;
   }
-  beginResume(decision:ResumeDecision):void {
+  beginResume(decision:ResumeDecision,publicationRequired=false):void {
     this.transaction(()=>{
       const plan=decision.worker_plan;
       const row=this.db.prepare('SELECT plan,state,epoch FROM repair_holds WHERE transaction_id=?')
@@ -88,6 +93,30 @@ export class Journal {
       this.db.prepare('INSERT INTO repair_resumes(transaction_id,resume_id,decision) VALUES (?,?,?)')
         .run(plan.transaction_id,decision.resume_id,JSON.stringify(decision));
       this.event('repair_resume_intent',{decision});
+      if(publicationRequired)this.db.prepare('INSERT INTO repair_publications(transaction_id) VALUES (?)').run(plan.transaction_id);
+    });
+  }
+  publicationRecord(transaction:string):{decision:ControlPublication|null;observation:unknown}|null {
+    const row=this.db.prepare('SELECT decision,observation FROM repair_publications WHERE transaction_id=?')
+      .get(transaction) as {decision:string|null;observation:string|null}|undefined;
+    return row?{decision:row.decision?JSON.parse(row.decision):null,observation:row.observation?JSON.parse(row.observation):null}:null;
+  }
+  beginPublication(value:ControlPublication):void {
+    this.transaction(()=>{
+      const tx=value.worker_plan.transaction_id,old=this.publicationRecord(tx),resume=this.resumeRecord(tx);
+      requireThat(old && !old.decision && resume?.receipt && digest(resume.decision)===value.resume_digest
+        && digest(resume.decision.worker_plan)===digest(value.worker_plan),'REPAIR_NOT_OWNED');
+      this.db.prepare('UPDATE repair_publications SET decision=? WHERE transaction_id=?').run(JSON.stringify(value),tx);
+      this.event('repair_publication_intent',value);
+    });
+  }
+  finishPublication(value:ControlPublication,observation:unknown):void {
+    this.transaction(()=>{
+      const old=this.publicationRecord(value.worker_plan.transaction_id);
+      requireThat(old?.decision && !old.observation && digest(old.decision)===digest(value),'REPAIR_NOT_OWNED');
+      this.db.prepare('UPDATE repair_publications SET observation=? WHERE transaction_id=?')
+        .run(JSON.stringify(observation),value.worker_plan.transaction_id);
+      this.event('repair_publication_confirmed',{decision:value,observation});
     });
   }
   finishResume(decision:ResumeDecision,receipt:ResumeState,observation:unknown):void {

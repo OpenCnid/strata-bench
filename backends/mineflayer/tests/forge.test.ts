@@ -129,6 +129,13 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   const replacement={...config,schema:'strata/ForgeDevelopmentWorker/4',repair_policy:WORKER_REPAIR_POLICY,
     restart_policy:'operator-owned-client-replacement/1'};
   writeFileSync(path,JSON.stringify(replacement));assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/4');
+  const publication={...replacement,schema:'strata/ForgeDevelopmentWorker/6',resume_policy:'operator-owned-settings-resume/1',
+    publication_policy:'verified-controls-after-settlement/1'};
+  writeFileSync(path,JSON.stringify(publication));assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/6');
+  for(const patch of [{publication_policy:undefined},{publication_policy:'automatic'},
+    {schema:'strata/ForgeDevelopmentWorker/5'},{resume_policy:undefined}]) {
+    writeFileSync(path,JSON.stringify({...publication,...patch}));assert.throws(()=>workerConfig(path,repo));
+  }
   for(const patch of [{restart_policy:undefined},{restart_policy:'automatic-resume'},{repair_policy:undefined},
     {schema:'strata/ForgeDevelopmentWorker/3'}]) {
     writeFileSync(path,JSON.stringify({...replacement,...patch}));assert.throws(()=>workerConfig(path,repo));

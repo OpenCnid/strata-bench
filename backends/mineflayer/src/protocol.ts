@@ -156,10 +156,10 @@ export function canonical(value: unknown): string {
 export const digest = (x: unknown): string => createHash('sha256').update(canonical(x)).digest('hex');
 export const mono = (): number => Math.floor(performance.now());
 export const utc = (): string => new Date().toISOString();
-export function actionSemantics(b: ActionBatch): void {
+export function actionSemantics(b: ActionBatch, keymapDigest:string|null=null): void {
   requireThat(!b.is_example, 'PRECONDITION_FAILED');
   requireThat(b.mode === 'structured' && b.action !== null && b.events.length === 0, 'CAPABILITY_MISSING');
-  requireThat(b.keymap_digest === null, 'CAPABILITY_MISSING');
+  requireThat(b.keymap_digest === keymapDigest, 'CAPABILITY_MISSING');
   const a = b.action;
   requireThat(b.duration_ms <= (a.kind === 'move_to' ? 30000 : 10000), 'PRECONDITION_FAILED');
   if (a.kind === 'use_item') requireThat(a.hold_ms <= b.duration_ms, 'PRECONDITION_FAILED');

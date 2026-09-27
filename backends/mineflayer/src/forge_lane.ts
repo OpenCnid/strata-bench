@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { controlPublication, type ControlPublication } from './control_publication.js';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Scope } from './actions.js';
 import { RELEASE_TIMEOUT_MS } from './actions.js';
@@ -17,7 +18,7 @@ import { actionSemantics, canonical, digest, Fault, mono, requireThat, utc, vali
   type ActionBatch, type ActionAck, type Observation } from './protocol.js';
 
 interface Active {
-  batch: ActionBatch; timer: NodeJS.Timeout; sent: boolean; nativeTerminal: boolean;
+  batch: ActionBatch; nativeBatch:ActionBatch; timer: NodeJS.Timeout; sent: boolean; nativeTerminal: boolean;
   finishing: Promise<void> | null; interrupt: string | null;
 }
 /** Development D06 executor. Native intent owns physical dispatch; this broker owns public authority. */
@@ -64,6 +65,10 @@ export class ForgeLane implements GameLane {
   private resumeTask:Promise<unknown>|null=null;
   private resumeIntent:ResumeDecision|null=null;
   private resumeUntil=0;
+  private publicationRequired=false;
+  private publicationTask:Promise<unknown>|null=null;
+  private publicationIntent:ControlPublication|null=null;
+  private controls:{revision:number;digest:string;publication:string;transaction:string}|null=null;
   private constructor(readonly scope: Scope, readonly capabilityDigest: string,
     private client: NativeGameClient, readonly journal: Journal, private body: string,
     private primitiveLimit: number, maxWallMs: number, private repairPolicy?:typeof WORKER_REPAIR_POLICY) {
@@ -189,8 +194,9 @@ export class ForgeLane implements GameLane {
   enableRestart(guard:RestartGuardCall):void {
     requireThat(this.repairPolicy===WORKER_REPAIR_POLICY && !this.restartGuard,'CAPABILITY_MISSING');this.restartGuard=guard;
   }
-  enableResume():void {
+  enableResume(publicationRequired=false):void {
     requireThat(this.restartGuard && !this.resumeEnabled,'CAPABILITY_MISSING');this.resumeEnabled=true;
+    this.publicationRequired=publicationRequired;
   }
   async resumeControl(operation:'resume'|'status',raw:ResumeDecision):Promise<unknown> {
     requireThat(this.resumeEnabled,'CAPABILITY_MISSING');
@@ -221,7 +227,7 @@ export class ForgeLane implements GameLane {
         requireThat(this.repairLive() && this.repairPhase==='resuming','REPAIR_DEADLINE_EXPIRED');
         if(!old) {
           await this.pollRepair();
-          this.write(()=>this.journal.beginResume(decision));
+          this.write(()=>this.journal.beginResume(decision,this.publicationRequired));
         }
         this.releaseTask=null;this.fenceTask=null;this.lastRelease=false;
         const native:ResumeState=old
@@ -241,8 +247,7 @@ export class ForgeLane implements GameLane {
         requireThat(this.repairLive() && this.repairPhase==='resuming' && !this.fenced
           && mono()<until && Date.now()<decision.lease_until_unix_ms,'REPAIR_RESUME_UNCONFIRMED');
         this.write(()=>this.journal.finishResume(decision,native,observation));
-        this.repair=null;this.repairPhase=null;this.repairUntil=0;this.repairAbort=null;
-        this.restart=null;this.resumeIntent=null;
+        if(!this.publicationRequired)this.releaseRepair();
         return this.resumeStatus(decision,native,observation);
       } catch(error) {
         if(!(error instanceof Fault && error.code==='GAME_OUTCOME_UNKNOWN'))
@@ -251,6 +256,55 @@ export class ForgeLane implements GameLane {
       }
     })().finally(()=>{this.resumeTask=null;});
     return this.resumeTask;
+  }
+  private releaseRepair():void {
+    this.repair=null;this.repairPhase=null;this.repairUntil=0;this.repairAbort=null;
+    this.restart=null;this.resumeIntent=null;
+  }
+  async publishControls(operation:'publish'|'status',raw:ControlPublication):Promise<unknown> {
+    requireThat(this.publicationRequired,'CAPABILITY_MISSING');
+    const value=controlPublication(raw),tx=value.worker_plan.transaction_id;
+    const old=this.journal.publicationRecord(tx),resume=this.journal.resumeRecord(tx);
+    requireThat(old && resume?.receipt && digest(resume.decision)===value.resume_digest
+      && canonical(value.worker_plan)===canonical(resume.decision.worker_plan)
+      && value.control_revision===resume.decision.expected_revision
+      && value.verification_ref===resume.decision.verification_ref,'REPAIR_NOT_OWNED');
+    if(old.decision)requireThat(canonical(old.decision)===canonical(value),'REPAIR_NOT_OWNED');
+    const result=(observation:unknown)=>({schema:'strata/WorkerControlPublicationState/1',decision:value,observation,
+      primitive_events:this.journal.counter('primitive_events'),published:!this.closed && !this.fenced && !this.repair
+        && this.controls?.revision===value.control_revision && this.controls.digest===value.keymap_digest
+        && this.controls.publication===value.publication_id
+        && this.controls.transaction===tx
+        && mono()<this.leaseUntil && mono()<this.deadline});
+    if(old.observation)return result(old.observation);
+    requireThat(operation==='publish' || old.decision,'CONTROL_PUBLICATION_UNKNOWN');
+    requireThat(this.repairLive() && this.repairPhase==='resuming' && this.resumeIntent
+      && digest(this.resumeIntent)===value.resume_digest && mono()<this.resumeUntil,'REPAIR_RESUME_EXPIRED');
+    if(this.publicationTask) {
+      requireThat(canonical(this.publicationIntent)===canonical(value),'REPAIR_NOT_OWNED');return this.publicationTask;
+    }
+    this.publicationIntent=value;
+    this.publicationTask=(async()=>{
+      try {
+        const native=await this.client.call('settings_resume_status',{transaction_id:tx},500);
+        requireThat(canonical(native.decision)===canonical(resume.decision) && native.input_resumed
+          && native.source_instance===resume.receipt!.source_instance
+          && native.current_instance===resume.receipt!.current_instance,'REPAIR_NOT_OWNED');
+        this.checkHealth(native.health);this.charge(native.health);
+        requireThat(value.primitive_events===this.journal.counter('primitive_events'),'REPAIR_ACCOUNTING_MISMATCH');
+        if(!old.decision)this.write(()=>this.journal.beginPublication(value));
+        this.controls={revision:value.control_revision,digest:value.keymap_digest,publication:value.publication_id,transaction:tx};
+        this.captures.clear();this.observations.clear();this.last=null;
+        const observation=await this.observe(true);
+        requireThat(this.repairLive() && this.repairPhase==='resuming' && !this.fenced
+          && mono()<this.resumeUntil && Date.now()<resume.decision.lease_until_unix_ms,'REPAIR_RESUME_EXPIRED');
+        this.write(()=>this.journal.finishPublication(value,observation));
+        this.releaseRepair();return result(observation);
+      } catch(error) {
+        await this.abortRepair(error instanceof Fault?error.code:'CONTROL_PUBLICATION_UNAVAILABLE');throw error;
+      }
+    })().finally(()=>{this.publicationTask=null;});
+    return this.publicationTask;
   }
   private resumeStatus(decision:ResumeDecision,native:ResumeState,observation:unknown) {
     return {schema:'strata/WorkerResumeState/1',decision,native,observation,
@@ -528,8 +582,8 @@ export class ForgeLane implements GameLane {
       epoch:this.scope.epoch,seq:this.write(() => this.journal.next('observation')),recorded_at:utc(),observation_id:randomUUID(),
       mode:'structured',captured_mono_ms:captured,gateway_sent_mono_ms:mono(),age_at_send_ms:0,
       state_revision:snapshot.state_revision,capability_digest:this.capabilityDigest,state:snapshot.state,
-      ...this.signals.read(0),frame:null,width:null,height:null,media_type:null,control_revision:this.scope.epoch,
-      keymap_digest:null,pointer_locked:null,held_keys:[],last_action_seq:this.journal.counter(`${this.scope.epoch}:action`) || null,
+      ...this.signals.read(0),frame:null,width:null,height:null,media_type:null,control_revision:this.controls?.revision??this.scope.epoch,
+      keymap_digest:this.controls?.digest??null,pointer_locked:null,held_keys:[],last_action_seq:this.journal.counter(`${this.scope.epoch}:action`) || null,
     };
     observation.age_at_send_ms = observation.gateway_sent_mono_ms-captured;
     this.validateObservation(observation);
@@ -570,17 +624,20 @@ export class ForgeLane implements GameLane {
       result_observation_id:null,...extra};
   }
   act(raw: unknown): ActionAck {
-    const b = validate<ActionBatch>('ActionBatch', raw); actionSemantics(b);
+    const b = validate<ActionBatch>('ActionBatch', raw);
     requireThat(b.campaign_id === this.scope.campaign_id && b.agent_id === this.scope.agent_id, 'FORBIDDEN');
     const previous = this.journal.previous(b); if (previous) return previous;
+    actionSemantics(b,this.controls?.digest??null);
     requireThat(!this.repair,'RECONFIGURING');
     requireThat(b.epoch === this.scope.epoch, 'STALE_EPOCH');
     requireThat(!this.fenced && !this.closed && mono() < this.leaseUntil && b.lease_id === this.scope.lease_id, 'LEASE_EXPIRED');
     requireThat(!this.active && !this.observing, 'ACTION_IN_PROGRESS');
-    requireThat(b.capability_digest === this.capabilityDigest && b.control_revision === this.scope.epoch, 'CAPABILITY_MISSING');
+    requireThat(b.capability_digest === this.capabilityDigest, 'CAPABILITY_MISSING');
+    requireThat(b.control_revision === (this.controls?.revision??this.scope.epoch), 'REVISION_CONFLICT');
     requireThat((FORGE_ACTIONS as readonly string[]).includes(b.action!.kind), 'MECHANIC_UNSUPPORTED');
     const observation = this.observations.get(b.observation_id);
     requireThat(observation && mono()-observation.captured_mono_ms <= 2000, 'STALE_OBSERVATION');
+    requireThat(observation.control_revision===b.control_revision && observation.keymap_digest===b.keymap_digest,'REVISION_CONFLICT');
     requireThat(b.expected_state_revision === observation.state_revision && b.expected_state_revision === this.revision, 'REVISION_CONFLICT');
     const minimum = b.action!.kind === 'recipe_navigate' ? (b.action!.control === 'history_back' ? 3 : 4)
       : ['dig','interact_block','attack','interact_entity','place','equip','click_slot','craft','close_window'].includes(b.action!.kind) ? 3 : 2;
@@ -590,7 +647,8 @@ export class ForgeLane implements GameLane {
     const ack = this.write(() => this.journal.accept(b, () => this.ack(b, 'accepted')));
     const timer = setTimeout(() => this.background(this.fence('DEADLINE_EXCEEDED')),
       Math.min(remaining,b.duration_ms,this.deadline-mono()));
-    const active: Active = {batch:b,timer,sent:false,nativeTerminal:false,finishing:null,interrupt:null};
+    const nativeBatch:ActionBatch={...b,control_revision:this.scope.epoch,keymap_digest:null};
+    const active: Active = {batch:b,nativeBatch,timer,sent:false,nativeTerminal:false,finishing:null,interrupt:null};
     this.active = active; this.lastRelease = false;
     setImmediate(() => this.background(this.run(active))); return ack;
   }
@@ -599,8 +657,10 @@ export class ForgeLane implements GameLane {
     let operation: 'act' | 'action_status' = 'act';
     try {
       this.write(() => this.journal.update(this.ack(active.batch,'executing')));
+      this.write(()=>this.journal.event('native_action_translation',{policy:'published-controls-to-structured-native/1',
+        public_digest:digest(active.batch),native_digest:digest(active.nativeBatch),native_batch:active.nativeBatch}));
       active.sent = true;
-      let receipt = await this.client.call('act', {batch:active.batch}, 500);
+      let receipt = await this.client.call('act', {batch:active.nativeBatch}, 500);
       while (!receipt.requires_resync && !this.fenced && !active.finishing) {
         await delay(25); operation = 'action_status';
         receipt = await this.client.call('action_status', {request_id:active.batch.request_id}, 500);
@@ -721,7 +781,7 @@ export class ForgeLane implements GameLane {
       clearInterval(this.watchdog); this.closed = true;
       this.closeTask = (this.repair ? this.abortRepair('STOPPED') : this.fence('STOPPED')).finally(async () => {
         await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve(),this.repairTask ?? Promise.resolve(),
-          this.restartTask ?? Promise.resolve(),this.resumeTask ?? Promise.resolve()]); this.signals.close();
+          this.restartTask ?? Promise.resolve(),this.resumeTask ?? Promise.resolve(),this.publicationTask ?? Promise.resolve()]); this.signals.close();
       });
     }
     return this.closeTask;

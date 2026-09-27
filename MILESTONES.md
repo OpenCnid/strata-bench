@@ -7,6 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
+Worker/6 publication profile. The actual process chain refuses input until a
+private control publication, then executes the next scoped action with its
+published keymap while retaining the original lease and prior action receipt.
+The game and qualification/verification/settlement producers are synthetic.
+[Control publication evidence](docs/verification/2026-09-27-m1-control-publication.md).
+Actual controller settlement and atomic campaign completion remain unfinished;
+a private settlement reference alone is not proof of accounting. No G1 suite closes.
+
 M1.1c.3.4 now joins the controller's confirmed commit and supplied verification
 to one private worker resume intent. Actual process tests pass normal and lost-
 reply recovery; altered adoption evidence and uncertain accounting are refused.
@@ -11145,3 +11154,37 @@ All40 authority tables and eight retained telemetry holds remain unchanged.
 Installed JAR/options are unchanged and no owned runtime remains. All460 ledger
 IDs are preserved;2,113 local links in the five reviewed documents resolve.
 The bundle contains the source snapshot before this seal pointer was appended.
+
+### September27 — hold public gameplay until control publication
+
+M1.1c.3.4 continues fromc43e11f. Worker/5 opens public actions before controller
+settlement/publication; it remains a private candidate, not campaign admission.
+Implement an explicit successor profile with a durable pending publication hold,
+verified control metadata and consumed settlement reference before release.
+Preserve the original native action contract through a journaled public/native
+metadata translation. Existing profiles keep their identities and semantics.
+T01/T04/T05/T06/G1 remain not_run. Read-only durable checks: all40 authority tables
+and eight holds unchanged; no owned game/model/worker process before execution.
+
+Worker/6 publication boundary implemented and exercised through actual processes.
+Changed worker profile/config/private endpoint, durable pending publication,
+control metadata/CLI/native translation, and focused process/fault tests.
+F06/F09/F11/F16/N01/N02/N04/N08; T01/T04/T05/T06/G1 remain not_run.
+The named Python/Node/Windows/JVM test passes public refusal before publication,
+next action after publication and original receipt retrieval. Shared Worker/5
+lost-reply behavior passes. Node fault, reopen, config and shared action/CLI
+checks pass; original test failures retained. All producers/body remain synthetic.
+[Evidence](docs/verification/2026-09-27-m1-control-publication.md).
+Next join actual complete repair accounting to typed controller publication and
+original-lease completion; do not treat the worker's supplied private settlement
+reference as verified settlement. Preserve real health failure, eight holds,
+consumed IDs, historical profiles and full remaining G1 scope.
+
+Private evidence bundle `2026-09-27-m1-control-publication-01` is sealed:46 files,
+2,772,163 bytes, SHA-256
+`34f92bf83bd917769b481cba4a60851a049fd68b52f683d03336cb655aed9791`.
+It retains changed source, compiled pins and original failed/passing logs.
+All40 authority tables and eight retained holds match before/after. Installed
+JAR/options unchanged; no owned runtime remains. All460 ledger IDs are preserved
+and2,118 local links in the five reviewed documents resolve. The archived source
+snapshot precedes this appended seal pointer. M1 in_progress; G1 not_run.

@@ -860,6 +860,28 @@ campaign completion path stays closed until qualified public control metadata,
 the original worker lease and complete repair accounting are joined. Restored
 rollback requires its own actual effect verification before controller resume.
 
+**Private control publication candidate (M1.1c.3.4).** Worker/6 adds
+`publication_policy: verified-controls-after-settlement/1`. Unlike Worker/5,
+native resume leaves public actions held and renewal suspended under the original
+finite resume lease. A separate private publication grant binds the resume
+transport. `WorkerControlPublication/1` binds the full worker plan, consumed
+resume decision, verified control revision/keymap, verification and settlement
+references, and exact cumulative primitive count. The trusted controller must
+produce and validate settlement; the worker does not resolve private CAS or
+certify an arbitrary reference as settled accounting.
+
+Persist publication intent and a fresh observation before releasing the public
+lane. Retain pending publication across journal reopen/new epoch; stop or storage
+failure cannot publish a late success. Repetition/status never rearms a stopped
+lane. Public observations/actions use the published control revision and keymap;
+the broker checks current metadata and the cited observation, then journals both
+public and native request digests before translating to the native structured
+epoch/null-keymap contract. Historical actions retain their original request and
+receipt. This profile does not advertise keybinding capability, qualify the
+supplied settings/settlement producers, or complete campaign permission. Actual
+controller settlement/publication, restored rollback, skill and authentic
+qualification remain required. [Evidence](docs/verification/2026-09-27-m1-control-publication.md).
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

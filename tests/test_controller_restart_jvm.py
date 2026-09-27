@@ -1,6 +1,10 @@
 """Actual controller/worker/guardian/JVM replacement; synthetic body and verification producer."""
 
 import json
+import http.client
+import sqlite3
+from urllib.parse import urlsplit
+from datetime import datetime, timezone
 import copy
 import os
 import subprocess
@@ -10,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+from mcbench.native_game import NativeGameClient
 from mcbench.native_settings_effects import EffectRequest
 from mcbench.native_repair_restart import NativeRepairRestart
 from mcbench.native_repair_resume import NativeRepairResume
@@ -35,9 +40,9 @@ effects_jvm, repair_env = _effects_jvm, _repair_env
 
 
 @pytest.mark.parametrize("repair_env", ["real-clock"], indirect=True)
-@pytest.mark.parametrize("lost", [None, "prepare", "detach", "attach", "resume", "resume_lost"])
+@pytest.mark.parametrize("lost", [None, "prepare", "detach", "attach", "resume", "resume_lost", "publish"])
 def test_controller_adopts_replacement_and_finishes_native_writes_without_replay(effects_jvm, repair_env, tmp_path, monkeypatch, lost):
-    resuming = lost in {"resume", "resume_lost"}
+    resuming = lost in {"resume", "resume_lost", "publish"}
     node = os.environ.get("STRATA_CLIENT_TEST_NODE")
     if os.name != "nt" or not node:
         pytest.skip("explicit pinned Node and Windows guardian required")
@@ -75,7 +80,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             "epoch": e.epoch, "process": identity, "expires_unix_ms": int(time.time() * 1000) + 60000, "max_wall_ms": 25000,
             "connection_file": str(descriptor), "connection_digest": digest(json.loads(descriptor.read_text())),
             "native_fingerprint": "a" * 64, "body_fingerprint": "b" * 64, "capability_digest": capability, "primitive_limit": 1000}))
-        config.write_bytes(canonical({**({"schema": "strata/ForgeDevelopmentWorker/5", "resume_policy": "operator-owned-settings-resume/1"} if resuming else {"schema": "strata/ForgeDevelopmentWorker/4"}), "restart_policy": "operator-owned-client-replacement/1", "repair_policy": "operator-owned-fixed-repair-pause/1",
+        config.write_bytes(canonical({**({"schema": "strata/ForgeDevelopmentWorker/6" if lost == "publish" else "strata/ForgeDevelopmentWorker/5", "resume_policy": "operator-owned-settings-resume/1", **({"publication_policy": "verified-controls-after-settlement/1"} if lost == "publish" else {})} if resuming else {"schema": "strata/ForgeDevelopmentWorker/4"}), "restart_policy": "operator-owned-client-replacement/1", "repair_policy": "operator-owned-fixed-repair-pause/1",
             "purpose": "manual-conformance", "server_kind": "e9e", "backend": "forge_client", "pack_version": "1.27.0",
             "connection_file": str(descriptor), "native_fingerprint": "a" * 64, "body_fingerprint": "b" * 64,
             "state_directory": str(state), "max_wall_ms": 20000, "primitive_limit": 1000,
@@ -92,6 +97,24 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                 time.sleep(0.02)
             assert grant.exists()
             worker = WorkerRepairClient.from_file(grant)
+            if lost == "publish":
+                public_grant = state / f"grant-{e.epoch}.json"
+                while not public_grant.exists() and time.monotonic() < until:
+                    time.sleep(.01)
+                initial = subprocess.run([node, str(worker_js.with_name("cli.js")), "look-at", "--x", "1", "--y", "65", "--z", "2", "--json"],
+                    capture_output=True, timeout=3, creationflags=subprocess.CREATE_NO_WINDOW,
+                    env=os.environ | {"STRATA_GAME_GRANT": str(public_grant)})
+                assert initial.returncode in (0, 2), initial.stderr
+                initial_ack = json.loads(initial.stdout)["result"]
+                assert initial_ack["status"] == "accepted" and initial_ack["action_seq"] == 1
+                native_game = NativeGameClient(client.connection)
+                until = time.monotonic() + 2
+                while True:
+                    outcome = native_game.call("action_status", {"request_id": initial_ack["request_id"]})
+                    if outcome["status"] not in {"accepted", "executing"} or time.monotonic() > until:
+                        break
+                    time.sleep(.01)
+                assert outcome["status"] == "emitted" and outcome["release_confirmed"]
             e.controller.heartbeat("c1", "owner", e.epoch)
             e.repairs.request("c1", "owner", e.epoch, "tx", "a1", "repair-op", deadline_unix=time.time() + 15)
             target = target_for(e, client)
@@ -369,7 +392,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                             resume_once()
                         assert e.database.connection.execute("SELECT phase FROM repair_worker_resumes").fetchone()[0] == "UNKNOWN"
                     resumed = resume_once()
-                    assert resumed["worker_state"]["gameplay_resumed"] and not resumed["campaign_permission_published"]
+                    assert resumed["worker_state"]["gameplay_resumed"] is (lost != "publish")
+                    assert not resumed["campaign_permission_published"]
                     again = resume_once()
                     assert again["worker_state"]["decision"] == resumed["worker_state"]["decision"]
                     assert resume_calls.count("resume") == 1
@@ -382,6 +406,82 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     assert witness["worker_state"]["decision"]["worker_plan"]["lease_id"] == lease
                     with pytest.raises(Fault, match="REPAIR_WORKER_RESUME_REQUIRED"):
                         e.repairs.finish("tx", "owner", e.epoch, "cas:sha256:" + "0" * 64)
+                    if lost == "publish":
+                        grant = json.loads((state / f"publication-grant-{e.epoch}.json").read_text())
+                        assert grant["resume_binding_digest"] == resume.binding_digest
+                        control = e.controls.status("tx")["receipt"]
+                        decision = resumed["worker_state"]["decision"]
+                        # Test-only accounting producer. The actual controller settlement
+                        # producer/publication transaction remains a separate requirement.
+                        publication = {"schema": "strata/WorkerControlPublication/1", "policy": grant["policy"],
+                            "publication_id": "publication", "worker_plan": decision["worker_plan"],
+                            "resume_digest": digest(decision), "control_revision": control["revision"],
+                            "keymap_digest": control["keymap_digest"], "verification_ref": decision["verification_ref"],
+                            "settlement_ref": e.put({"is_example": True, "fixture": "synthetic settlement producer"}),
+                            "primitive_events": resumed["worker_state"]["primitive_events"]}
+                        address = urlsplit(grant["url"])
+                        def publish(operation, value=publication):
+                            connection = http.client.HTTPConnection(address.hostname, address.port, timeout=2)
+                            try:
+                                connection.request("POST", address.path, canonical({"schema": "strata/WorkerControlPublicationRequest/1",
+                                    "request_id": "publication-request", "operation": operation, "decision": value}),
+                                    {"Content-Type": "application/json", "Authorization": "Bearer " + grant["token"]})
+                                response = connection.getresponse()
+                                result = json.loads(response.read())
+                                assert response.status == 200, result
+                                return result["result"]
+                            finally:
+                                connection.close()
+                        cli_env = os.environ | {"STRATA_GAME_GRANT": str(state / f"grant-{e.epoch}.json")}
+                        def play():
+                            return subprocess.run([node, str(worker_js.with_name("cli.js")), "look-at", "--x", "1", "--y", "65", "--z", "2", "--json"],
+                                capture_output=True, timeout=3, creationflags=subprocess.CREATE_NO_WINDOW, env=cli_env)
+                        refused = play()
+                        assert refused.returncode != 0 and b"RECONFIGURING" in refused.stdout
+                        published = publish("publish")
+                        assert published["published"]
+                        assert published["observation"]["keymap_digest"] == control["keymap_digest"]
+                        assert published["observation"]["control_revision"] == control["revision"]
+                        assert publish("status")["decision"] == publication
+                        accepted = play()
+                        assert accepted.returncode in (0, 2), accepted.stderr
+                        ack = json.loads(accepted.stdout)["result"]
+                        assert ack["status"] == "accepted" and ack["action_seq"] == 2
+                        native_game = NativeGameClient(replacement.connection)
+                        until = time.monotonic() + 2
+                        while True:
+                            outcome = native_game.call("action_status", {"request_id": ack["request_id"]})
+                            if outcome["status"] not in {"accepted", "executing"} or time.monotonic() > until:
+                                break
+                            time.sleep(.01)
+                        assert outcome["status"] == "emitted" and outcome["release_confirmed"]
+                        assert native_game.call("observe", {"cursor": None})["state"]["yaw"] == .25
+                        with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
+                            public_batch = json.loads(db.execute("SELECT request FROM actions WHERE request_id=?", (ack["request_id"],)).fetchone()[0])
+                            translated = json.loads(db.execute("SELECT body FROM events WHERE kind='native_action_translation' ORDER BY cursor DESC").fetchone()[0])
+                            assert public_batch["keymap_digest"] == control["keymap_digest"]
+                            assert translated["public_digest"] == digest(public_batch)
+                            assert translated["native_batch"]["keymap_digest"] is None
+                            assert translated["native_batch"]["control_revision"] == e.epoch
+                            assert translated["native_digest"] == digest(translated["native_batch"])
+                            original = json.loads(db.execute("SELECT request FROM actions WHERE request_id=?", (initial_ack["request_id"],)).fetchone()[0])
+                        public = json.loads(public_grant.read_text())
+                        address = urlsplit(public["url"])
+                        connection = http.client.HTTPConnection(address.hostname, address.port, timeout=2)
+                        try:
+                            connection.request("POST", address.path, canonical({"schema": "strata/GameRequest/1",
+                                "request_id": original["request_id"], "campaign_id": "c1", "agent_id": "a1", "epoch": e.epoch,
+                                "deadline_at": datetime.fromtimestamp(time.time() + 2, timezone.utc).isoformat().replace("+00:00", "Z"),
+                                "method": "act", "action": original,
+                                "target_request_id": None, "after": None}),
+                                {"Content-Type": "application/json", "Authorization": "Bearer " + public["token"]})
+                            response = connection.getresponse()
+                            replay = json.loads(response.read())
+                            assert response.status == 200, replay
+                            assert replay["result"]["status"] == "emitted" and replay["result"]["action_seq"] == 1
+                        finally:
+                            connection.close()
+
                 else:
                     assert flow.rollback("tx", "owner", e.epoch, worker, replacement)["control"]["phase"] == "rolled_back"
                     assert (profile / "options.txt").read_bytes() == options.encode()

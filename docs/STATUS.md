@@ -1,11 +1,20 @@
 # Strata current status
 
-## Current position — September 27, authentic controls and deadline correction
+## Current position — September 27, guarded control publication
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
+
+M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
+Worker/6 publication profile. The actual process chain refuses input until a
+private control publication, then executes the next scoped action with its
+published keymap while retaining the original lease and prior action receipt.
+The game and qualification/verification/settlement producers are synthetic.
+[Control publication evidence](verification/2026-09-27-m1-control-publication.md).
+Actual controller settlement and atomic campaign completion remain unfinished;
+a private settlement reference alone is not proof of accounting. No G1 suite closes.
 
 M1.1c.3.4 now joins the controller's confirmed commit and supplied verification
 to one private worker resume intent. Actual process tests pass normal and lost-

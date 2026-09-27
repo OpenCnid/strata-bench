@@ -141,7 +141,7 @@ async function main(): Promise<number> {
       agent_id:grant.agent_id,epoch:grant.epoch,seq:(o.last_action_seq ?? 0)+1,recorded_at:new Date().toISOString(),
       lease_id:caps.result.lease_id,request_id:randomUUID(),observation_id:o.observation_id,
       mode:'structured',expected_state_revision:o.state_revision,capability_digest:o.capability_digest,
-      control_revision:o.control_revision,keymap_digest:null,deadline_at:new Date(Date.now()+duration).toISOString(),
+      control_revision:o.control_revision,keymap_digest:o.keymap_digest,deadline_at:new Date(Date.now()+duration).toISOString(),
       duration_ms:duration,action:command === 'move-to' ? {kind:'move_to',target,tolerance:.5} : {kind:'look_at',target},
       events:[],release_at_end:true};
     action=b; method='act';

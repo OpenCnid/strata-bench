@@ -153,7 +153,7 @@ class NativeEffectEvidence:
     def capture(self, transaction, owner, epoch, worker, native, effect_id):
         profile = self.controls.status(transaction)["plan"]["profile_id"]
         with profile_operation(self.database, "repair:" + transaction), profile_operation(self.database, profile):
-            repair, control, _ = self.flow._context(transaction, owner, epoch, worker, native, False)
+            repair, control, admission = self.flow._context(transaction, owner, epoch, worker, native, False)
             require(control["phase"] == "verifying", "REPAIR_RECOVERY_REQUIRED")
             declared = self.database.connection.execute("SELECT * FROM repair_effect_plans WHERE id=?", (transaction,)).fetchone()
             require(declared is not None, "EFFECT_EXPECTATION_REQUIRED")
@@ -181,7 +181,8 @@ class NativeEffectEvidence:
                         "binding_digest": binding, "expectation_ref": declared["source_ref"]})
             operation = "settings_effect_status" if old else "settings_effect_start"
             result = native.call(operation, {"id": effect_id} if old else request.model_dump(),
-                timeout_ms=self.flow._timeout(repair), **({"expected_effect": request} if old else {}))
+                timeout_ms=self.flow._timeout(repair), **({"expected_effect": request} if old else {
+                    "effect_deadline_unix_ms": self.flow._effect_deadline(repair, admission)}))
             while result["state"] in {"prepared", "running"}:
                 time.sleep(.025)
                 result = native.call("settings_effect_status", {"id": effect_id}, expected_effect=request,

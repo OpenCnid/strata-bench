@@ -346,11 +346,16 @@ class NativeSettingsEffectsClient:
         return {}
 
     def call(self, operation: str, args: dict, *, timeout_ms: int = 5000,
+             effect_deadline_unix_ms: int | None = None,
              expected_effect: EffectRequest | None = None, expected_repair: NativeRepairAdmission | None = None,
              expected_commit: NativeCommitDecision | None = None,
              expected_restart: NativeRestartRequest | NativeRestartCheckpoint | None = None) -> dict:
         require(operation in OPERATIONS, "CAPABILITY_MISSING")
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 30000, "SETTINGS_DEADLINE_INVALID")
+        now_ms = int(time.time() * 1000)
+        require(effect_deadline_unix_ms is None or (operation == "settings_effect_start"
+                and type(effect_deadline_unix_ms) is int
+                and now_ms < effect_deadline_unix_ms <= now_ms + 30000), "SETTINGS_DEADLINE_INVALID")
         try:
             args = self._args(operation, args)
             if operation == "settings_effect_status":
@@ -382,7 +387,8 @@ class NativeSettingsEffectsClient:
             raise Fault("SETTINGS_EFFECT_REQUEST_INVALID") from None
         request_id = str(uuid.uuid4())
         body = canonical({"schema": "strata/NativeGameRequest/1", "request_id": request_id,
-            "session_id": self.connection.session_id, "deadline_unix_ms": int(time.time() * 1000) + timeout_ms,
+            "session_id": self.connection.session_id, "deadline_unix_ms": (
+                effect_deadline_unix_ms if effect_deadline_unix_ms is not None else int(time.time() * 1000) + timeout_ms),
             "operation": operation, "args": args})
         require(len(body) <= MAX_REQUEST, "SETTINGS_REQUEST_TOO_LARGE")
         expires = time.monotonic() + timeout_ms / 1000

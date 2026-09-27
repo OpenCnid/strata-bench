@@ -107,7 +107,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     req = EffectRequest(id="after" if selected else "declared-" + str(i), transaction_id="tx",
                         expected_revision=head["revision"], expected_digest=head["digest"],
                         plan_digest=plan["worker_plan"]["plan_digest"], binding_id=slot["binding_id"],
-                        context=slot["context"], stage=slot["stage"], hold_ms=50, settle_ticks=2)
+                        context=slot["context"], stage=slot["stage"], hold_ms=1250 if selected else 50, settle_ticks=2)
                     expectations.append({"schema": "strata/NativeEffectExpectation/1", "request": req.model_dump(),
                         "settings_fingerprint": client.settings_fingerprint, "predicate": "screen_transition",
                         "initial_screen": "none", "final_screen": "fixture.Screen", "required_openings": [],
@@ -123,7 +123,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         request = EffectRequest(id="escape-" + slot["stage"], transaction_id="tx",
                             expected_revision=essential_head.revision, expected_digest=essential_head.digest,
                             plan_digest=plan["worker_plan"]["plan_digest"], binding_id=FIXED_ESCAPE,
-                            context="GUI", stage=slot["stage"], hold_ms=50, settle_ticks=2)
+                            context="GUI", stage=slot["stage"],
+                            hold_ms=1250 if slot["stage"] == "before_restart" else 50, settle_ticks=2)
                         declared = {"schema": "strata/NativeEffectExpectation/1", "request": request.model_dump(),
                             "settings_fingerprint": client.settings_fingerprint, "predicate": "screen_transition",
                             "initial_screen": "fixture.Screen", "final_screen": "none", "required_openings": [],
@@ -154,7 +155,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     if request.binding_id != ID:
                         # A charged ordinary inventory gesture prepares the next synthetic context.
                         close = request.model_copy(update={"id": "close-" + stage, "context": "GUI"})
-                        native.call("settings_effect_start", close.model_dump())
+                        native.call("settings_effect_start", close.model_dump(), timeout_ms=500,
+                            effect_deadline_unix_ms=min(plan["worker_plan"]["expires_unix_ms"], int(time.time() * 1000) + 1000))
                         assert terminal(native, close)["state"] == "observed"
                     producer.capture("tx", "owner", e.epoch, worker, native, request.id)
             if lost is None:
@@ -251,8 +253,10 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                             raise TimeoutError("synthetic reply loss after native effect dispatch")
                         return value
                     monkeypatch.setattr(replacement, "_result", lose_effect)
+                    e.controller.heartbeat("c1", "owner", e.epoch)
                     with pytest.raises(EffectOutcomeUnknown):
                         producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
+                    e.controller.heartbeat("c1", "owner", e.epoch)
                     checked = producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
                     assert checked == producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
                     assert emitted == ["settings_effect_start"] and checked["check"]["status"] == "pass"

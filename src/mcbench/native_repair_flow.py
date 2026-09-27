@@ -37,6 +37,17 @@ class NativeRepairFlow:
         require(remaining >= 0.1, "REPAIR_DEADLINE_EXPIRED")
         return int(remaining * 1000)
 
+    def _effect_deadline(self, repair, admission):
+        # The response poll is bounded to one second; a held-input observation
+        # keeps its own execution window inside both original repair clocks.
+        now = self.repairs.clock()
+        request = repair["request"]
+        remaining = min(request["deadline_unix"] - now,
+                        request["deadline_mono"] - self.repairs.monotonic(),
+                        admission.worker_plan.expires_unix_ms / 1000 - now, 30.0)
+        require(remaining >= 0.1, "REPAIR_DEADLINE_EXPIRED")
+        return int((now + remaining) * 1000)
+
     def _context(self, transaction, owner, epoch, worker, native, cleanup, *, restart_operation=False, observe=True):
         require(isinstance(native, NativeSettingsEffectsClient) and isinstance(worker, WorkerRepairClient),
                 "REPAIR_PROFILE_MISMATCH")

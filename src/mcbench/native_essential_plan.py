@@ -201,7 +201,7 @@ class NativeEssentialInputs:
     def capture(self, transaction, owner, epoch, worker, native, role, context, stage):
         profile = self.controls.status(transaction)["plan"]["profile_id"]
         with profile_operation(self.database, "repair:" + transaction), profile_operation(self.database, profile):
-            repair, control, _ = self.flow._context(transaction, owner, epoch, worker, native, False)
+            repair, control, admission = self.flow._context(transaction, owner, epoch, worker, native, False)
             require(control["phase"] == "verifying", "REPAIR_RECOVERY_REQUIRED")
             declared, body = self._plan(transaction)
             matches = [EssentialCase.model_validate(c) for c in body["cases"] if (c["role"], c["context"], c["stage"]) == (role, context, stage)]
@@ -226,7 +226,8 @@ class NativeEssentialInputs:
                     self.database.event(db, "repair.essential_intent", {"transaction_id": transaction, "case_id": case_id, "source_ref": declared["source_ref"]})
             result = native.call("settings_effect_status" if old else "settings_effect_start",
                 {"id": request.id} if old else request.model_dump(), timeout_ms=self.flow._timeout(repair),
-                **({"expected_effect": request} if old else {}))
+                **({"expected_effect": request} if old else {
+                    "effect_deadline_unix_ms": self.flow._effect_deadline(repair, admission)}))
             while result["state"] in {"prepared", "running"}:
                 time.sleep(.025)
                 result = native.call("settings_effect_status", {"id": request.id}, expected_effect=request, timeout_ms=self.flow._timeout(repair))

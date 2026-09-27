@@ -118,9 +118,29 @@ distinct native input policy /6. Both physical keys, reverse release and new
 sprint/directed movement are verified in the synthetic-body HTTP and connected
 before/after JVM replacement cases. [Sprint input evidence](docs/verification/2026-09-27-m1-sprint-input.md)
 retains the initial compile failure and passing focused checks. The /6 candidate
-JAR is built/archived, not installed or authentically qualified. Next prepare the
-complete authentic essential-control and independent recovery procedure on this
-exact profile, then finish real launcher/accounting/resume. G1 remains open.
+was subsequently installed for the failed authentic attempt below. Its partial
+control evidence does not qualify the complete profile. Independent recovery and
+real launcher/accounting/resume remain unfinished. G1 remains open.
+
+The first authentic /6 attempt is failed, with useful partial control evidence:
+all declared first-stage controls passed, and movement/jump/sneak/sprint/attack/use
+passed after restart. Its next Escape reply became uncertain when the private
+driver requested a5-second deadline with4,061ms of authority left. No input was
+replayed. Independent audit joins32 completed effects/22 added passing cases,
+seven frames and884 charged primitives. Both process trees are terminal;
+guardians927.3386/375.1023ms. After-restart Escape/chat and native rollback remain
+unverified on /6. Only the owned options field was restored after terminal custody.
+A sixth separate256MiB telemetry hold remains reserved; the old five are unchanged.
+
+The controller now separates effect execution deadlines from its1-second response
+wait, bounded by both original repair clocks and worker expiry. Actual JVM tests
+reproduce the old timeout and pass long holds through the connected guarded
+replacement, lost-reply status recovery and commit/rollback with synthetic bodies.
+[Native failure and deadline correction](docs/verification/2026-09-27-m1-essential-native.md).
+Next bind the authentic driver to the remaining deadline and prepare a feasible
+complete procedure, then independent recovery and full gameplay repair/accounting/
+resume. The /6 JAR is installed; original E-overlap options are restored. No
+unchanged rerun was dispatched, and no G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -10865,3 +10885,41 @@ Final private seal183files/6,961,896bytes `d0e178efa8edb60cccc0c4855d065891689c4
 - 2026-09-27 — M1.1c.3.2 native settings projection connected: exact qualification/source consumption, complete current keymap and body/connection joins, protected-binding and canonical encoding checks. [Evidence](docs/verification/2026-09-27-m1-native-projection.md). Selected controller/worker/guardian/JVM repair/restart/commit/rollback now uses actual native snapshot values instead of the synthetic settings adapter; body and qualification reports remain synthetic.163 distinct focused source cases and the changed connected test pass. No Minecraft/model run, installed artifact change or new spending. M1 in_progress; all six complete G1 suites/G1 not_run. Next authentic exact-profile qualification, real launcher, complete accounting and explicit resume; original authority/holds and M2-M7 exclusions preserved.
 
 - 2026-09-27 — M1.1b/M1.1c.3.2 essential sprint dependency connected: source-bound sprint plus forward mapping, bounded shared-lane input and reverse cleanup, versioned paired receipts, immutable two-key joins and declared motion/sprint predicates. [Evidence](docs/verification/2026-09-27-m1-sprint-input.md).87 Java cases and161 affected Python/process cases pass; expanded actual guarded JVM replacement captures four essential cases with synthetic body/qualification. Initial lambda-capture compile failure retained. /6 JAR built/archived, not installed. No Minecraft/model run or new spending. M1 in_progress; all full G1 suites/G1 not_run. Next complete authentic essential/recovery qualification, real launcher/accounting/resume and remaining gate cases; authority/holds and M2-M7 exclusions intact.
+
+### September 27 — exact /6 essential-control preparation
+
+The exact /6 essential-control procedure now has a verified fresh public fixture
+and declared before/after restart cases. Only initial player rotation changed;
+existing bow/arrows provide use prerequisites. The procedure covers all eleven
+essential roles, including sprint/forward, mouse attack/use and Escape in
+world/menu/chat. [Preparation and result](docs/verification/2026-09-27-m1-essential-native.md).
+Authentic execution is pending; independent recovery, the full context/failure
+matrix and gameplay repair/accounting/resume remain required. No G1 suite closes.
+
+Actual preparation: 8,609 fixture copies verified; only saved-player rotation changed. Twenty-six added case requests validate against current contracts. All40 authority tables/five holds unchanged; zero owned runtime. M1.1b/M1.1c.3.2 remain in_progress, T05/G1 not_run. Native execution is the next action.
+
+### September 27 — native /6 partial evidence and controller deadline correction
+
+The first authentic /6 attempt is failed, with useful partial control evidence:
+all declared first-stage controls passed, and movement/jump/sneak/sprint/attack/use
+passed after restart. Its next Escape reply became uncertain when the private
+driver requested a5-second deadline with4,061ms of authority left. No input was
+replayed. Independent audit joins32 completed effects/22 added passing cases,
+seven frames and884 charged primitives. Both process trees are terminal;
+guardians927.3386/375.1023ms. After-restart Escape/chat and native rollback remain
+unverified on /6. Only the owned options field was restored after terminal custody.
+A sixth separate256MiB telemetry hold remains reserved; the old five are unchanged.
+
+The controller now separates effect execution deadlines from its1-second response
+wait, bounded by both original repair clocks and worker expiry. Actual JVM tests
+reproduce the old timeout and pass long holds through the connected guarded
+replacement, lost-reply status recovery and commit/rollback with synthetic bodies.
+[Native failure and deadline correction](docs/verification/2026-09-27-m1-essential-native.md).
+Next bind the authentic driver to the remaining deadline and prepare a feasible
+complete procedure, then independent recovery and full gameplay repair/accounting/
+resume. The /6 JAR is installed; original E-overlap options are restored. No
+unchanged rerun was dispatched, and no G1 suite closes.
+
+Affected components: native_settings_effects/native_repair_flow and both effect producers; SPEC8.2, F06/F09/F11/F16, N01/N02/N03/N04/N06/N08, T01/T04/T05/T06/G1. Focused checks:157 source/JVM passes and one revised connected case pass; retained all intermediate errors. Current40 authority tables unchanged/4,887,796microUSD. No model calls; six separate telemetry holds. Full M1 remains in_progress; G1 not_run.
+
+Final essential-control audit: authentic failed attempt1,238files/128,099,519bytes, seal `7559bd5b5fa308358e02dc91a9f9800f202fccce8bd3b51626eb67528939d00a`; source/test preparation47files/4,313,096bytes, seal `d564d91a1cc15f3baf6c390d66789fa65030539f7b64b53160b4e32d410671b2`. Both exact bundles verify. All459 milestone IDs/1,664 ledger links preserved;40 authority tables unchanged; six separate telemetry holds retained; zero owned runtime. This pointer follows the archived documentation snapshot. M1/G1 remains open.

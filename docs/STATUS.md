@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, sprint input dependency connected
+## Current position — September 27, authentic controls and deadline correction
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -118,9 +118,30 @@ distinct native input policy /6. Both physical keys, reverse release and new
 sprint/directed movement are verified in the synthetic-body HTTP and connected
 before/after JVM replacement cases. [Sprint input evidence](verification/2026-09-27-m1-sprint-input.md)
 retains the initial compile failure and passing focused checks. The /6 candidate
-JAR is built/archived, not installed or authentically qualified. Next prepare the
-complete authentic essential-control and independent recovery procedure on this
-exact profile, then finish real launcher/accounting/resume. G1 remains open.
+was subsequently installed for the failed authentic attempt below. Its partial
+control evidence does not qualify the complete profile. Independent recovery and
+real launcher/accounting/resume remain unfinished. G1 remains open.
+
+
+The first authentic /6 attempt is failed, with useful partial control evidence:
+all declared first-stage controls passed, and movement/jump/sneak/sprint/attack/use
+passed after restart. Its next Escape reply became uncertain when the private
+driver requested a5-second deadline with4,061ms of authority left. No input was
+replayed. Independent audit joins32 completed effects/22 added passing cases,
+seven frames and884 charged primitives. Both process trees are terminal;
+guardians927.3386/375.1023ms. After-restart Escape/chat and native rollback remain
+unverified on /6. Only the owned options field was restored after terminal custody.
+A sixth separate256MiB telemetry hold remains reserved; the old five are unchanged.
+
+The controller now separates effect execution deadlines from its1-second response
+wait, bounded by both original repair clocks and worker expiry. Actual JVM tests
+reproduce the old timeout and pass long holds through the connected guarded
+replacement, lost-reply status recovery and commit/rollback with synthetic bodies.
+[Native failure and deadline correction](verification/2026-09-27-m1-essential-native.md).
+Next bind the authentic driver to the remaining deadline and prepare a feasible
+complete procedure, then independent recovery and full gameplay repair/accounting/
+resume. The /6 JAR is installed; original E-overlap options are restored. No
+unchanged rerun was dispatched, and no G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -1134,3 +1155,5 @@ Authentic operation08 archive633files/109,751,775bytes verifies under seal
 `70b58a6ce89e13426728530ed8fb15cba56243a09d665f05dba14ff0c560c788`.
 This pointer follows the archived document snapshot; both archives are unchanged.
 The named native transition reference passes; full M1/G1 remains open.
+
+Final essential-control audit: authentic failed attempt1,238files/128,099,519bytes, seal `7559bd5b5fa308358e02dc91a9f9800f202fccce8bd3b51626eb67528939d00a`; source/test preparation47files/4,313,096bytes, seal `d564d91a1cc15f3baf6c390d66789fa65030539f7b64b53160b4e32d410671b2`. Both exact bundles verify. All459 milestone IDs/1,664 ledger links preserved;40 authority tables unchanged; six separate telemetry holds retained; zero owned runtime. This pointer follows the archived documentation snapshot. M1/G1 remains open.

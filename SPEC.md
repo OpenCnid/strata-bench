@@ -1064,6 +1064,17 @@ uses synthetic qualification reports and a synthetic game body. Authentic
 qualification for the current profile, full accounting and explicit resume
 remain open; no older-profile evidence is promoted automatically.
 
+**Native effect deadlines (M1.1b/M1.1c.3.2).** A private effect-start call may
+carry an explicit absolute execution deadline separately from its bounded HTTP
+response wait. Intersect original wall/monotonic repair deadlines, worker
+admission expiry and the existing30-second native ceiling. Status polling and
+lost-reply reconciliation never renew the execution deadline or replay input.
+Other operations cannot select this override. Preserve all parent authority,
+hold-duration, primitive, cleanup and resume constraints. The source/JVM checks
+use synthetic bodies; the first authentic /6 cycle remains failed after its
+driver requested5 seconds with4,061 ms remaining. [Evidence and retained
+failure](docs/verification/2026-09-27-m1-essential-native.md).
+
 **Essential sprint companion (M1.1b/M1.1c.3.2).** The distinct
 `native-window-key-mouse-sprint-companion/6` policy verifies sprint using the
 current protected sprint mapping with the current protected forward mapping.

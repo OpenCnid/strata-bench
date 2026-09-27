@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, controller replacement adoption connected
+## Current position — September 27, native effect/restart evidence connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -68,9 +68,14 @@ the actual worker/guardian/JVM into native commit and rollback. Lost replies
 reconcile by status; old-descriptor writes are refused. Original admission,
 repair deadline, reservation and input hold remain intact.
 [Controller adoption evidence](verification/2026-09-27-m1-controller-restart.md)
-uses a synthetic body and verification producer. Real launch orchestration,
-qualified projection/authentic verification, complete settlement and explicit
-resume remain unfinished. No complete G1 suite is newly closed.
+uses a synthetic body and verification producer. Per-binding effect and restart
+evidence production now connect to this path: immutable expectations, one
+effect dispatch, status-only recovery and adopted-checkpoint validation.
+[Producer evidence](verification/2026-09-27-m1-effect-evidence.md) also
+reproduces13 retained native04 effects and preserves native02's original failure.
+The integrated body and remaining checks are still synthetic. Qualified
+projection, the complete authentic verification bundle, real launcher, full
+settlement and explicit resume remain unfinished. No complete G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -81,8 +86,8 @@ resume remain unfinished. No complete G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next complete M1.1c.3.2's real launch orchestration, qualified control projection
-and authentic proof producer, full accounting and explicit resume/recovery. Complete remaining
+Next complete M1.1c.3.2's qualified projection and full authentic verification
+bundle, real launcher, complete accounting and explicit resume/recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

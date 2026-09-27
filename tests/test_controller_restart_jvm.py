@@ -1,6 +1,7 @@
 """Actual controller/worker/guardian/JVM replacement; synthetic body and verification producer."""
 
 import json
+import copy
 import os
 import subprocess
 import sys
@@ -15,6 +16,7 @@ from mcbench.worker_restart import WorkerRestartClient, WorkerRestartUnknown
 from mcbench.native_settings_effects import EffectOutcomeUnknown
 from mcbench.storage import Fault
 from test_native_repair_flow import verification
+from mcbench.native_effect_evidence import NativeEffectEvidence
 from mcbench.native_repair_flow import NativeRepairFlow
 from mcbench.storage import canonical, digest
 from mcbench.worker_repair import WorkerRepairClient
@@ -145,9 +147,65 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                 effect = EffectRequest(id="after", transaction_id="tx", expected_revision=head["revision"],
                     expected_digest=head["digest"], plan_digest=plan["worker_plan"]["plan_digest"], binding_id=ID,
                     context="IN_GAME", stage="after_restart", hold_ms=50, settle_ticks=2)
-                replacement.call("settings_effect_start", effect.model_dump(), timeout_ms=500)
-                assert terminal(replacement, effect)["state"] == "observed"
-                assert flow.commit("tx", "owner", e.epoch, worker, replacement, verification(e))["control"]["phase"] == "committed"
+                proofs = verification(e)
+                if lost is None:
+                    producer = NativeEffectEvidence(e.repairs)
+                    expectations = []
+                    for i, slot in enumerate(e.controls.status("tx")["plan"]["binding_checks"]):
+                        selected = slot["binding_id"] == ID and slot["stage"] == "after_restart"
+                        req = effect.model_copy(update={"id": "after" if selected else "declared-" + str(i),
+                            "binding_id": slot["binding_id"], "context": slot["context"], "stage": slot["stage"]})
+                        expectations.append({"schema": "strata/NativeEffectExpectation/1", "request": req.model_dump(),
+                            "settings_fingerprint": replacement.settings_fingerprint, "predicate": "screen_transition",
+                            "initial_screen": "none", "final_screen": "fixture.Screen", "required_openings": [],
+                            "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25})
+                    producer.register("tx", "owner", e.epoch, worker, replacement, expectations)
+                    with pytest.raises(Fault, match="IDEMPOTENCY_CONFLICT"):
+                        producer.register("tx", "owner", e.epoch, worker, replacement,
+                            [dict(x, final_screen="fixture.Other") for x in expectations])
+                    original_result = replacement._result
+                    emitted = []
+                    def lose_effect(operation, *args, **kwargs):
+                        value = original_result(operation, *args, **kwargs)
+                        if operation == "settings_effect_start":
+                            emitted.append(operation)
+                            raise TimeoutError("synthetic reply loss after native effect dispatch")
+                        return value
+                    monkeypatch.setattr(replacement, "_result", lose_effect)
+                    with pytest.raises(EffectOutcomeUnknown):
+                        producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
+                    checked = producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
+                    assert checked == producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
+                    assert emitted == ["settings_effect_start"] and checked["check"]["status"] == "pass"
+                    original_reader = e.controls.evidence_reader
+                    e.controls.evidence_reader = lambda ref, max_bytes: (original_reader(ref, max_bytes=max_bytes)
+                        if ref in e.adapter.evidence else e.cas.read(e.operator, "operator", ref, max_bytes=max_bytes))
+                    proofs["binding_checks"] = [checked["check"] if x["binding_id"] == ID and x["stage"] == "after_restart"
+                                               else x for x in proofs["binding_checks"]]
+                    retained = coordinator._row("tx")["source_ref"]
+                    retained_body = e.cas.json(e.operator, "operator", retained)
+                    for path, wrong in [("worker_state.old_terminal.termination_confirmed", False),
+                                        ("native_state.input_resumed", True), ("native_head.digest", "0" * 64),
+                                        ("native_head.options_sha256", "0" * 64), ("old_binding", "0" * 64),
+                                        ("is_example", False)]:
+                        altered = copy.deepcopy(retained_body)
+                        target_body = altered
+                        parts = path.split(".")
+                        for part in parts[:-1]:
+                            target_body = target_body[part]
+                        target_body[parts[-1]] = wrong
+                        bad_ref = e.cas.put(e.operator, "operator", "operator", canonical(altered))
+                        with e.database.transaction() as db:
+                            db.execute("UPDATE repair_native_restarts SET source_ref=? WHERE id='tx'", (bad_ref,))
+                        with pytest.raises(ValueError):
+                            producer.restart_check("tx", "owner", e.epoch, worker, replacement)
+                    with e.database.transaction() as db:
+                        db.execute("UPDATE repair_native_restarts SET source_ref=? WHERE id='tx'", (retained,))
+                    proofs["checks"]["restart-persistence"] = producer.restart_check("tx", "owner", e.epoch, worker, replacement)
+                else:
+                    replacement.call("settings_effect_start", effect.model_dump(), timeout_ms=500)
+                    assert terminal(replacement, effect)["state"] == "observed"
+                assert flow.commit("tx", "owner", e.epoch, worker, replacement, proofs)["control"]["phase"] == "committed"
                 assert flow.rollback("tx", "owner", e.epoch, worker, replacement)["control"]["phase"] == "rolled_back"
                 assert (profile / "options.txt").read_bytes() == options.encode()
                 assert native_calls.count("settings_restart_prepare") == 1

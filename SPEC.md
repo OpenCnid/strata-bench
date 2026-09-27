@@ -964,6 +964,24 @@ uses actual controller/worker/guardian/JVM processes with synthetic body and
 verification producer. Real launch orchestration, qualified projection/authentic
 proofs, complete accounting and explicit resume remain required.
 
+**Private effect evidence producer (M1.1c.3.2).** Register one immutable complete
+NativeEffectExpectation/1 manifest for the approved plan's binding/context/stage
+slots before dispatching checks. Bind exact requests, native head and settings
+identity, declared screen/opening predicates and bounded movement/hold outcomes.
+Capture one native effect-start per slot with durable intent; missing replies
+or failed publication reconcile by status without replay. Retain failed results
+and forbid changed declarations or replacement effect IDs as a new attempt.
+Produce operator-only ControlCheck sources from validated raw observations and
+the immutable declaration, preserving simulation identity. Restart persistence
+must join the controller's adopted checkpoint, independent old-terminal and
+replacement proofs, native continuation and complete settings head, including a
+fresh exact read. Neither raw observations nor successful declared predicates
+qualify the input pool, intended semantics or full suite. Generic summaries,
+essential controls, release, full context coverage and qualified profile
+projection remain independent requirements. [Producer evidence](docs/verification/2026-09-27-m1-effect-evidence.md)
+distinguishes synthetic connected integration from retained authentic observations;
+no gameplay resume or broader capability is advertised.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

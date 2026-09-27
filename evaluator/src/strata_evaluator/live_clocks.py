@@ -16,7 +16,7 @@ from .telemetry_clocks import ServerClockSample, advance_clock, reconcile_clock
 from mcbench.inference_transport import strict_json
 
 
-def clock_prefix(path, authority, cursor):
+def clock_prefix(path, authority, cursor, *, expected_launch=None):
     """Read exactly one bounded, signed prefix ending at a complete clock sample.
 
     Later appends do not alter the selected receipt. An incomplete requested
@@ -44,7 +44,9 @@ def clock_prefix(path, authority, cursor):
             if previous is None:
                 require(event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/20"
                         and event.server_tick == 0 and not event.actor_ids, "CLOCK_PREFIX_PROFILE")
-                ServerStartedV20.model_validate(event.payload)
+                startup = ServerStartedV20.model_validate(event.payload)
+                if expected_launch is not None:
+                    require(startup.launch_identity.model_dump() == expected_launch, "CLOCK_PREFIX_LAUNCH")
             else:
                 require(event.kind not in {"server_started", "server_clock", "server_stopped"}
                         and event.server_tick >= previous.server_tick, "CLOCK_PREFIX_ORDER")

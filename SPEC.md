@@ -1923,6 +1923,21 @@ nonoverlapping usage and publication tail. No game-clock value may be inferred
 from elapsed wall time. [Source and synthetic process evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md)
 does not qualify the changed Minecraft profile, active time, scorer or G1.
 
+**M1.1c.3.4 clock source/repair binding candidate.** The private live source must
+join authenticated startup bytes to the existing pipe launch owner's retained,
+live process handle and durable cursor, sealed setup, full registered roster,
+module/world identity and original boot. No PID discovery or relabeling a
+synthetic launch is permitted. The local numeric-loopback/player fingerprint
+must match the admitted target and actual native body before a controller repair
+mark is stored. Require original owner/epoch/deadline/reservation, immutable
+source identity and increasing cursors; retries preserve original evidence/times.
+This establishes source binding, not current sample generation, process isolation
+or complete accounting. Keep the explicit false qualification/settlement flags
+until independently satisfied. A received periodic sample alone cannot prove an
+after-repair boundary. [Binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md)
+uses synthetic setup/game data, including an actual retained Windows/JVM check;
+it does not qualify Minecraft or complete the repair workflow/G1.
+
 `elapsed_wall` is monotonic elapsed time from first scored start through final stop, including all pauses/outages. `active_wall` includes RUNNING/RECONFIGURING, model thinking, tool latency, idle avatar time, rate-limit waits while the server runs, and checkpoint quiescence until the server stops. It excludes only logged intervals where the whole campaign server is stopped and all campaign inference is suspended. Restart counts again from the first resumed simulation tick, including login/readiness time. Queue/provisioning/preplay checks are separate overhead. Agent-requested restart while the server continues is active time.
 
 `server_ticks` are actual ticks advanced, by boot ID/epoch; they are not inferred as 20 times wall time. `avatar_ticks` sums actual connected-avatar tick exposure across all bodies and practice branches; disconnected time is recorded separately. Also record reserved avatar seconds so disconnects cannot create an apparent resource-efficiency advantage. `primitive_events` counts versioned local execution units (each active motor tick and discrete dig/place/use/slot/craft emission, or raw input events on a physical backend), not high-level tool requests; rejected-before-dispatch requests still incur tool/model cost. All clocks and counters remain monotonic in the ledger across world rollback. Report both surviving game-state tick position and total ticks consumed, including lost work.

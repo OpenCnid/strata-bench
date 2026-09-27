@@ -2,6 +2,17 @@
 
 ## Current position
 
+M1.1c.3.4 now binds live clock prefixes to the pipe launch owner's retained
+server handle, immutable setup/roster and actual native repair body identity.
+The controller stores immutable marks under the original repair authority while
+retaining its budget/input hold. [Clock binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md).
+The Windows/JVM retained-handle check passes with synthetic telemetry/setup;
+Minecraft qualification remains open. Next add a single-use producer barrier
+that proves its clock sample was generated after the controller request, then
+join complete consumption, publication and original-lease resume. A periodic
+sample received later cannot supply that timing proof. M1/G1 remains open.
+
+
 M1.1c.3.4 now exports the native callback clock while the server runs, through
 telemetry0.3.19/ServerStarted20 and a private authenticated prefix reader. An
 actual JVM/Python fixture observes continued ticks across synthetic disconnect/
@@ -1703,7 +1714,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1c.3.1 | PL/QA | Durable per-avatar repair holds, scoped grant revocation, stop/fresh-observation receipts, recovery fencing and clock attribution | implemented_unverified | [Coordinator](src/mcbench/reconfiguration.py), [32 synthetic cases](tests/test_reconfiguration.py); partial controller/settings/budget/clock integration with private CAS proofs. Actual worker transport, receipt provenance and complete measured charges remain unqualified. |
 | M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. [Native repair admission](docs/verification/2026-09-27-m1-native-repair-admission.md) binds the same plan/patch/effects/deadline with connected synthetic-body evidence. [Controller-native translation/admission](docs/verification/2026-09-27-m1-native-controller.md) now joins immutable keymaps, exact target/descriptor and durable bind/status evidence. [Native commit decision storage](docs/verification/2026-09-27-m1-native-commit.md) now passes pending-head/status/reopen/owned-rollback checks under separate opt-in. [Connected controller-native writes](docs/verification/2026-09-27-m1-native-repair-flow.md) now pass apply/complete supplied-proof validation/commit/rollback and no-replay checks through the actual worker/JVM with synthetic body/proofs. [Native restart handoff](docs/verification/2026-09-27-m1-native-restart.md) now passes actual JVM exit/reopen, exact pending-head continuation and no rearm/replay with synthetic body. [Same-worker replacement](docs/verification/2026-09-27-m1-worker-restart.md) now passes actual guardian/JVM terminal-old, guarded-new and original-expiry checks with a synthetic body; gameplay stays fenced. [Controller adoption](docs/verification/2026-09-27-m1-controller-restart.md) now joins prepare, worker detach/attach, successor descriptor and subsequent commit/rollback, including lost-reply status reconciliation with synthetic body/proofs. [Effect/restart producer](docs/verification/2026-09-27-m1-effect-evidence.md) now derives exact declared per-binding effects and adopted-checkpoint persistence; actual JVM integration and retained native04/native02 classification pass with scopes separate. [Complete effect summaries/release receipts](docs/verification/2026-09-27-m1-release-evidence.md) now feed four declared before/after effects and three generic summaries into actual controller/worker/JVM commit/rollback; body and essential-control proof remain synthetic. [Attack/use input dependency](docs/verification/2026-09-27-m1-essential-input.md) adds bounded private mouse callbacks and typed local activity, with synthetic JVM/HTTP evidence only. Real launcher orchestration, qualified projection/complete authentic verification, accounting/settlement, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification.  [Essential plan/fixed Escape/recovery](docs/verification/2026-09-27-m1-essential-plan.md) now has explicit admission, immutable complete context/stage dispositions, offline physical-release joins and synthetic-body JVM restart/stop-all evidence; full authentic essential proof and resume remain open.  [Native projection](docs/verification/2026-09-27-m1-native-projection.md) now reads actual state under exact qualification consumption in the connected JVM restart/commit/rollback path; reports/body remain synthetic and authentic qualification/accounting/resume remain incomplete.  [Sprint companion](docs/verification/2026-09-27-m1-sprint-input.md) supplies bounded ordinary sprint/forward input, exact paired release and synthetic before/after JVM replacement evidence; /6 authentic qualification remains open. |
 | M1.1c.3.3 | PL/GI | Full repair budget/telemetry settlement, public KeybindingPatch/control card and scoped gameplay CLI | not_started | Retain nested charging, fresh-probe repair policy and complete public/private projections. |
-| M1.1c.3.4 | GI/PL | Explicit native/worker/controller resume after verified commit or restored rollback; same history/charges/expiry, fresh observation, no implicit recovery | in_progress | [Native/worker/guardian resume and private transport](docs/verification/2026-09-27-m1-worker-resume.md) pass synthetic-body process cases. [Live callback-clock source and JVM/Python prefix evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md) adds nonterminal tick reads. Controller readiness/settlement, exact repair clock attribution, public keymap/skill, repeated repair chains and authentic gameplay remain unfinished. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1. |
+| M1.1c.3.4 | GI/PL | Explicit native/worker/controller resume after verified commit or restored rollback; same history/charges/expiry, fresh observation, no implicit recovery | in_progress | [Native/worker/guardian resume and private transport](docs/verification/2026-09-27-m1-worker-resume.md) pass synthetic-body process cases. [Live callback-clock source and JVM/Python prefix evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md) adds nonterminal tick reads. [Owned source/body clock binding](docs/verification/2026-09-27-m1-repair-clock-binding.md) now connects to controller receipts. Producer timing barrier, controller settlement/completion, public keymap/skill, repeated repair chains and authentic gameplay remain unfinished. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1. |
 | M3.2 | RS/SI | Matched fresh clone plans, artifact controls and drift quarantine decisions | in_progress | [Probe planner](evaluator/src/strata_evaluator/probes.py); actual isolated clone execution/disposal and supervisor drift handling open. |
 | M3.3 | RS | Paired lineage analysis, absolute competence, uncertainty/attrition and common support | in_progress | [Analysis](evaluator/src/strata_evaluator/analysis.py); full survival/hierarchical/power/confirmatory workflow open. |
 | M4.1 | PL | Whole-team resource/account admission, scoped grants and bounded communication | in_progress | [Controller/message tests](tests/test_storage_controller.py); actual simultaneous N=1/2/4 certificates remain required. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
@@ -11265,3 +11276,25 @@ Private source/build/test archive2026-09-27-m1-live-repair-clocks-01 verifies:
 `52d0dc4a246f28412ff1455be633080203c2450798040e5b92527b00cc711efa`.
 This pointer follows the archived source/document snapshot; that archive is
 immutable. M1/G1 and authentic live-clock/repair settlement qualification remain open.
+
+
+### September27 — M1.1c.3.4 owned clock-source and repair-body binding
+
+M1.1c.3.4 now binds live clock prefixes to the pipe launch owner's retained
+server handle, immutable setup/roster and actual native repair body identity.
+The controller stores immutable marks under the original repair authority while
+retaining its budget/input hold. [Clock binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md).
+The Windows/JVM retained-handle check passes with synthetic telemetry/setup;
+Minecraft qualification remains open. Next add a single-use producer barrier
+that proves its clock sample was generated after the controller request, then
+join complete consumption, publication and original-lease resume. A periodic
+sample received later cannot supply that timing proof. M1/G1 remains open.
+
+Affected F06/F09/F11/F16, N01/N02/N03/N04/N06/N08; T01/T04/T05/T06 and necessary T12 dependencies.34 focused cases pass including actual JVM/Windows-handle checks with synthetic setup/body/transport lifecycle. No budget settlement, input publication or authentic qualification follows. Existing holds, failures and authority persist; no paid call or unchanged game rerun.
+
+Evidence preservation: the owned-clock bundle contains32files/2,527,143bytes,
+SHA-256 `afab36b82d9880c7479144f30b73fcbffc5fc7b6a45ede0a4f1d66b6b84fe0e7`. All40 durable authority tables/eight holds and installed
+client/options are unchanged; all460 milestone IDs preserved,2,141 local links
+resolve, final owned-runtime inventory0. Current status/handoff now lead with the
+complete unfinished G1 checklist and the connected repair/resume completion target.
+No aggregate suite was promoted. This seal pointer postdates the archived snapshot.

@@ -1,6 +1,44 @@
 # Strata current status
 
-## Current position — September 27, live repair clock dependency
+## M1 completion target
+
+M1 is still `in_progress`; G1 is `not_run`. No aggregate G1 suite is complete.
+Component checks below are supporting evidence, not milestone completion.
+
+The next observable result is one connected, authentic workflow: ordinary gameplay,
+keybinding conflict diagnosis, owned pause, repair, restart and effect verification,
+complete accounting, then resumed gameplay; failed repair must restore and verify
+its prior controls. The current clock-source work supports that accounting join.
+It does not resolve the retained native-health failure or qualify the final profile.
+
+| G1 suite | Remaining completion work |
+|---|---|
+| T01 contracts | Complete reference/admission and path-boundary cases on the final profile. |
+| T04 native integration | Selected skill, integrated game/settings/probe profile, interruption/resume and every-call accounting. |
+| T05 keybindings | Full public repair/resume and rollback workflow, required effects/failure cases and authentic profile qualification. |
+| T06 isolation | Final integrated root/helper access boundaries, credentials, cross-agent isolation and probe disposal. |
+| T10 scoring | Protected scoring admission and the remaining positive, negative, alternative-strategy and parity controls. |
+| T11 probes | Full initial/transient matched state, native admission, clocks, cache resets and exclusion of probe feedback. |
+
+M1 paid model verification also needs authority beyond the M0-only D18/D19
+allowance. Implementation and authorized scripted checks can continue independently.
+
+## Current position — September27, owned repair clock source
+
+Private evidence sealed:32files/2,527,143bytes,
+SHA-256 `afab36b82d9880c7479144f30b73fcbffc5fc7b6a45ede0a4f1d66b6b84fe0e7`. Authority40tables/eight holds and installed client/options
+unchanged; final runtime inventory0. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now binds live clock prefixes to the pipe launch owner's retained
+server handle, immutable setup/roster and actual native repair body identity.
+The controller stores immutable marks under the original repair authority while
+retaining its budget/input hold. [Clock binding evidence](verification/2026-09-27-m1-repair-clock-binding.md).
+The Windows/JVM retained-handle check passes with synthetic telemetry/setup;
+Minecraft qualification remains open. Next add a single-use producer barrier
+that proves its clock sample was generated after the controller request, then
+join complete consumption, publication and original-lease resume. A periodic
+sample received later cannot supply that timing proof. M1/G1 remains open.
+
 
 M1.1c.3.4 now exports the native callback clock while the server runs, through
 telemetry0.3.19/ServerStarted20 and a private authenticated prefix reader. An

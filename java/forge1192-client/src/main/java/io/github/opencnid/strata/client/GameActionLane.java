@@ -71,6 +71,9 @@ final class GameActionLane implements AutoCloseable {
     private final Set<String> usedReconfigurations = new java.util.HashSet<>();
     private long reconfigurationUntil, reconfigurationDeadline, reconfigurationGeneration;
     private boolean recoveredReconfiguration;
+    private NativeRepairAdmission repair;
+    private long repairUntil, repairGeneration;
+    private String repairFailure;
 
     GameActionLane(Path root, String fingerprint, Authority authority, RuntimePort runtime) throws IOException {
         this(root, fingerprint, authority, runtime, new Clock() {
@@ -105,6 +108,21 @@ final class GameActionLane implements AutoCloseable {
             long wall = SettingsJson.integer(event, "wall_ms");
             if (wall < lastWall) throw new IOException("GAME_JOURNAL_INVALID"); lastWall = wall;
             switch (SettingsJson.string(event, "kind")) {
+                case "repair_admitted" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "admission", "generation");
+                    if (repair != null || reconfiguration != null || !event.get("admission").isJsonObject()
+                            || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
+                    repair = new NativeRepairAdmission(event.getAsJsonObject("admission"));
+                    repairScope(repair); repairGeneration = SettingsJson.integer(event, "generation");
+                    repairUntil = -1; repairFailure = "REPAIR_RECOVERY_REQUIRED";
+                }
+                case "repair_failed" -> {
+                    SettingsJson.fields(event, "kind", "wall_ms", "transaction_id", "reason");
+                    if (repair == null || !repair.transaction.equals(GameBatch.id(event, "transaction_id"))) throw new IOException("GAME_JOURNAL_INVALID");
+                    String reason = SettingsJson.string(event, "reason");
+                    if (!reason.matches("[A-Z][A-Z0-9_]{1,95}")) throw new IOException("GAME_JOURNAL_INVALID");
+                    repairFailure = reason;
+                }
                 case "reconfiguration_begin" -> {
                     SettingsJson.fields(event, "kind", "wall_ms", "id", "deadline_unix_ms", "generation");
                     String id = GameBatch.id(event, "id");
@@ -141,7 +159,7 @@ final class GameActionLane implements AutoCloseable {
                 case "lease" -> {
                     SettingsJson.fields(event, "kind", "wall_ms", "epoch", "lease_id");
                     long epoch = SettingsJson.integer(event, "epoch");
-                    if (reconfiguration != null || epoch <= lastEpoch || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
+                    if (repair != null || reconfiguration != null || epoch <= lastEpoch || records.values().stream().anyMatch(r -> r.terminal == null)) throw new IOException("GAME_JOURNAL_INVALID");
                     lastEpoch = epoch; lease = GameBatch.id(event, "lease_id"); lastSequence = -1;
                 }
                 case "renew" -> {
@@ -200,6 +218,7 @@ final class GameActionLane implements AutoCloseable {
 
     JsonObject arm(long epoch, String leaseId, long until, String expectedFenceToken) throws IOException {
         thread(); NativeSettingsProtocol.identifier(leaseId);
+        if (repair != null) throw new IOException("REPAIR_RECOVERY_REQUIRED");
         if (reconfiguration != null) throw new IOException("RECONFIGURING");
         if (!fenceToken.equals(expectedFenceToken)) throw new IOException("STALE_FENCE_TOKEN");
         if (!healthy || active != null || epoch <= lastEpoch) throw new IOException("STALE_EPOCH");
@@ -283,6 +302,10 @@ final class GameActionLane implements AutoCloseable {
 
     void tick() throws IOException {
         thread();
+        if (repair != null && repairFailure == null) {
+            try { repairReady(); }
+            catch (IOException error) { try { failRepair(code(error)); } finally { fence(code(error)); } return; }
+        }
         if (!fenced) {
             try { ready(); }
             catch (IOException error) { fence(code(error)); return; }
@@ -334,15 +357,74 @@ final class GameActionLane implements AutoCloseable {
         return status(id);
     }
     JsonObject stopAll() throws IOException {
-        thread(); reconfigurationUntil = -1; fence("STOP_ALL"); return health();
+        thread();
+        try { failRepair("STOP_ALL"); }
+        finally { reconfigurationUntil = -1; fence("STOP_ALL"); }
+        return health();
+    }
+
+    boolean hasRepair() { return repair != null; }
+    NativeRepairAdmission repairAdmission() throws IOException {
+        thread(); if (repair == null) throw new IOException("SETTINGS_REPAIR_REQUIRED"); return repair;
+    }
+    private void repairScope(NativeRepairAdmission value) throws IOException {
+        if (!value.campaign.equals(authority.campaign) || !value.agent.equals(authority.agent)
+                || value.epoch != lastEpoch || !value.lease.equals(lease)) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+    }
+    JsonObject admitRepair(NativeRepairAdmission value) throws IOException {
+        thread();
+        if (repair != null) {
+            if (!repair.value.equals(value.value)) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+            return repairStatus();
+        }
+        absoluteLimit(); body(); repairScope(value);
+        long remaining = value.expires - clock.wall();
+        if (!healthy || !fenced || active != null || reconfiguration != null || runtime.connectionGeneration() != generation
+                || records.values().stream().anyMatch(r -> r.terminal == null
+                    || r.batch.epoch == lastEpoch && "unknown".equals(r.terminal.get("status").getAsString()))) {
+            throw new IOException("INPUT_RELEASE_REQUIRED");
+        }
+        if (remaining < 1 || remaining > 900000 || value.expires > authority.expires) throw new IOException("SETTINGS_DEADLINE_INVALID");
+        JsonObject event = event("repair_admitted"); event.add("admission", value.value.deepCopy());
+        event.addProperty("generation", runtime.connectionGeneration()); append(event);
+        repair = value; repairUntil = clock.mono() + remaining; repairGeneration = runtime.connectionGeneration();
+        return repairStatus();
+    }
+    void repairReady() throws IOException {
+        thread(); if (repair == null) throw new IOException("SETTINGS_REPAIR_REQUIRED");
+        if (repairFailure != null) throw new IOException(repairFailure);
+        if (clock.mono() >= repairUntil || clock.wall() >= repair.expires) throw new IOException("REPAIR_DEADLINE_EXPIRED");
+        absoluteLimit(); body();
+        if (!healthy || !fenced || active != null || runtime.connectionGeneration() != repairGeneration) throw new IOException("REPAIR_FENCE_LOST");
+    }
+    JsonObject repairStatus() throws IOException {
+        repairAdmission();
+        if (repairFailure == null) try { repairReady(); }
+        catch (IOException error) { try { failRepair(code(error)); } finally { fence(code(error)); } }
+        JsonObject result = new JsonObject(); result.addProperty("schema", "strata/NativeSettingsRepairState/1");
+        result.add("admission", repair.value.deepCopy()); result.addProperty("phase", repairFailure == null ? "bound" : "recovery_required");
+        result.addProperty("reason", repairFailure); result.addProperty("body_fingerprint", authority.body);
+        result.addProperty("connection_generation", repairGeneration); result.addProperty("primitive_events", charged);
+        result.addProperty("resume_authorized", false); return result;
+    }
+    private void failRepair(String reason) throws IOException {
+        if (repair == null || repairFailure != null) return;
+        repairFailure = reason; repairUntil = -1;
+        JsonObject event = event("repair_failed"); event.addProperty("transaction_id", repair.transaction);
+        event.addProperty("reason", reason); append(event);
     }
 
     void beginReconfiguration(String id, long deadline) throws IOException {
-        thread(); NativeSettingsProtocol.identifier(id); absoluteLimit(); body();
+        beginReconfiguration(id, deadline, false);
+    }
+    void beginReconfiguration(String id, long deadline, boolean repairRollback) throws IOException {
+        thread(); NativeSettingsProtocol.identifier(id); body();
+        if (repairRollback) repairAdmission(); else { absoluteLimit(); if (repair != null) repairReady(); }
         if (!healthy || reconfiguration != null) throw new IOException("RECONFIGURING");
         if (usedReconfigurations.contains(id)) throw new IOException("SETTINGS_VERIFICATION_CONSUMED");
         long remaining = deadline - clock.wall();
-        if (remaining < 1 || remaining > 30000 || deadline > authority.expires) throw new IOException("SETTINGS_DEADLINE_INVALID");
+        if (remaining < 1 || remaining > 30000 || !repairRollback && (deadline > authority.expires
+                || repair != null && deadline > repair.expires)) throw new IOException("SETTINGS_DEADLINE_INVALID");
         long until = clock.mono() + remaining;
         fence("RECONFIGURING");
         if (!healthy) throw new IOException("GAME_RELEASE_UNCONFIRMED");
@@ -355,6 +437,7 @@ final class GameActionLane implements AutoCloseable {
     void reconfigurationReady(String id) throws IOException {
         thread();
         if (!id.equals(reconfiguration)) throw new IOException("SETTINGS_VERIFICATION_NOT_OWNED");
+        if (repair != null) repairReady();
         if (!healthy || reconfigurationUntil < 0 || clock.mono() >= reconfigurationUntil
                 || clock.wall() >= reconfigurationDeadline) throw new IOException("SETTINGS_VERIFICATION_EXPIRED");
         absoluteLimit(); body();
@@ -382,14 +465,19 @@ final class GameActionLane implements AutoCloseable {
         event.add("observation", observation.deepCopy()); append(event);
     }
     void endReconfiguration(String id, String result) throws IOException {
+        endReconfiguration(id, result, false);
+    }
+    void endReconfiguration(String id, String result, boolean repairRollback) throws IOException {
         thread();
         if (!id.equals(reconfiguration)) throw new IOException("SETTINGS_VERIFICATION_NOT_OWNED");
         if (!Set.of("completed", "cancelled", "unknown").contains(result)) throw new IOException("SETTINGS_EFFECT_RESULT_INVALID");
-        if (result.equals("completed")) reconfigurationReady(id);
+        if (result.equals("completed") && !repairRollback) reconfigurationReady(id);
         if (!release(null)) throw new IOException("GAME_RELEASE_UNCONFIRMED");
         JsonObject event = event("reconfiguration_end"); event.addProperty("id", id); event.addProperty("result", result);
         append(event); reconfiguration = null; reconfigurationUntil = -1;
         recoveredReconfiguration = false;
+        if (repairRollback) failRepair("REPAIR_ROLLED_BACK");
+        else if (!result.equals("completed")) failRepair("SETTINGS_REPAIR_INTERRUPTED");
         markFenced("RECONFIGURATION_ENDED"); deliveries.clear();
     }
     private void fence(String reason) throws IOException {

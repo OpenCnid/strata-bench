@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screens.Screen;
 /** Explicit private conformance route; shared game authority, no second input writer or effect verdict. */
 final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Port {
     static final String PROPERTY = "strata.settingsEffects";
+    static final String REPAIR_PROPERTY = "strata.settingsRepairOwner";
     private final Minecraft client;
     private final NativeSettingsRuntime runtime;
     private final SettingsStore store;
@@ -26,11 +27,15 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
         root = SettingsFiles.safeExisting(root);
         runtime = new NativeSettingsRuntime(client);
         store = new SettingsStore(client.gameDirectory.toPath().toAbsolutePath().normalize(), root, runtime.fingerprint(), runtime);
-        coordinator = new SettingsEffectsCoordinator(store, runtime, lane, this);
+        coordinator = new SettingsEffectsCoordinator(store, runtime, lane, this, Boolean.getBoolean(REPAIR_PROPERTY));
     }
     static boolean enabled() { return Boolean.getBoolean(PROPERTY); }
     static void validateModes(java.util.Properties properties, java.util.Map<String, String> environment) {
         String value = properties.getProperty(PROPERTY);
+        String repair = properties.getProperty(REPAIR_PROPERTY);
+        if (repair != null && !repair.equals("false") && (!repair.equals("true") || !"true".equals(value))) {
+            throw new IllegalStateException("SETTINGS_REPAIR_MODE_INVALID");
+        }
         if (value == null || value.equals("false")) return;
         if (!value.equals("true") || properties.getProperty("strata.gameBridgeDirectory") == null) {
             throw new IllegalStateException("SETTINGS_EFFECT_MODE_INVALID");

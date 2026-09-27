@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, controller-to-worker repair handoff implemented
+## Current position — September 27, worker-owned native settings admission implemented
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -25,7 +25,7 @@ confirmed released and kept fenced under a durable fixed-expiry hold; changed
 plans cannot extend it or silently rearm through a new executor epoch. Separate
 private/public grants and guarded cleanup pass actual JVM/Windows process checks
 with synthetic game input. [Evidence](verification/2026-09-27-m1-worker-repair.md).
-The settings adapter, native transaction admission, restart/rejoin and explicit
+The qualified settings adapter, restart/rejoin and explicit
 resume/rollback recovery remain unfinished. This is implemented but unverified
 in Minecraft; it closes no complete G1 suite.
 
@@ -34,8 +34,17 @@ stop proof from the actual private response. Lost replies reconcile by status;
 failed confirmed pauses revoke controller repair permission. The Python→Node→
 Windows guardian→Java fixture path passes active cancellation and expiry checks.
 [Handoff evidence](verification/2026-09-27-m1-repair-handoff.md).
-Settings/body are synthetic; native transaction/effects and full repair/resume
+Settings/body are synthetic; final controller-to-native mapping and full repair/resume
 remain unfinished. No complete G1 suite is newly closed.
+
+The private native settings endpoint now binds one exact worker repair plan,
+patch, allowed effect bindings and fixed deadline. Connected Python/Node/Windows
+Guardian/JVM checks pass apply, raw effect observation, rollback and expiry;
+reopening retains recovery and cannot rearm gameplay. The body/settings remain
+synthetic in these checks. [Native admission evidence](verification/2026-09-27-m1-native-repair-admission.md).
+Controller-to-native profile translation, qualified commit, restart/rejoin,
+explicit resume and authentic gameplay repair remain unfinished. No complete
+G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -46,8 +55,8 @@ remain unfinished. No complete G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next bind actual native settings transaction/effect admission to M1.1c.3.2's
-controller-to-worker handoff, then restart/rejoin and explicit resume/rollback recovery. Complete remaining
+Next connect M1.1c.3.2's controller plan/profile translation to the native admission
+and complete qualified commit, restart/rejoin and explicit resume/rollback recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

@@ -16,10 +16,11 @@ from .native_settings import (
     MAX_REQUEST, NativePatch, NativeReceipt, NativeSettingsClient, NativeSnapshot, strict_json,
 )
 from .storage import Fault, canonical, require
+from .worker_repair import WorkerRepairPlan
 
 OPERATIONS = frozenset({"settings_snapshot", "settings_apply", "settings_status", "settings_rollback",
-                        "settings_effect_start", "settings_effect_status"})
-MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start"})
+                        "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status"})
+MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start", "settings_repair_bind"})
 Context = Literal["IN_GAME", "GUI", "CHAT"]
 ClassName = Annotated[str, Field(min_length=1, max_length=512, pattern=r"^[A-Za-z_$][A-Za-z0-9_.$]*$")]
 
@@ -146,6 +147,39 @@ class EffectOutcomeUnknown(Fault):
         self.transaction_id, self.effect_id = transaction_id, effect_id
 
 
+class NativeRepairAdmission(Strict):
+    wire_schema: Literal["strata/NativeSettingsRepairAdmission/1"] = Field(alias="schema")
+    policy: Literal["operator-owned-native-settings-repair/1"]
+    worker_plan: WorkerRepairPlan
+    settings_fingerprint: Digest
+    patch: NativePatch
+    effect_bindings: list[Id] = Field(min_length=1, max_length=2048)
+
+    @model_validator(mode="after")
+    def ownership(self):
+        require(self.worker_plan.transaction_id == self.patch.transaction_id
+                and len(set(self.effect_bindings)) == len(self.effect_bindings)
+                and set(self.patch.changes) <= set(self.effect_bindings), "SETTINGS_REPAIR_INVALID")
+        return self
+
+
+class NativeRepairState(Strict):
+    wire_schema: Literal["strata/NativeSettingsRepairState/1"] = Field(alias="schema")
+    admission: NativeRepairAdmission
+    phase: Literal["bound", "recovery_required"]
+    reason: str | None = Field(pattern=r"^[A-Z][A-Z0-9_]{1,95}$")
+    body_fingerprint: Digest
+    connection_generation: UInt
+    primitive_events: UInt
+    resume_authorized: bool
+
+    @model_validator(mode="after")
+    def recovery(self):
+        require(not self.resume_authorized and (self.phase == "bound") == (self.reason is None),
+                "SETTINGS_REPAIR_RESPONSE_INVALID")
+        return self
+
+
 class NativeSettingsEffectsClient:
     """Uses a private game descriptor plus a separately pinned settings fingerprint."""
 
@@ -176,9 +210,11 @@ class NativeSettingsEffectsClient:
         require(isinstance(args, dict), "SETTINGS_EFFECT_REQUEST_INVALID")
         if operation == "settings_apply":
             return NativePatch.model_validate(args).model_dump(mode="json")
+        if operation == "settings_repair_bind":
+            return NativeRepairAdmission.model_validate(args).model_dump(mode="json")
         if operation == "settings_effect_start":
             return EffectRequest.model_validate(args).model_dump(mode="json")
-        if operation in {"settings_status", "settings_rollback", "settings_effect_status"}:
+        if operation in {"settings_status", "settings_rollback", "settings_effect_status", "settings_repair_status"}:
             field = "id" if operation == "settings_effect_status" else "transaction_id"
             require(isinstance(args, dict) and set(args) == {field}
                     and isinstance(args[field], str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", args[field]),
@@ -188,7 +224,7 @@ class NativeSettingsEffectsClient:
         return {}
 
     def call(self, operation: str, args: dict, *, timeout_ms: int = 5000,
-             expected_effect: EffectRequest | None = None) -> dict:
+             expected_effect: EffectRequest | None = None, expected_repair: NativeRepairAdmission | None = None) -> dict:
         require(operation in OPERATIONS, "CAPABILITY_MISSING")
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 30000, "SETTINGS_DEADLINE_INVALID")
         try:
@@ -199,6 +235,12 @@ class NativeSettingsEffectsClient:
                 require(expected_effect.id == args["id"], "SETTINGS_EFFECT_REQUEST_INVALID")
             else:
                 require(expected_effect is None, "SETTINGS_EFFECT_REQUEST_INVALID")
+            if operation == "settings_repair_status":
+                require(isinstance(expected_repair, NativeRepairAdmission), "SETTINGS_REPAIR_INVALID")
+                expected_repair = NativeRepairAdmission.model_validate(expected_repair.model_dump(mode="json"))
+                require(expected_repair.worker_plan.transaction_id == args["transaction_id"], "SETTINGS_REPAIR_INVALID")
+            else:
+                require(expected_repair is None, "SETTINGS_REPAIR_INVALID")
         except ValueError:
             raise Fault("SETTINGS_EFFECT_REQUEST_INVALID") from None
         request_id = str(uuid.uuid4())
@@ -215,7 +257,7 @@ class NativeSettingsEffectsClient:
                 if response.status == "failed":
                     raise Fault(response.error_code)
                 if response.status == "completed":
-                    return self._result(operation, args, response.result, expected_effect)
+                    return self._result(operation, args, response.result, expected_effect, expected_repair)
                 remaining = expires - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError()
@@ -227,11 +269,17 @@ class NativeSettingsEffectsClient:
         except (OSError, http.client.HTTPException, ValueError):
             # Even a typed server error can follow a durable write or partial input.
             if operation in MUTATIONS:
-                raise EffectOutcomeUnknown(request_id, operation, args.get("transaction_id"), args.get("id")) from None
+                transaction = args["worker_plan"]["transaction_id"] if operation == "settings_repair_bind" else args.get("transaction_id")
+                raise EffectOutcomeUnknown(request_id, operation, transaction, args.get("id")) from None
             raise Fault("SETTINGS_EFFECT_READ_UNAVAILABLE") from None
 
-    def _result(self, operation, args, value, expected_effect=None):
-        if operation == "settings_snapshot":
+    def _result(self, operation, args, value, expected_effect=None, expected_repair=None):
+        if operation in {"settings_repair_bind", "settings_repair_status"}:
+            result = NativeRepairState.model_validate(value)
+            expected = NativeRepairAdmission.model_validate(args) if operation == "settings_repair_bind" else expected_repair
+            require(result.admission == expected and result.admission.settings_fingerprint == self.settings_fingerprint,
+                    "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")
+        elif operation == "settings_snapshot":
             require(value.get("supported") is False and value.get("operator_development_only") is True,
                     "SETTINGS_EFFECT_RESPONSE_INVALID")
             result = NativeSnapshot.model_validate(value)

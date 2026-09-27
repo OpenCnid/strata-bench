@@ -34,13 +34,18 @@ def effects_jvm(tmp_path):
     launches = 0
 
     @contextlib.contextmanager
-    def launch():
+    def launch(*, repair_owner=False, capability_digest=None):
         nonlocal launches
         launches += 1
+        if capability_digest is not None:
+            assert launches == 1, "changing authority on a used fixture is forbidden"
+            (game_root / "game-authority.json").write_text(json.dumps(authority | {"capability_digest": capability_digest}), encoding="utf-8")
         descriptor = tmp_path / f"connection-{launches}.json"
         argfile = tmp_path / f"args-{launches}.txt"
         args = ["-cp", classpath, "io.github.opencnid.strata.client.SettingsEffectsBridgeFixture",
                 profile, settings_root, game_root, descriptor]
+        if repair_owner:
+            args.insert(0, "-Dstrata.settingsRepairOwner=true")
         argfile.write_text("\n".join('"' + str(value).replace("\\", "\\\\").replace('"', '\\"') + '"'
                                    for value in args), encoding="utf-8")
         process = subprocess.Popen([java, "@" + str(argfile)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,

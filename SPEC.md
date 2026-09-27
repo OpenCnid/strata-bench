@@ -842,6 +842,24 @@ budget reservation, teammate authority and recovery hold; this transport does
 not qualify the settings adapter, create native transaction authority, settle
 repair consumption or publish a resume lease.
 
+**Private owned native repair candidate (M1.1c.3.2).** Explicit
+`strata.settingsRepairOwner=true` requires the existing private effects profile
+and selects `operator-owned-native-settings-repair/1`. Before forward writes or
+key checks, bind `NativeSettingsRepairAdmission/1`: the exact WorkerRepairPlan/1,
+settings fingerprint, one revision/digest-bound patch and allowed effect binding
+IDs. Require the same campaign/avatar/epoch/lease, unchanged connection and
+confirmed fenced input. Journal before admission; keep fixed wall and monotonic
+expiry within original authority. Changed plans, patches, bindings or a higher
+executor epoch cannot bypass the hold. Recovery or deadline loss revokes forward
+work; transaction-owned compare-and-swap rollback remains bounded cleanup and
+never grants resume. Status always reports `resume_authorized=false` and raw
+observations never establish verified effects. The old preplay route retains its
+separate identity; reopening an owned journal cannot disable its hold by omitting
+the mode flag. Controller-native profile translation, qualified commit, worker
+restart/rejoin and explicit resume remain required. This private candidate and
+its synthetic-body integration do not advertise gameplay settings capability or
+qualify T05/T06/G1. [Evidence](docs/verification/2026-09-27-m1-native-repair-admission.md).
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

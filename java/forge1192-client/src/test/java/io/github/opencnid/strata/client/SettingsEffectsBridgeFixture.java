@@ -65,7 +65,8 @@ public final class SettingsEffectsBridgeFixture {
         var authority = GameActionLane.Authority.read(SettingsJson.read(SettingsFiles.readOptions(gameRoot.resolve("game-authority.json"))));
         try (var store = new SettingsStore(profile, settingsRoot, "d".repeat(64), runtime);
                 var lane = new GameActionLane(gameRoot, "a".repeat(64), authority, runtime)) {
-            runtime.coordinator = new SettingsEffectsCoordinator(store, runtime, lane, runtime);
+            runtime.coordinator = new SettingsEffectsCoordinator(store, runtime, lane, runtime,
+                Boolean.getBoolean(NativeSettingsEffects.REPAIR_PROPERTY));
             NativeGameProtocol protocol = new NativeGameProtocol(runtime, lane);
             try (var bridge = new SettingsHttpBridge(protocol::execute, protocol)) {
                 SettingsFiles.writeNew(descriptor, (bridge.descriptor("a".repeat(64)) + "\n").getBytes(StandardCharsets.UTF_8));

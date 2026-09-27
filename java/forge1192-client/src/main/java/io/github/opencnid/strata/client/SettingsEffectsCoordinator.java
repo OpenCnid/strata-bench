@@ -3,6 +3,7 @@ package io.github.opencnid.strata.client;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 /** Shared production settings coordinator; Minecraft-specific observation/input is a separate port. */
 final class SettingsEffectsCoordinator {
@@ -11,19 +12,27 @@ final class SettingsEffectsCoordinator {
     private final NativeSettingsProtocol protocol;
     private final GameActionLane lane;
     private final SettingsEffectRun.Port port;
+    private final boolean requireRepair;
     private final LinkedHashMap<String, SettingsEffectRun> runs = new LinkedHashMap<>();
     private SettingsEffectRun active;
     SettingsEffectsCoordinator(SettingsStore store, SettingsStore.RuntimePort runtime,
             GameActionLane lane, SettingsEffectRun.Port port) throws IOException {
+        this(store, runtime, lane, port, false);
+    }
+    SettingsEffectsCoordinator(SettingsStore store, SettingsStore.RuntimePort runtime,
+            GameActionLane lane, SettingsEffectRun.Port port, boolean requireRepair) throws IOException {
         runtime.requireClientThread();
         if (lane == null) throw new IOException("CAPABILITY_MISSING");
         this.store = store; this.runtime = runtime; this.lane = lane; this.port = port;
+        this.requireRepair = requireRepair;
         protocol = new NativeSettingsProtocol(store, runtime);
     }
     static void validate(JsonObject request, String session, long now) throws IOException {
         String operation = SettingsJson.string(request, "operation");
         JsonObject args = request.getAsJsonObject("args");
-        if (operation.equals("settings_effect_start")) SettingsEffectRun.Request.read(args);
+        if (operation.equals("settings_repair_bind")) new NativeRepairAdmission(args);
+        else if (operation.equals("settings_repair_status")) { SettingsJson.fields(args, "transaction_id"); GameBatch.id(args, "transaction_id"); }
+        else if (operation.equals("settings_effect_start")) SettingsEffectRun.Request.read(args);
         else if (operation.equals("settings_effect_status")) { SettingsJson.fields(args, "id"); GameBatch.id(args, "id"); }
         else {
             JsonObject nested = nested(request);
@@ -39,6 +48,33 @@ final class SettingsEffectsCoordinator {
         runtime.requireClientThread();
         String operation = SettingsJson.string(request, "operation");
         JsonObject args = request.getAsJsonObject("args");
+        if (operation.equals("settings_repair_bind")) {
+            if (!requireRepair) throw new IOException("CAPABILITY_MISSING");
+            var admission = new NativeRepairAdmission(args);
+            if (!admission.settingsFingerprint.equals(store.fingerprint())) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+            if (!lane.hasRepair()) {
+                var snapshot = store.snapshot();
+                if (snapshot.revision() != SettingsJson.integer(admission.patch, "expected_revision")
+                        || !snapshot.digest().equals(GameBatch.digest(admission.patch, "expected_digest"))
+                        || !runtime.bindings().keySet().containsAll(admission.effectBindings)) throw new IOException("SETTINGS_REVISION_CONFLICT");
+            }
+            return lane.admitRepair(admission);
+        }
+        if (operation.equals("settings_repair_status")) {
+            if (!lane.repairAdmission().transaction.equals(GameBatch.id(args, "transaction_id"))) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+            return lane.repairStatus();
+        }
+        boolean ownedRepair = requireRepair || lane.hasRepair();
+        if (ownedRepair && !Set.of("settings_snapshot", "settings_status", "settings_effect_status").contains(operation)) {
+            var admission = lane.repairAdmission();
+            if (operation.equals("settings_apply") && !admission.patch.equals(args)) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+            if (operation.equals("settings_rollback") && !admission.transaction.equals(GameBatch.id(args, "transaction_id"))) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
+            if (operation.equals("settings_effect_start")) admission.effect(SettingsEffectRun.Request.read(args));
+            if (!operation.equals("settings_rollback")) {
+                lane.repairReady();
+                if (SettingsJson.integer(request, "deadline_unix_ms") > admission.expires) throw new IOException("SETTINGS_DEADLINE_INVALID");
+            }
+        }
         if (operation.equals("settings_effect_status")) {
             SettingsEffectRun run = runs.get(GameBatch.id(args, "id"));
             if (run == null) throw new IOException("SETTINGS_VERIFICATION_UNKNOWN");
@@ -70,16 +106,17 @@ final class SettingsEffectsCoordinator {
             lane.endReconfiguration(interrupted, "unknown"); return result[0];
         }
         String id = "settings-write:" + KeyOptions.sha256(GameBatch.id(request, "request_id"));
-        lane.beginReconfiguration(id, SettingsJson.integer(request, "deadline_unix_ms"));
+        boolean repairRollback = ownedRepair && operation.equals("settings_rollback");
+        lane.beginReconfiguration(id, SettingsJson.integer(request, "deadline_unix_ms"), repairRollback);
         try {
             JsonObject admission = new JsonObject(); admission.addProperty("schema", "strata/NativeSettingsWriteAdmission/1");
             admission.addProperty("operation", operation); admission.addProperty("settings_fingerprint", store.fingerprint());
             admission.addProperty("transaction_id", GameBatch.id(args, "transaction_id"));
             admission.addProperty("args_sha256", KeyOptions.sha256(args.toString()));
-            lane.reconfigurationObservation(id, admission);
+            if (!repairRollback) lane.reconfigurationObservation(id, admission);
             JsonObject[] result = {null};
             lane.reconfigurationEmit(id, operation.equals("settings_rollback"), () -> result[0] = protocol.execute(nested));
-            lane.endReconfiguration(id, "completed"); return result[0];
+            lane.endReconfiguration(id, "completed", repairRollback); return result[0];
         } catch (IOException | RuntimeException error) {
             try { lane.endReconfiguration(id, "unknown"); } catch (IOException cleanup) { error.addSuppressed(cleanup); }
             throw error;

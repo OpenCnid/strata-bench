@@ -84,6 +84,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
         identity.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
         identity.add("capabilities", NativeGameProtocol.capabilities());
         if (NativeSettingsEffects.enabled()) identity.addProperty("settings_effects_candidate_policy", NativeKeyInput.POLICY);
+        if (Boolean.getBoolean(NativeSettingsEffects.REPAIR_PROPERTY)) identity.addProperty("settings_repair_candidate_policy", NativeRepairAdmission.POLICY);
         fingerprint = KeyOptions.sha256(identity.toString());
         runtimeIdentity = identity.deepCopy();
     }

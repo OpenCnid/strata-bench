@@ -37,20 +37,22 @@ final class NativeSettingsProtocol {
                 SettingsJson.fields(args, "transaction_id");
                 identifier(SettingsJson.string(args, "transaction_id"));
             }
-            case "apply" -> {
-                SettingsJson.fields(args, "transaction_id", "expected_revision", "expected_digest", "changes");
-                identifier(SettingsJson.string(args, "transaction_id"));
-                if (SettingsJson.integer(args, "expected_revision") < 1
-                        || !SettingsJson.string(args, "expected_digest").matches("[0-9a-f]{64}")
-                        || !args.get("changes").isJsonObject()) throw new IOException("SETTINGS_PATCH_INVALID");
-                changes(args.getAsJsonObject("changes"));
-            }
+            case "apply" -> validatePatch(args);
             default -> throw new IOException("SETTINGS_OPERATION_UNSUPPORTED");
         }
     }
 
     static void identifier(String value) throws IOException {
         if (!value.matches("[A-Za-z0-9_.:-]{1,128}")) throw new IOException("SETTINGS_ID_INVALID");
+    }
+
+    static void validatePatch(JsonObject args) throws IOException {
+        SettingsJson.fields(args, "transaction_id", "expected_revision", "expected_digest", "changes");
+        identifier(SettingsJson.string(args, "transaction_id"));
+        if (SettingsJson.integer(args, "expected_revision") < 1
+                || !SettingsJson.string(args, "expected_digest").matches("[0-9a-f]{64}")
+                || !args.get("changes").isJsonObject()) throw new IOException("SETTINGS_PATCH_INVALID");
+        changes(args.getAsJsonObject("changes"));
     }
 
     private static Map<String, SettingsStore.Change> changes(JsonObject source) throws IOException {

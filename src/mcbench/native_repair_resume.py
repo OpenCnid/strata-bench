@@ -180,6 +180,22 @@ class NativeRepairResume:
                 self.repairs._budget(db, repair["request"])
             receipt = publisher.measure(decision, timeout_ms=self.flow._timeout(repair))
             encoded = canonical(receipt.model_dump()).decode()
+            # Retain known consumption before the separate CAS write. That write
+            # can fail after real work; it must not hide an observed overrun or
+            # make this measured dimension look unconsumed. Other dimensions
+            # remain covered by the original unresolved reservation.
+            with self.database.transaction() as db:
+                self.repairs._owned(db, self.repairs.status(transaction), owner, epoch)
+                self.repairs.budgets.retain_consumption_floor(db, repair["request"]["account"],
+                    repair["request"]["operation_id"], "repair-measured:" + digest(receipt.model_dump()),
+                    "primitive_events", receipt.charged_primitive_events,
+                    {"schema": "strata/RepairPrimitiveConsumption/1", "transaction_id": transaction,
+                     "publication_binding": publisher.binding_digest, "resume_source_ref": row["source_ref"],
+                     "worker_receipt": receipt.model_dump()})
+            with self.database.transaction() as db:
+                # This check is deliberately after the floor transaction commits.
+                # Refusing an overrun must preserve its actual observed amount.
+                self.repairs._budget(db, repair["request"])
             old = self.database.connection.execute("SELECT * FROM repair_worker_measurements WHERE id=?", (transaction,)).fetchone()
             if old:
                 require(old["binding"] == publisher.binding_digest and old["receipt"] == encoded, "REPAIR_ACCOUNTING_CHANGED")

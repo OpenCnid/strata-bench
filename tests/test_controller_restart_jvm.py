@@ -424,6 +424,12 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         assert measured.closing.primitive_events == resumed["worker_state"]["primitive_events"]
                         assert measured.elapsed_ms > 0 and measured.complete_repair_accounting is False
                         assert measured.avatar_ticks is None and measured.model_usage is None
+                        floor = e.database.connection.execute(
+                            "SELECT minimum,body FROM budget_consumption_floors WHERE operation='repair-op'").fetchone()
+                        assert floor["minimum"] == measured.charged_primitive_events
+                        assert json.loads(floor["body"])["evidence"]["worker_receipt"] == measured.model_dump()
+                        assert e.database.connection.execute(
+                            "SELECT actual FROM operations WHERE id='repair-op'").fetchone()[0] is None
                         assert publisher.measure(NativeResumeDecision.model_validate(resumed["worker_state"]["decision"])) == measured
                         with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
                             opening_row = json.loads(db.execute("SELECT opening FROM repair_accounting WHERE transaction_id='tx'").fetchone()[0])

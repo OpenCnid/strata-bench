@@ -23,7 +23,24 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, causal repair clock boundary
+## Current position — September27, retained repair consumption
+
+Private evidence sealed:77files/3,885,383bytes,
+SHA-256 `7665a2e6751a42f6bc0a2987a8ad67b1270697090552d3e8cad9a82a9e7f4807`. Authority40tables/eight holds and installed files unchanged;
+final runtime inventory0. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now retains confirmed native repair primitives in budget exposure
+before the separate evidence-file write. Partial usage preserves the original
+reservation; an overrun raises retained exposure and blocks further repair work.
+The actual controller/Node/JVM fixture retains18 measured repair primitives under
+the original20 reservation.54 focused checks and the selected actual process case
+pass. [Consumption evidence](verification/2026-09-27-m1-repair-consumption-floor.md).
+The process test uses a synthetic game/verification/settlement producer. Complete
+prior-gameplay, body-clock, model/helper and publication-tail accounting remains
+open, as do original-lease completion and authentic workflow qualification.
+No aggregate G1 suite closes; no inference or Minecraft run was performed.
+
+## Previous checkpoint — causal repair clock boundary
 
 Private evidence sealed:52files/2,691,898bytes,
 SHA-256 `7c3db279f9a2882616614499ed348f60db8ff169f041a3a029b43bd5ae942fc7`. Authority40tables/eight holds and installed files unchanged;

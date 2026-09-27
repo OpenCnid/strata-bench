@@ -6,6 +6,7 @@ Campaign active time is measured separately, never summed from model latencies.
 """
 
 import json
+import re
 
 from .records import BudgetLedger
 from .storage import Database, canonical, digest, require
@@ -34,6 +35,53 @@ class Budgets:
                        "body TEXT, PRIMARY KEY(campaign,source))")
             db.execute("CREATE TABLE IF NOT EXISTS budget_envelopes (operation TEXT PRIMARY KEY "
                        "REFERENCES operations(id))")
+            db.execute("CREATE TABLE IF NOT EXISTS budget_consumption_floors (operation TEXT, source TEXT, "
+                       "dimension TEXT NOT NULL, minimum INTEGER NOT NULL, digest TEXT NOT NULL, body TEXT NOT NULL, "
+                       "PRIMARY KEY(operation,source))")
+
+    @staticmethod
+    def consumption_floors(db):
+        """Confirmed lower bounds, never inferred zeros for unobserved dimensions."""
+        if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='budget_consumption_floors'").fetchone():
+            return {}
+        result = {}
+        for row in db.execute("SELECT operation,dimension,MAX(minimum) AS minimum FROM budget_consumption_floors "
+                              "GROUP BY operation,dimension"):
+            result.setdefault(row["operation"], {})[row["dimension"]] = row["minimum"]
+        return result
+
+    def retain_consumption_floor(self, db, account, operation, source, dimension, minimum, evidence):
+        """Retain an operator-verified cumulative minimum without settling a hold.
+
+        The caller verifies the producer and the operation scope. Observations
+        cover the same operation cumulatively; independent intervals must first
+        be reconciled by that producer, not summed as notification counts here.
+        """
+        require(db is self.database.connection and db.in_transaction, "TRANSACTION_REQUIRED")
+        require(dimension in DIMENSIONS and type(minimum) is int and 0 <= minimum <= 2**53 - 1
+                and isinstance(source, str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", source)
+                and isinstance(evidence, dict) and bool(evidence), "CONSUMPTION_FLOOR_INVALID")
+        body = {"schema": "strata/BudgetConsumptionFloor/1", "account": account, "operation": operation,
+                "source": source, "dimension": dimension, "minimum": minimum, "evidence": evidence,
+                "settled": False, "complete_consumption": False}
+        raw, fingerprint = canonical(body).decode(), digest(body)
+        require(len(raw.encode()) <= 131072, "CONSUMPTION_FLOOR_QUOTA")
+        row = db.execute("SELECT * FROM operations WHERE id=?", (operation,)).fetchone()
+        require(row is not None and row["account"] == account, "OPERATION_LINEAGE")
+        require(db.execute("SELECT 1 FROM budget_envelopes WHERE operation=?", (operation,)).fetchone() is None,
+                "CONSUMPTION_FLOOR_ENVELOPE")
+        old = db.execute("SELECT digest FROM budget_consumption_floors WHERE operation=? AND source=?",
+                         (operation, source)).fetchone()
+        if old:
+            require(old["digest"] == fingerprint, "IDEMPOTENCY_CONFLICT")
+            return False
+        require(row["actual"] is None, "ALREADY_SETTLED")
+        require(db.execute("SELECT count(*) FROM budget_consumption_floors WHERE operation=?",
+                           (operation,)).fetchone()[0] < 128, "CONSUMPTION_FLOOR_QUOTA")
+        db.execute("INSERT INTO budget_consumption_floors VALUES (?,?,?,?,?,?)",
+                   (operation, source, dimension, minimum, fingerprint, raw))
+        self.database.event(db, "budget.consumption_observed", body)
+        return True
 
     def create_account(self, name, limits, campaign, agent=None, parent=None, *, category=None):
         require(set(limits) == set(DIMENSIONS), "BUDGET_DIMENSIONS")
@@ -88,6 +136,7 @@ class Budgets:
         parent ID. Provider overruns remain visible even above an envelope bound.
         """
         rows = {r["id"]: r for r in db.execute("SELECT * FROM operations")}
+        floors = Budgets.consumption_floors(db)
         envelopes = {r[0] for r in db.execute("SELECT operation FROM budget_envelopes")}
         children = {op: [] for op in rows}
         for op, row in rows.items():
@@ -98,6 +147,9 @@ class Budgets:
         def visit(op):
             row = rows[op]
             own = json.loads(row["actual"] or row["reserved"])
+            for key, minimum in floors.get(op, {}).items():
+                if own[key] is not None:
+                    own[key] = max(own[key], minimum)
             nested = [visit(child) for child in children[op]]
             amount = {}
             for key in DIMENSIONS:
@@ -220,6 +272,9 @@ class Budgets:
                         "UNKNOWN_RECONCILIATION_REQUIRES_RECEIPT")
                 amount = {k: old[k] + amount[k] for k in DIMENSIONS}
                 require(all(v >= 0 for v in amount.values()), "NEGATIVE_TOTAL")
+            require(all(amount[key] is None or amount[key] >= minimum
+                        for key, minimum in self.consumption_floors(db).get(record.operation_id, {}).items()),
+                    "CONFIRMED_CONSUMPTION_REFUND")
             db.execute("UPDATE operations SET actual=?,uncertain=? WHERE id=?",
                        (canonical(amount).decode(), int(record.metering == "unknown" or
                         any(v is None for v in amount.values())), record.operation_id))

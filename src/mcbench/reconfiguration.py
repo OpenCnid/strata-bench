@@ -152,6 +152,11 @@ class Reconfigurations:
                 and op["campaign"] == request["campaign"] and op["agent"] == request["agent"]
                 and op["kind"] == "tool" and not op["uncertain"], "REPAIR_BUDGET_REQUIRED")
         require((op["actual"] is not None) is settled, "REPAIR_BUDGET_UNSETTLED")
+        if not settled:
+            reserved = json.loads(op["reserved"])
+            floors = self.budgets.consumption_floors(db).get(request["operation_id"], {})
+            require(all(reserved[k] is not None and value <= reserved[k] for k, value in floors.items()),
+                    "REPAIR_BUDGET_EXHAUSTED")
 
     def request(self, campaign, owner, epoch, transaction_id, account, operation_id, *, deadline_unix):
         intent = {"campaign": campaign, "transaction_id": transaction_id, "account": account,

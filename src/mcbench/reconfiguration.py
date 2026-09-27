@@ -148,6 +148,9 @@ class Reconfigurations:
         return lane
 
     def _budget(self, db, request, *, settled=False):
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='body_tick_operations'").fetchone():
+            require(db.execute("SELECT 1 FROM body_tick_operations WHERE operation=?",
+                    (request["operation_id"],)).fetchone() is None, "BODY_TICK_DOUBLE_ALLOCATION")
         op = db.execute("SELECT o.*,a.campaign,a.agent FROM operations o JOIN accounts a ON a.id=o.account "
                         "WHERE o.id=?", (request["operation_id"],)).fetchone()
         require(op is not None and op["account"] == request["account"]

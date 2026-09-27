@@ -199,7 +199,7 @@ def test_controller_barrier_binds_original_repair_and_never_grants_completion(cl
         service.capture("tx", "closed", "owner", e.epoch, worker, client, source.source)
 
 
-@pytest.mark.parametrize("charge_repair", [False, True])
+@pytest.mark.parametrize("charge_repair", [False, True, "body"])
 def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monkeypatch, native_env, charge_repair):
     """Actual Java/Python pipe and held job; fixture bypasses token qualification."""
     from mcbench.processes import WindowsJob
@@ -308,7 +308,28 @@ def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monke
         assert proof["prefix"]["clock"]["completed_server_ticks"] == 2
         assert proof["is_example"] and not proof["process_isolation_qualified"]
         assert process.poll() is None
-        if charge_repair:
+        if charge_repair == "body":
+            from strata_evaluator.body_ticks import BodyTicks
+            from test_body_ticks import allocations
+            body_ticks = BodyTicks(e.controller)
+            body_ticks.open("body", "c1", "owner", e.epoch, source, 5, allocations(e, bound=1))
+            command(sample_command)
+            assert output.get(timeout=5) == "7"
+            first_ticks = body_ticks.advance("body", "owner", e.epoch, source, 7)
+            assert first_ticks["avatar_ticks"] == {"a1": 1, "a2": 0}
+            assert body_ticks.advance("body", "owner", e.epoch, source, 7) == first_ticks
+            command(sample_command)
+            assert output.get(timeout=5) == "9"
+            for _ in range(2):
+                with pytest.raises(Fault, match="BUDGET_EXHAUSTED"):
+                    body_ticks.advance("body", "owner", e.epoch, source, 9)
+            floors = e.budgets.consumption_floors(e.database.connection)
+            assert floors["body-a1"]["avatar_ticks"] == 2 and floors["body-a2"]["avatar_ticks"] == 0
+            assert floors.get("repair-op", {}).get("avatar_ticks", 0) == 0
+            assert e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"] is None
+            (tmp_path / "actual-continuous-body-ticks.json").write_bytes(canonical({"first": first_ticks,
+                "floors": floors, "repair_coverage_claimed": False, "complete_repair_accounting": False}))
+        elif charge_repair:
             service.capture("tx", "opening", "owner", e.epoch, worker, client, source)
             service.request_barrier("tx", "closing", "owner", e.epoch, worker, client, source)
             for cursor in (7, 9):

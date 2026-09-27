@@ -23,7 +23,26 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September 27, publication boundary retrieval
+## Current position — September 27, continuous body-tick allocation
+
+Private evidence sealed: 58 files / 4,293,003 bytes,
+SHA-256 `61717c2c1283d35f92df46dd90635822ca0e47acf120672b776952939d849e85`.
+All 40 authority tables, eight telemetry holds and two installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,188 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now maintains a continuous authenticated body-tick window on the
+original full-roster reservations. Repair coverage requires an opening before
+its request and a causal sample after publication; costs are never reposted to
+the repair tool. CAS failure and overruns retain observed consumption. 15 new
+source cases pass; 51 total affected source cases and one actual JVM/private-pipe
+case pass. Game/publication/body qualification remains synthetic; the actual
+pipe case proves tick allocation, not pre-request repair coverage.
+[Continuous body-tick evidence](verification/2026-09-27-m1-body-tick-window.md).
+Wall/disconnected-time accounting, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No Minecraft or paid model run occurred.
+
+### Previous publication-retrieval checkpoint
 
 Private evidence sealed: 151 files / 6,305,414 bytes,
 SHA-256 `96e14ce9f863bd9e6f4796685e03cc16c72e177710b76a1deda02d20a2c179fe`.

@@ -1988,6 +1988,21 @@ uses synthetic game/setup and does not qualify the final Minecraft profile.
 
 `elapsed_wall` is monotonic elapsed time from first scored start through final stop, including all pauses/outages. `active_wall` includes RUNNING/RECONFIGURING, model thinking, tool latency, idle avatar time, rate-limit waits while the server runs, and checkpoint quiescence until the server stops. It excludes only logged intervals where the whole campaign server is stopped and all campaign inference is suspended. Restart counts again from the first resumed simulation tick, including login/readiness time. Queue/provisioning/preplay checks are separate overhead. Agent-requested restart while the server continues is active time.
 
+**Continuous body-tick allocation candidate.** `BodyTickWindow/1` binds one
+authenticated source origin per campaign epoch to distinct existing tick-only
+reservations for the full roster. Retain cumulative actual callback deltas on
+those original operations across repair, without summing overlapping samples or
+moving charges to the repair tool. Persist observed bytes and budget minima
+before a separate evidence copy; retain overruns and unknown coverage. Reject
+mixed/foreign/reused reservations and repairs already carrying overlapping tick
+charges. `RepairBodyTickCoverage/1` additionally requires a durable window opened
+before the repair request and a causal sample generated after its stored control
+publication. It covers the repair within the continuous allocation, not an exact
+per-repair tick split. No retrospective origin, inferred disconnected time,
+settlement, current input authority or full campaign accounting is supplied.
+The bounded candidate and its synthetic/actual-pipe scope are recorded in
+[continuous tick evidence](docs/verification/2026-09-27-m1-body-tick-window.md).
+
 `server_ticks` are actual ticks advanced, by boot ID/epoch; they are not inferred as 20 times wall time. `avatar_ticks` sums actual connected-avatar tick exposure across all bodies and practice branches; disconnected time is recorded separately. Also record reserved avatar seconds so disconnects cannot create an apparent resource-efficiency advantage. `primitive_events` counts versioned local execution units (each active motor tick and discrete dig/place/use/slot/craft emission, or raw input events on a physical backend), not high-level tool requests; rejected-before-dispatch requests still incur tool/model cost. All clocks and counters remain monotonic in the ledger across world rollback. Report both surviving game-state tick position and total ticks consumed, including lost work.
 
 Default confirmatory training checkpoints: 0, 1, 3, 6, 12 and 24 active hours for N=1/fixed-per-agent campaigns, subject to independent compute caps. If a cap ends exposure early, do not fabricate the later checkpoint. Section 13 defines reporting for truncated exposure and N comparisons. Probe simulations have their own clocks and budgets; they never advance training exposure.

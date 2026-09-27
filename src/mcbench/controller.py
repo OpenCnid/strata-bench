@@ -9,7 +9,9 @@ import json
 import secrets
 import time
 
-from .records import AgentConfig, CampaignConfig, PackLock
+from pydantic import ValidationError
+
+from .records import AgentConfig, CampaignConfig, EvaluationProtocol, PackLock
 from .storage import CAS, Database, Fault, Principal, canonical, digest, require
 
 TRANSITIONS = {
@@ -77,17 +79,63 @@ class Controller:
 
     def evidence(self, ref):
         require(self.cas is not None, "EVIDENCE_STORE_REQUIRED")
-        return self.cas.json(Principal("operator", "operator"), self.evidence_namespace, ref)
+        try:
+            value = self.cas.json(Principal("operator", "operator"), self.evidence_namespace, ref)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise Fault("EVIDENCE_SCHEMA_INVALID") from None
+        require(isinstance(value, dict), "EVIDENCE_SCHEMA_INVALID")
+        return value
+
+    def resolve_reference(self, ref):
+        """Verify authorized bytes, including binary assets; do not grant provenance."""
+        require(self.cas is not None, "EVIDENCE_STORE_REQUIRED")
+        self.cas.verify(Principal("operator", "operator"), self.evidence_namespace, ref)
+
+    @staticmethod
+    def configuration(config, agents):
+        # Also used by read-only preflight. model_copy is not a validation boundary.
+        try:
+            config = CampaignConfig.model_validate(config)
+            agents = [AgentConfig.model_validate(agent) for agent in agents]
+        except ValidationError:
+            raise Fault("SCHEMA_UNSUPPORTED") from None
+        require(not config.is_example and all(not a.is_example for a in agents),
+                "EXAMPLE_NOT_EXECUTABLE")
+        require(len(agents) == config.n and set(config.agent_ids) == {a.agent_id for a in agents},
+                "ROSTER_MISMATCH")
+        require(all(a.system_digest == config.system_digest for a in agents), "SYSTEM_MISMATCH")
+        require(len({a.account_ref for a in agents}) == config.n, "ACCOUNT_CONFLICT")
+        return config.model_dump(), [agent.model_dump() for agent in agents]
 
     def validate_admission(self, config, agents):
+        config, agents = self.configuration(config, agents)
         # Simulations exercise the same scheduler without authorizing a game process.
         # A simulation database cannot be reopened as a production controller.
         if self.simulation:
             return
-        lock = PackLock.model_validate(self.evidence(config["pack_lock"]))
+        try:
+            lock = PackLock.model_validate(self.evidence(config["pack_lock"]))
+        except ValidationError:
+            raise Fault("SCHEMA_UNSUPPORTED") from None
         require(not lock.is_example and lock.status == "sealed", "PACK_NOT_SEALED")
-        for key in ("protocol_ref", "world_baseline", "information_policy", "communication_policy"):
+        for ref in [*lock.distribution_refs, *lock.harness_additions, lock.resolved_inventory,
+                    lock.launch_profile, lock.expert_assertions, lock.acquisition_report]:
+            if ref is not None:
+                self.resolve_reference(ref)
+        try:
+            protocol = EvaluationProtocol.model_validate(self.evidence(config["protocol_ref"]))
+        except ValidationError:
+            raise Fault("SCHEMA_UNSUPPORTED") from None
+        require(not protocol.is_example and config["system_digest"] in protocol.system_digests,
+                "PROTOCOL_MISMATCH")
+        for key in ("sealed_instances", "scorer", "artifact_projection", "control_keymap",
+                    "sample_plan", "randomization_plan", "censoring_plan", "analysis_plan", "access_log"):
+            ref = getattr(protocol, key)
+            if ref is not None:
+                self.resolve_reference(ref)
+        for key in ("world_baseline", "information_policy", "communication_policy"):
             self.evidence(config[key])
+        self.evidence(config["backend"]["capability_manifest"])
         profile = self.evidence(config["runtime_profile"])
         require(profile.get("schema") == "strata/AdmissionEvidence/1" and
                 profile.get("system_digest") == config["system_digest"] and
@@ -104,17 +152,13 @@ class Controller:
         require(config["training_team_limits"]["spend_microusd"] is not None and
                 config["evaluation_limits"]["spend_microusd"] is not None, "SPENDING_CEILING_REQUIRED")
         for agent in agents:
-            for key in ("initial_skills", "inference_config", "memory_policy", "capability_profile"):
-                self.evidence(agent[key])
+            for key in ("initial_skills", "inference_config", "memory_policy", "capability_profile",
+                        "learned_overlay"):
+                if agent[key] is not None:
+                    self.evidence(agent[key])
 
     def create(self, config: CampaignConfig, agents: list[AgentConfig]):
-        require(not config.is_example and all(not a.is_example for a in agents),
-                "EXAMPLE_NOT_EXECUTABLE")
-        require(len(agents) == config.n and set(config.agent_ids) == {a.agent_id for a in agents},
-                "ROSTER_MISMATCH")
-        require(all(a.system_digest == config.system_digest for a in agents), "SYSTEM_MISMATCH")
-        require(len({a.account_ref for a in agents}) == config.n, "ACCOUNT_CONFLICT")
-        data, agent_data = config.model_dump(), [a.model_dump() for a in agents]
+        data, agent_data = self.configuration(config.model_dump(), [a.model_dump() for a in agents])
         identity = digest({"config": data, "agents": agent_data})
         with self.database.transaction() as db:
             old = db.execute("SELECT request_digest FROM campaigns WHERE id=?",

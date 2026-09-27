@@ -6,6 +6,7 @@ import type { ActionAck } from './generated/ActionAck.js';
 import type { Observation } from './generated/Observation.js';
 import type { KeybindingPatch } from './generated/KeybindingPatch.js';
 import type { SkillRevision } from './generated/SkillRevision.js';
+import type { RpcRequest } from './generated/RpcRequest.js';
 import { requireThat } from './errors.js';
 export { Fault, requireThat, errorBody } from './errors.js';
 export type { ActionBatch } from './generated/ActionBatch.js';
@@ -24,6 +25,23 @@ for (const [name, expected] of Object.entries(compiled.schemaHashes)) {
 
 export function validate<T>(name: string, value: unknown): T {
   requireThat(validators.get(name)?.(value), 'SCHEMA_UNSUPPORTED');
+  if (name === 'RpcRequest') {
+    const request = value as RpcRequest;
+    recordDate(request.deadline_at);
+    const fields: [boolean, unknown][] = [
+      [request.method === 'act', request.action],
+      [['action_status', 'cancel'].includes(request.method), request.target_request_id],
+      [['wait_events', 'recipes.list'].includes(request.method), request.after],
+      [request.method === 'observe.page', request.cursor],
+      [request.method === 'recipes.query', request.recipe_query],
+      [request.method === 'quests.list', request.quest_query],
+      [request.method === 'quests.text', request.quest_text_query],
+      [request.method === 'quests.components', request.quest_components_query],
+      [request.method === 'quests.menu', request.quest_menu_query],
+    ];
+    for (const [required, field] of fields) requireThat(required === (field != null), 'SCHEMA_UNSUPPORTED');
+    if (request.action !== null) actionContract(request.action);
+  }
   if (name === 'ActionBatch') actionContract(value as ActionBatch);
   if (name === 'ActionAck') {
     const ack = value as ActionAck;

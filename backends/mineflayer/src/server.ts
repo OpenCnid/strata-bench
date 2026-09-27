@@ -44,15 +44,6 @@ export function serve(lane: GameLane, token: string, capabilities: unknown): Pro
       requireThat(r.epoch === lane.scope.epoch, 'STALE_EPOCH');
       const remaining = Date.parse(r.deadline_at) - Date.now();
       requireThat(remaining > 0 && remaining <= 5250, 'DEADLINE_EXCEEDED');
-      requireThat((r.method === 'act') === (r.action !== null), 'SCHEMA_UNSUPPORTED');
-      requireThat(['action_status','cancel'].includes(r.method) === (r.target_request_id !== null), 'SCHEMA_UNSUPPORTED');
-      requireThat(['wait_events','recipes.list'].includes(r.method) === (r.after !== null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'observe.page') === (r.cursor != null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'recipes.query') === (r.recipe_query != null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'quests.list') === (r.quest_query != null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'quests.text') === (r.quest_text_query != null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'quests.components') === (r.quest_components_query != null), 'SCHEMA_UNSUPPORTED');
-      requireThat((r.method === 'quests.menu') === (r.quest_menu_query != null), 'SCHEMA_UNSUPPORTED');
       let result: unknown;
       if (r.method.startsWith('controls.')) throw new Fault('CAPABILITY_MISSING');
       switch (r.method) {

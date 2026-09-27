@@ -1,22 +1,22 @@
 # Strata current status
 
-## Current position — September 27, private contracts
+## Current position — September 27, admission contracts
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-The current M1.2b change fixes all seven reproduced private-record validation
-disagreements. All eight private canonical records now share 150 Python/TypeScript
-cases, complementing the five public records already covered. Supported SQLite
-schema upgrades preserve populated records and fail closed without inventing
-permissions or restoring consumed quota. [Current evidence](verification/2026-09-27-m1-private-contract-parity.md).
+M1.2b now fixes preflight roster/system checks and unresolved backend, overlay,
+lock and protocol references. Six prior acceptance defects are reproduced and
+refused by the new code; 33 declared reference locations are checked before
+reservation. Nested RPC semantics agree across Python/TypeScript, and the actual
+Java structured-action parser exercises shared cases. [Current evidence](verification/2026-09-27-m1-admission-contracts.md).
 These local checks advance T01; they do not qualify native integration.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
-| T01 contracts | Public/private canonical semantics and supported schema upgrades checked | Cross-record/reference admission, nested RPC/auth/path cases and conditional Java reconciliation |
+| T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
 | T04 native host | Scoped native/root/helper evidence exists | Final game/settings/probe profile, selected skill, interruption/resume and all-call accounting |
 | T05 keybinding | Transaction, rollback, discovery and some native persistence/crash evidence | Complete real effects and full conflict/context/modifier/hold/failure matrix |
 | T06 isolation | Named native denial and permitted-access cases exist | Qualify the final integrated runtime, credentials and probe disposal on the exact profile |

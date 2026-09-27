@@ -1,0 +1,413 @@
+{
+  "base": {
+    "schema": "strata/GameRequest/1",
+    "request_id": "rpc",
+    "campaign_id": "c",
+    "agent_id": "a",
+    "epoch": 1,
+    "deadline_at": "2026-09-27T12:00:00Z",
+    "method": "observe",
+    "action": null,
+    "target_request_id": null,
+    "after": null
+  },
+  "cases": [
+    {
+      "id": "action_status-valid",
+      "set": {
+        "method": "action_status",
+        "target_request_id": "target"
+      },
+      "valid": true
+    },
+    {
+      "id": "action_status-missing",
+      "set": {
+        "method": "action_status"
+      },
+      "valid": false
+    },
+    {
+      "id": "action_status-wrong-method",
+      "set": {
+        "method": "observe",
+        "target_request_id": "target"
+      },
+      "valid": false
+    },
+    {
+      "id": "cancel-valid",
+      "set": {
+        "method": "cancel",
+        "target_request_id": "target"
+      },
+      "valid": true
+    },
+    {
+      "id": "cancel-missing",
+      "set": {
+        "method": "cancel"
+      },
+      "valid": false
+    },
+    {
+      "id": "cancel-wrong-method",
+      "set": {
+        "method": "observe",
+        "target_request_id": "target"
+      },
+      "valid": false
+    },
+    {
+      "id": "wait_events-valid",
+      "set": {
+        "method": "wait_events",
+        "after": 0
+      },
+      "valid": true
+    },
+    {
+      "id": "wait_events-missing",
+      "set": {
+        "method": "wait_events"
+      },
+      "valid": false
+    },
+    {
+      "id": "wait_events-wrong-method",
+      "set": {
+        "method": "observe",
+        "after": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "recipes.list-valid",
+      "set": {
+        "method": "recipes.list",
+        "after": 0
+      },
+      "valid": true
+    },
+    {
+      "id": "recipes.list-missing",
+      "set": {
+        "method": "recipes.list"
+      },
+      "valid": false
+    },
+    {
+      "id": "recipes.list-wrong-method",
+      "set": {
+        "method": "observe",
+        "after": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "observe.page-valid",
+      "set": {
+        "method": "observe.page",
+        "cursor": "opaque"
+      },
+      "valid": true
+    },
+    {
+      "id": "observe.page-missing",
+      "set": {
+        "method": "observe.page"
+      },
+      "valid": false
+    },
+    {
+      "id": "observe.page-wrong-method",
+      "set": {
+        "method": "observe",
+        "cursor": "opaque"
+      },
+      "valid": false
+    },
+    {
+      "id": "recipes.query-valid",
+      "set": {
+        "method": "recipes.query",
+        "recipe_query": {
+          "source": "jei",
+          "category": "minecraft:crafting",
+          "item_id": "minecraft:stone",
+          "role": "input",
+          "after": 0
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "recipes.query-missing",
+      "set": {
+        "method": "recipes.query"
+      },
+      "valid": false
+    },
+    {
+      "id": "recipes.query-wrong-method",
+      "set": {
+        "method": "observe",
+        "recipe_query": {
+          "source": "jei",
+          "category": "minecraft:crafting",
+          "item_id": "minecraft:stone",
+          "role": "input",
+          "after": 0
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.list-valid",
+      "set": {
+        "method": "quests.list",
+        "quest_query": {
+          "source": "ftb_quests",
+          "chapter_id": null,
+          "after": 0
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "quests.list-missing",
+      "set": {
+        "method": "quests.list"
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.list-wrong-method",
+      "set": {
+        "method": "observe",
+        "quest_query": {
+          "source": "ftb_quests",
+          "chapter_id": null,
+          "after": 0
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.text-valid",
+      "set": {
+        "method": "quests.text",
+        "quest_text_query": {
+          "source": "ftb_quests",
+          "chapter_id": "0000000000000001",
+          "quest_id": "0000000000000002",
+          "after": 0
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "quests.text-missing",
+      "set": {
+        "method": "quests.text"
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.text-wrong-method",
+      "set": {
+        "method": "observe",
+        "quest_text_query": {
+          "source": "ftb_quests",
+          "chapter_id": "0000000000000001",
+          "quest_id": "0000000000000002",
+          "after": 0
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.components-valid",
+      "set": {
+        "method": "quests.components",
+        "quest_components_query": {
+          "source": "ftb_quests",
+          "chapter_id": "0000000000000001",
+          "quest_id": "0000000000000002",
+          "after": 0,
+          "part": "tasks"
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "quests.components-missing",
+      "set": {
+        "method": "quests.components"
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.components-wrong-method",
+      "set": {
+        "method": "observe",
+        "quest_components_query": {
+          "source": "ftb_quests",
+          "chapter_id": "0000000000000001",
+          "quest_id": "0000000000000002",
+          "after": 0,
+          "part": "tasks"
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.menu-valid",
+      "set": {
+        "method": "quests.menu",
+        "quest_menu_query": {
+          "source": "ftb_quests",
+          "after": 0
+        }
+      },
+      "valid": true
+    },
+    {
+      "id": "quests.menu-missing",
+      "set": {
+        "method": "quests.menu"
+      },
+      "valid": false
+    },
+    {
+      "id": "quests.menu-wrong-method",
+      "set": {
+        "method": "observe",
+        "quest_menu_query": {
+          "source": "ftb_quests",
+          "after": 0
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "capabilities-no-args",
+      "set": {
+        "method": "capabilities"
+      },
+      "valid": true
+    },
+    {
+      "id": "observe-no-args",
+      "set": {
+        "method": "observe"
+      },
+      "valid": true
+    },
+    {
+      "id": "recipes.page-no-args",
+      "set": {
+        "method": "recipes.page"
+      },
+      "valid": true
+    },
+    {
+      "id": "quests.screen-no-args",
+      "set": {
+        "method": "quests.screen"
+      },
+      "valid": true
+    },
+    {
+      "id": "stop_all-no-args",
+      "set": {
+        "method": "stop_all"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.capabilities-no-args",
+      "set": {
+        "method": "controls.capabilities"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.list-no-args",
+      "set": {
+        "method": "controls.list"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.plan-no-args",
+      "set": {
+        "method": "controls.plan"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.apply-no-args",
+      "set": {
+        "method": "controls.apply"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.status-no-args",
+      "set": {
+        "method": "controls.status"
+      },
+      "valid": true
+    },
+    {
+      "id": "controls.rollback-no-args",
+      "set": {
+        "method": "controls.rollback"
+      },
+      "valid": true
+    },
+    {
+      "id": "act-missing",
+      "set": {
+        "method": "act"
+      },
+      "valid": false
+    },
+    {
+      "id": "invalid-date",
+      "set": {
+        "deadline_at": "2026-02-30T00:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "leap-date",
+      "set": {
+        "deadline_at": "2028-02-29T00:00:00Z"
+      },
+      "valid": true
+    },
+    {
+      "id": "unknown-field",
+      "set": {
+        "admin": true
+      },
+      "valid": false
+    },
+    {
+      "id": "unknown-schema",
+      "set": {
+        "schema": "strata/GameRequest/2"
+      },
+      "valid": false
+    },
+    {
+      "id": "unknown-method",
+      "set": {
+        "method": "eval"
+      },
+      "valid": false
+    }
+  ]
+}

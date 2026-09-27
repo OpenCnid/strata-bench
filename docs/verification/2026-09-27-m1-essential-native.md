@@ -208,3 +208,68 @@ seal `4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
 All459 milestone IDs and1,668 local ledger links are retained. Seven distinct
 holds are recorded and no owned runtime remains. This pointer follows the
 archived documentation snapshot; both sealed native failures remain unchanged.
+
+## Native04 feasible-window procedure
+
+Fresh native04 declares410,000ms for both client stages,5,000ms terminal reserve
+and a415,000ms pair window inside the420,000ms participant window. This leaves
+5,000ms admission margin. The terminal reserve meets the existing contract's
+5,000ms minimum; the1,000ms guardian bound and all case predicates, hold/settling
+durations, frames, primitive limit and original-expiry rules remain unchanged.
+The fixed-window driver from native02/03 is unchanged. This is a fresh finite
+private conformance procedure, not renewed historical authority or a relaxed gate.
+
+Typed binding/scope/pair checks and cross-record arithmetic pass before dispatch.
+The runtime still requires sufficient remaining participant time; slower admission
+refuses instead of extending it. Native01's authentic guardian samples were both
+within1,000ms, while its overall incomplete cycle remains failed. No inference
+calls or benchmark-budget change is authorized. All40 accounting tables and
+seven existing holds match the last sealed audit. Native04 is prepared, not yet
+verified; full T05/G1 and gameplay repair/resume remain unfinished.
+
+## Native04 terminal result: admission passes, health failure interrupts first effect
+
+The fresh client was admitted and joined Minecraft after169.390s startup. The
+first baseline overlap effect was accepted exactly once. Its journal contains
+the held input, InventoryScreen opening, a physical release receipt and only one
+released-state observation out of20 required; no reconfiguration_end or complete
+observed result exists. Six primitive events remain charged. No patch was applied,
+no restart stage ran, and options.txt remains byte-identical to the pretrial file.
+
+The controller reported `SETTINGS_EFFECT_READ_UNAVAILABLE`, but the retained
+guardian resolves the preceding failure: `PROCESS_NATIVE_HEALTH_TIMEOUT` under
+the existing750ms stale-health policy. It stopped the client after1,438ms guardian
+elapsed time. The in-flight lane_status read reported GAME_OBSERVATION_UNAVAILABLE;
+its diagnostic elapsed469ms within the declared500ms read attempt. The precise
+cause of the client-thread delay is not proven. This is not evidence that a longer
+status wait would repair the run; the guardian had already terminated the client.
+No threshold or health policy is relaxed, and no unchanged rerun is selected.
+
+Retained job termination took668.7582ms, within the1,000ms stop bound, with the
+Java process signaled and the tree empty. The normal-stop checker correctly
+failed because this was a health-triggered stop. Outer client18/18 and server29/29
+processes are terminal without forced outer cleanup. The initial world frame was
+visually inspected; no complete effect is claimed. Both phase session paths are
+absent, the used phase1 arguments were retired, and the shared input desktop did
+not change. No owned runtime remains.
+
+All four lifecycle rows stay UNCERTAIN. The eighth distinct256MiB telemetry hold
+stays RESERVED with unknown actual bytes; the previous seven and all40 accounting
+tables are unchanged at4,887,796 microUSD. No model calls. The one effect deadline
+was inside the original authority, with237,863ms remaining at its start; there
+was one profile record and no duplicate effect start. Admission timing is now
+authentically exercised, but the essential-controls cycle remains failed.
+
+The failed native04 archive contains502 files/94,778,274 bytes, including224 exact
+executed repository inputs, seal
+`7099a0f67b6196bc95f45343d02f1e64dd8f21806ac9bd79e2c2399cfae59ca5`.
+Full T05/G1 remains not_run. Continue the missing complete gameplay repair/resume
+integration independently; retain this exact runtime-health failure for subsequent
+qualification. Any new native trial needs a relevant implementation/profile
+change or evidence-backed correction, not a chance to obtain a faster sample.
+
+The native04 procedure/preparation/audit archive contains25 files/3,474,195 bytes,
+seal `2022f6708272bbc32ec5ada928d61a1ec668c185e7bf332c0aca2a9153567a5a`.
+Both bundles verify;459 milestone IDs and1,670 local ledger links are preserved.
+All40 accounting tables remain unchanged; all eight holds are recorded and no
+owned runtime remains. This pointer follows the archived documentation snapshot.

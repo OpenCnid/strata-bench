@@ -7,13 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-Latest checkpoint: essential-native03 failed at admission because equal client
-and participant windows left no admission margin. No client controls ran; all29
-server processes are terminal. The prelaunch check now rejects that impossible
-combination, with a passing focused regression. Seven telemetry holds are
-preserved; inference authority is unchanged. The expanded essential-controls
-cycle and full gameplay repair/resume remain unfinished. No G1 suite closes.
-[Actual result and correction](docs/verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+Latest checkpoint: essential-native04 passed client admission and joined
+Minecraft, then the750ms native-health guard interrupted its first effect.
+Input was released, but only1/20 required settled observations were recorded;
+no essential case passes. Termination668.7582ms meets the1s stop bound, while
+normal-stop and the complete cycle remain failed. All client/server processes
+are terminal, options unchanged and sessions retired. Eight telemetry holds
+are preserved; inference authority is unchanged. No unchanged retry is selected.
+[Actual result and limits](docs/verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
 
 M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
 owned repair, independent Curios/inventory effects, sneak/release and forward
@@ -10989,3 +10990,40 @@ tables unchanged; seven distinct telemetry holds recorded; no owned runtime.
 Bounded-procedure/source/audit archive45files/7,774,404bytes, seal
 `4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
 This pointer follows the archived documentation snapshot. M1 remains in_progress.
+
+### September27 — native04 admission/client/terminal allocation
+
+M1.1b/M1.1c.3.2: fresh native04 passes typed preparation and cross-record timing
+checks for410s client+5s terminal=415s pair within420s participant, leaving5s
+admission margin. The reserve meets the existing5s contract minimum; runtime
+remaining-time checks,1s guardian and all26 added case predicates are unchanged.
+Previous attempts are terminal/consumed, all40 authority tables and seven holds
+unchanged. No model calls. [Procedure](docs/verification/2026-09-27-m1-essential-native.md#native04-feasible-window-procedure).
+Native04 prepared; acceptance remains unverified and G1 not_run.
+
+### September27 — native04 admitted; first effect interrupted by native-health guard
+
+M1.1b/M1.1c.3.2: actual admission now passes with the410+5/415/420s allocation.
+Minecraft joins; the baseline effect starts once, emits/releases input, then the
+750ms native-health guard stops the client. Only1/20 required settled observations
+and no terminal effect result exist. No patch/restart occurred; no essential case
+is newly verified. Six primitives remain charged. Termination668.7582ms is within
+the1s bound; normal stop fails honestly. Client18/18 and server29/29 terminal,
+no forced outer cleanup, no owned runtime, session retired, options unchanged.
+
+All40 accounting tables/previous seven holds unchanged; an eighth256MiB hold is
+retained with four UNCERTAIN lifecycle rows. No model calls. Source/driver and
+exact-profile arithmetic checks pass; this does not substitute for native effects.
+Authentic failure502files/94,778,274bytes, seal
+`7099a0f67b6196bc95f45343d02f1e64dd8f21806ac9bd79e2c2399cfae59ca5`.
+[Cause and limits](docs/verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
+No unchanged retry or looser health/stop threshold. Next complete explicit
+worker/native/controller resume and its integrated repair path while retaining
+the exact-profile health failure for authentic qualification. M1 in_progress;
+all six complete G1 suites and G1 not_run.
+
+Final native04 audit:459 milestone IDs/1,670 local links retained;40 authority
+tables unchanged, eight separate telemetry holds recorded, zero owned runtime.
+Procedure/preparation/audit archive25files/3,474,195bytes, seal
+`2022f6708272bbc32ec5ada928d61a1ec668c185e7bf332c0aca2a9153567a5a`.
+This pointer follows its archived documentation snapshot; no gate promotion.

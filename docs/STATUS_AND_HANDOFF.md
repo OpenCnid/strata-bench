@@ -7,19 +7,22 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-Latest checkpoint: essential-native03 failed at admission because equal client
-and participant windows left no admission margin. No client controls ran; all29
-server processes are terminal. The prelaunch check now rejects that impossible
-combination, with a passing focused regression. Seven telemetry holds are
-preserved; inference authority is unchanged. The expanded essential-controls
-cycle and full gameplay repair/resume remain unfinished. No G1 suite closes.
-[Actual result and correction](verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+Latest checkpoint: essential-native04 passed client admission and joined
+Minecraft, then the750ms native-health guard interrupted its first effect.
+Input was released, but only1/20 required settled observations were recorded;
+no essential case passes. Termination668.7582ms meets the1s stop bound, while
+normal-stop and the complete cycle remain failed. All client/server processes
+are terminal, options unchanged and sessions retired. Eight telemetry holds
+are preserved; inference authority is unchanged. No unchanged retry is selected.
+[Actual result and limits](verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
 
-No live process/session remains. Current preparation is sealed and must not be
-edited or reused for another dispatch. Final source/audit seal:
-`4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
-Next validate a fresh plan's admission margin, client allowance and terminal
-reserve together within the existing limits. Native01/02/03 stay consumed.
+No live process/session remains. Native01/02/03/04 stay consumed and their
+sealed evidence must not be changed. Next implement explicit worker/native/
+controller resume with the existing action history, charges, fixed expiry,
+verified settings and fresh observation. The real launcher/accounting and
+complete qualification remain required. Keep the native04 health failure open;
+a longer status-read wait alone cannot resolve a client already stopped by its
+guardian. No changed health/stop threshold or unchanged trial is selected.
 
 M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
 owned repair, independent Curios/inventory effects, sneak/release and forward

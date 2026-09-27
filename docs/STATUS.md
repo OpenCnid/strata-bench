@@ -23,7 +23,26 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, repair tick consumption
+## Current position — September27, repair inference closure
+
+Private evidence sealed:171 files/11,019,900 bytes,
+SHA-256 `b31830bbdae0f03c501746924bc171b77039218cfb3841f309cb38dcefb7c511`.
+All40 authority tables, eight telemetry holds and installed client/options hashes
+are unchanged; final matching runtime process count0. All460 milestone IDs and
+2,173 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now records root/helper/retry dispatches overlapping a repair and
+can freeze new inference for that avatar before completion. Existing calls keep
+their original budgets and late-settlement/unknown-hold paths; no costs are
+reposted. Missing legacy windows and frozen requests have durable, nonreplayable
+denials. Fourteen focused controller/concurrency cases, one real HTTP case and
+63 affected compatibility cases pass, using synthetic provider/native identities.
+[Repair inference evidence](verification/2026-09-27-m1-repair-inference.md).
+Controller completion must still invoke this check and join complete primitive/
+body intervals and publication evidence. Authentic gameplay, native-health and
+all six aggregate G1 suites remain open; no paid model or Minecraft run occurred.
+
+### Previous tick-consumption checkpoint
 
 Private evidence sealed:62 files/4,044,298 bytes,
 SHA-256 `a87878072c57d8cfd28306ee0119437b1bca7c2e17009956a65b1c8602308329`.

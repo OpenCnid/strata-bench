@@ -19,6 +19,7 @@ from .native_control_plan import TARGET, NativeControlTarget, native_admission
 from .native_settings_effects import NativeRepairAdmission, NativeSettingsEffectsClient
 from .storage import Fault, Principal, canonical, digest, require
 from .worker_repair import POLICY, WorkerRepairClient, WorkerRepairPlan
+from . import repair_inference
 
 
 class RepairPolicy(Strict):
@@ -71,6 +72,7 @@ class Reconfigurations:
         self.clock_instance = secrets.token_hex(16)
         self.budgets = Budgets(self.database)
         with self.database.transaction() as db:
+            repair_inference.install(db)
             db.execute("CREATE TABLE IF NOT EXISTS repair_policies (campaign TEXT PRIMARY KEY, "
                        "ref TEXT, body TEXT)")
             db.execute("CREATE TABLE IF NOT EXISTS repairs (id TEXT PRIMARY KEY, campaign TEXT, "
@@ -202,6 +204,7 @@ class Reconfigurations:
             db.execute("UPDATE grants SET revoked=1 WHERE campaign=? AND agent=? AND role='executor'",
                        (campaign, agent))
             self.database.event(db, "repair.requested", intent | {"epoch": epoch, "generation": generation})
+            repair_inference.begin(db, transaction_id, campaign, agent, epoch)
         return self.status(transaction_id)
 
     def _proof(self, repair, proof):

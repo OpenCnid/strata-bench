@@ -2840,6 +2840,24 @@ and reject any settlement that refunds observed ticks. This does not certify
 coverage before the opening, after the closing, campaign active time or model/
 helper consumption. [Clock consumption evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md).
 
+**Repair inference closure.** Open the repair's inference window atomically with
+input suspension. Include its avatar's existing unsettled dispatches and admit
+new root/helper/retry dispatches into that window in the same transaction as
+their original reservations. To prepare completion, freeze new inference for
+that avatar under the same writer lock; do not cancel or replay in-flight calls.
+Keep authoritative late settlement and unknown holds on their original budget
+operations. Reconcile the window's membership with dispatch/settlement journal
+cursors before claiming its tracked calls settled. Do not repost these costs to
+the repair tool operation or treat this claim as complete body/repair accounting.
+
+Preserve historical budget-denial `/1` records. Frozen or legacy-untracked repair
+admission emits `InferencePreDispatchRejection/2` with
+`durable-repair-denial-before-dispatch/1`: no dispatch intent, reservation or
+provider call; the consumed request cannot later replay. Missing historical
+windows cannot become inferred zero-call proofs. This is a private controller
+completion dependency, not permission to resume gameplay, grant inference
+spending or qualify the final runtime. [Evidence](docs/verification/2026-09-27-m1-repair-inference.md).
+
 Responsibility: PL (F02/F11), QA (N03/N05/N07). Real simultaneous capacity is measured, not promised by configuration syntax or simulator agent counts.
 
 **D04 — initial live-validation authorization (2026-09-18), clarified by D11 (2026-09-20):** the user selected Codex ChatGPT OAuth and `gpt-5.6-luna`, with one **$10 total estimated model-usage allowance** for live validation, including development experiments, training, probes, helpers, retries and summaries. D11 clarifies that this is a rough model-price estimate of subscription consumption. Use a pinned published model-price schedule to report API-equivalent usage; do not label it an actual OAuth dollar bill or an exact share of subscription quota. The user confirms no outside Strata model experiments; together with the inspected synthetic-only experiment records this establishes the zero opening experimental-usage baseline. Preserve this original allowance across jobs/restarts and charge every distinct root/helper/retry/summary request. Missing usage and ambiguous requests retain conservative reservations and are never blindly replayed. Keep finite per-run exposure and stop admission before the estimated aggregate allowance is exhausted. More expensive models or an increased allowance require a later user decision. The machine-readable [live-validation.json](configs/operator/live-validation.json) now uses `ExecutionAuthorization/2` with a pinned `ApiEquivalentEstimateBasis/1`. Explicit migration from the archived D04 record preserves the original account/cap and all ledger amounts/holds; source and synthetic evidence is recorded in [D11 verification](docs/verification/2026-09-20-estimated-accounting.md). No production qualification follows merely from this clarification. Acquisition, account, credential, benchmark-isolation and real acceptance gates remain; no scientific sample or game threshold is reduced.

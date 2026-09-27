@@ -7,6 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now records a durable worker charge opening before pause and a fixed
+closing interval before public publication. The actual process test reconciles
+its delta against journal charge events, and the typed Python consumer/controller
+store the measured receipt without settling the reservation. Missing openings,
+changed clocks or later charges cannot become a fabricated complete certificate.
+[Measured repair evidence](verification/2026-09-27-m1-repair-accounting.md).
+Complete settlement still needs prior-gameplay allocation, actual game clocks,
+nested usage and the publication tail. M1 remains in_progress; G1 remains not_run.
+
 M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
 Worker/6 publication profile. The actual process chain refuses input until a
 private control publication, then executes the next scoped action with its
@@ -46,15 +55,16 @@ are preserved; inference authority is unchanged. No unchanged retry is selected.
 [Actual result and limits](verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
 
 No live process/session remains. Native01/02/03/04 stay consumed and their
-sealed evidence must not be changed. Next implement strict controller publication
-and complete repair settlement, then join the original lease and campaign
-completion atomically. Worker/6 can now publish keymap metadata and retain its
-public hold until the separate private decision, but it does not resolve or
-validate the supplied settlement CAS reference. Account for original gameplay
-and repair primitive intervals without double charging; no opening baseline may
-be invented after execution. Restored-effect rollback, real launcher/accounting,
-selected skill and complete qualification remain required. Keep the native04
-health failure open; no changed health/stop threshold or unchanged trial is selected.
+sealed evidence must not be changed. The typed publication client and measured
+worker/controller interval are now implemented. Next reconcile prior-gameplay
+allocation with this interval, actual body/server clocks, related model/helper
+usage and the tail through publication/completion. Preserve unknown amounts;
+null ticks or false complete-accounting flags cannot certify settlement. Join
+actual settlement to publication and original-lease controller completion. The
+worker does not resolve the supplied private settlement CAS reference.
+Restored-effect rollback, repeated repair ownership, real launcher, selected skill
+and authentic qualification remain required. Keep native04's health failure open;
+no changed health/stop threshold or unchanged trial is selected.
 
 M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
 owned repair, independent Curios/inventory effects, sneak/release and forward

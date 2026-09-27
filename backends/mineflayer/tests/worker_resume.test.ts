@@ -96,7 +96,7 @@ async function paused(t:test.TestContext, publication=false) {
   lane.observe=async()=>({observation_id:'synthetic-fresh'} as any);
   t.after(async()=>{await lane.close().catch(()=>{});journal.close();rmSync(root,{recursive:true});});
   return {lane,journal,d,mutations:()=>mutations,health:()=>health,lose:()=>{lost=true;},
-    replaceInstance:()=>{instance='foreign-instance';},
+    replaceInstance:()=>{instance='foreign-instance';},consume:()=>{health.attempted_primitive_events++;},
     defer:(wait:()=>Promise<void>)=>{beforeReturn=wait;}};
 }
 
@@ -144,6 +144,8 @@ test('publication profile retains durable and public hold until exact settled co
     deadline_at:new Date(Date.now()+1000).toISOString(),duration_ms:1000,action:{kind:'look_at',target:{x:1,y:65,z:2}},
     events:[],release_at_end:true};
   assert.throws(()=>f.lane.act(b),/RECONFIGURING/);
+  await assert.rejects(f.lane.publishControls('publish',p),/REPAIR_ACCOUNTING_REQUIRED/);
+  await f.lane.measureRepair(f.d.worker_plan);
   assert.equal((await f.lane.publishControls('publish',p) as any).published,true);
   assert.equal(f.mutations(),1);f.journal.recover();
   assert.throws(()=>f.lane.act(b),/CAPABILITY_MISSING/);
@@ -155,6 +157,7 @@ test('publication profile retains durable and public hold until exact settled co
 
 test('stop during publication observation prevents late completion and retains recovery',async t=>{
   const f=await paused(t,true),p=publication(f.d);await f.lane.resumeControl('resume',f.d);
+  await f.lane.measureRepair(f.d.worker_plan);
   let release!:(value:any)=>void,entered!:()=>void;
   const ready=new Promise<void>(resolve=>{entered=resolve;});
   f.lane.observe=()=>{entered();return new Promise(resolve=>{release=resolve;});};
@@ -174,14 +177,16 @@ test('native resume without control publication remains unresolved after journal
   assert.throws(()=>j.recover(),/REPAIR_RECOVERY_REQUIRED/);
 });
 
-test('unsettled count, foreign native instance or failed publication persistence stops the prepared lane',async t=>{
+test('publication refuses unmeasured counts and stops on native or storage failure',async t=>{
   for(const failure of ['accounting','storage','instance'])await t.test(failure,async child=>{
     const f=await paused(child,true),p=publication(f.d);await f.lane.resumeControl('resume',f.d);
+    await f.lane.measureRepair(f.d.worker_plan);
     if(failure==='accounting')p.primitive_events=6;
     else if(failure==='instance')f.replaceInstance();
     else f.journal.finishPublication=()=>{throw new Error('synthetic publication store failure');};
-    await assert.rejects(f.lane.publishControls('publish',p),/REPAIR_ACCOUNTING_MISMATCH|EVIDENCE_UNAVAILABLE|REPAIR_NOT_OWNED/);
-    assert.equal(f.health().fenced,true);assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
+    await assert.rejects(f.lane.publishControls('publish',p),/REPAIR_ACCOUNTING_REQUIRED|EVIDENCE_UNAVAILABLE|REPAIR_NOT_OWNED/);
+    if(failure!=='accounting')assert.equal(f.health().fenced,true);
+    assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
   });
 });
 
@@ -196,4 +201,40 @@ test('publication endpoint refuses public credentials, origins and unbound malfo
   assert.equal((await send(body,'operator-token',{Origin:'https://example.test'})).status,403);
   assert.equal((await send({...body,decision:{...p,settlement_ref:null}})).status,400);
   assert.equal(calls,0);assert.equal((await send(body)).status,200);assert.equal(calls,1);
+});
+
+test('repair accounting measures a fixed worker charge interval without inventing game or model usage',async t=>{
+  const f=await paused(t,true);
+  await f.lane.resumeControl('resume',f.d);
+  const a=await f.lane.measureRepair(f.d.worker_plan) as any;
+  assert.equal(a.charged_primitive_events,7);
+  assert.equal(a.opening.primitive_events,0);assert.equal(a.closing.primitive_events,7);
+  assert.equal(a.elapsed_ms,a.closing.mono_ms-a.opening.mono_ms);
+  assert.equal(a.complete_repair_accounting,false);assert.equal(a.avatar_ticks,null);
+  assert.equal(a.model_usage,null);assert.equal(a.publication_tail_included,false);
+  assert.deepEqual(await f.lane.measureRepair(f.d.worker_plan),a);
+  assert.equal(f.mutations(),1);
+  await assert.rejects(f.lane.measureRepair({...f.d.worker_plan,agent_id:'sibling'}),/REPAIR_ACCOUNTING_UNAVAILABLE/);
+  await f.lane.publishControls('publish',publication(f.d));
+  await assert.rejects(f.lane.measureRepair(f.d.worker_plan),/REPAIR_ACCOUNTING_UNAVAILABLE/);
+});
+
+for(const opening of [false,true])test(`repair accounting refuses ${opening?'a new worker clock':'a missing opening'}`,t=>{
+  const root=mkdtempSync(join(tmpdir(),'strata-accounting-reopen-'));
+  let j=new Journal(root,1);t.after(()=>{j.close();rmSync(root,{recursive:true});});const d=decision();
+  j.holdRepair(d.worker_plan,opening);j.beginResume(d,true);
+  j.counter('native:'+'a'.repeat(64)+':'+'b'.repeat(64),7);j.counter('primitive_events',7);
+  j.finishResume(d,receipt(),{});
+  if(opening)assert.equal(j.repairAccounting(d.worker_plan,digest(d)).charged_primitive_events,7);
+  else assert.throws(()=>j.repairAccounting(d.worker_plan,digest(d)),/REPAIR_ACCOUNTING_UNAVAILABLE/);
+  j.close();j=new Journal(root,2);
+  assert.throws(()=>j.repairAccounting(d.worker_plan,digest(d)),/REPAIR_ACCOUNTING_UNAVAILABLE/);
+});
+
+test('changed consumption after a measured interval retains the old receipt and stops preparation',async t=>{
+  const f=await paused(t,true);await f.lane.resumeControl('resume',f.d);
+  const first=await f.lane.measureRepair(f.d.worker_plan) as any;assert.equal(first.closing.primitive_events,7);
+  f.consume();await assert.rejects(f.lane.measureRepair(f.d.worker_plan),/EVIDENCE_UNAVAILABLE/);
+  assert.equal(f.journal.counter('primitive_events'),8);assert.equal(f.health().fenced,true);
+  assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
 });

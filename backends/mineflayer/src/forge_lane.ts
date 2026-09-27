@@ -159,7 +159,7 @@ export class ForgeLane implements GameLane {
     const remaining=plan.expires_unix_ms-Date.now();
     requireThat(!this.closed && !this.fenced && remaining>0 && remaining<=900000
       && remaining<=this.deadline-mono(),'REPAIR_DEADLINE_INVALID');
-    try {this.write(()=>this.journal.holdRepair(plan));}
+    try {this.write(()=>this.journal.holdRepair(plan,this.publicationRequired));}
     catch(error) {
       // Intent failure cannot leave an already executing motor running while
       // the local admission lane merely reports itself fenced.
@@ -261,6 +261,24 @@ export class ForgeLane implements GameLane {
     this.repair=null;this.repairPhase=null;this.repairUntil=0;this.repairAbort=null;
     this.restart=null;this.resumeIntent=null;
   }
+  async measureRepair(raw:RepairPlan):Promise<unknown> {
+    const plan=repairPlan(raw);
+    requireThat(this.publicationRequired && this.repair && canonical(this.repair)===canonical(plan)
+      && this.repairLive() && this.repairPhase==='resuming' && this.resumeIntent
+      && mono()<this.resumeUntil && !this.publicationTask,'REPAIR_ACCOUNTING_UNAVAILABLE');
+    const intent=this.resumeIntent,resume=this.journal.resumeRecord(plan.transaction_id);
+    requireThat(resume?.receipt,'REPAIR_ACCOUNTING_UNAVAILABLE');
+    try {
+      const state=await this.client.call('settings_resume_status',{transaction_id:plan.transaction_id},500);
+      requireThat(canonical(state.decision)===canonical(intent) && state.input_resumed
+        && state.source_instance===resume.receipt.source_instance && state.current_instance===resume.receipt.current_instance,
+        'REPAIR_NOT_OWNED');
+      this.checkHealth(state.health);this.charge(state.health);
+      requireThat(this.repairLive() && this.repairPhase==='resuming' && !this.fenced
+        && mono()<this.resumeUntil && !this.publicationTask,'REPAIR_ACCOUNTING_UNAVAILABLE');
+      return this.write(()=>this.journal.repairAccounting(plan,digest(intent)));
+    }catch(error){await this.abortRepair(error instanceof Fault?error.code:'REPAIR_ACCOUNTING_UNAVAILABLE');throw error;}
+  }
   async publishControls(operation:'publish'|'status',raw:ControlPublication):Promise<unknown> {
     requireThat(this.publicationRequired,'CAPABILITY_MISSING');
     const value=controlPublication(raw),tx=value.worker_plan.transaction_id;
@@ -269,6 +287,9 @@ export class ForgeLane implements GameLane {
       && canonical(value.worker_plan)===canonical(resume.decision.worker_plan)
       && value.control_revision===resume.decision.expected_revision
       && value.verification_ref===resume.decision.verification_ref,'REPAIR_NOT_OWNED');
+    const measured=this.journal.measuredRepair(tx);
+    requireThat(measured && measured.resume_digest===value.resume_digest
+      && measured.closing.primitive_events===value.primitive_events,'REPAIR_ACCOUNTING_REQUIRED');
     if(old.decision)requireThat(canonical(old.decision)===canonical(value),'REPAIR_NOT_OWNED');
     const result=(observation:unknown)=>({schema:'strata/WorkerControlPublicationState/1',decision:value,observation,
       primitive_events:this.journal.counter('primitive_events'),published:!this.closed && !this.fenced && !this.repair

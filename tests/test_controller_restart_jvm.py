@@ -15,6 +15,8 @@ from pathlib import Path
 import pytest
 
 from mcbench.native_game import NativeGameClient
+from mcbench.native_resume import NativeResumeDecision
+from mcbench.worker_publication import WorkerPublicationClient, WorkerControlPublication, WorkerRepairAccounting
 from mcbench.native_settings_effects import EffectRequest
 from mcbench.native_repair_restart import NativeRepairRestart
 from mcbench.native_repair_resume import NativeRepairResume
@@ -409,6 +411,28 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     if lost == "publish":
                         grant = json.loads((state / f"publication-grant-{e.epoch}.json").read_text())
                         assert grant["resume_binding_digest"] == resume.binding_digest
+                        publisher = WorkerPublicationClient.from_file(state / f"publication-grant-{e.epoch}.json")
+                        publisher.validate_resume(resume)
+                        measurement = joined.measure_prepared("tx", "owner", e.epoch, worker, restart, resume, publisher, replacement)
+                        measured = WorkerRepairAccounting.model_validate(measurement["receipt"])
+                        stored_measurement = e.cas.json(e.operator, "operator", measurement["source_ref"])
+                        assert stored_measurement["worker_receipt"] == measured.model_dump()
+                        assert not stored_measurement["consumption_settled"] and not stored_measurement["complete_repair_accounting"]
+                        assert joined.measure_prepared("tx", "owner", e.epoch, worker, restart, resume, publisher, replacement) == measurement
+                        assert measured.opening.primitive_events > 0
+                        assert measured.charged_primitive_events == measured.closing.primitive_events - measured.opening.primitive_events > 0
+                        assert measured.closing.primitive_events == resumed["worker_state"]["primitive_events"]
+                        assert measured.elapsed_ms > 0 and measured.complete_repair_accounting is False
+                        assert measured.avatar_ticks is None and measured.model_usage is None
+                        assert publisher.measure(NativeResumeDecision.model_validate(resumed["worker_state"]["decision"])) == measured
+                        with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
+                            opening_row = json.loads(db.execute("SELECT opening FROM repair_accounting WHERE transaction_id='tx'").fetchone()[0])
+                            assert opening_row == measured.opening.model_dump()
+                            assert json.loads(db.execute("SELECT body FROM events WHERE cursor=?", (measured.opening.cursor,)).fetchone()[0])["plan"] == measured.worker_plan.model_dump()
+                            charged = sum(json.loads(row[0])["charged_delta"] for row in db.execute(
+                                "SELECT body FROM events WHERE kind='native_usage' AND cursor>? AND cursor<=?",
+                                (measured.opening.cursor, measured.closing.cursor)))
+                            assert charged == measured.charged_primitive_events
                         control = e.controls.status("tx")["receipt"]
                         decision = resumed["worker_state"]["decision"]
                         # Test-only accounting producer. The actual controller settlement
@@ -419,19 +443,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                             "keymap_digest": control["keymap_digest"], "verification_ref": decision["verification_ref"],
                             "settlement_ref": e.put({"is_example": True, "fixture": "synthetic settlement producer"}),
                             "primitive_events": resumed["worker_state"]["primitive_events"]}
-                        address = urlsplit(grant["url"])
                         def publish(operation, value=publication):
-                            connection = http.client.HTTPConnection(address.hostname, address.port, timeout=2)
-                            try:
-                                connection.request("POST", address.path, canonical({"schema": "strata/WorkerControlPublicationRequest/1",
-                                    "request_id": "publication-request", "operation": operation, "decision": value}),
-                                    {"Content-Type": "application/json", "Authorization": "Bearer " + grant["token"]})
-                                response = connection.getresponse()
-                                result = json.loads(response.read())
-                                assert response.status == 200, result
-                                return result["result"]
-                            finally:
-                                connection.close()
+                            return publisher.publish(operation, WorkerControlPublication.model_validate(value)).model_dump()
                         cli_env = os.environ | {"STRATA_GAME_GRANT": str(state / f"grant-{e.epoch}.json")}
                         def play():
                             return subprocess.run([node, str(worker_js.with_name("cli.js")), "look-at", "--x", "1", "--y", "65", "--z", "2", "--json"],

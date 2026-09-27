@@ -882,6 +882,26 @@ supplied settings/settlement producers, or complete campaign permission. Actual
 controller settlement/publication, restored rollback, skill and authentic
 qualification remain required. [Evidence](docs/verification/2026-09-27-m1-control-publication.md).
 
+Worker/6 records a durable charge opening with pause intent before quiescence.
+`WorkerRepairAccounting/1` uses `durable-worker-charge-interval/1`: original full
+plan, same-worker clock identity, journal cursors, per-native-source high-water
+values, their sum and measured monotonic elapsed time. This is a charge interval,
+not a timestamp claim about every physical input. Missing openings and a reopened
+worker clock cannot be reconstructed as verified measurements. While the public
+hold remains active, freeze one closing receipt; repeated reads keep that receipt.
+Unexpected later consumption retains the new charge and stops preparation.
+Publication requires the measured closing count and exact resume decision.
+
+The strict private Python publication consumer binds the actual resume grant and
+checks these arithmetic/scope joins. Controller measurement stores the real worker
+receipt and its own measured request interval without changing the budget or
+input permission. The receipt explicitly has null avatar ticks/model usage and
+false complete-accounting/publication-tail flags. Complete settlement must still
+join prior-gameplay allocation, repair charges, actual game clocks, all nested
+usage and the publication tail without refunds or overlapping charges. Never use
+a partial worker receipt as a complete settlement certificate.
+[Measured evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

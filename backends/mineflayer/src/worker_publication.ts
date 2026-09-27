@@ -3,9 +3,11 @@ import { timingSafeEqual } from 'node:crypto';
 import { fields, strictJson } from './native_game.js';
 import { controlPublication, type ControlPublication } from './control_publication.js';
 import { errorBody, Fault, requireThat } from './protocol.js';
+import { repairPlan, type RepairPlan } from './worker_repair.js';
 
 /** Operator-only endpoint. A duplicate decision is status reconciliation, never a second dispatch. */
-export function servePublication(call:(operation:'publish'|'status',decision:ControlPublication)=>Promise<unknown>,token:string):Promise<Server> {
+export function servePublication(call:(operation:'publish'|'status',decision:ControlPublication)=>Promise<unknown>,token:string,
+  measure?:(plan:RepairPlan)=>Promise<unknown>):Promise<Server> {
   const bearer=Buffer.from(`Bearer ${token}`);
   const server=createServer(async(req,res)=>{
     let id:string|null=null;
@@ -16,7 +18,15 @@ export function servePublication(call:(operation:'publish'|'status',decision:Con
       requireThat(req.method==='POST' && req.url==='/v1/publication' && req.headers['content-type']==='application/json','CONTROL_PUBLICATION_INVALID');
       let size=0;const chunks:Buffer[]=[];
       for await(const chunk of req){size+=chunk.length;requireThat(size<=16384,'CAPACITY_EXCEEDED');chunks.push(Buffer.from(chunk));}
-      const v=strictJson(Buffer.concat(chunks).toString('utf8'));fields(v,['schema','request_id','operation','decision']);
+      const v=strictJson(Buffer.concat(chunks).toString('utf8'));
+      if(v && typeof v==='object' && !Array.isArray(v) && 'schema' in v && v.schema==='strata/WorkerRepairAccountingRequest/1') {
+        fields(v,['schema','request_id','plan']);
+        const request=v as Record<string,unknown>;
+        requireThat(measure && typeof request.request_id==='string' && /^[A-Za-z0-9_.:-]{1,128}$/.test(request.request_id),'REPAIR_ACCOUNTING_INVALID');
+        id=request.request_id;const result=await measure(repairPlan(request.plan));
+        send(200,{schema:'strata/WorkerRepairAccountingResponse/1',request_id:id,status:'ok',result});return;
+      }
+      fields(v,['schema','request_id','operation','decision']);
       requireThat(v.schema==='strata/WorkerControlPublicationRequest/1' && typeof v.request_id==='string'
         && /^[A-Za-z0-9_.:-]{1,128}$/.test(v.request_id) && (v.operation==='publish'||v.operation==='status'),'CONTROL_PUBLICATION_INVALID');
       id=v.request_id;

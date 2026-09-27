@@ -1,16 +1,19 @@
 import { DatabaseSync } from 'node:sqlite';
+import { randomUUID } from 'node:crypto';
 import { closeSync, openSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
 import type { RepairPlan } from './worker_repair.js';
 import type { ResumeDecision, ResumeState } from './native_resume.js';
 import type { ControlPublication } from './control_publication.js';
+import { REPAIR_ACCOUNTING_POLICY, type ChargeBoundary, type RepairAccounting } from './repair_accounting.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
 
 /** Private, synchronous FULL journal. Nothing dispatches before acceptance is committed. */
 export class Journal {
+  private readonly clockId=randomUUID();
   private db!: DatabaseSync;
   private lockFd: number;
   private lockPath: string;
@@ -32,7 +35,9 @@ export class Journal {
         CREATE TABLE IF NOT EXISTS repair_resumes(transaction_id TEXT PRIMARY KEY,resume_id TEXT UNIQUE NOT NULL,
           decision TEXT NOT NULL,receipt TEXT,observation TEXT);
         CREATE TABLE IF NOT EXISTS repair_publications(transaction_id TEXT PRIMARY KEY,
-          decision TEXT,observation TEXT);`);
+          decision TEXT,observation TEXT);
+        CREATE TABLE IF NOT EXISTS repair_accounting(transaction_id TEXT PRIMARY KEY,
+          clock_id TEXT NOT NULL,opening TEXT NOT NULL,receipt TEXT);`);
       const last = this.db.prepare('SELECT MAX(epoch) AS epoch FROM epochs').get() as { epoch: number | null };
       requireThat(last.epoch === null || epoch > last.epoch, 'STALE_EPOCH');
       this.db.prepare('INSERT INTO epochs VALUES (?)').run(epoch);
@@ -55,13 +60,58 @@ export class Journal {
   event(kind: string, body: unknown): void {
     this.db.prepare('INSERT INTO events(kind,body) VALUES (?,?)').run(kind, JSON.stringify(body));
   }
-  holdRepair(plan:RepairPlan):void {
+  holdRepair(plan:RepairPlan,accounting=false):void {
     this.transaction(()=>{
       requireThat(plan.epoch===this.epoch && !this.unresolvedRepair(),
         'REPAIR_RECOVERY_REQUIRED');
       this.db.prepare("INSERT INTO repair_holds VALUES (?,?,?,'HELD')").run(plan.transaction_id,this.epoch,JSON.stringify(plan));
       this.event('repair_pause_intent',{schema:'strata/WorkerRepairIntent/1',plan});
+      if(accounting) {
+        const opening=this.chargeBoundary();
+        this.db.prepare('INSERT INTO repair_accounting(transaction_id,clock_id,opening) VALUES (?,?,?)')
+          .run(plan.transaction_id,this.clockId,JSON.stringify(opening));
+        this.event('repair_accounting_opened',{policy:REPAIR_ACCOUNTING_POLICY,plan,clock_id:this.clockId,opening});
+      }
     });
+  }
+  private chargeBoundary():ChargeBoundary {
+    const rows=this.db.prepare("SELECT name,value FROM counters WHERE name LIKE 'native:%' ORDER BY name").all() as unknown as {name:string;value:number}[];
+    requireThat(rows.length<=64 && rows.every(r=>/^native:[a-f0-9]{64}:[a-f0-9]{64}$/.test(r.name)
+      && Number.isSafeInteger(r.value) && r.value>=0),'REPAIR_ACCOUNTING_INVALID');
+    const total=this.counter('primitive_events');
+    requireThat(Number.isSafeInteger(total) && rows.reduce((n,r)=>n+r.value,0)===total,'REPAIR_ACCOUNTING_MISMATCH');
+    const cursor=this.db.prepare('SELECT MAX(cursor) AS value FROM events').get()!.value as number;
+    return {cursor,mono_ms:mono(),unix_ms:Date.now(),primitive_events:total,sources:Object.fromEntries(rows.map(r=>[r.name,r.value]))};
+  }
+  repairAccounting(plan:RepairPlan,resumeDigest:string):RepairAccounting {
+    return this.transaction(()=>{
+      const row=this.db.prepare('SELECT * FROM repair_accounting WHERE transaction_id=?').get(plan.transaction_id) as {clock_id:string;opening:string;receipt:string|null}|undefined;
+      const held=this.db.prepare('SELECT plan,state FROM repair_holds WHERE transaction_id=?').get(plan.transaction_id);
+      const resume=this.resumeRecord(plan.transaction_id),publication=this.publicationRecord(plan.transaction_id);
+      requireThat(row && row.clock_id===this.clockId && held?.state==='HELD'
+        && digest(JSON.parse(held.plan as string))===digest(plan) && resume?.receipt
+        && digest(resume.decision)===resumeDigest && publication && !publication.observation,'REPAIR_ACCOUNTING_UNAVAILABLE');
+      if(row.receipt) {
+        const saved=JSON.parse(row.receipt) as RepairAccounting,current=this.chargeBoundary();
+        requireThat(saved.closing.primitive_events===current.primitive_events
+          && digest(saved.closing.sources)===digest(current.sources),'REPAIR_ACCOUNTING_CHANGED');
+        return saved;
+      }
+      const opening:ChargeBoundary=JSON.parse(row.opening),closing=this.chargeBoundary();
+      requireThat(closing.mono_ms>=opening.mono_ms && closing.primitive_events>=opening.primitive_events
+        && closing.primitive_events>=resume.receipt.health.attempted_primitive_events
+        && Object.entries(opening.sources).every(([key,value])=>(closing.sources[key]??-1)>=value),'REPAIR_ACCOUNTING_INVALID');
+      const receipt:RepairAccounting={schema:'strata/WorkerRepairAccounting/1',policy:REPAIR_ACCOUNTING_POLICY,
+        worker_plan:plan,clock_id:this.clockId,resume_digest:resumeDigest,opening,closing,
+        charged_primitive_events:closing.primitive_events-opening.primitive_events,elapsed_ms:closing.mono_ms-opening.mono_ms,
+        complete_repair_accounting:false,avatar_ticks:null,model_usage:null,publication_tail_included:false};
+      this.db.prepare('UPDATE repair_accounting SET receipt=? WHERE transaction_id=?').run(JSON.stringify(receipt),plan.transaction_id);
+      this.event('repair_accounting_measured',receipt);return receipt;
+    });
+  }
+  measuredRepair(transaction:string):RepairAccounting|null {
+    const row=this.db.prepare('SELECT receipt FROM repair_accounting WHERE transaction_id=?').get(transaction);
+    return row?.receipt?JSON.parse(row.receipt as string) as RepairAccounting:null;
   }
   failRepair(plan:RepairPlan,reason:string):void {
     this.transaction(()=>{

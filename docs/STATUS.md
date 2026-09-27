@@ -7,6 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now records a durable worker charge opening before pause and a fixed
+closing interval before public publication. The actual process test reconciles
+its delta against journal charge events, and the typed Python consumer/controller
+store the measured receipt without settling the reservation. Missing openings,
+changed clocks or later charges cannot become a fabricated complete certificate.
+[Measured repair evidence](verification/2026-09-27-m1-repair-accounting.md).
+Complete settlement still needs prior-gameplay allocation, actual game clocks,
+nested usage and the publication tail. M1 remains in_progress; G1 remains not_run.
+
 M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
 Worker/6 publication profile. The actual process chain refuses input until a
 private control publication, then executes the next scoped action with its

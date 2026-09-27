@@ -18,6 +18,7 @@ from .storage import Principal, canonical, digest, require
 from .worker_repair import WorkerRepairState
 from .worker_restart import WorkerRestartClient, WorkerRestartState
 from .worker_resume import WorkerResumeClient
+from .worker_publication import WorkerPublicationClient
 
 
 class NativeRepairResume:
@@ -28,6 +29,8 @@ class NativeRepairResume:
             db.execute("CREATE TABLE IF NOT EXISTS repair_worker_resumes (id TEXT PRIMARY KEY, "
                        "binding TEXT NOT NULL, request TEXT NOT NULL, native_instance TEXT NOT NULL, "
                        "phase TEXT NOT NULL CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), source_ref TEXT)")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_worker_measurements (id TEXT PRIMARY KEY, "
+                       "binding TEXT NOT NULL, receipt TEXT NOT NULL, source_ref TEXT NOT NULL)")
 
     def _read(self, ref):
         return strict_json(self.repairs.controller.cas.read(Principal("operator", "operator"),
@@ -156,3 +159,49 @@ class NativeRepairResume:
                         finally:
                             self.repairs._fail(transaction, "RESUME_EVIDENCE_UNAVAILABLE")
                 raise
+
+    def measure_prepared(self, transaction, owner, epoch, worker, restart, resume, publisher, native):
+        """Capture measured charges before publication; never a settlement certificate."""
+        require(isinstance(publisher, WorkerPublicationClient), "CONTROL_PUBLICATION_GRANT_INVALID")
+        publisher.validate_resume(resume)
+        profile = self.controls.status(transaction)["plan"]["profile_id"]
+        with profile_operation(self.database, "repair:" + transaction), profile_operation(self.database, profile):
+            repair, control, admission = self.flow._context(transaction, owner, epoch, worker, native, True, observe=False)
+            require(control["phase"] == "committed", "VERIFIED_COMMIT_REQUIRED")
+            committed, instance, _, _ = self._evidence(transaction, control, admission, restart, native)
+            row = self.database.connection.execute("SELECT * FROM repair_worker_resumes WHERE id=?", (transaction,)).fetchone()
+            require(row is not None and row["phase"] == "CONFIRMED" and row["binding"] == resume.binding_digest
+                    and row["native_instance"] == instance, "REPAIR_RESUME_UNCONFIRMED")
+            decision = NativeResumeDecision.model_validate_json(row["request"])
+            require(decision.worker_plan == admission.worker_plan and decision.verification_ref == committed.verification_ref,
+                    "REPAIR_NOT_OWNED")
+            with self.database.transaction() as db:
+                self.repairs._owned(db, repair, owner, epoch)
+                self.repairs._budget(db, repair["request"])
+            receipt = publisher.measure(decision, timeout_ms=self.flow._timeout(repair))
+            encoded = canonical(receipt.model_dump()).decode()
+            old = self.database.connection.execute("SELECT * FROM repair_worker_measurements WHERE id=?", (transaction,)).fetchone()
+            if old:
+                require(old["binding"] == publisher.binding_digest and old["receipt"] == encoded, "REPAIR_ACCOUNTING_CHANGED")
+                return {"source_ref": old["source_ref"], "receipt": receipt.model_dump(), "complete_repair_accounting": False}
+            now, mono = self.repairs.clock(), self.repairs.monotonic()
+            require(repair["request"]["clock_instance"] == self.repairs.clock_instance
+                    and mono >= repair["request"]["started_mono"], "REPAIR_RECOVERY_REQUIRED")
+            source = self.flow._put({"schema": "strata/ControllerRepairMeasurement/1",
+                "is_example": self.repairs.controller.simulation, "transaction_id": transaction,
+                "publication_binding": publisher.binding_digest, "resume_source_ref": row["source_ref"],
+                "worker_receipt": receipt.model_dump(), "controller_clock_id": self.repairs.clock_instance,
+                "started_unix": repair["request"]["started_unix"], "observed_unix": now,
+                "elapsed_ms": int((mono - repair["request"]["started_mono"]) * 1000),
+                "complete_repair_accounting": False, "consumption_settled": False,
+                "campaign_permission_published": False})
+            with self.database.transaction() as db:
+                self.repairs._owned(db, self.repairs.status(transaction), owner, epoch)
+                self.repairs._budget(db, repair["request"])
+                db.execute("INSERT INTO repair_worker_measurements VALUES (?,?,?,?)",
+                    (transaction, publisher.binding_digest, encoded, source))
+                self.database.event(db, "repair.worker_measured", {"transaction_id": transaction, "source_ref": source,
+                    "opening_primitive_events": receipt.opening.primitive_events,
+                    "closing_primitive_events": receipt.closing.primitive_events,
+                    "complete_repair_accounting": False})
+            return {"source_ref": source, "receipt": receipt.model_dump(), "complete_repair_accounting": False}

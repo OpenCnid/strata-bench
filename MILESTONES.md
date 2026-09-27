@@ -7,6 +7,15 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+M1.1c.3.4 now records a durable worker charge opening before pause and a fixed
+closing interval before public publication. The actual process test reconciles
+its delta against journal charge events, and the typed Python consumer/controller
+store the measured receipt without settling the reservation. Missing openings,
+changed clocks or later charges cannot become a fabricated complete certificate.
+[Measured repair evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+Complete settlement still needs prior-gameplay allocation, actual game clocks,
+nested usage and the publication tail. M1 remains in_progress; G1 remains not_run.
+
 M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
 Worker/6 publication profile. The actual process chain refuses input until a
 private control publication, then executes the next scoped action with its
@@ -11188,3 +11197,36 @@ All40 authority tables and eight retained holds match before/after. Installed
 JAR/options unchanged; no owned runtime remains. All460 ledger IDs are preserved
 and2,118 local links in the five reviewed documents resolve. The archived source
 snapshot precedes this appended seal pointer. M1 in_progress; G1 not_run.
+
+### September27 — measured repair accounting boundary
+
+M1.1c.3.4 continues from30748c5. Establish the worker's durable repair opening
+counter and same-process monotonic interval before pause; expose its measured
+closing interval only while the public publication hold remains active. Bind
+strict private consumers to the actual resume/publication grants. Do not infer
+Minecraft ticks from wall time, invent historical openings, settle prior holds,
+or accept an arbitrary supplied CAS reference as full accounting. All40 authority
+tables and eight retained holds match the last sealed checkpoint read-only.
+
+Measured worker interval and strict publication consumer now implemented:
+repair_accounting.ts, journal opening/closing receipts, private measurement route,
+worker_publication.py and controller measure_prepared. Actual Python/Node/Windows/
+JVM path passes matching opening/closing and summed journal charges, repeated
+receipt identity, CAS storage and later action/history continuity. Body/settings/
+verification/final settlement producers remain synthetic. Python29 focused cases
+and Node12 selected cases pass; build/lint/diff checks pass, initial failures kept.
+F06/F09/F11/F16/N01/N02/N03/N04/N08; T01/T04/T05/T06/T12 dependencies; G1 not_run.
+[Evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+No budget was settled and no campaign permission was published by measurement.
+Next complete prior-gameplay allocation, native clocks/nested usage/publication
+tail and actual settlement before original-lease controller completion. Keep
+all G1 requirements, old failures/profiles/consumed decisions/eight holds intact.
+
+Private evidence bundle `2026-09-27-m1-repair-accounting-01` is sealed:45 files,
+2,997,931 bytes, SHA-256
+`e21c2d396fb09077f6bb40a80668c35bb8bd711d0a1f4fcbfa1ac7943cfb4a97`.
+It preserves source/compiled pins, failed/passing logs and WAL-aware synthetic
+process database snapshots. All40 authority tables/eight holds remain unchanged;
+installed JAR/options unchanged, no owned runtime remains. All460 ledger IDs
+survive and2,123 reviewed local links resolve. The archived source snapshot
+precedes this appended seal pointer. Full repair settlement and G1 remain open.

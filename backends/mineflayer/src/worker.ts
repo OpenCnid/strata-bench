@@ -80,7 +80,8 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
           journal.event('resume_gateway',{policy:c.resume_policy,epoch:c.epoch,port:address.port});
           if(c.schema==='strata/ForgeDevelopmentWorker/6') {
             const publicationToken=randomBytes(32).toString('hex');
-            publicationServer=await servePublication((...args)=>lane.publishControls(...args),publicationToken);
+            publicationServer=await servePublication((...args)=>lane.publishControls(...args),publicationToken,
+              plan=>lane.measureRepair(plan));
             const address=publicationServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
             const publicationGrant={schema:'strata/WorkerControlPublicationGrant/1',policy:c.publication_policy,
               resume_binding_digest:digest(resumeGrant),url:`http://127.0.0.1:${address.port}/v1/publication`,token:publicationToken,

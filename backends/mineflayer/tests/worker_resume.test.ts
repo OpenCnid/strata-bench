@@ -167,6 +167,55 @@ test('stop during publication observation prevents late completion and retains r
   assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
 });
 
+test('charges discovered by the final observation prevent publication without refund or replay',async t=>{
+  const f=await paused(t,true),p=publication(f.d);await f.lane.resumeControl('resume',f.d);
+  const measured=await f.lane.measureRepair(f.d.worker_plan);
+  f.lane.observe=async()=>{
+    f.consume();(f.lane as any).charge(f.health());
+    return {observation_id:'late-consumption'} as any;
+  };
+  await assert.rejects(f.lane.publishControls('publish',p),/EVIDENCE_UNAVAILABLE/);
+  assert.equal(f.journal.counter('primitive_events'),8);
+  assert.deepEqual(f.journal.measuredRepair('tx'),measured);
+  assert.equal(f.journal.publicationRecord('tx')!.observation,null);
+  assert.equal(f.health().fenced,true);assert.equal(f.mutations(),1);
+  assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
+  await assert.rejects(f.lane.publishControls('status',p),/REPAIR_RESUME_EXPIRED/);
+  assert.equal(f.mutations(),1);
+});
+
+test('publication checks source allocation even when the cumulative total is unchanged',async t=>{
+  const f=await paused(t,true),p=publication(f.d);await f.lane.resumeControl('resume',f.d);
+  const measured=await f.lane.measureRepair(f.d.worker_plan) as any;
+  const source=Object.keys(measured.closing.sources)[0];assert(source);
+  f.lane.observe=async()=>{
+    // Synthetic journal corruption: same total, different source attribution.
+    f.journal.transaction(()=>{
+      f.journal.counter(source,-1);
+      f.journal.counter('native:'+'e'.repeat(64)+':'+'f'.repeat(64),1);
+    });
+    return {observation_id:'changed-sources'} as any;
+  };
+  await assert.rejects(f.lane.publishControls('publish',p),/EVIDENCE_UNAVAILABLE/);
+  assert.equal(f.journal.publicationRecord('tx')!.observation,null);
+  assert.equal(f.health().fenced,true);
+  assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
+});
+
+test('failed publication boundary storage rolls back the observation and keeps recovery required',async t=>{
+  const f=await paused(t,true),p=publication(f.d);await f.lane.resumeControl('resume',f.d);
+  const measured=await f.lane.measureRepair(f.d.worker_plan),event=f.journal.event.bind(f.journal);
+  f.journal.event=(kind,body)=>{
+    if(kind==='repair_publication_confirmed')throw new Error('synthetic boundary write failure');
+    event(kind,body);
+  };
+  await assert.rejects(f.lane.publishControls('publish',p),/EVIDENCE_UNAVAILABLE/);
+  assert.equal(f.journal.publicationRecord('tx')!.observation,null);
+  assert.deepEqual(f.journal.measuredRepair('tx'),measured);
+  assert.equal(f.journal.counter('primitive_events'),7);assert.equal(f.health().fenced,true);
+  assert.throws(()=>f.journal.recover(),/REPAIR_RECOVERY_REQUIRED/);
+});
+
 test('native resume without control publication remains unresolved after journal reopen in a new epoch',t=>{
   const root=mkdtempSync(join(tmpdir(),'strata-publication-reopen-'));
   let j=new Journal(root,1);t.after(()=>{j.close();rmSync(root,{recursive:true});});

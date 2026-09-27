@@ -162,11 +162,27 @@ export class Journal {
   }
   finishPublication(value:ControlPublication,observation:unknown):void {
     this.transaction(()=>{
-      const old=this.publicationRecord(value.worker_plan.transaction_id);
+      const tx=value.worker_plan.transaction_id,old=this.publicationRecord(tx);
       requireThat(old?.decision && !old.observation && digest(old.decision)===digest(value),'REPAIR_NOT_OWNED');
+      const held=this.db.prepare('SELECT epoch,plan,state FROM repair_holds WHERE transaction_id=?').get(tx);
+      const measured=this.measuredRepair(tx);
+      requireThat(held?.state==='HELD' && held.epoch===this.epoch
+        && digest(JSON.parse(held.plan as string))===digest(value.worker_plan)
+        && measured && measured.clock_id===this.clockId
+        && measured.resume_digest===value.resume_digest,'REPAIR_ACCOUNTING_UNAVAILABLE');
+      // The final observation can discover charges after the earlier preflight.
+      // Check and retain this boundary in the same commit that permits publication.
+      const boundary=this.chargeBoundary();
+      requireThat(boundary.primitive_events===value.primitive_events
+        && boundary.primitive_events===measured.closing.primitive_events
+        && digest(boundary.sources)===digest(measured.closing.sources)
+        && boundary.cursor>=measured.closing.cursor && boundary.mono_ms>=measured.closing.mono_ms,
+        'REPAIR_ACCOUNTING_CHANGED');
       this.db.prepare('UPDATE repair_publications SET observation=? WHERE transaction_id=?')
-        .run(JSON.stringify(observation),value.worker_plan.transaction_id);
-      this.event('repair_publication_confirmed',{decision:value,observation});
+        .run(JSON.stringify(observation),tx);
+      this.event('repair_publication_confirmed',{schema:'strata/WorkerControlPublicationCommit/1',
+        decision:value,observation,clock_id:this.clockId,measurement_digest:digest(measured),boundary,
+        complete_repair_accounting:false});
     });
   }
   finishResume(decision:ResumeDecision,receipt:ResumeState,observation:unknown):void {

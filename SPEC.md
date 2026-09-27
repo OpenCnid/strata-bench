@@ -892,6 +892,15 @@ hold remains active, freeze one closing receipt; repeated reads keep that receip
 Unexpected later consumption retains the new charge and stops preparation.
 Publication requires the measured closing count and exact resume decision.
 
+Recheck the same worker clock, owned hold, cumulative count and every native-source
+counter after the final observation, inside the publication commit. Persist the
+`WorkerControlPublicationCommit/1` boundary and measurement digest atomically with
+that observation. A changed count or source allocation keeps its consumed costs,
+refuses publication and requires recovery; failed boundary storage rolls back the
+observation. Subsequent gameplay must not rewrite the historical boundary. This
+private journal witness does not make the partial measurement a full settlement
+or certify body/model costs. [Boundary evidence](docs/verification/2026-09-27-m1-publication-accounting.md).
+
 The strict private Python publication consumer binds the actual resume grant and
 checks these arithmetic/scope joins. Controller measurement stores the real worker
 receipt and its own measured request interval without changing the budget or

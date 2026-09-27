@@ -23,7 +23,25 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, retained repair consumption
+## Current position — September27, publication accounting boundary
+
+Private evidence sealed:84 files/4,242,093 bytes,
+SHA-256 `1b20009ffda21e3bb7ecb8cb5524b8902c1b94007cb684f45f912e341d85305c`.
+All40 authority tables, eight telemetry holds and both installed-file hashes are
+unchanged; final matching runtime process count0. All460 milestone IDs and2,159
+local links were checked. This pointer postdates the archived source snapshot.
+
+M1.1c.3.4 now checks consumption after the final observation, in the same
+transaction that publishes controls. Two reproduced defects (late charges and
+changed source attribution) now refuse publication, retain costs and fence input.
+A durable private boundary survives later gameplay; a storage-failure test keeps
+recovery required.21 distinct source cases and the selected actual controller/
+Node/JVM process case pass, with synthetic game/verification/settlement producers.
+[Publication boundary evidence](verification/2026-09-27-m1-publication-accounting.md).
+Complete body/model/helper accounting, original-lease completion and authentic
+play/repair/resume qualification remain open. No aggregate G1 suite closes.
+
+## Previous checkpoint — retained repair consumption
 
 Private evidence sealed:77files/3,885,383bytes,
 SHA-256 `7665a2e6751a42f6bc0a2987a8ad67b1270697090552d3e8cad9a82a9e7f4807`. Authority40tables/eight holds and installed files unchanged;

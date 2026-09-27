@@ -462,6 +462,21 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         assert published["observation"]["keymap_digest"] == control["keymap_digest"]
                         assert published["observation"]["control_revision"] == control["revision"]
                         assert publish("status")["decision"] == publication
+                        with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
+                            commits = db.execute("SELECT body FROM events WHERE kind='repair_publication_confirmed'").fetchall()
+                            assert len(commits) == 1
+                            publication_commit = json.loads(commits[0][0])
+                            assert publication_commit["schema"] == "strata/WorkerControlPublicationCommit/1"
+                            assert publication_commit["decision"] == publication
+                            assert publication_commit["observation"] == published["observation"]
+                            assert publication_commit["measurement_digest"] == digest(measured.model_dump())
+                            assert publication_commit["clock_id"] == measured.clock_id
+                            boundary = publication_commit["boundary"]
+                            assert boundary["sources"] == measured.closing.sources
+                            assert boundary["primitive_events"] == measured.closing.primitive_events
+                            assert boundary["cursor"] >= measured.closing.cursor
+                            assert boundary["mono_ms"] >= measured.closing.mono_ms
+                            assert publication_commit["complete_repair_accounting"] is False
                         accepted = play()
                         assert accepted.returncode in (0, 2), accepted.stderr
                         ack = json.loads(accepted.stdout)["result"]
@@ -476,6 +491,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         assert outcome["status"] == "emitted" and outcome["release_confirmed"]
                         assert native_game.call("observe", {"cursor": None})["state"]["yaw"] == .25
                         with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
+                            assert db.execute("SELECT body FROM events WHERE kind='repair_publication_confirmed'").fetchall() == commits
                             public_batch = json.loads(db.execute("SELECT request FROM actions WHERE request_id=?", (ack["request_id"],)).fetchone()[0])
                             translated = json.loads(db.execute("SELECT body FROM events WHERE kind='native_action_translation' ORDER BY cursor DESC").fetchone()[0])
                             assert public_batch["keymap_digest"] == control["keymap_digest"]

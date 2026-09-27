@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from .contracts import Digest, Id, Key, Strict
 from .native_settings import NativeSnapshot
@@ -18,6 +18,17 @@ class NativeControlTarget(Strict):
     game_fingerprint: Digest
     settings_fingerprint: Digest
     body_fingerprint: Digest
+
+
+FIXED_ESCAPE = "strata:fixed.escape"
+
+
+class NativeEssentialTarget(NativeControlTarget):
+    schema_: Literal["strata/NativeControlTarget/2"] = Field(alias="schema")
+    fixed_controls: list[Literal["escape"]] = Field(min_length=1, max_length=1)
+
+
+TARGET = TypeAdapter(NativeControlTarget | NativeEssentialTarget)
 
 
 # Minecraft1.19.2 InputConstants.Type's exact keysym names; this is encoding,
@@ -85,6 +96,7 @@ def native_admission(plan, worker_plan, target: NativeControlTarget, snapshot):
     # changed/competing bindings. Native consumer qualification still applies.
     return NativeRepairAdmission.model_validate({"schema": "strata/NativeSettingsRepairAdmission/1",
         "policy": "operator-owned-native-settings-repair/1", "worker_plan": worker_plan.model_dump(),
-        "settings_fingerprint": target.settings_fingerprint, "effect_bindings": sorted(before),
+        "settings_fingerprint": target.settings_fingerprint,
+        "effect_bindings": sorted(before) + ([FIXED_ESCAPE] if isinstance(target, NativeEssentialTarget) else []),
         "patch": {"transaction_id": plan["transaction_id"], "expected_revision": native.revision,
                   "expected_digest": native.digest, "changes": changes}})

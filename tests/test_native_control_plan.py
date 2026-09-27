@@ -7,7 +7,7 @@ import pytest
 
 from mcbench.native_control_plan import NativeControlTarget, native_key
 from mcbench.native_settings_effects import EffectOutcomeUnknown, NativeRepairAdmission, NativeSettingsEffectsClient
-from mcbench.storage import Fault, digest
+from mcbench.storage import Fault, canonical, digest
 from mcbench.worker_repair import POLICY, WorkerRepairClient, WorkerRepairGrant, WorkerRepairReply
 from test_native_settings_effects import connection
 from test_reconfiguration import repair_env as _repair_env
@@ -186,3 +186,25 @@ def test_native_late_reply_retains_hold_without_success(native_env, monkeypatch)
     with pytest.raises(Fault, match="REPAIR_DEADLINE_EXPIRED|LEASE_EXPIRED"):
         e.repairs.admit_native("tx", "owner", e.epoch, worker, client, target)
     assert e.repairs.status("tx")["phase"] == "RECOVERY_REQUIRED"
+
+
+
+def test_fixed_escape_requires_explicit_new_target_without_fabricating_keymap(native_env):
+    from mcbench.native_control_plan import FIXED_ESCAPE, TARGET, NativeEssentialTarget, native_admission
+    from mcbench.worker_repair import WorkerRepairPlan
+    e, worker, client, target, _, _, _, snapshot = native_env
+    original = target.model_dump()
+    assert TARGET.validate_python(original).model_dump() == original and "fixed_controls" not in original
+    extended = NativeEssentialTarget.model_validate(original | {"schema": "strata/NativeControlTarget/2", "fixed_controls": ["escape"]})
+    assert TARGET.validate_json(canonical(extended.model_dump())).model_dump() == extended.model_dump()
+    plan = e.controls.status("tx")["plan"]
+    worker_plan = WorkerRepairPlan.model_validate({"schema": "strata/WorkerRepairPlan/1", "policy": POLICY,
+        "campaign_id": "c1", "agent_id": "a1", "epoch": e.epoch, "lease_id": worker.grant.lease_id,
+        "transaction_id": "tx", "plan_digest": digest(plan), "expires_unix_ms": 9999999999999})
+    old = native_admission(plan, worker_plan, target, snapshot)
+    new = native_admission(plan, worker_plan, extended, snapshot)
+    assert old.effect_bindings + [FIXED_ESCAPE] == new.effect_bindings
+    assert old.patch == new.patch and FIXED_ESCAPE not in plan["backup"] and FIXED_ESCAPE not in snapshot["bindings"]
+    for invalid in [[], ["escape", "escape"], ["enter"]]:
+        with pytest.raises(ValueError):
+            NativeEssentialTarget.model_validate(extended.model_dump() | {"fixed_controls": invalid})

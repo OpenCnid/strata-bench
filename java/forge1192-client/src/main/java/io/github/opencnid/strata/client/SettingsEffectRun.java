@@ -29,6 +29,7 @@ final class SettingsEffectRun {
         }
     }
     interface Port {
+        default Set<String> fixedControls() { return Set.of(); }
         void validateBinding(String binding, long holdMs) throws IOException;
         JsonObject observe() throws IOException;
         KeyInputSession start(String binding, long holdMs, GameActionLane.Emitter ordinary,

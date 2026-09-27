@@ -3,7 +3,7 @@
 import json
 
 from .control_lock import profile_operation
-from .native_control_plan import NativeControlTarget, native_key
+from .native_control_plan import TARGET, native_key
 from .native_settings import NativeSnapshot
 from .native_settings_effects import NativeCommitDecision, NativeRepairAdmission, NativeSettingsEffectsClient
 from .storage import Principal, canonical, digest, require
@@ -52,7 +52,7 @@ class NativeRepairFlow:
             worker_row = db.execute("SELECT * FROM repair_worker_handoffs WHERE id=?", (transaction,)).fetchone()
             require(handoff is not None and handoff["phase"] == "CONFIRMED"
                     and worker_row is not None and (cleanup or worker_row["phase"] == "CONFIRMED"), "REPAIR_NATIVE_EVIDENCE_REQUIRED")
-            target = NativeControlTarget.model_validate_json(handoff["target"])
+            target = TARGET.validate_json(handoff["target"])
             admission = NativeRepairAdmission.model_validate_json(handoff["admission"])
             connection = native.connection.model_dump(mode="json")
             connection["bearer_token"] = native.connection.bearer_token.get_secret_value()

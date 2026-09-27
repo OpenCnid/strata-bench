@@ -165,3 +165,50 @@ def test_actual_worker_pause_owns_native_settings_mutation_and_expiry(effects_jv
                 parent.wait(timeout=5)
             parent.stdout.close()
             parent.stderr.close()
+
+
+@pytest.mark.parametrize("allow_escape", [False, True])
+def test_fixed_escape_scope_and_destructive_recovery_preserve_the_hold(effects_jvm, allow_escape):
+    from mcbench.native_control_plan import FIXED_ESCAPE
+    with effects_jvm(repair_owner=True) as (client, process, profile, game_root):
+        original = (profile / "options.txt").read_bytes()
+        plan = admission(client)
+        if allow_escape:
+            plan = NativeRepairAdmission.model_validate(plan.model_dump() | {"effect_bindings": [ID, FIXED_ESCAPE]})
+        client.call("settings_repair_bind", plan.model_dump())
+        client.call("settings_apply", plan.patch.model_dump())
+        snapshot = client.call("settings_snapshot", {})
+        assert FIXED_ESCAPE not in snapshot["bindings"]
+        request = effect(snapshot).model_copy(update={"id": "escape", "binding_id": FIXED_ESCAPE})
+        if not allow_escape:
+            before = status(client, plan)["primitive_events"]
+            with pytest.raises(EffectOutcomeUnknown):
+                client.call("settings_effect_start", request.model_dump())
+            assert status(client, plan)["primitive_events"] == before
+            assert status(client, plan)["phase"] == "bound"
+        else:
+            client.call("settings_effect_start", request.model_dump())
+            raw = terminal(client, request)
+            assert raw["state"] == "observed"
+            receipt = next(o["value"] for o in raw["observations"] if o["phase"] == "input_release")
+            assert receipt["device"] == "keyboard" and receipt["key"] == 256 and receipt["modifier"] == "NONE"
+            assert raw["observations"][-1]["value"]["context"] == "GUI"
+            held = request.model_copy(update={"id": "escape-held", "context": "GUI", "hold_ms": 2000})
+            client.call("settings_effect_start", held.model_dump())
+            active = client.call("settings_effect_status", {"id": held.id}, expected_effect=held)
+            assert active["state"] == "running"
+            game = NativeGameClient(client.connection)
+            stopped = game.call("stop_all", {})
+            assert stopped["fenced"] and stopped["journal_healthy"]
+            assert status(client, plan)["phase"] == "recovery_required"
+            cancelled = client.call("settings_effect_status", {"id": held.id}, expected_effect=held)
+            assert cancelled["state"] == "unknown" and cancelled["error_code"] == "SETTINGS_VERIFICATION_CANCELLED"
+            with pytest.raises(EffectOutcomeUnknown):
+                client.call("settings_effect_start", request.model_copy(update={"id": "cannot-rearm"}).model_dump())
+            with pytest.raises(Fault):
+                game.call("arm", {"epoch": 2, "lease_id": "new", "lease_until_unix_ms": int(time.time() * 1000) + 1000,
+                    "expected_fence_token": stopped["fence_token"]})
+        assert client.call("settings_rollback", {"transaction_id": "tx"})["phase"] == "rolled_back"
+        assert (profile / "options.txt").read_bytes() == original
+        assert process.poll() is None
+        assert '"kind":"repair_admitted"' in (game_root / "game-actions.jsonl").read_text()

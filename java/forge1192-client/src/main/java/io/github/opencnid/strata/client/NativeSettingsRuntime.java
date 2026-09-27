@@ -17,6 +17,7 @@ import net.minecraftforge.fml.ModList;
 final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
     static final String CURIOS_SHA256 = "1f7742d6c4f6b6cd8d106e54181255c2d264194ba232d42901ef90da6b91e635";
     static final String TARGET = "curios:key.curios.open.desc:0";
+    static final String FIXED_ESCAPE = "strata:fixed.escape";
     private final Minecraft client;
     private final KeyMapping owned;
     private final String fingerprint;
@@ -69,6 +70,8 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
     String fingerprint() { return fingerprint; }
 
     KeyInputSession.Request effectKey(String id, long holdMs) throws IOException {
+        requireClientThread();
+        if (FIXED_ESCAPE.equals(id)) return new KeyInputSession.Request(256, KeyInputSession.Modifier.NONE, holdMs);
         KeyMapping mapping = mappings().get(id);
         var options = client.options;
         if (mapping == null || !(mapping == owned || mapping == options.keyInventory

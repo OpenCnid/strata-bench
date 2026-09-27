@@ -1020,6 +1020,28 @@ public input capability, raw button selector or resume authority follows.
 input integration; authentic full essential controls/Escape/recovery and all
 other T05/G1 requirements remain binding.
 
+**Private essential-input plan candidate (M1.1b/M1.1c.3.2).**
+`NativeControlTarget/2` explicitly admits fixed Escape as an ordinary keyboard
+consumer under `native-window-key-mouse-fixed-escape/5`; `/1` does not. Escape
+is never fabricated as a persisted KeyMapping or added to a settings patch.
+Declare an immutable `NativeEssentialInputPlan/1` before controller-managed
+effect dispatch: forward/back/left/right/jump/sneak/sprint/inventory/attack/use
+and Escape, before and after restart. Derive applicable contexts from pinned
+binding metadata, including chat for GUI contexts and all contexts when unknown.
+Missing bindings or natural prerequisites remain explicit `unverified_context`.
+Movement requires a prior-declared direction and displacement; sprint additionally
+requires a newly observed held sprint. Local effects do not prove all gameplay
+semantics. Capture once per case under the original repair authority; reconcile
+uncertainty through status only. Revalidate immutable source, effect verdict and
+physical release identity during offline coverage reconstruction.
+`NativeEssentialInputCoverage/1` cannot supply the generic essential-controls
+proof: actual host-recovery qualification is independently required. Exercising
+stop-all during a repair cancels verification and retains the recovery/input
+fence; rollback remains cleanup, never permission to rearm. Do not weaken that
+behavior to finish a successful verification cycle. [Candidate evidence](docs/verification/2026-09-27-m1-essential-plan.md)
+uses synthetic bodies; complete authentic input/recovery qualification and the
+qualified gameplay repair/restart/resume workflow remain required.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

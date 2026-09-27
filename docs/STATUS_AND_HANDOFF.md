@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, essential-control mouse input candidate
+## Current position — September 27, essential-input plan and recovery candidate
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -92,9 +92,16 @@ callbacks for the actual attack/use mappings, with explicit device release and
 local swing/use observations. [Input evidence](verification/2026-09-27-m1-essential-input.md)
 passes Java/Python/HTTP and connected restart checks with synthetic body/input.
 The /4 candidate JAR is built but not installed or qualified in Minecraft.
-Next connect a complete essential-control manifest, including fixed Escape and
-actual host recovery, then authentic integration/accounting/resume. Full G1
-acceptance remains unchanged and open.
+The private essential-input plan now accounts for all essential roles and their
+applicable contexts at both restart stages. Explicitly admitted fixed Escape
+passes before/after guarded JVM replacement; actual stop-all cancels a held
+effect, preserves recovery and refuses rearm. [Plan/recovery evidence](verification/2026-09-27-m1-essential-plan.md)
+uses synthetic bodies. Missing prerequisites stay unverified_context, and the
+collector cannot authorize the full essential-controls proof. Offline coverage
+also rechecks physical release identity. The distinct /5 source is compiled,
+not installed or qualified in Minecraft. Next finish complete authentic controls
+and independent recovery evidence, qualified projection, real launcher/accounting
+and explicit resume as one gameplay repair workflow. Full G1 remains open.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

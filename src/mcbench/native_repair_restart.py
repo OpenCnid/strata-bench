@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .control_lock import profile_operation
 from .forge_guard import implementation_digest
-from .native_control_plan import NativeControlTarget
+from .native_control_plan import TARGET
 from .native_repair_flow import NativeRepairFlow
 from .native_restart import NativeRestartCheckpoint, NativeRestartRequest
 from .native_settings_effects import NativeSettingsEffectsClient
@@ -112,7 +112,7 @@ class NativeRepairRestart:
             repair, control, admission, row = self._context(transaction, owner, epoch, worker, restart, original)
             require(row is not None and row["phase"] in {"DETACHED", "ATTACHING", "ADOPTED"}, "RESTART_OLD_TERMINAL_REQUIRED")
             checkpoint = NativeRestartCheckpoint.model_validate_json(row["checkpoint"])
-            target = NativeControlTarget.model_validate_json(self.database.connection.execute(
+            target = TARGET.validate_json(self.database.connection.execute(
                 "SELECT target FROM repair_native_handoffs WHERE id=?", (transaction,)).fetchone()[0])
             paths = ReplacementPaths.model_validate(paths)
             require(isinstance(replacement, NativeSettingsEffectsClient), "REPAIR_PROFILE_MISMATCH")

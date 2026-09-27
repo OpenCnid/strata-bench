@@ -15,7 +15,7 @@ from pydantic import Field
 from .budgets import Budgets
 from .contracts import Digest, Id, Observation, Positive, Ref, Strict, UInt
 from .control_lock import profile_operation
-from .native_control_plan import NativeControlTarget, native_admission
+from .native_control_plan import TARGET, NativeControlTarget, native_admission
 from .native_settings_effects import NativeRepairAdmission, NativeSettingsEffectsClient
 from .storage import Fault, Principal, canonical, digest, require
 from .worker_repair import POLICY, WorkerRepairClient, WorkerRepairPlan
@@ -320,7 +320,7 @@ class Reconfigurations:
         """
         require(isinstance(native, NativeSettingsEffectsClient) and isinstance(target, NativeControlTarget),
                 "REPAIR_PROFILE_MISMATCH")
-        target = NativeControlTarget.model_validate(target.model_dump())
+        target = TARGET.validate_python(target.model_dump())
         require(native.connection.fingerprint == target.game_fingerprint
                 and native.settings_fingerprint == target.settings_fingerprint, "REPAIR_PROFILE_MISMATCH")
         # Digest the actual descriptor without publishing the bearer credential.

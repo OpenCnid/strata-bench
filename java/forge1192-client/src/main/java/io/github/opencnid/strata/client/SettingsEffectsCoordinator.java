@@ -84,9 +84,11 @@ final class SettingsEffectsCoordinator {
             if (!admission.settingsFingerprint.equals(store.fingerprint())) throw new IOException("SETTINGS_REPAIR_NOT_OWNED");
             if (!lane.hasRepair()) {
                 var snapshot = store.snapshot();
+                var consumers = new java.util.HashSet<>(runtime.bindings().keySet());
+                consumers.addAll(port.fixedControls());
                 if (snapshot.revision() != SettingsJson.integer(admission.patch, "expected_revision")
                         || !snapshot.digest().equals(GameBatch.digest(admission.patch, "expected_digest"))
-                        || !runtime.bindings().keySet().containsAll(admission.effectBindings)) throw new IOException("SETTINGS_REVISION_CONFLICT");
+                        || !consumers.containsAll(admission.effectBindings)) throw new IOException("SETTINGS_REVISION_CONFLICT");
             }
             return lane.admitRepair(admission);
         }

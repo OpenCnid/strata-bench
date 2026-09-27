@@ -17,6 +17,8 @@ from mcbench.native_settings_effects import EffectOutcomeUnknown
 from mcbench.storage import Fault
 from test_native_repair_flow import verification
 from mcbench.native_effect_evidence import NativeEffectEvidence
+from mcbench.native_essential_plan import NativeEssentialInputs
+from mcbench.native_control_plan import FIXED_ESCAPE, NativeEssentialTarget
 from mcbench.native_repair_flow import NativeRepairFlow
 from mcbench.storage import canonical, digest
 from mcbench.worker_repair import WorkerRepairClient
@@ -72,6 +74,9 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             e.controller.heartbeat("c1", "owner", e.epoch)
             e.repairs.request("c1", "owner", e.epoch, "tx", "a1", "repair-op", deadline_unix=time.time() + 15)
             target = target_for(e, client)
+            if lost is None:
+                target = NativeEssentialTarget.model_validate(target.model_dump() |
+                    {"schema": "strata/NativeControlTarget/2", "fixed_controls": ["escape"]})
             receipt = e.repairs.admit_native("tx", "owner", e.epoch, worker, client, target)
             plan = receipt["admission"]
             flow = NativeRepairFlow(e.repairs)
@@ -91,6 +96,25 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         "initial_screen": "none", "final_screen": "fixture.Screen", "required_openings": [],
                         "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25})
                 producer.register("tx", "owner", e.epoch, worker, client, expectations)
+                essential = NativeEssentialInputs(e.repairs)
+                required, _, essential_head = essential.requirements("tx", "owner", e.epoch, worker, client)
+                essential_cases = []
+                for slot in required:
+                    declared = None
+                    if slot["role"] == "escape" and slot["context"] == "GUI":
+                        request = EffectRequest(id="escape-" + slot["stage"], transaction_id="tx",
+                            expected_revision=essential_head.revision, expected_digest=essential_head.digest,
+                            plan_digest=plan["worker_plan"]["plan_digest"], binding_id=FIXED_ESCAPE,
+                            context="GUI", stage=slot["stage"], hold_ms=50, settle_ticks=2)
+                        declared = {"schema": "strata/NativeEffectExpectation/1", "request": request.model_dump(),
+                            "settings_fingerprint": client.settings_fingerprint, "predicate": "screen_transition",
+                            "initial_screen": "fixture.Screen", "final_screen": "none", "required_openings": [],
+                            "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25}
+                    essential_cases.append({"role": slot["role"], "context": slot["context"], "stage": slot["stage"],
+                        "expectation": declared, "unverified_reason": None if declared else "FIXTURE_PREREQUISITE_UNAVAILABLE",
+                        "motion_axis": None, "minimum_motion": 0.0})
+                essential.register("tx", "owner", e.epoch, worker, client, essential_cases)
+                assert FIXED_ESCAPE not in head["bindings"] and FIXED_ESCAPE not in e.controls.status("tx")["plan"]["backup"]
                 with pytest.raises(Fault, match="EFFECT_EVIDENCE_INCOMPLETE"):
                     producer.effect_checks("tx", "owner", e.epoch, worker, client)
 
@@ -108,6 +132,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     producer.capture("tx", "owner", e.epoch, worker, native, request.id)
             if lost is None:
                 capture_stage(client, "before_restart")
+                e.controller.heartbeat("c1", "owner", e.epoch)
+                essential.capture("tx", "owner", e.epoch, worker, client, "escape", "GUI", "before_restart")
             coordinator = NativeRepairRestart(e.repairs)
             restart = WorkerRestartClient.from_file(state / f"restart-grant-{e.epoch}.json")
             handoff_before = tuple(e.database.connection.execute("SELECT * FROM repair_native_handoffs WHERE id='tx'").fetchone())
@@ -199,6 +225,13 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     assert checked == producer.capture("tx", "owner", e.epoch, worker, replacement, "after")
                     assert emitted == ["settings_effect_start"] and checked["check"]["status"] == "pass"
                     capture_stage(replacement, "after_restart")
+                    e.controller.heartbeat("c1", "owner", e.epoch)
+                    source = essential.capture("tx", "owner", e.epoch, worker, replacement, "escape", "GUI", "after_restart")
+                    assert essential.capture("tx", "owner", e.epoch, worker, replacement, "escape", "GUI", "after_restart") == source
+                    coverage = essential.coverage("tx")
+                    assert sum(c["status"] == "pass" for c in coverage["cases"]) == 2
+                    assert not coverage["input_cases_complete"] and not coverage["essential_controls_verified"]
+                    assert coverage["recovery_qualification_required"]
                     e.controller.heartbeat("c1", "owner", e.epoch)
                     matrix = producer.effect_checks("tx", "owner", e.epoch, worker, replacement)
                     assert all(c["status"] == "pass" for c in matrix["checks"].values())

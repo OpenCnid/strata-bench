@@ -42,17 +42,20 @@ public final class SettingsEffectsBridgeFixture {
         public boolean settingsEffectsEnabled() { return true; }
         public JsonObject settingsRequest(JsonObject request) throws IOException { return coordinator.execute(request); }
         public void stopSettingsEffects() throws IOException { coordinator.stop(); }
+        public Set<String> fixedControls() { return Set.of(NativeSettingsRuntime.FIXED_ESCAPE); }
         public void validateBinding(String binding, long hold) throws IOException {
+            if (NativeSettingsRuntime.FIXED_ESCAPE.equals(binding)) return;
             if (!bindings().containsKey(binding) || !Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0",
                     "minecraft:key.attack:0", "minecraft:key.use:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
         public KeyInputSession start(String binding, long hold, GameActionLane.Emitter ordinary,
                 GameActionLane.Emitter safety) throws IOException {
             validateBinding(binding, hold);
-            String[] parts = bindings().get(binding).value().split(":", -1);
+            String[] parts = (NativeSettingsRuntime.FIXED_ESCAPE.equals(binding) ? "key.keyboard.escape" : bindings().get(binding).value()).split(":", -1);
             var modifier = parts.length == 2 ? KeyInputSession.Modifier.valueOf(parts[1]) : KeyInputSession.Modifier.NONE;
             var device = parts[0].startsWith("key.mouse.") ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD;
             int key = switch (parts[0]) {
+                case "key.keyboard.escape" -> 256;
                 case "key.mouse.left" -> 0;
                 case "key.mouse.right" -> 1;
                 case "key.keyboard.f13" -> 302;
@@ -66,7 +69,7 @@ public final class SettingsEffectsBridgeFixture {
         }
         public void validate() throws IOException { requireClientThread(); }
         public long monotonicMillis() { return System.nanoTime() / 1000000; }
-        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed && key < 340) screen = key == 69 || key == 71 ? !screen : true; }
+        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed && key < 340) screen = key == 69 || key == 71 || key == 256 ? !screen : true; }
         public void mouseEvent(int button, boolean pressed, int modifiers) {
             if (button == 0) left = pressed; else right = pressed;
         }

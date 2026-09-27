@@ -76,6 +76,7 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
     @Override public void validateBinding(String id, long hold) throws IOException {
         var request = runtime.effectKey(id, hold); request.validate(candidates(request));
     }
+    @Override public Set<String> fixedControls() { return Set.of(NativeSettingsRuntime.FIXED_ESCAPE); }
     @Override public KeyInputSession start(String id, long hold, GameActionLane.Emitter ordinary,
             GameActionLane.Emitter safety) throws IOException {
         var request = runtime.effectKey(id, hold);

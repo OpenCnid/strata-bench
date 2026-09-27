@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, worker-owned native settings admission implemented
+## Current position — September 27, controller-to-native repair admission connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -42,9 +42,13 @@ patch, allowed effect bindings and fixed deadline. Connected Python/Node/Windows
 Guardian/JVM checks pass apply, raw effect observation, rollback and expiry;
 reopening retains recovery and cannot rearm gameplay. The body/settings remain
 synthetic in these checks. [Native admission evidence](verification/2026-09-27-m1-native-repair-admission.md).
-Controller-to-native profile translation, qualified commit, restart/rejoin,
-explicit resume and authentic gameplay repair remain unfinished. No complete
-G1 suite is newly closed.
+The controller now translates its immutable complete keymap into the native
+patch, binds exact profiles and records one durable admission dispatch. Lost
+replies query status; changed descriptors/plans and missing native evidence
+cannot authorize forward work or resume. The connected controller/worker/JVM
+path passes, with explicitly synthetic body/settings. [Controller-native evidence](verification/2026-09-27-m1-native-controller.md).
+Qualified adapter/commit, restart/rejoin, explicit worker resume and authentic
+gameplay repair remain unfinished. No complete G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -55,8 +59,8 @@ G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's controller plan/profile translation to the native admission
-and complete qualified commit, restart/rejoin and explicit resume/rollback recovery. Complete remaining
+Next complete M1.1c.3.2's qualified settings adapter/commit, worker restart/rejoin
+and explicit resume/rollback recovery using the connected native admission. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

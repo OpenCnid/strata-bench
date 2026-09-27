@@ -42,9 +42,13 @@ patch, allowed effect bindings and fixed deadline. Connected Python/Node/Windows
 Guardian/JVM checks pass apply, raw effect observation, rollback and expiry;
 reopening retains recovery and cannot rearm gameplay. The body/settings remain
 synthetic in these checks. [Native admission evidence](docs/verification/2026-09-27-m1-native-repair-admission.md).
-Controller-to-native profile translation, qualified commit, restart/rejoin,
-explicit resume and authentic gameplay repair remain unfinished. No complete
-G1 suite is newly closed.
+The controller now translates its immutable complete keymap into the native
+patch, binds exact profiles and records one durable admission dispatch. Lost
+replies query status; changed descriptors/plans and missing native evidence
+cannot authorize forward work or resume. The connected controller/worker/JVM
+path passes, with explicitly synthetic body/settings. [Controller-native evidence](docs/verification/2026-09-27-m1-native-controller.md).
+Qualified adapter/commit, restart/rejoin, explicit worker resume and authentic
+gameplay repair remain unfinished. No complete G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -55,8 +59,8 @@ G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's controller plan/profile translation to the native admission
-and complete qualified commit, restart/rejoin and explicit resume/rollback recovery. Complete remaining
+Next complete M1.1c.3.2's qualified settings adapter/commit, worker restart/rejoin
+and explicit resume/rollback recovery using the connected native admission. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
@@ -1534,7 +1538,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1c.2 | GI/PL | Transaction/plan/binding/context/restart evidence matrix, bounded hashed proof/source reads and simulation separation | implemented_unverified | [Controls tests](tests/test_controls.py) and [evidence tests](tests/test_controls_fencing.py); actual private CAS integration with synthetic proofs passes. No authentic effect producer/provenance, physical input or verified native commit yet. |
 | M1.1c.3 | GI/PL | Qualified native adapter/commit, per-avatar RECONFIGURING, action-lease fencing, worker restart, charged continuity and public patch/CLI projection | in_progress | Children c.3.1–c.3.3 retain the complete integration scope; the development bridge is unqualified and has no commit operation. |
 | M1.1c.3.1 | PL/QA | Durable per-avatar repair holds, scoped grant revocation, stop/fresh-observation receipts, recovery fencing and clock attribution | implemented_unverified | [Coordinator](src/mcbench/reconfiguration.py), [32 synthetic cases](tests/test_reconfiguration.py); partial controller/settings/budget/clock integration with private CAS proofs. Actual worker transport, receipt provenance and complete measured charges remain unqualified. |
-| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. [Native repair admission](docs/verification/2026-09-27-m1-native-repair-admission.md) binds the same plan/patch/effects/deadline with connected synthetic-body evidence. Controller-native translation, qualified commit, restart/rejoin, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification. |
+| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. [Native repair admission](docs/verification/2026-09-27-m1-native-repair-admission.md) binds the same plan/patch/effects/deadline with connected synthetic-body evidence. [Controller-native translation/admission](docs/verification/2026-09-27-m1-native-controller.md) now joins immutable keymaps, exact target/descriptor and durable bind/status evidence. Qualified adapter/commit, restart/rejoin, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification. |
 | M1.1c.3.3 | PL/GI | Full repair budget/telemetry settlement, public KeybindingPatch/control card and scoped gameplay CLI | not_started | Retain nested charging, fresh-probe repair policy and complete public/private projections. |
 | M3.2 | RS/SI | Matched fresh clone plans, artifact controls and drift quarantine decisions | in_progress | [Probe planner](evaluator/src/strata_evaluator/probes.py); actual isolated clone execution/disposal and supervisor drift handling open. |
 | M3.3 | RS | Paired lineage analysis, absolute competence, uncertainty/attrition and common support | in_progress | [Analysis](evaluator/src/strata_evaluator/analysis.py); full survival/hierarchical/power/confirmatory workflow open. |
@@ -10765,3 +10769,5 @@ M1.1c.3.2 connects the private WorkerRepair client and durable controller handof
 Final private seal183files/6,961,896bytes `d0e178efa8edb60cccc0c4855d065891689c42e5928e18c82fcfd7242b3360c8` retains failed/final fixtures, source and logs. All40 authority tables unchanged/4,887,796microUSD; five historical holds unchanged, zero Java processes. All459 IDs and1,619 local ledger links checked. Source snapshots precede this pointer; no gate promotion.
 
 - 2026-09-27 — M1.1c.3.2 native repair admission: the distinct private owned mode binds exact worker scope/lease/plan, one patch and allowed effects; expiry and recovery refuse forward work while transaction-owned rollback remains available. Python→Node→Windows guardian→JVM connected checks pass with synthetic body/settings, plus focused Java/Python regressions. [Evidence and limits](docs/verification/2026-09-27-m1-native-repair-admission.md). T01/T04/T05/T06/T10/T11 and G1 remain not_run; M1 in_progress. No installed game artifact changed or model call made. All40 authority tables and five historical capacity holds unchanged. Next controller-native mapping, qualified commit/restart/rejoin/resume and authentic gameplay repair; preserve complete remaining G1 criteria.
+
+- 2026-09-27 — M1.1c.3.2 controller-native admission connected: full keymap/physical-code/persisted-value translation, independently pinned native CAS revision, exact private descriptor and one durable bind dispatch. Actual controller→worker→Windows guardian→JVM settings tests pass normal and lost-reply paths; synthetic body/settings explicitly retained. Generic forward adapter bypass and controller-only readiness cannot release a real worker hold. [Evidence](docs/verification/2026-09-27-m1-native-controller.md). M1 in_progress; all six G1 aggregate suites and G1 not_run. No Minecraft/model run or installed artifact change. Next qualified adapter/commit, restart/rejoin and explicit resume/recovery; historical holds/decisions intact.

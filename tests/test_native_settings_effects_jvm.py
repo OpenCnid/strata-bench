@@ -34,12 +34,17 @@ def effects_jvm(tmp_path):
     launches = 0
 
     @contextlib.contextmanager
-    def launch(*, repair_owner=False, capability_digest=None):
+    def launch(*, repair_owner=False, capability_digest=None, scope=None, options_text=None):
         nonlocal launches
         launches += 1
-        if capability_digest is not None:
+        if capability_digest is not None or scope is not None or options_text is not None:
             assert launches == 1, "changing authority on a used fixture is forbidden"
-            (game_root / "game-authority.json").write_text(json.dumps(authority | {"capability_digest": capability_digest}), encoding="utf-8")
+            override = {"capability_digest": capability_digest} if capability_digest is not None else {}
+            if scope is not None:
+                override |= {"campaign_id": scope[0], "agent_id": scope[1]}
+            (game_root / "game-authority.json").write_text(json.dumps(authority | override), encoding="utf-8")
+            if options_text is not None:
+                (profile / "options.txt").write_bytes(options_text.encode())
         descriptor = tmp_path / f"connection-{launches}.json"
         argfile = tmp_path / f"args-{launches}.txt"
         args = ["-cp", classpath, "io.github.opencnid.strata.client.SettingsEffectsBridgeFixture",

@@ -15,6 +15,8 @@ from pydantic import Field
 from .budgets import Budgets
 from .contracts import Digest, Id, Observation, Positive, Ref, Strict, UInt
 from .control_lock import profile_operation
+from .native_control_plan import NativeControlTarget, native_admission
+from .native_settings_effects import NativeRepairAdmission, NativeSettingsEffectsClient
 from .storage import Fault, Principal, canonical, digest, require
 from .worker_repair import POLICY, WorkerRepairClient, WorkerRepairPlan
 
@@ -80,6 +82,9 @@ class Reconfigurations:
             db.execute("CREATE TABLE IF NOT EXISTS repair_worker_handoffs (id TEXT PRIMARY KEY, "
                        "binding_digest TEXT NOT NULL, plan TEXT NOT NULL, phase TEXT NOT NULL "
                        "CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), stop_ref TEXT)")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_native_handoffs (id TEXT PRIMARY KEY, "
+                       "binding_digest TEXT NOT NULL, target TEXT NOT NULL, admission TEXT NOT NULL, "
+                       "phase TEXT NOT NULL CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), source_ref TEXT)")
 
     def _read(self, ref, model):
         require(self.controller.cas is not None, "EVIDENCE_STORE_REQUIRED")
@@ -307,6 +312,97 @@ class Reconfigurations:
                     self._fail(transaction_id, "WORKER_REPAIR_UNAVAILABLE")
                 raise
 
+    def admit_native(self, transaction_id, owner, epoch, worker, native, target):
+        """Translate the approved plan once; uncertain delivery reconciles by status.
+
+        This private transport does not qualify an adapter or create commit/resume
+        authority. The native plan remains a charged, bounded repair candidate.
+        """
+        require(isinstance(native, NativeSettingsEffectsClient) and isinstance(target, NativeControlTarget),
+                "REPAIR_PROFILE_MISMATCH")
+        target = NativeControlTarget.model_validate(target.model_dump())
+        require(native.connection.fingerprint == target.game_fingerprint
+                and native.settings_fingerprint == target.settings_fingerprint, "REPAIR_PROFILE_MISMATCH")
+        # Digest the actual descriptor without publishing the bearer credential.
+        connection = native.connection.model_dump(mode="json")
+        connection["bearer_token"] = native.connection.bearer_token.get_secret_value()
+        binding = digest({"connection": connection, "target": target.model_dump()})
+        self.quiesce_worker(transaction_id, owner, epoch, worker)
+        with profile_operation(self.database, "repair:" + transaction_id):
+            with self.database.transaction() as db:
+                repair = self.status(transaction_id)
+                self._owned(db, repair, owner, epoch)
+                require(repair["phase"] == "RECONFIGURING", "REPAIR_RECOVERY_REQUIRED")
+                self._budget(db, repair["request"])
+                require(self.budgets.status(repair["request"]["account"])["dispatch_allowed"], "BUDGET_EXHAUSTED")
+                handoff = db.execute("SELECT * FROM repair_worker_handoffs WHERE id=?", (transaction_id,)).fetchone()
+                require(handoff is not None and handoff["phase"] == "CONFIRMED", "REPAIR_WORKER_EVIDENCE_REQUIRED")
+                worker_plan = WorkerRepairPlan.model_validate_json(handoff["plan"])
+                control = self.controls.status(transaction_id)
+                plan = control["plan"]
+                require(digest(plan) == worker_plan.plan_digest, "REPAIR_NOT_OWNED")
+                old = db.execute("SELECT * FROM repair_native_handoffs WHERE id=?", (transaction_id,)).fetchone()
+                if old:
+                    require(old["binding_digest"] == binding and json.loads(old["target"]) == target.model_dump(),
+                            "REPAIR_NOT_OWNED")
+                    admission = NativeRepairAdmission.model_validate_json(old["admission"])
+                    require(admission.worker_plan == worker_plan, "REPAIR_NOT_OWNED")
+                else:
+                    require(control["phase"] == "planned", "REPAIR_RECOVERY_REQUIRED")
+                    self.controls._version(plan)
+
+            def timeout():
+                remaining = min(repair["request"]["deadline_unix"] - self.clock(),
+                                repair["request"]["deadline_mono"] - self.monotonic(), 1.0)
+                value = int(remaining * 1000)
+                require(value >= 100, "REPAIR_DEADLINE_EXPIRED")
+                return value
+
+            if old is None:
+                state = self.controls.adapter.snapshot()
+                self.controls._qualified(state)
+                require(self.controls._policy(state) == plan["policy_digest"]
+                        and state["profile_id"] == plan["profile_id"]
+                        and state["fingerprint"] == plan["fingerprint"] and state["revision"] == plan["revision"]
+                        and {k: v["key"] for k, v in state["bindings"].items()} == plan["backup"], "REVISION_CONFLICT")
+                snapshot = native.call("settings_snapshot", {}, timeout_ms=timeout())
+                admission = native_admission(plan, worker_plan, target, snapshot)
+                with self.database.transaction() as db:
+                    self._owned(db, self.status(transaction_id), owner, epoch)
+                    db.execute("INSERT INTO repair_native_handoffs VALUES (?,?,?,?,'INTENT',NULL)",
+                               (transaction_id, binding, canonical(target.model_dump()).decode(),
+                                canonical(admission.model_dump()).decode()))
+                    self.database.event(db, "repair.native_intent", {"transaction_id": transaction_id,
+                        "binding_digest": binding, "target": target.model_dump(), "admission": admission.model_dump()})
+            result = None
+            operation = "settings_repair_status" if old else "settings_repair_bind"
+            try:
+                result = native.call(operation,
+                    {"transaction_id": transaction_id} if old else admission.model_dump(),
+                    timeout_ms=timeout(), **({"expected_repair": admission} if old else {}))
+                require(result["phase"] == "bound" and result["body_fingerprint"] == target.body_fingerprint,
+                        "REPAIR_NATIVE_UNAVAILABLE")
+                witness = {"schema": "strata/NativeRepairWitness/1", "is_example": self.controller.simulation,
+                    "transaction_id": transaction_id, "binding_digest": binding, "target": target.model_dump(),
+                    "operation": operation, "observed_unix": self.clock(), "result": result}
+                source = self.controller.cas.put(Principal("operator", "operator"),
+                    self.controller.evidence_namespace, "operator", canonical(witness))
+                with self.database.transaction() as db:
+                    self._owned(db, self.status(transaction_id), owner, epoch)
+                    db.execute("UPDATE repair_native_handoffs SET phase='CONFIRMED',source_ref=? WHERE id=?",
+                               (source, transaction_id))
+                    self.database.event(db, "repair.native_observed", {"transaction_id": transaction_id,
+                        "operation": operation, "source_ref": source})
+                return {"admission": admission.model_dump(), "source_ref": source, "result": result}
+            except BaseException:
+                with self.database.transaction() as db:
+                    db.execute("UPDATE repair_native_handoffs SET phase='UNKNOWN' WHERE id=?", (transaction_id,))
+                    self.database.event(db, "repair.native_uncertain", {"transaction_id": transaction_id,
+                        "operation": operation})
+                if result is not None or old and old["phase"] == "CONFIRMED":
+                    self._fail(transaction_id, "NATIVE_REPAIR_UNAVAILABLE")
+                raise
+
     def apply(self, transaction_id, owner, epoch):
         return self._run(transaction_id, owner, epoch, rollback=False)
 
@@ -341,6 +437,8 @@ class Reconfigurations:
                 allowed = {"QUIESCING", "RECONFIGURING", "APPLYING", "AWAITING_OBSERVATION", "RECOVERY_REQUIRED"}
                 require(repair["phase"] in (allowed if rollback else {"RECONFIGURING"}), "REPAIR_RECOVERY_REQUIRED")
                 if not rollback:
+                    require(db.execute("SELECT 1 FROM repair_native_handoffs WHERE id=?", (transaction_id,)).fetchone()
+                            is None, "NATIVE_SETTINGS_ADAPTER_REQUIRED")
                     self._budget(db, repair["request"])
                     require(self.budgets.status(repair["request"]["account"])["dispatch_allowed"], "BUDGET_EXHAUSTED")
                 db.execute("UPDATE repairs SET phase='APPLYING',forward_started=MAX(forward_started,?) WHERE id=?",
@@ -400,6 +498,8 @@ class Reconfigurations:
                     self.controller.owned(db, repair["campaign"], owner, epoch)
                     require(repair["ready_ref"] == ready_ref, "IDEMPOTENCY_CONFLICT")
                 return repair
+            require(self.database.connection.execute("SELECT 1 FROM repair_worker_handoffs WHERE id=?",
+                    (transaction_id,)).fetchone() is None, "REPAIR_WORKER_RESUME_REQUIRED")
             proof = self._read(ready_ref, RepairReady)
             observation = self._read(proof.observation_ref, Observation)
             self._proof(repair, proof)

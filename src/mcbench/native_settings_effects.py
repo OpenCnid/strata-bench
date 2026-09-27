@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 from pydantic import Field, TypeAdapter, model_validator
 
 from .client_discovery import bounded_read
-from .contracts import Digest, Id, Positive, Strict, UInt
+from .contracts import Digest, Id, Positive, Ref, Strict, UInt
 from .native_game import GameConnection, GameResponse
 from .native_settings import (
     MAX_REQUEST, NativePatch, NativeReceipt, NativeSettingsClient, NativeSnapshot, strict_json,
@@ -19,8 +19,9 @@ from .storage import Fault, canonical, require
 from .worker_repair import WorkerRepairPlan
 
 OPERATIONS = frozenset({"settings_snapshot", "settings_apply", "settings_status", "settings_rollback",
-                        "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status"})
-MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start", "settings_repair_bind"})
+                        "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status",
+                        "settings_commit", "settings_commit_status"})
+MUTATIONS = frozenset({"settings_apply", "settings_rollback", "settings_effect_start", "settings_repair_bind", "settings_commit"})
 Context = Literal["IN_GAME", "GUI", "CHAT"]
 ClassName = Annotated[str, Field(min_length=1, max_length=512, pattern=r"^[A-Za-z_$][A-Za-z0-9_.$]*$")]
 
@@ -180,6 +181,43 @@ class NativeRepairState(Strict):
         return self
 
 
+class NativeCommitDecision(Strict):
+    wire_schema: Literal["strata/NativeSettingsCommitDecision/1"] = Field(alias="schema")
+    transaction_id: Id
+    plan_digest: Digest
+    expected_revision: Positive
+    expected_digest: Digest
+    verification_ref: Ref
+
+
+class NativeCommitState(Strict):
+    wire_schema: Literal["strata/NativeSettingsCommitState/1"] = Field(alias="schema")
+    decision: NativeCommitDecision
+    phase: Literal["committed", "rollback_prepared", "rollback_conflict", "rolled_back"]
+    revision: Positive
+    committed: bool
+    input_resumed: bool
+    effects_verified_by_native: bool
+
+    @model_validator(mode="after")
+    def authority(self):
+        require(self.committed == (self.phase == "committed") and not self.input_resumed
+                and not self.effects_verified_by_native and self.revision > self.decision.expected_revision,
+                "SETTINGS_COMMIT_RESPONSE_INVALID")
+        return self
+
+
+class OwnedNativeReceipt(NativeReceipt):
+    phase: Literal["prepared", "applied_pending_verification", "rollback_prepared",
+                   "rolled_back", "rollback_conflict", "committed"]
+    committed: bool
+
+    @model_validator(mode="after")
+    def decision_state(self):
+        require(self.committed == (self.phase == "committed"), "SETTINGS_COMMIT_RESPONSE_INVALID")
+        return self
+
+
 class NativeSettingsEffectsClient:
     """Uses a private game descriptor plus a separately pinned settings fingerprint."""
 
@@ -212,9 +250,11 @@ class NativeSettingsEffectsClient:
             return NativePatch.model_validate(args).model_dump(mode="json")
         if operation == "settings_repair_bind":
             return NativeRepairAdmission.model_validate(args).model_dump(mode="json")
+        if operation == "settings_commit":
+            return NativeCommitDecision.model_validate(args).model_dump(mode="json")
         if operation == "settings_effect_start":
             return EffectRequest.model_validate(args).model_dump(mode="json")
-        if operation in {"settings_status", "settings_rollback", "settings_effect_status", "settings_repair_status"}:
+        if operation in {"settings_status", "settings_rollback", "settings_effect_status", "settings_repair_status", "settings_commit_status"}:
             field = "id" if operation == "settings_effect_status" else "transaction_id"
             require(isinstance(args, dict) and set(args) == {field}
                     and isinstance(args[field], str) and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", args[field]),
@@ -224,7 +264,8 @@ class NativeSettingsEffectsClient:
         return {}
 
     def call(self, operation: str, args: dict, *, timeout_ms: int = 5000,
-             expected_effect: EffectRequest | None = None, expected_repair: NativeRepairAdmission | None = None) -> dict:
+             expected_effect: EffectRequest | None = None, expected_repair: NativeRepairAdmission | None = None,
+             expected_commit: NativeCommitDecision | None = None) -> dict:
         require(operation in OPERATIONS, "CAPABILITY_MISSING")
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 30000, "SETTINGS_DEADLINE_INVALID")
         try:
@@ -241,6 +282,12 @@ class NativeSettingsEffectsClient:
                 require(expected_repair.worker_plan.transaction_id == args["transaction_id"], "SETTINGS_REPAIR_INVALID")
             else:
                 require(expected_repair is None, "SETTINGS_REPAIR_INVALID")
+            if operation == "settings_commit_status":
+                require(isinstance(expected_commit, NativeCommitDecision), "SETTINGS_COMMIT_INVALID")
+                expected_commit = NativeCommitDecision.model_validate(expected_commit.model_dump(mode="json"))
+                require(expected_commit.transaction_id == args["transaction_id"], "SETTINGS_COMMIT_INVALID")
+            else:
+                require(expected_commit is None, "SETTINGS_COMMIT_INVALID")
         except ValueError:
             raise Fault("SETTINGS_EFFECT_REQUEST_INVALID") from None
         request_id = str(uuid.uuid4())
@@ -257,7 +304,7 @@ class NativeSettingsEffectsClient:
                 if response.status == "failed":
                     raise Fault(response.error_code)
                 if response.status == "completed":
-                    return self._result(operation, args, response.result, expected_effect, expected_repair)
+                    return self._result(operation, args, response.result, expected_effect, expected_repair, expected_commit)
                 remaining = expires - time.monotonic()
                 if remaining <= 0:
                     raise TimeoutError()
@@ -273,8 +320,12 @@ class NativeSettingsEffectsClient:
                 raise EffectOutcomeUnknown(request_id, operation, transaction, args.get("id")) from None
             raise Fault("SETTINGS_EFFECT_READ_UNAVAILABLE") from None
 
-    def _result(self, operation, args, value, expected_effect=None, expected_repair=None):
-        if operation in {"settings_repair_bind", "settings_repair_status"}:
+    def _result(self, operation, args, value, expected_effect=None, expected_repair=None, expected_commit=None):
+        if operation in {"settings_commit", "settings_commit_status"}:
+            result = NativeCommitState.model_validate(value)
+            expected = NativeCommitDecision.model_validate(args) if operation == "settings_commit" else expected_commit
+            require(result.decision == expected, "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")
+        elif operation in {"settings_repair_bind", "settings_repair_status"}:
             result = NativeRepairState.model_validate(value)
             expected = NativeRepairAdmission.model_validate(args) if operation == "settings_repair_bind" else expected_repair
             require(result.admission == expected and result.admission.settings_fingerprint == self.settings_fingerprint,
@@ -285,8 +336,7 @@ class NativeSettingsEffectsClient:
             result = NativeSnapshot.model_validate(value)
             require(result.fingerprint == self.settings_fingerprint, "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")
         elif operation in {"settings_apply", "settings_status", "settings_rollback"}:
-            require(value.get("committed") is False, "SETTINGS_EFFECT_RESPONSE_INVALID")
-            result = NativeReceipt.model_validate(value)
+            result = OwnedNativeReceipt.model_validate(value)
             require(result.transaction_id == args["transaction_id"], "SETTINGS_EFFECT_RESPONSE_IDENTITY_MISMATCH")
             if operation == "settings_rollback":
                 require(result.phase == "rolled_back", "SETTINGS_EFFECT_RESPONSE_INVALID")

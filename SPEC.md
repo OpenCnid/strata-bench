@@ -876,6 +876,26 @@ resume; the qualified adapter and explicit worker resume remain required.
 [Connected evidence](docs/verification/2026-09-27-m1-native-controller.md) uses a
 synthetic body and introduces no public settings capability or full G1 claim.
 
+**Private commit decision candidate (M1.1c.3.2).** The additional explicit
+`strata.settingsCommitOwner=true` mode requires both effects and repair ownership;
+its game fingerprint includes `operator-recorded-settings-commit/1`. Old preplay
+and owned-repair profiles gain no commit permission. The private
+`NativeSettingsCommitDecision/1` binds transaction, original plan digest, exact
+pending native revision/digest and a controller verification CAS reference.
+Require a live admitted repair and complete matching runtime/disk settings before
+journaling the decision. A stored decision is immutable; status reconciles an
+uncertain reply without a second commit. Commit changes no options or input lease,
+and reports `effects_verified_by_native=false` and `input_resumed=false`.
+The store records the operator's decision; the qualified controller adapter must
+separately validate every required effect/restart proof before issuing it. A
+reference string or matching configuration never substitutes for those proofs.
+Reopening retains the decision and the native input hold. Owned rollback requires
+no later transaction/revision and matching committed state; it never overwrites
+a newer repair or silently resumes gameplay. Preserve historical schemas and
+profile identities. [Candidate evidence](docs/verification/2026-09-27-m1-native-commit.md)
+uses synthetic body/input and controller decisions; full adapter, restart/rejoin,
+resume and authentic T05/G1 verification remain required.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

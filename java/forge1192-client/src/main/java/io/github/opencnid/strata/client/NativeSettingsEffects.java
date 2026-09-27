@@ -13,6 +13,8 @@ import net.minecraft.client.gui.screens.Screen;
 final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Port {
     static final String PROPERTY = "strata.settingsEffects";
     static final String REPAIR_PROPERTY = "strata.settingsRepairOwner";
+    static final String COMMIT_PROPERTY = "strata.settingsCommitOwner";
+    static final String COMMIT_POLICY = "operator-recorded-settings-commit/1";
     private final Minecraft client;
     private final NativeSettingsRuntime runtime;
     private final SettingsStore store;
@@ -27,12 +29,17 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
         root = SettingsFiles.safeExisting(root);
         runtime = new NativeSettingsRuntime(client);
         store = new SettingsStore(client.gameDirectory.toPath().toAbsolutePath().normalize(), root, runtime.fingerprint(), runtime);
-        coordinator = new SettingsEffectsCoordinator(store, runtime, lane, this, Boolean.getBoolean(REPAIR_PROPERTY));
+        coordinator = new SettingsEffectsCoordinator(store, runtime, lane, this, Boolean.getBoolean(REPAIR_PROPERTY),
+            Boolean.getBoolean(COMMIT_PROPERTY));
     }
     static boolean enabled() { return Boolean.getBoolean(PROPERTY); }
     static void validateModes(java.util.Properties properties, java.util.Map<String, String> environment) {
         String value = properties.getProperty(PROPERTY);
         String repair = properties.getProperty(REPAIR_PROPERTY);
+        String commit = properties.getProperty(COMMIT_PROPERTY);
+        if (commit != null && !commit.equals("false") && (!commit.equals("true") || !"true".equals(repair))) {
+            throw new IllegalStateException("SETTINGS_COMMIT_MODE_INVALID");
+        }
         if (repair != null && !repair.equals("false") && (!repair.equals("true") || !"true".equals(value))) {
             throw new IllegalStateException("SETTINGS_REPAIR_MODE_INVALID");
         }

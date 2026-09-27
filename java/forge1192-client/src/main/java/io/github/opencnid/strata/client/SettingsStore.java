@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Durable client-thread settings writes. Applied is pending verification, never committed. */
+/** Durable client-thread settings writes; commit records a separate private controller decision. */
 final class SettingsStore implements AutoCloseable {
     record Binding(String translation, String value, boolean mutable) {}
     record Snapshot(long revision, String digest) {}
@@ -44,9 +44,11 @@ final class SettingsStore implements AutoCloseable {
     private final WriteObserver observer;
     private final Map<String, JsonObject> prepared = new LinkedHashMap<>();
     private final Map<String, String> phases = new LinkedHashMap<>();
+    private final Map<String, SettingsCommitDecision> commits = new LinkedHashMap<>();
     private String active;
     private String observedDigest;
     private boolean closed;
+    private long replayRevision;
 
     String fingerprint() { return fingerprint; }
 
@@ -179,7 +181,36 @@ final class SettingsStore implements AutoCloseable {
     Receipt status(String id) throws IOException {
         ready();
         if (!phases.containsKey(id)) throw new IOException("SETTINGS_TRANSACTION_MISSING");
-        return new Receipt(id, phases.get(id), journal.revision(), false);
+        return new Receipt(id, phases.get(id), journal.revision(), "committed".equals(phases.get(id)));
+    }
+
+    JsonObject commit(SettingsCommitDecision decision) throws IOException {
+        ready();
+        SettingsCommitDecision previous = commits.get(decision.transaction);
+        if (previous != null) {
+            if (!previous.value.equals(decision.value)) throw new IOException("SETTINGS_IDEMPOTENCY_CONFLICT");
+            return commitStatus(decision.transaction);
+        }
+        runtime.releaseInputs();
+        if (!verificationHead(decision.transaction).equals(decision.expected)) throw new IOException("SETTINGS_REVISION_CONFLICT");
+        JsonObject event = new JsonObject(); event.addProperty("kind", "committed");
+        event.addProperty("id", decision.transaction); event.add("decision", decision.value.deepCopy());
+        // No write to options or inference from equal bytes. The caller owns
+        // complete verification; its exact decision is retained for audit.
+        append(event);
+        return commitStatus(decision.transaction);
+    }
+
+    JsonObject commitStatus(String id) throws IOException {
+        ready();
+        SettingsCommitDecision decision = commits.get(id);
+        if (decision == null) throw new IOException("SETTINGS_COMMIT_MISSING");
+        JsonObject result = new JsonObject(); result.addProperty("schema", "strata/NativeSettingsCommitState/1");
+        result.add("decision", decision.value.deepCopy()); result.addProperty("phase", phases.get(id));
+        result.addProperty("revision", journal.revision());
+        result.addProperty("committed", "committed".equals(phases.get(id)));
+        result.addProperty("input_resumed", false);
+        result.addProperty("effects_verified_by_native", false); return result;
     }
 
     /** Read-only admission for effects: the complete applied map and owned disk values must still agree. */
@@ -311,7 +342,11 @@ final class SettingsStore implements AutoCloseable {
         ready();
         if (!prepared.containsKey(id)) throw new IOException("SETTINGS_TRANSACTION_MISSING");
         if ("rolled_back".equals(phases.get(id))) return status(id);
-        if (!id.equals(active)) throw new IOException("SETTINGS_TRANSACTION_NOT_ACTIVE");
+        if ("committed".equals(phases.get(id))) {
+            SettingsCommitDecision decision = commits.get(id);
+            if (active != null || journal.revision() != decision.expected.revision() + 1
+                    || !currentDigest().equals(decision.expected.digest())) throw new IOException("SETTINGS_ROLLBACK_CONFLICT");
+        } else if (!id.equals(active)) throw new IOException("SETTINGS_TRANSACTION_NOT_ACTIVE");
         runtime.releaseInputs();
         try {
             JsonObject transaction = prepared.get(id);
@@ -384,6 +419,7 @@ final class SettingsStore implements AutoCloseable {
     private void append(JsonObject event) throws IOException { journal.append(event); replay(event); }
 
     private void replay(JsonObject event) throws IOException {
+        replayRevision++;
         String kind = SettingsJson.string(event, "kind");
         if (kind.equals("profile")) return;
         if (kind.equals("observed")) {
@@ -394,6 +430,17 @@ final class SettingsStore implements AutoCloseable {
         }
         String id = SettingsJson.string(event, "id");
         if (!id.matches("[A-Za-z0-9_.:-]{1,128}")) throw new IOException("SETTINGS_JOURNAL_INVALID");
+        if (kind.equals("committed")) {
+            SettingsJson.fields(event, "kind", "id", "decision");
+            if (!id.equals(active) || !"applied_pending_verification".equals(phases.get(id))
+                    || commits.containsKey(id) || !event.get("decision").isJsonObject()) throw new IOException("SETTINGS_JOURNAL_INVALID");
+            SettingsCommitDecision decision = new SettingsCommitDecision(event.getAsJsonObject("decision"));
+            if (!id.equals(decision.transaction) || decision.expected.revision() + 1 != replayRevision) {
+                throw new IOException("SETTINGS_JOURNAL_INVALID");
+            }
+            commits.put(id, decision); phases.put(id, kind); active = null;
+            observedDigest = decision.expected.digest(); return;
+        }
         if (kind.equals("prepared")) {
             SettingsJson.fields(event, "kind", "id", "request_digest", "expected_revision", "expected_digest",
                 "options_before_digest", "non_owned_options_digest", "runtime_metadata_digest",
@@ -426,6 +473,8 @@ final class SettingsStore implements AutoCloseable {
             return;
         }
         SettingsJson.fields(event, "kind", "id");
+        if (active == null && "committed".equals(phases.get(id))
+                && java.util.Set.of("rollback_prepared", "rollback_conflict").contains(kind)) active = id;
         if (!id.equals(active) || !prepared.containsKey(id)) throw new IOException("SETTINGS_JOURNAL_INVALID");
         String previous = phases.get(id);
         if (kind.equals("applied_pending_verification") && !previous.equals("prepared")) throw new IOException("SETTINGS_JOURNAL_INVALID");

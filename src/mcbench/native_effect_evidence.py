@@ -56,7 +56,7 @@ def evaluate_effect(expectation, raw):
     observed = EffectResult.model_validate(raw)
     require(observed.request == expected.request, "EFFECT_EVIDENCE_IDENTITY_MISMATCH")
     if expected.predicate in {"attack_swing", "item_use_hold"}:
-        require(observed.wire_schema == "strata/NativeSettingsEffects/4", "EFFECT_ACTIVITY_EVIDENCE_REQUIRED")
+        require(observed.wire_schema.endswith(("/4", "/5")), "EFFECT_ACTIVITY_EVIDENCE_REQUIRED")
     reasons = []
     if observed.state != "observed":
         reasons.append("EFFECT_NOT_OBSERVED")
@@ -95,7 +95,7 @@ def evaluate_effect(expectation, raw):
         if expected.predicate == "item_use_hold" and (states[0].using_item or not any(item.using_item for item in held)
                 or released[-1].using_item):
             reasons.append("ITEM_USE_PRESS_OR_RELEASE_MISSING")
-        if observed.wire_schema.endswith("/4"):
+        if observed.wire_schema.endswith(("/4", "/5")):
             if released[-1].mouse_left or released[-1].mouse_right:
                 reasons.append("MOUSE_RELEASE_UNCONFIRMED")
             receipt = next(item.value for item in observed.observations if item.phase == "input_release")
@@ -255,8 +255,9 @@ class NativeEffectEvidence:
                 verdict = evaluate_effect(expected.model_dump(), witness["result"])
                 require(verdict == witness["verdict"], "EFFECT_EVIDENCE_INVALID")
                 observed = EffectResult.model_validate(witness["result"])
-                require(observed.wire_schema in {"strata/NativeSettingsEffects/3", "strata/NativeSettingsEffects/4"}, "EFFECT_RELEASE_EVIDENCE_REQUIRED")
+                require(observed.wire_schema.endswith(("/3", "/4", "/5")), "EFFECT_RELEASE_EVIDENCE_REQUIRED")
                 release = [o.value for o in observed.observations if o.phase == "input_release"]
+                require(all(not hasattr(item, "companion") for item in release), "ESSENTIAL_GESTURE_EVIDENCE_REQUIRED")
                 key = plan["changes"].get(expected.request.binding_id, {}).get("after", plan["backup"][expected.request.binding_id])
                 require(len(release) == 1 and key["backend"] == "glfw"
                         and key["representation"] == ("mouse_button" if getattr(release[0], "device", "keyboard") == "mouse" else "keysym")

@@ -13,6 +13,57 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Synthetic clock/callback boundary; no native key sendability or effect qualification. */
 class KeyInputSessionTest {
+    @Test void sprintCompanionPressesAndReleasesBothInOrder() throws Exception {
+        Port p = new Port();
+        var input = KeyInputSession.start(p, new KeyInputSession.Request(341, KeyInputSession.Modifier.NONE, 50,
+            KeyInputSession.Device.KEYBOARD, 87), Set.of(341, 87), p::emit, p::emit);
+        assertEquals(Set.of(341, 87), p.down);
+        p.now = 150; assertTrue(input.tick(p::emit));
+        assertEquals(List.of("341:true:2", "87:true:2", "87:false:2", "341:false:0"), p.events);
+        assertEquals(5, p.charges); assertTrue(p.down.isEmpty());
+        var receipt = input.releaseReceipt();
+        assertEquals("strata/NativeInputRelease/3", receipt.get("schema").getAsString());
+        assertEquals(87, receipt.get("companion").getAsInt());
+        assertEquals("[87,341]", receipt.getAsJsonArray("release_order").toString());
+    }
+    @ParameterizedTest @ValueSource(ints = {1, 2, 3, 4, 5})
+    void pairedAccountingFailureAlwaysAttemptsBothReleases(int failure) {
+        Port p = new Port(); p.failCharge = failure;
+        assertThrows(IOException.class, () -> {
+            var input = KeyInputSession.start(p, new KeyInputSession.Request(341, KeyInputSession.Modifier.NONE, 50,
+                KeyInputSession.Device.KEYBOARD, 87), Set.of(341, 87), p::emit, p::emit);
+            p.now = 150; input.tick(p::emit);
+            fail("failed charge cannot confirm a complete gesture");
+        });
+        assertTrue(p.down.isEmpty()); assertEquals(1, p.clears);
+    }
+    @ParameterizedTest @ValueSource(strings = {"341:true:2", "87:true:2", "87:false:2", "341:false:0"})
+    void pairedCallbackFailureStillAttemptsCompleteCleanup(String failure) {
+        Port p = new Port(); p.failEvent = failure;
+        assertThrows(IOException.class, () -> {
+            var input = KeyInputSession.start(p, new KeyInputSession.Request(341, KeyInputSession.Modifier.NONE, 50,
+                KeyInputSession.Device.KEYBOARD, 87), Set.of(341, 87), p::emit, p::emit);
+            p.now = 150; input.tick(p::emit);
+        });
+        assertTrue(p.down.isEmpty()); assertEquals(1, p.clears);
+    }
+    @ParameterizedTest @ValueSource(ints = {0, 31, 340, 341, 342, 343})
+    void pairedCompanionCannotBeMouseModifierOrDuplicate(int companion) {
+        Port p = new Port();
+        assertThrows(IOException.class, () -> KeyInputSession.start(p,
+            new KeyInputSession.Request(341, KeyInputSession.Modifier.NONE, 50, KeyInputSession.Device.KEYBOARD, companion),
+            new HashSet<>(List.of(341, companion)), p::emit, p::emit));
+        assertTrue(p.events.isEmpty()); assertEquals(0, p.charges);
+    }
+    @ParameterizedTest @ValueSource(booleans = {false, true})
+    void pairedCancellationAndTimeoutReleaseForwardAndSprint(boolean timeout) throws Exception {
+        Port p = new Port();
+        var input = KeyInputSession.start(p, new KeyInputSession.Request(341, KeyInputSession.Modifier.NONE, 50,
+            KeyInputSession.Device.KEYBOARD, 87), Set.of(341, 87), p::emit, p::emit);
+        if (timeout) { p.now = 2101; assertThrows(IOException.class, input::watchdog); }
+        else input.cancel();
+        assertTrue(p.down.isEmpty()); assertEquals(1, p.clears); assertEquals(5, p.charges);
+    }
     static final Set<Integer> POOL = Set.of(65, 302, 340, 341, 342);
     static final class Port implements KeyInputSession.Port {
         final List<String> events = new ArrayList<>();

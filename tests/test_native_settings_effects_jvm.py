@@ -204,7 +204,7 @@ def test_native_mouse_binding_roundtrip_is_charged_released_and_observed(effects
         request = effect(head, hold=100).model_copy(update={"binding_id": "minecraft:key." + action + ":0"})
         client.call("settings_effect_start", request.model_dump())
         raw = terminal(client, request)
-        assert raw["schema"] == "strata/NativeSettingsEffects/4" and raw["state"] == "observed"
+        assert raw["schema"] == "strata/NativeSettingsEffects/5" and raw["state"] == "observed"
         receipt = next(o["value"] for o in raw["observations"] if o["phase"] == "input_release")
         assert receipt["schema"] == "strata/NativeInputRelease/2" and receipt["device"] == "mouse"
         assert receipt["key"] == (0 if button == "left" else 1) and receipt["modifier"] == modifier

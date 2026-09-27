@@ -16,10 +16,12 @@ public final class SettingsEffectsBridgeFixture {
         private SettingsEffectsCoordinator coordinator;
         private long tick;
         private boolean down, screen, left, right;
+        private final Set<Integer> held = new java.util.HashSet<>();
+        private double distance;
         Runtime(Path profile) throws IOException {
             settings = new SettingsBridgeFixture.SyntheticRuntime(profile);
             var persisted = KeyOptions.parse(SettingsFiles.readOptions(profile.resolve("options.txt")));
-            for (String action : new String[]{"attack", "use"}) {
+            for (String action : new String[]{"attack", "use", "forward", "sprint"}) {
                 String translation = "key." + action;
                 if (persisted.values().containsKey(translation)) settings.bindings.put("minecraft:" + translation + ":0",
                     new SettingsStore.Binding(translation, persisted.values().get(translation), false));
@@ -46,7 +48,7 @@ public final class SettingsEffectsBridgeFixture {
         public void validateBinding(String binding, long hold) throws IOException {
             if (NativeSettingsRuntime.FIXED_ESCAPE.equals(binding)) return;
             if (!bindings().containsKey(binding) || !Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0",
-                    "minecraft:key.attack:0", "minecraft:key.use:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+                    "minecraft:key.attack:0", "minecraft:key.use:0", "minecraft:key.forward:0", "minecraft:key.sprint:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
         public KeyInputSession start(String binding, long hold, GameActionLane.Emitter ordinary,
                 GameActionLane.Emitter safety) throws IOException {
@@ -56,6 +58,8 @@ public final class SettingsEffectsBridgeFixture {
             var device = parts[0].startsWith("key.mouse.") ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD;
             int key = switch (parts[0]) {
                 case "key.keyboard.escape" -> 256;
+                case "key.keyboard.left.control" -> 341;
+                case "key.keyboard.w" -> 87;
                 case "key.mouse.left" -> 0;
                 case "key.mouse.right" -> 1;
                 case "key.keyboard.f13" -> 302;
@@ -63,26 +67,37 @@ public final class SettingsEffectsBridgeFixture {
                 default -> 71;
             };
             var pool = new java.util.HashSet<Integer>(); pool.add(key);
+            Integer companion = null;
+            if (binding.equals("minecraft:key.sprint:0")) {
+                if (screen || !"key.keyboard.w".equals(bindings().get("minecraft:key.forward:0").value()))
+                    throw new IOException("SETTINGS_SPRINT_CONTEXT_UNVERIFIED");
+                companion = 87; pool.add(companion);
+            }
             if (modifier != KeyInputSession.Modifier.NONE) pool.add(modifier.key);
-            input = KeyInputSession.start(this, new KeyInputSession.Request(key, modifier, hold, device),
+            input = KeyInputSession.start(this, new KeyInputSession.Request(key, modifier, hold, device, companion),
                 pool, ordinary, safety); return input;
         }
         public void validate() throws IOException { requireClientThread(); }
         public long monotonicMillis() { return System.nanoTime() / 1000000; }
-        public void event(int key, boolean pressed, int modifiers) { down = pressed; if (pressed && key < 340) screen = key == 69 || key == 71 || key == 256 ? !screen : true; }
+        public void event(int key, boolean pressed, int modifiers) {
+            if (pressed) held.add(key); else held.remove(key);
+            down = pressed;
+            if (pressed && key < 340 && key != 87) screen = key == 69 || key == 71 || key == 256 ? !screen : true;
+        }
         public void mouseEvent(int button, boolean pressed, int modifiers) {
             if (button == 0) left = pressed; else right = pressed;
         }
-        public void clear() { down = false; left = false; right = false; }
+        public void clear() { down = false; left = false; right = false; held.clear(); }
         public JsonObject observe() {
             JsonObject value = new JsonObject(); value.addProperty("client_tick", tick);
             value.addProperty("context", screen ? "GUI" : "IN_GAME");
             value.addProperty("screen", screen ? "fixture.Screen" : "none"); value.addProperty("window_active", true);
             value.addProperty("menu_id", 0); value.addProperty("menu_type", "fixture.Menu");
-            value.addProperty("x", 1.0); value.addProperty("y", 64.0); value.addProperty("z", 2.0);
+            if (held.contains(87)) distance += .1;
+            value.addProperty("x", 1.0 + distance); value.addProperty("y", 64.0); value.addProperty("z", 2.0);
             value.addProperty("swinging", left); value.addProperty("mouse_grabbed", !screen);
             value.addProperty("mouse_left", left); value.addProperty("mouse_right", right);
-            value.addProperty("sneaking", false); value.addProperty("sprinting", false); value.addProperty("using_item", right);
+            value.addProperty("sneaking", false); value.addProperty("sprinting", held.contains(341) && held.contains(87)); value.addProperty("using_item", right);
             return value;
         }
     }

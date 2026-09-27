@@ -81,6 +81,15 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
             throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
         }
         var type = mapping.getKey().getType();
+        if (mapping == options.keySprint) {
+            if (client.screen != null || type != InputConstants.Type.KEYSYM
+                    || mapping.getKeyModifier() != KeyModifier.NONE || options.keyUp.getKeyModifier() != KeyModifier.NONE
+                    || options.keyUp.getKey().getType() != InputConstants.Type.KEYSYM) {
+                throw new IOException("SETTINGS_SPRINT_CONTEXT_UNVERIFIED");
+            }
+            return new KeyInputSession.Request(mapping.getKey().getValue(), KeyInputSession.Modifier.NONE,
+                holdMs, KeyInputSession.Device.KEYBOARD, options.keyUp.getKey().getValue());
+        }
         if (type != InputConstants.Type.KEYSYM && type != InputConstants.Type.MOUSE) throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
         KeyInputSession.Modifier modifier = switch (mapping.getKeyModifier()) {
             case NONE -> KeyInputSession.Modifier.NONE;

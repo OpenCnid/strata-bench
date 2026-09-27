@@ -14,12 +14,15 @@ final class KeyInputSession implements GameActionLane.Motor {
         Modifier(int key, int mask) { this.key = key; this.mask = mask; }
     }
     enum Device { KEYBOARD, MOUSE }
-    record Request(int key, Modifier modifier, long holdMs, Device device) {
+    record Request(int key, Modifier modifier, long holdMs, Device device, Integer companion) {
+        Request(int key, Modifier modifier, long holdMs, Device device) { this(key, modifier, holdMs, device, null); }
         Request(int key, Modifier modifier, long holdMs) { this(key, modifier, holdMs, Device.KEYBOARD); }
         void validate(Set<Integer> pool) throws IOException {
             if (device == null || modifier == null || holdMs < 1 || holdMs > MAX_HOLD_MS
                     || (device == Device.KEYBOARD ? key < 32 || key > 342 || key >= 340 && modifier != Modifier.NONE : key < 0 || key > 1)
-                    || !pool.contains(key) || modifier != Modifier.NONE && !pool.contains(modifier.key)) {
+                    || !pool.contains(key) || modifier != Modifier.NONE && !pool.contains(modifier.key)
+                    || companion != null && (device != Device.KEYBOARD || modifier != Modifier.NONE
+                        || companion < 32 || companion >= 340 || companion == key || !pool.contains(companion))) {
                 throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
             }
         }
@@ -55,6 +58,7 @@ final class KeyInputSession implements GameActionLane.Motor {
         try {
             if (request.modifier != Modifier.NONE) session.press(request.modifier.key);
             session.press(request.key);
+            if (request.companion != null) session.press(request.companion);
             return session;
         } catch (IOException | RuntimeException | Error error) {
             try { session.cancel(); } catch (IOException | RuntimeException | Error cleanup) { error.addSuppressed(cleanup); }
@@ -80,11 +84,13 @@ final class KeyInputSession implements GameActionLane.Motor {
     com.google.gson.JsonObject releaseReceipt() throws IOException {
         if (!releaseConfirmed) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED");
         var value = new com.google.gson.JsonObject();
-        value.addProperty("schema", "strata/NativeInputRelease/2");
+        value.addProperty("schema", request.companion == null ? "strata/NativeInputRelease/2" : "strata/NativeInputRelease/3");
         value.addProperty("device", request.device.name().toLowerCase(java.util.Locale.ROOT));
         value.addProperty("key", request.key);
         value.addProperty("modifier", request.modifier.name());
-        var order = new com.google.gson.JsonArray(); order.add(request.key);
+        var order = new com.google.gson.JsonArray();
+        if (request.companion != null) { value.addProperty("companion", request.companion); order.add(request.companion); }
+        order.add(request.key);
         if (request.modifier != Modifier.NONE) order.add(request.modifier.key);
         value.add("release_order", order);
         value.addProperty("callbacks_confirmed", true);
@@ -137,7 +143,8 @@ final class KeyInputSession implements GameActionLane.Motor {
         Throwable primary = null;
         for (int index = held.size() - 1; index >= 0; index--) {
             int key = held.get(index);
-            int modifiers = key == request.modifier.key ? 0 : request.modifier.mask;
+            int modifiers = request.companion != null && request.key >= 340 && key != request.key
+                ? 1 << (request.key - 340) : key == request.modifier.key ? 0 : request.modifier.mask;
             boolean[] invoked = {false};
             try {
                 safetyEmitter.invoke(() -> { invoked[0] = true; event(key, false, modifiers); });

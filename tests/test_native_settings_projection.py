@@ -27,7 +27,7 @@ def qualified_fixture(snapshot, client, *, profile="fixture-native-projection", 
         return raw
     identity = {"profile_id": profile, "game_fingerprint": client.connection.fingerprint,
         "settings_fingerprint": client.settings_fingerprint, "body_fingerprint": "b" * 64,
-        "input_policy": "native-window-key-mouse-fixed-escape/5", "layout_digest": "e" * 64}
+        "input_policy": "native-window-key-mouse-sprint-companion/6", "layout_digest": "e" * 64}
     source = put(b"Synthetic qualification source. No Minecraft or real input qualification.")
     def check(name, subject):
         return put({"schema": "strata/NativeSettingsQualificationCheck/1", "is_example": True,

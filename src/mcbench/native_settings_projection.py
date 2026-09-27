@@ -28,7 +28,7 @@ class SettingsIdentity(Strict):
     game_fingerprint: Digest
     settings_fingerprint: Digest
     body_fingerprint: Digest
-    input_policy: Literal["native-window-key-mouse-fixed-escape/5"]
+    input_policy: Literal["native-window-key-mouse-fixed-escape/5", "native-window-key-mouse-sprint-companion/6"]
     layout_digest: Digest
 
 

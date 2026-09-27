@@ -10,7 +10,7 @@ import org.lwjgl.glfw.GLFW;
 
 /** Candidate callback/polling input backend. No public capability or tested pool is implied. */
 public final class NativeKeyInput implements KeyInputSession.Port {
-    static final String POLICY = "native-window-key-mouse-fixed-escape/5";
+    static final String POLICY = "native-window-key-mouse-sprint-companion/6";
     private static volatile NativeKeyInput active;
     private final Minecraft client;
     private final Thread owner;

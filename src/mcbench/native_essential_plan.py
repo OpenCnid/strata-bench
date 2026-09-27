@@ -18,7 +18,7 @@ from .native_control_plan import FIXED_ESCAPE
 from .native_effect_evidence import EffectExpectation, evaluate_effect
 from .native_repair_flow import NativeRepairFlow
 from .native_settings import strict_json
-from .native_settings_effects import EffectResult
+from .native_settings_effects import EffectResult, PairedInputRelease
 from .storage import Principal, canonical, digest, require
 
 ROLES = {"forward": "key.forward", "back": "key.back", "left": "key.left", "right": "key.right",
@@ -62,7 +62,7 @@ def evaluate_case(case, raw):
     require(case.expectation is not None, "ESSENTIAL_CONTEXT_UNVERIFIED")
     verdict = evaluate_effect(case.expectation.model_dump(), raw)
     result = EffectResult.model_validate(raw)
-    require(result.wire_schema == "strata/NativeSettingsEffects/4", "ESSENTIAL_INPUT_EVIDENCE_REQUIRED")
+    require(result.wire_schema.endswith(("/4", "/5")), "ESSENTIAL_INPUT_EVIDENCE_REQUIRED")
     reasons = list(verdict["reasons"])
     states = [o.value for o in result.observations if o.phase in {"before", "held", "released"}]
     if result.state == "observed":
@@ -80,11 +80,16 @@ def evaluate_case(case, raw):
         "qualification_implied": False}
 
 
-def require_release_identity(request, raw, plan):
+def require_release_identity(request, raw, plan, companion_binding=None):
     result = EffectResult.model_validate(raw)
     if result.state != "observed":
         return
     receipt = next(o.value for o in result.observations if o.phase == "input_release")
+    require(isinstance(receipt, PairedInputRelease) == (companion_binding is not None), "ESSENTIAL_RELEASE_IDENTITY_MISMATCH")
+    if companion_binding is not None:
+        companion = plan["changes"].get(companion_binding, {}).get("after", plan["backup"][companion_binding])
+        require(companion["backend"] == "glfw" and companion["representation"] == "keysym"
+                and not companion["modifiers"] and companion["code"] == receipt.companion, "ESSENTIAL_RELEASE_IDENTITY_MISMATCH")
     key = ({"backend": "glfw", "representation": "keysym", "code": 256, "modifiers": []}
         if request.binding_id == FIXED_ESCAPE else plan["changes"].get(request.binding_id, {}).get(
             "after", plan["backup"][request.binding_id]))
@@ -105,6 +110,14 @@ class NativeEssentialInputs:
     @staticmethod
     def slot(case):
         return case.role, case.context, case.stage
+
+    @staticmethod
+    def companion(case, body):
+        if case.role != "sprint" or case.context != "IN_GAME":
+            return None
+        bindings = {slot["binding_id"] for slot in body["requirements"] if slot["role"] == "forward"}
+        require(len(bindings) == 1 and None not in bindings, "ESSENTIAL_CONTEXT_UNVERIFIED")
+        return next(iter(bindings))
 
     def _read(self, ref):
         return strict_json(self.repairs.controller.cas.read(Principal("operator", "operator"),
@@ -158,6 +171,7 @@ class NativeEssentialInputs:
             for value in values:
                 if value.expectation is None:
                     continue
+                self.companion(value, {"requirements": slots})
                 e = value.expectation
                 require(e.request.binding_id == by_slot[self.slot(value)]["binding_id"]
                         and e.request.transaction_id == transaction and e.request.plan_digest == digest(control["plan"])
@@ -217,7 +231,7 @@ class NativeEssentialInputs:
                 time.sleep(.025)
                 result = native.call("settings_effect_status", {"id": request.id}, expected_effect=request, timeout_ms=self.flow._timeout(repair))
             verdict = evaluate_case(case.model_dump(), result)
-            require_release_identity(request, result, control["plan"])
+            require_release_identity(request, result, control["plan"], self.companion(case, body))
             source = self.flow._put({"schema": "strata/NativeEssentialInputWitness/1", "transaction_id": transaction,
                 "is_example": self.repairs.controller.simulation, "case_id": case_id, "binding_digest": binding,
                 "plan_ref": declared["source_ref"], "result": result, "verdict": verdict})
@@ -240,7 +254,7 @@ class NativeEssentialInputs:
             if row and row["phase"] == "TERMINAL":
                 witness = self._read(row["source_ref"])
                 verdict = evaluate_case(case.model_dump(), witness["result"])
-                require_release_identity(case.expectation.request, witness["result"], plan)
+                require_release_identity(case.expectation.request, witness["result"], plan, self.companion(case, body))
                 require(witness["schema"] == "strata/NativeEssentialInputWitness/1"
                         and witness["is_example"] is self.repairs.controller.simulation and witness["binding_digest"] == row["binding"]
                         and witness["transaction_id"] == transaction and witness["case_id"] == ":".join(self.slot(case))

@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, native settings projection connected
+## Current position — September 27, sprint input dependency connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -112,6 +112,15 @@ repair/restart/commit/rollback test; qualification reports and body remain
 synthetic. The native reader, owned write path and replacement adoption connect;
 authentic qualification, real launcher/accounting and explicit resume remain
 unfinished. No complete G1 suite closes.
+
+The essential sprint check now has the required bounded forward companion under
+distinct native input policy /6. Both physical keys, reverse release and new
+sprint/directed movement are verified in the synthetic-body HTTP and connected
+before/after JVM replacement cases. [Sprint input evidence](verification/2026-09-27-m1-sprint-input.md)
+retains the initial compile failure and passing focused checks. The /6 candidate
+JAR is built/archived, not installed or authentically qualified. Next prepare the
+complete authentic essential-control and independent recovery procedure on this
+exact profile, then finish real launcher/accounting/resume. G1 remains open.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

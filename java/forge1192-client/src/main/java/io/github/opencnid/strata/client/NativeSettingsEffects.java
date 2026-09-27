@@ -70,6 +70,7 @@ final class NativeSettingsEffects implements AutoCloseable, SettingsEffectRun.Po
     void stop() throws IOException { coordinator.stop(); }
     private static Set<Integer> candidates(KeyInputSession.Request request) {
         Set<Integer> result = new java.util.HashSet<>(); result.add(request.key());
+        if (request.companion() != null) result.add(request.companion());
         if (request.modifier() != KeyInputSession.Modifier.NONE) result.add(request.modifier().key);
         return Set.copyOf(result);
     }

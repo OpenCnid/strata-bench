@@ -45,6 +45,8 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
     e = repair_env
     # Declare a G/G conflict before creating the fixture's first native store.
     options = ORIGINAL.replace("key_key.inventory:key.keyboard.e", "key_key.inventory:key.keyboard.g")
+    if lost is None:
+        options += "key_key.forward:key.keyboard.w\r\nkey_key.sprint:key.keyboard.left.control\r\n"
     with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True, capability_digest=capability, scope=("c1", "a1"), options_text=options) as (client, game, profile, game_root):
         if lost is None:
             # Real HTTP state drives the controller plan. Qualification reports
@@ -116,6 +118,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                 essential_cases = []
                 for slot in required:
                     declared = None
+                    sprint = slot["role"] == "sprint" and slot["context"] == "IN_GAME"
                     if slot["role"] == "escape" and slot["context"] == "GUI":
                         request = EffectRequest(id="escape-" + slot["stage"], transaction_id="tx",
                             expected_revision=essential_head.revision, expected_digest=essential_head.digest,
@@ -125,9 +128,18 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                             "settings_fingerprint": client.settings_fingerprint, "predicate": "screen_transition",
                             "initial_screen": "fixture.Screen", "final_screen": "none", "required_openings": [],
                             "forbidden_openings": [], "min_horizontal_distance": 0.0, "max_horizontal_distance": .25}
+                    if sprint:
+                        request = EffectRequest(id="sprint-" + slot["stage"], transaction_id="tx",
+                            expected_revision=essential_head.revision, expected_digest=essential_head.digest,
+                            plan_digest=plan["worker_plan"]["plan_digest"], binding_id=slot["binding_id"],
+                            context="IN_GAME", stage=slot["stage"], hold_ms=150, settle_ticks=2)
+                        declared = {"schema": "strata/NativeEffectExpectation/1", "request": request.model_dump(),
+                            "settings_fingerprint": client.settings_fingerprint, "predicate": "horizontal_motion",
+                            "initial_screen": "none", "final_screen": "none", "required_openings": [],
+                            "forbidden_openings": [], "min_horizontal_distance": .1, "max_horizontal_distance": 2.0}
                     essential_cases.append({"role": slot["role"], "context": slot["context"], "stage": slot["stage"],
                         "expectation": declared, "unverified_reason": None if declared else "FIXTURE_PREREQUISITE_UNAVAILABLE",
-                        "motion_axis": None, "minimum_motion": 0.0})
+                        "motion_axis": [1.0, 0.0, 0.0] if sprint else None, "minimum_motion": .1 if sprint else 0.0})
                 essential.register("tx", "owner", e.epoch, worker, client, essential_cases)
                 assert FIXED_ESCAPE not in head["bindings"] and FIXED_ESCAPE not in e.controls.status("tx")["plan"]["backup"]
                 with pytest.raises(Fault, match="EFFECT_EVIDENCE_INCOMPLETE"):
@@ -149,6 +161,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                 capture_stage(client, "before_restart")
                 e.controller.heartbeat("c1", "owner", e.epoch)
                 essential.capture("tx", "owner", e.epoch, worker, client, "escape", "GUI", "before_restart")
+                essential.capture("tx", "owner", e.epoch, worker, client, "sprint", "IN_GAME", "before_restart")
             coordinator = NativeRepairRestart(e.repairs)
             restart = WorkerRestartClient.from_file(state / f"restart-grant-{e.epoch}.json")
             handoff_before = tuple(e.database.connection.execute("SELECT * FROM repair_native_handoffs WHERE id='tx'").fetchone())
@@ -247,8 +260,10 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                     e.controller.heartbeat("c1", "owner", e.epoch)
                     source = essential.capture("tx", "owner", e.epoch, worker, replacement, "escape", "GUI", "after_restart")
                     assert essential.capture("tx", "owner", e.epoch, worker, replacement, "escape", "GUI", "after_restart") == source
+                    e.controller.heartbeat("c1", "owner", e.epoch)
+                    essential.capture("tx", "owner", e.epoch, worker, replacement, "sprint", "IN_GAME", "after_restart")
                     coverage = essential.coverage("tx")
-                    assert sum(c["status"] == "pass" for c in coverage["cases"]) == 2
+                    assert sum(c["status"] == "pass" for c in coverage["cases"]) == 4
                     assert not coverage["input_cases_complete"] and not coverage["essential_controls_verified"]
                     assert coverage["recovery_qualification_required"]
                     e.controller.heartbeat("c1", "owner", e.epoch)

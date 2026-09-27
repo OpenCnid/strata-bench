@@ -139,17 +139,34 @@ class DeviceInputRelease(Strict):
         return self
 
 
+class PairedInputRelease(Strict):
+    wire_schema: Literal["strata/NativeInputRelease/3"] = Field(alias="schema")
+    device: Literal["keyboard"]
+    key: int = Field(ge=32, le=342)
+    modifier: Literal["NONE"]
+    companion: int = Field(ge=32, le=339)
+    release_order: list[int] = Field(min_length=2, max_length=2)
+    callbacks_confirmed: bool
+    clear_confirmed: bool
+
+    @model_validator(mode="after")
+    def complete(self):
+        require(self.key != self.companion and self.release_order == [self.companion, self.key]
+                and self.callbacks_confirmed and self.clear_confirmed, "SETTINGS_INPUT_RELEASE_UNCONFIRMED")
+        return self
+
+
 class ReleaseObservation(Strict):
     phase: Literal["input_release"]
     index: int = Field(ge=0, le=255)
-    value: Annotated[InputRelease | DeviceInputRelease, Field(discriminator="wire_schema")]
+    value: Annotated[InputRelease | DeviceInputRelease | PairedInputRelease, Field(discriminator="wire_schema")]
 
 
 Observation = Annotated[AdmissionObservation | StateObservation | OpeningObservation | ReleaseObservation, Field(discriminator="phase")]
 
 
 class EffectResult(Strict):
-    wire_schema: Literal["strata/NativeSettingsEffects/2", "strata/NativeSettingsEffects/3", "strata/NativeSettingsEffects/4"] = Field(alias="schema")
+    wire_schema: Literal["strata/NativeSettingsEffects/2", "strata/NativeSettingsEffects/3", "strata/NativeSettingsEffects/4", "strata/NativeSettingsEffects/5"] = Field(alias="schema")
     request: EffectRequest
     state: Literal["prepared", "running", "observed", "unknown", "refused"]
     error_code: str | None = Field(pattern=r"^[A-Z][A-Z0-9_]{1,95}$")
@@ -179,12 +196,14 @@ class EffectResult(Strict):
                 require(item.phase in {"held", "released", "screen_opening", "input_release"}, "SETTINGS_EFFECT_RESPONSE_INVALID")
             if isinstance(item, ReleaseObservation):
                 require(not self.wire_schema.endswith("/2") and released == 0 and receipts == 0
-                        and isinstance(item.value, DeviceInputRelease) == self.wire_schema.endswith("/4"),
+                        and ((self.wire_schema.endswith("/3") and isinstance(item.value, InputRelease))
+                            or (self.wire_schema.endswith("/4") and isinstance(item.value, DeviceInputRelease))
+                            or (self.wire_schema.endswith("/5") and isinstance(item.value, (DeviceInputRelease, PairedInputRelease)))),
                         "SETTINGS_EFFECT_RESPONSE_INVALID")
                 receipts += 1
             elif not isinstance(item, AdmissionObservation):
                 if isinstance(item, StateObservation):
-                    require(isinstance(item.value, ActiveVisibleState) == self.wire_schema.endswith("/4"),
+                    require(isinstance(item.value, ActiveVisibleState) == self.wire_schema.endswith(("/4", "/5")),
                             "SETTINGS_EFFECT_RESPONSE_INVALID")
                 require(item.value.client_tick >= tick, "SETTINGS_EFFECT_RESPONSE_INVALID")
                 tick = item.value.client_tick

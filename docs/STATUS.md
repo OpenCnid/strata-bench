@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, essential-input plan and recovery candidate
+## Current position — September 27, native settings projection connected
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -102,6 +102,16 @@ also rechecks physical release identity. The distinct /5 source is compiled,
 not installed or qualified in Minecraft. Next finish complete authentic controls
 and independent recovery evidence, qualified projection, real launcher/accounting
 and explicit resume as one gameplay repair workflow. Full G1 remains open.
+
+The controller now uses the complete native keymap through a private reader that
+requires exact, unexpired qualification reports and bounded hash-checked sources.
+It rejects incomplete reports, stale/foreign identities and mixed runtime/disk
+state. [Native projection evidence](verification/2026-09-27-m1-native-projection.md)
+replaces the synthetic settings adapter in the selected actual guarded JVM
+repair/restart/commit/rollback test; qualification reports and body remain
+synthetic. The native reader, owned write path and replacement adoption connect;
+authentic qualification, real launcher/accounting and explicit resume remain
+unfinished. No complete G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

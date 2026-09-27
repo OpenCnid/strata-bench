@@ -1042,6 +1042,28 @@ behavior to finish a successful verification cycle. [Candidate evidence](docs/ve
 uses synthetic bodies; complete authentic input/recovery qualification and the
 qualified gameplay repair/restart/resume workflow remain required.
 
+**Native settings projection (M1.1c.3.2).** The private controller reader may
+translate the complete live keymap only after consuming an immutable operator
+`NativeSettingsQualification/1` for the exact game/settings/body/input/layout
+identity. Require unexpired, matching-mode reports for atomic CAS, restart,
+essential controls, settings isolation and the complete binding metadata;
+independently bind each owner, tested consumer and physical pool key to its
+report subject. Read and hash-check bounded private sources. These reports must
+come from actual conformance; the consumer does not produce or infer them.
+Sample reports cannot qualify production, including by relabeling the root.
+Bracket the native snapshot with same-body/connection checks, require the complete
+binding set and exact translation/runtime/persisted values, and preserve protected
+native bindings. Decode only canonical physical encodings; no numeric backend
+substitution. Pin qualification into the controller policy while reading current
+revision/key values from the client. After owned replacement adoption, a new
+reader uses the same qualification against the replacement descriptor.
+Generic adapter writes, stop-all and automatic restart are refused; mutations
+remain on the owned native repair path. This reader publishes no gameplay
+capability and does not settle costs or grant resume. [Integration evidence](docs/verification/2026-09-27-m1-native-projection.md)
+uses synthetic qualification reports and a synthetic game body. Authentic
+qualification for the current profile, full accounting and explicit resume
+remain open; no older-profile evidence is promoted automatically.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

@@ -18,8 +18,11 @@ from mcbench.storage import Fault
 from test_native_repair_flow import verification
 from mcbench.native_effect_evidence import NativeEffectEvidence
 from mcbench.native_essential_plan import NativeEssentialInputs
-from mcbench.native_control_plan import FIXED_ESCAPE, NativeEssentialTarget
+from mcbench.native_control_plan import FIXED_ESCAPE
 from mcbench.native_repair_flow import NativeRepairFlow
+from mcbench.native_settings_projection import NativeSettingsProjection
+from test_native_settings_projection import qualified_fixture
+from test_storage_controller import start
 from mcbench.storage import canonical, digest
 from mcbench.worker_repair import WorkerRepairClient
 from test_native_control_plan import prepare, target_for
@@ -40,11 +43,24 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
         return subprocess.run(args, check=True, capture_output=True, timeout=20, creationflags=subprocess.CREATE_NO_WINDOW)
     capability = json.loads(run([node, str(worker_js), "--forge-capabilities", "a" * 64]).stdout)["digest"]
     e = repair_env
-    prepare(e, ids=(ID, "minecraft:key.inventory:0"), initial=(71, "g"), replacement=(302, "f13"))
-    lease = e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"]
     # Declare a G/G conflict before creating the fixture's first native store.
     options = ORIGINAL.replace("key_key.inventory:key.keyboard.e", "key_key.inventory:key.keyboard.g")
     with effects_jvm(repair_owner=True, commit_owner=True, restart_owner=True, capability_digest=capability, scope=("c1", "a1"), options_text=options) as (client, game, profile, game_root):
+        if lost is None:
+            # Real HTTP state drives the controller plan. Qualification reports
+            # and the remaining generic essential proof are explicitly synthetic.
+            q = qualified_fixture(client.call("settings_snapshot", {}), client,
+                profile=e.adapter.state["profile_id"], clock=time.time)
+            (tmp_path / "qualification-fixture.json").write_text(json.dumps(
+                {ref: raw.decode() for ref, raw in q.data.items()}, indent=2), encoding="utf-8")
+            e.controls.adapter = q.projection
+            e.repairs.configure("c1", "owner", e.epoch, e.put(e.policy))
+            start(e.controller, e.config, e.epoch)
+            e.controls.plan("a1", "tx", [ID])
+            e.budget()
+        else:
+            prepare(e, ids=(ID, "minecraft:key.inventory:0"), initial=(71, "g"), replacement=(302, "f13"))
+        lease = e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"]
         descriptor = tmp_path / "connection-1.json"
         identity = json.loads(run([sys.executable, "-I", "-m", "mcbench.process_guard", "--inspect", str(game.pid)]).stdout)
         guard, config, state = tmp_path / "guard.json", tmp_path / "worker.json", tmp_path / "worker-state"
@@ -75,8 +91,7 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
             e.repairs.request("c1", "owner", e.epoch, "tx", "a1", "repair-op", deadline_unix=time.time() + 15)
             target = target_for(e, client)
             if lost is None:
-                target = NativeEssentialTarget.model_validate(target.model_dump() |
-                    {"schema": "strata/NativeControlTarget/2", "fixed_controls": ["escape"]})
+                target = q.projection.target()
             receipt = e.repairs.admit_native("tx", "owner", e.epoch, worker, client, target)
             plan = receipt["admission"]
             flow = NativeRepairFlow(e.repairs)
@@ -194,6 +209,10 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         adopt()
                 adopted = adopt()
                 assert adopted["phase"] == "ADOPTED" and adopt() == adopted
+                if lost is None:
+                    e.controls.adapter = NativeSettingsProjection(replacement, q.ref, q.read,
+                        simulation=True, clock=time.time)
+                    assert e.controls._policy(e.controls.adapter.snapshot()) == e.controls.status("tx")["plan"]["policy_digest"]
                 attached = e.cas.json(e.operator, "operator", adopted["source_ref"])["worker_state"]
                 assert attached["phase"] == "attached" and attached["input_resumed"] is False
                 assert attached["primitive_events"] >= detached["primitive_events"]

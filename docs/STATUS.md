@@ -1,5 +1,9 @@
 # Strata current status
 
+M1.5b.6 adds [native processing RF capture](verification/2026-09-26-m1-furnace-energy.md): telemetry0.3.16/startup17 observes exact processTick entry/returns and verifies actual RF/progress deltas. Full/partial funding, zero-work and overshoot remain distinct; no net recipe-energy, continuous-window or score claim follows.
+
+211 distinct focused Python cases pass,4 native opt-in skips;10 Java cases and offline artifact build pass. The current reader reproduces operation06's235-record inspection unchanged. Candidate7f0c0d8e is archived; installed game artifacts remain unchanged. Authentic changed-producer integration is next, followed by refund/window/setup/team/loaded-code and remaining T10/G1 controls. All prior failures/holds preserved; no game/model dispatch or M1 paid authority. M1.5b.6 implemented_unverified, G1 not_run.
+
 M1.5b.5's [operation06](verification/2026-09-26-m1-preflight-reacquire-native.md) passes17 operation checks,9 prior-plan import checks and the terminal-resource audit on changed Forge minor45/policy4. Eight actions collect three iron ingots;235 signed records contain three matching furnace completions. The actual V4 importer verifies the prelaunch seal and reopens idempotently. Candidate resources remain private/unscorable.
 
 All four rows STOPPED/consumed,704.1699ms guardian,138/138 client and29/29 server parent histories terminal, session retired and no owned runtime. Installed client31facc27 is the tested artifact; prior1d4935ed/log retained. All40 authority tables unchanged at$4.887796; zero model calls.

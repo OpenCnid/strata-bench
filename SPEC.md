@@ -2179,6 +2179,28 @@ prior fixture registration. Recipe energy is not measured consumption. Existing
 producer/setup/team/window/parity/isolation and scorer controls remain required;
 all authority flags remain false. [Source and retained-record verification](docs/verification/2026-09-26-m1-native-resource.md).
 
+**Private native processing-debit candidate (M1.5b.6).** Telemetry0.3.16 /
+`ServerStarted/17` retains phases/2 completion identity and adds
+`thermal1192-native-furnace-process-tick/1`. Observe entry and both original
+returns of the exact pinned furnace `processTick` without cancelling, changing
+arguments, return values or game state. Bind the native caller/server thread,
+exact tile/position/level/tick, unchanged recipe registration/object and full
+plain inventory/empty augment state. Record before/after RF, capacity, noncreative
+storage, progress/max/step/active state and actual integer return. Reject
+unsupported state explicitly; broken pairing/lifetime stops the producer.
+Private online/offline readers require the new startup identity and supported
+artifacts, preserve source sequence/digest, and reject actor invention, mixed
+profiles, duplicate transactions and generation rollback. The offline report
+fails closed above16,384 processing records; existing stream quotas also apply.
+Verify unchanged unrelated state. Positive remaining work returns/decrements the
+native step and debits min(stored RF, step); nonpositive remaining work returns
+zero with no debit/progress change. Keep partial funding explicit. Debits are
+not net recipe energy: later overshoot refunds, charging/transfers, continuous
+windows, resource completion joins, team/setup/loaded-code qualification,
+parity/isolation and protected scoring require their own evidence. No player
+attribution or score is inferred, no older identity is upgraded, and no new
+gameplay route or canonical top-level record is introduced.
+
 **Private telemetry authentication candidate.** `private-telemetry-hmac-sha256-chain/1` binds an operator-issued per-boot key/challenge to the private instance, campaign and epoch. Forge telemetry 0.3.3, configuration version 3, consumes a durable exclusive boot claim before emitting signed wrappers containing the exact original GameEvent bytes. Bind the authority fingerprint, challenge, ordered sequence, previous MAC and event-byte hash; validate the separately issued scope, boot claim and complete telemetry contract before returning an inspection. Count encoded bytes against the existing storage quota. Reject altered, mixed, replayed/out-of-order or incomplete streams; never delete a consumed claim to enable an automatic restart. Legacy unsigned evidence remains explicitly unauthenticated. Key possession/byte integrity do not qualify OS process identity, setup/team facts, parity or scoring; raw records remain ineligible and the authenticated online endpoint, recovery and full T06/T10 remain required. These private wrappers do not add a fourteenth top-level record or expose evaluator records to gameplay. [Source, synthetic Java/Python and selected authentic dedicated-stream evidence](docs/verification/2026-09-20-authenticated-telemetry.md) remains separate from process isolation and authoritative scoring qualification.
 
 **Private craft reference seal.** Before a reference boot, pin the complete selected fixture file inventory, supporting evidence bytes, benchmark team/unique agent-to-Minecraft-UUID roster, complete predicate, exact recipe digests and registered server-tick window. Verify and preserve independent private copies; publish the seal only after copying and verification. Bind the canonical setup digest through `TelemetrySpoolAuthority/2` into the existing signed stream. Recheck live/archived inputs before durably reserving one launch; retain partial publication and ambiguous reservations rather than automatically renewing them. Inspection recomputes authenticated native witnesses and checks roster, recipes, resource deltas and tick window. Identical complete imports are idempotent; changed imports or missing/corrupt archive bytes reject. Candidate resource results remain private and do not update scorer state or grant credit. This byte-integrity seam alone does not prove the actual launched world, setup validity, expert mode, FTB-team membership, isolation, mechanical parity, complete wall-time cutoff or recovery. [Implemented source and synthetic CLI/JVM evidence](docs/verification/2026-09-20-craft-reference-seal.md).

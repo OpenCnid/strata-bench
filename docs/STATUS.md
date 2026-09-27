@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.9 [operation12](verification/2026-09-26-m1-machine-window-native.md) passes the positive authentic V5 prior-window reference:1,798 signed records,1,485 complete ticks and the registered84-tick/two-cycle/8,000RF net window. 17 operation/17 actual store checks pass, including prior seal/launch order and idempotent reopening. Raw comparison remains unregistered; protected scoring remains false.
+
+Eight actions/27 primitives, two saved ingots/one leftover dust, furnace empty/12,000RF. Pair489.547s, guardian791.4342ms, complete terminal histories/session retirement/no owned runtime. Capacity settles at12,975,661 bytes; old operation10 hold remains. All40 authority tables unchanged/4,887,796microUSD; no model calls or new inference authority.
+
+M1.5b.9/M1 in_progress, G1 not_run. Next native replacement/refusal/negative window controls and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. Initial preparation environment error retained; no gameplay replay or altered limits. Do not repeat the unchanged positive reference.
+
 M1.5b.9 adds [prior-bound machine operating windows](verification/2026-09-26-m1-machine-window.md): new private plan5/machine-reference2 seals an exact or deterministic first-episode selector. Require complete same-lifetime funded work, registered recipes, exact input/output/net-RF joins and no gap/replacement/idle/resource borrowing. The store verifies prior seal/consumed-launch order; raw/post-hoc comparisons cannot claim prior registration or protected scoring.
 
 200 distinct focused Python cases pass,3 native opt-in cases skipped, including45 new window cases. Initial synthetic fixture and formatting failures remain archived. Read-only reconstruction preserves operation11's exact1,708-record inspection; the post-hoc comparison derives84 ticks/two cycles/8,000RF net but correctly keeps prior registration false. Original seal unchanged.

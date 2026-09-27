@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.7 [operation08](verification/2026-09-26-m1-furnace-transitions-native.md) passes the prior-bound two-item native reference on telemetry0.3.17/startup18.329 signed records prove84 processing calls/8,064RF debit, starts with0/−32 carry, two completions and64RF final refund.17 operation/9 V4 import checks and processing/transition/terminal audits pass; saved player +2 ingots/+1 dust, furnace empty/12,000RF.
+
+All four rows STOPPED/consumed;745.6213ms guardian,134/134+29/29 terminal parent histories, session retired/no runtime. All40 authority tables unchanged at4,887,796microUSD; no model calls. The first processing audit's stale startup17 assertion is retained and corrected to the prelaunch startup18 identity without replay or criterion changes.
+
+M1.5b.7/M1 in_progress; full G1 not_run. Next complete machine lifetime/operating intervals, setup/team/loaded-code, alternate/negative controls, parity/isolation and remaining keybinding/native-host/probe contracts. Native transition refusal/clamping and client reacquisition branches remain unverified. Prior failures/holds retained; D18/D19 M0-only.
+
 M1.5b.7 adds [native process-start carry and stop-refund capture](verification/2026-09-26-m1-furnace-transitions.md), telemetry0.3.17/startup18.244 Python cases pass,4 native opt-in skips;13 Java cases and offline artifact build pass. All412 operation07 records reconstruct unchanged. Candidate8a18fb62 is archived; installed artifacts unchanged.
 
 Authentic changed-producer execution remains unverified. Next prepare a fresh prior-bound two-item reference to exercise both nonzero carry and final refund, retaining existing limits. Complete machine lifetime/operating intervals, setup/team/loaded-code, controls/parity/isolation and all other G1 contracts remain open. All40 authority tables unchanged at4,887,796microUSD; no game/model call or M1 spending authority. Prior failures/holds remain. G1 not_run.
@@ -844,3 +850,12 @@ client/server pins and no owned runtime. Private archive40files/2,767,172bytes
 verifies under seal `b0ff2833d925db85c7d65f82df7a6a90b0a74972922ad5a807c7d5d323bde06a`.
 This pointer follows the archived document snapshot; the archive is unchanged.
 Authentic transition integration and full G1 remain not_run.
+
+Final integrity audit passes804 unchanged source pins,450 unique/preserved
+milestone IDs and1,720 local links; all40 authority tables remain unchanged at
+4,887,796microUSD. Preparation/audit archive25files/3,355,023bytes verifies under
+seal `0736513548e6ec88a14d9a0b845351c7ab774093e02969352d7a0d0f9a84d302`.
+Authentic operation08 archive633files/109,751,775bytes verifies under seal
+`70b58a6ce89e13426728530ed8fb15cba56243a09d665f05dba14ff0c560c788`.
+This pointer follows the archived document snapshot; both archives are unchanged.
+The named native transition reference passes; full M1/G1 remains open.

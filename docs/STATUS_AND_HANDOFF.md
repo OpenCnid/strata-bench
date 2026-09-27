@@ -1,5 +1,17 @@
 # M1/G1 implementation handoff
 
+M1.5b.9c [operation15](verification/2026-09-27-m1-replacement-native.md) failed before placement: the checker observed dirt where it required grass. Fifteen actions/65 primitives remove the original furnace and equip the unplaced replacement; no placement request exists. Separately, the 1,000ms guardian fails, corroborated by a 1,038.4428–1,068.2396ms exit interval. Outer histories eventually terminate 206/206 client and 29/29 server, with no owned runtime and session retired.
+
+The authenticated 1,455-record stream and saved world confirm one removed lifetime, air at the old furnace and dirt support. The actual V5 store refuses the failed reference without creating a receipt. All four lifecycle rows remain UNCERTAIN; the new 256 MiB reservation stays held alongside operation10's separate 256 MiB hold. All 40 authority tables unchanged/4,887,796 microUSD; no model calls.
+
+A separate one-line checker correction accepts the delivered dirt/grass support while preserving native placement checks and the full control; it is implemented_unverified. Guardian cause remains unresolved and the 1,000ms bound stays intact. Next a fresh, prior-bound changed-checker control with all original acceptance criteria; no unchanged retry or general shutdown-remedy claim. M1.5b.9c/M1 in_progress, T10/G1 not_run; D18/D19 remain M0-only.
+
+Operation15 has dispatched once with a fresh native session. At the latest read-only checkpoint the server is participant-ready, the client is starting, and no public action requests or terminal result exist yet. The original process handle remains live; continue observing this attempt, never restart it on an observation timeout. Pre-pinned success/failure audits and conditional publication are prepared but unexecuted. M1.5b.9c/M1 remain in_progress; G1 remains not_run.
+
+M1.5b.9c operation15 is prepared for the full native removal/replacement control. All 569 pair inputs and eight audit scripts are pinned; the original V5 machine rule is unchanged. Prelaunch validation passes and all 40 authority tables remain unchanged at 4,887,796 microUSD.
+
+The earlier proposed 450s participant/720s server limits exceed the existing contracts. Before any dispatch, the actual plan binds a 60s worker, 340s client, 350s pair window and existing 360s participant/600s server limits, with 270s bootstrap and unchanged 1,000ms guardian. The complete 21-action control and acceptance remain; timeout is failure. No paid inference or shared-desktop input. Native result remains pending; M1/G1 stay open.
+
 M1.5b.9c [replacement preparation](verification/2026-09-27-m1-replacement-preparation.md) now has a fresh, verified 8,609-file fixture copy and a bounded 21-action checker. Only two declared chest items were added: a diamond pickaxe and a separate 20,000 RF furnace; the original furnace remains at 5,000 RF. Exact NBT/region invariants and source hashes pass. No game/model run occurred.
 
 The unchanged V5 rule must reject work spanning actual removal and replacement. This remains unexecuted: next bind the proposed limits into operation15, pin exact audits, prepare a fresh native session and recheck durable/process state before dispatch. All 40 authority tables remain unchanged at 4,887,796 microUSD; old failures/holds and M0-only inference authority persist. M1.5b.9c/M1 in_progress, T10/G1 not_run.

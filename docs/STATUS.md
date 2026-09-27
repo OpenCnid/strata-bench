@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.6 [operation07](verification/2026-09-26-m1-furnace-energy-native.md) passes the changed telemetry0.3.16/startup17 native reference.412 signed records include125 processing calls with12,000RF debited, two progress overshoots and three exact processing-to-completion joins. All17 operation and9 prior-plan import checks plus processing/terminal audits pass; saved inventory adds three iron ingots, furnace empty/8,000RF.
+
+All four rows STOPPED/consumed;556.0106ms guardian,126/126 client and29/29 server parent histories terminal, session retired/no runtime. All40 authority tables unchanged at$4.887796, zero model calls. Initial stale client server-module binding failed before database/session/grant and was retained/corrected without changing validation or bounds.
+
+This qualifies the named positive processing capture, not full operating-window/net-energy/setup/team/loaded-code/scoring authority. Native zero/underfunded/refusal cases and client reacquisition branch remain unverified. Next join process-start carry/refunds and complete intervals, then remaining T10/G1 controls. M1.5b.6/M1 in_progress, G1 not_run; all prior failures/holds remain, D18/D19 M0-only.
+
 M1.5b.6 adds [native processing RF capture](verification/2026-09-26-m1-furnace-energy.md): telemetry0.3.16/startup17 observes exact processTick entry/returns and verifies actual RF/progress deltas. Full/partial funding, zero-work and overshoot remain distinct; no net recipe-energy, continuous-window or score claim follows.
 
 211 distinct focused Python cases pass,4 native opt-in skips;10 Java cases and offline artifact build pass. The current reader reproduces operation06's235-record inspection unchanged. Candidate7f0c0d8e is archived; installed game artifacts remain unchanged. Authentic changed-producer integration is next, followed by refund/window/setup/team/loaded-code and remaining T10/G1 controls. All prior failures/holds preserved; no game/model dispatch or M1 paid authority. M1.5b.6 implemented_unverified, G1 not_run.

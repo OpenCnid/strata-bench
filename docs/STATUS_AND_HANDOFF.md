@@ -1,5 +1,9 @@
 # M1/G1 implementation handoff
 
+M1.5b.3f adds [bounded preflight reacquisition](verification/2026-09-26-m1-preflight-reacquire.md) for operation05's observed untouched-component reply/current drift. New Forge minor45/policy4 permits one charged pre-input read, freezing the first exact server reply. The renewed reply/current view must restore that baseline; original selection, observation fence, deadlines/budgets and post-click checks remain mandatory. No replay or metadata stripping.
+
+69 Java,2 TypeScript and1 Python focused cases pass. Diagnostic policy2 adds the private reacquired_baseline comparison. Candidate31facc27 is archived; installed1d4935ed remains unchanged. Next one fresh V4 reference with the changed client and capability binding. Operation05 and all prior failures remain consumed; actual correction/positive machine import and full G1 remain open. No game/model run or allowance change.
+
 M1.5b.5 [native operation05](verification/2026-09-26-m1-machine-reference-native.md) fails at deposit preflight REVISION_CONFLICT: no deposit click or replay. The authentic M1.5b.3e diagnostic identifies current_match, with only untouched player-relative35 backpack component identity differing between server reply and current view. Selected/cursor/machine resources and all IDs/counts match. Exact field/caller remains unknown; earlier failures retain their original scope.
 
 V4 plan/authority/seal/reservation bytes bind before launch, but all four rows remain UNCERTAIN/consumed. Actual import correctly refuses without a receipt.227 signed records, zero completions; saved furnace empty/20,000RF, late cursor dust3. Guardian505.8518ms passes;96/96 client and29/29 server parents terminal, session retired/no owned runtime. All40 authority tables unchanged at$4.887796; no model calls.

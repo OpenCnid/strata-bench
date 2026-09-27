@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /** Establish an applied server baseline before emitting a machine-menu click. */
 final class GameMachinePreflight {
-    static final String POLICY = "thermal-visible-slot-server-baseline-owned-transfer/3";
+    static final String POLICY = "thermal-visible-slot-server-baseline-owned-transfer/4";
 
     static GameActionLane.Motor start(GameInventory.Port port, GameMachineInventory.Layout layout,
                                      int slot, boolean right, boolean quick,
@@ -15,6 +15,7 @@ final class GameMachinePreflight {
         emit.invoke(() -> ticket[0] = port.requestSync());
         return new GameActionLane.Motor() {
             GameActionLane.Motor transfer;
+            GameInventory.View reacquireBaseline;
             public boolean tick(GameActionLane.Emitter next) throws IOException {
                 if (transfer != null) return transfer.tick(next);
                 var phase = GameMachinePreflightFailure.Phase.CONTEXT;
@@ -32,13 +33,33 @@ final class GameMachinePreflight {
                     // Recheck original observation age/revision before input.
                     phase = GameMachinePreflightFailure.Phase.INPUT_FENCE;
                     inputFence.run();
+                    if (reacquireBaseline != null) {
+                        phase = GameMachinePreflightFailure.Phase.REACQUIRED_BASELINE;
+                        expected = reacquireBaseline; actual = received;
+                        // A second read must restore the FIRST exact server
+                        // state, never establish a more convenient baseline.
+                        if (!received.equals(reacquireBaseline)) throw new IOException("REVISION_CONFLICT");
+                    }
+                    expected = null; actual = null;
                     phase = GameMachinePreflightFailure.Phase.CURRENT_VIEW;
                     var current = port.view();
                     phase = GameMachinePreflightFailure.Phase.CURRENT_LAYOUT;
                     layout.check(current);
                     phase = GameMachinePreflightFailure.Phase.CURRENT_MATCH;
                     expected = received; actual = current;
-                    if (!received.equals(current)) throw new IOException("REVISION_CONFLICT");
+                    if (!received.equals(current)) {
+                        if (reacquireBaseline == null
+                                && sameSelection(layout, initial, received, slot)
+                                && sameSelection(layout, received, current, slot)) {
+                            // One charged read for untouched player component
+                            // drift only. No mutation has occurred. The original
+                            // observation fence, deadline and budget still apply.
+                            reacquireBaseline = received;
+                            next.invoke(() -> ticket[0] = port.requestSync());
+                            return false;
+                        }
+                        throw new IOException("REVISION_CONFLICT");
+                    }
                     phase = GameMachinePreflightFailure.Phase.SELECTION_MATCH;
                     expected = initial; actual = received;
                     if (!sameSelection(layout, initial, received, slot)) throw new IOException("REVISION_CONFLICT");

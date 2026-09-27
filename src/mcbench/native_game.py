@@ -69,7 +69,7 @@ class GameCapabilities(Strict):
     crafting_policy: Literal["known-recipe-server-preview-transition-bound20/6"]
     manual_crafting_policy: Literal["visible-recipe-manual-grid-feedback-search4096/1"]
     machine_observation_policy: Literal["thermal-current-gui-energy-fluid-base-slots/1"]
-    machine_inventory_policy: Literal["thermal-visible-slot-server-baseline-owned-transfer/3"]
+    machine_inventory_policy: Literal["thermal-visible-slot-server-baseline-owned-transfer/4"]
     machine_input_policy: Literal["thermal-display-independent-slot-cursor-fence/1"]
     navigation_policy: Literal["delivered-shapes-level-bfs512-radius16/1"]
     collision_policy: Literal["delivered-static-vanilla-shapes-age30s/1"]

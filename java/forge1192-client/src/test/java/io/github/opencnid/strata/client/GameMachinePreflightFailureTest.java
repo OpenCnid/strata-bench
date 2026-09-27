@@ -38,6 +38,9 @@ class GameMachinePreflightFailureTest {
 
     @Test void everyFailurePhasePreservesOriginalErrorAndReadClickCounts() throws Exception {
         for (var phase : GameMachinePreflightFailure.Phase.values()) {
+            // Requires an earlier accepted read; exercised by the dedicated
+            // reacquisition test with its frozen baseline and diagnostic masks.
+            if (phase == GameMachinePreflightFailure.Phase.REACQUIRED_BASELINE) continue;
             var p = new Probe();
             var motor = GameMachinePreflight.start(p,FURNACE,0,false,false,() -> {
                 if (p.fault.equals("input_fence")) throw new IOException("STALE_OBSERVATION");

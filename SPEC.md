@@ -322,6 +322,22 @@ absence cannot change the original unknown/resync receipt. This diagnostic does
 not confirm transfer, qualify isolation or replay an action; native artifact
 identity changes with its implementation. [Evidence](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md).
 
+**Bounded preflight reacquisition (M1.5b.3f).** Forge minor45 selects
+`thermal-visible-slot-server-baseline-owned-transfer/4`. Preserve policy3's first
+charged read, exact original selection/resources and input fence. Only when the
+server reply/current view differ exclusively in untouched player components,
+and the first reply still matches the original selected/cursor/machine state
+and all player IDs/counts/positions, permit one additional charged pre-input
+read. Freeze the first full server reply: the renewed reply and current view
+must restore it exactly. Refuse a changed baseline or persistent drift; never
+strip metadata, substitute new server components after reacquisition, replay
+input or extend deadlines/budgets. Recheck the original observation fence and
+final baseline before the unchanged transfer engine. Private diagnostic policy
+`machine-preflight-comparison-masks/2` retains prior phases/masks and adds
+`reacquired_baseline` for frozen-versus-renewed reply differences. All earlier
+identities/failures remain; actual qualification requires changed-profile
+verification. [Source and focused checks](docs/verification/2026-09-26-m1-preflight-reacquire.md).
+
 Private preflight diagnosis uses `machine-preflight-comparison-masks/1`. Record the fixed failure phase (context, reply, wait, reply layout, original input fence, current view/layout, current match, selection match, final baseline, or transfer start). Where the failing comparison already has two valid projected views, retain value-free ID/count/component difference masks for cursor/player slots and visible machine base slots, plus three selected-slot equality flags. Otherwise comparison is explicitly null; do not read game state to fill it. Never inspect augment slots or export item/component values, hashes or exception text. Preserve the original public error and release-error precedence; publish only to the private operator logger after fencing/release/durable terminal handling. Diagnostic sink failure changes no receipt. This adds no read, click, refresh, replay, accepted state or deadline/budget. It does not prove a specific mod field/caller or qualify isolation merely because the log is private.
 
 Private Forge health diagnosis uses `forge-native-health-phase/1`. Retain at most

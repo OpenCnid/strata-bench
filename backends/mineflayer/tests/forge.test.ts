@@ -125,7 +125,7 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   assert.equal(workerConfig(path,repo).schema,'strata/ForgeDevelopmentWorker/2');
   assert.equal(manifest.backend,'forge_client'); assert.equal(manifest.campaign_admission,false);
   assert.equal(manifest.keybindings,false); assert.equal(manifest.motor.completion,'emitted-input-only');
-  assert.equal(manifest.contract_minor,44);
+  assert.equal(manifest.contract_minor,45);
   assert.equal(manifest.motor.block_target,'observed-outline-centers64-local16/1');
   for (const patch of [{backend:'mineflayer'},{server_kind:'vanilla'},{pack_version:'latest'},
     {private_extra:true},{purpose:'campaign'},{connection_file:repo},{schema:'strata/ForgeDevelopmentWorker/1'},
@@ -134,8 +134,8 @@ test('Forge capabilities are a separate unqualified identity and config cannot s
   }
 });
 
-test('machine server-baseline capability rejects the old immediate-click identity', async t => {
-  let policy = 'thermal-visible-slot-server-baseline-owned-transfer/3'; let posts = 0;
+test('machine reacquisition capability rejects both older transfer identities', async t => {
+  let policy = 'thermal-visible-slot-server-baseline-owned-transfer/4'; let posts = 0;
   const server = createServer(async (req,res) => {
     let body = ''; for await (const chunk of req) body += chunk;
     posts++; const request = JSON.parse(body);
@@ -150,8 +150,10 @@ test('machine server-baseline capability rejects the old immediate-click identit
     session_id:'session',bearer_token:'b'.repeat(64),fingerprint,operator_development_only:true});
   assert.equal((await client.call('capabilities')).machine_inventory_policy,policy);
   assert.equal(manifest.machine_inventory.policy,policy);
-  policy = 'thermal-visible-slot-owned-transfer-feedback/2';
-  await assert.rejects(client.call('capabilities'),/CAPABILITY_MISSING/); assert.equal(posts,2);
+  for (const old of ['thermal-visible-slot-owned-transfer-feedback/2','thermal-visible-slot-server-baseline-owned-transfer/3']) {
+    policy = old; await assert.rejects(client.call('capabilities'),/CAPABILITY_MISSING/);
+  }
+  assert.equal(posts,3);
 });
 
 test('native transport polls one POST, validates identities and never replays a lost mutation', async t => {

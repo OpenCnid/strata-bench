@@ -8,7 +8,7 @@ import java.io.IOException;
 final class GameMachinePreflightFailure extends IOException {
     enum Phase {
         CONTEXT, REPLY, WAIT, REPLY_LAYOUT, INPUT_FENCE, CURRENT_VIEW, CURRENT_LAYOUT,
-        CURRENT_MATCH, SELECTION_MATCH, FINAL_BASELINE, TRANSFER_START
+        CURRENT_MATCH, SELECTION_MATCH, FINAL_BASELINE, TRANSFER_START, REACQUIRED_BASELINE
     }
     private final JsonObject diagnostic;
 
@@ -16,7 +16,7 @@ final class GameMachinePreflightFailure extends IOException {
                                 int clicked, GameInventory.View expected, GameInventory.View actual) {
         super(original.getMessage(), original);
         diagnostic = new JsonObject();
-        diagnostic.addProperty("policy", "machine-preflight-comparison-masks/1");
+        diagnostic.addProperty("policy", "machine-preflight-comparison-masks/2");
         diagnostic.addProperty("phase", phase.name().toLowerCase(java.util.Locale.ROOT));
         diagnostic.add("comparison", JsonNull.INSTANCE);
         if (expected != null && actual != null) {

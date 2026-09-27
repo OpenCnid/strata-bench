@@ -80,7 +80,7 @@ class GameMachinePreflightTest {
         for (boolean invalidLayout : new boolean[]{false, true}) {
             var p = new Port(before("local"), after("server")); var motor = start(p, () -> {});
             p.ack(invalidLayout ? new GameInventory.View(java.util.List.of(), EMPTY, -1) : before("server"));
-            if (!invalidLayout) p.current = before("local");
+            if (!invalidLayout) p.current = replace(before("server"), BACKPACK, stack("test:other", 1));
             assertThrows(IOException.class, () -> motor.tick(p::emit)); assertEquals(0, p.clicks);
         }
     }

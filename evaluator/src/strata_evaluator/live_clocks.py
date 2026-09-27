@@ -16,13 +16,15 @@ from .telemetry_clocks import ServerClockSample, advance_clock, reconcile_clock
 from mcbench.inference_transport import strict_json
 
 
-def clock_prefix(path, authority, cursor, *, expected_launch=None):
+def clock_prefix(path, authority, cursor, *, expected_launch=None, receipt_cursor_after=None):
     """Read exactly one bounded, signed prefix ending at a complete clock sample.
 
     Later appends do not alter the selected receipt. An incomplete requested
     prefix fails; it is not a stopped server or permission to restart one.
     """
     require(type(cursor) is int and 1 <= cursor <= 1_000_000, "CLOCK_PREFIX_CURSOR")
+    require(receipt_cursor_after is None or type(receipt_cursor_after) is int
+            and 1 <= receipt_cursor_after < cursor, "CLOCK_BARRIER_CURSOR")
     path = Path(path)
     reject_links(path)
     total, hasher = 0, hashlib.sha256()
@@ -73,10 +75,17 @@ def clock_prefix(path, authority, cursor, *, expected_launch=None):
                 sample = current
             previous = event
         require(previous.kind == "server_clock_sample" and sample is not None, "CLOCK_PREFIX_BOUNDARY")
+        if receipt_cursor_after is not None:
+            require(startup.telemetry_transport == "windows-owned-pipe/1", "CLOCK_BARRIER_TRANSPORT")
+            require(health.durable_event_seq_before_sample > receipt_cursor_after, "CLOCK_BARRIER_NOT_REACHED")
         authentication = verifier.receipt(verifier.boot, cursor)
-        return {"schema": "strata/PrivateClockPrefix/1", "campaign_id": verifier.authority.campaign_id,
+        result = {"schema": "strata/PrivateClockPrefix/1", "campaign_id": verifier.authority.campaign_id,
                 "epoch": verifier.authority.epoch, "server_boot_id": verifier.boot,
                 "cursor": cursor, "bytes": total, "prefix_sha256": hasher.hexdigest(),
                 "authentication": authentication, "clock": sample.model_dump(),
                 "clean_stop": False, "active_time_qualified": False,
                 "avatar_roster_mapping_qualified": False, "complete_repair_accounting": False}
+        if receipt_cursor_after is not None:
+            result.update(schema="strata/PrivateClockPrefix/2", receipt_cursor_after=receipt_cursor_after,
+                          producer_receipt_cursor=health.durable_event_seq_before_sample)
+        return result

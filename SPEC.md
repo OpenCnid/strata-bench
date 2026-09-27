@@ -1938,6 +1938,21 @@ after-repair boundary. [Binding evidence](docs/verification/2026-09-27-m1-repair
 uses synthetic setup/game data, including an actual retained Windows/JVM check;
 it does not qualify Minecraft or complete the repair workflow/G1.
 
+**Causal repair-clock boundary.** A producer barrier may use the existing
+`windows-owned-pipe/1` durable-receipt ordering: record the request and current
+committed telemetry cursor under the same SQLite writer lock as the broker;
+require the later health/clock pair to report a producer-acknowledged cursor
+strictly greater than that request cursor. The broker commits before ACK and
+the producer advances its durable cursor only after verifying that ACK, before
+generating health and the adjacent complete clock sample. Preserve immutable
+request/source/boot/scope/deadline on retry, including controller evidence-write
+failure. Reject expired, changed, equal/stale/future or non-pipe receipts.
+`RepairClockWitness/2` may claim generation after this durable request; it must
+not claim generation after a later read, exact transition timing, full repair
+accounting, settlement or input publication on that basis. Existing `/1` evidence
+retains its earlier scope. [Causal pipe evidence](docs/verification/2026-09-27-m1-repair-clock-barrier.md)
+uses synthetic game/setup and does not qualify the final Minecraft profile.
+
 `elapsed_wall` is monotonic elapsed time from first scored start through final stop, including all pauses/outages. `active_wall` includes RUNNING/RECONFIGURING, model thinking, tool latency, idle avatar time, rate-limit waits while the server runs, and checkpoint quiescence until the server stops. It excludes only logged intervals where the whole campaign server is stopped and all campaign inference is suspended. Restart counts again from the first resumed simulation tick, including login/readiness time. Queue/provisioning/preplay checks are separate overhead. Agent-requested restart while the server continues is active time.
 
 `server_ticks` are actual ticks advanced, by boot ID/epoch; they are not inferred as 20 times wall time. `avatar_ticks` sums actual connected-avatar tick exposure across all bodies and practice branches; disconnected time is recorded separately. Also record reserved avatar seconds so disconnects cannot create an apparent resource-efficiency advantage. `primitive_events` counts versioned local execution units (each active motor tick and discrete dig/place/use/slot/craft emission, or raw input events on a physical backend), not high-level tool requests; rejected-before-dispatch requests still incur tool/model cost. All clocks and counters remain monotonic in the ledger across world rollback. Report both surviving game-state tick position and total ticks consumed, including lost work.

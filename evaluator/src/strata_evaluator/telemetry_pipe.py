@@ -225,7 +225,8 @@ class TelemetryPipeBroker:
         self.count, self.previous, self.bytes, self.last_tick = event.seq, mac, self.bytes + len(wire), event.server_tick
         self.last_kind = event.kind
         self.stopped = event.kind == "server_stopped" and event.payload_schema == "strata/ServerStopped/1"
-        self._record("DURABLE", records=self.count, bytes=self.bytes, last_event_sha256=event_hash)
+        sample = {"clock_sample_cursor": self.count} if event.kind == "server_clock_sample" else {}
+        self._record("DURABLE", records=self.count, bytes=self.bytes, last_event_sha256=event_hash, **sample)
         self.pipe.send(canonical({"schema": "strata/TelemetryPipeReceipt/1", "sequence": self.count,
                                   "event_sha256": event_hash}))
 

@@ -23,7 +23,24 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, owned repair clock source
+## Current position — September27, causal repair clock boundary
+
+Private evidence sealed:52files/2,691,898bytes,
+SHA-256 `7c3db279f9a2882616614499ed348f60db8ff169f041a3a029b43bd5ae942fc7`. Authority40tables/eight holds and installed files unchanged;
+final runtime inventory0. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now binds a durable repair checkpoint request to a later producer
+receipt and authenticated clock sample on the existing telemetry0.3.19 channel.
+An actual Java/Python pipe test rejects an equal receipt then accepts a newer one;
+43 focused checks pass. [Causal boundary evidence](verification/2026-09-27-m1-repair-clock-barrier.md).
+Game/setup and restricted-token qualification in that test remain synthetic.
+No production Java change or installation was needed. Next join continuous
+prior-gameplay/repair consumption, all body/model/helper costs and the publication
+tail before original-lease resume; this timing proof alone grants no input or
+settlement permission. The native-health and final workflow qualification gaps
+remain open. M1/G1 and all six aggregate suites remain incomplete.
+
+## Previous checkpoint — owned repair clock source
 
 Private evidence sealed:32files/2,527,143bytes,
 SHA-256 `afab36b82d9880c7479144f30b73fcbffc5fc7b6a45ede0a4f1d66b6b84fe0e7`. Authority40tables/eight holds and installed client/options

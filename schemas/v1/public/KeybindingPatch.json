@@ -81,6 +81,19 @@
     },
     "Evidence": {
       "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "pass",
+              "fail"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "properties": {
         "test_id": {
           "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
@@ -110,6 +123,13 @@
         "status",
         "refs"
       ],
+      "then": {
+        "properties": {
+          "refs": {
+            "minItems": 1
+          }
+        }
+      },
       "title": "Evidence",
       "type": "object"
     },
@@ -184,6 +204,16 @@
     }
   },
   "additionalProperties": false,
+  "if": {
+    "properties": {
+      "phase": {
+        "const": "committed"
+      }
+    },
+    "required": [
+      "phase"
+    ]
+  },
   "properties": {
     "is_example": {
       "title": "Is Example",
@@ -246,6 +276,7 @@
       "items": {
         "$ref": "#/$defs/BindingChange"
       },
+      "minItems": 1,
       "title": "Changes",
       "type": "array"
     },
@@ -333,6 +364,45 @@
     "restart_check",
     "failure_code"
   ],
+  "then": {
+    "properties": {
+      "backup_ref": {
+        "type": "string"
+      },
+      "resulting_revision": {
+        "type": "integer"
+      },
+      "resulting_keymap_digest": {
+        "type": "string"
+      },
+      "failure_code": {
+        "type": "null"
+      },
+      "restart_check": {
+        "properties": {
+          "status": {
+            "const": "pass"
+          }
+        }
+      },
+      "changes": {
+        "items": {
+          "properties": {
+            "checks": {
+              "items": {
+                "properties": {
+                  "status": {
+                    "const": "pass"
+                  }
+                }
+              },
+              "minItems": 1
+            }
+          }
+        }
+      }
+    }
+  },
   "title": "KeybindingPatch",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"

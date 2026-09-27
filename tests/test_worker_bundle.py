@@ -21,7 +21,8 @@ def inputs(tmp_path):
     for relative in ("package.json", "package-lock.json", "tools/auth_cache_acl.py",
                      "dist/src/worker.js", "dist/src/auth_cache.js", "node_modules/fixture/index.js"):
         put(backend / relative)
-    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest"):
+    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest",
+                 "SkillRevision", "KeybindingPatch"):
         put(repository / f"schemas/v1/public/{name}.json", b"{}")
     put(repository / "AGENTS.md", b"OPERATOR-ONLY-CANARY")
     put(repository / ".strata/auth.json", b"SYNTHETIC-SECRET-CANARY")

@@ -6,7 +6,7 @@ Cross-record checks are performed by the operator/evaluator services.
 
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue, model_validator
+from pydantic import ConfigDict, Field, JsonValue, model_validator
 
 from .contracts import (
     MAX_INT, PUBLIC_RECORDS, Digest, Id, Key, Positive, Ref, Stream, Strict, UInt, Utc,
@@ -22,6 +22,9 @@ class Pin(Strict):
 
 
 class Evidence(Strict):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"status": {"enum": ["pass", "fail"]}}, "required": ["status"],
+    }, "then": {"properties": {"refs": {"minItems": 1}}}})
     test_id: Id
     status: Literal["not_run", "pass", "fail"]
     refs: list[Ref]
@@ -199,6 +202,10 @@ class GameEvent(Stream):
 
 
 class SkillRevision(Header):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"status": {"const": "active"}}, "required": ["status"],
+    }, "then": {"properties": {"activated_at": {"type": "string"}}},
+        "else": {"properties": {"activated_at": {"type": "null"}}}})
     wire_schema: Literal["mcbench/SkillRevision/1"] = Field(alias="schema")
     revision_id: Id
     agent_id: Id
@@ -233,13 +240,27 @@ class BindingChange(Strict):
 
 
 class KeybindingPatch(Stream):
+    # Portable structural conditions. Comparing revisions and uniqueness by
+    # binding_id additionally requires the semantic validator in each binding.
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"phase": {"const": "committed"}}, "required": ["phase"],
+    }, "then": {"properties": {
+        "backup_ref": {"type": "string"},
+        "resulting_revision": {"type": "integer"},
+        "resulting_keymap_digest": {"type": "string"},
+        "failure_code": {"type": "null"},
+        "restart_check": {"properties": {"status": {"const": "pass"}}},
+        "changes": {"items": {"properties": {"checks": {
+            "minItems": 1, "items": {"properties": {"status": {"const": "pass"}}},
+        }}}},
+    }}})
     wire_schema: Literal["mcbench/KeybindingPatch/1"] = Field(alias="schema")
     agent_id: Id
     transaction_id: Id
     expected_revision: UInt
     expected_keymap_digest: Digest
     backend_fingerprint: Digest
-    changes: list[BindingChange]
+    changes: Annotated[list[BindingChange], Field(min_length=1)]
     backup_ref: Ref | None
     phase: Literal["planned", "applying", "verifying", "committed", "rolled_back", "failed"]
     resulting_revision: UInt | None

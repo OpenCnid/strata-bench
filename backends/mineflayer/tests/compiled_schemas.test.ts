@@ -14,7 +14,7 @@ import { implementationPins } from '../src/capability_pins.js';
 const backend=fileURLToPath(new URL('../../',import.meta.url));
 const root=fileURLToPath(new URL('../../../../',import.meta.url));
 const source=new URL('../src/',import.meta.url);
-const names=['ActionBatch','ActionAck','Observation','RpcRequest'] as const;
+const names=['ActionBatch','ActionAck','Observation','RpcRequest','SkillRevision','KeybindingPatch'] as const;
 
 function* mutations(value:any):Generator<unknown> {
   yield null;yield true;yield 'unknown';yield 0;yield NaN;yield Infinity;yield [];yield {};

@@ -1,5 +1,9 @@
 # M1/G1 implementation handoff
 
+M1.2b fixes the reproduced keybinding commit/schema disagreement and related public wire semantics for skills, actions, receipts and observations. [Contract evidence](verification/2026-09-27-m1-contract-parity.md): shared140-case corpus agrees across Python/TypeScript;297 distinct Python and311 Node cases pass with43 unchanged opt-in skips. Initial fixture and earlier-rejection test failures are retained and resolved without weakening validation. Worker bundles include the six compiled startup schemas; gameplay packaging remains restricted.
+
+T01/G1 remain not_run. The finite acceptance map names seven reproduced operator/evaluator semantic disagreements plus GameEvent, cross-record references, migrations, conditional Java and RPC/auth/path integration still to close. These are next; no further furnace run. All40 authority tables unchanged/4,887,796microUSD, three separate256MiB holds preserved; no game/model execution or M1 spending authority.
+
 M1.5b.9c [operation16](verification/2026-09-27-m1-replacement-corrected-native.md) fails at action18/GAME_MACHINE_TRANSFER_UNCONFIRMED after actual replacement placement. Eighteen requests/75 primitives; the unknown transfer is not replayed. The authenticated clean-stop stream and saved furnace confirm distinct removed/replacement lifetimes, but no replacement production window. The failed reference is refused without import.
 
 Guardian469.457ms and252/252 client plus29/29 server terminal histories pass this sample; operation15's original guardian failure remains. All four lifecycle rows UNCERTAIN; a third separate256MiB hold remains alongside operation10/15. All40 authority tables unchanged/4,887,796microUSD; no model calls. M1.5b.9c/M1 in_progress, T10/G1 not_run.

@@ -220,7 +220,10 @@ def prepare_worker_bundle(repository: Path, node: Path, python_root: Path, desti
     for value in tree_files(backend / "dist/src"):
         path = Path(value)
         add(path, path.relative_to(repository).as_posix())
-    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest"):
+    # protocol.js checks all compiled public record schemas at startup. The
+    # worker's four game-message capability schemas remain a separate identity.
+    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest",
+                 "SkillRevision", "KeybindingPatch"):
         relative = f"schemas/v1/public/{name}.json"
         add(repository / relative, relative)
     exclusions = []

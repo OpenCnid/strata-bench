@@ -12,7 +12,7 @@ export async function validatorSource() {
   addFormats(ajv);
   const schemaHashes = {};
   const exports = {};
-  for (const name of ['ActionBatch', 'ActionAck', 'Observation', 'RpcRequest']) {
+  for (const name of ['ActionBatch', 'ActionAck', 'Observation', 'RpcRequest', 'SkillRevision', 'KeybindingPatch']) {
     const bytes = await readFile(new URL(`../../../schemas/v1/public/${name}.json`, import.meta.url));
     schemaHashes[name] = createHash('sha256').update(bytes).digest('hex');
     ajv.addSchema(JSON.parse(bytes), name);

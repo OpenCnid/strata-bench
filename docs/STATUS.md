@@ -1,6 +1,6 @@
 # Strata current status
 
-## Current position — September 27, native repair restart handoff implemented
+## Current position — September 27, same-worker client replacement implemented
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -57,9 +57,15 @@ body and verification producer. [Connected repair evidence](verification/2026-09
 The native pending-repair restart handoff now survives actual JVM process exit
 and admits one exact continuation under the original deadline/budget, with input
 fenced. [Restart evidence](verification/2026-09-27-m1-native-restart.md) uses synthetic body/input.
-Worker-owned client replacement/controller rebinding, qualified control projection,
-authentic verification, full consumption/settlement and explicit resume remain
-unfinished. No complete G1 suite is newly closed.
+Worker-owned client replacement now passes actual Windows guardian/JVM checks
+under ForgeDevelopmentWorker/4, with a synthetic game body. The same worker
+retains its epoch, action history and budget counters; the old process tree
+must be terminal before a separately guarded replacement continues the repair.
+Original expiry still stops the chain and gameplay remains fenced.
+[Replacement evidence](verification/2026-09-27-m1-worker-restart.md).
+Controller-owned launch/adoption and exact descriptor rebinding, qualified
+projection/authentic verification, complete settlement and explicit resume
+remain unfinished. No complete G1 suite is newly closed.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -70,8 +76,8 @@ unfinished. No complete G1 suite is newly closed.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's worker-owned replacement and controller rebinding to the
-durable native restart checkpoint, then complete projection/verification,
+Next connect M1.1c.3.2's durable controller launch/adoption and descriptor
+rebinding to the worker-owned replacement proof, then complete projection/verification,
 accounting and explicit resume/recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the

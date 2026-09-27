@@ -23,7 +23,11 @@ export interface ForgeConfig extends Common {
 export interface ForgeRepairConfig extends Omit<ForgeConfig,'schema'> {
   schema:'strata/ForgeDevelopmentWorker/3'; repair_policy:typeof WORKER_REPAIR_POLICY;
 }
-export type ForgeWorkerConfig=ForgeConfig|ForgeRepairConfig;
+export const WORKER_RESTART_POLICY='operator-owned-client-replacement/1';
+export interface ForgeRestartConfig extends Omit<ForgeRepairConfig,'schema'> {
+  schema:'strata/ForgeDevelopmentWorker/4';restart_policy:typeof WORKER_RESTART_POLICY;
+}
+export type ForgeWorkerConfig=ForgeConfig|ForgeRepairConfig|ForgeRestartConfig;
 export type WorkerConfig = VanillaConfig | BoundVanillaConfig | ForgeWorkerConfig;
 export function outside(path: string, repository: string): string {
   requireThat(typeof path === 'string' && isAbsolute(path), 'FORBIDDEN');
@@ -47,8 +51,10 @@ export function workerConfig(path: string, repository: string): WorkerConfig {
     c.auth_cache = outside(c.auth_cache as string, repository);
   } else {
     fields(c, [...common,'backend','pack_version','connection_file','native_fingerprint','body_fingerprint','process_guard_file','guard_python',
-      ...(c.schema==='strata/ForgeDevelopmentWorker/3' ? ['repair_policy'] : [])]);
-    requireThat((c.schema === 'strata/ForgeDevelopmentWorker/2' || c.schema==='strata/ForgeDevelopmentWorker/3'
+      ...(c.schema==='strata/ForgeDevelopmentWorker/3' || c.schema==='strata/ForgeDevelopmentWorker/4' ? ['repair_policy'] : []),
+      ...(c.schema==='strata/ForgeDevelopmentWorker/4' ? ['restart_policy'] : [])]);
+    requireThat((c.schema === 'strata/ForgeDevelopmentWorker/2' || (c.schema==='strata/ForgeDevelopmentWorker/3'
+      || c.schema==='strata/ForgeDevelopmentWorker/4' && c.restart_policy===WORKER_RESTART_POLICY)
       && c.repair_policy===WORKER_REPAIR_POLICY) && c.server_kind === 'e9e'
       && c.backend === 'forge_client' && c.pack_version === '1.27.0', 'CAPABILITY_MISSING');
     for (const name of ['native_fingerprint','body_fingerprint']) requireThat(typeof c[name] === 'string'

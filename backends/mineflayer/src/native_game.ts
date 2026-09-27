@@ -2,6 +2,7 @@ import { request as httpRequest } from 'node:http';
 import { readFileSync, statSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
+import { restartCheckpoint, restartState, type RestartState } from './native_restart.js';
 import type { RpcRequest } from './generated/RpcRequest.js';
 export type DiscoveryQuery = NonNullable<RpcRequest['recipe_query']>;
 export type QuestQuery = NonNullable<RpcRequest['quest_query']>;
@@ -27,7 +28,8 @@ export const QUEST_TEXT_POLICY='ftb-visible-own-quest-plain-text-pages32/1';
 export const QUEST_POLICY = 'ftb-visible-chapters-quests-own-team-pages32/1';
 export const RECIPE_QUERY_POLICY = 'jei-thermal-emi-crafting-visible-focus-pages32/3';
 const LANE = ['arm','renew','deliver','act','action_status','cancel','stop_all','lane_status','authority'];
-const MUTATIONS = new Set(['arm','renew','deliver','act','cancel','stop_all']);
+const PRIVATE_RESTART = ['settings_restart_status','settings_restart_continue'];
+const MUTATIONS = new Set(['arm','renew','deliver','act','cancel','stop_all','settings_restart_continue']);
 type ObjectValue = Record<string, unknown>;
 export function fields(value: unknown, names: string[]): asserts value is ObjectValue {
   requireThat(value !== null && typeof value === 'object' && !Array.isArray(value), 'GAME_RESPONSE_INVALID');
@@ -123,6 +125,7 @@ export interface NativeReceipt {
   emitted_events: number | null; release_confirmed: boolean; error_code: string | null; requires_resync: boolean;
 }
 export interface NativeResults {
+  settings_restart_status:RestartState; settings_restart_continue:RestartState;
   quest_screen:{schema:string;body_fingerprint:string;connection_generation:number;policy:string;source_generation:number;
     screen_generation:number;revision:number;kind:'closed'|'quest_book'|'task_recipes';chapter_id:string|null;quest_id:string|null};
   recipe_page:{schema:string;body_fingerprint:string;connection_generation:number;policy:string;source:'jei';coverage:'slot_header_control_draw_operands';complete:false;
@@ -197,6 +200,11 @@ export const nativeCapabilities = (mutation: boolean) => ({
   movement_policy:'level-forward-coast-neutral8-charged-ticks/1', keybindings:false, screenshots:false,
 });
 function result(operation: NativeOperation, args: ObjectValue, value: unknown): unknown {
+  if(operation==='settings_restart_status' || operation==='settings_restart_continue') {
+    const parsed=restartState(value);
+    requireThat(operation==='settings_restart_status' ? parsed.checkpoint.request.restart_id===args.restart_id
+      : canonical(parsed.checkpoint)===canonical(restartCheckpoint(args)),'GAME_RESPONSE_INVALID');return parsed;
+  }
   if (operation === 'capabilities') {
     requireThat([true,false].some(m => canonical(value) === canonical(nativeCapabilities(m))), 'CAPABILITY_MISSING'); return value;
   }
@@ -496,7 +504,7 @@ export class NativeGameClient {
     } catch {throw new Fault('GAME_CONNECTION_INVALID');}
   }
   async call<K extends NativeOperation>(operation: K, args: ObjectValue = {}, timeoutMs = 1500): Promise<NativeResults[K]> {
-    requireThat([...READ,...LANE].includes(operation) && uint(timeoutMs) && timeoutMs >= 50 && timeoutMs <= 30000, 'GAME_ARGUMENTS_INVALID');
+    requireThat([...READ,...LANE,...PRIVATE_RESTART].includes(operation) && uint(timeoutMs) && timeoutMs >= 50 && timeoutMs <= 30000, 'GAME_ARGUMENTS_INVALID');
     if (operation === 'act') {fields(args, ['batch']); const b = validate<ActionBatch>('ActionBatch', args.batch);
       actionSemantics(b); requireThat((FORGE_ACTIONS as readonly string[]).includes(b.action!.kind), 'MECHANIC_UNSUPPORTED');}
     else if (operation === 'observe' || operation === 'observe_bound') {fields(args, ['cursor']); requireThat(args.cursor === null || id(args.cursor), 'GAME_ARGUMENTS_INVALID');}
@@ -515,6 +523,8 @@ export class NativeGameClient {
     } else if (operation === 'deliver') {fields(args, ['observation_id','snapshot_id','state_revision']);
       requireThat(id(args.observation_id) && id(args.snapshot_id) && uint(args.state_revision), 'GAME_ARGUMENTS_INVALID');}
     else if (operation === 'action_status' || operation === 'cancel') {fields(args, ['request_id']); requireThat(id(args.request_id), 'GAME_ARGUMENTS_INVALID');}
+    else if(operation==='settings_restart_continue')restartCheckpoint(args);
+    else if(operation==='settings_restart_status'){fields(args,['restart_id']);requireThat(id(args.restart_id),'GAME_ARGUMENTS_INVALID');}
     else fields(args, []);
     requireThat(this.inFlight < 8, 'CAPACITY_EXCEEDED');
     const requestId = randomUUID(); const expires = mono() + timeoutMs;

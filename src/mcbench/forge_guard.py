@@ -24,12 +24,14 @@ from pydantic import Field
 from .contracts import Digest
 from .native_game import GameConnection, NativeGameClient
 from .native_settings import strict_json
+from .native_restart import NativeRestartCheckpoint
+from .worker_repair import WorkerRepairPlan
 from .process_guard import (
     D13_STOP_POLICY, LEGACY_STOP_POLICY, GuardPipes, ProcessGuardGrant, failure_event, guard, read_grant,
 )
 from .storage import Fault, digest, reject_links, require
 
-GUARD_SOURCES = ("forge_guard.py", "process_guard.py", "processes.py", "native_game.py",
+GUARD_SOURCES = ("forge_guard.py", "process_guard.py", "processes.py", "native_game.py", "native_restart.py", "worker_repair.py",
                  "native_settings.py", "contracts.py", "storage.py", "client_discovery.py")
 
 
@@ -52,6 +54,12 @@ class ForgeGuardGrant(ProcessGuardGrant):
 class ForgeGuardGrantV2(ForgeGuardGrant):
     wire_schema: Literal["strata/ForgeProcessGuardGrant/2"] = Field(alias="schema")
     shutdown_policy: Literal["java-tree1000-lease750/1"]
+
+
+class ForgeGuardGrantV3(ForgeGuardGrantV2):
+    wire_schema: Literal["strata/ForgeProcessGuardGrant/3"] = Field(alias="schema")
+    restart_checkpoint: NativeRestartCheckpoint
+    repair_plan: WorkerRepairPlan
 
 
 def listener_owned_by(port: int, pid: int):
@@ -155,9 +163,26 @@ class NativeHealth:
                 require(identity["body_fingerprint"] == self.grant.body_fingerprint,
                         "PROCESS_NATIVE_IDENTITY_MISMATCH")
                 require(health["journal_healthy"], "PROCESS_NATIVE_HEALTH_FAILED")
-                if self.identity is None:
+                if isinstance(self.grant, ForgeGuardGrantV3):
                     require(health["fenced"] and health["active_request_id"] is None
-                            and (health["epoch"] is None or health["epoch"] < self.grant.epoch),
+                            and time.time_ns() // 1000000 < self.grant.repair_plan.expires_unix_ms,
+                            "PROCESS_REPAIR_HOLD_LOST")
+                if self.identity is None:
+                    replacement = isinstance(self.grant, ForgeGuardGrantV3)
+                    if replacement:
+                        plan, checkpoint = self.grant.repair_plan, self.grant.restart_checkpoint
+                        require(all(getattr(plan, k) == getattr(self.grant, k) for k in ("campaign_id", "agent_id", "epoch"))
+                                and plan.transaction_id == checkpoint.request.transaction_id
+                                and plan.plan_digest == checkpoint.request.plan_digest, "PROCESS_RESTART_MISMATCH")
+                        self._enter("restart_status")
+                        state = self.client.call("settings_restart_status", {"restart_id": checkpoint.request.restart_id}, timeout_ms=500)
+                        require(state["checkpoint"] == checkpoint.model_dump() and state["phase"] == "prepared"
+                                and state["current_instance"] != checkpoint.source_instance
+                                and state["expires_unix_ms"] == plan.expires_unix_ms, "PROCESS_RESTART_MISMATCH")
+                        self._enter("state")
+                    require(health["fenced"] and health["active_request_id"] is None
+                            and (health["epoch"] == self.grant.epoch if replacement else
+                                 health["epoch"] is None or health["epoch"] < self.grant.epoch),
                             "PROCESS_NATIVE_ALREADY_ARMED")
                     self.identity, self.initial_epoch = identity, health["epoch"]
                     self.initial.put_nowait(identity)
@@ -177,7 +202,7 @@ class NativeHealth:
                 "schema": "strata/ProcessGuardEvent/1", "kind": "native_health_failure",
                 "policy": "forge-native-health-phase/1", "phase": phase,
                 "elapsed_ms": (time.monotonic_ns() - started) // 1_000_000,
-                "read_timeout_ms": 500 if phase in {"authority", "identity", "lane_status"} else None,
+                "read_timeout_ms": 500 if phase in {"authority", "identity", "lane_status", "restart_status"} else None,
                 "initialized": self.identity is not None,
                 "reason": failure_event(error)["reason"],
             }
@@ -211,7 +236,7 @@ def main():
     pipes = None
     try:
         require(sys.version_info[:3] == (3, 12, 14), "PROCESS_GUARD_RUNTIME_MISMATCH")
-        grant = read_grant(args.grant, Path(__file__).resolve().parents[2], ForgeGuardGrant | ForgeGuardGrantV2)
+        grant = read_grant(args.grant, Path(__file__).resolve().parents[2], ForgeGuardGrant | ForgeGuardGrantV2 | ForgeGuardGrantV3)
         version2 = isinstance(grant, ForgeGuardGrantV2)
         client = connection_for(grant)
         monitor = NativeHealth(grant, client)
@@ -219,7 +244,7 @@ def main():
         pipes = GuardPipes(sys.stdin.buffer, sys.stdout.buffer)
         result = guard(grant, pipes, health_check=monitor.failure, termination_evidence=True,
             stop_policy=D13_STOP_POLICY if version2 else LEGACY_STOP_POLICY,
-            ready_extra={"policy": f"forge-process-listener-client-thread/{2 if version2 else 1}",
+            ready_extra={"policy": f"forge-process-listener-client-thread/{3 if isinstance(grant, ForgeGuardGrantV3) else 2 if version2 else 1}",
                          "connection_digest": grant.connection_digest,
                          "body_fingerprint": identity["body_fingerprint"],
                          "connection_generation": identity["connection_generation"],

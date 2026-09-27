@@ -16,6 +16,7 @@ import { WorkerHealth } from './worker_health.js';
 import { serveRepair, WORKER_REPAIR_POLICY } from './worker_repair.js';
 import { ForgeLane } from './forge_lane.js';
 import type { Server } from 'node:http';
+import { RestartGuardOwner, replyRestart, restartGuardClient, serveRestart } from './worker_restart.js';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
@@ -31,11 +32,13 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
     try {metrics.close();} finally {journal.close();} throw error;
   });
   let repairServer:Server|undefined;
+  let restartServer:Server|undefined;
+  let restartClient:ReturnType<typeof restartGuardClient>|undefined;
   const server = await serve(lane,token,capabilities).catch(async error => {
     try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}} throw error;
   });
   const address = server.address(); requireThat(address && typeof address !== 'string', 'INTERNAL_ERROR');
-  if(c.schema==='strata/ForgeDevelopmentWorker/3') {
+  if(c.schema==='strata/ForgeDevelopmentWorker/3' || c.schema==='strata/ForgeDevelopmentWorker/4') {
     try {
       requireThat(lane instanceof ForgeLane,'CAPABILITY_MISSING');
       const repairToken=randomBytes(32).toString('hex');
@@ -48,8 +51,20 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
       const fd=openSync(resolve(c.state_directory,`repair-grant-${c.epoch}.json`),'wx',0o600);
       try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);} finally {closeSync(fd);}
       journal.event('repair_gateway',{policy:WORKER_REPAIR_POLICY,epoch:c.epoch,port:repairAddress.port});
+      if(c.schema==='strata/ForgeDevelopmentWorker/4') {
+        restartClient=restartGuardClient();lane.enableRestart(restartClient.call);
+        const restartToken=randomBytes(32).toString('hex');
+        restartServer=await serveRestart((...args)=>lane.restartControl(...args),restartToken);
+        const address=restartServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
+        const grant={schema:'strata/WorkerRestartGrant/1',policy:c.restart_policy,
+          url:`http://127.0.0.1:${address.port}/v1/restart`,token:restartToken,
+          campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+        const fd=openSync(resolve(c.state_directory,`restart-grant-${c.epoch}.json`),'wx',0o600);
+        try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+        journal.event('restart_gateway',{policy:c.restart_policy,epoch:c.epoch,port:address.port});
+      }
     } catch(error) {
-      repairServer?.close();server.close();
+      repairServer?.close();restartServer?.close();restartClient?.close();server.close();
       try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}}
       throw error;
     }
@@ -64,7 +79,7 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   let shutdown: Promise<void> | undefined;
   const stop = () => {
     shutdown ??= (async () => {
-      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();
+      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();restartServer?.close();restartClient?.close();
       let code = healthFailed ? 1 : 0;
       try { await lane.close(); } catch { code = 1; }
       finally {
@@ -114,7 +129,7 @@ async function main(): Promise<void> {
   requireThat(process.argv.length === 3 || operatorControl, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
   requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1'
-    || c.schema==='strata/DevelopmentWorker/2','CAPABILITY_MISSING');
+    || c.schema==='strata/DevelopmentWorker/2' || c.schema==='strata/ForgeDevelopmentWorker/4','CAPABILITY_MISSING');
   const fs = statfsSync(c.state_directory);
   requireThat(fs.bavail * fs.bsize >= 5 * 1024**3, 'DISK_RESERVE_LOW');
   const token = randomBytes(32).toString('hex');
@@ -122,6 +137,7 @@ async function main(): Promise<void> {
   let executorExit:Promise<number>|undefined;
   let acceptExitEvidence=true;
   let guard: ForgeProcessGuard | undefined;
+  let restartOwner:RestartGuardOwner|undefined;
   const evidence = c.server_kind==='e9e' ? new SupervisorEvidence(c.state_directory,c.epoch) : undefined;
   let startup:WorkerStartup|undefined;
   let rejectBoot:((error:Fault)=>void)|undefined;
@@ -180,6 +196,10 @@ async function main(): Promise<void> {
     lease = setInterval(() => {if (activeWorker.connected && !stopping && lifecycle.phase==='active') activeWorker.send('renew',() => {});},2000);
     worker.on('message', (raw:unknown) => {
     try {
+    if(raw && typeof raw==='object' && (raw as {kind?:unknown}).kind==='restart_guard_request') {
+      requireThat(restartOwner && lifecycle.phase==='active' && !stopping && !forced,'RESTART_SUPERVISOR_UNAVAILABLE');
+      replyRestart(restartOwner,activeWorker,raw,fail);return;
+    }
     const m=lifecycle.receive(raw);
     if (m.kind==='bootstrap_ready') {
       evidence?.event('worker_bootstrap_ready',{policy:WORKER_STARTUP_POLICY,elapsed_ms:performance.now()-started});
@@ -215,6 +235,9 @@ async function main(): Promise<void> {
         () => !forced && lifecycle.canRenew(),fail);
       binding = await guard.ready;
       requireThat(!forced && !stopping,'PROCESS_GUARD_UNAVAILABLE');
+      if(c.schema==='strata/ForgeDevelopmentWorker/4')restartOwner=new RestartGuardOwner(c,repository,
+        digest(forgeCapabilities(c.native_fingerprint)),evidence!,()=>c.max_wall_ms-(performance.now()-started),
+        ()=>!forced && !stopping && lifecycle.canRenew(),()=>guard!,value=>{guard=value;},fail);
     }
     lifecycle.initialize();
     evidence?.event('worker_initializing',{policy:WORKER_STARTUP_POLICY,elapsed_ms:performance.now()-started,

@@ -5,6 +5,10 @@ import { RELEASE_TIMEOUT_MS } from './actions.js';
 import { Journal } from './journal.js';
 import { Signals } from './signals.js';
 import { repairPlan, WORKER_REPAIR_POLICY, type RepairPlan } from './worker_repair.js';
+import { restartCheckpoint, type RestartCheckpoint } from './native_restart.js';
+import { type ReplacementPaths, type RestartGuardCall } from './worker_restart.js';
+import type { ForgeGuardReady } from './forge_guard.js';
+import { fields } from './native_game.js';
 import type { GameLane } from './server.js';
 import type { DiscoveryQuery as RecipeQuery, QuestQuery, QuestTextQuery, QuestComponentsQuery, QuestMenuQuery } from './native_game.js';
 import { FORGE_ACTIONS, NativeGameClient, nativeCapabilities, nativeFailureCode, type NativeLane, type NativeReceipt } from './native_game.js';
@@ -50,6 +54,11 @@ export class ForgeLane implements GameLane {
   private repairUntil = 0;
   private repairTask:Promise<unknown>|null = null;
   private repairAbort:Promise<void>|null = null;
+  private restartGuard:RestartGuardCall|null=null;
+  private restart: {checkpoint:RestartCheckpoint;phase:'detaching'|'detached'|'attaching'|'attached';
+    old_connection_digest:string;old_terminal:unknown;paths:ReplacementPaths|null;replacement:ForgeGuardReady|null;
+    continuation_sent:boolean}|null=null;
+  private restartTask:Promise<unknown>|null=null;
   private constructor(readonly scope: Scope, readonly capabilityDigest: string,
     private client: NativeGameClient, readonly journal: Journal, private body: string,
     private primitiveLimit: number, maxWallMs: number, private repairPolicy?:typeof WORKER_REPAIR_POLICY) {
@@ -169,6 +178,100 @@ export class ForgeLane implements GameLane {
     return this.repair!==null && this.repairPhase!=='failed' && !this.closed
       && mono()<this.repairUntil && mono()<this.deadline && Date.now()<this.repair.expires_unix_ms;
   }
+  enableRestart(guard:RestartGuardCall):void {
+    requireThat(this.repairPolicy===WORKER_REPAIR_POLICY && !this.restartGuard,'CAPABILITY_MISSING');this.restartGuard=guard;
+  }
+  private restartStatus() {
+    requireThat(this.restart && this.repair,'REPAIR_NOT_OWNED');
+    return {schema:'strata/WorkerRestartState/1',plan:this.repair,checkpoint:this.restart.checkpoint,
+      phase:this.repairPhase==='failed'?'recovery_required':this.restart.phase,
+      old_connection_digest:this.restart.old_connection_digest,old_terminal:this.restart.old_terminal,
+      replacement:this.restart.replacement,primitive_events:this.journal.counter('primitive_events'),
+      gameplay_suspended:true,input_resumed:false};
+  }
+  async restartControl(operation:'detach'|'attach'|'status',raw:RepairPlan,rawCheckpoint:RestartCheckpoint,
+    paths:ReplacementPaths|null):Promise<unknown> {
+    const plan=repairPlan(raw), checkpoint=restartCheckpoint(rawCheckpoint);
+    requireThat(this.restartGuard && this.repair && canonical(plan)===canonical(this.repair)
+      && checkpoint.request.transaction_id===plan.transaction_id && checkpoint.request.plan_digest===plan.plan_digest,'REPAIR_NOT_OWNED');
+    if(this.restart)requireThat(canonical(checkpoint)===canonical(this.restart.checkpoint),'REPAIR_NOT_OWNED');
+    if(operation==='status') {
+      requireThat(this.restart,'REPAIR_NOT_OWNED');
+      if(this.restart.phase==='attaching' && this.restart.continuation_sent && !this.restartTask && this.repairLive()) {
+        this.restartTask=this.finishReplacement(true).finally(()=>{this.restartTask=null;});
+        return this.restartTask;
+      }
+      return this.restartStatus();
+    }
+    requireThat(this.repairLive() && this.repairPhase==='paused','REPAIR_DEADLINE_EXPIRED');
+    if(operation==='detach') {
+      if(this.restartTask)return this.restartTask;
+      if(this.restart)return this.restartStatus();
+      this.restartTask=(async()=>{
+        if(this.renewTask)await this.renewTask;
+        await this.pollRepair();
+        const state=await this.client.call('settings_restart_status',{restart_id:checkpoint.request.restart_id},500);
+        requireThat(canonical(state.checkpoint)===canonical(checkpoint) && state.phase==='prepared'
+          && state.current_instance===checkpoint.source_instance && state.expires_unix_ms===plan.expires_unix_ms,'RESTART_CHECKPOINT_MISMATCH');
+        requireThat(this.repairLive() && this.repairPhase==='paused','REPAIR_DEADLINE_EXPIRED');
+        const old=digest(this.client.connection);
+        this.write(()=>this.journal.event('repair_restart_detach_intent',{plan,checkpoint,old_connection_digest:old}));
+        this.restart={checkpoint,phase:'detaching',old_connection_digest:old,old_terminal:null,paths:null,replacement:null,continuation_sent:false};
+        const terminal=await this.restartGuard!('stop',plan,checkpoint,null);
+        fields(terminal,['schema','checkpoint_digest','process_digest','connection_digest','termination_confirmed']);
+        requireThat(terminal.schema==='strata/WorkerRestartOldTerminal/1' && terminal.checkpoint_digest===digest(checkpoint)
+          && terminal.connection_digest===old && terminal.termination_confirmed===true,'RESTART_OLD_TERMINAL_REQUIRED');
+        this.write(()=>this.journal.event('repair_restart_old_terminal',terminal));
+        this.restart.old_terminal=terminal;this.restart.phase='detached';this.connected=false;
+        return this.restartStatus();
+      })().finally(()=>{this.restartTask=null;});return this.restartTask;
+    }
+    requireThat(this.restart && this.restart.old_terminal && paths,'RESTART_OLD_TERMINAL_REQUIRED');
+    if(this.restart.paths)requireThat(canonical(paths)===canonical(this.restart.paths),'REPAIR_NOT_OWNED');
+    if(this.restartTask)return this.restartTask;
+    if(this.restart.phase==='attached')return this.restartStatus();
+    this.restart.paths={...paths};this.restart.phase='attaching';
+    this.restartTask=(async()=>{
+      if(!this.restart!.replacement) {
+        this.write(()=>this.journal.event('repair_restart_attach_intent',{checkpoint_digest:digest(checkpoint),paths}));
+        const replacement=await this.restartGuard!('attach',plan,checkpoint,paths);
+        fields(replacement,['schema','connection_file','guard']);
+        requireThat(replacement.schema==='strata/WorkerRestartReplacement/1' && typeof replacement.connection_file==='string','RESTART_CONNECTION_MISMATCH');
+        const next=NativeGameClient.fromFile(replacement.connection_file),guard=replacement.guard as ForgeGuardReady;
+        requireThat(guard && guard.connection_digest===digest(next.connection) && guard.body_fingerprint===this.body
+          && guard.campaign_id===plan.campaign_id && guard.agent_id===plan.agent_id && guard.epoch===plan.epoch
+          && next.connection.fingerprint===this.client.connection.fingerprint
+          && next.connection.session_id!==this.client.connection.session_id,'RESTART_CONNECTION_MISMATCH');
+        const authority=await next.call('authority',{},500), identity=await next.call('identity',{},500);
+        requireThat(this.usageKey===`native:${next.connection.fingerprint}:${digest(authority)}`
+          && identity.body_fingerprint===this.body && identity.connection_generation===guard.connection_generation,'RESTART_AUTHORITY_MISMATCH');
+        const state=await next.call('settings_restart_status',{restart_id:checkpoint.request.restart_id},500);
+        requireThat(canonical(state.checkpoint)===canonical(checkpoint) && state.phase==='prepared'
+          && state.current_instance!==checkpoint.source_instance && state.expires_unix_ms===plan.expires_unix_ms,'RESTART_CHECKPOINT_MISMATCH');
+        this.write(()=>this.journal.event('repair_restart_replacement_bound',{guard,checkpoint_digest:digest(checkpoint),authority,identity}));
+        this.client=next;this.generation=identity.connection_generation;this.restart!.replacement=guard;
+        this.releaseTask=null;this.fenceTask=null;this.lastRelease=false;
+        this.captures.clear();this.observations.clear();this.last=null;this.clockId=null;this.revision=-1;
+      }
+      return this.finishReplacement(this.restart!.continuation_sent);
+    })().finally(()=>{this.restartTask=null;});return this.restartTask;
+  }
+  private async finishReplacement(statusOnly:boolean):Promise<unknown> {
+    const restart=this.restart!;requireThat(this.repairLive() && restart.replacement,'REPAIR_DEADLINE_EXPIRED');
+    if(!statusOnly) {
+      this.write(()=>this.journal.event('repair_restart_continue_intent',{checkpoint:restart.checkpoint}));
+      restart.continuation_sent=true;
+    }
+    const state=await this.client.call(statusOnly?'settings_restart_status':'settings_restart_continue',statusOnly
+      ? {restart_id:restart.checkpoint.request.restart_id}:restart.checkpoint,500);
+    requireThat(canonical(state.checkpoint)===canonical(restart.checkpoint) && state.phase==='continued'
+      && state.expires_unix_ms===this.repair!.expires_unix_ms,'RESTART_CONTINUATION_UNCONFIRMED');
+    await this.pollRepair();
+    this.write(()=>this.journal.event('repair_restart_attached',{state,guard:restart.replacement,
+      primitive_events:this.journal.counter('primitive_events')}));
+    restart.phase='attached';this.connected=true;this.lastRelease=true;this.reason='RECONFIGURING';
+    return this.restartStatus();
+  }
   private async pollRepair():Promise<void> {
     requireThat(this.repairLive(),'REPAIR_DEADLINE_EXPIRED');
     const identity=await this.client.call('identity',{},500);
@@ -185,7 +288,7 @@ export class ForgeLane implements GameLane {
     this.repairPhase='failed';this.reason=code;this.markFenced(code);
     this.repairAbort=(async()=>{
       try {if(this.repair)this.write(()=>this.journal.failRepair(this.repair!,code));}
-      finally {requireThat(await this.releaseNative(),'INPUT_RELEASE_FAILED');}
+      finally {if(!this.restart?.old_terminal || this.restart.replacement)requireThat(await this.releaseNative(),'INPUT_RELEASE_FAILED');}
     })();return this.repairAbort;
   }
   private async recipeList(after:number) {
@@ -276,6 +379,7 @@ export class ForgeLane implements GameLane {
   }
   renewLease(): Promise<void> {
     if(this.repair) {
+      if(this.restart && this.restart.phase!=='attached')return Promise.resolve();
       if(this.repairPhase==='quiescing')return Promise.resolve();
       if(this.renewTask)return this.renewTask;
       this.renewTask=this.pollRepair().catch(async error=>{
@@ -539,7 +643,8 @@ export class ForgeLane implements GameLane {
     if (!this.closeTask) {
       clearInterval(this.watchdog); this.closed = true;
       this.closeTask = (this.repair ? this.abortRepair('STOPPED') : this.fence('STOPPED')).finally(async () => {
-        await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve(),this.repairTask ?? Promise.resolve()]); this.signals.close();
+        await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve(),this.repairTask ?? Promise.resolve(),
+          this.restartTask ?? Promise.resolve()]); this.signals.close();
       });
     }
     return this.closeTask;

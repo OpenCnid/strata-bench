@@ -17,6 +17,7 @@ from pydantic import Field, TypeAdapter, model_validator
 
 from .client_discovery import bounded_read
 from .contracts import MAX_INT
+from .native_restart import NativeRestartState
 from .contracts import ActionBatch, Digest, DiscoveryQuery, Id, QuestComponentsQuery, QuestMenuQuery, QuestQuery, QuestTextQuery, Strict, StructuredState, UInt
 from .native_settings import (
     MAX_REQUEST, Connection, NativeSettingsClient, Response, strict_json,
@@ -679,7 +680,7 @@ class NativeGameClient:
 
     def call(self, operation: str, args: dict, *, timeout_ms: int = 5000) -> dict:
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 30000, "GAME_DEADLINE_INVALID")
-        require(operation in READ_OPERATIONS + LANE_OPERATIONS, "CAPABILITY_MISSING")
+        require(operation in READ_OPERATIONS + LANE_OPERATIONS + ["settings_restart_status"], "CAPABILITY_MISSING")
         if operation in {"observe", "observe_bound"}:
             require(set(args) == {"cursor"} and (args["cursor"] is None
                     or isinstance(args["cursor"], str)
@@ -711,6 +712,9 @@ class NativeGameClient:
             require(not batch.is_example and batch.mode == "structured" and batch.action.kind in ACTIONS
                     and batch.keymap_digest is None, "MECHANIC_UNSUPPORTED")
             args = {"batch": batch.model_dump(mode="json", by_alias=True)}
+        elif operation == "settings_restart_status":
+            require(set(args) == {"restart_id"} and isinstance(args["restart_id"], str)
+                    and re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", args["restart_id"]), "GAME_ARGUMENTS_INVALID")
         else:
             require(args == {}, "GAME_ARGUMENTS_INVALID")
         request_id = str(uuid.uuid4())
@@ -748,6 +752,10 @@ class NativeGameClient:
             raise Fault("GAME_OBSERVATION_UNAVAILABLE") from None
 
     def _result(self, operation: str, args: dict, value: dict) -> dict:
+        if operation == "settings_restart_status":
+            state = NativeRestartState.model_validate(value)
+            require(state.checkpoint.request.restart_id == args["restart_id"], "GAME_RESPONSE_IDENTITY_MISMATCH")
+            return state.model_dump(mode="json")
         model = {"observe": GameSnapshot, "capabilities": GameCapabilities, "identity": GameIdentity,
             "observe_bound": GameBoundSnapshot, "recipes": GameRecipeList, "recipe_query": GameRecipeQuery,
             "authority": GameAuthority, "quests": GameQuestPage, "quest_text": GameQuestText, "quest_components": GameQuestComponents, "quest_menu": GameQuestMenu, "quest_screen": GameQuestScreen, "recipe_page": GameRecipePage,

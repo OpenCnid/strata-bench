@@ -927,6 +927,27 @@ closed without this explicit handoff. [Candidate evidence](docs/verification/202
 uses actual JVM exit/reopen with synthetic body/input; full Minecraft workflow
 and G1 qualification remain required.
 
+**Private same-worker replacement candidate (M1.1c.3.2).**
+`ForgeDevelopmentWorker/4` explicitly adds `operator-owned-client-replacement/1`.
+Keep the existing executor, epoch, journal, original deadlines and usage high-water
+state through a repair client replacement. Use a separate private restart grant;
+the worker and supervisor must join the exact prepared native checkpoint and
+repair plan before independently confirming old Java process-tree termination.
+Require a new session/instance, unchanged native authority/body and an independently
+guarded replacement before consuming continuation. `ForgeProcessGuardGrant/3`
+admits only the exact fenced, prepared repair at the retained epoch; it must keep
+input fenced and enforce the original repair expiry. Preserve the original
+guardian profile's refusal of already-used epochs. Journal intent before the one
+continuation POST; uncertain replies permit status reconciliation, not replay.
+Repeated matching attach is idempotent; changed connection/guard paths are refused.
+Closing drains pending restart work before journal disposal. This profile may use
+the existing scoped operator stdin stop but gains no complete save-checkpoint or
+gameplay-resume claim. No private restart operation enters public capabilities.
+[Candidate evidence](docs/verification/2026-09-27-m1-worker-restart.md) uses actual
+Windows guardian/JVM processes and a synthetic body. Controller-owned launch,
+adoption/rebinding, authentic server/team continuity, qualified verification,
+complete accounting and explicit resume remain required before full qualification.
+
 **Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.

@@ -14,7 +14,7 @@ from .craft_reference import (
     CraftReferencePlan, CraftReferencePlanV2, CraftReferencePlanV3, CraftReferencePlanV4,
     CraftReferenceStore, private_path, write_new,
 )
-from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLauncher, same_path
+from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLaunchPlanV8, ReferenceLauncher, same_path
 from .telemetry_auth import private_read
 from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, WriterPreparationPlanV3, WriterPreparations
 
@@ -59,8 +59,13 @@ class ProtectedReferencePlanV2(ProtectedReferencePlan):
     launch: ReferenceLaunchPlanV5
 
 
+class ProtectedReferencePlanV3(ProtectedReferencePlanV2):
+    schema_: Literal["strata/ProtectedReferencePlan/3"] = Field(alias="schema")
+    launch: ReferenceLaunchPlanV8
+
+
 def parse_protected_plan(value):
-    return TypeAdapter(ProtectedReferencePlan | ProtectedReferencePlanV2).validate_python(value)
+    return TypeAdapter(ProtectedReferencePlan | ProtectedReferencePlanV2 | ProtectedReferencePlanV3).validate_python(value)
 
 
 class ProtectedReferences:
@@ -80,7 +85,7 @@ class ProtectedReferences:
 
     def run(self, value, *, client_binding=None):
         plan = parse_protected_plan(value)
-        online = plan.schema_ == "strata/ProtectedReferencePlan/2"
+        online = isinstance(plan, ProtectedReferencePlanV2)
         require((plan.launch.mode == "e9e-serverstarter") == (client_binding is not None),
                 "PROTECTED_REFERENCE_CLIENT_BINDING")
         if client_binding is not None:

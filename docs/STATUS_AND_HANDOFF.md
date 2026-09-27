@@ -1,5 +1,11 @@
 # M1/G1 implementation handoff
 
+M1.5b.8a adds [prior telemetry capacity and reservation](verification/2026-09-26-m1-telemetry-capacity.md): launch8/protected3 bind finite byte/event limits and reserve spool space before native launch. Broker limits must match; uncertainty retains holds and successful closure settles atomically with STOPPED. Old profiles retain8 MiB/2,000 events.
+
+163 distinct focused Python cases pass;62 existing native opt-in cases remain skipped. The34 new cases include concurrent SQLite holds, restart/rollback/terminal-proof failures and quota refusal. Operation08's329-record inspection and operation09's clean-stop refusal remain unchanged; both original seals verify. No game/model run or artifact installation.
+
+M1.5b.8a implemented_unverified; M1.5b.8/M1 in_progress and G1 not_run. Next a fresh launch8/protected3 native reference with declared finite capacity and unchanged interval criteria/checker/producer/time bounds. Verify actual reservation, complete retirement/clean-stop stream and settlement. The reservation is logical and scoped to telemetry spools sharing this private database; OS extents, unrelated logs and full N08 remain unqualified. All40 accounting tables unchanged at4,887,796microUSD; D18/D19 remain M0-only. Preserve operation09 and all earlier failures/holds.
+
 M1.5b.8 [operation09](verification/2026-09-26-m1-furnace-interval-native.md) fails at the launcher's hard-coded8 MiB telemetry cap. All eight gameplay actions pass; the authenticated1,225-record prefix includes925 tick traces and the declared84-tick processing interval, but lacks retirement/clock/clean-stop records. Full inspection and V4 import correctly refuse acceptance.
 
 All four rows UNCERTAIN/consumed; no replay. The130/130+29/29 outer parent histories are terminal; inner custody cleanup was forced. Guardian acceptance fails without a timing sample. Session retired/no owned runtime; all40 accounting tables unchanged at4,887,796microUSD and zero model calls.

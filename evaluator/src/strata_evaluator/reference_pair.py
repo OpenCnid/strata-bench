@@ -21,7 +21,7 @@ from mcbench.storage import Database, Fault, canonical, digest, reject_links, re
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path
 from .reference_abort import AbortSignal, failure_record, request_abort
-from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, parse_launch_plan
+from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, ReferenceLaunchPlanV8, parse_launch_plan
 from .reference_participant import ParticipantReady, publish, REPORT_LIMIT
 from .telemetry_auth import private_read
 
@@ -282,8 +282,9 @@ class ReferencePair:
         if isinstance(plan, ReferencePairPlanV2):
             from .protected_reference import parse_protected_plan
             protected = parse_protected_plan(read_pinned(plan.protected_file, 32 * 1024**2))
-            require(protected.schema_ == "strata/ProtectedReferencePlan/2"
-                    and type(launch) is ReferenceLaunchPlanV5, "REFERENCE_PAIR_PROFILE")
+            require(type(launch) is {"strata/ProtectedReferencePlan/2": ReferenceLaunchPlanV5,
+                                    "strata/ProtectedReferencePlan/3": ReferenceLaunchPlanV8}.get(protected.schema_),
+                    "REFERENCE_PAIR_PROFILE")
             require(protected.launch.model_dump(by_alias=True) == launch.model_dump(by_alias=True),
                     "REFERENCE_PAIR_PROTECTED_BINDING")
             setup = protected.setup

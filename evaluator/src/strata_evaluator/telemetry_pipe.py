@@ -22,6 +22,7 @@ from .telemetry import KINDS, PAYLOADS, LAUNCH_STARTUP_MODELS
 from .setup_history import HISTORY_MODELS, HISTORY_SCHEMAS
 from .telemetry_auth import MAX_RECORD, MAX_WIRE_RECORD, POLICY, private_read
 from .windows_writer import WindowsSecurity
+from .telemetry_capacity import limits as telemetry_limits
 
 
 def controller_start_ms(security):
@@ -58,6 +59,9 @@ class TelemetryPipeBroker:
             and type(settings["max_bytes"]) is int and 65536 <= settings["max_bytes"] <= 1024**3
             and type(settings["max_events"]) is int and 1 <= settings["max_events"] <= 1000000,
             "TELEMETRY_PIPE_SETTINGS")
+        if getattr(launch_plan, "telemetry_capacity", None) is not None:
+            require(all(settings[k] == v for k, v in telemetry_limits(launch_plan).items()),
+                    "TELEMETRY_PIPE_CAPACITY_BINDING")
         self.settings, self.pipe, self.job = settings, None, None
         self.armed = threading.Event()
         self.closing = threading.Event()

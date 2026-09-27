@@ -1,5 +1,92 @@
 {
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "success"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "event_observed": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "failure"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "censored",
+              "invalid"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "censor_reason": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "outcome": {
+                "const": "invalid"
+              }
+            }
+          },
+          {
+            "properties": {
+              "outcome": {
+                "const": "censored"
+              },
+              "event_observed": {
+                "const": false
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "success": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "is_example": {
       "title": "Is Example",

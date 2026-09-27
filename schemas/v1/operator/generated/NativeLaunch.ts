@@ -6,7 +6,7 @@ export type CampaignId = string;
 export type AgentId = string;
 export type Epoch = number;
 export type Role = "executor" | "helper";
-export type Purpose = "campaign" | "conformance" | "development_piloting";
+export type Purpose = "campaign" | "conformance" | "development_piloting" | "probe";
 export type ParentJobId = string | null;
 export type Depth = number;
 export type HelperLimit = number;
@@ -24,7 +24,14 @@ export type AuthMode = "chatgpt_oauth" | "api_key";
 export type BudgetMode = "whole_job" | "per_dispatch";
 export type SessionStorage = "ephemeral" | "private_profile";
 export type AccountingBasisDigest = string | null;
-export type BrokerPolicy = "native-stdio-projected-artifacts-executor-game/1" | null;
+export type BrokerPolicy =
+  | (
+      | "native-stdio-projected-artifacts-executor-game/1"
+      | "native-stdio-projected-artifacts-executor-game-team/1"
+      | "native-stdio-projected-artifacts-executor-game-no-helpers/1"
+      | "native-stdio-projected-artifacts-executor-game-team-no-helpers/1"
+    )
+  | null;
 export type BootstrapManifest = string | null;
 export type BootstrapDigest = string | null;
 export type IngressPolicy = "native-job-http-header/1" | null;
@@ -34,6 +41,9 @@ export type ToolCatalogPolicy = ("native-selected-model-without-apply-patch/1" |
 export type SkillActivationRef = string | null;
 export type HelperSkillActivationRef = string | null;
 export type ResumeComponentRef = string | null;
+export type TeamPolicyRef = string | null;
+export type ProbeBindingRef = string | null;
+export type HelperProbeBindingRef = string | null;
 export type JsonValue = unknown;
 export type Prompt = string;
 export type HardTimeoutS = number;
@@ -75,6 +85,9 @@ export interface NativeLaunch {
   skill_activation_ref?: SkillActivationRef;
   helper_skill_activation_ref?: HelperSkillActivationRef;
   resume_component_ref?: ResumeComponentRef;
+  team_policy_ref?: TeamPolicyRef;
+  probe_binding_ref?: ProbeBindingRef;
+  helper_probe_binding_ref?: HelperProbeBindingRef;
   config_overrides: ConfigOverrides;
   environment: Environment;
   prompt: Prompt;

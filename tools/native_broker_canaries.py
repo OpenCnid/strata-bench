@@ -17,7 +17,7 @@ DEFERRED_PATCHES = ("patch_add", "patch_delete", "patch_move", "patch_mismatch",
 
 
 def inspect_tool_outputs(outputs, direct_calls, *, writer_target=False, deferred_tools=False,
-                         patch_disabled=False, patch_direct_calls=(), patch_function_calls=()):
+                         patch_disabled=False, patch_direct_calls=(), patch_function_calls=(), team_enabled=False):
     """Validate observed pinned native denials, not merely absence of canary bytes."""
     unique = {item["call_id"]: item for item in outputs}
     probes = {}
@@ -38,6 +38,9 @@ def inspect_tool_outputs(outputs, direct_calls, *, writer_target=False, deferred
     expected = {"apply_patch", "list_mcp_resource_templates", "list_mcp_resources", "read_mcp_resource"}
     expected |= {"mcp__strata_broker__" + name for name in (
         "artifact_read", "artifact_write", "artifact_list", "game")}
+    require(type(team_enabled) is bool, "CANARY_TEAM_PROFILE")
+    if team_enabled:
+        expected.add("mcp__strata_broker__team")
     if patch_disabled:
         expected.remove("apply_patch")
     checks = {"exact_root_helper_tool_catalogs": both("catalog", lambda c:

@@ -1,5 +1,46 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**September 27 handoff checkpoint:** M1 remains `in_progress`; G1 and all six
+complete T01/T04/T05/T06/T10/T11 suites remain `not_run`. The user requested a
+documentation/source checkpoint PR merged to main and continuation in a fresh
+session. This changes neither the product nor its acceptance criteria or paid
+authority. Read [the current handoff](docs/STATUS_AND_HANDOFF.md) and
+[checkpoint evidence](docs/verification/2026-09-27-session-handoff.md) before
+using historical progress paragraphs as execution instructions. Latest
+implementation checkpoint: `07737f3`, continuous body ticks across repair;
+full wall/disconnected-time accounting, controller completion and authentic
+qualification remain open. M0/G0 history and the full later roadmap are retained.
+
+**D20 — M1/G1 scope transition (2026-09-24):** the user authorizes completing
+M1 and its full G1 acceptance gate from merged PR8, beginning with an exact-profile
+coverage audit and qualified gameplay-root/helper isolation. Include the scorer
+and probe dependencies G1 requires; leave unrelated M2-M7 work untouched. D14's
+historical M0 deferral remains unchanged and now requires qualification at G1.
+D18/D19 spending is M0-only and is not extended to M1. Preserve every historical
+failure, profile, unresolved hold and consumed decision. The
+[current handoff](docs/STATUS_AND_HANDOFF.md) and
+[opening G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md) supersede
+older next-action instructions. No acceptance threshold or product feature changes.
+
+**M1 no-self-play enforcement (2026-09-25):** Section13.2's existing helper-disabled
+control now binds retention registration to zero helper capacity and explicit
+native helper-free broker/settings/catalog identities at launch, dispatch and
+tool use. Actual native helper-free verification passes37/37 plus22/22 reconstruction
+with the separate `agents.enabled=false` switch. The first feature-only failure
+and original35/37 report remain retained. Matched controls/full G1 stay open;
+historical profiles are not relabeled. [Evidence](docs/verification/2026-09-25-m1-no-self-play-native.md).
+This implements the existing contract without changing acceptance or authority.
+
+**M1 stopped native disposition (2026-09-24):** unfamiliar source-bound function
+or custom calls remain invalid for early helper retirement. After the complete
+owned native process tree is proved terminal, private stopped-component export
+may retain those IDs as uninterpreted and unresolved under
+`native-process-fenced-cell-disposal/2`, with `tool_success_inferred=false`.
+Validate issuance/return scope and reject malformed, duplicate or conflicting
+evidence. No result string grants tool success, isolation qualification, restore,
+replay or cost refund. Preserve existing /1 exports and the original failed outer
+integration result. [Implementation and actual evidence](docs/verification/2026-09-24-m1-native-game.md).
+
 **September24 M0 closure (v0.2.184):** M0 verified; G0 pass for the named D14
 development feasibility slice; G1–G5 not_run. The [current handoff](docs/STATUS_AND_HANDOFF.md)
 and [final assembly](docs/verification/2026-09-24-g0-assembly.md) supersede historical
@@ -281,6 +322,50 @@ Operator native-client startup must reserve sufficient authenticated session lif
 
 The Java guardian confirms stop only after the held root signals, the held Windows Job reports zero active processes, and every process in its cumulative accounting has a signaled observation handle. Zero active accounting alone is insufficient. Retain only membership-verified read-only handles from that job, beginning at attachment and updating during the guard loop and before termination; do not terminate rediscovered PIDs. The bounded inventory holds at most 256 lifetime handles. Missing members, truncated inventories, quota exhaustion or query failure leave termination unconfirmed, including a short-lived process that escaped observation; this is a fail-closed development limit, not a full lifetime qualification. The root wait and subsequent accounting/handle checks share one unchanged 500 ms bound starting at the root wait; no retry or new descendant allowance is introduced. Remaining or unsignaled processes, or proof obtained after the deadline, cannot pass. This does not enroll descendants created before attachment or qualify the launch gap. The Forge-aware guardian retains private diagnostics under `job-call-wait-tree-qpc/2`, extending historical `job-call-wait-qpc/1`: a QPC start timestamp, clock resolution, relative job-call/wait/tree-check boundaries, active/total/held/signaled process counts, the unchanged wait bound and distinct job/wait/tree outcomes. Queue evidence only after guardian handle cleanup; evidence backpressure must not delay termination. These process-local timestamps include scheduling/Python call overhead and are not kernel-internal events. The broker rejects malformed, contradictory or duplicate timing records and requires timely complete handle/accounting evidence plus a separate confirmed-stop receipt. Timing cannot establish input release, clean checkpoints or successful termination by itself; a timed-out wait remains a failure despite later process absence. Private diagnostics and source fingerprints change without adding gameplay capabilities or extending lease, action or stop deadlines. The base guardian wire format remains unchanged.
 
+Private machine acknowledgment diagnosis uses `machine-owned-mismatch-masks/1`.
+A failed owned-state comparison captures only fixed difference masks for the
+already-read before, predicted, received and current views; bit0 is cursor and
+bits1-36 are player slots. Item-ID/count/component comparisons reveal no values
+or hashes, and exclude machine/hidden slots. Capture adds no game reads, clicks,
+refreshes or retries. Publish through the private operator logger only after
+existing fence, input release and durable terminal handling; output failure or
+absence cannot change the original unknown/resync receipt. This diagnostic does
+not confirm transfer, qualify isolation or replay an action; native artifact
+identity changes with its implementation. [Evidence](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md).
+
+**Bounded preflight reacquisition (M1.5b.3f).** Forge minor45 selects
+`thermal-visible-slot-server-baseline-owned-transfer/4`. Preserve policy3's first
+charged read, exact original selection/resources and input fence. Only when the
+server reply/current view differ exclusively in untouched player components,
+and the first reply still matches the original selected/cursor/machine state
+and all player IDs/counts/positions, permit one additional charged pre-input
+read. Freeze the first full server reply: the renewed reply and current view
+must restore it exactly. Refuse a changed baseline or persistent drift; never
+strip metadata, substitute new server components after reacquisition, replay
+input or extend deadlines/budgets. Recheck the original observation fence and
+final baseline before the unchanged transfer engine. Private diagnostic policy
+`machine-preflight-comparison-masks/2` retains prior phases/masks and adds
+`reacquired_baseline` for frozen-versus-renewed reply differences. All earlier
+identities/failures remain; actual qualification requires changed-profile
+verification. [Source and focused checks](docs/verification/2026-09-26-m1-preflight-reacquire.md).
+
+Private preflight diagnosis uses `machine-preflight-comparison-masks/1`. Record the fixed failure phase (context, reply, wait, reply layout, original input fence, current view/layout, current match, selection match, final baseline, or transfer start). Where the failing comparison already has two valid projected views, retain value-free ID/count/component difference masks for cursor/player slots and visible machine base slots, plus three selected-slot equality flags. Otherwise comparison is explicitly null; do not read game state to fill it. Never inspect augment slots or export item/component values, hashes or exception text. Preserve the original public error and release-error precedence; publish only to the private operator logger after fencing/release/durable terminal handling. Diagnostic sink failure changes no receipt. This adds no read, click, refresh, replay, accepted state or deadline/budget. It does not prove a specific mod field/caller or qualify isolation merely because the log is private.
+
+Private Forge health diagnosis uses `forge-native-health-phase/1`. Retain at most
+one terminal diagnostic per guard: fixed authority/identity/lane-status read or
+scope/listener/state validation phase, elapsed monotonic milliseconds, original
+bounded sanitized failure code, read bound and initial-validation state. Record
+no response contents, token, path or arbitrary exception text. Capture in memory;
+publish only after startup rejection or guard cleanup. A caller timeout without
+an observed phase failure produces no invented diagnostic. Strict private
+supervisor ingestion rejects unknown fields/phases, altered read bounds and
+repeated diagnostics, impossible initialized authority phases, or diagnostics
+before a failure or confirmed-stop receipt. This native-only supplemental event cannot renew health,
+arm a worker, confirm stop, replay a request or change any original failure,
+500ms read,2s setup,750ms lease or D13 shutdown bound. The base Java guard's wire
+contract remains unchanged; source fingerprints include the changed native
+producer and consumer. [Source and verification](docs/verification/2026-09-26-m1-guard-phase.md).
+
 Private resource observation uses an independently owned, identity-verified read-only process handle and a separate sampler thread, never the guardian stop path. `PrivateProcessResources/2` records CPU/I/O, handle/memory counters and aggregate region metadata without memory contents, mapped names, environment or process mutation. Sample at most once per second with a 25-ms query budget checked between native calls; a single kernel call cannot be preempted and measured overruns remain explicit. Continue an incomplete region census from its cursor with at most 8,192 total regions, eight segments and eight seconds. Record its entire non-atomic interval; never treat a census spanning teardown as instantaneous pre-stop memory. API failure, exit, quota or expiry preserve partial evidence. Keep terminal counters distinct from live allocations. Bound observer lifetime to 480 seconds, samples to 512 and private journals to fixed byte quotas. Resource sampling cannot block independent exit waiting; two-second observer finalization happens after stop and a timeout stays failed after late completion. Lifecycle completion does not certify counter/census completeness. No observation can extend the selected guardian bound (D13 for new Forge grants; legacy 500 ms), add gameplay capabilities or waive failed evidence. [Implementation and native synthetic verification](docs/verification/2026-09-21-process-resources.md).
 
 The operator-only `held-native-file-resources/6` diagnostic adds fixed 2,048-channel or 2,048-read-only-mapping profiles to the hidden graphics/silent-audio fixture. Use only a newly created 65,536-byte synthetic private file; bind process/scope/mode/count/readback before stop. Hold resources through the original 500-ms guardian and retain complete owned cleanup. Mapping release requires process-exit proof; a fixture report cannot certify it. Keep all desktop/GPU headroom, observation quotas and outer deadlines unchanged. This declares a diagnostic capability identity, not a gameplay affordance or authentic shutdown qualification. [Authentic failure and finite native comparisons](docs/verification/2026-09-21-authentic-resources-and-files.md).
@@ -392,7 +477,11 @@ The candidate's [participant admission](docs/verification/2026-09-20-native-admi
 
 The operator-only `native-fenced-participant-retirement/1` contract keeps every non-CLOSED helper in capacity accounting after revocation. A `NativeParticipantRetirement/1` proof binds a revoked leaf to its exact job/profile, a post-fence root request with settled raw provider issuance of native `collaboration.list_agents`, and a later admitted root request containing that exact native call/result and a completed or interrupted target status. Live use requires authenticated ingress. Persist the first observed call ID across compaction and backfill missing legacy captures; an old ID cannot refresh a stale result. Reject changed scope, model prose, missing/duplicate/changed results, unresolved calls or nonclosed descendants. Close only the helper envelope with zero owned usage; retain descendant charges and the same durable closure identity. Keep closed thread/name/namespace tombstones, deny old resume, require a fresh replacement identity, and make proof replay idempotent across restart and whole-job closure. Never refund uncertainty or replay a request. This permanently retires broker/model admission capabilities; it does not by itself prove physical drain of background cells or already-started tool operations. [Source and completed-helper native evidence](docs/verification/2026-09-21-native-retirement.md) remain partial; full interruption/drain, restart/export, fresh handoff and live RuntimeQualification are still required.
 
-Permanent helper retirement additionally requires `native-broker-call-drain/1` and `native-source-bound-cell-drain/1`. Record authenticated broker work atomically before execution, with a distinct event identity per invocation, terminal state, safe fault code and elapsed time. Recheck authority at result publication. Reject legacy untracked work, pending/crashed work and uncertain transport outcomes; retain prior effects and all holds. Reconstruct native exec/wait issuance from settled raw provider receipts and exact later caller-bound request captures across compaction. Reject changed/missing/duplicate results, reused IDs, unknown tool forms and waits without causal handle evidence. An aborted wait does not drain its yielded cell; only exact owner completion, termination or confirmed absence does. Native helper interruption was observed to leave a cell alive, so terminal helper status cannot substitute. Historical ingress-capture checks grant no new authority; active live request/retirement gates remain binding. [Source, actual CLI and subsequent recorded-evidence verification](docs/verification/2026-09-21-native-helper-drain.md) distinguish broker race enforcement and a timed-cell cleanup case from remaining arbitrary-work, recovery/export and full RuntimeQualification.
+Permanent helper retirement additionally requires `native-broker-call-drain/1` and current `native-source-bound-cell-drain/2` (historical /1 evidence retains its original scope). Record authenticated broker work atomically before execution, with a distinct event identity per invocation, terminal state, safe fault code and elapsed time. Recheck authority at result publication. Reject legacy untracked work, pending/crashed work and uncertain transport outcomes; retain prior effects and all holds. Reconstruct native exec/wait issuance from settled raw provider receipts and exact later caller-bound request captures across compaction. Reject changed/missing/duplicate results, reused IDs, unknown tool forms and waits without causal handle evidence. An aborted wait does not drain its yielded cell; only exact owner completion, termination or confirmed absence does. Native helper interruption was observed to leave a cell alive, so terminal helper status cannot substitute. Historical ingress-capture checks grant no new authority; active live request/retirement gates remain binding. [Source, actual CLI and subsequent recorded-evidence verification](docs/verification/2026-09-21-native-helper-drain.md) distinguish broker race enforcement and a timed-cell cleanup case from remaining arbitrary-work, recovery/export and full RuntimeQualification.
+
+M1 D20 integrity repair: code-mode notify() adds model-controlled scalar outputs under the exec call ID. Policy /2 never interprets those strings as native completion, termination or yielded-handle proof, even when they exactly mimic a native status header. Require a separate caller-bound native content frame and preserve duplicate/changed-frame rejection; allow inline image payloads without using them as status. Aborted waits retain pending cells. The pinned runtime also emits ambiguous scalar-only silent yields: these retain their slot/envelope until an unambiguous frame or separately qualified whole-process drain proves closure. Do not relabel historical /1 proofs, silently infer a missing result, or treat this conservative refusal as complete lifecycle qualification.
+
+M1 stopped-job extension: `held-windows-job-zero-active/1` observes the original no-breakaway Windows Job Object while its handle remains held, after stop, and requires a terminal parent plus zero active members. Persist private NativeProcessDrain/1 with exact launch intent/profile/start, counts, observation time and a durable supervisor event only after cleanup succeeds. Readback requires the same finalized job and private hash-checked proof; missing, stale, changed, live or mismatched evidence refuses. `native-process-fenced-cell-disposal/1` may use it only in stopped-job export after the existing closed-participant, complete settled-receipt, fenced-ingress, broker-work and source checks. Classify unresolved calls as disposed without inferring successful completion, changing costs or releasing a live helper slot. Framed early-retirement proof remains mandatory while the job runs. Malformed/changed/duplicate source evidence and out-of-scope waits remain failures. POSIX groups and historical parent-exit assertions cannot supply this Windows proof.
 
 The operator-only `native-stopped-broker-component-export/1` contract produces `NativeState/2` from the complete durable stopped broker inventory. Require finalized process/ingress closure, closed participants, exact settled request/envelope lineage, matching account-bound ledger vectors/receipts, terminal broker work and source-bound native-cell drain. Finalization durably revokes ingress in the same transaction as envelope closure; missing registration retains the hold. Legacy unfenced records require explicit operator fencing and cannot be relabeled as originally qualified. Preserve root/helper artifact inventories separately, immutable projections versus notes/handoffs/skill drafts, content/path/quota checks and complete source identity. Capture, write private components, recapture and atomically commit; source mutation and arbitrary uncommitted blobs reject. Retain allowance identities, settled costs, unresolved unrelated reservations, unit classes and ledger position without replay/refund/new allowance. No hidden sessions, code-mode caches, helper results or credentials are implicitly imported into root state. This stopped native component explicitly does not apply episode retention or authorize restore: complete same-boundary game/agent checkpoints, declared retention, skill activation, fresh scoped materialization and runtime qualification remain required. Legacy arbitrary-blob export/resume is rejected for broker profiles. [Source and derived actual-history evidence](docs/verification/2026-09-21-native-export.md) do not substitute for authentic recovery or full qualification.
 
@@ -428,6 +517,30 @@ catalog filtering is not filesystem protection: test fixtures, operator material
 credentials, and evaluator state still require the enforced private boundary.
 Initial plugin bytes remain immutable and separate from learned overlays.
 
+**M1 native conformance helper catalog.** `NativeToolProjection/3` /
+`native-additional-tools-exact/3` separately pins the observed GPT-6 Luna root
+and helper collaboration catalogs for purpose `conformance`, with one or two
+configured helpers. It cannot be used for campaign or M0 development-piloting
+admission; /1 and /2 retain their original scopes. Exact caller identity,
+pre-reviewed catalog bytes, sealed bootstrap, clean context, parent budgets,
+credential/runtime qualifications and every-call admission remain required.
+A catalog pin grants no helper/game authority, paid execution or isolation pass.
+[First selected-runtime canary evidence](docs/verification/2026-09-24-m1-native-boundary.md)
+is credential-free native conformance with one helper and a scripted provider;
+remaining surfaces and complete T04/T06 remain open.
+
+**M1 campaign team catalog.** `NativeToolProjection/5` /
+`native-additional-tools-exact/5` explicitly pins the campaign counterpart to
+the conformance-only team catalog /4. Require the team broker policy, its
+private communication-policy reference, closed settings /3, purpose `campaign`,
+GPT-6 Luna, one or two configured helpers and reviewed exact root/helper tools.
+Do not relabel /4 evidence or infer qualification from catalog compatibility.
+All six campaign runtime proofs, bootstrap/ingress/gateway, lease/roster,
+credential and spending checks remain separate prerequisites. /1–/4 keep their
+original scopes. This auxiliary private artifact adds no experiment record,
+gameplay privilege or execution allowance. [Source and profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md)
+retains full native campaign qualification as open.
+
 ### 6.2 Initial skills, learning and invocation
 
 The versioned `dovetail-eight-immutable-text-support/1` projection extends the earlier body-only capability with reviewed supporting text from the pinned installed plugin. Include root skill/license/requirements files and the references/scripts/assets/agents/eval-viewer surfaces; exclude nested tests, fixtures, VCS and credential paths. Bind complete projected names and bytes to a private source inventory and the sealed bootstrap inventory. Only the eight original top-level skills are indexed. Readable script source grants no execution. The selected corpus and instructions change the runtime profile identity; retain the original body-only profile and its evidence. Installed-source inspection is not native invocation or isolation qualification.
@@ -435,6 +548,18 @@ The versioned `dovetail-eight-immutable-text-support/1` projection extends the e
 The operator-only `native-root-written-skill-bundles/1` boundary captures an executor's explicit `skills/publish.json` request from a committed stopped export. Each candidate names its complete skill directory, required SKILL.md, separate input and development-evidence references, revision ID and null initial parent. Require successful root write receipts for both manifest and all skill files, checked against recorded argument/result digests; repeated native call labels do not merge distinct broker events. Reject helper/private/probe imports, incomplete bundles, duplicate identities, initial-skill name collisions and unbound parent claims. Each learned bundle, including supporting text, is at most 256 KiB. Commit the complete private candidate set atomically after copying and revalidating its source; forbid publication after a checkpoint has sealed that source. A candidate remains a SkillRevision with no activation time. Preserve its private metadata and bytes through applicable checkpoint retention/materialization, including Windows long paths; frozen episode arms discard the learned set. Candidate publication alone grants no activation. The continuation below implements a checkpoint-bound activation route; restricted script execution and qualified fresh runtime restoration remain open. Existing active revisions require complete validated export and cannot be downgraded to candidates. [Source, installed-source metadata and synthetic evidence](docs/verification/2026-09-21-native-skills.md) leave those requirements open.
 
 The `native-checkpoint-learned-overlay/1` route atomically activates complete source-bound candidates only from a committed complete game/agent checkpoint. Preserve immutable initial bytes and arm-specific retention. Publish a registered, hash-checked `.agents/skills/<name>/` native view and immutable broker `active/<name>/` files; expose only names/revision IDs in `active/revisions.json`, keeping provenance private. Accept bounded plain name/description frontmatter and reviewed supporting paths; reject nested skill catalogs or native dependency configuration. Bind the complete view into bootstrap holds and the activation/helper references into the native profile. Require own campaign/agent/model/system and a later nonstale epoch. Validate the native developer catalog before participant enrollment or child reservations. Because this pinned candidate shares its native catalog, helpers must explicitly receive the same complete immutable set; they receive no root notes/drafts/handoff. Missing or altered sets fail closed. Version-2 publication binds exact active parents and fresh revision IDs, retaining unchanged-file provenance; legacy version 1 retains null parents. Typed retained components preserve active references privately. This route grants no dispatch, script execution or runtime qualification. [Source/metadata evidence](docs/verification/2026-09-21-native-activation.md) and [actual CLI/local-provider execution](docs/verification/2026-09-21-native-activation-exec.md) establish named root/helper invocation and full-arm subsequent-generation lineage/retention/fresh handoff over synthetic worlds. Frozen native controls, interrupted activation, executable capability and complete native/game restoration remain open. Activation at other native turn boundaries still needs conformance.
+
+The [selected native JavaScript conformance case](docs/verification/2026-09-24-m1-active-script-native.md)
+now demonstrates exact active source execution in root/helper code mode, scoped
+artifact effects/refusal and stopped executable-candidate lineage. Its provider,
+world and readiness are synthetic. It does not qualify full executable-skill
+behavior, subsequent-episode activation, actual game macros, complete isolation
+or G1; the requirements below remain unchanged. Its subsequent
+[selected native episode pair](docs/verification/2026-09-25-m1-native-handoff.md)
+adds normal held-owner checkpoint transition, complete synthetic checkpoint,
+next-revision activation, fresh runtime/context/private storage and preserved
+accounting. Matched frozen/no-self-play controls, complete isolation and authentic
+game restoration keep their separate acceptance requirements.
 
 Install the exact remote plugin commit `15c306ccfef28eb5f616fadcd5fd8eac0663e361` (manifest 0.4.1) into each isolated worker profile through the pinned host's supported plugin mechanism; retain original source and attribution. This is the initial candidate pin, not a claim that it is the newest commit. No global user skill directory or older sibling checkout is inherited.
 
@@ -622,6 +747,8 @@ Snapshots carry an observation ID, age, state/control revision and capability di
 
 **Machine transfer and input-fence decision D10.** Declare `thermal-visible-slot-owned-transfer-feedback/2` (Forge capability minor 35) for ordinary left/right pickup/place and machine-to-player quick-move on the exact current menu. Execute one normal native player click, check that its immediate client prediction conserves visible resources and changes only the requested slot/cursor or declared quick-move destinations, then await actual applied full server contents. Prediction alone cannot confirm anything. Full-menu packets have no request identifier: if a reply echoes the exact pre-click owned state and current owned state is either that same state or the prediction, permit at most one additional charged fixed full-menu refresh within the original action deadline/budget. Never repeat the click. A second mismatch, any other owned difference, invalid prediction, lost context or exhausted bound remains unknown/fenced. This handles a possible older in-flight response without treating prediction or a read retry as proof. Require the exact predicted cursor and all 36 owned player slots in the server reply and current state; reject unexpected gifts/loss/components or later owned changes. Independent machine processing/charging may alter machine storage during this wait; that is not credited as a consequence of the click or as successful production. An invalid prediction still needs resynchronization after already-emitted input; never replay it. Mask augment slots before the motor/feedback readers inspect stacks. Native player-to-machine quick-move can target hidden augment slots and remains explicitly unsupported until the panel/routing is qualified; full transfer/control and energy/fluid operation scope remains required.
 
+**Authoritative machine preflight (M1.5b.3d).** Forge capability minor 44 selects `thermal-visible-slot-server-baseline-owned-transfer/3`. Before the single normal machine click, issue one charged fixed full-menu refresh and require an actual applied server reply equal to the current projected menu. Recheck the original delivered observation, its two-second age, window/revision and all original input fences before mutation. The original cursor, clicked stack, machine slots, and every player item ID/count/position must still match; only untouched player component identities may be acquired from this server-applied pre-action state. Freeze that full exact state before clicking, and reject any subsequent baseline change. This does not replace a baseline after input: the original transfer engine must still conserve exact component identities in its immediate prediction and confirm exact predicted cursor/player slots in the actual server reply and current state. Preserve its single pre-click-echo refresh, no mutation replay, hidden-slot masking, unsupported player-to-machine quick-move and independent production evidence. Preflight and wait events consume the original action deadline/budget; cancellation, context loss, incomplete response or exhausted bounds emit no later click. No component field is stripped or normalized. This candidate addresses a local/server baseline mismatch without assuming its exact mod field or caller; authentic qualification is required and previous profile failures remain.
+
 Pin `thermal-display-independent-slot-cursor-fence/1`: passive `window.machine` energy/tank data remains in observations and capture revisions, but is excluded from the window input revision and live input comparison. Otherwise a continuously running machine could prevent even ordinary close. All slot/cursor/window identity/revision, body/control/lease/generation, latest captured observation and two-second age checks remain. Unknown machine policies cannot receive this exception. This explicitly supersedes v0.2.4's overly broad telemetry-dependent input fence; it is a new candidate capability identity, not a claim of real conformance or a changed experimental arm in flight. Controls/progress/augment panels, other required mechanics, authentic GUI/action/feedback ordering and authoritative production/reference evidence remain open.
 
 **Local execution.** Use a pinned, fixed pathfinder for a specified coordinate and fixed motor routines between LLM decisions. Initial movement disables automatic digging, block placement, resource gathering and recipe planning; tasks needing those actions remain agent decisions. Path execution may only use the allowed map and verified collision rules. No auto-eat/combat/equipment plugins are enabled implicitly. Record any later motor assistance as a new capability/system version. The LLM discovers goals, recipes, production dependencies, failure diagnoses and strategies; local routines execute its bounded choice.
@@ -699,6 +826,406 @@ The skill is a required reasoning workflow over a narrow capability-gated settin
 7. **Commit or rollback:** mark verified and publish a new keymap digest only when all required checks pass. Otherwise restore only transaction-owned values with compare-and-swap, release inputs and verify the restore. Unrelated concurrent changes produce `ROLLBACK_CONFLICT` and stop input pending operator infrastructure repair. A crash leaves a recoverable journal, never an assumed commit.
 
 Initial bindings are verified before scored play. In-play repair enters `RECONFIGURING`: suspend only that avatar's input lane, cancel pending batches, preserve world and agent continuity, and log start/end/profile hashes. The server and other agents continue, with all real time, thinking, restart downtime and verification actions charged. No free evaluator-created items/fixtures. Automatic success from checking configuration bytes alone is forbidden. If no safe available effect test exists, roll back/defer the repair.
+
+**Private native resume candidate (M1.1c.3.4).** Explicit
+`strata.settingsResumeOwner=true` requires owned repair/effects and selects
+`operator-owned-settings-resume/1`. A private NativeSettingsResumeDecision/1
+binds the entire original worker plan, one resume ID, exact terminal settings
+head/phase, verification reference, connection generation and a finite lease.
+Committed settings must match their stored commit plan and verification reference;
+restored rollback requires its actual terminal head. The native lane requires
+healthy released input and a live unchanged repair, persists the decision before
+opening input, clears stale deliveries and retains action history, epoch, lease
+identity, charges and overall expiry. The initial resumed lease is at most6s and
+inside the original repair deadline. Repetition/status cannot rearm or refresh;
+stop, different executor, recovery or journal reopen cannot turn an old receipt
+into current authority. NativeSettingsResumeState/1 explicitly does not certify
+effects. In this profile only, a healthy confirmed rollback may remain held for
+restored-state verification; existing failure state is never cleared. The worker
+hold, guardian transition, complete accounting, fresh controller observation and
+public permission publication must still be joined before gameplay use. This
+candidate is not full T05/G1 qualification.
+
+**Private worker resume candidate (M1.1c.3.4).** Worker/5 explicitly selects
+`operator-owned-settings-resume/1` and binds a separate private resume grant to
+its repair and restart grants. Replacement guardian/4 retains the original
+health/termination/lifetime bounds and requires a native resume receipt for the
+exact plan, replacement instance, generation and epoch before accepting active
+input. Worker intent precedes the single native dispatch; uncertainty reconciles
+by status. The same epoch/lease/action history and consumption survive. A fresh
+observation and durable completion precede release of the worker hold; stop or
+storage failure prevents release. Consumed intents/holds remain journaled.
+Worker/4 and guardian/3 retain their prior behavior. The candidate does not
+settle controller budgets, publish a qualified keymap, grant campaign readiness
+or qualify repeated repair chains; those joins remain required before T05/G1.
+
+The private controller resume candidate consumes a confirmed commit and its
+complete verification bundle, an adopted replacement checkpoint and the exact
+private worker bindings. Recheck the native instance, committed head and original
+repair budget before journaling one resume intent. After uncertain delivery,
+query that identical decision only; do not refresh its lease. Known physical
+resume followed by failed evidence publication attempts native stop even if the
+recovery ledger also fails. This component records a private witness with
+campaign permission and consumption settlement explicitly false. The generic
+campaign completion path stays closed until qualified public control metadata,
+the original worker lease and complete repair accounting are joined. Restored
+rollback requires its own actual effect verification before controller resume.
+
+**Private control publication candidate (M1.1c.3.4).** Worker/6 adds
+`publication_policy: verified-controls-after-settlement/1`. Unlike Worker/5,
+native resume leaves public actions held and renewal suspended under the original
+finite resume lease. A separate private publication grant binds the resume
+transport. `WorkerControlPublication/1` binds the full worker plan, consumed
+resume decision, verified control revision/keymap, verification and settlement
+references, and exact cumulative primitive count. The trusted controller must
+produce and validate settlement; the worker does not resolve private CAS or
+certify an arbitrary reference as settled accounting.
+
+Persist publication intent and a fresh observation before releasing the public
+lane. Retain pending publication across journal reopen/new epoch; stop or storage
+failure cannot publish a late success. Repetition/status never rearms a stopped
+lane. Public observations/actions use the published control revision and keymap;
+the broker checks current metadata and the cited observation, then journals both
+public and native request digests before translating to the native structured
+epoch/null-keymap contract. Historical actions retain their original request and
+receipt. This profile does not advertise keybinding capability, qualify the
+supplied settings/settlement producers, or complete campaign permission. Actual
+controller settlement/publication, restored rollback, skill and authentic
+qualification remain required. [Evidence](docs/verification/2026-09-27-m1-control-publication.md).
+
+Before a new native resume intent, freeze the original repair's inference window
+and require all its tracked dispatches settled. Pending calls keep the pause;
+they do not consume a resume decision or renew the repair deadline. Bind the
+immutable inference audit to the resume intent in the same transaction, checking
+it again under the writer lock after evidence publication. New
+`ControllerResumeWitness/2` receipts carry that reference; retries and subsequent
+worker measurements must revalidate it against retained accounting. Missing new
+bindings cannot fall back to a historical zero-call claim. Legacy `/1` receipts
+remain readable for status reconciliation but cannot supply the new measurement
+prerequisite. This joins inference closure only; primitive/body accounting and
+campaign permission remain separate. [Resume integration evidence](docs/verification/2026-09-27-m1-resume-inference.md).
+
+Worker/6 records a durable charge opening with pause intent before quiescence.
+`WorkerRepairAccounting/1` uses `durable-worker-charge-interval/1`: original full
+plan, same-worker clock identity, journal cursors, per-native-source high-water
+values, their sum and measured monotonic elapsed time. This is a charge interval,
+not a timestamp claim about every physical input. Missing openings and a reopened
+worker clock cannot be reconstructed as verified measurements. While the public
+hold remains active, freeze one closing receipt; repeated reads keep that receipt.
+Unexpected later consumption retains the new charge and stops preparation.
+Publication requires the measured closing count and exact resume decision.
+
+Recheck the same worker clock, owned hold, cumulative count and every native-source
+counter after the final observation, inside the publication commit. Persist the
+`WorkerControlPublicationCommit/1` boundary and measurement digest atomically with
+that observation. A changed count or source allocation keeps its consumed costs,
+refuses publication and requires recovery; failed boundary storage rolls back the
+observation. Subsequent gameplay must not rewrite the historical boundary. This
+private journal witness does not make the partial measurement a full settlement
+or certify body/model costs. [Boundary evidence](docs/verification/2026-09-27-m1-publication-accounting.md).
+
+The strict private Python publication consumer binds the actual resume grant and
+checks these arithmetic/scope joins. Controller measurement stores the real worker
+receipt and its own measured request interval without changing the budget or
+input permission. The receipt explicitly has null avatar ticks/model usage and
+false complete-accounting/publication-tail flags. Complete settlement must still
+join prior-gameplay allocation, repair charges, actual game clocks, all nested
+usage and the publication tail without refunds or overlapping charges. Never use
+a partial worker receipt as a complete settlement certificate.
+[Measured evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+
+The private `WorkerPublicationAccountingRequest/1` reads the original measured
+interval and exactly one immutable publication commit through the operator
+publication endpoint. Bind the full decision, clock, measurement digest, stored
+observation and source counters; reject missing/duplicate or contradictory
+history. Later gameplay counters never replace this boundary. The controller
+joins it to its confirmed resume, measured receipt, committed controls and frozen
+inference audit, storing one private `ControllerPublicationEvidence/1`. Reads
+after stop are historical evidence only. They cannot resume input, qualify an
+arbitrary settlement reference, settle the budget or supply missing body/time
+coverage. Existing state responses retain their original meaning.
+[Controller boundary evidence](docs/verification/2026-09-27-m1-publication-receipt.md).
+
+**Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
+`ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
+the older `/2` profile retains no repair endpoint. A separate private bearer
+binds one immutable plan to the campaign, avatar, worker epoch/lease, transaction,
+plan digest and fixed expiry within the original worker lifetime. Persist the
+hold before quiescing; cancel and confirm release of pending input within 1,000ms,
+reject ambiguous action outcomes, and keep charging native primitive high-water
+marks and elapsed wall time. Repeated requests may query the same consumed plan,
+never extend it. Deadline, lost body/connection/fence, storage failure or worker
+loss stops input and retains recovery state. A higher executor epoch alone cannot
+clear the hold. This candidate provides pause/status only, no automatic resume,
+native transaction admission, commit or public keybinding capability. The required
+adapter/restart/resume workflow must establish those joins before gameplay use;
+loopback/token separation and synthetic JVM checks do not qualify T06 or T05/G1.
+
+The private controller handoff uses the exact worker grant and plan above.
+Persist one dispatch intent before the pause request; after an uncertain reply,
+query status only within the original quiescence window. A strict response must
+match the consumed plan and confirm paused/released input before publishing an
+operator-only `RepairStop` with its actual worker response as a source. A recorded
+worker handoff cannot be bypassed with another stop proof. Loss of a previously
+confirmed worker pause revokes controller repair permission. Retain the existing
+budget reservation, teammate authority and recovery hold; this transport does
+not qualify the settings adapter, create native transaction authority, settle
+repair consumption or publish a resume lease.
+
+**Private owned native repair candidate (M1.1c.3.2).** Explicit
+`strata.settingsRepairOwner=true` requires the existing private effects profile
+and selects `operator-owned-native-settings-repair/1`. Before forward writes or
+key checks, bind `NativeSettingsRepairAdmission/1`: the exact WorkerRepairPlan/1,
+settings fingerprint, one revision/digest-bound patch and allowed effect binding
+IDs. Require the same campaign/avatar/epoch/lease, unchanged connection and
+confirmed fenced input. Journal before admission; keep fixed wall and monotonic
+expiry within original authority. Changed plans, patches, bindings or a higher
+executor epoch cannot bypass the hold. Recovery or deadline loss revokes forward
+work; transaction-owned compare-and-swap rollback remains bounded cleanup and
+never grants resume. Status always reports `resume_authorized=false` and raw
+observations never establish verified effects. The old preplay route retains its
+separate identity; reopening an owned journal cannot disable its hold by omitting
+the mode flag. Controller-native profile translation, qualified commit, worker
+restart/rejoin and explicit resume remain required. This private candidate and
+its synthetic-body integration do not advertise gameplay settings capability or
+qualify T05/T06/G1. [Evidence](docs/verification/2026-09-27-m1-native-repair-admission.md).
+
+The private controller-native handoff pins `NativeControlTarget/1` to the
+controller profile/fingerprint/policy and native game/settings/body identities.
+Translate the complete immutable control-plan keymap to native persisted values;
+require matching physical encodings, runtime/disk values, exact binding sets,
+mutable changed bindings and no pending transaction. Preserve the native
+revision/digest independently of the controller revision. Encoding a key is not
+physical-effect qualification or tested-pool admission. Journal one native bind
+intent with a digest of the actual private descriptor; uncertain delivery may
+query only the identical admission. Store a private witness and recheck the
+original lease/deadline before confirmation. Known native recovery, wrong body or
+failed witness publication retains controller recovery. An admitted native hold
+cannot use the generic settings adapter path or a controller-only ready proof to
+resume; the qualified adapter and explicit worker resume remain required.
+[Connected evidence](docs/verification/2026-09-27-m1-native-controller.md) uses a
+synthetic body and introduces no public settings capability or full G1 claim.
+
+**Private commit decision candidate (M1.1c.3.2).** The additional explicit
+`strata.settingsCommitOwner=true` mode requires both effects and repair ownership;
+its game fingerprint includes `operator-recorded-settings-commit/1`. Old preplay
+and owned-repair profiles gain no commit permission. The private
+`NativeSettingsCommitDecision/1` binds transaction, original plan digest, exact
+pending native revision/digest and a controller verification CAS reference.
+Require a live admitted repair and complete matching runtime/disk settings before
+journaling the decision. A stored decision is immutable; status reconciles an
+uncertain reply without a second commit. Commit changes no options or input lease,
+and reports `effects_verified_by_native=false` and `input_resumed=false`.
+The store records the operator's decision; the qualified controller adapter must
+separately validate every required effect/restart proof before issuing it. A
+reference string or matching configuration never substitutes for those proofs.
+Reopening retains the decision and the native input hold. Owned rollback requires
+no later transaction/revision and matching committed state; it never overwrites
+a newer repair or silently resumes gameplay. Preserve historical schemas and
+profile identities. [Candidate evidence](docs/verification/2026-09-27-m1-native-commit.md)
+uses synthetic body/input and controller decisions; full adapter, restart/rejoin,
+resume and authentic T05/G1 verification remain required.
+
+**Private controller-native write candidate (M1.1c.3.2).** The operator-only
+`NativeRepairFlow` consumes confirmed worker/native admissions and one durable
+intent per apply, commit or rollback. Bind the exact descriptor, immutable plan,
+original deadlines and profile writer exclusion. Reconcile uncertain mutations
+only by status. Before commit, validate complete supplied per-binding/context/
+stage evidence and source bytes, store the immutable verification privately and
+bind its reference to the exact pending native head. Generic settings writers
+must refuse native-owned transactions. Commit and rollback grant no input lease
+and cannot refund usage. [Candidate evidence](docs/verification/2026-09-27-m1-native-repair-flow.md)
+uses a synthetic body/proof producer; qualified control projection, authentic
+proof production, complete consumption/settlement, owned restart/rejoin and
+explicit resume remain required. No broader capability or gate is advertised.
+
+**Private owned restart candidate (M1.1c.3.2).** Explicit
+`strata.settingsRestartOwner=true` requires effects/repair ownership and adds
+`operator-owned-settings-restart/1` to the native identity. Prepare one immutable
+NativeSettingsRestartRequest/1 against the complete pending native head, original
+plan and transaction. Journal a NativeSettingsRestartCheckpoint/1 with the source
+lane instance before suspending forward work. On reopening the same authority
+and journal, require that exact checkpoint and unchanged pending head; continue
+only within the original remaining deadline and retained primitive cap. Never
+refund previous work, rearm gameplay or permit a second continuation after
+another reopen. Enforce before/after effect stages against the actual handoff.
+NativeSettingsRestartState/1/status reports the consumed checkpoint and usage,
+not worker process-death/rejoin proof or permission to resume. The worker must
+separately prove terminal old processes, same-server/team continuity, replacement
+identity, downtime/consumption and controller rebinding. Default recovery remains
+closed without this explicit handoff. [Candidate evidence](docs/verification/2026-09-27-m1-native-restart.md)
+uses actual JVM exit/reopen with synthetic body/input; full Minecraft workflow
+and G1 qualification remain required.
+
+**Private same-worker replacement candidate (M1.1c.3.2).**
+`ForgeDevelopmentWorker/4` explicitly adds `operator-owned-client-replacement/1`.
+Keep the existing executor, epoch, journal, original deadlines and usage high-water
+state through a repair client replacement. Use a separate private restart grant;
+the worker and supervisor must join the exact prepared native checkpoint and
+repair plan before independently confirming old Java process-tree termination.
+Require a new session/instance, unchanged native authority/body and an independently
+guarded replacement before consuming continuation. `ForgeProcessGuardGrant/3`
+admits only the exact fenced, prepared repair at the retained epoch; it must keep
+input fenced and enforce the original repair expiry. Preserve the original
+guardian profile's refusal of already-used epochs. Journal intent before the one
+continuation POST; uncertain replies permit status reconciliation, not replay.
+Repeated matching attach is idempotent; changed connection/guard paths are refused.
+Closing drains pending restart work before journal disposal. This profile may use
+the existing scoped operator stdin stop but gains no complete save-checkpoint or
+gameplay-resume claim. No private restart operation enters public capabilities.
+[Candidate evidence](docs/verification/2026-09-27-m1-worker-restart.md) uses actual
+Windows guardian/JVM processes and a synthetic body. Controller-owned launch,
+adoption/rebinding, authentic server/team continuity, qualified verification,
+complete accounting and explicit resume remain required before full qualification.
+
+**Private controller replacement adoption (M1.1c.3.2).** WorkerRestartGrant/2
+binds the actual worker repair capability digest; /1 cannot authorize this route.
+Record one immutable native prepare request and durable prepare/detach/attach
+intents before dispatch. Unknown outcomes permit status-only reconciliation,
+never automatic replay. Require confirmed old-terminal and guarded-replacement
+evidence, exact checkpoint and original deadline, matching native/settings/body
+and current guardian identities, retained repair holds and the complete pending
+keymap head before adopting the exact replacement descriptor. Preserve the
+original native admission; an explicit successor record authorizes subsequent
+native writes only through the adopted connection. Pending adoption blocks
+forward writes. Adoption, commit and rollback grant no gameplay resume, refund,
+new epoch or extended time. [Connected candidate evidence](docs/verification/2026-09-27-m1-controller-restart.md)
+uses actual controller/worker/guardian/JVM processes with synthetic body and
+verification producer. Real launch orchestration, qualified projection/authentic
+proofs, complete accounting and explicit resume remain required.
+
+**Private effect evidence producer (M1.1c.3.2).** Register one immutable complete
+NativeEffectExpectation/1 manifest for the approved plan's binding/context/stage
+slots before dispatching checks. Bind exact requests, native head and settings
+identity, declared screen/opening predicates and bounded movement/hold outcomes.
+Capture one native effect-start per slot with durable intent; missing replies
+or failed publication reconcile by status without replay. Retain failed results
+and forbid changed declarations or replacement effect IDs as a new attempt.
+Produce operator-only ControlCheck sources from validated raw observations and
+the immutable declaration, preserving simulation identity. Restart persistence
+must join the controller's adopted checkpoint, independent old-terminal and
+replacement proofs, native continuation and complete settings head, including a
+fresh exact read. Neither raw observations nor successful declared predicates
+qualify the input pool, intended semantics or full suite. Generic summaries,
+essential controls, release, full context coverage and qualified profile
+projection remain independent requirements. [Producer evidence](docs/verification/2026-09-27-m1-effect-evidence.md)
+distinguishes synthetic connected integration from retained authentic observations;
+no gameplay resume or broader capability is advertised.
+
+**Private release and effect matrix evidence (M1.1c.3.2).** Native input policy
+`native-window-key-callback-polling/3` emits `NativeSettingsEffects/3`: journal one
+`NativeInputRelease/1` before settled observations, only after reverse-order
+key/modifier releases and logical/polling cleanup return successfully through the
+existing charged safety path. Bind the key, modifier, release order and callback/
+clear confirmation. This is local software input evidence; no OS physical-input
+or effect qualification follows. Reject missing/duplicate/late receipts, held
+states after release, foreign keys and ambiguous cleanup. Keep `/2` historical
+observations readable for their original predicates; never upgrade them into
+explicit release proof. The controller must consume the complete immutable
+binding/context/stage manifest, validate bounded CAS witnesses, re-evaluate the
+original predicates and match release receipts to planned keys before producing
+intended/competing/release summaries. Preserve failed cases and refuse incomplete
+or empty effect categories. Essential-control preservation, qualified semantics
+and adopted restart persistence remain independent required proofs. No summary
+resumes input or promotes a profile. [Connected evidence](docs/verification/2026-09-27-m1-release-evidence.md)
+uses synthetic body/input and retains the remaining authentic requirements.
+
+**Essential mouse-input candidate (M1.1b/M1.1c.3.2).** Distinct policy
+`native-window-key-mouse-callback/4` adds bounded ordinary left/right callbacks
+for source-bound vanilla attack/use mappings through the same private session,
+modifier ordering, avatar lane, charges, hold limit and safety release. Require
+original window/body/connection, idle buttons, installed exact callback hook,
+no GUI and an already grabbed mouse before pressing; never acquire pointer lock
+or reposition/send OS input to satisfy a missing prerequisite. Release and verify
+logical buttons even after context loss. Protected bindings stay immutable.
+`NativeSettingsEffects/4` carries `NativeInputRelease/2` device/code/modifier/order
+and local swing/button/grab observations. Preserve older wire/profile identities;
+reject mixed versions, device aliases, missing observations and ambiguous cleanup.
+`NativeEffectExpectation/2` may declare a new local swing or item-use hold from
+an inactive baseline, actual held button and settled release. These predicates
+claim no server damage, item consumption, custom-polling parity, GUI pointer
+behavior, intended semantics or complete essential-control qualification. No
+public input capability, raw button selector or resume authority follows.
+[Candidate evidence](docs/verification/2026-09-27-m1-essential-input.md) is synthetic
+input integration; authentic full essential controls/Escape/recovery and all
+other T05/G1 requirements remain binding.
+
+**Private essential-input plan candidate (M1.1b/M1.1c.3.2).**
+`NativeControlTarget/2` explicitly admits fixed Escape as an ordinary keyboard
+consumer under `native-window-key-mouse-fixed-escape/5`; `/1` does not. Escape
+is never fabricated as a persisted KeyMapping or added to a settings patch.
+Declare an immutable `NativeEssentialInputPlan/1` before controller-managed
+effect dispatch: forward/back/left/right/jump/sneak/sprint/inventory/attack/use
+and Escape, before and after restart. Derive applicable contexts from pinned
+binding metadata, including chat for GUI contexts and all contexts when unknown.
+Missing bindings or natural prerequisites remain explicit `unverified_context`.
+Movement requires a prior-declared direction and displacement; sprint additionally
+requires a newly observed held sprint. Local effects do not prove all gameplay
+semantics. Capture once per case under the original repair authority; reconcile
+uncertainty through status only. Revalidate immutable source, effect verdict and
+physical release identity during offline coverage reconstruction.
+`NativeEssentialInputCoverage/1` cannot supply the generic essential-controls
+proof: actual host-recovery qualification is independently required. Exercising
+stop-all during a repair cancels verification and retains the recovery/input
+fence; rollback remains cleanup, never permission to rearm. Do not weaken that
+behavior to finish a successful verification cycle. [Candidate evidence](docs/verification/2026-09-27-m1-essential-plan.md)
+uses synthetic bodies; complete authentic input/recovery qualification and the
+qualified gameplay repair/restart/resume workflow remain required.
+
+**Native settings projection (M1.1c.3.2).** The private controller reader may
+translate the complete live keymap only after consuming an immutable operator
+`NativeSettingsQualification/1` for the exact game/settings/body/input/layout
+identity. Require unexpired, matching-mode reports for atomic CAS, restart,
+essential controls, settings isolation and the complete binding metadata;
+independently bind each owner, tested consumer and physical pool key to its
+report subject. Read and hash-check bounded private sources. These reports must
+come from actual conformance; the consumer does not produce or infer them.
+Sample reports cannot qualify production, including by relabeling the root.
+Bracket the native snapshot with same-body/connection checks, require the complete
+binding set and exact translation/runtime/persisted values, and preserve protected
+native bindings. Decode only canonical physical encodings; no numeric backend
+substitution. Pin qualification into the controller policy while reading current
+revision/key values from the client. After owned replacement adoption, a new
+reader uses the same qualification against the replacement descriptor.
+Generic adapter writes, stop-all and automatic restart are refused; mutations
+remain on the owned native repair path. This reader publishes no gameplay
+capability and does not settle costs or grant resume. [Integration evidence](docs/verification/2026-09-27-m1-native-projection.md)
+uses synthetic qualification reports and a synthetic game body. Authentic
+qualification for the current profile, full accounting and explicit resume
+remain open; no older-profile evidence is promoted automatically.
+
+**Native effect deadlines (M1.1b/M1.1c.3.2).** A private effect-start call may
+carry an explicit absolute execution deadline separately from its bounded HTTP
+response wait. Intersect original wall/monotonic repair deadlines, worker
+admission expiry and the existing30-second native ceiling. Status polling and
+lost-reply reconciliation never renew the execution deadline or replay input.
+Other operations cannot select this override. Preserve all parent authority,
+hold-duration, primitive, cleanup and resume constraints. The source/JVM checks
+use synthetic bodies; the first authentic /6 cycle remains failed after its
+driver requested5 seconds with4,061 ms remaining. [Evidence and retained
+failure](docs/verification/2026-09-27-m1-essential-native.md).
+
+**Essential sprint companion (M1.1b/M1.1c.3.2).** The distinct
+`native-window-key-mouse-sprint-companion/6` policy verifies sprint using the
+current protected sprint mapping with the current protected forward mapping.
+Only source-bound vanilla mappings, keyboard keysyms, no configured modifiers,
+distinct physical keys and an in-game context are admitted. Unsupported layouts
+or prerequisites remain unverified; neither mapping is changed to make a test
+pass. The forward companion cannot be a mouse button or modifier key. Press
+sprint then forward; release forward then sprint, followed by logical cleanup.
+Both presses, hold ticks and safety releases use the same lane, fixed deadline,
+primitive accounting and existing three-event cleanup reserve. No arbitrary
+multi-key selector is added to gameplay or the private request contract.
+`NativeSettingsEffects/5` permits the existing single-input receipt or
+`NativeInputRelease/3`, which names both keys and their reverse release order.
+The essential-case producer must join both to the immutable plan and require
+prior-declared directed movement and a new held sprint. Other effect summaries
+cannot silently accept a companion they did not verify. Preserve all older
+wire/profile evidence separately. [Candidate evidence](docs/verification/2026-09-27-m1-sprint-input.md)
+is synthetic body/input integration; it does not qualify real Minecraft sprint,
+all essential controls, or G1.
+
+**Private native effect candidate (M1.1b).** The opt-in conformance route distinguishes unmodified/restored-map observations from pending-patch observations. `NativeSettingsEffects/2` and `NativeSettingsEffectAdmission/2` use `stage=baseline` with a null transaction ID only when the settings store has no pending/recovery transaction; baseline input requires the exact current revision/digest and the same bounded avatar authority, journal, deadline and cleanup accounting. Pending `before_restart`/`after_restart` stages require the actual transaction ID and matching pending head. Neither a label nor completion establishes effects, restart, commit or a qualified pool. Preserve `/1` evidence separately. Candidate E/F13 chords and standalone modifier input remain private and unqualified until actual context/effect tests pass; the original title-screen writer keeps its narrower scope. This route does not yet satisfy the required gameplay skill/adapter or full T05/G1.
 
 **Private settings crash fixture.** An explicitly armed operator-only title-screen probe may test process death after durable prepare, native mapping update, or confirmed options replacement, separately for apply and rollback. It must be inert by default; reject combination with settings/game bridges, discovery, frame or collision diagnostics before installing listeners. Require an existing private directory outside the profile, an exact bounded six-value plan, fresh output/journal files and the existing source-bound unbound Curios development target. Force the before/armed records and the actual boundary runtime/file report before abrupt exit; do not run rollback or shutdown hooks after the injected exit. A report alone is not process-death proof. The worker must independently confirm the planned exit and terminal process before any recovery client. Reopen the same fingerprint/journal, query status first and roll back conservatively without a forward apply. Preserve original prefixes, failed samples, private options and all costs. A changed artifact requires a new fingerprint and its own evidence. The generic seam's synthetic JVM checks do not establish native Minecraft effects, and these six between-write boundaries do not establish power-loss/directory durability, arbitrary interruption within a native setter, tested physical keys or full T05. This diagnostic introduces no gameplay operation or capability and remains prohibited in scored runs.
 
@@ -1334,6 +1861,35 @@ Full action envelopes can be supplied as validated JSON on stdin or through an a
 
 MVP team cooperation uses ordinary in-game chat plus the declared scoped message channel; both are logged, with no global shared memory folder. Messages consume output/input tokens where used by models and a separate bandwidth ledger. Shared quest/team configuration is fixed at campaign creation; unplanned joining/leaving is an incident, not a roster change. A later shared-artifact channel requires its own policy and system hash. Independent worlds cannot communicate or merge memories unless a separately labeled transfer experiment authorizes it.
 
+**M1.3b.9a implementation disposition (2026-09-24):** auxiliary TeamRequest/1,
+TeamResponse/1 and private CommunicationPolicy/1 implement the declared channel's
+controller core. Recipient-local durable cursors, explicit scoped acknowledgments,
+operation-bound request IDs and original send expiry survive retries. A running
+roster, current epoch/lease, declared private policy and five-second wall/monotonic
+transaction deadline are required. Helpers receive no team authority. Legacy
+message migration preserves bytes/sequences/acks and records its cursor format;
+subsequent missing cursor evidence refuses. These are not extra top-level record
+types. [Synthetic checks](docs/verification/2026-09-24-m1-team-core.md) do not
+qualify the pending native facade or complete T01/T06/G1.
+
+**M1.3b.9b native disposition (2026-09-24):** the optional team facade has its
+own broker policy, closed settings /3 and selected conformance projection /4.
+Its private CommunicationPolicy reference is part of the native profile. Old
+four-tool catalogs and historical profiles remain unchanged. Native admission
+and message transactions require matching live controller/roster/epoch/lease,
+policy and executor identity; helpers cannot use team authority. Private committed
+receipts link exact broker calls and stopped exports, without restoring shared
+queue state. [Source verification](docs/verification/2026-09-24-m1-native-team-source.md)
+is implemented_unverified until actual native roster delivery/refusal passes.
+
+**M1.3b.9c conformance evidence (2026-09-24):** actual selected native jobs now
+prove same-roster delivery across sender shutdown, durable send retry, recipient
+cursor/explicit acknowledgment and helper/cross-campaign refusal in one private
+synthetic controller/queue. [Independent receipt reconstruction](docs/verification/2026-09-24-m1-native-team.md)
+passes26/26; both jobs pass45/45. This verifies the named controller/native
+conformance channel. Final qualified gameplay-profile binding remains .9d;
+projection /4 does not become campaign authority. No N-body or full G1 pass.
+
 ### 10.3 Action delivery and ambiguous acknowledgments
 
 Sequence scope is `(campaign, epoch, agent, stream_kind)`. Observations, actions, acknowledgments, telemetry and ledger each have independent cursors; never infer total ordering from UTC alone. Input seq starts at one, increases by one, and is persisted with the request digest before backend dispatch. Exactly one action lease and one in-flight batch exist per avatar. The worker durably records accepted/started/terminal state; repeated request IDs return the existing receipt and never redispatch. Sequence gaps are rejected until resynchronized.
@@ -1397,7 +1953,66 @@ Model calls have a proposed 120 s soft timeout and 300 s hard interrupt deadline
 
 ### 11.3 Clock definitions
 
+**M1.1c.3.4 live callback-clock candidate.** Telemetry0.3.19/ServerStarted20
+declares `server-event-monotonic-samples/1`. Export a complete cumulative
+`ServerClockSample/1` immediately after each private health sample, on the owning
+server thread after tick completion. Preserve the terminal clock and original
+origin/counters; never substitute the health roster for player callback counts.
+Require exact profile, sequence/boot scope, health adjacency and monotonic wall,
+work, tick and per-avatar values through terminal reconciliation. An authenticated
+bounded prefix may be read while the server runs; it is neither a clean-stop
+report nor proof of roster ownership, current freshness or full repair coverage.
+Complete settlement must still join admitted identities, repair boundaries,
+nonoverlapping usage and publication tail. No game-clock value may be inferred
+from elapsed wall time. [Source and synthetic process evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md)
+does not qualify the changed Minecraft profile, active time, scorer or G1.
+
+**M1.1c.3.4 clock source/repair binding candidate.** The private live source must
+join authenticated startup bytes to the existing pipe launch owner's retained,
+live process handle and durable cursor, sealed setup, full registered roster,
+module/world identity and original boot. No PID discovery or relabeling a
+synthetic launch is permitted. The local numeric-loopback/player fingerprint
+must match the admitted target and actual native body before a controller repair
+mark is stored. Require original owner/epoch/deadline/reservation, immutable
+source identity and increasing cursors; retries preserve original evidence/times.
+This establishes source binding, not current sample generation, process isolation
+or complete accounting. Keep the explicit false qualification/settlement flags
+until independently satisfied. A received periodic sample alone cannot prove an
+after-repair boundary. [Binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md)
+uses synthetic setup/game data, including an actual retained Windows/JVM check;
+it does not qualify Minecraft or complete the repair workflow/G1.
+
+**Causal repair-clock boundary.** A producer barrier may use the existing
+`windows-owned-pipe/1` durable-receipt ordering: record the request and current
+committed telemetry cursor under the same SQLite writer lock as the broker;
+require the later health/clock pair to report a producer-acknowledged cursor
+strictly greater than that request cursor. The broker commits before ACK and
+the producer advances its durable cursor only after verifying that ACK, before
+generating health and the adjacent complete clock sample. Preserve immutable
+request/source/boot/scope/deadline on retry, including controller evidence-write
+failure. Reject expired, changed, equal/stale/future or non-pipe receipts.
+`RepairClockWitness/2` may claim generation after this durable request; it must
+not claim generation after a later read, exact transition timing, full repair
+accounting, settlement or input publication on that basis. Existing `/1` evidence
+retains its earlier scope. [Causal pipe evidence](docs/verification/2026-09-27-m1-repair-clock-barrier.md)
+uses synthetic game/setup and does not qualify the final Minecraft profile.
+
 `elapsed_wall` is monotonic elapsed time from first scored start through final stop, including all pauses/outages. `active_wall` includes RUNNING/RECONFIGURING, model thinking, tool latency, idle avatar time, rate-limit waits while the server runs, and checkpoint quiescence until the server stops. It excludes only logged intervals where the whole campaign server is stopped and all campaign inference is suspended. Restart counts again from the first resumed simulation tick, including login/readiness time. Queue/provisioning/preplay checks are separate overhead. Agent-requested restart while the server continues is active time.
+
+**Continuous body-tick allocation candidate.** `BodyTickWindow/1` binds one
+authenticated source origin per campaign epoch to distinct existing tick-only
+reservations for the full roster. Retain cumulative actual callback deltas on
+those original operations across repair, without summing overlapping samples or
+moving charges to the repair tool. Persist observed bytes and budget minima
+before a separate evidence copy; retain overruns and unknown coverage. Reject
+mixed/foreign/reused reservations and repairs already carrying overlapping tick
+charges. `RepairBodyTickCoverage/1` additionally requires a durable window opened
+before the repair request and a causal sample generated after its stored control
+publication. It covers the repair within the continuous allocation, not an exact
+per-repair tick split. No retrospective origin, inferred disconnected time,
+settlement, current input authority or full campaign accounting is supplied.
+The bounded candidate and its synthetic/actual-pipe scope are recorded in
+[continuous tick evidence](docs/verification/2026-09-27-m1-body-tick-window.md).
 
 `server_ticks` are actual ticks advanced, by boot ID/epoch; they are not inferred as 20 times wall time. `avatar_ticks` sums actual connected-avatar tick exposure across all bodies and practice branches; disconnected time is recorded separately. Also record reserved avatar seconds so disconnects cannot create an apparent resource-efficiency advantage. `primitive_events` counts versioned local execution units (each active motor tick and discrete dig/place/use/slot/craft emission, or raw input events on a physical backend), not high-level tool requests; rejected-before-dispatch requests still incur tool/model cost. All clocks and counters remain monotonic in the ledger across world rollback. Report both surviving game-state tick position and total ticks consumed, including lost work.
 
@@ -1513,6 +2128,408 @@ At each checkpoint, instantiate experienced and initial clones with:
 
 Use a fresh instance for every checkpoint/pair/replica. The same instance is shared only by the two matched arm copies. Each clone sees one probe and is then destroyed, including provider/runtime session files and learned overlays. Preserve private evidence before deletion. Campaigns cannot read probe namespaces or model histories. Seed generators, sealed instance IDs and scores stay evaluator-only; opaque task briefs reveal only ordinary gameplay objectives. Developers do not inspect sealed intermediate results to tune prompts/skills/curriculum. Access logging and canary tests enforce this one-way boundary.
 
+The private native projection candidate uses `NativeProbeArtifactSelection/1`
+and `NativeProbeArtifactProjection/1` to derive reviewed initial/retained/active
+artifact references from a complete committed native checkpoint and its source
+account/revision provenance. Caller-provided origin labels and uncommitted
+substitutions cannot establish eligibility. Preserve exact exposure, exclude
+helper-private results, drafts and session/cache state, and enforce each arm's
+projection rule. [Source and stopped-capture verification](docs/verification/2026-09-25-m1-probe-artifact-projection.md)
+does not establish complete clone matching, content review, actual state reset,
+dispatch authority or disposal; every requirement above and T11 remains binding.
+
+The private `ProbeFixture/1` / `ProbePairRequest/1` preparation candidate binds
+protocol instance, selection and order indices, complete checkpoint roster and
+common configuration before creating two separate file trees. It reserves
+one-use instance/world identities, preserves failed-copy evidence, checks exact
+staged bytes/directories and excludes session/cache imports. A synthetic t=0
+case requires zero recorded exposure and identical artifact surfaces.
+[Pair staging evidence](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+has no dispatch authority: actual native/world initial state, resource admission,
+held launch custody, isolation and one-way disposal remain separately required.
+Subsequent verification commits a private VERIFYING intent before reading the
+source or staged tree. A failed check leaves FAILED; controller death can leave
+VERIFYING. Both remain consumed even if files are repaired. The
+[controller-death checks](docs/verification/2026-09-25-m1-probe-verification-fence.md)
+cover this preparation boundary, not native launch custody or probe disposal.
+
+`ProbeFixture/2` and `ProbePairRequest/2` select
+`private-matched-probe-pair-staging/2`. The fixture declares sorted, unique,
+safe world/external directories, including every file/directory parent. Reject
+file/directory collisions, spelling aliases, private roots and missing parents.
+Bind the declared directories into the world digest and both staged trees;
+verify them under the same consumed-failure rules. Fixture/request versions must
+match. Native views derive the original versioned request instead of dropping
+directory state. Legacy /1 identities and evidence remain unchanged.
+
+The matching `held-pair-sealed-vanilla-inputs/2` policy requires this directory
+fixture and writer preparation /4. Compile the sealed software directories plus
+the complete registered world directories; only the external namespace root is
+removed when the six mutable files map to the server root. Reject unsupported
+world/external directory layouts and require exact output directories before
+borrowing and after the continuation. A legacy writer, policy or file-only
+copy path cannot downgrade a directory-bound pair. Preserve original custody,
+finite holds and unlaunched close. [Directory-bound pair verification](docs/verification/2026-09-25-m1-probe-directories.md)
+is preparation evidence; authentic paired runtime readiness, live initial-state
+equivalence, native probe admission and one-way disposal remain required.
+
+The native purpose/account guard joins the reservation to the durable leaf and
+aggregate account identities before startup, participant admission, dispatch and
+broker effects. Campaign profiles accept training or development accounts;
+conformance/development-piloting profiles require development. Evaluation cannot
+borrow any of these identities. Unclassified aggregate accounts may pool
+classified children; an unclassified native leaf cannot dispatch. Running jobs
+also match their original funded reservation, so switching between two otherwise
+permitted categories cannot silently change an admitted job's identity. Keep stopped
+history readable and preserve all costs. [Source and retained-evidence checks](docs/verification/2026-09-25-m1-native-account-purpose.md)
+do not supply the separate disposable probe runtime admission still required.
+Local adaptation uses scoped mutable artifacts inside the probe; it does not
+require importing probe revisions into campaign publication/checkpoint paths.
+
+The private `ProbeNativeViews/1` preparation candidate derives both native
+artifact views from the complete registered pair. It adds exact approved skill
+bodies/supporting files under the native catalog and active broker paths, plus
+the public revision index. Root inventories retain approved cognitive artifacts;
+helper inventories contain only selected immutable initial/docs/supplied files
+and the explicitly supplied active set. No-self-play has no helper inventory.
+Private pair/provenance manifests stay outside workspaces. Fresh empty profiles,
+one-use intents, complete source/tree checks and resolvable operator artifact
+refs are required. [Preparation evidence](docs/verification/2026-09-25-m1-probe-native-views.md)
+is not native catalog loading, broker admission, OS isolation, launch custody or
+disposal authority; those complete T04/T06/T11 contracts remain required.
+
+`NativeProbeArtifactBinding/1` compiles the complete prepared pair into a separate
+operator-only native identity for every arm/member. Both rosters register
+atomically; destination evaluation accounts, jobs, operations, workspaces and
+profiles must be fresh. Root/helper artifact maps and exact catalog entries come
+from the registered views, never caller-supplied selections. The `probe` launch
+purpose binds these records separately from campaign activation or recovery;
+fresh ephemeral roots and the same ordinary goal are required. Absent extension
+fields preserve historical plan/profile hashes. Artifact binding and catalog
+preflight remain preparation: native probe startup is explicitly closed pending
+held world/resource custody, complete native admission/projection and disposal.
+See [binding source evidence](docs/verification/2026-09-25-m1-probe-native-binding.md).
+
+The `held-prepared-pair-resources-and-envelopes/1` candidate holds the prepared
+pair and native-view files with Windows deny-write/delete handles. It reserves
+both complete arms' matched evaluation envelopes and worker capacity atomically;
+this version reserves concurrent capacity for both arms, including declared
+helper model slots. Registered per-probe team ceilings remain finite and are not
+multiplied by the number of agents. A future sequential scheduler needs an
+explicit handover policy. Campaign admission counts these holds in the same
+worker pool. Expiry, lost ownership, changed inputs or unknown usage fence the
+pair while preserving its capacity and cost holds. A live owner may release only
+undispatched preparation resources; this never settles costs or rearms the pair.
+File leases and budget reservation still grant no game/native launch authority,
+live state-equivalence claim or OS-isolation qualification. See [custody checks](docs/verification/2026-09-25-m1-probe-custody.md).
+
+The `prepared-probe-bootstrap-and-role-projection/1` native consumer binds every
+prepared workspace/catalog file and directory to the approved artifact binding
+and complete bootstrap inventory. Native admission checks the exact probe
+catalog before enrollment and projects the explicitly selected role inventory
+after broker authentication. Revalidate scope, source and grant at the atomic
+projection commit; failed copies cannot publish partial broker file mappings.
+Private provenance and catalog paths are not broker artifacts. Fresh namespaces
+cannot contain unrelated files; repeated admission preserves local adaptation
+and checks immutable initial/docs/supplied/active files. Helpers receive no root
+notes/handoff/drafts. [Source and broker fixture evidence](docs/verification/2026-09-25-m1-probe-broker-projection.md)
+does not open the native launch/account gates, establish held world/runtime
+custody or prove actual catalog loading, matched live state or one-way disposal.
+
+`held-pair-protected-world-copies/1` keeps the prepared originals immutable while
+the existing native writer copies both exact world inventories into separate
+fresh protected trees. Require complete arms, distinct identities and disjoint
+namespaces; bind every source path/hash/size, finite copy storage and nested
+deadlines before dispatch. Hold the pinned native executable and its three
+execution companions across both writer lifetimes. Both copies are borrowed
+together only while original pair/file/budget/capacity and native writer custody
+remain live. This stage permits explicit unlaunched discard only, with a separate
+DISCARDED disposition that cannot satisfy a stopped-server reference. Failure
+closes writer/process custody before original input leases and preserves all
+resource/cost holds. Surviving paths and serialized results grant no authority.
+[Copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md) does not
+establish game launch, matched live state, runtime isolation or post-probe disposal.
+
+`held-pair-sealed-vanilla-inputs/1` extends that preparation with a fresh sealed
+vanilla installation whose PackLock equals the registered pair. Compile only
+reviewed immutable server files and every registered state file. Preserve world
+paths; map `external/<name>` to the server root only for the six vanilla mutable
+files. Require all six plus `world/level.dat`; refuse other external state,
+session-lock imports, software substitutions and unsupported empty software
+directories. The copier's source ancestor grants no read capability: only its
+explicit compiled files enter the protected tree. Keep the sealed installation
+under file custody across both copies and validate the exact Java pin. Normalize
+Windows path aliases before writer input/output containment checks. This
+[software-binding candidate](docs/verification/2026-09-25-m1-probe-software.md)
+still closes unlaunched and cannot establish actual game state, native probe
+admission, isolation or one-way disposal. Other pack layouts keep separate gates.
+
+`protected-sealed-restored-vanilla-server/1` is a separate operator conformance
+dependency for protected game execution. Writer preparation /4 preserves the
+complete declared directory inventory, including empty directories, with held
+manifests and an exact post-copy check. Bind a genuine restored vanilla profile,
+the original sealed Java identity, complete source files/directories, reviewed
+loopback/online/EULA settings and a fresh protected tree. Keep original software
+and state under file custody. The native gate records its actual server child;
+join that identity to retained Job membership and the writer token before
+accepting readiness. Resolve and import the held Mineflayer worker before
+starting the finite server lifetime. Observe connection, stop the worker once,
+then stop the server once; require complete normal process history and capture
+stopped state before closing process handles. A deadline or forced/incomplete
+exit remains a failed case. No telemetry broker, authoritative ticks, clean-save
+qualification, probe admission or matched-state claim is inferred. This path
+does not change the preceding pair compiler's unsupported-layout refusals.
+[Protected vanilla verification](docs/verification/2026-09-25-m1-protected-vanilla.md)
+records the exact profile and retained failures.
+
+`held-pair-protected-vanilla-reference/1` extends the directory-bound pair with
+sequential server references in its registered arm order. Hold both originals,
+software, resource/cost envelopes and writer roots throughout. Validate both
+initial states and launch inputs before either server starts; then require the
+remaining custody lifetime to contain both declared server windows. Match helper
+bytes, server limits and export limits between arms. Reserve space for mutable
+state/export bounds before copying. Operator plan construction may use the
+already held software inputs; its output still passes every source, profile,
+namespace, resource and deadline check. The factory grants no launch authority
+and does not extend any lifetime. A missing or failed arm cannot produce a
+successful pair. Stop each server once, prove normal owned termination and hold
+its stopped export immutable while the sibling runs. Record STOPPED_REFERENCE
+separately from unlaunched DISCARDED. Any recorded game-reference intent prevents
+the old undispatched-preparation resource release, even with no native model job.
+Cost holds remain independent and cannot be refunded by either close path.
+
+Private `RegisteredProbeVanillaWorld/1` binds namespace, pair, arm, fixture,
+PackLock, pair-plan digest and complete initial world files/directories. Require
+the exact registered state plus sealed immutable software before launch; refuse
+imported session locks, extra state and directory/filename collisions. Stopped
+probe captures use `StoppedVanillaSnapshot/3` with preserved initial provenance
+and bounded output copying. Ordinary vanilla restoration rejects this format
+with PROBE_FEEDBACK_FORBIDDEN, including changed-worker baseline imports. Legacy
+capture formats retain their behavior. A serialized provenance record grants no
+launch or feedback authority. [Paired server-reference verification](docs/verification/2026-09-25-m1-probe-runtime.md)
+must distinguish substituted process/token tests from actual native evidence.
+The [actual paired preparation attempts](docs/verification/2026-09-25-m1-paired-vanilla.md)
+retain deadline refusals and both real copier histories; they do not establish
+paired Minecraft execution when joint preflight refuses before launch.
+Server readiness alone does not establish all-N body readiness, authoritative
+clocks, live matched state, clean save, native probe admission or agent disposal.
+
+`PrivateVanillaProbeBody/1` and `registered-vanilla1192-saved-bodies/1` bind each
+registered body to one distinct saved-player UUID and its exact registered
+`world/playerdata/<uuid>.dat` object. Decode bounded gzip/NBT at data version3120;
+require the filename/declaration/embedded UUID to agree and check position,
+rotation, dimension, health, food, selected slot, mode and inventory structure.
+The full decompressed NBT digest binds all remaining state, including item tags,
+effects, abilities, respawn and ender inventory; unprojected fields are not
+discarded. Validate the complete declared N roster. Extra historical player
+saves do not acquire an executor or satisfy online-roster readiness.
+
+Explicit sealed-software /3 and paired-reference /2 profiles require this
+saved-body join before writer dispatch, recheck it with live source custody and
+carry the private result in operator evidence. Mixed arm policies or software
+downgrades refuse. Earlier profile identities remain unchanged; their opaque
+body references cannot certify this join. Saved-state verification supplies no
+account assignment, live initial-state equivalence, server ticks, gameplay
+admission or disposal authority. Those original G1/T11 requirements remain.
+[Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
+distinguishes source fixtures and authentic stopped reconstruction from live proof.
+
+`DevelopmentWorker/2` carries a required canonical `expected_player_uuid`.
+The private registered-pair compiler derives it from checked saved-body state,
+requires complete distinct both-arm worker scopes and fresh disjoint output
+paths, and rejects caller identity substitutions. Compilation grants no launch.
+The worker checks the bound account profile before provider refresh/connection,
+then requires the server login UUID to match before announcing readiness.
+Mismatch, closed identity or failed private evidence persistence fences readiness.
+`WorkerPlayerIdentity/1` under `authenticated-saved-player-binding/1` records the
+UUID join, campaign/agent/epoch/lease, spawn sequence and clocks in the operator
+journal, outside public signals. The strict reader checks the configured scope;
+parsing alone does not authenticate provenance. Legacy unbound invocations retain
+`DevelopmentWorker/1`. Both vanilla versions support the same scoped one-use
+operator stop and fixed drain bound; Forge remains unsupported on that stop path.
+These checks do not establish complete live state, all-N
+readiness, native probe admission, authoritative campaign clocks or disposal.
+[Worker identity verification](docs/verification/2026-09-25-m1-worker-identity.md)
+distinguishes substituted transport/provider evidence from authentic connections.
+
+`held-complete-probe-worker-inputs/1` resolves both complete registered arm rosters
+before configuration creation. Each declared account must match its derived saved
+UUID and support the scoped normal-stop worker profile. Hold the account.json
+declarations, sealed runtimes and exact configurations; recheck live parent and
+committed binding custody. Token files are not read or frozen. Refuse the entire
+roster on mismatch; a single-account profile cannot silently reduce N. Partial
+failure retains created configuration evidence, closes only its own leases and
+preserves parent resource/cost holds. This one-use preparation grants no process,
+authentication, native admission or live-state authority. A subsequent runtime
+consumer must separately qualify those contracts and disposal.
+[Input custody evidence](docs/verification/2026-09-25-m1-probe-worker-inputs.md)
+uses synthetic accounts/packs with actual Windows file leases.
+
+Preparation may retain each resolved runtime before the whole-roster account
+check, then commit its configuration once. Deferred custody permits no import,
+worker or server dispatch. Commit rechecks runtime and fresh paths; a failed
+attempt closes its own custody and retains partial evidence. Preliminary path
+discovery may batch shared ancestors within one call; final per-file link checks
+under held parents, retained-handle hashes and membership checks remain required.
+After acquiring all ancestor handles, validate those parent paths again as one
+batch. Their deny-delete custody may replace repeated ancestor scans within that
+acquisition only. Require each file's parent to belong to that held set; check
+the file itself for links immediately before and after opening its retained
+handle. No cross-acquisition path cache or relaxed byte/membership check follows.
+Open native entries without following reparse points so a link introduced during
+acquisition remains held in place until the link check rejects it and cleanup
+releases every acquired handle.
+Directory access must participate in native sharing checks, so removal is denied
+even before any child file opens; a metadata-only zero-access handle is insufficient.
+The owning launcher may retain the exact runtime opened by launch resolution
+through configuration and owned process cleanup, without closing and reopening
+it. Public read-only resolution releases its handles before returning; neither
+path may skip validation or grant new dispatch/admission authority.
+
+Private fresh vanilla-server rechecks may reuse hashes computed through still-held
+Windows deny-write/delete file handles, including the external executable. Recheck
+current provisioning/CAS authority, exact role and empty-directory layouts, names,
+types, sizes, hardlinks and source membership on every call. Unknown paths, foreign
+trees and closed custody refuse; ordinary public resolution still hashes bytes.
+Hashes come from verified handles, not later edits to an inventory dictionary.
+Private vanilla persistence may enumerate immutable-tree membership separately
+from byte validation. Require exact membership among previously template-checked
+files, preserve snapshot file/count/byte limits, and hash every selected file
+through newly retained handles before returning custody. Re-enumerate after
+acquisition. New members, changed bytes, missing files or failed locks refuse;
+no file may join a protected tree without its own verified retained handle.
+One complete private materialization resolution may bracket both role layouts
+with fresh whole-installation membership checks, rather than repeating the same
+tree scan inside each role. Require the exact live installation/marker custody
+before reading authority, retain every role entry's policy/type/size/hardlink/
+hash validation and check membership again before returning either layout.
+Standalone role scans and member effect/receipt checks retain their own custody
+validation. No public skip flag or cached success substitutes for these checks.
+
+Private fresh vanilla worker preparation may borrow that exact installation
+lease while keeping independent per-member runtime and configuration custody.
+Resolve current authority and full layouts for each member; hash and retain the
+external client executable through its own runtime. Refuse unsupported scopes
+and lost borrowed custody before configuration, dispatch or stop receipts.
+Closing a member releases only its own resources. Whole-roster account checks,
+normal public resolution and every finite exposure bound remain unchanged.
+
+`held-pair-protected-vanilla-worker-reference/1` connects complete held worker
+inputs to saved-body paired server references. Import-check all workers before
+either finite server window, reserve complete runtime/log/state storage, validate
+scoped grants and gather ordinary connected observations for the whole arm.
+Drain all workers before server save; retain the first worker export through its
+sibling, stop remaining owned workers on failure and preserve parent holds.
+This operator reference exposes no model/action or native probe authority.
+Paired worker inputs may share an exact pinned immutable runtime under one
+private, one-use lifetime owner. The first acquisition still validates the full
+manifest and hashes every retained file handle. Later borrows require the same
+manifest path/hash, live custody and unchanged tree membership; no persistent
+cache or unchecked reference substitution is allowed. Register this owner before
+all member contexts so owned processes and configuration leases close before
+runtime custody is released, including partial preparation failures. Each member
+retains independent configuration, account binding and process ownership, with
+fresh authority, materialization and dispatch checks. Standalone workers retain
+their own runtime ownership. Sharing software grants no gameplay isolation or
+native probe authority and does not change deadlines or budget/resource holds.
+
+Worker import checks may finish before either writer is acquired, after durable
+pair admission, complete namespace/storage checks and native-input custody.
+Keep parent time charged throughout and check its deadline after worker input
+validation, immediately before import process creation. Persist each normal
+owned-stop receipt before marking that member imported; retain configuration,
+runtime, account and source custody. Bind subsequent writer plans to the prepared
+imports. Failure before writer acquisition still cleans owned processes/logs,
+fences the attempt and retains reservations. Full later pair checks and every
+original finite writer/server window remain required; imports grant no gameplay.
+Each composed runtime check validates shared software/parent custody once and
+all member bindings, account/config/runtime files and process phases. Standalone
+member checks still validate shared custody. Persist and flush each successful
+import stop receipt before advancing its phase; receipt failure prevents server
+launch. Returned writer failures retain the first inner cause alongside the
+unchanged outer close refusal, without releasing reservations or claiming disposal.
+Within one member lifecycle check, validate runtime custody directly for held or
+running workers and through the complete owned-stop receipt for imported/stopped
+workers. Every new check revalidates; unknown phases refuse and no cached success
+may substitute for live custody. Preparation-only input checks retain their full
+runtime validation. After constructing both sessions, perform the complete pair
+preflight at first start and then check the aggregate server windows against
+every current parent/writer deadline before dispatch. Preflight time consumes
+those existing bounds; all later dispatch checks remain required.
+After the continuation drains its workers, request normal server stop through
+the still-scoped writer before the complete pair recheck. Perform that recheck
+during bounded drain, before capturing or accepting a stopped export and before
+any sibling dispatch. A validation failure still fences the pair and retains
+all reservations; requesting stop cannot establish a successful capture. The
+original writer/server/parent deadlines and pre-dispatch checks remain binding.
+Its private `registered-worker-initial-own-projection/1` checks normal owned stop,
+saved UUID, single identity/epoch, zero actions/primitives and exact journalled
+delivery, then compares the existing own-state projection.
+The ordinary player inventory window is permitted only at id0 with the inventory
+type, no cursor item or machine and the same projected slots as own inventory;
+opened/foreign windows are refused. Preserve delivered observation JSON without
+adding optional defaults before its exact journal join. Persist normal worker
+stop and owned custody receipts before subsequent projection validation.
+This does not cover
+unprojected live NBT fields or establish full matched state, simultaneous all-N
+readiness, tool/policy parity, authoritative clocks or disposal. Genuine game
+observations retain their identity when agent/protocol reference fixtures are
+synthetic; example labels never substitute for producer provenance.
+The private vanilla player save-format codec may invoke the pinned actual
+serializer on the owning server thread, binding the expected UUID before and
+after capture and in the emitted compound. Retain every emitted field and
+refuse oversized or failed output without returning partial evidence. The
+output cap does not bound the game's temporary allocations or execution time.
+Save-format data does not cover all transient player state or supply producer,
+callback/tick/sequence, all-N readiness or admission authority. Authenticate
+loaded bytes and owned process separately; keep raw captures private. Preserve
+format limitations, original bytes and every mismatch rather than silently
+normalizing comparisons or extending ordinary gameplay observations.
+The distinct `vanilla1192-private-roster-nbt/1` observer pins every loaded class
+from the official implementation JAR, its code source and one game loader. Its
+server/player hooks verify the actual caller and receiver, retain one complete
+declared roster within one server tick, and commit private save-format output
+only after every member is written. Partial rosters cannot accumulate across
+ticks; initial identity/thread/order failures invalidate the attempt. Release
+player references after capture and do not convert subsequent ordinary respawn
+into an initial-state identity fault. Bind configuration/module/server/PID/scope,
+sequence, tick and capture duration. Require owned launch/custody, independent
+output inspection and authentic capture/parity evidence before accepting the
+witness. Refuse unsupported whole-roster capacity rather than reducing N.
+This distinct observer does not inherit the clock agent's qualification or
+grant native probe admission, full transient-state equality or G1 acceptance.
+The independent private body-output verifier requires complete ordered
+start/running/capture/stop records, exact configuration/scope/roster, all expected
+NBT files and a complete loaded-class inventory. Derive original class hashes
+from the exact official JAR and bind transformed hashes independently. Content
+consistency alone is not producer provenance. The distinct protected writer/2
+launch holds module/configuration/server/callback bytes, authenticates the live
+Java child, and retains its exact Job/member handle through normal owned exit.
+Do not re-open a PID or require an image-path query after process exit. Inspect
+and export immutable output before closing native handles; incomplete history,
+forced exit, changed inputs or output cannot promote the capture. Single-worker
+reference admission requires exactly its registered one-player roster before
+import and never substitutes for all-N readiness. Private output remains outside
+gameplay/helper contexts. A valid save-format capture does not establish equal
+initial or transient state, external-writer exclusion, instrumentation parity,
+campaign clocks, probe disposal or full G1 acceptance.
+[Owned-capture evidence and retained failures](docs/verification/2026-09-25-m1-player-body-custody.md).
+The distinct paired capture profile joins both registered arms to that private
+observer with identical module and complete roster, exact pair/epoch/run scope,
+and owned producer/input/output custody. Compare all emitted typed save-format
+fields, including unknown fields, list order and exact floating-point bits;
+compound insertion order is not state. Preserve original bytes and mismatches.
+Bound diagnostic output separately from the complete comparison and reserve
+its storage. Persist private mismatch evidence before fencing the pair; never
+return it to gameplay or training. Equal save-format captures alone cannot
+qualify full initial/transient state, instrumentation parity, native admission,
+clocks or disposal. Zero-seed initialization is a retained mismatch cause, not
+permission to remove that field or import later probe output into training.
+[Paired comparison evidence](docs/verification/2026-09-26-m1-paired-player-body.md)
+distinguishes passing source checks from the failed authentic preparation.
+[Lifecycle evidence and retained deadline refusal](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
+distinguish passing source cases from failed authentic-input execution.
+
 ### 13.2 Controls and artifact survival
 
 The indispensable comparison is experienced versus initial clones at each checkpoint of the full persistent system. The full default includes the selected plugin and self-play capability. Ablations are separately labeled systems; no-self-play is a scientific control, not a replacement for the requested full system.
@@ -1525,6 +2542,16 @@ The indispensable comparison is experienced versus initial clones at each checkp
 | No self-play | Native direct reasoning and artifact editing; helper/self-play tools disabled | Retain notes/skills/handoff | Compare with full at the same opportunity ceilings; report actual spend. |
 
 Frozen-skills notes can encode procedural information; this intervention estimates the effect of executable/procedural packaging under the declared classifier, not the absence of all implicit skills. Enforce category rules (no executable blocks or tool-triggered procedures in notes), audit a sample, and report ambiguity. Frozen-persistence does not prevent short-term adaptation inside an episode or indirect information in the persistent world. Matched probes, not training progress differences, remove direct gear/world advantages.
+
+The native frozen-skills candidate declares `NativeRetentionPolicy/2` and
+`frozen-notes-markdown-no-code/1`: [operator category policy](docs/operations/native-frozen-notes.md).
+Bind the classifier before execution; enforce it on root/helper artifact writes
+and checkpoint reconstruction, retain accepted-content audit references and
+report implicit-procedure ambiguity. Legacy /1 frozen-skills evidence stays
+readable and synthetic-conformance-only, without campaign category authority.
+The lexical classifier does not satisfy complete category, native isolation or
+T11 qualification by itself; actual produced-note audit and bypass checks remain
+required. Other arms and every acceptance case above remain unchanged.
 
 All arms keep ordinary world progress and lawful client settings across training episodes. “Frozen persistence” refers to cognitive artifacts; its Controls-equivalent card can be regenerated from current settings under the same convenience policy as other arms. Probes restore the common keymap and initial control card for both clones. These distinctions prevent an accidental extra memory channel from being described as a fully amnesic campaign.
 
@@ -1557,9 +2584,157 @@ Server predicates validate causally relevant behavior: crafting source and consu
 
 **Private development scorer binding.** Register an instance's campaign/evidence kind, each complete predicate definition and the permitted epoch-to-server-boot mapping before accepting score events. Received events must not establish their own scope. All predicates share the instance mapping; later sources require increasing epochs and distinct boots. Identical registered receipts may be deduplicated across restart, but changed kind/schema/actor list/payload under a transaction ID must fail, including after predicate completion. Retain unbound historical state and reject automatic relabelling or guessed migration. Operator registration and supporting digest strings are not authenticated ingestion or artifact verification; development score outputs retain evidence kind and `scoring_authority_qualified=false`. Authentic setup/team provenance, parity, isolation and positive/negative controls remain required. Raw callbacks/configuration snapshots/resource witnesses remain unscorable. These private payloads do not change the thirteen top-level record schemas.
 
+**Private machine completion resource contract.** The distinct
+`thermal1192-furnace-resolve-bracket/1` verifies supplied private begin/output/input
+boundaries for the pinned unaugmented plain furnace. Begin follows successful
+native input validation and recipe resolution; RF processing and subsequent
+automatic transfers are outside this bracket. Require exact scope, tick,
+consecutive sequence, transaction, position and recipe bytes, no invented player
+attribution, exact ordered input/output deltas and unchanged unrelated resources.
+Bound layouts/counts/positions; unsupported augments, metadata or probabilistic
+recipes reject for this profile without removing their wider requirements.
+Preserve event digests and all failures. A resource witness does not authenticate
+the producer or establish setup/team, continuous operation, RF/fluid consumption,
+mechanics parity, isolation or scoring. Those flags remain false until their own
+complete contracts and authentic controls pass; existing raw scorer schemas are
+not expanded. [Exact source/evidence audit](docs/verification/2026-09-26-m1-scorer-coverage.md).
+
+**Private native furnace capture candidate.** Telemetry module0.3.14 and
+`ServerStarted/15` declare `thermal1192-native-furnace-phases/1`; all earlier
+module identities remain distinct. On the exact pinned Expansion/Core/CoFH
+artifacts, a dedicated-server callback observes the actual furnace's validated
+completion before outputs, after outputs and after inputs. Bind the server
+thread, native caller, same tile/level/position/tick, unchanged internal recipe
+identity and ordered phases. Bound plain stacks, empty augments and resolved
+recipe facts; retain unsupported/failed-validation refusals and fail closed on
+broken callback/lifetime/order. A single private raw completion contains three
+snapshots, not three invented authoritative boundary events. Thermal's internal
+recipe object has no public recipe ID: do not infer one or bridge to the prior
+resource verifier without independently verified registration. Private readers
+require the new startup/support profile, reject duplicate transactions and
+guessed actors, preserve authenticated framing and keep raw records unscorable.
+Artifact pins and a marker/caller check are not transformed-code authentication.
+Actual protected capture, registration binding, complete setup/team/window/RF/
+fluid evidence, overhead/parity and isolation remain required; no gate changes.
+[Implementation and focused checks](docs/verification/2026-09-26-m1-machine-producer.md).
+
+**Private native recipe-registration candidate.** Telemetry0.3.15/startup16 and
+native furnace phases/2 add the observed registration lineage. Capture actual
+server recipe-manager refresh, direct registration, cooking-recipe conversion
+and returned internal objects. Use object identity, not equality/output/ID
+matching. Retain both the registered source ID and observed machine-recipe ID;
+converted recipe IDs may collide and must not merge their distinct source
+objects. Each refresh invalidates prior bindings and increments a bounded
+generation. Require complete refresh/clear/registration pairing, one owner
+thread, bounded entries/names and current live-server registry/source-object
+identity. Structural failures poison the observer rather than silently evicting
+evidence or allowing a later callback to repair it. Readers bind the new schemas
+to the new module, reject registration-generation rollback and retain typed
+unobserved/changed-registration refusals. Observing this lineage is not loaded-
+code authentication or protected scoring: those authority flags remain false.
+Existing phases/1 evidence keeps its original unbound identity. Actual
+transformed integration, protected capture, resource/fixture qualification,
+parity and the full G1 controls remain required.
+[Implementation and checks](docs/verification/2026-09-26-m1-machine-registration.md).
+
+**Private native completion resource comparison.** The distinct
+`thermal1192-native-furnace-resource/1` compares one phases/2 completion with a
+separately supplied concrete recipe expectation. Reuse the ordered resource
+arithmetic without fabricating three GameEvents. Match the observed source
+recipe ID, exact resolved input/output/count/chance/energy; preserve both
+registration IDs, generation and one original event digest/sequence. A converted
+machine ID is not its source ID. The caller must separately authenticate the full
+stream and bind its prior scope/recipe plan. Post-hoc expected facts cannot become
+prior fixture registration. Recipe energy is not measured consumption. Existing
+producer/setup/team/window/parity/isolation and scorer controls remain required;
+all authority flags remain false. [Source and retained-record verification](docs/verification/2026-09-26-m1-native-resource.md).
+
+**Private native processing-debit candidate (M1.5b.6).** Telemetry0.3.16 /
+`ServerStarted/17` retains phases/2 completion identity and adds
+`thermal1192-native-furnace-process-tick/1`. Observe entry and both original
+returns of the exact pinned furnace `processTick` without cancelling, changing
+arguments, return values or game state. Bind the native caller/server thread,
+exact tile/position/level/tick, unchanged recipe registration/object and full
+plain inventory/empty augment state. Record before/after RF, capacity, noncreative
+storage, progress/max/step/active state and actual integer return. Reject
+unsupported state explicitly; broken pairing/lifetime stops the producer.
+Private online/offline readers require the new startup identity and supported
+artifacts, preserve source sequence/digest, and reject actor invention, mixed
+profiles, duplicate transactions and generation rollback. The offline report
+fails closed above16,384 processing records; existing stream quotas also apply.
+Verify unchanged unrelated state. Positive remaining work returns/decrements the
+native step and debits min(stored RF, step); nonpositive remaining work returns
+zero with no debit/progress change. Keep partial funding explicit. Debits are
+not net recipe energy: later overshoot refunds, charging/transfers, continuous
+windows, resource completion joins, team/setup/loaded-code qualification,
+parity/isolation and protected scoring require their own evidence. No player
+attribution or score is inferred, no older identity is upgraded, and no new
+gameplay route or canonical top-level record is introduced.
+
+**Private native process transitions candidate (M1.5b.7).**
+Telemetry0.3.17 / `ServerStarted/18` adds
+`thermal1192-native-furnace-transitions/1` to the existing private stream.
+Observe exact processStart entry/return and native tickServer refund before/after
+without replacing game methods. Bind caller/thread and live tile/level/position/
+tick; start also binds resolved recipe/registration/base step. Retain initially
+idle zero max/step only in this distinct state profile. Verify exact carried
+progress or actual capacity-clamped refund, unchanged unrelated resources and
+nonoverflowing arithmetic. Refusals and incomplete captures cannot earn credit.
+Require exact startup/artifact policy, complete authenticated ingestion, shared
+transaction/generation fences and bounded records. Preserve all older profiles.
+These boundaries do not independently establish a full operating interval,
+machine lifetime, net recipe energy, setup/team/loaded-code/parity/isolation or
+protected scoring. [Source verification](docs/verification/2026-09-26-m1-furnace-transitions.md).
+
+**Private native tick/lifetime candidate (M1.5b.8).** Telemetry0.3.18/ServerStarted19 adds `thermal1192-native-furnace-server-tick/1`: exact native server-tick entry/return, ordered processing/completion/start/refund child IDs and transfer/charge/activation/off state boundaries. Identity follows the actual tile object and level, with retirement on removal, unload or reactivation; a replaced or retired object cannot resume an old lifetime. Bound the activation to64 ever-issued lifetimes and16,384 total ticks, without resetting quotas on retirement. Require strict ordinals, clocks, scope, child order and state joins; retain native refusals, reject orphan children and never fill gaps. Exact inclusive sampled windows require every tick and no intervening lifetime end or state mismatch. This establishes only sampled continuity: separate prior window/recipe registration, setup/team, resource provenance and authenticated loaded-producer evidence remain required. Transfer/charge changes do not infer a resource source. All scoring/registration/authority claims remain false until their own acceptance evidence passes. The new records stay private, share the transaction duplicate fence and require a complete authenticated clean-stop stream. Existing processing/transition/completion profile identities and historical evidence remain unchanged. [Candidate evidence](docs/verification/2026-09-26-m1-furnace-interval.md). [Operation11](docs/verification/2026-09-26-m1-pending-abort-native.md) verifies the positive84-tick interval, actual unload retirement and complete authenticated clean-stop stream. Replacement/refusal controls, registered scoring admission, full producer/setup/team authority and T10/G1 remain open.
+
+**Prior private operating-window contract (M1.5b.9).**
+`PrivateCraftReferencePlan/5` binds `thermal1192-private-machine-reference/2`,
+including one declared operating-window rule for every registered target.
+Selection is either exact inclusive ticks within the enclosing plan or the
+first observed start through its first subsequent refund. Never choose a later
+successful episode after a refused, replaced or incomplete first episode.
+Require the same actual lifetime, every tick/child/state join, no intervening
+retirement, and a closed inactive-to-inactive episode with zero boundary
+progress. Each tick must perform fully funded work; idle padding cannot satisfy
+sustained duration. Every start, processing call and completion must match the
+registered recipe and maintain recipe/registration identity within its cycle.
+Count only joined completion input/output deltas. Account for all processing RF
+and the final unclamped refund; net endpoint RF must equal completed recipe
+energy and the prior minimum. Reject unproven transfers/charging, borrowed
+resources, partial cycles, unsupported profiles and quota excess. Alternate
+registered direct/converted recipes remain possible under the same checks.
+
+The complete authenticated clean-stop reader returns comparison evidence with
+prior-registration and scoring flags false. Only the sealed store may establish
+prior registration, after verifying the immutable plan/authority, consumed
+one-use launch, matching ordered seal/reservation records and applicable stopped
+custody/dispatch/pair proofs. `PrivateCraftReferenceInspection/5` retains those
+cursors and digests and is idempotent across reopening. Missing, changed,
+duplicate or reversed registration prevents receipt publication. Rejected
+windows return zero candidate output with a typed reason; later success does not
+replace them. Legacy plan/report shapes are unchanged. Window registration does
+not grant protected scoring, loaded-code, setup/team, fluid/automation provenance
+or isolation qualification. Old references cannot be retroactively upgraded.
+[Implementation and verification](docs/verification/2026-09-26-m1-machine-window.md).
+
+
 **Private telemetry authentication candidate.** `private-telemetry-hmac-sha256-chain/1` binds an operator-issued per-boot key/challenge to the private instance, campaign and epoch. Forge telemetry 0.3.3, configuration version 3, consumes a durable exclusive boot claim before emitting signed wrappers containing the exact original GameEvent bytes. Bind the authority fingerprint, challenge, ordered sequence, previous MAC and event-byte hash; validate the separately issued scope, boot claim and complete telemetry contract before returning an inspection. Count encoded bytes against the existing storage quota. Reject altered, mixed, replayed/out-of-order or incomplete streams; never delete a consumed claim to enable an automatic restart. Legacy unsigned evidence remains explicitly unauthenticated. Key possession/byte integrity do not qualify OS process identity, setup/team facts, parity or scoring; raw records remain ineligible and the authenticated online endpoint, recovery and full T06/T10 remain required. These private wrappers do not add a fourteenth top-level record or expose evaluator records to gameplay. [Source, synthetic Java/Python and selected authentic dedicated-stream evidence](docs/verification/2026-09-20-authenticated-telemetry.md) remains separate from process isolation and authoritative scoring qualification.
 
 **Private craft reference seal.** Before a reference boot, pin the complete selected fixture file inventory, supporting evidence bytes, benchmark team/unique agent-to-Minecraft-UUID roster, complete predicate, exact recipe digests and registered server-tick window. Verify and preserve independent private copies; publish the seal only after copying and verification. Bind the canonical setup digest through `TelemetrySpoolAuthority/2` into the existing signed stream. Recheck live/archived inputs before durably reserving one launch; retain partial publication and ambiguous reservations rather than automatically renewing them. Inspection recomputes authenticated native witnesses and checks roster, recipes, resource deltas and tick window. Identical complete imports are idempotent; changed imports or missing/corrupt archive bytes reject. Candidate resource results remain private and do not update scorer state or grant credit. This byte-integrity seam alone does not prove the actual launched world, setup validity, expert mode, FTB-team membership, isolation, mechanical parity, complete wall-time cutoff or recovery. [Implemented source and synthetic CLI/JVM evidence](docs/verification/2026-09-20-craft-reference-seal.md).
+
+**Private machine resource seal extension.** `PrivateCraftReferencePlan/4`
+retains the prior craft/setup/roster/history contract and binds a separate
+`thermal1192-private-machine-reference/1` resource plan into the same setup,
+preserved-input, authority and launch digests. Bound distinct dimension/position
+furnace targets, both registration IDs/origin, exact concrete recipe expectations,
+output thresholds and the parent tick window before launch. Keep craft results
+separate. Complete authenticated phases/2 ingestion rejects duplicate/partial or
+foreign streams; private per-target inspection retains each resource rejection
+and never borrows output between targets. Repeated complete imports are
+idempotent; old seals cannot acquire new criteria. Resource counts alone do not
+qualify setup/team, loaded code, RF/fluid/window, parity, isolation or scoring.
+Post-hoc inspections stay post-hoc. [Source verification](docs/verification/2026-09-26-m1-machine-reference.md).
 
 **Owned reference launch.** The private Windows launcher consumes that single reservation, journals intent before dispatch, and retains terminal or uncertain state without automatic relaunch. Admit only the reviewed official E9E bootstrap/configuration profile with auto-restart disabled, pinned executable/module/software trees, loopback online-mode server and existing EULA acceptance. Hold deny-write file leases on immutable launch inputs and recheck tree inventories. `ServerStarted/5` from telemetry 0.3.4 reports native PID/start time/executable, actual game/world/module paths, module digest, online mode and port; bind these authenticated fields to independently retained Windows Job Object member handles and the sealed plan. Require complete member termination, normal bounded stop, complete signed stream and matching initial identity before recording a stopped reference. A tracked uncertain dispatch cannot fall back to an untracked import. This narrow launch binding is not general process isolation, protection against concurrent mutable-world/configuration writers, native setup/team/admin qualification, guardian timing, complete recovery or scoring eligibility. Preserve earlier stream schemas and private evidence. [Implementation and verification](docs/verification/2026-09-20-reference-launch.md).
 
@@ -1578,6 +2753,8 @@ Server predicates validate causally relevant behavior: crafting source and consu
 **Continuous writer custody candidate.** `native-private-java-custody/1` retains the original protected tree/workspace/input handles from preparation through native child termination and broker closure. A borrowed operator-only continuation cannot be resumed from serialized state or used on another lifecycle thread. Strict `PrivateWriterLaunch/1` initially admits only the finite synthetic JVM profile. Pin its helper, descriptor, module, classpath and bounded shell-free argument manifest. A native pre-start helper publishes its process identity but cannot access the world or start the child until the controller verifies its retained Job member and actual token, rechecks custody and publishes a fresh grant. One owner observes Job members; the broker consumes that held map. Close the native tree and broker before releasing any input/namespace lease, including journal/continuation faults. Unfinished/uncertain history cannot pass, and reopening cannot adopt a stopped path or replay its ID. Actual native synthetic normal/interruption/token-refusal controls advance M0.2c.3b.2b.3.2; full ReferenceLauncher/participant wiring, authentic setup and sibling-read isolation remain required. [Implementation and bounded native evidence](docs/verification/2026-09-21-writer-custody.md).
 
 **Protected reference orchestration.** `native-private-reference-custody/1` binds a strict synthetic-only `ProtectedReferencePlan/1` and version-4 private reference launch to a durable fresh instance/workspace reservation. Prepare and seal within one live custody lifetime, then launch through the native pre-start gate and operator-owned private pipe. No serialized launch can recreate custody, and the legacy pair entrypoint cannot dispatch this profile. One owner drains logs and observes Job members; bounded line-based readiness cannot wait for process exit. Preserve participant report leases, exact readiness/launch/boot binding and full versioned abort scope. Live broker uncertainty revokes admission; durably record the failure and publish a bound, non-replacing cooperative abort before cleanup. The outer lifetime reaches STOPPED only after launch/participant completion and custody closure. Candidate import additionally checks protected plan/setup/spool bindings and closed stopped custody; a complete stream cannot bypass uncertain parent coordination. Actual native synthetic positive, wrong-receipt and missing-stop controls do not qualify authentic gameplay or complete isolation. Extend the declared finite profile to the pinned authentic server and owned real-client driver before setup/scoring qualification. [Implementation, retained failure and native evidence](docs/verification/2026-09-21-protected-reference.md).
+
+**Private prior telemetry capacity (M1.5b.8a).** `PrivateReferenceLaunch/8` and `ProtectedReferencePlan/3` require `private-reference-telemetry-capacity/1` before launch. Bind finite authenticated-wire byte and event limits into the nested launch/protected/outer and abort identities; require broker settings to agree exactly. Legacy profiles retain8,388,608bytes/2,000events and cannot acquire capacity retrospectively. The new contract permits65,536–1,073,741,824bytes and1–1,000,000events; choose sufficient capacity for the intended bounded producer before dispatch. Reserve the full spool byte ceiling atomically with dispatch intent, checking existing same-volume holds in this private database plus64 MiB disk margin. Unknown/failed work retains its hold across restart. Only complete stopped broker/process evidence with matching counts/digests can settle actual bytes and unused capacity atomically with dispatch STOPPED; failed commits or missing dispatches leave the hold intact. Reservations are logical among cooperating references sharing that database, not OS extents or capacity for unrelated logs/database/fixtures; external disk exhaustion remains a typed failure. No claim of full N08/G2 qualification follows. Preserve consumed preflight on later reservation failure and never rearm a used instance. Byte/event exhaustion cannot append or acknowledge an over-limit record, and incomplete streams remain unscorable. This private implementation allocation changes no model/gameplay/time budget or acceptance threshold. [Source evidence](docs/verification/2026-09-26-m1-telemetry-capacity.md); authentic changed-profile integration remains unverified.
 
 **Protected online server and owned client pair.** `native-online-private-server/1` explicitly declares direct networking with the proxy disabled, without claiming network isolation. `PrivateWriterPreparationPlan/2` and `PrivateWriterLaunch/2` extend only the private server lifetime/token capability, retaining original copy quotas and actual retained-Job/token admission. Keep preparation at most 900 seconds with a 60-second staging/closure reserve, server at most 600 seconds plus 120 seconds graceful cleanup, and native child at most 720 seconds; legacy limits remain unchanged; new Forge grants use the D13 guardian threshold. `PrivateReferenceLaunch/5`/`ProtectedReferencePlan/2` require the reviewed E9E bootstrap and installed-state lock, exact shell-free command, immutable software, private descriptor and full client binding before authentic dispatch. `PrivateReferencePair/2` owns this entire process lifetime and the existing client driver: require matching pinned nested launch plans, recorded native readiness, full client exposure and revalidated prepared module/fixture bytes before client launch. Final closure additionally joins the exact durable protected plan/body, closed stopped custody and preserved inner launch result. Missing receipts or uncertainty abort and cannot import/replay. Actual online-token/native synthetic positive and missing-client-receipt cases establish only the tested orchestration. Authentic game setup, shared-account isolation and scoring remain unqualified. [Implementation and native evidence](docs/verification/2026-09-21-online-reference-pair.md).
 
@@ -1622,6 +2799,21 @@ Preparation `/3` binds the prospective `hotspot-processors4-heap512-6144mib/1` d
 **Private reference pair monitoring.** `PrivateReferencePair/1` binds the version-3 launch, production client registration, private driver, interpreter/bootstrap and declared source/input pins before a durable one-use pair intent. Pin the exact parsed bytes and hold declared files through the pair. Client dispatch requires matching durable native-bound readiness, a live server and enough remaining time for the complete declared client window; production exposure equals registered client wall plus terminal reserve. Independently enforce finite outer Job deadlines, including when the monitor blocks. Preserve the first typed monitor failure durably before cooperative abort; shorten deadlines for cleanup, never extend them. An already empty owned tree need not be killed again, but missing retained process-history evidence remains unqualified. Preserve exact terminal report bytes separately; missing/invalid reports, failed processes, forced cleanup, incomplete history or logs cannot yield a stopped pair. A nonterminal or uncertain pair blocks craft-reference import even when its inner server reports a clean stop. Abrupt coordinator death leaves its intent unreplayable and does not prove termination or recovery. The pair result certifies only its narrow coordination scope, never client execution, the guardian, general isolation or scoring. The selected backend, participant/client/server limits and all acceptance thresholds remain unchanged. [Source/owned-process evidence](docs/verification/2026-09-20-reference-pair.md).
 
 **Private inventory failure diagnostics.** `ProcessInventoryObservation/1` retains only the fixed failing stage, bounded assigned/listed/retained counts and immediate Win32 error for a failed API. Successful calls must not report stale last-error values. Preserve this operator-only observation durably before abort/cleanup, separately from the unchanged abort-v1 control record. It grants no new process authority and does not waive failed observations, history, quotas or deadlines. No retries or game replay are implied. [Authentic failure and source verification](docs/verification/2026-09-21-native-craft-points.md).
+
+**M1 early-abort delivery and diagnostic extension.** Carry the first durably
+recorded monitor failure across healthy monitor iterations when the server-owned
+evidence directory does not yet exist. Publish that original failure once the
+directory becomes available, before any participant admission, without extending
+cleanup deadlines. Attempt publication at most once; an ambiguous write remains
+a failure and never triggers replacement or replay. Independent hard cleanup
+still applies. `ProcessInventoryObservation/2` adds only a fixed rejection reason
+for an attempted incomplete-list reconciliation: unretained list entry, lifetime
+total mismatch, assigned/active count outside retained history, or limit
+termination. The original qualification predicates and API/handle-error behavior
+remain unchanged; old observations retain version1. Neither diagnostics nor a
+later empty process inventory retroactively qualify failed history. This private
+extension adds no gameplay route or new spending authority.
+[Source and fixture evidence](docs/verification/2026-09-26-m1-pending-abort.md).
 
 **Complete retained-history verification.** The private reference supervisor explicitly declares `complete-retained-job-history/1`; other process observers retain strict list equality by default. An incomplete successful list can resolve only when all listed entries are valid/distinct/already held, counts fit the unchanged quota, and an independent query on the same held Job reports lifetime total exactly equal to the distinct previously membership-validated retained handles. Active/assigned counts must fit that history; limit terminations and invalid retained handles reject. No PID guessing, new handle or later list retry supplies missing history. Durably publish each anomaly and its measurements before continuing, bounded to 64 per supervisor; publication/quota failures stay latched. Include proofs in the terminal report. Final active-zero, complete held/signaled/lifetime equality, logs and watchdogs remain required; the guardian uses its declared bound (D13 for new Forge grants, legacy 500 ms). Historical failed instances cannot be relabeled. [Implementation and focused/native evidence](docs/verification/2026-09-21-process-history.md).
 
@@ -1673,6 +2865,48 @@ Use at most two development promotion looks per tier at predeclared exposures (1
 If a system begins at ceiling, keep the anchor evidence, record adaptation headroom as limited, and advance only the development curriculum after competence confirmation. If it never reaches a prerequisite, keep it at that node until budget ends; record the failed prerequisite and downstream tasks as **not attempted**, not successes or inferred zeros. Where a downstream diagnostic is useful, use a standardized prerequisite-equipped fixture for both arms and label it conditional competence. Lack of prerequisite attainment remains a campaign outcome. Transfer uses explicit approved memory projections into fresh worlds and includes source cost.
 
 ## 15. Resource, budget and capacity model
+
+**Confirmed partial repair consumption.** Retain each operator-verified cumulative
+minimum against its existing non-envelope budget operation before a separate
+measurement artifact is published. Name only observed dimensions; missing body or
+model/helper usage is not zero. Open exposure must retain at least the original
+reservation and each confirmed minimum. Duplicate notifications do not add costs;
+cumulative observations take their maximum, while independent intervals require
+source reconciliation. Preserve ancestor/envelope attribution and existing
+uncertainty. Settlement/reconciliation must not refund confirmed consumption.
+For native repair, bind the typed private worker interval to the original operation;
+commit its primitive minimum before CAS publication. An overrun must remain visible
+and fence further repair against the exhausted reservation. This is partial
+consumption, not full settlement or input authority. [Implementation and evidence](docs/verification/2026-09-27-m1-repair-consumption-floor.md).
+
+An owned server-clock interval may also supply a partial avatar-tick minimum.
+Require two stored, revalidated causal repair marks with the same held source,
+registered roster, native body, controller clock and worker plan. Subtract actual
+callback counts for that repair's avatar only; health-roster counts and elapsed
+time cannot substitute. Fix the first accounting opening and extend cumulative
+closures without adding overlapping intervals. Store the clock witness and budget
+minimum atomically before checking for an overrun. Retain the original reservation
+and reject any settlement that refunds observed ticks. This does not certify
+coverage before the opening, after the closing, campaign active time or model/
+helper consumption. [Clock consumption evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md).
+
+**Repair inference closure.** Open the repair's inference window atomically with
+input suspension. Include its avatar's existing unsettled dispatches and admit
+new root/helper/retry dispatches into that window in the same transaction as
+their original reservations. To prepare completion, freeze new inference for
+that avatar under the same writer lock; do not cancel or replay in-flight calls.
+Keep authoritative late settlement and unknown holds on their original budget
+operations. Reconcile the window's membership with dispatch/settlement journal
+cursors before claiming its tracked calls settled. Do not repost these costs to
+the repair tool operation or treat this claim as complete body/repair accounting.
+
+Preserve historical budget-denial `/1` records. Frozen or legacy-untracked repair
+admission emits `InferencePreDispatchRejection/2` with
+`durable-repair-denial-before-dispatch/1`: no dispatch intent, reservation or
+provider call; the consumed request cannot later replay. Missing historical
+windows cannot become inferred zero-call proofs. This is a private controller
+completion dependency, not permission to resume gameplay, grant inference
+spending or qualify the final runtime. [Evidence](docs/verification/2026-09-27-m1-repair-inference.md).
 
 Responsibility: PL (F02/F11), QA (N03/N05/N07). Real simultaneous capacity is measured, not promised by configuration syntax or simulator agent counts.
 

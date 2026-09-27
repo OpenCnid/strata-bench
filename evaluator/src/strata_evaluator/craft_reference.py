@@ -22,6 +22,7 @@ from mcbench.storage import Database, canonical, digest, reject_links, require, 
 
 from .scorer import Predicate
 from .setup_facts import SetupSnapshot, qualify_points
+from .machine_reference import MachineReference, MachineReferenceV2
 from .telemetry_auth import (
     BoundSpoolAuthority, inspect_authenticated_spool, issue_authority, parse_authority, private_read,
 )
@@ -89,11 +90,30 @@ class CraftReferencePlanV3(CraftReferencePlanV2):
     required_history_policy: Literal["native-e9e-setup-mutation-watch/1", "native-e9e-setup-mutation-watch/2", "native-e9e-setup-mutation-watch/3", "native-e9e-setup-mutation-watch/4", "native-e9e-setup-mutation-watch/5", "native-e9e-setup-mutation-watch/6"]
 
 
+class CraftReferencePlanV4(CraftReferencePlanV3):
+    schema_: Literal["strata/PrivateCraftReferencePlan/4"] = Field(alias="schema")
+    machine_reference: MachineReference
+
+    @model_validator(mode="after")
+    def machine_window(self):
+        require((self.start_server_tick, self.cutoff_server_tick) ==
+                (self.machine_reference.start_server_tick, self.machine_reference.cutoff_server_tick),
+                "MACHINE_REFERENCE_WINDOW")
+        return self
+
+
+class CraftReferencePlanV5(CraftReferencePlanV4):
+    schema_: Literal["strata/PrivateCraftReferencePlan/5"] = Field(alias="schema")
+    machine_reference: MachineReferenceV2
+
+
 def parse_plan(value):
     if isinstance(value, CraftReferencePlan):
         return value
     model = {"strata/PrivateCraftReferencePlan/2": CraftReferencePlanV2,
-             "strata/PrivateCraftReferencePlan/3": CraftReferencePlanV3}.get(value.get("schema"), CraftReferencePlan)
+             "strata/PrivateCraftReferencePlan/3": CraftReferencePlanV3,
+             "strata/PrivateCraftReferencePlan/4": CraftReferencePlanV4,
+             "strata/PrivateCraftReferencePlan/5": CraftReferencePlanV5}.get(value.get("schema"), CraftReferencePlan)
     return model.model_validate(value)
 
 
@@ -283,7 +303,8 @@ class CraftReferenceStore:
         launch_body = strict_json(launch["body"])
         require(launch_body["setup_digest"] == row["digest"] and launch_body["authority_digest"] == row["authority"],
                 "CRAFT_LAUNCH_CHANGED")
-        report = inspect_authenticated_spool(Path(spool), path)
+        report = inspect_authenticated_spool(Path(spool), path,
+            machine_reference=plan.machine_reference if isinstance(plan, CraftReferencePlanV4) else None)
         if isinstance(plan, CraftReferencePlanV3):
             require(report.get("setup_history", {}).get("policy") == plan.required_history_policy,
                     "CRAFT_NATIVE_HISTORY_MISSING")
@@ -361,6 +382,9 @@ class CraftReferenceStore:
         if isinstance(plan, CraftReferencePlanV3):
             result.update(schema="strata/PrivateCraftReferenceInspection/3",
                           required_history_policy=plan.required_history_policy)
+        if isinstance(plan, CraftReferencePlanV4):
+            result.update(schema="strata/PrivateCraftReferenceInspection/4",
+                          machine_reference=report["machine_reference"])
         # Legacy source-only references retain their original report shape.
         # A tracked dispatch may not be replaced by that weaker path after an
         # uncertain launch, failed identity binding or incomplete stop.
@@ -375,6 +399,38 @@ class CraftReferenceStore:
                         and body.get("binding", {}).get("native_observation") == report.get("launch_identity"),
                         "CRAFT_LAUNCH_UNQUALIFIED")
                 result.update(launch_binding_verified=True, launch_plan_digest=body["plan_digest"])
+        if isinstance(plan, CraftReferencePlanV5):
+            # The raw reader can compare caller-supplied plans but cannot attest
+            # prior registration. Bind the immutable seal and consumed one-use
+            # launch, including their original durable ordering, only here.
+            cursors = {}
+            for kind in ("private.craft_reference_sealed", "private.craft_reference_launch_reserved"):
+                matching = []
+                for event in self.database.connection.execute(
+                        "SELECT cursor,body FROM outbox WHERE kind=? ORDER BY cursor", (kind,)):
+                    value = strict_json(event["body"])
+                    if value.get("instance") == instance:
+                        require(value.get("setup_digest") == row["digest"]
+                                and value.get("authority_digest") == row["authority"],
+                                "MACHINE_OPERATING_REGISTRATION_CHANGED")
+                        matching.append(event["cursor"])
+                require(len(matching) == 1, "MACHINE_OPERATING_REGISTRATION_MISSING")
+                cursors[kind] = matching[0]
+            require(cursors["private.craft_reference_sealed"]
+                    < cursors["private.craft_reference_launch_reserved"], "MACHINE_OPERATING_REGISTRATION_ORDER")
+            result.update(schema="strata/PrivateCraftReferenceInspection/5",
+                operating_window_registration={"setup_digest": row["digest"],
+                    "authority_digest": row["authority"],
+                    "machine_plan_digest": digest(plan.machine_reference.model_dump()),
+                    "seal_cursor": cursors["private.craft_reference_sealed"],
+                    "launch_reservation_cursor": cursors["private.craft_reference_launch_reserved"],
+                    "prior_registration_verified": True, "scoring_eligible": False})
+            windows = result["machine_reference"]["operating_windows"]
+            windows["prior_registration_verified"] = True
+            for candidate in windows["targets"].values():
+                if candidate["witness"] is not None:
+                    candidate["witness"]["prior_registration_verified"] = True
+                    candidate["witness"]["sampled_window"]["prior_registration_verified"] = True
         with self.database.transaction() as db:
             old = db.execute("SELECT * FROM craft_reference_imports WHERE instance=?", (instance,)).fetchone()
             if old:

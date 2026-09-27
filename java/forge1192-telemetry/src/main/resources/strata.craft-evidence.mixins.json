@@ -5,6 +5,13 @@
   "compatibilityLevel": "JAVA_17",
   "server": [
     "CraftClickMixin",
+    "FurnaceCaptureMixin",
+    "FurnaceTickMixin",
+    "FurnaceTransitionMixin",
+    "FurnaceIntervalMixin",
+    "FurnaceLifetimeMixin",
+    "FurnaceRegistrationMixin",
+    "RecipeRegistrationMixin",
     "GameModeHistoryMixin",
     "OperatorHistoryMixin",
     "PlayerListHistoryMixin",

@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue
+from pydantic import Field, JsonValue, model_validator
 
 from .accounting import EstimateBasis
 from .budgets import Budgets
@@ -41,7 +41,7 @@ class NativeLaunch(Strict):
     agent_id: Id
     epoch: Positive
     role: Literal["executor", "helper"]
-    purpose: Literal["campaign", "conformance", "development_piloting"] = "campaign"
+    purpose: Literal["campaign", "conformance", "development_piloting", "probe"] = "campaign"
     parent_job_id: Id | None
     depth: UInt
     helper_limit: Annotated[int, Field(ge=0, le=32)] = 2
@@ -59,7 +59,10 @@ class NativeLaunch(Strict):
     budget_mode: Literal["whole_job", "per_dispatch"] = "whole_job"
     session_storage: Literal["ephemeral", "private_profile"] = "ephemeral"
     accounting_basis_digest: Digest | None = None
-    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1"] | None = None
+    broker_policy: Literal["native-stdio-projected-artifacts-executor-game/1",
+                           "native-stdio-projected-artifacts-executor-game-team/1",
+                           "native-stdio-projected-artifacts-executor-game-no-helpers/1",
+                           "native-stdio-projected-artifacts-executor-game-team-no-helpers/1"] | None = None
     bootstrap_manifest: str | None = None
     bootstrap_digest: Digest | None = None
     ingress_policy: Literal["native-job-http-header/1"] | None = None
@@ -70,6 +73,9 @@ class NativeLaunch(Strict):
     skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     helper_skill_activation_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     resume_component_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    team_policy_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    probe_binding_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
+    helper_probe_binding_ref: Ref | None = Field(default=None, exclude_if=lambda v: v is None)
     # Operator-constructed frozen native settings, not model-provided overrides.
     config_overrides: dict[str, JsonValue]
     environment: dict[str, str]
@@ -77,6 +83,26 @@ class NativeLaunch(Strict):
     hard_timeout_s: Annotated[int, Field(ge=1, le=300)]
     output_limit_bytes: Annotated[int, Field(ge=1024, le=64 * 1024**2)]
     qualification_ref: Ref | None
+
+    @model_validator(mode="after")
+    def team_profile(self):
+        from .native_broker_policy import TEAM_POLICIES, NO_HELPER_POLICIES
+        if (self.broker_policy in TEAM_POLICIES) != (self.team_policy_ref is not None):
+            raise ValueError("team capability requires its explicit policy and private policy pin")
+        if self.broker_policy in NO_HELPER_POLICIES and (self.helper_limit != 0 or self.role != "executor"
+                or self.depth != 0 or self.parent_job_id is not None or self.helper_skill_activation_ref is not None
+                or self.helper_probe_binding_ref is not None):
+            raise ValueError("helper-free policy requires an executor with zero helper capability")
+        if (self.purpose == "probe") != (self.probe_binding_ref is not None):
+            raise ValueError("probe purpose requires a separate committed artifact binding")
+        if self.helper_probe_binding_ref is not None and self.helper_probe_binding_ref != self.probe_binding_ref:
+            raise ValueError("probe helpers require the same explicitly supplied artifact binding")
+        if self.purpose == "probe" and (self.skill_activation_ref is not None or
+                self.helper_skill_activation_ref is not None or self.resume_component_ref is not None or
+                self.session_storage != "ephemeral" or self.role != "executor" or self.depth != 0 or
+                self.parent_job_id is not None or self.epoch != 1 or self.budget_mode != "per_dispatch"):
+            raise ValueError("probe identity requires a fresh disposable root and separate artifact admission")
+        return self
 
     def profile_digest(self):
         # Episode text, identities and locations vary; execution affordances do not.
@@ -105,6 +131,11 @@ class NativeLaunch(Strict):
         if self.resume_component_ref is not None:
             body["component_resume"] = {"policy": "native-development-component-resume/1",
                                         "source": self.resume_component_ref}
+        if self.team_policy_ref is not None:
+            body["team_policy_ref"] = self.team_policy_ref
+        if self.probe_binding_ref is not None:
+            body["probe_artifacts"] = {"policy": "disposable-native-artifact-binding/1",
+                "root": self.probe_binding_ref, "helpers": self.helper_probe_binding_ref}
         return digest(body)
 
 
@@ -166,6 +197,8 @@ class NativeExec:
                        "state IN ('PREPARED','STARTING','RUNNING','STOPPING','UNSETTLED')")
             db.execute("CREATE TABLE IF NOT EXISTS native_events (job TEXT REFERENCES native_jobs(id), "
                        "cursor INTEGER, channel TEXT, body TEXT, PRIMARY KEY(job,cursor))")
+            db.execute("CREATE TABLE IF NOT EXISTS native_process_drains (job TEXT PRIMARY KEY "
+                       "REFERENCES native_jobs(id), proof_ref TEXT, event INTEGER REFERENCES outbox(cursor))")
 
     def _proof(self, plan):
         require(plan.qualification_ref is not None, "RUNTIME_UNQUALIFIED")
@@ -204,6 +237,12 @@ class NativeExec:
 
     def _validate(self, plan, reserve, fixture_argv):
         db = self.db.connection
+        if plan.purpose == "probe":
+            from .native_probe_binding import require_binding_scope
+            require_binding_scope(db, self.cas, plan)
+            # Artifact binding is not held world/resource admission. Keep both
+            # production and fixture launch closed until that coordinator exists.
+            require(False, "NATIVE_PROBE_LAUNCH_CUSTODY_REQUIRED")
         if db.execute("SELECT 1 FROM sqlite_master WHERE name='inference_exposure_faults'").fetchone():
             require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
                     "INFERENCE_EXPOSURE_QUARANTINED")
@@ -211,8 +250,8 @@ class NativeExec:
                 reserve.agent_id == plan.agent_id and reserve.operation_id == plan.operation_id and
                 reserve.epoch == plan.epoch, "OPERATION_LINEAGE")
         require(reserve.kind == ("helper" if plan.role == "helper" else "model"), "OPERATION_LINEAGE")
-        if plan.purpose in {"conformance", "development_piloting"}:
-            require(reserve.campaign_account == "development", "CONFORMANCE_ACCOUNT_REQUIRED")
+        from .native_account_policy import require_native_account, require_purpose_category
+        require_purpose_category(plan.purpose, reserve.campaign_account)
         require(reserve.usage.spend_microusd is not None and reserve.usage.spend_microusd > 0,
                 "SPENDING_CEILING_REQUIRED")
         require(plan.depth <= 2 and ((plan.role == "executor" and plan.depth == 0 and
@@ -230,9 +269,14 @@ class NativeExec:
         require(set(plan.environment) <= {"PATH", "LANG", "TZ", "TMP", "TEMP",
                                          "STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"},
                 "FORBIDDEN_ENVIRONMENT")
+        from .native_arm_policy import require_arm_policy
+        require_arm_policy(self.db.connection, self.cas, plan)
         if plan.broker_policy is not None:
             from .native_broker_policy import validate_broker_settings
-            validate_broker_settings(plan.config_overrides)
+            validate_broker_settings(plan.config_overrides, policy=plan.broker_policy)
+            if plan.team_policy_ref is not None:
+                from .native_team import require_team_plan
+                require_team_plan(self.db.connection, self.cas, plan)
             require(not {"STRATA_GAME_GRANT", "STRATA_HELPER_GRANT"} & set(plan.environment),
                     "BROKER_CREDENTIAL_ENVIRONMENT")
         require((plan.bootstrap_manifest is None) == (plan.bootstrap_digest is None), "BOOTSTRAP_REQUIRED")
@@ -290,9 +334,11 @@ class NativeExec:
                     "INITIAL_TRIAL_LIMIT")
             # A different home alone is not isolation. Qualification must separately
             # prove that this workspace cannot access operator docs or provider auth.
+        require_native_account(db, plan, reserve)
         return workspace, profile
 
     def start(self, plan: NativeLaunch, reserve: BudgetLedger, *, fixture_argv=None):
+        plan = NativeLaunch.model_validate(plan.model_dump())
         workspace, profile = self._validate(plan, reserve, fixture_argv)
         plan_body = plan.model_dump()
         if plan.accounting_basis_digest is None:
@@ -503,6 +549,7 @@ class NativeExec:
         live = self.live[job]
         plan = live["plan"]
         cleanup_error = None
+        process_drain = None
         for child, entry in list(self.live.items()):
             if entry["plan"].parent_job_id == job and child in self.live:
                 try:
@@ -520,10 +567,14 @@ class NativeExec:
         try:
             # Stop descendants before closing pipes/readers. End is not permission
             # to refund the reservation or assume only one provider call happened.
-            live["process"].stop()
-            for thread in live["threads"]:
-                thread.join(timeout=1)
-            live["process"].close()
+            try:
+                live["process"].stop()
+                if os.name == "nt":
+                    process_drain = live["process"].drain_evidence()
+            finally:
+                for thread in live["threads"]:
+                    thread.join(timeout=1)
+                live["process"].close()
             if live.get("integrity"):
                 live["integrity"].close()
         except BaseException as error:
@@ -531,6 +582,13 @@ class NativeExec:
                 self.integrity_holds[job] = live["integrity"]
             cleanup_error = error
             reason = "process_stop_failed"
+        if cleanup_error is None and process_drain is not None:
+            from .native_process_drain import record_process_drain
+            try:
+                record_process_drain(self, plan, process_drain)
+            except BaseException as error:
+                cleanup_error = error
+                reason = "process_drain_evidence_failed"
         try:
             while True:
                 channel, raw = live["queue"].get_nowait()

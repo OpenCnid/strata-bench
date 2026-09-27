@@ -10,13 +10,14 @@ from mcbench.records import (
 )
 from mcbench.authorization import ExecutionAuthorization, ModelExecutionAuthorization
 from mcbench.native import NativeLaunch
+from mcbench.native_probe_binding import NativeProbeArtifactBinding
 from mcbench.provisioning import (
     AcquisitionReceipt, LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, FrozenE9ELaunchProfile,
     ProvisioningCheck, ProvisioningEvidence, RoleInventoryInput,
 )
 
 
-@pytest.mark.parametrize("model", [ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, AcquisitionReceipt,
+@pytest.mark.parametrize("model", [ExecutionAuthorization, ModelExecutionAuthorization, NativeLaunch, NativeProbeArtifactBinding, AcquisitionReceipt,
                                   LaunchProfile, VanillaLaunchProfile, E9ELaunchProfile, FrozenE9ELaunchProfile,
                                   ProvisioningCheck, ProvisioningEvidence,
                                   RoleInventoryInput])

@@ -19,10 +19,10 @@ admitted = _admitted
 stopped = _stopped
 
 
-def activate(stopped, *, commit=True):
+def activate(stopped, *, commit=True, boundary="episode"):
     runtime, _, _ = stopped
     publication(stopped)
-    _, _, ref, manifest = stage(stopped)
+    _, _, ref, manifest = stage(stopped, boundary=boundary)
     if commit:
         Checkpoints(runtime.db, runtime.cas).commit(runtime.db.checkpoint_fixture["config"], manifest, "operator")
     return NativeSkillSets(runtime), ref

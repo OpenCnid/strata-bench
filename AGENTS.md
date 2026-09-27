@@ -10,6 +10,47 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
+## September 27 fresh-session checkpoint
+
+The user requested a documentation/handoff PR and merge to main, followed by
+continuation in a fresh session. This is an **incomplete M1 checkpoint**, not
+milestone closure. M0 is verified; G0 passes only its D14 development slice.
+M1 is `in_progress`; G1 and each complete T01/T04/T05/T06/T10/T11 suite remain
+`not_run`. Do not mistake component counts or the PR merge for acceptance.
+
+Read [STATUS](docs/STATUS.md), [the concise handoff](docs/STATUS_AND_HANDOFF.md),
+[the September 27 checkpoint](docs/verification/2026-09-27-session-handoff.md),
+then MILESTONES and applicable SPEC contracts. Fetch origin and verify the actual
+merged PR/head before branching from updated main. Preserve existing work and
+recheck applicable durable authority/process state. The handoff names the latest
+source, evidence seals, installed-vs-built profiles and retained runtime failure.
+
+Continue toward one authentic play → diagnose → pause → repair → restart/verify
+→ account → commit/restore → resume workflow. M1.1c.3.4 has partial connected
+resume/publication/inference/body-tick accounting; wall/disconnected-time and
+original-lease controller completion remain open. The other G1 suites also
+remain required. Prioritize completion of these joins and missing authentic
+evidence rather than treating another isolated component as milestone closure.
+
+D20 implementation/scripted conformance authority persists. D18/D19 remain
+M0-only: no M1 paid-inference allowance exists. Preserve $4.887796 exposure,
+all consumed decisions and eight separate unresolved telemetry reservations.
+The final native essential-controls attempt failed with a health timeout;
+diagnose it before any changed verification, without relaxing thresholds or
+repeating an unchanged run. Shared-desktop input remains paused. Historical
+next-action lists below or in archived reports do not override this checkpoint.
+
+## September 24 M1/G1 continuation (D20)
+
+The user now authorizes complete M1/G1 implementation from merged PR8. Begin
+with the exact-profile G1 coverage audit and qualified gameplay-root/helper
+runtime boundary, then complete required contracts/native integration/keybinding,
+isolation/scorer controls/probe boundaries and their necessary dependencies.
+Unrelated M2-M7 work remains outside scope. The current ledger/handoff supersede
+M0-only stopping instructions below. D18/D19 spending remains M0-only; D20 does
+not extend the inference allowance. Historical D14 development evidence stays
+isolation-unqualified. Preserve all original IDs, failures, holds and decisions.
+
 ## September 24 M0/G0 closure
 
 The resumed implementation objective was **M0 and all six G0 outcomes only**,

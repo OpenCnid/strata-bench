@@ -124,15 +124,20 @@ def run(plan_path):
         return run_plan(plan, resources, runtime)
 
 
-def run_plan(plan, resources, runtime=None):
+def run_plan(plan, resources, runtime=None, *, candidate=None):
     version = plan["schema"]
+    if candidate is not None:
+        from m1_native_game import Candidate
+        require(type(candidate) is Candidate, "M1_CANDIDATE_REQUIRED")
+        candidate.require_plan(plan)
+    require(version != "strata/M1NativeBoundary/1" or candidate is not None, "M1_CANDIDATE_REQUIRED")
     pilot = version in {"strata/M0NativePilot/1", "strata/M0NativePilot/2"}
     failure = version == "strata/M0NativeGameFailure/1"
     if pilot:
         from native_pilot_trial import check_inputs
         pilot_admission = check_inputs(plan["pilot"])
-    sealed = pilot or failure or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
-    restored = pilot or failure or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    sealed = candidate is not None or pilot or failure or version in {"strata/M0NativeGameSmoke/4", "strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
+    restored = candidate is not None or pilot or failure or version in {"strata/M0NativeGameSmoke/5", "strata/M0NativeGameRecovery/3"}
     sealed_recovery = version == "strata/M0NativeGameRecovery/3"
     prepared = None
     retention = recovery = None
@@ -165,13 +170,13 @@ def run_plan(plan, resources, runtime=None):
         invocation = WorkerInvocation.model_validate(plan["worker_invocation"])
         require(safe(invocation.state_directory) == safe(output / "worker")
                 and safe(invocation.configuration_path) == safe(output / "worker-config.json"), "M0_PLAN_INVALID")
-        require(retention.config.pack_lock == pack.lock, "M0_PACK_RETENTION_MISMATCH")
+        require((candidate.campaign if candidate else retention.config).pack_lock == pack.lock, "M0_PACK_RETENTION_MISMATCH")
         if restored:
             from mcbench.pack_restore import archive_restoration, baseline_record
             private(pack.restoration.snapshot)
             if sealed_recovery:
                 recovery.validate_sealed_binding(pack, invocation.model_dump())
-            else:
+            elif candidate is None:
                 require(json.loads(retention.body["objects"][retention.config.world_baseline]) == baseline_record(pack),
                         "M0_PACK_BASELINE_MISMATCH")
         output.mkdir(parents=True)
@@ -229,7 +234,7 @@ def run_plan(plan, resources, runtime=None):
             and worker_config["server_kind"] == "vanilla" and worker_config["host"] == "127.0.0.1",
             "M0_PROFILE_UNSUPPORTED")
     pilot_duration = (pilot_admission["budget_decision"] or {}).get("hard_timeout_s", 90) if pilot else 90
-    require((worker_config["max_wall_ms"] == 360000 if pilot_duration in {180, 240} else
+    require((worker_config["max_wall_ms"] == 360000 if candidate or pilot_duration in {180, 240} else
              150000 <= worker_config["max_wall_ms"] <= 240000) and
             server_plan["max_wall_s"] >= worker_config["max_wall_ms"] / 1000 + 60,
             "M0_EXPOSURE_INCOMPLETE")
@@ -287,7 +292,7 @@ def run_plan(plan, resources, runtime=None):
             "backends/mineflayer/package-lock.json", *[f"schemas/v1/public/{name}.json"
                 for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest")])})
         archive_pilot_sources(output, source_pins, ROOT, worker_root)
-    write(output / "intent.json", {"schema": "strata/M0NativeGameIntent/1", "plan": plan,
+    write(output / "intent.json", {"schema": "strata/M1NativeBoundaryIntent/1" if candidate else "strata/M0NativeGameIntent/1", "plan": plan,
         "model_provider": "native_oauth" if pilot else "synthetic", "real_model_requests": None if pilot else 0,
         "isolation_qualified": False, "authentic_game": True,
         "shared_desktop_input": False, "started_unix": time.time(),
@@ -303,6 +308,11 @@ def run_plan(plan, resources, runtime=None):
     result = {"schema": "strata/M0NativeGameResult/1", "status": "fail", "G0": "fail",
               "model_evidence": "synthetic_provider", "game_evidence": "authentic_vanilla",
               "real_model_requests": 0, "production_qualified": False, "native_worker_journal_join": False}
+    if candidate:
+        result.pop("G0")
+        result.update(schema="strata/M1NativeBoundaryResult/1", G1="not_run", isolation_qualified=False,
+                      controller_readiness="synthetic", simultaneous_body_capacity_qualified=False,
+                      complete_checkpoint=False)
     if pilot:
         result.update(schema="strata/M0NativePilotResult/1", model_evidence="actual_native_oauth",
                       isolation_qualified=False, scope_decision="D14", complete_checkpoint=False,
@@ -435,6 +445,8 @@ def run_plan(plan, resources, runtime=None):
                 native_result = run_trial(plan, native, descriptor, worker_config["lease_id"])
             finally:
                 mark_timing("native_finished")
+        elif candidate:
+            native_result = candidate.native(plan, descriptor, worker_config, native)
         else:
             if failure:
                 from native_game_failure_probe import GameTransportFailureProbe

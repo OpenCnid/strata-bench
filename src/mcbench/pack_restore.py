@@ -27,6 +27,7 @@ def load_restoration(binding, inventory):
     for path in (_absolute(binding.instance), _absolute(binding.store)):
         require(not source.is_relative_to(path) and not path.is_relative_to(source), "PACK_RESTORE_OVERLAP")
     world = verify_snapshot(source, binding.restoration.sha256)
+    require(world["schema"] != "strata/StoppedVanillaSnapshot/3", "PROBE_FEEDBACK_FORBIDDEN")
     if isinstance(binding.restoration, WorkerProfileBaseline):
         from .pack_baseline import profile_documents, verify_profile_baseline
         verify_profile_baseline(binding, world, inventory, profile_documents(binding), source)

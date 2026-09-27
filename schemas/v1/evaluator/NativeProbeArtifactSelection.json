@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/NativeProbeArtifactSelection/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "policy": {
+      "const": "native-checkpoint-probe-artifact-projection/1",
+      "title": "Policy",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "skill_set_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Skill Set Ref",
+      "type": "string"
+    },
+    "initial_paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 1024,
+      "minItems": 1,
+      "title": "Initial Paths",
+      "type": "array"
+    },
+    "retained_paths": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 1024,
+      "title": "Retained Paths",
+      "type": "array"
+    },
+    "skill_names": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32,
+      "title": "Skill Names",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "policy",
+    "is_example",
+    "skill_set_ref",
+    "initial_paths",
+    "retained_paths",
+    "skill_names"
+  ],
+  "title": "NativeProbeArtifactSelection",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

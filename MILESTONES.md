@@ -2,39 +2,1351 @@
 
 ## Current position
 
-**September24 M0 closure: M0 verified; G0 pass for the named D14 development
-slice; G1–G5 not_run.** The [exact six-outcome assembly](docs/verification/2026-09-24-g0-assembly.md)
-and [318-child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md)
-close the M0-only request. This is feasibility evidence, not a research MVP,
-complete backend/pack conformance, isolation or scientific-scoring qualification.
-All51 M1–M7 rows and all historical failures remain unchanged.
+**September 27 fresh-session checkpoint requested.** The user requested updated
+documentation and a PR/merge to main, then continuation in a fresh session.
+M1 remains `in_progress`; G1 and complete T01/T04/T05/T06/T10/T11 remain `not_run`.
+No milestone or acceptance gate closes through publication. Read the concise
+[handoff](docs/STATUS_AND_HANDOFF.md) and
+[dated checkpoint](docs/verification/2026-09-27-session-handoff.md) first.
+Next implementation: finish complete wall/disconnected-time and settlement joins,
+original-lease controller completion and authentic repair/restore/resume, while
+preserving every other required G1 contract/native/isolation/scorer/probe case.
+D20 persists; D18/D19 remain M0-only. Unrelated M2–M7 work stays outside scope.
 
-PR7 is merged at `f8daedc`; this work began from clean updated main on
-`codex/m0-g0-final-assembly`. All40 original authority tables still match
-stopped live18. Exposure remains$4.887796/$10, preserving the$0.7554 hold and
-four full$1 unresolved envelopes. All20 gateways are CLOSED. No new inference
-occurred; D12/D19.11 and every used trial remain consumed.
+### Last implementation checkpoint — `07737f3`
 
-M0.2k.3 now verifies minor12 actual dig cancellation/release, fencing and fresh
-worker epoch, exact historical receipt/dedup, stale denial, one new turn,
-unchanged journal prefixes, all3primitives and stopped block/full inventory
-NBT. Independent48/48 passes; all24 processes exit normally. The initial
-public-route selector failure is separately retained with zero actions/all17
-processes terminal. Current worker/PackLock identities remain exact.
+Private evidence sealed: 58 files / 4,293,003 bytes,
+SHA-256 `61717c2c1283d35f92df46dd90635822ca0e47acf120672b776952939d849e85`.
+All 40 authority tables, eight telemetry holds and two installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,188 local links were checked. This pointer postdates the archived snapshot.
 
-Live15's successful actual model turn/walk/helper remains distinct from
-live18's proved refusal/corrected turn and failed two-action goal. The complete
-live18 cost/source/pack/worker/player/clock join remains19/19. No failed goal,
-old500-ms shutdown, unknown cost or unsupported E9E Mineflayer result is upgraded.
+M1.1c.3.4 now maintains a continuous authenticated body-tick window on the
+original full-roster reservations. Repair coverage requires an opening before
+its request and a causal sample after publication; costs are never reposted to
+the repair tool. CAS failure and overruns retain observed consumption. 15 new
+source cases pass; 51 total affected source cases and one actual JVM/private-pipe
+case pass. Game/publication/body qualification remains synthetic; the actual
+pipe case proves tick allocation, not pre-request repair coverage.
+[Continuous body-tick evidence](docs/verification/2026-09-27-m1-body-tick-window.md).
+Wall/disconnected-time accounting, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No Minecraft or paid model run occurred.
 
-**Next action:** stop M0 work. M1 is the next roadmap milestone, but no M1–M7
-implementation or new experiment is selected by this request. Full T05 and D14
-isolation stay G1; complete canonical recovery/fault/soaks stay G2. Wider
-M0-prefixed contracts keep their statuses and explicit later-gate dispositions.
-The [merged checkpoint](docs/verification/2026-09-24-session-handoff.md),
-[older checkpoint history](docs/MILESTONES_CHECKPOINT_HISTORY_2026-09-24.md),
-[historical G0 row](docs/verification/2026-09-24-g0-gate-history.md) and append-only
-log retain the earlier stopping state and every superseded next action.
+### Previous publication-retrieval checkpoint
+
+Private evidence sealed: 151 files / 6,305,414 bytes,
+SHA-256 `96e14ce9f863bd9e6f4796685e03cc16c72e177710b76a1deda02d20a2c179fe`.
+All 40 authority tables, eight telemetry holds and two installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,182 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now retrieves the exact stored worker publication boundary through
+its private typed endpoint and joins it to the controller's measured receipt,
+confirmed resume, committed controls and frozen inference audit. Later gameplay
+and stopped input do not change this historical evidence. Full settlement and
+campaign permission remain false. 55 focused Python cases, 23 selected TypeScript
+cases and one actual controller/Node/guardian/JVM process case pass; game,
+verification and settlement producers remain synthetic. The initial fixture
+identity errors and nested-transaction process failure are retained.
+[Publication receipt evidence](docs/verification/2026-09-27-m1-publication-receipt.md).
+Complete consumption allocation, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No paid model or Minecraft run occurred.
+
+### Previous inference-resume checkpoint
+
+Private evidence sealed: 285 files / 9,591,768 bytes,
+SHA-256 `295aaaede79d6c26db9ba6bab48ce4ae1b51e6bf18bba6511216a309e31f7376`.
+All 40 authority tables, eight telemetry holds and both installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,177 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now requires frozen, settled inference accounting in the actual
+native resume path. Pending helper/model calls refuse resume before a durable
+intent or worker call. New resume witnesses bind the immutable audit; status
+and measurement cannot silently discard that binding.31 distinct focused source
+cases and two selected controller/Node/JVM cases pass with synthetic game/helper/
+verification producers. [Resume integration evidence](docs/verification/2026-09-27-m1-resume-inference.md).
+The first publication process attempt correctly failed at21 primitives against
+20 reserved; the fixture now waits for the worker's terminal preplay receipt.
+The final case measured19 under the unchanged20 cap. Failure history is retained.
+Complete primitive/body allocation, controller settlement/original lease and
+authentic gameplay qualification remain open. No aggregate G1 suite closes.
+
+### Previous inference-closure checkpoint
+
+Private evidence sealed:171 files/11,019,900 bytes,
+SHA-256 `b31830bbdae0f03c501746924bc171b77039218cfb3841f309cb38dcefb7c511`.
+All40 authority tables, eight telemetry holds and installed client/options hashes
+are unchanged; final matching runtime process count0. All460 milestone IDs and
+2,173 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now records root/helper/retry dispatches overlapping a repair and
+can freeze new inference for that avatar before completion. Existing calls keep
+their original budgets and late-settlement/unknown-hold paths; no costs are
+reposted. Missing legacy windows and frozen requests have durable, nonreplayable
+denials. Fourteen focused controller/concurrency cases, one real HTTP case and
+63 affected compatibility cases pass, using synthetic provider/native identities.
+[Repair inference evidence](docs/verification/2026-09-27-m1-repair-inference.md).
+Controller completion must still invoke this check and join complete primitive/
+body intervals and publication evidence. Authentic gameplay, native-health and
+all six aggregate G1 suites remain open; no paid model or Minecraft run occurred.
+
+### Previous tick-consumption checkpoint
+
+Private evidence sealed:62 files/4,044,298 bytes,
+SHA-256 `a87878072c57d8cfd28306ee0119437b1bca7c2e17009956a65b1c8602308329`.
+All40 authority tables, eight telemetry holds and installed client/options hashes
+are unchanged; final matching runtime process count0. All460 milestone IDs and
+2,166 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now joins two owned causal clock marks to a retained avatar-tick
+budget minimum. It preserves the original reservation, refuses origin changes
+and refunds, deduplicates cumulative extensions and retains overruns before
+blocking further work. Nine distinct source cases and one actual Java/pipe/
+controller test pass. The process test observes two Java callbacks and retains
+two ticks against a zero-tick reservation; game/setup/body/token qualification
+remain synthetic. [Clock consumption evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md).
+Complete interval allocation, model/helper costs, original-lease completion and
+authentic gameplay qualification remain open. M1/G1 and every aggregate G1 suite
+remain incomplete; no Minecraft or paid model run occurred.
+
+### Previous publication checkpoint
+
+Private evidence sealed:84 files/4,242,093 bytes,
+SHA-256 `1b20009ffda21e3bb7ecb8cb5524b8902c1b94007cb684f45f912e341d85305c`.
+All40 authority tables, eight telemetry holds and both installed-file hashes are
+unchanged; final matching runtime process count0. All460 milestone IDs and2,159
+local links were checked. This pointer postdates the archived source snapshot.
+
+M1.1c.3.4 now checks consumption after the final observation, in the same
+transaction that publishes controls. Two reproduced defects (late charges and
+changed source attribution) now refuse publication, retain costs and fence input.
+A durable private boundary survives later gameplay; a storage-failure test keeps
+recovery required.21 distinct source cases and the selected actual controller/
+Node/JVM process case pass, with synthetic game/verification/settlement producers.
+[Publication boundary evidence](docs/verification/2026-09-27-m1-publication-accounting.md).
+Complete body/model/helper accounting, original-lease completion and authentic
+play/repair/resume qualification remain open. No aggregate G1 suite closes.
+
+### Previous component checkpoint
+
+M1.1c.3.4 now retains confirmed native repair primitives in budget exposure
+before the separate evidence-file write. Partial usage preserves the original
+reservation; an overrun raises retained exposure and blocks further repair work.
+The actual controller/Node/JVM fixture retains18 measured repair primitives under
+the original20 reservation.54 focused checks and the selected actual process case
+pass. [Consumption evidence](docs/verification/2026-09-27-m1-repair-consumption-floor.md).
+The process test uses a synthetic game/verification/settlement producer. Complete
+prior-gameplay, body-clock, model/helper and publication-tail accounting remains
+open, as do original-lease completion and authentic workflow qualification.
+No aggregate G1 suite closes; no inference or Minecraft run was performed.
+
+### Earlier component checkpoints
+
+Earlier next-step notes below are historical; the current position above supersedes them.
+
+M1.1c.3.4 now binds live clock prefixes to the pipe launch owner's retained
+server handle, immutable setup/roster and actual native repair body identity.
+The controller stores immutable marks under the original repair authority while
+retaining its budget/input hold. [Clock binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md).
+The Windows/JVM retained-handle check passes with synthetic telemetry/setup;
+Minecraft qualification remains open. Next add a single-use producer barrier
+that proves its clock sample was generated after the controller request, then
+join complete consumption, publication and original-lease resume. A periodic
+sample received later cannot supply that timing proof. M1/G1 remains open.
+
+
+M1.1c.3.4 now exports the native callback clock while the server runs, through
+telemetry0.3.19/ServerStarted20 and a private authenticated prefix reader. An
+actual JVM/Python fixture observes continued ticks across synthetic disconnect/
+reconnect without stopping the process. [Live clock evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md).
+The candidate JAR is built, not installed or qualified in Minecraft. Next bind
+admitted server/roster identity and repair boundaries to these samples, reconcile
+prior gameplay/model/helper charges and the publication tail, then complete
+settlement and original-lease controller resume. Periodic samples alone cannot
+certify full repair coverage. M1 remains in_progress; G1 remains not_run.
+
+
+M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
+M1 must establish trustworthy data, permissions, controls, scoring and matched
+comparisons. No complete G1 suite is closed yet. Recent furnace work produced
+useful evidence but did not close T10; no further furnace trial is selected.
+
+M1.1c.3.4 now records a durable worker charge opening before pause and a fixed
+closing interval before public publication. The actual process test reconciles
+its delta against journal charge events, and the typed Python consumer/controller
+store the measured receipt without settling the reservation. Missing openings,
+changed clocks or later charges cannot become a fabricated complete certificate.
+[Measured repair evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+Complete settlement still needs prior-gameplay allocation, actual game clocks,
+nested usage and the publication tail. M1 remains in_progress; G1 remains not_run.
+
+M1.1c.3.4 now keeps public actions blocked after native resume in the explicit
+Worker/6 publication profile. The actual process chain refuses input until a
+private control publication, then executes the next scoped action with its
+published keymap while retaining the original lease and prior action receipt.
+The game and qualification/verification/settlement producers are synthetic.
+[Control publication evidence](docs/verification/2026-09-27-m1-control-publication.md).
+Actual controller settlement and atomic campaign completion remain unfinished;
+a private settlement reference alone is not proof of accounting. No G1 suite closes.
+
+M1.1c.3.4 now joins the controller's confirmed commit and supplied verification
+to one private worker resume intent. Actual process tests pass normal and lost-
+reply recovery; altered adoption evidence and uncertain accounting are refused.
+The body and verification producer remain synthetic. Four fault cases confirm
+that failed evidence/ledger publication still reaches an emergency stop attempt.
+[Controller resume evidence](docs/verification/2026-09-27-m1-controller-resume.md).
+Campaign completion stays closed: public control metadata, complete settlement,
+restored rollback verification and authentic qualification remain unfinished.
+No G1 suite closes and no unchanged Minecraft or paid model run was performed.
+
+M1.1c.3.4 now connects native resume to the same worker and a replacement
+Windows guardian. Commit, rollback and lost-reply status recovery execute a
+subsequent scoped action through the actual Node/JVM process chain, with a
+synthetic game body and verification. Worker/5 and guardian/4 are explicit
+candidate profiles; older profiles retain their fencing behavior.
+[Worker resume evidence](docs/verification/2026-09-27-m1-worker-resume.md).
+Controller completion, full consumption settlement and the public keymap/skill
+remain unfinished. The installed game JAR is unchanged; authentic gameplay
+repair/resume and all G1 suites remain incomplete.
+
+Latest checkpoint: essential-native04 passed client admission and joined
+Minecraft, then the750ms native-health guard interrupted its first effect.
+Input was released, but only1/20 required settled observations were recorded;
+no essential case passes. Termination668.7582ms meets the1s stop bound, while
+normal-stop and the complete cycle remain failed. All client/server processes
+are terminal, options unchanged and sessions retired. Eight telemetry holds
+are preserved; inference authority is unchanged. No unchanged retry is selected.
+[Actual result and limits](docs/verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
+
+M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
+owned repair, independent Curios/inventory effects, sneak/release and forward
+movement, same-server client restart, repeated effects, native rollback and exact
+pretrial restoration. [Sealed native04 evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md).
+Thirteen raw effect runs/eight frames/355 primitives audited; client45/45 and
+server29/29 terminal. Guardian431.4892/501.0879ms. All old failures remain sealed.
+The latest reservation settled; five historical 256MiB holds remain unchanged.
+This verifies the named private preplay cycle, not the full keybinding skill,
+context/failure matrix or gameplay-worker repair integration. All six G1 suites
+and G1 remain not_run.
+
+
+M1.1c.3.2 now implements an owned gameplay-worker repair pause in the distinct
+ForgeDevelopmentWorker/3 manual-conformance profile. Active input is cancelled,
+confirmed released and kept fenced under a durable fixed-expiry hold; changed
+plans cannot extend it or silently rearm through a new executor epoch. Separate
+private/public grants and guarded cleanup pass actual JVM/Windows process checks
+with synthetic game input. [Evidence](docs/verification/2026-09-27-m1-worker-repair.md).
+The qualified settings adapter, restart/rejoin and explicit
+resume/rollback recovery remain unfinished. This is implemented but unverified
+in Minecraft; it closes no complete G1 suite.
+
+The controller now consumes one durable worker pause dispatch and obtains its
+stop proof from the actual private response. Lost replies reconcile by status;
+failed confirmed pauses revoke controller repair permission. The Python→Node→
+Windows guardian→Java fixture path passes active cancellation and expiry checks.
+[Handoff evidence](docs/verification/2026-09-27-m1-repair-handoff.md).
+Settings/body are synthetic; full qualified repair/resume remains unfinished. No complete G1 suite is newly closed.
+
+The private native settings endpoint now binds one exact worker repair plan,
+patch, allowed effect bindings and fixed deadline. Connected Python/Node/Windows
+Guardian/JVM checks pass apply, raw effect observation, rollback and expiry;
+reopening retains recovery and cannot rearm gameplay. The body/settings remain
+synthetic in these checks. [Native admission evidence](docs/verification/2026-09-27-m1-native-repair-admission.md).
+The controller now translates its immutable complete keymap into the native
+patch, binds exact profiles and records one durable admission dispatch. Lost
+replies query status; changed descriptors/plans and missing native evidence
+cannot authorize forward work or resume. The connected controller/worker/JVM
+path passes, with explicitly synthetic body/settings. [Controller-native evidence](docs/verification/2026-09-27-m1-native-controller.md).
+The native store now durably records a controller commit decision under a
+separate explicit opt-in profile. Exact pending-head checks, uncertain-reply
+status, reopen and owned rollback pass synthetic JVM checks; commit never grants
+input resume or claims native effect verification. [Commit evidence](docs/verification/2026-09-27-m1-native-commit.md).
+The controller now connects native apply, complete supplied-proof validation,
+commit and owned rollback, with one durable dispatch per operation and status-only
+reconciliation. Actual controller/worker/guardian/JVM checks pass with a synthetic
+body and verification producer. [Connected repair evidence](docs/verification/2026-09-27-m1-native-repair-flow.md).
+The native pending-repair restart handoff now survives actual JVM process exit
+and admits one exact continuation under the original deadline/budget, with input
+fenced. [Restart evidence](docs/verification/2026-09-27-m1-native-restart.md) uses synthetic body/input.
+Worker-owned client replacement now passes actual Windows guardian/JVM checks
+under ForgeDevelopmentWorker/4, with a synthetic game body. The same worker
+retains its epoch, action history and budget counters; the old process tree
+must be terminal before a separately guarded replacement continues the repair.
+Original expiry still stops the chain and gameplay remains fenced.
+[Replacement evidence](docs/verification/2026-09-27-m1-worker-restart.md).
+Controller prepare/detach/attach and exact descriptor adoption now pass through
+the actual worker/guardian/JVM into native commit and rollback. Lost replies
+reconcile by status; old-descriptor writes are refused. Original admission,
+repair deadline, reservation and input hold remain intact.
+[Controller adoption evidence](docs/verification/2026-09-27-m1-controller-restart.md)
+uses a synthetic body and verification producer. Per-binding effect and restart
+evidence production now connect to this path: immutable expectations, one
+effect dispatch, status-only recovery and adopted-checkpoint validation.
+[Producer evidence](docs/verification/2026-09-27-m1-effect-evidence.md) also
+reproduces13 retained native04 effects and preserves native02's original failure.
+The integrated body and remaining checks are still synthetic. Qualified
+projection, the complete authentic verification bundle, real launcher, full
+settlement and explicit resume remain unfinished. No complete G1 suite closes.
+
+The complete declared effect matrix now supplies intended/competing summaries
+and explicit local key-release evidence across an actual guarded JVM replacement.
+[Release/matrix evidence](docs/verification/2026-09-27-m1-release-evidence.md)
+feeds these checks plus adopted-restart evidence into commit/rollback. The game
+body remains synthetic and the essential-controls proof remains a fixture.
+Native input policy /3 requires its own authentic qualification; old /2 evidence
+is retained without promotion. Next supply the complete essential-control cases,
+qualified projection, real launcher/accounting and explicit resume. No complete
+G1 suite closes.
+
+A remaining essential-control dependency now supports bounded ordinary mouse
+callbacks for the actual attack/use mappings, with explicit device release and
+local swing/use observations. [Input evidence](docs/verification/2026-09-27-m1-essential-input.md)
+passes Java/Python/HTTP and connected restart checks with synthetic body/input.
+The /4 candidate JAR is built but not installed or qualified in Minecraft.
+The private essential-input plan now accounts for all essential roles and their
+applicable contexts at both restart stages. Explicitly admitted fixed Escape
+passes before/after guarded JVM replacement; actual stop-all cancels a held
+effect, preserves recovery and refuses rearm. [Plan/recovery evidence](docs/verification/2026-09-27-m1-essential-plan.md)
+uses synthetic bodies. Missing prerequisites stay unverified_context, and the
+collector cannot authorize the full essential-controls proof. Offline coverage
+also rechecks physical release identity. The distinct /5 source is compiled,
+not installed or qualified in Minecraft. Next finish complete authentic controls
+and independent recovery evidence, qualified projection, real launcher/accounting
+and explicit resume as one gameplay repair workflow. Full G1 remains open.
+
+The controller now uses the complete native keymap through a private reader that
+requires exact, unexpired qualification reports and bounded hash-checked sources.
+It rejects incomplete reports, stale/foreign identities and mixed runtime/disk
+state. [Native projection evidence](docs/verification/2026-09-27-m1-native-projection.md)
+replaces the synthetic settings adapter in the selected actual guarded JVM
+repair/restart/commit/rollback test; qualification reports and body remain
+synthetic. The native reader, owned write path and replacement adoption connect;
+authentic qualification, real launcher/accounting and explicit resume remain
+unfinished. No complete G1 suite closes.
+
+The essential sprint check now has the required bounded forward companion under
+distinct native input policy /6. Both physical keys, reverse release and new
+sprint/directed movement are verified in the synthetic-body HTTP and connected
+before/after JVM replacement cases. [Sprint input evidence](docs/verification/2026-09-27-m1-sprint-input.md)
+retains the initial compile failure and passing focused checks. The /6 candidate
+was subsequently installed for the failed authentic attempt below. Its partial
+control evidence does not qualify the complete profile. Independent recovery and
+real launcher/accounting/resume remain unfinished. G1 remains open.
+
+The first authentic /6 attempt is failed, with useful partial control evidence:
+all declared first-stage controls passed, and movement/jump/sneak/sprint/attack/use
+passed after restart. Its next Escape reply became uncertain when the private
+driver requested a5-second deadline with4,061ms of authority left. No input was
+replayed. Independent audit joins32 completed effects/22 added passing cases,
+seven frames and884 charged primitives. Both process trees are terminal;
+guardians927.3386/375.1023ms. After-restart Escape/chat and native rollback remain
+unverified on /6. Only the owned options field was restored after terminal custody.
+A sixth separate256MiB telemetry hold remains reserved; the old five are unchanged.
+
+The controller now separates effect execution deadlines from its1-second response
+wait, bounded by both original repair clocks and worker expiry. Actual JVM tests
+reproduce the old timeout and pass long holds through the connected guarded
+replacement, lost-reply status recovery and commit/rollback with synthetic bodies.
+[Native failure and deadline correction](docs/verification/2026-09-27-m1-essential-native.md).
+Next bind the authentic driver to the remaining deadline and prepare a feasible
+complete procedure, then independent recovery and full gameplay repair/accounting/
+resume. The /6 JAR is installed; original E-overlap options are restored. No
+unchanged rerun was dispatched, and no G1 suite closes.
+
+
+A fresh native02 procedure now binds absolute wall/monotonic expiry across both
+starts, separates response/execution deadlines and reconciles uncertain starts
+by status only. All26 added cases and the full repair/restart/rollback procedure
+are unchanged. The new client allowance is410s, declared before dispatch inside
+existing participant420s/server600s limits; native01's400s failure stays consumed.
+Five focused driver checks pass. No model allowance changes; six holds persist.
+[Procedure/evidence](docs/verification/2026-09-27-m1-essential-native.md). Native02 failed before game launch because the outer pair window omitted the
+10s terminal reserve. No runtime authority/reservation was issued; its unused
+session was retired and failure sealed. Fresh native03 checks410s+10s=420s in
+both builder and pre-authentication dispatch. Native03 subsequently failed at
+client admission as recorded above; no G1 suite closes.
+
+| Required G1 suite | Current position | Closure work remaining |
+|---|---|---|
+| T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
+| T04 native host | Scoped native/root/helper evidence exists | Final game/settings/probe profile, selected skill, interruption/resume and all-call accounting |
+| T05 keybinding | Named native repair/restart/rollback cycle passes; earlier discovery/crash evidence retained | Gameplay-worker/skill integration and remaining context/modifier/hold/failure/isolation matrix |
+| T06 isolation | Named native denial and permitted-access cases exist | Qualify the final integrated runtime, credentials and probe disposal on the exact profile |
+| T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
+| T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
+
+Next complete M1.1c.3.2's qualified projection and full authentic verification
+bundle, real launcher, complete accounting and explicit resume/recovery. Complete remaining
+T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
+before assembling G1. This follows the
+[closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
+remains outside scope. Report closed acceptance cases or end-to-end deliverables,
+not passing assertion counts as a proxy for completion.
+
+D20 implementation authority persists; D18/D19 inference authority remains M0-only.
+All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
+failures, consumed decisions and five separate 256 MiB telemetry holds, including
+native03. Native04 adds355 charged primitives and settles its own reservation;
+no model calls or new inference authority.
+
+## Historical position updates
+
+Earlier next actions below are retained history and superseded by the current position.
+
+M1.1b now has strict Python operator bindings to the production Java transaction,
+lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
+process-death recovery pass with synthetic body/input. The first recovery run
+exposed a decimal-coordinate journal parsing defect; it is fixed, with the
+original failure and journals retained. [Current evidence](docs/verification/2026-09-27-m1-settings-client.md).
+No authentic Minecraft effects or complete G1 suite are newly verified. Next
+prepare the intended/competing-control cycle on the changed exact client profile,
+then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
+
+M1.1b now connects native key input to transaction-owned verification under the
+existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
+concurrent-input fencing, bounded raw observations and interruption/recovery
+controls pass source/synthetic integration checks, including actual loopback HTTP.
+[Current evidence](docs/verification/2026-09-27-m1-settings-lane.md).
+The opt-in native route remains private and unqualified; results never assert
+verified effects or commit. Next add the strict Python operator bindings/source
+joins, then prepare and run the authentic intended/competing-control cycle.
+T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay open.
+
+M1.1b is now in_progress: a bounded native key-input engine routes ordinary
+keyboard callbacks with matching window/thread-scoped polling, modifier ordering,
+reserved safety release, context checks and cancellation. Focused synthetic checks
+and affected lane/settings regressions pass. [Current evidence](docs/verification/2026-09-27-m1-key-input.md).
+This is implemented but unverified in Minecraft. No input capability is advertised.
+Next integrate transaction-owned effect observation and admission, then prove the
+actual intended/competing effects and restart/rollback cycle. T01/T05/G1 stay not_run.
+
+M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
+values are now rejected by Java at admission. Shared cases and actual Python-to-Java
+store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](docs/verification/2026-09-27-m1-settings-contracts.md).
+The next implementation is M1.1b ordinary-input intended/competing effects. Its
+missing capable-extension interface is also required for final T01 reconciliation.
+T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
+
+M1.2b fixes the reproduced keybinding commit/schema disagreement and related public wire semantics for skills, actions, receipts and observations. [Contract evidence](docs/verification/2026-09-27-m1-contract-parity.md): shared140-case corpus agrees across Python/TypeScript;297 distinct Python and311 Node cases pass with43 unchanged opt-in skips. Initial fixture and earlier-rejection test failures are retained and resolved without weakening validation. Worker bundles include the six compiled startup schemas; gameplay packaging remains restricted.
+
+T01/G1 remain not_run. The finite acceptance map names seven reproduced operator/evaluator semantic disagreements plus GameEvent, cross-record references, migrations, conditional Java and RPC/auth/path integration still to close. These are next; no further furnace run. All40 authority tables unchanged/4,887,796microUSD, three separate256MiB holds preserved; no game/model execution or M1 spending authority.
+
+M1.5b.9c [operation16](docs/verification/2026-09-27-m1-replacement-corrected-native.md) fails at action18/GAME_MACHINE_TRANSFER_UNCONFIRMED after actual replacement placement. Eighteen requests/75 primitives; the unknown transfer is not replayed. The authenticated clean-stop stream and saved furnace confirm distinct removed/replacement lifetimes, but no replacement production window. The failed reference is refused without import.
+
+Guardian469.457ms and252/252 client plus29/29 server terminal histories pass this sample; operation15's original guardian failure remains. All four lifecycle rows UNCERTAIN; a third separate256MiB hold remains alongside operation10/15. All40 authority tables unchanged/4,887,796microUSD; no model calls. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
+Next follow the acceptance closure plan and fix the reproduced T01 KeybindingPatch semantic parity defect. No further furnace run is selected; original failures, holds and full G1 scope remain.
+
+Execution priority reassessed after the user raised slow milestone progress: finish the active operation16, then close finite T01 coverage and keybinding/probe end-to-end deliverables before expanding furnace controls. Consolidate T10 and qualify the final T04/T06 profile. [Closure path](docs/verification/2026-09-27-m1-closure-path.md) preserves all acceptance criteria, authority and historical failures; no suite or G1 pass is claimed.
+
+M1.5b.9c operation16 is prepared with the corrected dirt/grass support check, the full 21-action replacement control and unchanged 1,000ms guardian. All 571 pair inputs and eight unchanged acceptance audit scripts are pinned. Prelaunch authority/process checks pass; both operation10 and operation15 256 MiB holds remain. The original operation15 checker and shutdown failures remain authoritative history. No model calls or M1 inference authority; M1/G1 remain open. Native execution is next, with no result claimed.
+
+M1.5b.9c [operation15](docs/verification/2026-09-27-m1-replacement-native.md) failed before placement: the checker observed dirt where it required grass. Fifteen actions/65 primitives remove the original furnace and equip the unplaced replacement; no placement request exists. Separately, the 1,000ms guardian fails, corroborated by a 1,038.4428–1,068.2396ms exit interval. Outer histories eventually terminate 206/206 client and 29/29 server, with no owned runtime and session retired.
+
+The authenticated 1,455-record stream and saved world confirm one removed lifetime, air at the old furnace and dirt support. The actual V5 store refuses the failed reference without creating a receipt. All four lifecycle rows remain UNCERTAIN; the new 256 MiB reservation stays held alongside operation10's separate 256 MiB hold. All 40 authority tables unchanged/4,887,796 microUSD; no model calls.
+
+A separate one-line checker correction accepts the delivered dirt/grass support while preserving native placement checks and the full control; it is implemented_unverified. Guardian cause remains unresolved and the 1,000ms bound stays intact. Next a fresh, prior-bound changed-checker control with all original acceptance criteria; no unchanged retry or general shutdown-remedy claim. M1.5b.9c/M1 in_progress, T10/G1 not_run; D18/D19 remain M0-only.
+
+Operation15 has dispatched once with a fresh native session. At the latest read-only checkpoint the server is participant-ready, the client is starting, and no public action requests or terminal result exist yet. The original process handle remains live; continue observing this attempt, never restart it on an observation timeout. Pre-pinned success/failure audits and conditional publication are prepared but unexecuted. M1.5b.9c/M1 remain in_progress; G1 remains not_run.
+
+M1.5b.9c operation15 is prepared for the full native removal/replacement control. All 569 pair inputs and eight audit scripts are pinned; the original V5 machine rule is unchanged. Prelaunch validation passes and all 40 authority tables remain unchanged at 4,887,796 microUSD.
+
+The earlier proposed 450s participant/720s server limits exceed the existing contracts. Before any dispatch, the actual plan binds a 60s worker, 340s client, 350s pair window and existing 360s participant/600s server limits, with 270s bootstrap and unchanged 1,000ms guardian. The complete 21-action control and acceptance remain; timeout is failure. No paid inference or shared-desktop input. Native result remains pending; M1/G1 stay open.
+
+M1.5b.9c [replacement preparation](docs/verification/2026-09-27-m1-replacement-preparation.md) now has a fresh, verified 8,609-file fixture copy and a bounded 21-action checker. Only two declared chest items were added: a diamond pickaxe and a separate 20,000 RF furnace; the original furnace remains at 5,000 RF. Exact NBT/region invariants and source hashes pass. No game/model run occurred.
+
+The unchanged V5 rule must reject work spanning actual removal and replacement. This remains unexecuted: next bind the proposed limits into operation15, pin exact audits, prepare a fresh native session and recheck durable/process state before dispatch. All 40 authority tables remain unchanged at 4,887,796 microUSD; old failures/holds and M0-only inference authority persist. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
+## Historical current-position entries
+
+M1.5b.9b [operation14](docs/verification/2026-09-26-m1-low-energy-native.md) passes the authentic low-energy interruption control. A new5,000 RF fixture differs only in the selected Energy field. The furnace completes one item, starts another and stops after52 funded ticks with8 RF/one input remaining. Native processOff clears3,008 unfinished progress without refunding the992 RF spent on partial work. The unchanged prior V5 rule returns zero credit with MACHINE_OPERATING_REFUND_MISSING.
+
+2,001 authenticated records/1,647 complete ticks; 17 operation/17 actual import checks and all interruption/capacity/saved-state/terminal audits pass. Eight actions/30 primitives; pair 688.125s, guardian 841.8733ms. All rows STOPPED, session retired/no owned runtime. All40 authority tables unchanged/4,887,796 microUSD, historical holds preserved; no model calls or new inference authority. Initial temporary-region filename failure is retained; validation and limits unchanged.
+
+M1.5b.9b verified for this named interruption; M1.5b.9/M1 in_progress, G1 not_run. Next actual replacement/refusal and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. All processing calls were fully funded; partially funded native-call applicability remains separate. D18/D19 remain M0-only.
+
+M1.5b.9a [operation13](docs/verification/2026-09-26-m1-first-episode-native.md) passes the native first-episode negative control: the first42-tick/one-output/4,000 RF episode is rejected, even though a later84-tick/two-output/8,000 RF episode is sufficient. The unchanged registered V5 rule returns zero selected credit with MACHINE_OPERATING_DURATION. The later comparison stays explicitly unregistered/unscorable.
+
+2,075 authenticated records/1,648 complete ticks,126 processing calls and134 child joins. 17 operation/17 actual import checks plus episode/capacity/saved-state/terminal audits pass. Twelve actions/44 primitives yield three saved ingots, empty furnace/8,000 RF. Pair 668.219s, guardian 841.9155ms; all rows STOPPED, session retired and no owned runtime. All40 authority tables unchanged/4,887,796 microUSD; historical holds preserved, no model calls.
+
+M1.5b.9a verified for this named control; M1.5b.9/M1 in_progress and G1 not_run. Next prepare a distinct sealed5,000 RF interruption reference, then remaining replacement/refusal/setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. The predicted52-tick/no-final-refund failure is source-only. This verified control is a short completed episode, not a mid-cycle interruption proof. D18/D19 remain M0-only.
+
+M1.5b.9 [operation12](docs/verification/2026-09-26-m1-machine-window-native.md) passes the positive authentic V5 prior-window reference:1,798 signed records,1,485 complete ticks and the registered84-tick/two-cycle/8,000RF net window. 17 operation/17 actual store checks pass, including prior seal/launch order and idempotent reopening. Raw comparison remains unregistered; protected scoring remains false.
+
+Eight actions/27 primitives, two saved ingots/one leftover dust, furnace empty/12,000RF. Pair489.547s, guardian791.4342ms, complete terminal histories/session retirement/no owned runtime. Capacity settles at12,975,661 bytes; old operation10 hold remains. All40 authority tables unchanged/4,887,796microUSD; no model calls or new inference authority.
+
+M1.5b.9/M1 in_progress, G1 not_run. Next native replacement/refusal/negative window controls and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. Initial preparation environment error retained; no gameplay replay or altered limits. Do not repeat the unchanged positive reference.
+
+M1.5b.9 adds [prior-bound machine operating windows](docs/verification/2026-09-26-m1-machine-window.md): new private plan5/machine-reference2 seals an exact or deterministic first-episode selector. Require complete same-lifetime funded work, registered recipes, exact input/output/net-RF joins and no gap/replacement/idle/resource borrowing. The store verifies prior seal/consumed-launch order; raw/post-hoc comparisons cannot claim prior registration or protected scoring.
+
+200 distinct focused Python cases pass,3 native opt-in cases skipped, including45 new window cases. Initial synthetic fixture and formatting failures remain archived. Read-only reconstruction preserves operation11's exact1,708-record inspection; the post-hoc comparison derives84 ticks/two cycles/8,000RF net but correctly keeps prior registration false. Original seal unchanged.
+
+M1.5b.9 implemented_unverified for authentic prior-bound execution. Next a fresh V5 reference with the window contract sealed before launch, followed by actual replacement/refusal and remaining scorer/G1 controls. No game/model run or installation; all40 authority tables unchanged at4,887,796microUSD, prior failures/holds preserved and D18/D19 M0-only. M1 in_progress/G1 not_run.
+
+M1.5b.8/.8a [operation11](docs/verification/2026-09-26-m1-pending-abort-native.md) passes the fresh changed-coordinator native reference:1,708 authenticated records,1,400 complete furnace ticks, the prior84-tick processing interval, all89 child joins, actual unload retirement and clean stop. All17 operation/9 prior-plan import checks plus processing/transition/interval/capacity audits pass.
+
+The256 MiB logical reservation settles atomically with STOPPED at12,277,501 actual bytes. Eight actions/28 primitives yield two ingots and one leftover dust; furnace empty/12,000RF. Pair479.907s, guardian913.6575ms,134/134 client and29/29 server terminal histories, session retired/no owned runtime. All40 accounting tables unchanged at4,887,796microUSD; no model calls.
+
+The initial terminal audit ran before its final process-inventory input existed; traceback and copied artifacts remain. A read-only continuation verifies unchanged copies and all terminal assertions and passes, without gameplay replay. No native early-abort/inventory anomaly or preflight diagnostic occurred; their additional failure branches remain separately qualified by fixture evidence only.
+
+M1.5b.8/.8a/M1 in_progress, G1 not_run. Next machine lifetime/replacement controls and prior-bound operating-window admission, then remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. Preserve operation09/10 failures and operation10's separate256 MiB held reservation. D18/D19 remain M0-only; do not repeat the unchanged positive reference.
+
+M1.5b.8b [pending early-abort delivery](docs/verification/2026-09-26-m1-pending-abort.md) now carries the first durable monitor failure across healthy iterations until the server-owned evidence directory appears. Publication is attempted once, without extending cleanup bounds. Private inventory observation2 records the rejected history predicate; qualification and old observation1 behavior remain unchanged.
+
+57 distinct focused cases pass, including12 new cases; real owned Windows/JVM fixtures verify delayed-directory delivery and before/after-write failures. Three strengthened terminal cases also pass with archived result properties. No game/model run or artifact installation. All40 accounting tables remain unchanged at4,887,796microUSD.
+
+M1.5b.8b implemented_unverified on the authentic game profile. Next a fresh changed-coordinator reference for complete capacity/interval/retirement/settlement evidence. Operation10 remains failed with consumed launch, stale inner rows and256 MiB held; terminal history remains unqualified. Full M1/G1, native-host/isolation/keybinding/scorer/probe criteria remain open; D18/D19 remain M0-only.
+
+M1.5b.8/.8a [operation10](docs/verification/2026-09-26-m1-telemetry-capacity-native.md) fails during server preparation: process inventory reports12 assigned/11 listed/12 retained. No client dispatch or telemetry stream. The declared256 MiB spool reservation is durable before server dispatch and remains held; complete interval/retirement/settlement acceptance is unverified.
+
+The outer watchdog forces cleanup at187s. Final history has29 held/27 signaled and zero active, so terminal proof remains unqualified despite a later empty process inventory. Pair UNCERTAIN, protected DISPATCHING and dispatch RUNNING remain preserved; the one-use launch is consumed. The unused client session is retired. All40 accounting tables remain unchanged at4,887,796microUSD; no model calls.
+
+The failure audit passes. Next fix early pending-abort publication when the server evidence directory appears later, and retain diagnostic reasons for unsuccessful history reconciliation. Do not weaken inventory proof, refund holds or rerun unchanged. M1.5b.8/.8a/M1 in_progress, G1 not_run; remaining isolation/native-host/keybinding/scorer/probe gates and M0-only inference authority remain unchanged.
+
+M1.5b.8a adds [prior telemetry capacity and reservation](docs/verification/2026-09-26-m1-telemetry-capacity.md): launch8/protected3 bind finite byte/event limits and reserve spool space before native launch. Broker limits must match; uncertainty retains holds and successful closure settles atomically with STOPPED. Old profiles retain8 MiB/2,000 events.
+
+163 distinct focused Python cases pass;62 existing native opt-in cases remain skipped. The34 new cases include concurrent SQLite holds, restart/rollback/terminal-proof failures and quota refusal. Operation08's329-record inspection and operation09's clean-stop refusal remain unchanged; both original seals verify. No game/model run or artifact installation.
+
+M1.5b.8a implemented_unverified; M1.5b.8/M1 in_progress and G1 not_run. Next a fresh launch8/protected3 native reference with declared finite capacity and unchanged interval criteria/checker/producer/time bounds. Verify actual reservation, complete retirement/clean-stop stream and settlement. The reservation is logical and scoped to telemetry spools sharing this private database; OS extents, unrelated logs and full N08 remain unqualified. All40 accounting tables unchanged at4,887,796microUSD; D18/D19 remain M0-only. Preserve operation09 and all earlier failures/holds.
+
+M1.5b.8 [operation09](docs/verification/2026-09-26-m1-furnace-interval-native.md) fails at the launcher's hard-coded8 MiB telemetry cap. All eight gameplay actions pass; the authenticated1,225-record prefix includes925 tick traces and the declared84-tick processing interval, but lacks retirement/clock/clean-stop records. Full inspection and V4 import correctly refuse acceptance.
+
+All four rows UNCERTAIN/consumed; no replay. The130/130+29/29 outer parent histories are terminal; inner custody cleanup was forced. Guardian acceptance fails without a timing sample. Session retired/no owned runtime; all40 accounting tables unchanged at4,887,796microUSD and zero model calls.
+
+M1.5b.8/M1 in_progress, G1 not_run. Next M1.5b.8a: declare and reserve finite telemetry capacity in the prior launch contract, test its limits, then a fresh changed-profile native reference. Preserve operation09's failure and original capacity. Full retirement/replacement, registered windows, setup/team/loaded-code, controls/parity/isolation and remaining keybinding/native-host/probe contracts remain open; D18/D19 stay M0-only.
+
+M1.5b.8 adds [complete native furnace tick/lifetime capture](docs/verification/2026-09-26-m1-furnace-interval.md), telemetry0.3.18/startup19. Actual object identities retire on removal/unload/reactivation; ordered child and resource stages expose gaps instead of filling them. Exact sampled windows remain unregistered, private and unscorable.
+
+285 distinct Python cases pass,4 existing native opt-in skips;20 Java cases and the offline artifact build pass. All329 operation08 records reconstruct unchanged. Final candidate061712ce is archived; installed artifacts unchanged. Initial lint and hierarchy lookup failures remain retained.
+
+M1.5b.8 implemented_unverified; M1 in_progress and G1 not_run. Next prepare a fresh bounded native reference with interval criteria fixed before launch, then exercise retirement/replacement and rejection controls. Window registration, setup/team/loaded-code, alternate/negative scorer controls, parity/isolation and remaining keybinding/native-host/probe contracts remain open. All40 authority tables unchanged at4,887,796microUSD; no game/model run or M1 paid authority. Prior failures and holds remain.
+
+M1.5b.7 [operation08](docs/verification/2026-09-26-m1-furnace-transitions-native.md) passes the prior-bound two-item native reference on telemetry0.3.17/startup18.329 signed records prove84 processing calls/8,064RF debit, starts with0/−32 carry, two completions and64RF final refund.17 operation/9 V4 import checks and processing/transition/terminal audits pass; saved player +2 ingots/+1 dust, furnace empty/12,000RF.
+
+All four rows STOPPED/consumed;745.6213ms guardian,134/134+29/29 terminal parent histories, session retired/no runtime. All40 authority tables unchanged at4,887,796microUSD; no model calls. The first processing audit's stale startup17 assertion is retained and corrected to the prelaunch startup18 identity without replay or criterion changes.
+
+M1.5b.7/M1 in_progress; full G1 not_run. Next complete machine lifetime/operating intervals, setup/team/loaded-code, alternate/negative controls, parity/isolation and remaining keybinding/native-host/probe contracts. Native transition refusal/clamping and client reacquisition branches remain unverified. Prior failures/holds retained; D18/D19 M0-only.
+
+
+M1.5b.7 adds [native process-start carry and stop-refund capture](docs/verification/2026-09-26-m1-furnace-transitions.md), telemetry0.3.17/startup18.244 Python cases pass,4 native opt-in skips;13 Java cases and offline artifact build pass. All412 operation07 records reconstruct unchanged. Candidate8a18fb62 is archived; installed artifacts unchanged.
+
+Authentic changed-producer execution remains unverified. Next prepare a fresh prior-bound two-item reference to exercise both nonzero carry and final refund, retaining existing limits. Complete machine lifetime/operating intervals, setup/team/loaded-code, controls/parity/isolation and all other G1 contracts remain open. All40 authority tables unchanged at4,887,796microUSD; no game/model call or M1 spending authority. Prior failures/holds remain. G1 not_run.
+
+M1.5b.6 [operation07](docs/verification/2026-09-26-m1-furnace-energy-native.md) passes the changed telemetry0.3.16/startup17 native reference.412 signed records include125 processing calls with12,000RF debited, two progress overshoots and three exact processing-to-completion joins. All17 operation and9 prior-plan import checks plus processing/terminal audits pass; saved inventory adds three iron ingots, furnace empty/8,000RF.
+
+All four rows STOPPED/consumed;556.0106ms guardian,126/126 client and29/29 server parent histories terminal, session retired/no runtime. All40 authority tables unchanged at$4.887796, zero model calls. Initial stale client server-module binding failed before database/session/grant and was retained/corrected without changing validation or bounds.
+
+This qualifies the named positive processing capture, not full operating-window/net-energy/setup/team/loaded-code/scoring authority. Native zero/underfunded/refusal cases and client reacquisition branch remain unverified. Next join process-start carry/refunds and complete intervals, then remaining T10/G1 controls. M1.5b.6/M1 in_progress, G1 not_run; all prior failures/holds remain, D18/D19 M0-only.
+
+M1.5b.6 adds [native processing RF capture](docs/verification/2026-09-26-m1-furnace-energy.md): telemetry0.3.16/startup17 observes exact processTick entry/returns and verifies actual RF/progress deltas. Full/partial funding, zero-work and overshoot remain distinct; no net recipe-energy, continuous-window or score claim follows.
+
+211 distinct focused Python cases pass,4 native opt-in skips;10 Java cases and offline artifact build pass. The current reader reproduces operation06's235-record inspection unchanged. Candidate7f0c0d8e is archived; installed game artifacts remain unchanged. Authentic changed-producer integration is next, followed by refund/window/setup/team/loaded-code and remaining T10/G1 controls. All prior failures/holds preserved; no game/model dispatch or M1 paid authority. M1.5b.6 implemented_unverified, G1 not_run.
+
+M1.5b.5's [operation06](docs/verification/2026-09-26-m1-preflight-reacquire-native.md) passes17 operation checks,9 prior-plan import checks and the terminal-resource audit on changed Forge minor45/policy4. Eight actions collect three iron ingots;235 signed records contain three matching furnace completions. The actual V4 importer verifies the prelaunch seal and reopens idempotently. Candidate resources remain private/unscorable.
+
+All four rows STOPPED/consumed,704.1699ms guardian,138/138 client and29/29 server parent histories terminal, session retired and no owned runtime. Installed client31facc27 is the tested artifact; prior1d4935ed/log retained. All40 authority tables unchanged at$4.887796; zero model calls.
+
+M1.5b.3f's authentic additional-reacquisition branch remains unverified: no failure diagnostic or success-branch marker identifies its execution. Positive changed-profile behavior does not establish that branch. Preserve operation05 and all prior failures; do not rerun unchanged to seek branch evidence. Next qualify producer/setup/team/scorer controls and remaining G1 isolation, native integration, keybinding and probe contracts. Full G1 not_run; D18/D19 remain M0-only.
+
+Earlier checkpoints below retain their time-specific claims.
+
+M1.5b.3f adds [bounded preflight reacquisition](docs/verification/2026-09-26-m1-preflight-reacquire.md) for operation05's observed untouched-component reply/current drift. New Forge minor45/policy4 permits one charged pre-input read, freezing the first exact server reply. The renewed reply/current view must restore that baseline; original selection, observation fence, deadlines/budgets and post-click checks remain mandatory. No replay or metadata stripping.
+
+69 Java,2 TypeScript and1 Python focused cases pass. Diagnostic policy2 adds the private reacquired_baseline comparison. Candidate31facc27 is archived; installed1d4935ed remains unchanged. Next one fresh V4 reference with the changed client and capability binding. Operation05 and all prior failures remain consumed; actual correction/positive machine import and full G1 remain open. No game/model run or allowance change.
+
+M1.5b.5 [native operation05](docs/verification/2026-09-26-m1-machine-reference-native.md) fails at deposit preflight REVISION_CONFLICT: no deposit click or replay. The authentic M1.5b.3e diagnostic identifies current_match, with only untouched player-relative35 backpack component identity differing between server reply and current view. Selected/cursor/machine resources and all IDs/counts match. Exact field/caller remains unknown; earlier failures retain their original scope.
+
+V4 plan/authority/seal/reservation bytes bind before launch, but all four rows remain UNCERTAIN/consumed. Actual import correctly refuses without a receipt.227 signed records, zero completions; saved furnace empty/20,000RF, late cursor dust3. Guardian505.8518ms passes;96/96 client and29/29 server parents terminal, session retired/no owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+
+Next implement bounded preflight reacquisition for this evidenced reply/current drift while preserving the original exact server baseline, input fence, budgets and no replay; focused negatives precede a changed-profile native attempt. Positive V4 import and protected scoring/full G1 remain open. Operation04 and all earlier outcomes remain unchanged.
+
+M1.5b.5 adds the [sealed machine resource plan](docs/verification/2026-09-26-m1-machine-reference.md) to the existing private fixture/launch path.218 distinct focused tests pass;25 native opt-in cases remain skipped. Machine location, recipe/registration, output threshold and tick window now enter the prior seal and authenticated inspection. Reopen is idempotent; changed seals, duplicate/partial streams and unmatched resources reject. Initial fixture/lint failures are retained.
+
+Retained operation04 still yields three matching outputs under the new reader, but this audit plan is post-hoc. Next perform one fresh reference with the V4 machine plan sealed before launch, using the existing ordinary furnace checker and unchanged bounds. Protected scorer/loaded-code/setup/team/RF/window/parity/isolation and full G1 remain open. No new game/model run; D18/D19 remain M0-only.
+
+M1.5b.4 adds the [native resource verifier](docs/verification/2026-09-26-m1-native-resource.md) for one actual furnace completion, preserving its single event identity and registration lineage.105 focused tests pass; read-only reconstruction authenticates operation04's230 records and verifies all three completion deltas. No gameplay/model rerun. The audit expectation is post-hoc, so protected fixture/scorer admission remains unqualified. Prior failures/holds and full G1 obligations remain unchanged.
+
+Next bind a prior machine recipe/fixture plan to protected launch/setup/team and authenticated transformed producer, then complete T10 controls. Full T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
+M1.5b.3b/.3d [authentic operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
+eight unique actions/27 action primitives, three signed furnace completions,
+output withdrawal and normal closure. Saved player counts add exactly three iron
+ingots; furnace is empty at8,000RF. All four reference states STOPPED/consumed.
+Guardian653.8858ms passes;140/140 client and29/29 server parents terminal, session
+retired and no owned runtime. All40 authority tables unchanged at$4.887796.
+
+M1.5b.3e's failure diagnostic was not exercised: no preflight refusal occurred,
+so its authentic diagnostic result stays not_run. Prior operation01/02/03 failures
+and unknown causes remain; this is no retrospective fix or general reliability
+claim. Installed1d4935ed is the exact successful profile. No model calls.
+
+Next use this retained positive trajectory to audit/complete the protected
+machine-scorer admission boundary, including loaded-code/custody/setup/team,
+full RF/window history, parity/isolation and T10 negative controls. Raw captures
+remain unscorable. Do not rerun unchanged gameplay solely to trigger diagnosis.
+Full T01/T04/T05/T06/T10/T11 and G1 remain open.
+
+M1.5b.3e adds [private preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
+Fixed phases distinguish input-fence failures from current/selection/final-baseline
+comparisons. Value-free masks use already-read projected state, never hidden
+augment slots. Original errors and release precedence survive; publication occurs
+after the terminal receipt.61 focused Java cases pass with no failures/skips;
+new artifact is archived, installed5fbb4eca unchanged. Next authentic diagnostic
+capture on a fresh changed profile. Operation03 remains failed/consumed; G1 open.
+
+M1.5b.3d [native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
+passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
+native journal binds exactly one refresh and one release to that request: no
+deposit click or replay. Exact failing comparison was not captured; operation02's
+backpack cause cannot be assigned to this run. No furnace completion occurs.
+
+Stopped save: empty furnace/20,000RF; late private cursor still holds three dust.
+Failure audit passes; overall operation audit fails. Guardian409.3859ms passes,
+98/98 client and29/29 server parent histories are terminal, session retired and
+no owned runtime. All40 authority tables remain unchanged at$4.887796. Installed
+candidate5fbb4eca stays unqualified. No model calls or shared-desktop input.
+
+Next retain bounded private preflight comparison evidence and resolve the failing
+comparison without replacing post-input baselines, stripping metadata or replay.
+The older exact-server/current restoration rule is a candidate to examine, not
+this run's proven cause. Prior failures and all G1 obligations remain intact.
+M1.5b.3d/M1 in_progress; full G1 not_run.
+
+M1.5b.3d adds an [authoritative machine preflight](docs/verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
+one charged server read establishes the exact baseline, followed by the original
+observation/revision/age/input checks. Only untouched player metadata may be
+reacquired before input; clicked/cursor/resources stay exact. Post-click exact
+confirmation, no replay and original deadlines/budgets remain mandatory.
+Forge minor44/policy3 is a new unqualified identity; installed client is unchanged.
+Source verification passes40 distinct Java cases,2 TypeScript cases and1 Python
+cross-language case. Initial budget-fixture admission failure is retained.
+Next qualify the changed native client on a fresh protected operation. Both prior
+references remain failed/consumed. No paid model authority or G1 pass follows.
+
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
+diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
+unique action (deposit), prediction/reply differ only in component identity of
+player-relative slot35, visible slot42: the untouched Sophisticated Backpacks
+backpack. IDs/counts match, received/current match exactly, no refresh was used.
+The changed field/caller is not established. No metadata is ignored or replayed.
+
+Three authenticated expert-furnace completions and saved output3/8,000RF remain
+partial evidence. Independent diagnostic and failure audits pass; the operation
+audit fails its public-action/stopped-state checks. Explicit stop-all,516.0927ms
+guardian,94/94 client and29/29 server terminal histories; session retired and no
+owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+Installed client is d0e30db0; prior54568cb1 and log are preserved privately.
+
+Next inspect pre-click baseline custody and exact component differences before
+choosing a correction. Historical minor39 restores reply/current drift; this
+prediction/reply failure is different and cannot inherit that result. Preserve
+both consumed failed references and original deadlines/holds. M1.5b.3c remains
+in_progress; full T01/T04/T05/T06/T10/T11 and G1 remain open. D18/D19 are M0-only.
+
+Earlier checkpoints below retain their original time-specific claims.
+
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
+for authentic integration.50 distinct focused Java cases pass across the retained
+selections, including8 diagnostic cases; offline client build succeeds. Preserve
+the first missing-directory fixture failure and the release-test assertion that
+incorrectly expected the earlier cause to remain the terminal code. Corrected
+checks retain GAME_RELEASE_UNCONFIRMED precedence. No production acceptance rule,
+read/refresh count, action replay, deadline or installed client changed.
+
+The new bounded masks distinguish prediction/reply from reply/current mismatch,
+exclude hidden/machine slots and all item/component values, and publish only after
+existing fence/release/terminal handling. Logger failure cannot change the stored
+receipt. New client artifactd0e30db0 is archived; installed54568cb1 remains intact.
+Next validate the native operator-log receipt on a fresh changed-artifact operation,
+then resolve the observed cause. Operation01 stays failed/consumed; no game/model
+run in this increment, all40 authority tables unchanged at$4.887796. Full G1 open.
+
+M1.5b.3b [authentic furnace operation01](docs/verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
+The protected reference fails at deposit acknowledgment:
+GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
+reference states remain UNCERTAIN/consumed. Separately, the authenticated server
+stream records three actual furnace completions, consistent generation2 direct
+expert recipe registration and all three correct resource boundaries. Saved
+terminal machine holds three iron ingots, no dust and8,000RF; this is partial
+capture evidence, not a client-action/scorer or G1 pass.
+
+Independent failure audit preserves six unique requests, explicit stop-all,
+370.5986ms guardian tree stop, normal server stop and complete94/94 client plus
+29/29 server parent histories. Session retired; no owned runtime; all40 authority
+tables unchanged at$4.887796 and no model calls. Late private samples show empty
+cursor/unchanged player inventory, but the owned snapshot at failure was not
+recorded. Next diagnose that precise acknowledgment mismatch without relaxing
+confirmation, replaying the deposit or relabeling the failed reference. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 stay M0-only.
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
+M1.5b.2 [native recipe registration candidate](docs/verification/2026-09-26-m1-machine-registration.md)
+is implemented_unverified for authentic capture. Telemetry0.3.15/startup16 binds
+observed direct/converted source objects, both recipe IDs and refresh generation.
+Old bindings invalidate on rebuild; structural faults poison the observer. Raw
+completion/refusal2 remains unscorable.113 Python and14 Java cases pass; one
+native opt-in skip is not evidence. No game/model dispatch; authority40 tables
+unchanged at$4.887796. Next actual transformed/protected Forge reference with
+fresh required client/fixture custody; do not bypass client-binding guards.
+Full T10/G1 and all other required M1 contracts remain open.
+
+M1.5b.1 [native furnace capture candidate](docs/verification/2026-09-26-m1-machine-producer.md)
+is implemented_unverified for authentic capture. New telemetry0.3.14/startup15
+records actual completion phases and internal recipe facts; no public recipe ID
+is guessed. Private offline/pipe readers enforce exact new-profile scope and
+retain unscorable completions/refusals.126 distinct Python cases and6 Java cases
+pass; four opt-in native skips are not evidence. Initial test-fixture failures
+remain retained. No game/model dispatch;40 authority tables unchanged at$4.887796.
+Next registration binding and transformed-code authentication, then protected
+native reference/parity. Full T10/G1 remain not_run.
+
+M1.5a [exact-profile T10 audit](docs/verification/2026-09-26-m1-scorer-coverage.md)
+verified for coverage only; M1.5b completion-resource verifier implemented_unverified.
+Final53 synthetic cases plus1 actual package check pass. Exact installed Thermal
+code inspection confirms RF processing is separate from completion. No authentic
+machine producer/ingestion/scoring or game/model dispatch. Retained positive
+history5/negative history6 reports remain development-only. Negative archive has
+one added bytecode cache;329 sealed originals verify in an exact preserved copy.
+Next loaded-code/thread/caller/recipe-bound producer, then RF/continuous history,
+setup/team/control/parity/isolation qualification. T10/G1 remain not_run.
+
+M1.6r.4b [preparation diagnosis](docs/verification/2026-09-26-m1-worker-entry-intervals.md)
+remains in_progress: actual diagnostic1pass59.65s, preparation46.437s and worker
+entries14.341s/4.390s. The98.891s stall does not recur; cause still unknown. Real
+I/O/custody and original deadlines unchanged, no game/model dispatch. No lucky
+paired rerun selected. Continue independent G1 scorer qualification coverage
+while retaining open paired capture/full initial-state and all other G1 gaps.
+
+M1.6r.4 [paired private save-format comparison](docs/verification/2026-09-26-m1-paired-player-body.md)
+is implemented_unverified:46 distinct source cases pass. M1.6r.4a's authentic
+body-pair native01 fails PROBE_WORLD_DEADLINE before admission or game/model
+dispatch. First worker input entry98.891s leaves insufficient time for the200s
+writer. All461 source pins/40 authority tables unchanged at$4.887796, parent
+FENCED/resources held, no owned runtime. Failure evidence sealed; the intended
+mismatch refusal remains unverified. Next diagnose preparation latency before
+a changed authentic dispatch. Preserve all state fields and historical inputs;
+full initial/transient equality, parity and remaining G1 boundaries stay open.
+
+M1.6r.3/.3a [owned save-format capture](docs/verification/2026-09-25-m1-player-body-custody.md)
+passes for fresh body-native02: 1,175 bytes/38 fields at tick106, stop164,
+3,852 pinned loaded classes, normal 12/12 server and 7/7 worker exits. Independent
+audit passes; 107 focused source checks pass. Retain failed/consumed native01,
+the archive sidecar incident and first audit-script failure. All458 trial source
+pins and40 real authority tables match at$4.887796; no owned runtime or model
+calls. M1.6r stays in_progress: next full live-state contract and initial matching,
+overhead/parity, all-N/tool/clock/disposal and other G1 boundaries. G1 not_run.
+
+M1.6r.2 [private callback observer](docs/verification/2026-09-25-m1-player-body-callback.md)
+is implemented_unverified for live capture. Nine final-candidate checks pass:
+actual transformed-method JVM verification/refusals plus synthetic same-tick
+roster/lifecycle cases. Complete private capture, owned launch/custody, output
+inspection and overhead/parity remain unverified. No game/model dispatch; old
+clock/native11 identities are unchanged. Next connect owned launch and an
+independent stopped-output verifier before a fresh authentic capture. G1 not_run.
+
+M1.6r.1 [private player NBT codec](docs/verification/2026-09-25-m1-player-nbt-codec.md)
+is implemented_unverified for live capture; M1.6r remains in_progress. Five
+focused installed-code/synthetic-data cases pass, retaining the first signed-zero
+failure and its explicit format limitation. All 38 retained saved fields were
+compared; XpSeed and warden_spawn_tracker differ from source in both stopped
+exports. This is not evidence of live initial equality. Next authenticate the
+loaded producer and callback, then verify live UUID/thread scope and the full
+state contract. Gameplay observations and native probe admission remain scoped.
+Native11 is retained/pass and is not rerun. G1 remains not_run.
+
+Native11 [paired worker reference](docs/verification/2026-09-25-m1-worker-pair-native.md) passes257.12s and its
+independent audit passes. Both arms import before writers, join with scoped
+identity/exact own-state observation journals, stop workers normally7/7 before
+normal12/12 server exits, and export27 verified state files each. Original
+300/200-170/60-60s bounds hold. M1.6q.13/.15 are verified for this named vanilla
+N=1-per-arm reference; full live-state/native admission/clocks/disposal remain
+open.443 source pins and40 real tables unchanged at$4.887796, no owned runtime
+or model calls. Preserve native01-10 and consumed11; next private live-state/
+tool-policy witness and remaining G1 boundaries. G1-G5 remain not_run.
+
+M1.6q.15 [shared immutable runtime](docs/verification/2026-09-25-m1-shared-worker-runtime.md) is implemented_unverified
+for authentic paired gameplay.105 source cases pass after a retained tracking-
+hook failure and one-line test correction. Authentic preparation passes66.16s:
+one full runtime acquisition, entries15.578s/4.787s, total51.673s versus Q14's
+59.711s. Member config/account/process ownership and full custody remain; parent
+FENCED/resources held, no game/model dispatch.443 source pins and40 real tables
+unchanged at$4.887796. Next select one fresh changed paired-worker integration
+after final source/custody/capacity checks, with original bounds and all failures
+retained. Native10's148.437s cause stays unknown; G1 remains not_run.
+
+M1.6q.14 [worker-entry diagnosis](docs/verification/2026-09-25-m1-worker-entry-phases.md) remains in_progress. The
+read-only pair takes14.327s/13.865s; the full registered preparation diagnostic
+passes73.46s with entries14.499s/14.629s and59.711s total preparation. Native10's
+148.437s delay does not reproduce and its cause stays unknown. Both diagnostics
+retain full custody; no game/model dispatch or bounds change. Original native
+cases01-10 stay failed/consumed. Next inspect shared immutable runtime custody
+to remove repeated complete acquisition while preserving member ownership.
+No native11 selected; full G1 remains not_run.
+
+M1.6q.13 [pre-writer imports](docs/verification/2026-09-25-m1-prewriter-imports.md)
+is implemented_unverified for authentic paired integration.95 focused cases
+pass; imports now precede writer acquisition after durable admission, with
+parent clocks, receipts, custody and final dispatch deadlines intact. Fresh
+native10 fails233.02s before admission/import/copy/server dispatch: first worker
+input entry148.437s, second11.094s; original writer window no longer fits. Parent
+FENCED, resources held, no world row or writer table. All441 source pins and40
+real authority tables unchanged at$4.887796/no owned runtime. Next read-only
+phase diagnosis of the first-entry delay; do not rerun unchanged. G1 stays open.
+
+M1.6q.12 [protected persistence preparation](docs/verification/2026-09-25-m1-protected-preparation.md)
+is implemented_unverified for authentic paired integration. Remove a discarded
+byte snapshot while retaining exact membership, quotas and fresh held-byte
+hashing; reject late unselected members.61 distinct source cases pass after a
+retained test-assertion failure. Read-only persistence8.797s to6.781s, identical
+state/inventory and input bytes, two denied write-opens, no job/session dispatch.
+All40 authority tables unchanged at$4.887796; no owned runtime or native10.
+Next inspect moving worker imports before writer acquisition under the existing
+parent clocks and custody. Original bounds and full G1 remain unchanged/open.
+
+M1.6q.11 [lexical directory-prefix reuse](docs/verification/2026-09-25-m1-layout-prefix.md)
+is implemented_unverified for authentic paired integration. All 114 focused
+source cases pass; read-only exact-profile resolution falls from q10's 6.078s
+to 4.531s with identical output and all per-entry/custody checks retained. No
+new native trial, paid call or bounds change. All 40 real tables unchanged at
+$4.887796; no owned runtime. Next profile protected-session preparation without
+dispatch before changing it or selecting another pair trial. Full G1 remains
+open; earlier next actions below are historical.
+
+M1.6q.10 [materialization scan composition](docs/verification/2026-09-25-m1-materialization-scan-composition.md) is implemented_unverified for authentic paired integration.
+Complete held resolution now checks installation membership before and after both
+role layouts, with a live marker/scope guard before authority reads. Every entry
+retains its policy/type/size/hardlink/hash checks; standalone scans and member
+checks retain independent custody.138 distinct source cases pass, no skips.
+Read-only exact-profile resolution7.828s becomes6.078s with identical output;
+five membership scans become two. No new native trial or model call. Native09's
+finite-window refusal and all original bounds/holds remain. Next reduce repeated
+lexical path reconstruction identified by profiling, then inspect protected
+session preparation before another paired trial. All40 real tables unchanged
+at$4.887796; no owned runtime. Full matched-state/tools, native admission,
+clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run. Earlier next
+actions are historical.
+
+M1.6q.9 [held-parent path validation](docs/verification/2026-09-25-m1-held-parent-validation.md) is implemented_unverified for authentic paired integration.
+Directory handles now deny removal before child files open and retain reparse
+entries themselves. Validate held ancestors once, with fresh leaf checks and
+retained-handle hashes. Two initial custody failures are preserved and fixed;
+110 distinct source cases pass, with three symlink-privilege skips. Read-only
+profile30.250s becomes25.063s with identical launch resolution. Native09 fails
+202.19s before first server dispatch: inner PROBE_WORLD_DEADLINE, outer close
+uncertain. Both copiers/imports stop normally; no server/worker launched. Writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next compose repeated
+materialization membership scans around complete two-role resolution, retaining
+fresh authority/layout/type/size/hardlink checks and original300/200-170/60-60s
+limits. Cases01-09 remain. All40 real tables unchanged at$4.887796; no owned
+runtime or model calls. Full matched-state/native/probe/keybinding/scorer and
+isolation gates stay open; G1-G5 not_run. Earlier next actions are historical.
+
+M1.6q.8 [runtime check composition](docs/verification/2026-09-25-m1-runtime-check-composition.md) is implemented_unverified for authentic paired integration.
+Every lifecycle check validates member runtime custody once, directly or through
+its complete stop receipt. First-start full preflight includes aggregate-window
+admission after validation. All35 source cases pass. Fresh native08 fails125.69s:
+PROBE_WORLD_DEADLINE before any copier/import/server/worker dispatch; preparation
+consumes103.906s, leaving too little for the first200s writer. World FAILED,
+parent FENCED, all reservations held; no writer row exists. Lifecycle timing was
+not exercised. Next profile pre-writer preparation without dispatch and reduce
+repeated work under held custody, preserving fresh authority/layout checks and
+original300/200-170/60-60s limits. Cases01-08 remain. All40 real tables unchanged
+at$4.887796; no owned runtime or model call. Full live-state/tool parity, native
+admission, clocks/disposal, T05/T10 and isolation remain open; G1-G5 not_run.
+Earlier next actions are historical.
+
+M1.6q.7 [paired stop ordering](docs/verification/2026-09-25-m1-pair-stop-order.md) is implemented_unverified for authentic paired integration.
+Scoped normal stop now precedes the complete pair check during bounded drain;
+capture acceptance and sibling dispatch still require full validation. All22
+source cases pass. Fresh case07 fails221.33s before the second server dispatch:
+WRITER_EXPOSURE_INSUFFICIENT, outer PROBE_WORLD_CLOSE_UNCERTAIN. First worker's
+exact projection and normal stop pass; first server exits normally12/12 with a
+verified27-file export. Stop request takes0.109s; full pair checks reach8s. Next
+compose repeated member-runtime/preflight validation without weakening authority,
+custody, admission or export checks. Original bounds and cases01-06 remain.
+Both writers UNCERTAIN, world FAILED, parent FENCED, all holds retained. All40
+real tables unchanged at$4.887796; no owned runtime or model calls. Full matched
+live state/tool parity, native admission, clocks/disposal, T05/T10 and isolation
+remain open; G1-G5 not_run. Earlier next actions are historical.
+
+M1.6q.6 [borrowed worker materialization](docs/verification/2026-09-25-m1-worker-materialization.md) is implemented_unverified for authentic paired integration.
+Private member preparation now borrows the live installation lease, preserving
+fresh authority/layout checks and separate runtime/configuration/account custody.
+97 focused source cases pass. Real-profile read-only entry falls from 13.672s to
+11.078s with identical output, no configuration writes and no dispatch. This work
+precedes writer acquisition, so it does not resolve case06's writer-window refusal;
+no native retry was made. Next reduce work delaying normal stop inside that window,
+keeping full validation before export acceptance and sibling dispatch. Original
+300/200-170/60-60s bounds and all six failed native cases remain. All 40 real tables
+are unchanged at $4.887796; no owned runtime or M1 paid authority. Full live-state/
+tool parity, native admission, clocks/disposal, T05/T10 and isolation remain open;
+G1-G5 remain not_run. Earlier next actions are historical.
+
+M1.6q.5 [held materialization checks](docs/verification/2026-09-25-m1-held-materialization-checks.md) is implemented_unverified for authentic paired integration.
+Private server rechecks use hashes verified through live Windows file handles;
+fresh authority, complete layout/type/size/hardlink/membership and external
+executable checks remain.134 distinct source cases pass after a retained refusal-
+ordering failure; three symlink-privilege skips remain. Real-profile diagnostic
+resolution4.875s becomes1.891s/1.953s under held custody, with equal output.
+Case06 passes first-worker projection/normal stop and first-server normal12/12
+stop plus a verified27-file export. Pair fails210.41s before second server dispatch:
+WRITER_EXPOSURE_INSUFFICIENT, outer PROBE_WORLD_CLOSE_UNCERTAIN. Both writers
+UNCERTAIN,world FAILED,parent FENCED,all holds retained. Complete-checkpoint and
+clean-save flags remain false. The audit's initial omission of empty directories
+is retained; a directory-preserving copy verifies the unchanged export.
+Next reuse already-held materialization during private worker input resolution,
+preserving separate member/runtime/config/account custody and fresh authority.
+Original300/200-170/60-60s bounds,cases01-05 and all G1 contracts remain. All40
+real tables unchanged at$4.887796,no owned runtime,no model call or M1 paid
+authority. Full live-state/tool parity,native admission,clocks/disposal,T05/T10 and
+isolation remain open; G1-G5 not_run. Earlier next actions are historical.
+
+M1.6q.4 [initial worker projection](docs/verification/2026-09-25-m1-initial-worker-projection.md) is implemented_unverified for authentic paired integration.
+Accept only ordinary inventory window0 matching own slots, retain exact delivered
+JSON, and persist stop/custody before later state validation.37 distinct source
+cases pass after a retained malformed-key fixture failure. A post-readiness
+binding change still blocks worker dispatch; adjacent duplicate validation is
+removed. Case05 passes the first worker's exact identity/journal/saved projection
+and normal stop, with persisted job/stop receipts (seven total/zero active processes,
+supervisor37.7704ms,owner94ms). The paired run fails224.87s: server60s watchdog
+REFERENCE_PAIR_HARD_DEADLINE precedes stop send PROCESS_NOT_RUNNING, outer close
+uncertain. Server forced125/all12 held terminal; second server/worker unstarted.
+Writers UNCERTAIN,world FAILED,parent FENCED,all holds retained. Next reduce
+repeated full pack resolution under held custody and avoid unnecessary validation
+before normal stop, preserving authority/bytes/membership and pre-dispatch checks.
+Original windows,cases01-04,profile identities and all G1 contracts remain.
+All40 real tables unchanged at$4.887796,no owned runtime,no model call or M1 paid
+authority. Full live-state/tool parity,native admission,clocks/disposal,T05/T10 and
+isolation remain open; G1-G5 not_run. Earlier next actions are historical.
+
+M1.6q.3 [composed worker checks](docs/verification/2026-09-25-m1-worker-check-composition.md) is implemented_unverified for authentic paired integration.
+Shared software custody is checked once per composed call; every member and
+standalone check retains its validation. Import receipts persist before phase
+advance, returned inner errors are retained, and final file link/hash checks
+remain.94 distinct source cases pass; one opt-in native copier case skips.
+Case04 reaches the first server and worker, then fails PROBE_INITIAL_OBSERVATION
+on ordinary inventory window0; outer PROBE_WORLD_CLOSE_UNCERTAIN remains. Both
+import job receipts persist; normal worker supervisor stop is retained, but the
+complete worker job receipt was not persisted before later validation failed.
+Server cleanup is forced125 with12/12 terminal. Both writer rows UNCERTAIN,
+world FAILED,parent FENCED,all reservations held. The journal's omitted optional
+machine field also differs from the normalized observation. Retain case04 and
+the first audit equality failure. Next fix these observation-contract mismatches
+and persist worker stop/custody before later validation, with focused negatives
+before a changed native case. Original finite windows and cases01-03 remain.
+All40 real tables unchanged at$4.887796,no owned runtime,no model call or M1
+inference authority. Full live-state/tool parity,native admission,clocks/disposal,
+T05/T10 and isolation stay open; G1-G5 not_run. Earlier next actions are historical.
+
+M1.6q.2 [retained runtime custody](docs/verification/2026-09-25-m1-retained-worker-resolution.md) is implemented_unverified for authentic paired integration.
+The launcher retains the runtime opened by sealed resolution through config and
+owned cleanup; public resolution still releases handles.93 focused source cases
+pass. Real-profile deferred entry takes23.844s under cProfile with one runtime
+lease. Fresh case03 reaches both copiers (normal10/10 owned stops each) and both
+worker import logs, then fails before server launch: inner PROBE_WORLD_DEADLINE,
+outer PROBE_WORLD_CLOSE_UNCERTAIN,176.62s total. Writer custody remains UNCERTAIN,
+world FAILED,parent FENCED,all holds retained. Import job receipts were checked
+but not persisted; stdout cannot replace that missing proof. Ten software checks
+consume60.546s with overlapping parent checks. Next reduce redundant software
+validation while writers are held, persist import receipts and surface retained
+inner refusals,
+retaining all authority/hash/link/membership checks and original finite windows.
+Cases01/02 stay failed. All40 real tables unchanged at$4.887796,no owned runtime,
+no server/gameplay-worker/model dispatch and no M1 inference authority. Full live
+state/tool parity,native admission,clocks/disposal,T05/T10 and isolation stay open;
+G1-G5 not_run. Earlier next-action text below is historical.
+
+M1.6q.1 [worker preparation cost](docs/verification/2026-09-25-m1-worker-preparation-cost.md) is implemented_unverified for authentic paired integration.
+Batch preliminary path discovery while retaining final per-file checks under
+held parents. Resolve and hold each worker once, then commit configurations only
+after both rosters' account checks pass; deferred custody permits no dispatch.
+108 distinct source cases pass; three symlink-privilege cases skip while actual
+junction cases pass. Read-only client resolution falls33.687s to23.937s under
+cProfile. Changed authentic case02 still fails PROBE_WORLD_DEADLINE in118.32s,
+now at first-copier dispatch after the earlier preparation preflight passed.
+One world-copy row is FAILED, parent FENCED, all reservations retained; zero
+copier/import/worker/server/model dispatches. Both original finite windows and
+case01's178.93s failure remain. All40 real authority tables unchanged at$4.887796;
+no owned runtime or M1 paid inference authority. Next resolve remaining repeated
+preparation checks under unchanged authority/hash/link/custody/deadline contracts
+before any changed-case retry. Full live-state/tool parity, native admission,
+clocks/disposal, T05/T10 and remaining isolation stay open; G1-G5 not_run.
+Earlier next-action text below is historical and superseded by this paragraph.
+
+M1.6q [registered worker lifecycle](docs/verification/2026-09-25-m1-probe-worker-runtime.md) is implemented_unverified.
+31 distinct source cases pass, covering whole-pair import/worker/stop ordering,
+private identity and observable-state joins, failed imports/grants/state/stop,
+changed authority and retained reservations. The first authentic-input attempt
+fails after 178.93s with PROBE_WORLD_DEADLINE before copier/import/worker/server dispatch.
+Both configurations were created; parent teardown fences and preserves all holds.
+Original parent300s/writer200-170s/server60s bounds remain unchanged. Read-only
+profiling measures server8.188s/client33.687s under cProfile and identifies repeated
+path/layout validation. Next reduce that duplication without removing custody,
+hash, link or authority checks, then retry this case after the implementation
+change. Keep its failure and diagnostic script-import error. All40 real tables
+remain unchanged at$4.887796; no owned runtime or model call. Full live-state/tool
+matching, native admission, clocks/disposal, T05/T10 and remaining isolation are
+still required; G1-G5 not_run. No M1 paid inference authority is inferred.
+
+M1.6p [complete worker input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md) is implemented_unverified for
+registered runtime integration. Nine distinct focused source cases pass using
+synthetic accounts/packs and actual Windows file leases. Both complete arm rosters
+resolve and match account declarations before configuration creation; account,
+config and runtime custody is rechecked. Mismatch, changed authority, closed parent
+and partial failure refuse without dispatch or parent resource/cost release.
+Token-refresh sibling files remain writable. Initial collection/assertion failures
+are retained. No worker/game/provider/model execution; all40 real authority tables
+remain unchanged at$4.887796 exposure, with prior holds and consumed decisions.
+Next connect this one-use input custody to the registered runtime lifecycle and
+all-N live-state matching. A single-account profile must reject an incompatible
+roster in full. Native admission, clocks/disposal, T05/T10 and full isolation stay
+open; G1-G5 not_run. No M1 paid inference authority is inferred.
+
+M1.6o.1 [authentic worker identity](docs/verification/2026-09-25-m1-worker-identity-native.md)
+is verified for the bounded account/server/save identity and normal-stop contract.
+Fresh corrected case02 passes118.188s: copier10/10, worker preflight3/3, worker7/7,
+server12/12 normal; scoped identity precedes the live observation and joins the
+saved player.26-file capture and live-to-stopped own-state projection agree.
+The separate actual wrong-UUID negative fences/refuses observations and stops7/7
+normally.35 positive/19 negative sealed audit checks pass. Case01's startup
+refusal and forced exit125 remain failed; no unchanged successful case is rerun.
+New profile publication preserves all original rows and changes metadata only;
+all40 tables stay unchanged across execution, with exposure$4.887796 and holds
+preserved. No owned runtime remains; no model calls or M1 paid authority.
+Next integrate registered-pair held workers and complete live-state matching
+using fresh declarations. Do not backfill old missing native configuration refs.
+All-N matching, native admission, clocks/disposal, T05/T10 and remaining runtime
+qualification stay open. M1.6o/.6n remain implemented_unverified; G1 not_run.
+
+M1.6o [worker identity](docs/verification/2026-09-25-m1-worker-identity.md) adds
+complete registered both-arm invocation binding and explicit DevelopmentWorker/2.
+The worker checks account identity before refresh/connection and server UUID
+before readiness, persisting a scoped private receipt.49 Python and28 Node
+source cases pass;15 cross-language/accounting audit checks pass with synthetic
+provider/game transport. No game/model/auth network runs. Authentic registered
+worker integration, all-N live state, native admission, clocks and disposal remain
+open. M1.6o is implemented_unverified for authentic integration. Next connect this
+identity boundary to fresh pinned worker inputs and complete live-state matching;
+never retrofit old sealed profiles. No M1 paid authority is inferred.
+
+M1.6n [saved-player binding](docs/verification/2026-09-25-m1-probe-saved-bodies.md)
+is implemented_unverified for authentic launch integration. The explicit
+software /3 and paired-reference /2 profiles bind all declared bodies to exact
+registered player files, UUIDs, full NBT bytes and typed state before dispatch.
+91 distinct source cases pass, with one opt-in native copier test skipped;
+12 read-only authentic stopped-capture checks pass. No game/model execution.
+Live account assignment/readiness, matching, clocks and disposal remain open.
+
+**D20, September 24: M1 implementation and complete G1 are now authorized.**
+M0 remains verified; G0 passes its named D14 development slice; G1-G5 remain
+not_run. The active long-horizon goal is M1/G1 only, including its required
+scorer/probe dependencies. Unrelated M2-M7 work and release gates stay unchanged.
+
+M1.6m.1 [validation cost](docs/verification/2026-09-25-m1-pair-validation-cost.md) is verified for the bounded paired
+server-reference path. Fresh case09 passes in229.74s with the original300s
+parent,200/170s writer and two60s server windows unchanged. Both authentic
+vanilla servers reach readiness, exit normally with12/12 retained owned
+processes and export26 tagged state files each; both copiers exit normally10/10.
+The first export stays held through the sibling. Each arm verifies three write
+denials and premature capacity release is refused. This is an operator
+reference using genuine world/software and synthetic agent/protocol/capacity
+fixtures; no model calls or gameplay worker bodies, and no full native probe,
+all-N matching, authoritative clock, disposal, T11 or G1 pass is claimed.
+
+The source changes eliminate duplicate scans, retain live leases and reuse only
+call-local lexical parsing. Complete source/software/account/resource/deadline
+checks remain before dispatch and at callback/stop/export boundaries.189 distinct
+focused cases pass, including changed-authority refusals at launch intent and
+between arms. Case08's sibling exposure refusal remains a failed pair despite
+its successful first-server export. Sealed reconstruction passes30/30 for case08
+and37/37 for case09; all producer, terminal-tree and source stores are sealed.
+All40 real authority tables remain unchanged, exposure$4.887796/$10 with prior
+holds and consumed decisions preserved. No owned runtime remains. D18/D19 do
+not authorize M1 paid inference.
+
+M1.6m remains in_progress for complete native probe integration. Next implement
+registered live-body matching, scoped native admission, authoritative clocks
+and one-way disposal using this held pair path. Keep missing authentic agent
+checkpoint/configuration references explicit; never backfill old evidence.
+T05 capable extension, protected scorer controls and combined runtime routes
+remain open. Do not repeat the unchanged successful paired reference. Earlier
+validation measurements and cases01–08 remain in the linked reports/history.
+
+Fetched origin and verified PR #8 merged at
+`215c4e0d01f0602c91504ad631dc2343ffc9f354`. A clean checkout became
+`codex/m1-g1-isolation`. The [opening coverage audit](docs/verification/2026-09-24-g1-coverage-audit.md)
+distinguishes exact historical profiles, incomplete contracts and missing
+native/game evidence across complete T01/T04/T05/T06/T10/T11.
+
+WAL-aware read-only verification matches all40 authority tables to the G0
+checkpoint: exposure $4.887796/$10, including the old $0.7554 hold and four full
+$1 unresolved envelopes;20 gateways CLOSED,15 jobs FINALIZED,5 UNSETTLED.
+No matching Strata-owned Java/native process remained. Used decisions remain
+consumed, with no replay/refund. D18/D19 authorize M0 spending only; D20 grants
+no M1 inference allowance. Credential-free verification can proceed independently.
+
+**Active work:** M1.3b gameplay-root/helper boundary qualification.
+M1.3b.1 now has [first selected-runtime evidence](docs/verification/2026-09-24-m1-native-boundary.md):
+187 focused cases and independent24/24 native reconstruction; retained original
+environment refusal and68/74 verifier report. M1.3b.2 adds
+[media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md):
+49 verifier passes,33/33 independent reconstruction, original75/76 retained.
+M1.3b.3 adds [state/notification evidence](docs/verification/2026-09-24-m1-state-boundary.md):
+36 new verifier cases and34/34 independent reconstruction; original failed
+notification-parser run and45/46 pending-review report retained. Continue
+helper lifecycle and cross-team communication before full qualification.
+M1.3b.4 now has [selected retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md),
+16/16 independent reconstruction with original33/34 retained.
+M1.3b.5 now has [notification-safe framed drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):
+200 focused cases,34/34 native checks and20/20 independent reconstruction.
+M1.3b.6 now has [held-process drain and stopped disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):
+222 distinct focused cases,28/28 native checks and15/15 independent export audit.
+The failed state-readiness attempt and its synthetic hold remain retained.
+Scalar-only yields still cannot authorize early retirement; stopped export uses
+the independent private process fence without claiming successful tool completion.
+M1.3b.7 now has [selected two-helper evidence](docs/verification/2026-09-24-m1-helper-pair.md):
+149 distinct focused cases,37/37 native and15/15 independent checks. Two helper
+parser/rendezvous failures and their synthetic holds remain retained; the
+initial13/15 audit is retained beside its corrections. M1.3b.8 adds
+[separate-job native evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused
+cases and25/25 independent checks; original28/29 per job and optional summary
+serialization failure retained. M1.3b.9 next implements the distinct G1-required
+campaign-team API; native helper collaboration cannot substitute for it.
+Its [typed controller core](docs/verification/2026-09-24-m1-team-core.md) now
+passes72 synthetic cases, pending the native facade. The same work found and
+corrected specific integer bounds (M1.2a);190 distinct affected cases pass and
+four retained native jobs reconstruct unchanged under the stricter validator.
+M1.3b.9b adds the [versioned native team facade](docs/verification/2026-09-24-m1-native-team-source.md):
+417 distinct focused passes/three existing opt-in skips, preserving old catalogs
+and profile identities. [Actual selected native team integration](docs/verification/2026-09-24-m1-native-team.md)
+now passes45/45 per job and26/26 independent reconstruction: one shared queue,
+22 team calls,14 settled requests/196 synthetic units, no real authority change.
+Final qualified gameplay-profile integration remains .9d; projection /4 remains
+conformance-only. Continue exact-profile boundary composition and remaining
+actual game/credential, skill/handoff and probe-disposal routes.
+The [profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md)
+verifies nine sealed bundles/eleven profiles and compares98 runtime modules.
+Earlier slices have11–12 changed modules; no combined qualification is inferred.
+M1.3b.9d now implements explicit campaign projection /5 with169 focused passes
+and5/5 retained-export/authority checks.
+The [integrated candidate fixture](docs/verification/2026-09-24-m1-campaign-candidate-source.md)
+now combines that worker path, campaign team scope and owned boundary probes;
+89 source/verifier checks pass. [Actual M1 integration](docs/verification/2026-09-24-m1-native-game.md)
+adds203 distinct orchestration/lifecycle/export checks,97/97 native candidate
+checks and26/26 independent reconstruction plus3/3 retained-export/marker checks.
+The first pre-native example-record failure and second outer export failure stay
+sealed. A corrected stopped reader exports the second capture on a copy without
+rerunning game/native work. One actual look, root/helper boundary attempts,
+team/artifact controls and normal drain join; no full runtime qualification.
+Next complete selected executable skills/fresh handoff and remaining client/log/
+registry/probe routes. Do not rerun solely to replace the original outer failure.
+M1.4a now has an [activated JavaScript fixture](docs/verification/2026-09-24-m1-active-script-source.md)
+with53 initial source checks. Its [actual selected-native continuation](docs/verification/2026-09-24-m1-active-script-native.md)
+now passes36/36 and independent22/22, with177 distinct focused checks. Root and
+helper execute exact active JavaScript; scoped root writes succeed and helper
+writes refuse. Eight requests settle for112 synthetic units, prior56 preserved;
+stopped export and executable candidate2 retain actual provenance. New sealed
+source custody and owned epoch2 controller use catalog /5. Synthetic game/world/
+readiness, no real inference or RuntimeQualification. Next complete the held
+controller CHECKPOINTING transition and new complete checkpoint/fresh activation;
+do not rewrite the sealed RUNNING controller or rerun its one-use scripts.
+The [new normal checkpoint/fresh activation](docs/verification/2026-09-25-m1-native-handoff.md)
+now passes37/37 per episode and42/42 independent reconstruction, with94 distinct
+focused checks. Held owners enter CHECKPOINTING, exact complete synthetic
+checkpoints activate revisions2/3, and a fresh epoch3 runtime preserves admitted
+artifacts/costs while starting new context/private code-mode state. Sixteen
+requests settle224 units, prior56 retained. Next matched frozen/no-self-play
+controls and remaining combined-profile qualification; no full G1 claim.
+M1.4b [matched retention work](docs/verification/2026-09-25-m1-matched-retention.md)
+now passes36/36,36/36,38/38,36/36 across both arms and fresh second episodes.
+Full retains learned artifacts; frozen resets to initial while allowing new
+within-episode work.24 native calls settle336 synthetic units, prior112 retained.
+First timeout/90,000-unit hold and second33/36 failure remain sealed. Read-only
+timeout diagnosis passes10/10; batch validation reduces measured3.745 to1.582
+seconds without changing deadlines or removing checks. Complete session/cache,
+frozen-skills categories, disposable probes and combined qualification remain open.
+Independent sealed reconstruction passes64/64 episode and7/7 common checks.
+M1.4b.1 [versioned frozen-skills note policy](docs/verification/2026-09-25-m1-frozen-note-policy.md)
+now enforces category checks before root/helper writes and at checkpoint staging;
+final39 source cases pass. Legacy campaign use refuses, historical readers and
+explicit synthetic conformance remain separate. The [fresh native category fixture](docs/verification/2026-09-25-m1-frozen-note-native.md)
+passes44/44 and independent20/20 plus4/4:27 exact denials, five audited prose
+writes, permitted synthetic observation and normal complete checkpoint;52 focused
+source checks pass. All40 authority tables unchanged; six scripted calls84 units,
+prior56 retained, USD0. Model-produced category sampling and remaining combined
+isolation/probe boundaries stay open; M1.4b.1 remains implemented_unverified.
+
+M1.6a now has a [private committed-source artifact projection](docs/verification/2026-09-25-m1-probe-artifact-projection.md):
+32 distinct focused cases and46 record/evaluator regression cases pass; three
+stopped actual native captures reconstruct24/24 plus2/2. It derives exact
+initial/retained/active bytes, refuses evaluation-origin notes and preserves
+actual exposure/costs. It grants no clone/launch authority. M1.6 is in_progress;
+M1.6a implemented_unverified pending complete pre-start pair binding, actual
+native/world clone execution and one-way disposal. All40 authority tables stay
+unchanged. No native/game execution or paid inference in this task.
+
+M1.6b [one-use pair staging](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+now passes80 source checks,18/18 N=1 synthetic preparation/reopen checks and
+21/21+2/2 independent reconstruction. Protocol indices, full source roster and
+common parameters bind two separate disk trees; exact byte/directory checks,
+failed-copy fencing and t=0 equality/zero designed gain pass their named scope.
+No native/world probe or resource/launch/isolation qualification is inferred.
+Five unresolved policy/config references in old matched-retention03/r11 prevent
+its reuse as a complete new pair source; preserve it unchanged. Next implement
+a disposable probe runtime adapter with fresh resolved source, local adaptation
+and one-way disposal, retaining campaign activation/import fences. USD0.
+M1.6b.1 [failed/interrupted verification](docs/verification/2026-09-25-m1-probe-verification-fence.md)
+now passes42 focused cases and19/19 read-only reconstruction. VERIFYING intent
+survives actual controller death; failed checks cannot revive after byte repair.
+Initial two crash-wrapper failures are retained. This preparation boundary is
+verified; native launch/disposal and full M1.6/G1 remain open. All40 real authority
+tables and $4.887796 exposure/holds are unchanged; no paid/native/game execution.
+M1.6c [native purpose/account separation](docs/verification/2026-09-25-m1-native-account-purpose.md)
+adds235 distinct passing cases and unchanged reconstruction of one stopped native
+source/two committed exports. Evaluation cannot enter a campaign or borrow a
+development conformance identity at startup, enrollment, dispatch or broker use.
+Running jobs also match their original funded reservation; changing between two
+otherwise permitted categories cannot silently change an admitted job's identity.
+New probe admission remains unimplemented; local adaptation does not require
+campaign publication. M1.6c implemented_unverified for complete native integration.
+M1.6d [pair-derived native views](docs/verification/2026-09-25-m1-probe-native-views.md)
+adds57 distinct cases and60/60+3/3 read-only reconstruction. Both arms have exact
+catalog/active bytes, explicit role inventories and empty profiles; controls,
+failure intents and operator-store index binding are checked. Original WAL-reader
+refusal is retained beside a separate WAL-aware snapshot; no source changed.
+M1.6d implemented_unverified: native catalog loading/projection, separate probe
+admission, held launch and disposal remain next. All40 authority tables unchanged.
+
+M1.6e [disposable native artifact bindings](docs/verification/2026-09-25-m1-probe-native-binding.md)
+adds atomic both-arm/member registration, fresh evaluation identities, separate
+NativeLaunch probe refs and exact root/helper catalog preflight.140 distinct
+checks and72/72+3/3 read-only reconstruction pass; initial transaction failure
+and the wrong error-code test expectation remain retained. It is
+implemented_unverified for live native admission/projection. Native probe
+startup remains explicitly closed before job/reservation/process creation:
+held world/resource custody is not established by an artifact binding. Next
+complete that coordinator, all-N admission and scoped native projection, then
+actual matched-state and one-way disposal evidence. Existing account, campaign
+activation/publication and all six runtime-proof requirements remain intact.
+
+M1.6k [directory-bound pair preparation](docs/verification/2026-09-25-m1-probe-directories.md)
+adds explicit /2 fixture/request/software policies and writer /4. Registered
+world directories enter world identity and both staged/copied trees; declared
+empty world/software paths survive and policy downgrades refuse.111 distinct
+focused cases and66/66 sealed read-only checks pass; initial assertion failure
+retained. All40 authority tables/holds unchanged, no native/game/model run.
+Full authentic paired runtime integration remains implemented_unverified.
+
+M1.6j [protected vanilla server/worker](docs/verification/2026-09-25-m1-protected-vanilla.md)
+adds directory-preserving copying and a separate authentic vanilla lifetime.
+Changed case02 proves copier10/10/server12/12 normal exits, real Mineflayer
+connection and26-file stopped capture. First180s failure11/12 stays retained;
+ordering is corrected without extending the deadline.91 focused cases and32/32
+sealed read-only checks pass. Parent launch metadata is corrected separately,
+with original native receipts unchanged. All40 authority tables/holds persist.
+Paired/native probe integration remains implemented_unverified; G1 not_run.
+
+M1.6i [sealed vanilla probe software](docs/verification/2026-09-25-m1-probe-software.md)
+connects the registered pair to exact sealed server inputs under file custody.
+It requires complete vanilla state, preserves explicit path mapping and refuses
+unsupported layouts. Writer path containment now normalizes Windows aliases.
+52 distinct focused cases and29/29 read-only reconstruction checks pass; two
+retained native plans pass normalized containment without a rerun. All40 real
+authority tables/holds remain unchanged. Actual game/native probe integration
+stays implemented_unverified, with G1 not_run and no paid execution.
+
+M1.6h [held protected world copies](docs/verification/2026-09-25-m1-probe-world-copies.md)
+adds a whole-pair native writer lifetime while original files and all resource/
+cost holds stay protected.47 source cases and one actual native pair pass;
+58/58 read-only checks preserve both prior native failures. Both copier trees
+stop normally (10/10 each) and close explicitly unlaunched; this does not prove
+Minecraft, live-state equivalence or post-probe disposal. No paid inference.
+
+M1.6g [probe bootstrap and broker projection](docs/verification/2026-09-25-m1-probe-broker-projection.md)
+connects prepared views to exact bootstrap validation, pre-enrollment catalog
+checks and atomic role-specific artifact projection. Native probe startup and
+purpose/account guards remain closed; actual world/runtime custody and full
+native integration remain required.141 focused cases and137/137+3/3 read-only
+checks pass. The first audit path-format failure is retained; all40 authority
+tables remain unchanged. This is implemented_unverified for actual native use.
+
+M1.6f [held pair preparation](docs/verification/2026-09-25-m1-probe-custody.md)
+adds Windows file leases and atomic both-arm evaluation envelopes/capacity.
+The campaign scheduler counts those holds; failure, expiry and lost ownership
+retain them. A separate monotonic deadline prevents wall-clock rollback from
+extending custody. Undispatched resource release neither settles costs nor
+rearms the pair. This is implemented_unverified for actual native/game launch;
+the native probe gate remains closed. Next connect the held preparation owner
+to world/runtime custody, scoped catalog/broker projection and one-way disposal.
+86 distinct focused cases pass with three existing symbolic-link privilege
+skips; read-only audit73/73+3/3 passes. Sealed evidence is linked in the report;
+all40 real authority tables and existing exposure/holds remain unchanged.
+
+M1.4b now has [actual native no-self-play evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
+37/37 plus22/22 independent reconstruction. The live guard additionally requires
+agents.enabled=false; its absence left collaboration advertised despite the
+feature flag. Retain case01's pre-forward refusal and case02's35/37 original.
+Case03 refuses both spawn wire types, preserves root artifacts/synthetic game/
+private state and checkpoints revision2; five requests/70 units, prior14 retained.
+All40 real authority tables unchanged, USD0. Next matched frozen controls and
+remaining combined-profile qualification; full G1 is not claimed.
+Preserve permitted structured game/artifact operations while
+checking filesystem, process, network, credentials, tools and cross-agent state.
+Existing same-user shell sandbox failures remain failures. Full settings T05,
+private scorer controls and matched probe boundaries remain required for G1.
+Shared-desktop input stays paused. Complete canonical recovery/soaks remain G2.
+
+The [G0 assembly](docs/verification/2026-09-24-g0-assembly.md),
+[318-child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md),
+[prior closure handoff](docs/STATUS_AND_HANDOFF_M0_CLOSURE_2026-09-24.md) and
+append-only history retain all original results, scope limits and failures.
 
 ## M0 closure checklist — SPEC 16.1
 
@@ -57,8 +1369,8 @@ unqualified single-run or full-backend claim.
 
 | ID | Owner | Dependencies | Required deliverables / exit | Status | Implementation / evidence | Next action |
 |---|---|---|---|---|---|---|
-| M0 | GI; AR owns host seam | Execution prerequisites | Mineflayer/host vanilla slice followed immediately by exact E9E API/recipe/machine conformance, cancel/reconnect, private milestone and complete charges; G0 | verified | [Six-outcome D14 development assembly](docs/verification/2026-09-24-g0-assembly.md), [all child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md) | M0 scope complete. Wider child contracts keep their original statuses and later gates; do not start M1–M7 or another experiment under this request. |
-| M1 | PL | M0 | Typed Python/TypeScript/conditional Java contracts, scoped local CLI, durable controller, capability isolation; full keybinding skill/extension T05; G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), M1.1–M1.4; contracts/storage/grants/settings workflow implemented partially. Actual isolation and Forge adapter remain open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
+| M0 | GI; AR owns host seam | Execution prerequisites | Mineflayer/host vanilla slice followed immediately by exact E9E API/recipe/machine conformance, cancel/reconnect, private milestone and complete charges; G0 | verified | [Six-outcome D14 development assembly](docs/verification/2026-09-24-g0-assembly.md), [all child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md) | M0 scope complete. Wider child contracts retain statuses and later gates; D20 now authorizes M1/G1 only. |
+| M1 | PL | M0 | Typed Python/TypeScript/conditional Java contracts, scoped local CLI, durable controller, capability isolation; full keybinding skill/extension T05; G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), M1.1–M1.4; contracts/storage/grants/settings workflow implemented partially. Actual isolation and Forge adapter remain open. | D20: audit complete T01/T04/T05/T06/T10/T11, qualify root/helper boundary first, then required settings/scorer/probe integrations; no milestone closure. |
 | M2 | QA | M1 | Durable single-agent play, input fencing/watchdog, complete snapshots, recovery, budgets/clocks and operational report; G2 | in_progress | [Budgets](src/mcbench/budgets.py), [clocks](src/mcbench/clocks.py), [checkpoints](src/mcbench/checkpoints.py); synthetic fault/recovery tests pass, full supervisor and real soaks open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M3 | RS | M1 | Private fixtures/scorers/probes, artifact projections, ablations, pairing/analysis and canary tests; T10/T11/T13 | in_progress | [Private evaluator](evaluator/src/strata_evaluator/), artifact projections and scorer/analysis controls; live telemetry/probe runner/isolation open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M4 | PL | M2 | Team communication, simultaneous capacity, atomic N-body admission, distinct accounts/routing; G3 | in_progress | [Admission](src/mcbench/controller.py), [messages](src/mcbench/communication.py); whole-team synthetic cases pass, measured simultaneous capacity and actual accounts open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
@@ -418,13 +1730,101 @@ These children advance authorized software work while real M0 dependencies remai
 | M0.3a.2 | GI/PL/QA | Derive and verify the installed vanilla runtime inventory from the acquired distribution, with explicit configuration/state and licensing disposition | verified | [Actual template seal and evidence](docs/verification/2026-09-22-vanilla-packlock.md): original 4,097-entry installed inventory, 11,722-file worker, exact Node/Python/npm/Java sources and explicit uv metadata/absent-license dispositions. Nine bound operator provisioning checks join existing official acquisition and authentic cold-restart/native component evidence; original request SEALED. Actual fresh materialization and held import pass, with accounting and D12 preserved. This verifies the installed vanilla template scope, not full T02/G0 or game conformance. Authentic joint launch/server custody and canonical capture continue under M0.3a.3; E9E and all old failures remain open. |
 | M0.3a.3 | GI/PL/QA | Bind the sealed pack and explicit fresh/restored materialization to bounded server/worker launches; reject substitutions, changed roles, settings overrides and simulation stores | implemented_unverified | [Joint launch and actual sealed import](docs/verification/2026-09-22-vanilla-packlock.md) retain pre-start role checks, owned ordering and held inputs. [Restored baseline](docs/verification/2026-09-22-restored-native-baseline.md) now supports an actual connected native/helper/action run with normal owned stop and independent reconstruction. The original fresh-generation readiness failure stays failed. Full runtime custody/conformance and joint recovery remain unqualified; no unchanged import or baseline rerun. F01/F05/F16, N01/N04/N05/N06/N08, C03/C04/C24, partial T01/T02/T06/T07/T13/G0 items 2/4/6. Next carry the actual seal through game/agent recovery and remaining custody requirements. |
 | M1.2 | PL | All 13 models, partitioned schemas, generated bindings and semantic checks | in_progress | [Records](src/mcbench/records.py), [tests](tests/test_records.py); full reference fixtures/migrations/conditional Java open. |
+| M1.2a | PL/SI/QA | Enforce specific process-zero, broker depth/quota and game primitive bounds; F03/F04/F11/F16, N01/N04/N06, T01/T04/T06 | verified | [Correction and retained-proof audit](docs/verification/2026-09-24-m1-team-core.md):190 distinct focused cases pass, four sealed jobs/nine grants and committed exports recheck unchanged. Prior masked negative-test coverage explicitly corrected; no full contract/gate promotion. |
+| M1.2b | PL/GI/QA | Complete canonical cross-language structural/semantic parity and finite T01 closure audit; F02/F03/F06/F07/F16, N01/N04/N06, C06/C10/C11/C13/C20, T01/T04/T05/T06 | in_progress | [Public parity](docs/verification/2026-09-27-m1-contract-parity.md) and [private parity/upgrades](docs/verification/2026-09-27-m1-private-contract-parity.md): five public records share 140 cases and eight private records share 150 cases; all seven original private disagreements fixed. Three supported SQLite schema transitions have preservation/refusal evidence. Cross-record references, conditional Java and RPC/auth/path reconciliation remain. No full T01 or native-profile promotion.  [Admission/RPC/Java](docs/verification/2026-09-27-m1-admission-contracts.md) adds consistent preflight identities, 33 direct reference locations, 71 shared RPC cases and 24 Java action-profile cases. Remaining services/translations/path reconciliation explicit; aggregate unchanged. |
 | M1.3 | SI/PL | Private CAS/outbox, safe paths, grants/epochs and production prerequisite checks | in_progress | [Storage/controller tests](tests/test_storage_controller.py); actual OS/process/network/helper boundary open. |
 | M1.4 | AR/PL | Artifact revisions, immutable initial state, episode retention, message policies | in_progress | [Artifact tests](tests/test_checkpoints_artifacts.py); native runtime/session/tool integration open. |
+| M1.4a | AR/SI/QA | Selected-profile learned JavaScript execution through native restricted code mode, scoped effects and retained revision/accounting evidence; inherits M1.4 and SPEC6.2/6.3 | in_progress | [Actual native evidence](docs/verification/2026-09-24-m1-active-script-native.md):177 focused checks,36/36 native and22/22 reconstruction. [New complete checkpoint/fresh activation](docs/verification/2026-09-25-m1-native-handoff.md):94 focused cases,37/37 per episode,42/42 independent reconstruction; exact revisions2/3, scoped effects, fresh context/private code-mode state and retained costs. USD0 scripted provider, synthetic world/worker/readiness. Next matched frozen/no-self-play controls and combined-profile qualification; no historical activation reclassification. |
+| M1.4b | AR/SI/QA | Enforced no-self-play helper-disabled native profile and matched frozen/control retention; inherits M1.4 and SPEC13.2 | in_progress | [No-self-play](docs/verification/2026-09-25-m1-no-self-play-native.md):37/37 plus22/22 reconstruction, root-only /6 and complete synthetic checkpoint. [Matched full/frozen episodes](docs/verification/2026-09-25-m1-matched-retention.md):36/36,36/36,38/38,36/36 plus64/64 episode and7/7 common reconstruction; exact retained/reset artifacts, permitted synthetic observation/root/helper,24 settled calls336 units plus112 seed units. All original failures/holds retained. Complete session/cache/category and disposable probe qualification and full T04/T06/T11 remain open. |
+| M1.4b.1 | AR/SI/QA | Versioned frozen-skills category enforcement and sampled ambiguity audit; inherits M1.4b, F08/C22/C23, SPEC13.2 | implemented_unverified | [Source policy](docs/verification/2026-09-25-m1-frozen-note-policy.md): NativeRetentionPolicy/2 pins lexical classifier; root/helper write and initial/checkpoint validation, atomic audit joins, legacy campaign refusal. Final39 cases pass; retained full/frozen native episodes reconstruct64/64 plus7/7. [Fresh native verification](docs/verification/2026-09-25-m1-frozen-note-native.md) passes44/44 plus20/20+4/4 reconstruction,27 durable denials and five sampled scripted prose writes, normal checkpoint/cost joins;52 source cases pass. Model-produced category audit remains open; no semantic completeness or G1 claim. |
+| M1.3a | SI/PL | Exact-profile G1 coverage audit and D20 transition; F03/F04/F06/F07/F08/F10/F11/F16, N01/N04/N06, C06/C10-C13/C20/C22-C24/C35, T01/T04/T05/T06/T10/T11 | in_progress | [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md): merged PR8,40 unchanged authority tables, retained exact profiles and explicit suite gaps. Continue linked implementation/evidence review as each boundary is qualified; documentation is not a gate pass. |
+| M1.3b | SI/AR | Qualified gameplay-root/helper filesystem/process/network/credential/tool/cross-agent runtime boundary with permitted gameplay and positive canaries; F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, T01/T04/T06 | in_progress | [Audit and first boundary work](docs/verification/2026-09-24-g1-coverage-audit.md); existing restricted broker/native evidence is partial and historical. Start exact selected-model root/helper attack-surface checks; no RuntimeQualification issued. |
+| M1.3b.1 | SI/AR/QA | Selected-model conformance helper catalog and owned code-mode filesystem/process/network/credential/artifact canaries; inherits M1.3b coverage | verified | [Exact native evidence](docs/verification/2026-09-24-m1-native-boundary.md): conformance-only /3;187 focused Python passes, actual11-request/one-helper capture and independent24/24 reconstruction. Original environment refusal and68/74 verifier result retained; named16-route slice only. No full isolation, two-helper, actual-game, paid model or RuntimeQualification claim. |
+| M1.3b.2 | SI/AR/QA | Native code-mode output/media local-file and network routes with owned private/public media controls; inherits M1.3b coverage | verified | [Named media-output evidence](docs/verification/2026-09-24-m1-output-boundary.md): six denied routes plus exact public PNG per actor;49 verifier tests and33/33 independent reconstruction of11 native requests. Original75/76 review-pending report and rejected incomplete seal retained. Notification and other encodings remain open; no full isolation qualification. |
+| M1.3b.3 | SI/AR/QA | Selected-profile private state, live cell ownership and notification routing; inherits M1.3b coverage | verified | [Named state/notification evidence](docs/verification/2026-09-24-m1-state-boundary.md):41 existing plus36 new cases;12 settled native requests and34/34 independent reconstruction. Original failed15/41 with uncertain synthetic reservation and changed45/46 review-pending report retained. No cross-team, full lifecycle, probe-disposal or runtime qualification claim. |
+| M1.3b.4 | SI/AR/QA | Selected-profile helper revocation, proved retirement and replacement with retained consumption; inherits M1.3b coverage plus F11/C18 | verified | [Named retirement evidence](docs/verification/2026-09-24-m1-retirement-boundary.md):40 existing and66 selected verifier cases;15 settled native requests plus one rejected old-helper resume,16/16 independent audit. Original33/34 upstream-count failure retained. Completed helper only; notification-aware drain, interruption and full lifecycle remain open. |
+| M1.3b.5 | SI/AR/QA | Distinguish authoritative native cell result frames from model-controlled notification text; retain holds on ambiguous scalar yields; inherits M1.3b.4 coverage | verified | [Named framed-drain evidence](docs/verification/2026-09-24-m1-notification-drain.md):200 focused cases,34/34 actual native and20/20 audit; nine forged-status notifications cannot replace three actual content frames. /1 duplicate refusal and scalar-yield limitation retained. No full lifecycle qualification. |
+| M1.3b.6 | SI/AR/QA | Source-bound native process-tree drain for scalar-only silent yields; inherits M1.3b.5 coverage | verified | [Named stopped-disposal evidence](docs/verification/2026-09-24-m1-process-drain.md):222 distinct focused cases,28/28 actual native checks,15/15 independent committed-export audit; held job six lifetime/zero active processes. Original29/48 readiness race retains one uncertain request and full synthetic hold. No early helper retirement, successful-tool, cost or full isolation inference. |
+| M1.3b.7 | SI/AR/QA | Selected-profile two-helper overlap, scoped public messages and artifact namespaces, bounded excess-helper refusal; inherits M1.3b coverage, F03/F07/F11 and T04/T06 | verified | [Named pair evidence](docs/verification/2026-09-24-m1-helper-pair.md):149 distinct focused cases,37/37 native and15/15 independent reconstruction;27 settled/one refused,378 synthetic units, three closed participants and stopped export. Two protocol failures with retained holds and initial13/15 audit preserved. No N-body, cross-team or full isolation claim. |
+| M1.3b.8 | SI/AR/QA | Actual cross-team native communication attempts against an owned separate job, with permitted within-team controls; inherits M1.3b.7 coverage | verified | [Named separate-job evidence](docs/verification/2026-09-24-m1-cross-job.md):35 focused cases,25/25 independent audit;36 targeted operation denials, permitted local messages,36 settled requests/504 synthetic units and two exports. Original28/29 per job and optional timeline serialization failure retained. Same fixture campaign labels in separate stores; no campaign-team API, N-body or full isolation claim. |
+| M1.3b.9 | SI/AR/PL/QA | G1-required SPEC10.2 team.send/team.receive boundary: typed scoped native access, permitted roster delivery and cross-campaign refusal; F07/F16/N01/N04, C13, T01/T06; minimal M4.1 dependency | in_progress | [Actual native team conformance](docs/verification/2026-09-24-m1-native-team.md):45/45 per job and26/26 independent joins in one controller/queue. .9a-.9c pass their named scope; .9d must bind the channel into the final qualified gameplay profile. No N-body capacity claim or unrelated M4 expansion. |
+| M1.3b.9a | PL/SI/QA | Typed TeamRequest/TeamResponse, private declared policy, recipient-scoped durable cursors, atomic epoch/lease/deadline/idempotency guards; inherits M1.3b.9 coverage | verified | [Core72 cases](docs/verification/2026-09-24-m1-team-core.md) plus [actual native delivery/dedup/cursor/ack](docs/verification/2026-09-24-m1-native-team.md); legacy bytes/receipts retained. Named controller/conformance contract only; final runtime qualification remains .9d. |
+| M1.3b.9b | PL/SI/QA | Explicit native team capability/profile and broker facade with live authenticated scope, policy pin and atomic revocation fencing; inherits M1.3b.9 coverage | verified | [Source417 distinct passes/three opt-in skips](docs/verification/2026-09-24-m1-native-team-source.md) plus [actual metadata/projection/receipt joins](docs/verification/2026-09-24-m1-native-team.md). Old profiles preserved; new projection /4 remains conformance-only. |
+| M1.3b.9c | SI/AR/QA | Actual native same-roster delivery, durable dedup/cursors/ack, helper/foreign-campaign refusal and sealed receipt reconstruction; inherits M1.3b.9 coverage | verified | [Native45/45 per job, independent26/26](docs/verification/2026-09-24-m1-native-team.md),84 focused source tests. Two sequential native agents share one owned synthetic controller/queue;22 team calls,14 settled requests/196 units, two exports. No paid model or N-body capacity claim. |
+| M1.3b.9d | SI/AR/QA | Bind team communication into the final qualified G1 gameplay runtime and preserve evidence/profile/campaign admission scope; inherits M1.3b.9 coverage | in_progress | [Source/profile reconciliation](docs/verification/2026-09-24-m1-profile-reconciliation.md): nine sealed bundles/eleven profiles, campaign /5 with169 focused passes. [Candidate source](docs/verification/2026-09-24-m1-campaign-candidate-source.md):89 checks. [Actual integration](docs/verification/2026-09-24-m1-native-game.md):203 distinct source checks, native97/97, independent26/26 plus3/3 retained export/marker checks. Authentic vanilla look, root/helper boundary, team/artifacts and drain join; original pre-native and outer-export failures retained. Corrected stopped component export only on a copy; no lucky rerun. Full selected skill/handoff/client/probe qualification remains open; /4 stays conformance-only, all six proofs mandatory and no RuntimeQualification. |
+| M1.5 | RS/GI/SI | Complete T10 scorer/setup/positive-negative/alternate-strategy/parity controls required by G1; dependencies M3.1/M3.1a/M3.1b and M0.2c residuals; F04/F10, C12/C24 | in_progress | Exact-profile audit M1.5a and machine completion resource seam M1.5b begin. D14 development scoring retained, protected scoring unqualified. Implement only G1-required dependencies; do not start unrelated M3 studies. |
+| M1.5a | RS/GI/SI/QA | Audit exact-profile T10 coverage and authentic missing evidence, retaining all original negative/failed dispositions; inherits M1.5, F04/F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10 | verified | [Exact-profile coverage audit](docs/verification/2026-09-26-m1-scorer-coverage.md): source/retained positive and negative scopes verified; all T10 controls/gaps explicitly mapped. Visibility concern ruled out. Coverage audit only, not scorer qualification. |
+| M1.5b | GI/RS/QA | Verify causal completion resource deltas for the pinned unaugmented Thermal furnace before any machine scorer adapter; inherits M1.5a and required M3.1b dependency | implemented_unverified | [Source-backed completion contract](docs/verification/2026-09-26-m1-scorer-coverage.md):53 synthetic cases/1 package exclusion pass. Exact ordered input/output deltas and unchanged unrelated resources; raw boundaries remain unscorable. Native producer/ingestion, full RF/fluid/window/setup/team/parity/isolation controls remain open. |
+| M1.5b.1 | GI/RS/QA | Capture exact native furnace completion phases and resolved internal recipe facts; inherits M1.5b, F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10 | implemented_unverified | [Native producer/private ingestion](docs/verification/2026-09-26-m1-machine-producer.md):126 distinct Python cases plus6 Java cases pass; actual installed call sites inspected, raw completions/refusals stay unscorable. Native registration/loaded-code/custody/effects/parity and wider G1 qualification remain open. |
+| M1.5b.2 | GI/RS/QA | Bind native internal furnace recipes to actual direct/converted source registration and refresh lifetime; inherits M1.5b.1 and its requirement/contract/test mappings | implemented_unverified | [Native registration lineage](docs/verification/2026-09-26-m1-machine-registration.md):113 Python/14 Java cases pass,1 native opt-in skip. Exact direct/converted object chains, rebuild invalidation, poisoned failures, source domains and reader generation guards. Actual transformed/protected capture, fixture binding, effects/parity and full G1 remain open. |
+| M1.5b.3 | GI/RS/QA | Verify actual transformed registration/capture hooks under protected Forge server and fresh bound client custody; inherits M1.5b.2 and its requirement/contract/test mappings | in_progress | [Native01/02 and early pin guard](docs/verification/2026-09-26-m1-furnace-native.md):11 focused source/process cases pass. Native01 fails stale interpreter admission; native02 authentic startup16 succeeds, but worker guard fails GAME_OBSERVATION_UNAVAILABLE before public checks. Both consumed; zero model calls. [Native03](docs/verification/2026-09-26-m1-guard-phase.md) verifies startup/filtered observations/stop only; full completion/effects, loaded-code authentication/parity and G1 remain open. |
+| M1.5b.3a | GI/QA | Diagnose exact native health-read failure phase without extending deadlines or changing guardian verdicts; inherits M1.5b.3 mappings | in_progress | [Private phase diagnostic/native03](docs/verification/2026-09-26-m1-guard-phase.md):19 distinct Python/9 TypeScript cases pass; authentic26-check observation reference and chained post-stop diagnostic pass,695.4081ms stop. Native02 cause remains unknown; native03 does not reproduce it. First build/test and both reference failures retained; no G1 pass. |
+| M1.5b.3b | GI/RS/QA | Verify actual furnace recipe and three completion resource boundaries under fresh protected custody; inherits M1.5b.3 mappings | in_progress | [Actual operation01](docs/verification/2026-09-26-m1-furnace-operation.md): client deposit acknowledgment fails unknown/resync; no replay. Three signed native completions prove exact recipe/resource phases; saved state agrees. Independent failure audit passes, all reference states UNCERTAIN/consumed; full client/scorer/G1 remains open.  [Operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes17 reference checks, eight actions, three signed completions and saved output collection. Prior failures retained; loaded-code/scorer/full-gate qualification remains open. |
+| M1.5b.3c | GI/QA | Diagnose private machine owned-state acknowledgment mismatches; inherits M1.5b.3b plus F06/N02/T03/T07 for this boundary | in_progress | [Source diagnostic](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md):50 distinct Java passes, initial failures retained. [Authentic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) diagnostic/failure audits pass; reference remains failed/consumed. Prediction/reply differ only in untouched backpack components; reply/current exact. Field/caller and correction unverified; no changed acceptance or replay. |
+| M1.5b.3d | GI/QA | Establish exact applied server baseline before machine input; inherits M1.5b.3c F/N/C/T mappings and F06/N02/N06, T01/T03/T07 | in_progress | [Preflight source evidence](docs/verification/2026-09-26-m1-machine-baseline.md):40 Java,2 TypeScript and1 Python passing cases; initial fixture failure retained. New minor44/policy3, original observation/input fence and exact post-click comparison. [Native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) passes pickup but stops before deposit at REVISION_CONFLICT; precise preflight comparison unrecorded. Failure audit confirms no deposit input, empty furnace and terminal cleanup. Full native conformance remains incomplete; all failures/consumed state intact.  [Operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes17 reference checks, eight actions, three signed completions and saved output collection. Prior failures retained; loaded-code/scorer/full-gate qualification remains open.  [Operation05](docs/verification/2026-09-26-m1-machine-reference-native.md) fails before deposit at exact reply/current untouched backpack component mismatch; no click/replay. Next bounded reacquisition preserving the original server baseline and input fence. |
+| M1.5b.3e | GI/QA | Retain private preflight phase/comparison evidence; inherits M1.5b.3d mappings plus N04/T06 log boundary | implemented_unverified | [Source evidence](docs/verification/2026-09-26-m1-preflight-diagnostic.md):61 focused Java cases pass, including4 new cases exercising all11 phases, masks/privacy and terminal publication. No altered acceptance/read count/budget; authentic diagnostic integration remains unverified. Operation04 completes without failure, so authentic failure-diagnostic branch remains not_run; operation03 exact failing comparison still unknown.  [Operation05](docs/verification/2026-09-26-m1-machine-reference-native.md) now proves authentic current_match masks/private receipt; untouched player-relative35 components only. Full runtime/log isolation and other authentic diagnostic branches remain outside this narrow pass. |
+| M1.5b.3f | GI/QA | Reacquire the first exact server baseline once for evidenced pre-input untouched-player component drift; inherits M1.5b.3d/.3e F/N/C/T mappings and blocks M1.5b.5 positive reference | implemented_unverified | [Source verification](docs/verification/2026-09-26-m1-preflight-reacquire.md):69 Java,2 TypeScript and1 Python cases pass. Minor45/policy4, one charged read, pinned first reply, unchanged input fence/budget/deadline and post-click verification. Candidate31facc27 archived; installed1d4935ed unchanged. Authentic changed-profile correction and full G1 remain open. [Operation06](docs/verification/2026-09-26-m1-preflight-reacquire-native.md) passes the positive minor45 trajectory, but additional-reacquisition branch exercise is unproven; no diagnostic/branch marker. Installed31facc27, prior artifact retained. |
+| M1.5b.4 | GI/RS/QA | Verify native single-record completion resource deltas against supplied recipe expectation; inherits M1.5b/.2/.3b mappings and G1-required M3.1b dependency | implemented_unverified | [Native resource evidence](docs/verification/2026-09-26-m1-native-resource.md):105 focused passes, three retained authentic completions verified after complete230-record authentication. Original single-event identity/registration preserved; no invented boundary events. Prior fixture registration, loaded producer, setup/team and protected scorer admission remain unqualified. |
+| M1.5b.5 | GI/RS/QA | Bind machine resource expectations to prior fixture seal, one-use protected launch and authenticated inspection; inherits M1.5b.4 F/N/C/T mappings | in_progress | [Sealed-machine source evidence](docs/verification/2026-09-26-m1-machine-reference.md):218 distinct focused passes,25 native opt-in skips. Complete machine plan enters setup/authority/launch digests; candidate resources remain private/unscorable. Retained230-record operation04 audit yields three outputs but is post-hoc; fresh authentic prelaunch binding and full scoring controls remain open.  [Native operation05](docs/verification/2026-09-26-m1-machine-reference-native.md) proves prior-plan byte binding and correct failed-import refusal, but preflight fails before deposit. Positive import remains not_run; four UNCERTAIN rows consumed. [Operation06](docs/verification/2026-09-26-m1-preflight-reacquire-native.md) now passes17 operation/9 prelaunch-import checks plus terminal resources;235 signed records/three outputs and idempotent actual V4 import. Candidate resources stay unscorable; broader qualification remains open. |
+| M1.5b.6 | GI/RS/QA | Capture and verify actual native furnace processing RF/progress deltas; inherits M1.5b F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10 | in_progress | [Source verification](docs/verification/2026-09-26-m1-furnace-energy.md):211 distinct Python cases pass/4 native skips;10 Java passes/offline build. New telemetry0.3.16/startup17 captures entry/returns, full/partial/zero debit and progress without inferred net-cost/window/scoring authority. Operation06 legacy inspection unchanged. Candidate archived, installed artifacts unchanged; authentic integration and complete scorer/G1 remain open. [Operation07](docs/verification/2026-09-26-m1-furnace-energy-native.md) passes native processing:125 exact debit records/12,000RF, three completion joins,17 operation/9 import checks and terminal-resource audit. Prior stale-module preparation failure retained; all reference rows STOPPED/consumed. Full native negative/window/refund/setup/team/scorer qualification remains open. |
+| M1.5b.7 | GI/RS/QA | Capture native process-start progress carry and stop-refund RF boundaries; inherits M1.5b.6 F10/F16, N01/N04/N06/N08, C12/C18/C24 and T01/T06/T10 | in_progress | [Source verification](docs/verification/2026-09-26-m1-furnace-transitions.md):244 Python passes/4 native skips,13 Java passes/offline build. Exact carry/clamped-refund arithmetic, bounded private ingestion and unchanged412-record operation07 inspection. [Operation08](docs/verification/2026-09-26-m1-furnace-transitions-native.md) passes actual two-item carry/refund capture:329 records,84 processing calls/8,064RF debit,0/−32 carry and64RF refund.17 operation/9 V4 checks and processing/transition/terminal audits pass;745.6213ms stop, all rows STOPPED. Native refusals/clamping, complete intervals and full scorer/G1 remain open. |
+| M1.5b.8 | GI/RS/QA | Capture complete native furnace server ticks, actual object lifetime/retirement and ordered child/resource stages; inherits M1.5b.7 F/N/C/T mappings | in_progress | [Source evidence](docs/verification/2026-09-26-m1-furnace-interval.md):285 Python pass/4 native skips,20 Java pass; telemetry0.3.18/startup19. Operation08 reconstructs unchanged. [Operation09](docs/verification/2026-09-26-m1-furnace-interval-native.md) fails at8 MiB telemetry capacity after passing gameplay; signed prefix only, no retirement/clean stop. Authentic interval/retirement/replacement, prior window registration, setup/team/loaded-code and full G1 remain open.  [Operation11](docs/verification/2026-09-26-m1-pending-abort-native.md) passes positive full stream:1,400 ticks/84-tick interval/actual unload; replacement/refusal/registered scoring controls remain. |
+| M1.5b.8a | PL/GI/QA | Prior launch telemetry capacity and storage reservation for bounded native interval records; dependency of M1.5b.8/T01/T10, N01/N05/N08 | in_progress | [Source evidence](docs/verification/2026-09-26-m1-telemetry-capacity.md): launch8/protected3, exact finite limits, durable logical spool hold and atomic settlement.163 distinct Python pass/62 native opt-in skips,34 new cases. Operation09 remains failed/consumed; [Operation10](docs/verification/2026-09-26-m1-telemetry-capacity-native.md) proves reservation but fails before client dispatch on process inventory; hold retained, complete-stream/settlement unverified.  Operation11 proves actual reservation,12,277,501-byte complete stream and atomic settlement; operation10 hold remains. Wider storage qualification remains open. |
+| M1.5b.8b | PL/QA | First-failure abort delivery after delayed server-evidence creation and bounded rejected-history diagnostics; M1.5b.8/.8a dependency, F09/F16, N01/N04/N05/N08, T01/T10/G1 | implemented_unverified | [Source/fixture evidence](docs/verification/2026-09-26-m1-pending-abort.md):57 distinct passes including12 new cases;3 strengthened terminal cases pass. No game/model dispatch. Original operation10 remains failed; authentic changed-coordinator verification next.  Operation11 normal changed-profile run passes; authentic early-fault/observation2 branches not exercised. |
+| M1.5b.9 | PL/RS/QA | Prior sealed machine operating-window admission, deterministic selection and no resource/lifetime borrowing; F10/F16, N01/N04/N06/N08, C12/C18/C24, T01/T06/T10/G1 | in_progress | [Source evidence](docs/verification/2026-09-26-m1-machine-window.md): plan5/machine-reference2, complete funded closed-episode checks and ordered registration proof.200 distinct Python passes/3 native skips,45 new cases; operation11 inspection/seal unchanged and post-hoc plan remains unregistered. [Operation12](docs/verification/2026-09-26-m1-machine-window-native.md) passes17 operation/17 actual V5 checks, complete prior-window/terminal/capacity joins; native replacement/refusal and wider scoring controls remain. |
+| M1.5b.9a | GI/RS/QA | Authentic first-episode selection negative: short completed episode cannot borrow from a later sufficient episode; inherits M1.5b.9 F/N/C/T mappings | verified | [Actual negative evidence](docs/verification/2026-09-26-m1-first-episode-native.md):17 operation/17 V5 import checks and complete two-episode/terminal/capacity audits pass. Same prior rule rejects the42-tick first episode with zero credit despite a later84-tick sufficient episode. Raw later comparison remains unregistered; wider native/scoring controls remain. |
+| M1.5b.9b | GI/RS/QA | Authentic low-energy interrupted episode: retain spent RF/unfinished input and reject missing final refund; inherits M1.5b.9 F/N/C/T mappings | verified | [Native interruption evidence](docs/verification/2026-09-26-m1-low-energy-native.md):17 operation/17 V5 checks and complete52-tick/off/resource/save/terminal/capacity audits pass. One completion, unfinished second cycle,8 RF/input1 and no refund; original rule returns zero/MACHINE_OPERATING_REFUND_MISSING. Single-field fixture change and initial filename failure retained. Wider controls remain. |
+| M1.5b.9c | GI/RS/QA | Authentic machine replacement control; inherits M1.5b.9 mappings | in_progress | [Operation16 retained failure](docs/verification/2026-09-27-m1-replacement-corrected-native.md): replacement placed, action18 transfer unknown; no replay or replacement production window. Failed V5 import refused; complete terminal histories but UNCERTAIN lifecycle/256MiB held. Operation15 failures/hold retained. Complete control remains open. |
+| M1.6 | RS/AR/SI | Complete T11 matched clone manifests, exact artifact/session reset and one-way probe boundary required by G1; dependencies M1.4/minimal M3; F07/F08, C12/C22/C23 | in_progress | [G1 audit](docs/verification/2026-09-24-g1-coverage-audit.md); M1.6a begins source-bound native checkpoint artifact selection; complete matched pre-start manifests, actual disposable clones and one-way canary disposal remain open. No confirmatory cohort or later research release selected. |
+| M1.6a | RS/AR/SI/QA | Private native probe artifact projection from complete committed checkpoint provenance; inherits M1.6, F03/F07/F08/F16, N01/N04/N06, T01/T04/T06/T11 | implemented_unverified | [Source and stopped-native evidence](docs/verification/2026-09-25-m1-probe-artifact-projection.md):32 distinct projection cases,46 record/evaluator cases,24/24+2/2 stopped reconstruction. Exact committed initial/retained/active refs, arm rules, evaluation-account denial and unchanged costs. Complete pair-manifest/native clone/disposal integration remains open; no launch/isolation authority or G1 claim. |
+| M1.6b | RS/AR/SI/QA | One-use matched native probe pair preparation with full roster/source binding, equal fixture/configuration and actual staged-tree verification; inherits M1.6a, F02/F03/F07/F08/F11/F16, N01/N04/N05/N06, T01/T04/T06/T11 | implemented_unverified | [Staging and stopped audit](docs/verification/2026-09-25-m1-probe-pair-staging.md):80 final source checks,18/18 N=1 synthetic disk/reopen checks,21/21+2/2 independent reconstruction. Exact private preregistration, one-use fixture/world fence, separate equal worlds, allowed artifact differences and t=0 sanity. Original test assertion failure retained. Actual native/world probes, N>1 positive preparation, launch custody, capacity and one-way disposal remain open. |
+| M1.6b.1 | RS/AR/SI/QA | Irreversible failed/interrupted pair verification and actual controller-death reservation checks; inherits M1.6b, F08/F09/F16, N01/N05/N06/N08, T01/T06/T07/T11 | verified | [Preparation-boundary evidence](docs/verification/2026-09-25-m1-probe-verification-fence.md):42 focused passes and19/19 read-only reconstruction. Durable VERIFYING intent, repaired-byte refusal, journal faults, auth-before-intent and actual abrupt Python process exits/reopen. Initial crash-wrapper failures retained. Synthetic world/native records, no model/game/native launch. Held launch custody and disposal remain M1.6 gaps; no G1/G2 suite promotion. |
+| M1.6c | AR/SI/RS/QA | Native purpose/account separation at startup, request admission, dispatch and broker effects; inherits M1.6, F03/F07/F08/F11/F16, N01/N04/N06, T01/T04/T06/T11/T12 | implemented_unverified | [Source and retained reconstruction](docs/verification/2026-09-25-m1-native-account-purpose.md):235 final distinct passes including32 new cases, one stopped source/two committed exports unchanged, both source seals reverified. Explicit durable category/original-reservation/ancestry checks fence evaluation in campaign/conformance paths, new helpers, dispatch and existing grants. Preserve initial wrong-file invocation, missing-export reader failure and first source before original-reservation binding. Separate native probe identity/bootstrap, actual integration and disposal remain open; no qualification or new paid authority. |
+| M1.6d | AR/SI/RS/QA | Complete pair-derived native artifact/catalog views, explicit root/helper inventories and fresh native profiles; inherits M1.6a/b/c, F03/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Source/disk preparation and readback](docs/verification/2026-09-25-m1-probe-native-views.md):57 distinct passes,60/60+3/3 reconstruction, six prepared/ten failed/seven preflight-refused cases. Exact approved catalog/active bytes, role inventories, control arms, operator-store refs, empty profiles and one-use failure fences. Preserve first retained-WAL refusal and original source; separate read-only snapshot resolves audit. Actual native loading/projection, N>1 positive preparation, admission/isolation/launch/disposal remain open; no new paid or native execution authority. |
+| M1.6e | AR/SI/RS/QA | Atomic pair-derived disposable native identity/artifact binding and exact catalog preflight; inherits M1.6a-d, F03/F07/F08/F11/F16, N01/N04/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Source and verification](docs/verification/2026-09-25-m1-probe-native-binding.md):140 distinct focused passes,72/72+3/3 read-only reconstruction; old native source/two exports unchanged. Complete both-arm registration, fresh evaluation leaves/identities/paths, ordinary goal and role/catalog scope, separate probe purpose/profile binding. Startup stays closed pending held world/resource custody; actual native loading, scoped broker projection and disposal are not verified. Preserve initial transaction failure, wrong test expectation and source versions; no RuntimeQualification or paid authority. |
+| M1.6f | AR/SI/RS/QA | Held pair/view files and atomic whole-pair evaluation envelopes/shared worker capacity; inherits M1.6a-e, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08, T01/T04/T06/T11/T12 | implemented_unverified | [Custody verification](docs/verification/2026-09-25-m1-probe-custody.md):86 distinct passes, three existing symbolic-link privilege skips; audit73/73+3/3. Actual Windows write/delete denial and owner-process exit with synthetic N=1 pair/capacity/budget records. Both arms reserve atomically; failure/expiry/dead ownership retains resources and costs. Explicit preparation-only release never refunds/rearms. No actual native/game launch, live-state equivalence, N>1 acceptance, OS isolation or disposal qualification. |
+| M1.6g | AR/SI/RS/QA | Pin prepared probe workspace/catalog into bootstrap and project exact root/helper files through native admission; inherits M1.6a-f, F03/F04/F07/F08/F16, N01/N04/N06/N08, T01/T04/T06/T11 | implemented_unverified | [Projection verification](docs/verification/2026-09-25-m1-probe-broker-projection.md):141 focused cases, read-only137/137+3/3. Exact prepared bootstrap inputs and atomic role projection through actual broker methods with explicit simulation grants. Initial audit path-format failure retained. Native startup and account-purpose gates remain closed; no full native/game qualification. |
+| M1.6h | AR/SI/RS/QA | Copy both prepared worlds into fresh protected writer trees within live pair custody; inherits M1.6a-g, F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [World copy verification](docs/verification/2026-09-25-m1-probe-world-copies.md):47 source passes plus one actual native pair;58/58 read-only checks across success and two retained failures. Both exact copies held together, write denial, normal10/10 process stop each, retained cost/capacity and consumed-pair refusal. Existing native writer path reused. Explicit unlaunched discard does not certify game launch or one-way post-probe disposal. |
+| M1.6i | AR/GI/SI/RS/QA | Bind sealed vanilla software and complete registered state to both held copies; normalize writer path containment; inherits M1.6h, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, T01/T06/T07/T11 | implemented_unverified | [Software binding verification](docs/verification/2026-09-25-m1-probe-software.md):52 distinct passes,29/29 read-only reconstruction, two unchanged native-plan checks. Actual resolver/file leases with synthetic game bytes and substituted writer execution; retained fixture/assertion failures, exact software/state mapping and normalized Windows containment. All40 real authority tables unchanged. Native game/readiness/probe admission/disposal remain open. |
+| M1.6j | AR/GI/SI/RS/QA | Preserve complete writer directories and bind authentic protected vanilla server/worker lifetime; inherits M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08, C12/C22/C23/C24, T01/T06/T07/T11 | implemented_unverified | [Protected vanilla evidence](docs/verification/2026-09-25-m1-protected-vanilla.md):91 focused passes,32/32 read-only reconstruction; authentic changed case copier10/10/server12/12 normal exits, connected worker and26-file stopped capture. Original deadline failure11/12 and stale parent metadata retained. All40 authority tables unchanged. Narrow operator path verified; paired/native probe integration, matching, clocks, clean-save/read-isolation qualification and disposal remain open. |
+| M1.6k | AR/GI/SI/RS/QA | Bind registered world directories and sealed software directories through versioned pair/native-view/copier preparation; inherits M1.6j and M1.6d, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Directory-bound pair evidence](docs/verification/2026-09-25-m1-probe-directories.md):111 distinct focused cases,66/66 read-only checks. Synthetic fixtures and substituted writer execution; actual leases, pair/views/holds, exact directories and retained failure fencing. Original assertion failure retained; all40 real authority tables unchanged. Native paired game/readiness, live matching, scoped admission and disposal remain open. |
+| M1.6l | AR/GI/SI/RS/QA | Bind held registered pair copies to matched server references, normal stopped export and private outcome provenance; inherits M1.6k/M1.6j, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | implemented_unverified | [Paired runtime evidence](docs/verification/2026-09-25-m1-probe-runtime.md):115 distinct focused cases,76/76 sealed read-only checks. Real file leases/preparation with synthetic game/process/token evidence. Joint preflight, matched limits, provenance, feedback refusal and retained holds; failures preserved. Authentic paired execution, all-N matching, scoped admission, clocks and disposal remain open. |
+| M1.6m | AR/GI/SI/RS/QA | Verify paired server references with genuine registered vanilla state and native writer execution; inherits M1.6l/M1.6k, F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T07/T11 | in_progress | [Paired reference and validation evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): case09 passes229.74s with unchanged bounds, normal12/12 server and10/10 copier exits per arm, held26-file tagged exports and sibling custody. Case08 and earlier failures retained.189 distinct source cases and67/67 case08/09 reconstruction checks pass. Genuine world/software, synthetic agent/protocol/capacity fixtures, no model/worker bodies. Next complete authentic native source/admission, all-N live matching, clocks and disposal; G1 remains open. |
+| M1.6m.1 | AR/GI/SI/RS/QA | Diagnose and remove duplicate validation within paired-reference calls without caching or relaxing custody/deadlines; inherits M1.6m coverage | verified | [Validation cost evidence](docs/verification/2026-09-25-m1-pair-validation-cost.md): source reconstruction3.2258→1.6808s; persistence6.4363→5.6526s; software resolution10.5409→8.1547s, identical diagnostic outputs. Exact borrowed software/helper inventory, live leases and complete dispatch/callback/stop/export checks retained;189 distinct source cases pass. Changed-source case09 paired operator reference passes229.74s with original finite windows. Historical deadline failures and all40 authority tables/holds preserved. Bounded optimization verified; full native agent probe acceptance stays with M1.6m/M1.6. |
+| M1.6n | AR/GI/SI/RS/QA | Bind vanilla probe body declarations to complete saved-player bytes/UUID/state before launch; inherits M1.6m, F01/F02/F04/F07/F08/F16, N01/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Saved-body verification](docs/verification/2026-09-25-m1-probe-saved-bodies.md):91 distinct source cases pass, one opt-in native copier skip,12 authentic stopped-capture checks. Exact player file/UUID/full NBT and typed declaration join before copying/launch under explicit profiles; retain mismatch/downgrade/identity refusals and all holds. No native /2 launch, live account mapping, initial-state equivalence, clocks or disposal claim. Next bind authenticated worker identities and live observations. |
+| M1.6o | AR/GI/SI/RS/QA | Bind complete registered probe roster to authenticated worker profiles and server UUID before readiness; inherits M1.6n, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Worker identity](docs/verification/2026-09-25-m1-worker-identity.md):49 Python/28 Node cases and15 audit checks pass with synthetic provider/game transport. Complete both-arm binding, account/profile check before connection, server UUID/private receipt before readiness; mismatch/storage failures fence. No authentic probe integration, all-N live state, clocks/disposal or G1 pass. |
+| M1.6o.1 | AR/GI/SI/QA | Qualify identity-bound worker on authentic protected vanilla server with private journal/live/save joins; inherits M1.6o mappings | verified | [Case02 and wrong-identity negative](docs/verification/2026-09-25-m1-worker-identity-native.md):118.188s, scoped identity/live/save join, normal copier10/10/worker7/7/server12/12 and26-file capture. Actual mismatch fences, refuses observation and stops7/7 normally.35+19 sealed audit checks pass; case01 refusal/forced exit125 preserved. Bounded operator contract only; registered-pair/native admission/matched initial state remain open. |
+| M1.6o.1a | AR/GI/QA | Admit identity-bound vanilla /2 to the existing scoped operator-stop supervisor, preserving /1 and Forge refusal; inherits M1.6o mappings | verified | [Subprocess regression](docs/verification/2026-09-25-m1-worker-identity-native.md) reproduces the authentic selector refusal before correction;26 focused source cases then pass, including real parent/fork/stop with synthetic IPC child. Explicit /1-/2 allowlist and2250ms drain; no authentic identity qualification. |
+| M1.6p | AR/GI/SI/QA | Hold complete registered worker configurations/runtimes/account bindings before any dispatch; inherits M1.6o, F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36, T01/T06/T11 | implemented_unverified | [Input custody](docs/verification/2026-09-25-m1-probe-worker-inputs.md):9 distinct focused source cases pass; actual Windows account/config/runtime holds with synthetic registered inputs. Complete account checks precede all config creation; changed roster/custody, missing stop and partial failures refuse. Own cleanup preserves parent holds. No worker/game/model dispatch, native admission, all-N live matching, clocks/disposal or G1 pass. |
+| M1.6q | AR/GI/SI/RS/QA | Connect complete held worker rosters to registered server lifecycle; scoped identity/observable initial state, finite execution/storage and stop before save; inherits M1.6p mappings, N03/N05/N08 | in_progress | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md) passes the actual vanilla N=1-per-arm operator reference: matched own-state projection, complete normal stops/exports and preserved reservations. Cases01-10 retained. Complete live-state/tool parity, native admission, clocks/disposal remain open; no full T11/G1 promotion. |
+| M1.6q.1 | AR/GI/SI/QA | Reduce repeated worker/path validation under unchanged source, link, custody and deadline requirements; inherits M1.6q mappings | implemented_unverified | [Cost and retained case02](docs/verification/2026-09-25-m1-worker-preparation-cost.md):108 distinct source cases pass,3 privilege skips; deferred whole-roster config commit retains custody/no-dispatch. Client profile23.937s vs33.687s. Authentic case02 fails118.32s at first copier deadline; zero processes,FAILED row,FENCED parent,holds retained. Remaining preparation cost must be resolved before changed-case retry; no full paired/native/G1 pass. |
+| M1.6q.2 | AR/GI/SI/QA | Retain exact worker-resolution runtime custody through launch without duplicate opening; inherits M1.6q mappings | implemented_unverified | [Retained custody and case03](docs/verification/2026-09-25-m1-retained-worker-resolution.md):93 source cases pass; genuine deferred entry23.844s/one runtime lease under cProfile. Both copiers stop10/10, imports log success; no server/gameplay worker/model. Case03 fails176.62s with inner deadline/outer close uncertainty; holds remain. Next remove redundant software validation while preserving complete checks and retain import receipts and surface recorded inner errors before changed-case retry. |
+| M1.6q.3 | AR/GI/SI/QA | Compose software/member validation and persist import/root-cause evidence; preserve inventory checks; inherits M1.6q mappings plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-check-composition.md):94 distinct source passes, one explicit native skip; case04 fails ordinary inventory observation after first server/worker, forced server125/12 terminal. Imports now persist; later worker stop/job receipt still missing. All holds/history/windows retained; fix window/journal contract and persist stop before further validation. |
+| M1.6q.4 | AR/GI/SI/QA | Exact initial worker observation and ordinary inventory projection; persist stop/custody before later validation; inherits M1.6q mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-initial-worker-projection.md):37 distinct source cases pass after retained fixture failure; case05 first worker projection/normal stop passes with receipts, pair fails hard server deadline then stop send. All holds/history/windows retained; reduce held software-resolution cost and normal-stop delay. |
+| M1.6q.5 | AR/GI/SI/QA | Private resolution from still-held verified materialization bytes with fresh authority/layout checks; inherits M1.6q plus F05/partial T02 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-materialization-checks.md):134 distinct source passes, three privilege skips, retained initial refusal-ordering failure. Case06 first server stops normally12/12 with27-file export; second launch refuses insufficient exposure. All holds/bounds/history retained; next reuse held materialization in private member resolution. |
+| M1.6q.6 | AR/GI/SI/QA | Borrow live materialization for private worker resolution; retain per-member runtime/config/account and whole-roster custody. Inherits M1.6q.5 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-worker-materialization.md): 97 source passes; genuine read-only entry 13.672s to 11.078s, equal output. No new native attempt: savings precede the writer clock. Next reduce validation delaying normal stop within the original bounds; retain case06 and all holds. |
+| M1.6q.7 | AR/GI/SI/QA | Scoped stop before full pair validation during bounded drain; preserve capture and sibling admission. Inherits M1.6q.6 plus partial T07 | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-pair-stop-order.md):22 source passes; case07 first worker/server normal stop and export pass, second launch refuses insufficient exposure. Stop request0.109s, pair checks up to8s. Next compose repeated validation; retain bounds and all failures/holds. |
+| M1.6q.8 | AR/GI/SI/QA | Compose runtime/phase checks and first-start full preflight with aggregate windows; inherit M1.6q.7 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-runtime-check-composition.md): 35 source passes; native08 fails125.69s before first writer, PROBE_WORLD_DEADLINE. No runtime dispatch; world FAILED/parent FENCED/holds retained. Lifecycle timing unverified. Next profile pre-writer preparation; preserve original bounds and cases01-08. |
+| M1.6q.9 | SI/GI/QA | Validate acquired parent paths once while retaining fresh per-file link and held-hash checks; inherit M1.6q.8 coverage | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md): 110 distinct source passes/three privilege skips after two retained custody failures. Exact read-only resolution matches, faster profiled entry. Native09 fails202.19s before first server, both copiers/imports normal; original windows/holds remain. Next compose repeated materialization membership validation. |
+| M1.6q.10 | SI/GI/QA | Compose complete two-role materialization scanning under continuous custody; inherit M1.6q.9 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md): 138 source passes/no skips; real read-only resolution7.828s to6.078s, equal output and five-to-two membership scans. No new native attempt; original windows/holds and native09 refusal remain. Next lexical path reconstruction and protected-session preparation. |
+| M1.6q.11 | SI/GI/QA | Reduce pure lexical path reconstruction in complete scans; inherit M1.6q.10 mappings and all protections | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md):114 source passes/no skips, exact read-only resolution6.078s to4.531s with unchanged output/custody. No new native trial. Next profile protected-session preparation without dispatch; full G1 remains open. |
+| M1.6q.12 | SI/GI/QA | Measure and remove discarded immutable-byte snapshot while preserving exact selected membership and custody; inherit M1.6q.11 mappings | implemented_unverified | [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md):61 distinct source passes after retained assertion failure; read-only persistence8.797s to6.781s with identical state/inventory and no dispatch. Next inspect pre-writer import ordering; no native10/G1 claim. |
+| M1.6q.13 | SI/GI/QA | Import complete workers after durable admission but before finite writer acquisition; inherit M1.6q.12 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
+| M1.6q.14 | SI/GI/QA | Diagnose native10 first-worker preparation by phase under fresh two-worker and registered-pair custody; inherit M1.6q.13 mappings | in_progress | [Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md): read-only14.327s/13.865s; full preparation1 pass73.46s after retained collection error, entries14.499s/14.629s. Delay unreplicated/cause unknown. Next inspect shared immutable runtime acquisition; no native11 or acceptance promotion. |
+| M1.6q.15 | SI/GI/QA | Pair-owned immutable runtime custody with exact-reference reuse and independent member configurations/processes; inherit M1.6q.14 mappings | verified | [Native11](docs/verification/2026-09-25-m1-worker-pair-native.md): actual named vanilla N=1-per-arm reference passes257.12s; both imports precede writers, normal7/7 workers and12/12 servers,27-file exports per arm, holds preserved. Original limits and all prior failures remain. Full live-state/native admission/clocks/disposal/G1 remain open. |
+| M1.6r | AR/GI/SI/RS/QA | Complete private live-player state witness and matched-body checks without widening gameplay observations; depends M1.6q; F01/F02/F04/F07/F08/F16, N01/N03/N04/N06/N08, C06/C20/C23/C24/C36, T01/T06/T11 | in_progress | R3 verifies owned single-reference save-format capture; R4 complete typed paired comparison passes46 source cases but authentic body-pair native01 fails preparation. [Current evidence](docs/verification/2026-09-26-m1-paired-player-body.md). Full initial/transient-state matching, instrumentation parity, all-N/tool/clock/disposal and native admission remain open. |
+| M1.6r.1 | GI/SI/QA | Pin the actual vanilla player save-format serializer, retain complete emitted typed NBT with bounded output and strict UUID/thread checks; inherits M1.6r | implemented_unverified | [Installed-code format checks](docs/verification/2026-09-25-m1-player-nbt-codec.md): five distinct cases pass; original negative-zero failure retained. Actual capture/provenance/thread/UUID and transient-state coverage remain unverified. |
+| M1.6r.2 | GI/SI/QA | Bind exact loaded game bytes and real server/player callbacks to private same-tick roster capture, scoped process/sequence and bounded output; inherits M1.6r | implemented_unverified | [Distinct private observer](docs/verification/2026-09-25-m1-player-body-callback.md): nine final-candidate checks pass, including actual JVM transformed-method verification and named refusals; roster lifecycle is synthetic. Owned launch/custody, output verification, authentic capture/parity and transient-state coverage remain open. |
+| M1.6r.3 | GI/SI/QA | Independently verify complete private body output and bind it to held module/configuration/server inputs and owned launch/exit; inherits M1.6r | verified | [Named source/native evidence](docs/verification/2026-09-25-m1-player-body-custody.md): 107 current source checks and native02 audit pass. Exact live authenticated Job/member handle survives normal exit; held input/output export rejects corruption and foreign scope. Save-format custody only; full state matching, external-writer exclusion and parity remain unverified. |
+| M1.6r.3a | GI/SI/QA | Authentic changed-profile body capture through the existing protected single-writer/worker reference; inherits M1.6r.3 | verified | [Native02](docs/verification/2026-09-25-m1-player-body-custody.md) captures 1,175 bytes/38 fields at tick106, stop164, 3,852 loaded classes; normal12/12 server and7/7 worker exits, zero model/actions. Original480/180s bounds preserved. Failed native01, archive-sidecar incident and initial audit-script failure retained. This named positive reference does not prove paired/transient equality, isolation, parity or native probe admission. |
+| M1.6r.4 | GI/SI/QA | Join private body capture to both complete registered worker arms; compare every typed save-format field with float bits preserved and no state-field exclusion; inherits M1.6r | implemented_unverified | [Source46 and retained native failure](docs/verification/2026-09-26-m1-paired-player-body.md). Distinct profile/custody and complete comparator implemented with bounded diagnostics. Authentic paired capture, initial/transient equality and parity remain unverified. |
+| M1.6r.4a | GI/SI/QA | Authentic paired capture and refusal of unequal save-format state before any native probe admission; inherits M1.6r.4 | in_progress | [Body-pair native01 fails](docs/verification/2026-09-26-m1-paired-player-body.md) PROBE_WORLD_DEADLINE before admission, first entry98.891s. Original300/200-170/60-60s limits preserved; intended mismatch refusal not reached. Terminal/fenced, resources held, zero model/actions. Next diagnose first-entry delay before any changed authentic attempt; no unchanged rerun. |
+| M1.6r.4b | GI/SI/QA | Diagnose slow first worker input entry without game/model dispatch or weakening custody/deadlines; inherits M1.6r.4a | in_progress | [Actual diagnostic1pass59.65s](docs/verification/2026-09-26-m1-worker-entry-intervals.md); preparation46.437s, entries14.341s/4.390s. Original stall not reproduced or explained. Source/native I/O/custody/deadlines unchanged; no paired rerun. Continue independent G1 work. |
 | M2.1 | QA/PL | Complete clean-stop checkpoint commit, fresh materialization and recovery plans | in_progress | [Checkpoint tests](tests/test_checkpoints_artifacts.py); actual persistence inventory and stop/restore assertions open. |
 | M2.2 | PL | Nested budget accounts/receipts, reservation races, measured clock intervals | in_progress | [Budget/clock tests](tests/test_budget_clocks.py); real metering/dispatch/exhaustion and unknown reconciliation open. |
 | M3.1 | RS/GI | Registered private craft/machine predicates, positive/negative/duplicate controls | in_progress | [Evaluator tests](tests/test_evaluator.py); authoritative game telemetry/reachability/parity open. |
 | M3.1a | GI/RS | Exact Forge read-only tick/player/recipe evidence producer, bounded durable private spool and gap detection | in_progress | [Module](java/forge1192-telemetry), [runbook](docs/operations/forge-telemetry.md): five Java tests and fourteen Python telemetry tests; real clean-stop streams and six runtime furnace assertions pass. Authenticated ingestion, supervisor fault integration, overhead, player-tick parity and mechanics parity remain open. Raw observations cannot earn scored craft/machine predicates. M0.3.2b.1 adds [0.2.0 bounded selected config evidence](docs/verification/2026-09-20-e9e-loaded-config.md), 51 Python/11 Java checks and a corrected two-boot private persistence check; full gates remain open. |
-| M3.1b | GI/RS | Source-backed craft consumption and machine/energy/fluid provenance adapters | not_started | Requires authentic runtime traces, alternate strategies and all T10 negative controls; possession or raw craft callbacks alone cannot pass. |
+| M3.1b | GI/RS | Source-backed craft consumption and machine/energy/fluid provenance adapters | in_progress | M1.5b adds the G1-required private furnace completion verifier; [source evidence](docs/verification/2026-09-26-m1-scorer-coverage.md); [operation04 native resources](docs/verification/2026-09-26-m1-native-resource.md) now retained, protected admission still open. Requires authentic runtime traces, alternate strategies and all T10 negative controls; possession or raw craft callbacks alone cannot pass. |
 | M1.1a | GI | Exact Forge client binding discovery, stable IDs and narrow client-thread settings transactions | in_progress | Children M1.1a.1/a.2 distinguish read-only discovery from transactional mutation; no settings capability advertised. |
 | M1.1a.1 | GI | Runtime/default/persisted binding discovery, stable occurrences, explicit ownership basis and conservative contexts | implemented_unverified | [Client module](java/forge1192-client), [operator audit](src/mcbench/client_discovery.py), [actual evidence](docs/verification/2026-09-18-long-horizon.md): two exact client boots export 253 stable bindings (34 vanilla references, 219 unknown owners), with sampled Controls UI correspondence. Native options save/cold restart yielded all 253 persisted/runtime matches. Four Java tests and 13 synthetic Python audit cases pass. Mod ownership, complete runtime/layout fingerprint and broader discovery failure cases remain open; all mutation/input/restart capability flags remain false. Desktop stop signal cleared after supported session reset; no physical Escape attributed to the user. |
 | M1.1a.2 | GI | Native client-thread CAS writer, exclusive profile/journal/backup, owned-field rollback and crash recovery | in_progress | Children M1.1a.2.1–2.3 separate durable writer, native authority/adapter and real transaction recovery. Integrate with the Python transaction engine only after source-bound ownership and the native writer are qualified. |
@@ -448,17 +1848,19 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1a.2.3c.2b.6 | GI/QA | Authentic rollback_options_written crash and fresh status/rollback | not_started | Expected rollback_prepared journal with restored runtime/disk, no terminal receipt; separate sample required. |
 | M1.1a.2.3c.3 | GI/QA | Actual foreign runtime/options revision conflicts, no overwrite of unrelated changes and explicit owned-intervention cleanup | in_progress | [Authentic disk cases](docs/verification/2026-09-20-native-settings-conflicts.md) pass stale apply plus unrelated/owned-third-value rollback conflicts and two forward fences; one prepared transaction, exact known-injection removal, 253 runtime/persisted mappings and original bytes restored. In-memory foreign changes and OS-writer exclusion remain unrun. Cooperating profile locks/operator byte comparisons do not qualify isolation/CAS. |
 | M1.1a.2.4 | GI/PL | Transaction-aware private native transport and Python adapter; strict schema, session/deadline fencing, uncertain-response recovery | implemented_unverified | [Java bridge](java/forge1192-client/src/main/java/io/github/opencnid/strata/client/SettingsHttpBridge.java), [Python client](src/mcbench/native_settings.py): five Java transport tests, 15 Python validation tests and four actual JVM/HTTP cases with synthetic runtime pass, including lost acknowledgement, process restart, duplicate transaction and foreign-edit recovery fencing. Native Minecraft, OS isolation, qualified Controls projection/verified commit, lifecycle/accounting and gameplay CLI integration remain open. Capability stays disabled. |
-| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | not_started | Required before advertising keybinding support; byte comparisons and source inspection alone are insufficient. |
+| M1.1b | GI/QA | Ordinary-input effects, competing consumers, restart/persistence, rollback and isolation | in_progress | Child M1.1b.1 verifies the named native Curios cycle. [Full matrix and evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md) retain all remaining context/modifier/hold/refusal/concurrency/crash/cross-client and essential-control cases. [Mouse input dependency](docs/verification/2026-09-27-m1-essential-input.md) now supports candidate ordinary attack/use callbacks and device/activity evidence with synthetic process integration; authentic input/complete essential controls remain unverified. Original failures preserved; no full T05 or capability claim.  [Essential plan/fixed Escape/recovery](docs/verification/2026-09-27-m1-essential-plan.md) now has explicit admission, immutable complete context/stage dispositions, offline physical-release joins and synthetic-body JVM restart/stop-all evidence; full authentic essential proof and resume remain open.  [Sprint companion](docs/verification/2026-09-27-m1-sprint-input.md) supplies bounded ordinary sprint/forward input, exact paired release and synthetic before/after JVM replacement evidence; /6 authentic qualification remains open. |
+| M1.1b.1 | GI/QA | Exact scripted Curios E/F13 preplay effects, same-server restart, native rollback and restored E-overlap effects | verified | [Native04 audit](docs/verification/2026-09-27-m1-settings-cycle-plan.md):13 effect runs/eight frames/355 primitives; exact pending head after restart, one apply/one rollback, all bindings and pretrial bytes restored. Client45/45/server29/29 terminal, guardians431.4892/501.0879ms; new reservation settled, five old holds preserved. Limited to this named Curios/input profile and essential-control slice; full T05 and gameplay-worker integration remain parent/M1.1c.3.2. |
 | M1.1c | GI/PL | Host workflow profile ownership, durable phase fencing, rollback-conflict holds, qualification drift and verification coverage | in_progress | [Workflow](src/mcbench/controls.py), [contract](docs/operations/settings-workflow.md); c.1–c.3 distinguish implemented host checks from missing authentic provider/supervisor integration. |
 | M1.1c.1 | PL/QA | Profile/avatar recovery holds, cross-process operation lock, phase/idempotency/metadata/revision fencing and legacy-plan rejection | implemented_unverified | [Fencing tests](tests/test_controls_fencing.py), actual Windows lock exclusion and normal/crash release; persistent failed holds survive database reopening. Native profile lock and full supervisor/action-lane coupling remain separate requirements. |
 | M1.1c.2 | GI/PL | Transaction/plan/binding/context/restart evidence matrix, bounded hashed proof/source reads and simulation separation | implemented_unverified | [Controls tests](tests/test_controls.py) and [evidence tests](tests/test_controls_fencing.py); actual private CAS integration with synthetic proofs passes. No authentic effect producer/provenance, physical input or verified native commit yet. |
 | M1.1c.3 | GI/PL | Qualified native adapter/commit, per-avatar RECONFIGURING, action-lease fencing, worker restart, charged continuity and public patch/CLI projection | in_progress | Children c.3.1–c.3.3 retain the complete integration scope; the development bridge is unqualified and has no commit operation. |
 | M1.1c.3.1 | PL/QA | Durable per-avatar repair holds, scoped grant revocation, stop/fresh-observation receipts, recovery fencing and clock attribution | implemented_unverified | [Coordinator](src/mcbench/reconfiguration.py), [32 synthetic cases](tests/test_reconfiguration.py); partial controller/settings/budget/clock integration with private CAS proofs. Actual worker transport, receipt provenance and complete measured charges remain unqualified. |
-| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | not_started | Preserve T05/G1 qualification; controller-side state alone cannot fence a separately running worker. |
+| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. [Native repair admission](docs/verification/2026-09-27-m1-native-repair-admission.md) binds the same plan/patch/effects/deadline with connected synthetic-body evidence. [Controller-native translation/admission](docs/verification/2026-09-27-m1-native-controller.md) now joins immutable keymaps, exact target/descriptor and durable bind/status evidence. [Native commit decision storage](docs/verification/2026-09-27-m1-native-commit.md) now passes pending-head/status/reopen/owned-rollback checks under separate opt-in. [Connected controller-native writes](docs/verification/2026-09-27-m1-native-repair-flow.md) now pass apply/complete supplied-proof validation/commit/rollback and no-replay checks through the actual worker/JVM with synthetic body/proofs. [Native restart handoff](docs/verification/2026-09-27-m1-native-restart.md) now passes actual JVM exit/reopen, exact pending-head continuation and no rearm/replay with synthetic body. [Same-worker replacement](docs/verification/2026-09-27-m1-worker-restart.md) now passes actual guardian/JVM terminal-old, guarded-new and original-expiry checks with a synthetic body; gameplay stays fenced. [Controller adoption](docs/verification/2026-09-27-m1-controller-restart.md) now joins prepare, worker detach/attach, successor descriptor and subsequent commit/rollback, including lost-reply status reconciliation with synthetic body/proofs. [Effect/restart producer](docs/verification/2026-09-27-m1-effect-evidence.md) now derives exact declared per-binding effects and adopted-checkpoint persistence; actual JVM integration and retained native04/native02 classification pass with scopes separate. [Complete effect summaries/release receipts](docs/verification/2026-09-27-m1-release-evidence.md) now feed four declared before/after effects and three generic summaries into actual controller/worker/JVM commit/rollback; body and essential-control proof remain synthetic. [Attack/use input dependency](docs/verification/2026-09-27-m1-essential-input.md) adds bounded private mouse callbacks and typed local activity, with synthetic JVM/HTTP evidence only. Real launcher orchestration, qualified projection/complete authentic verification, accounting/settlement, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification.  [Essential plan/fixed Escape/recovery](docs/verification/2026-09-27-m1-essential-plan.md) now has explicit admission, immutable complete context/stage dispositions, offline physical-release joins and synthetic-body JVM restart/stop-all evidence; full authentic essential proof and resume remain open.  [Native projection](docs/verification/2026-09-27-m1-native-projection.md) now reads actual state under exact qualification consumption in the connected JVM restart/commit/rollback path; reports/body remain synthetic and authentic qualification/accounting/resume remain incomplete.  [Sprint companion](docs/verification/2026-09-27-m1-sprint-input.md) supplies bounded ordinary sprint/forward input, exact paired release and synthetic before/after JVM replacement evidence; /6 authentic qualification remains open. |
 | M1.1c.3.3 | PL/GI | Full repair budget/telemetry settlement, public KeybindingPatch/control card and scoped gameplay CLI | not_started | Retain nested charging, fresh-probe repair policy and complete public/private projections. |
+| M1.1c.3.4 | GI/PL | Explicit native/worker/controller resume after verified commit or restored rollback; same history/charges/expiry, fresh observation, no implicit recovery | in_progress | [Native/worker/guardian resume and private transport](docs/verification/2026-09-27-m1-worker-resume.md) pass synthetic-body process cases. [Live callback-clock source and JVM/Python prefix evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md) adds nonterminal tick reads. [Owned source/body clock binding](docs/verification/2026-09-27-m1-repair-clock-binding.md) now connects to controller receipts. Controller settlement/completion, public keymap/skill, repeated repair chains and authentic gameplay remain unfinished. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1.  Causal receipt boundary implemented and process-tested: [evidence](docs/verification/2026-09-27-m1-repair-clock-barrier.md); full settlement/publication and authentic workflow remain open.  Confirmed primitive consumption now raises retained budget exposure before CAS; [evidence](docs/verification/2026-09-27-m1-repair-consumption-floor.md). Full settlement remains open.  Publication commit now rechecks all primitive sources after observation and retains an immutable boundary; [focused/process evidence](docs/verification/2026-09-27-m1-publication-accounting.md). Full workflow remains open.  Causal owned avatar-tick intervals now retain budget floors; [source/actual-pipe evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md). Original complete accounting/qualification gaps remain.  Owned inference windows now attribute and freeze root/helper/retry calls without reposting costs; [source/HTTP evidence](docs/verification/2026-09-27-m1-repair-inference.md). Completion integration remains open.  Native resume now enforces and binds inference closure; [controller/JVM evidence](docs/verification/2026-09-27-m1-resume-inference.md), with first cap failure preserved and corrected preplay receipt boundary. Full settlement/qualification remain open.  Typed retrieval now joins the immutable publication boundary to controller evidence; [source/process evidence](docs/verification/2026-09-27-m1-publication-receipt.md). Complete accounting and qualification remain open.  Continuous body reservations now cover repair ticks without reposting; [source/actual-pipe evidence](docs/verification/2026-09-27-m1-body-tick-window.md). Wall/disconnected-time and complete controller qualification remain open. |
 | M3.2 | RS/SI | Matched fresh clone plans, artifact controls and drift quarantine decisions | in_progress | [Probe planner](evaluator/src/strata_evaluator/probes.py); actual isolated clone execution/disposal and supervisor drift handling open. |
 | M3.3 | RS | Paired lineage analysis, absolute competence, uncertainty/attrition and common support | in_progress | [Analysis](evaluator/src/strata_evaluator/analysis.py); full survival/hierarchical/power/confirmatory workflow open. |
-| M4.1 | PL | Whole-team resource/account admission, scoped grants and bounded communication | in_progress | [Controller/message tests](tests/test_storage_controller.py); actual simultaneous N=1/2/4 certificates remain required. |
+| M4.1 | PL | Whole-team resource/account admission, scoped grants and bounded communication | in_progress | [Controller/message tests](tests/test_storage_controller.py); actual simultaneous N=1/2/4 certificates remain required. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
 | M5.1 | RS/PL | Offline report reconstruction/publication and operator commands/runbook | in_progress | [Command/report tests](tests/test_operator_commands.py); no pilot or confirmation, complete evidence audit/report still open. |
 
 ## Requirement coverage
@@ -624,20 +2026,20 @@ all thirteen canonical records, gameplay affordances and aggregate statuses rema
 | F04 | Enforced hidden objective/criteria/holdout isolation | SI | M0, M1, M3 | T06 | in_progress | M1.3: [CAS authorization](src/mcbench/storage.py), scoped grants and separate evaluator package; synthetic canaries pass, real filesystem/process/network/helper boundaries open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2a: [native broker source/synthetic integration](docs/verification/2026-09-20-restricted-native-tools.md) enforces explicit projections, helper result writes and executor-only game transport. Full native isolation/live admission remains open. M0.1c.2b.2d adds [sealed bootstrap/source integrity evidence](docs/verification/2026-09-20-native-bootstrap.md), including native root/helper canaries; aggregate qualification remains incomplete.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open. |
 | F05 | Official CurseForge/Forge acquisition, provenance and blocked states | GI | M0 | T02 | in_progress | Named M0 development subset verified: [vanilla seal](docs/verification/2026-09-22-vanilla-packlock.md), [restored/native launch](docs/verification/2026-09-22-restored-native-baseline.md), [E9E complete checks/seal/materialization](docs/verification/2026-09-24-e9e-sealed-reference.md) and [sealed bootstrap](docs/verification/2026-09-24-sealed-forge-bootstrap.md). G0 item 2 passes for these identities. Later-pack acquisition and full custody/compatibility remain in their existing milestones; historical missing/restricted, class, config, ZIP and strict-tree failures remain unchanged. |
 | F06 | Bounded structured state/actions and capability-gated verified keybinding skill | GI | M0, M1, M2 | T03, T05 | in_progress | Mineflayer actions/settings transactions and real 253-binding Forge discovery retained. The Forge route exposes thirteen development motors, including [level walking](docs/verification/2026-09-19-forge-movement.md), [equipment/initial placement](docs/verification/2026-09-19-forge-inventory-placement.md) and [known-recipe crafting](docs/verification/2026-09-19-forge-crafting.md). Full geometry/custom serializers/placement, settings effects/physical pool/restart and authentic conformance stay open. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds explicit resource-preserving close to both backends; authentic menu effects remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  Latest [vanilla mechanics](docs/verification/2026-09-20-vanilla-mechanics.md) and [EMI discovery/craft evidence](docs/verification/2026-09-20-emi-crafting.md) distinguish saved-server outcomes from unqualified implementations.  Latest [vanilla cancel/reconnect](docs/verification/2026-09-20-vanilla-reconnect.md) has a passing narrow independent audit with all raw checker failures retained; complete profile/gate coverage remains open.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
-| F07 | Information, communication, learned-artifact and context policies | AR | M1, M3, M4 | T04, T06, T11 | in_progress | M1.4: [artifacts](src/mcbench/artifacts.py), [messages](src/mcbench/communication.py), exact episode projections; native context/helper enforcement and executable policy integration open.  M0.1c.2b.2a: [native broker source/synthetic integration](docs/verification/2026-09-20-restricted-native-tools.md) enforces explicit projections, helper result writes and executor-only game transport. Full native isolation/live admission remains open. M0.1c.2b.2c adds [native participant/budget admission](docs/verification/2026-09-20-native-admission.md), with clean-helper and inherited-context native synthetic evidence; protected live ingress and complete lifecycle remain unqualified.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row. |
+| F07 | Information, communication, learned-artifact and context policies | AR | M1, M3, M4 | T04, T06, T11 | in_progress | M1.4: [artifacts](src/mcbench/artifacts.py), [messages](src/mcbench/communication.py), exact episode projections; native context/helper enforcement and executable policy integration open.  M0.1c.2b.2a: [native broker source/synthetic integration](docs/verification/2026-09-20-restricted-native-tools.md) enforces explicit projections, helper result writes and executor-only game transport. Full native isolation/live admission remains open. M0.1c.2b.2c adds [native participant/budget admission](docs/verification/2026-09-20-native-admission.md), with clean-helper and inherited-context native synthetic evidence; protected live ingress and complete lifecycle remain unqualified.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
 | F08 | Persistent campaigns separated from matched one-way probes | RS | M1, M3, M5 | T11 | in_progress | M3.2: [matched clone planner](evaluator/src/strata_evaluator/probes.py), probe-origin import rejection; actual disposable clones and sealed execution open. |
 | F09 | Durable lifecycle, leases, fenced input, consistent recovery | PL | M1, M2 | T07, T08 | in_progress | Controller/repair/checkpoint services, native lane and [scoped Forge broker](docs/verification/2026-09-18-forge-worker.md). [Integrated independent guard](docs/verification/2026-09-18-forge-guard-integration.md) adds actual synthetic listener/native-thread/worker/parent fault stopping and bounded private lifecycle evidence. Production controller authority, launch/isolation, authentic release and complete game/agent restoration remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  Latest [vanilla cancel/reconnect](docs/verification/2026-09-20-vanilla-reconnect.md) has a passing narrow independent audit with all raw checker failures retained; complete profile/gate coverage remains open.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
-| F10 | Authoritative scorer and positive/negative controls | RS | M0, M3 | T10, T13 | in_progress | M3.1: [private craft/machine predicates](evaluator/src/strata_evaluator/scorer.py), synthetic alternate/negative/duplicate controls; real read-only tick/recipe evidence producer. Source-backed craft/machine provenance, transport identity, authentic reachability and mechanics parity remain open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open. |
+| F10 | Authoritative scorer and positive/negative controls | RS | M0, M1, M3 | T10, T13 | in_progress | M3.1: [private craft/machine predicates](evaluator/src/strata_evaluator/scorer.py), synthetic alternate/negative/duplicate controls; real read-only tick/recipe evidence producer. Source-backed craft/machine provenance, transport identity, authentic reachability and mechanics parity remain open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  M1.5a/b [exact-profile audit and machine completion resource seam](docs/verification/2026-09-26-m1-scorer-coverage.md):54 focused passes, no protected scorer qualification. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open.  M1.5b.9/.9a/.9b now retain authentic positive, short-first/later-success and [low-energy interruption](docs/verification/2026-09-26-m1-low-energy-native.md) candidate-window evidence. Protected scoring and the complete control suite remain unqualified. |
 | F11 | All nested usage and team/agent/evaluation budget enforcement | PL | M0, M1, M2, M4 | T12 | in_progress | M2.2 hierarchical reserves/settles/adjustments and unknown blocking. M0.3b.2c.1 reconciles native attempts/safety releases into local worker counters across epochs; [movement](docs/verification/2026-09-19-forge-movement.md) also charges neutral/coasting/walking ticks. .2c.2 must post actual/uncertain aggregate usage without refunds. Provider all-call reconciliation/dispatch remains open. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) adds charged book fills, confirmed output/remainder transfers and feedback waits; no model inference or aggregate qualification. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) charges close, refresh and feedback waits; native release remains reserved, while aggregate settlement stays unqualified. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged.  Latest M0.2c.1d.1 [instrumented native join](docs/verification/2026-09-24-native-measurement-join.md) implements combined timing/resource consumers and independently reconstructs actual root/helper receipts; authentic combined profile and aggregate acceptance remain open. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | F12 | Fixed-system cohorts, model-generation/drift quarantine | RS | M1, M5 | T14 | in_progress | M3.2: [identity decisions](evaluator/src/strata_evaluator/probes.py) classify drift/unverifiable identity and quarantine boundary; actual supervisor revocation/cohort/anchor workflow open. |
 | F13 | Reproducible evidence, uncertainty, censoring and interventions | RS | M2, M3, M5 | T13, T15 | in_progress | M3.3/M5.1: [paired analysis](evaluator/src/strata_evaluator/analysis.py), bounds/replay/private publication; full survival/power analysis, evidence inventory and real study open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | F14 | Calibrated graduation/retention and frozen historical anchors | RS | M6 | T16 | deferred | Required in M6 before promotion claims. |
 | F15 | Each later pack/version separately conformant; fresh-world transfer | GI | M6 | T17 | deferred | Required E6E/E2E work in M6. |
-| F16 | Typed lifecycle/acquisition/capability/game/settings/telemetry/communication/artifact/evaluation contracts | PL | M1 | T01 | in_progress | All 13 records, partitioned schemas and domain services; M0.3b.2b.2 adds typed native authority/body-bound observations and a shared public gateway contract. Full service/controller integration and remaining API domains stay open. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) adds strict body-bound recipe pages, a craft envelope and twelve-action capability minor 10 across Java/TypeScript/Python. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds strict close_window, regenerated schemas and thirteen-action negotiation (Forge minor 11 / Mineflayer minor 6). [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
+| F16 | Typed lifecycle/acquisition/capability/game/settings/telemetry/communication/artifact/evaluation contracts | PL | M1 | T01 | in_progress | All 13 records, partitioned schemas and domain services; M0.3b.2b.2 adds typed native authority/body-bound observations and a shared public gateway contract. Full service/controller integration and remaining API domains stay open. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) adds strict body-bound recipe pages, a craft envelope and twelve-action capability minor 10 across Java/TypeScript/Python. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds strict close_window, regenerated schemas and thirteen-action negotiation (Forge minor 11 / Mineflayer minor 6). [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open. |
 | N01 | Fail closed on unsupported schema/capability/lock/isolation/accounting | PL | M0, M1 | T01, T04, T06 | in_progress | Schema, scope, epoch, quota, pack/admission and unknown-metering denials exercised synthetically; complete real environment admission remains open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | N02 | One executor; deduplicated dispatch; ambiguous-ack resync | GI | M1, M2 | T07 | in_progress | Durable native/public intent, single lock/lane and cancellation fencing. M0.3b.2b.2 tests second-broker rejection, lost reply/no replay, actual synthetic JVM kill and higher-epoch retained consumption through the public worker. Authentic Minecraft ambiguity/recovery remains open. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) cancels the real crafting motor over synthetic menus without replay; partial grid/cursor effects remain. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) retains ambiguous close effects without reopening or replaying the operation. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  Latest [vanilla cancel/reconnect](docs/verification/2026-09-20-vanilla-reconnect.md) has a passing narrow independent audit with all raw checker failures retained; complete profile/gate coverage remains open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | N03 | Real-time clocks, ticks, latency and performance accounting | QA | M1, M2, M4 | T08, T09, T12 | in_progress | [Measured interval ledger](src/mcbench/clocks.py) separates active/elapsed/ticks/reserved-body exposure, with rollback-safe deduplication and repair-hold attribution without double charging. Exact boundary coverage, actual telemetry and performance reconciliation remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged.  Latest M0.2c.1d.1 [instrumented native join](docs/verification/2026-09-24-native-measurement-join.md) implements combined timing/resource consumers and independently reconstructs actual root/helper receipts; authentic combined profile and aggregate acceptance remain open. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
-| N04 | Secrets/private records/initial artifacts protected from agent code | SI | M1 | T06 | in_progress | [Namespaced CAS](src/mcbench/storage.py), immutable initial-artifact policy and explicit private report projection; actual credential/process/network isolation open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. |
+| N04 | Secrets/private records/initial artifacts protected from agent code | SI | M1 | T06 | in_progress | [Namespaced CAS](src/mcbench/storage.py), immutable initial-artifact policy and explicit private report projection; actual credential/process/network isolation open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
 | N05 | Safe exhaustion handling; costs retained; gameplay failures preserved | QA | M2 | T07, T08, T12 | in_progress | Local/native action limits, native release reserve and evidence-failure fencing plus hierarchical blocking/overruns and confirmatory rollback rejection. Synthetic exhaustion evidence does not qualify actual whole-process/team coordinated stopping. September 19 [movement exhaustion tests](docs/verification/2026-09-19-forge-movement.md) retain charged neutral/walking/coasting events and release a synthetic active walk without refund. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) preserves partial crafting effects and consumed budget through deadline/exhaustion with release. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) rejects unsafe return capacity before close and preserves consumed budget/partial effects on interrupted feedback. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | N06 | Pinned dependencies/protocols and report replay | PL | M1, M2, M5 | T01, T13 | in_progress | Pinned packages, 13 generated contracts, immutable artifact/report digests and journal/report reconstruction. Broker identity hashes all compiled modules, schemas, package lock and native fingerprint; .2c.3b adds the guardian policy/Python version/eight source hashes and explicit Forge worker config v2. Complete installed dependency/environment pins and release reproducibility remain open. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | N07 | Measured operating envelope before confirmation | QA | M2, M4 | T08, T09 | not_started | — |
@@ -726,19 +2128,19 @@ This inventory preserves important prose obligations. Full details and edge case
 | C09 | Mineflayer structured state/actions, observed-map filtering, pinned local navigation and exact modded API suite; optional pixel/input parity separately | 8 | M0, M1; F01/F06 | in_progress | Mineflayer recipes/crafting, signal waits, bounded placement and confirmed release retained. D06 [Forge API](docs/operations/forge-game-api.md) routes filtered observations/thirteen motors and known recipes through the scoped worker/CLI, including level walking, identity/selection/recipe fences and server-menu feedback. Full geometry/custom recipe adapters/placement and both profiles' complete authentic conformance stay open. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) supplies explicit close with own-inventory resource checks on both backends. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. |
 | C10 | Capability-gated keybinding discover/diagnose/tested-pool allocation, contexts/backend/Unicode distinctions, protected controls, transactional patch and rollback | 8–10 | M1.1; F06/N02 | in_progress | [Transaction engine](src/mcbench/controls.py), [skill](gameplay/skills/minecraft-keybindings/SKILL.md), [bounded operator audit](src/mcbench/client_discovery.py), real Forge discovery/UI sample and [Java transaction core](java/forge1192-client). Source-bound Curios adapter built; mutation/recovery has synthetic-runtime tests only. Real qualification and tested input remain open. |
 | C11 | Actual intended/competing key effects, persistence/restart, cross-client isolation; charged in-play repairs and matched probe keymaps | 8, 13 | M1.1, M2, M3; F06/F08/N03 | in_progress | Synthetic effect/restart, per-avatar repair holds, cognitive-probe repair prohibition and budget/clock integration tested. Actual native save plus operator cold restart retained all 253 runtime bindings and matched persistence. No actual changed-binding transaction, worker restart, game effects, in-play charges or cross-client isolation evidence yet. |
-| C12 | Worker/game/runtime/evaluator process and host boundaries, credential brokerage, filesystem/network/capability enforcement and leak attempts | 4–6, 10, 13 | M1; F04/N04 | in_progress | Scoped method grants/CAS namespace checks and evaluator packaging implemented; no OS/process/network/helper isolation claim. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. |
-| C13 | Pinned allowed docs, player-accessible recipe/quest projections, sanitized goals/control cards, declared messages and no implicit shared memory | 4, 6, 8, 10, 13 | M1, M4; F04/F07 | in_progress | Sanitized skill, declared team messages and server-unlocked vanilla recipe projections implemented; pinned docs, quest surface and exact expert serializers open. |
+| C12 | Worker/game/runtime/evaluator process and host boundaries, credential brokerage, filesystem/network/capability enforcement and leak attempts | 4–6, 10, 13 | M1; F04/N04 | in_progress | Scoped method grants/CAS namespace checks and evaluator packaging implemented; no OS/process/network/helper isolation claim. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open. |
+| C13 | Pinned allowed docs, player-accessible recipe/quest projections, sanitized goals/control cards, declared messages and no implicit shared memory | 4, 6, 8, 10, 13 | M1, M4; F04/F07 | in_progress | Sanitized skill, declared team messages and server-unlocked vanilla recipe projections implemented; pinned docs, quest surface and exact expert serializers open. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
 | C14 | Campaign/worker/agent states, ownership, deadlines, durable revisions, sequence/epoch fencing and health leases | 10–11 | M1, M2; F09/F16/N01 | in_progress | [Controller](src/mcbench/controller.py) durable lifecycle, owned transitions, epochs, readiness and cleanup-held reservations; worker/runtime supervisor integration open. |
 | C15 | Action deduplication, ambiguous emission recovery, cancel/stop-all watchdog, hung-client termination and late-tool rejection | 8, 10–12 | M2; F09/N02/N05 | in_progress | Native/Mineflayer cancellation/ack/release tests plus synthetic JVM kill and queue fencing. [Integrated independent guard](docs/verification/2026-09-18-forge-guard-integration.md) binds listener/session/body generation and stops native-thread/worker/parent faults without replay. Authentic timings, production controller recovery, complete launch containment, disk-full and full game/agent restoration remain open. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) extends synthetic lane cancellation/deadline/exhaustion to recipe fill and output pickup. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) tests close cancellation/deadline/exhaustion and retains uncertain post-close state without replay. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. |
 | C16 | Complete clean-stop world/player/quest/team/machine/client/runtime/skill snapshots, atomic commit, same-boundary restore | 11–12 | M2; F09/N06/N08 | in_progress | [Checkpoint service](src/mcbench/checkpoints.py) validates complete rosters/path inventories and clean-stop attestations, commits immutable sets and materializes fresh worlds; real stop/restore open.  M0.3a.4f [directory round-trip source/actual-layout evidence](docs/verification/2026-09-24-inventory-directories.md) is verified in its named scope; aggregate acceptance unchanged. |
 | C17 | Crash/rate-limit/credential/disk/resource/stall incidents, interventions; no gameplay undo, cost refund or future-knowledge retention | 12 | M2; F09/N05 | in_progress | Confirmatory rollback rejection, development lost-interval plan, retained budget costs and crash-safe intent tested synthetically; full incident classifier/recovery supervisor open. |
-| C18 | Active/elapsed/server/avatar clocks, checkpoint timing/drain overrun, state/action/model lag, event-loop lag/TPS/MSPT and conditional FPS | 11–12, 15 | M2, M4; N03/N07 | in_progress | [Clock ledger](src/mcbench/clocks.py), [Forge telemetry](java/forge1192-telemetry): actual E9E server ticks, sampled wall intervals, rolling MSPT and GC/heap evidence. Avatar tick parity, full supervisor/model/worker reconciliation, overhead and envelope calibration remain open.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
+| C18 | Active/elapsed/server/avatar clocks, checkpoint timing/drain overrun, state/action/model lag, event-loop lag/TPS/MSPT and conditional FPS | 11–12, 15 | M2, M4; N03/N07 | in_progress | [Clock ledger](src/mcbench/clocks.py), [Forge telemetry](java/forge1192-telemetry): actual E9E server ticks, sampled wall intervals, rolling MSPT and GC/heap evidence. Avatar tick parity, full supervisor/model/worker reconciliation, overhead and envelope calibration remain open.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open. |
 | C19 | Durable raw evidence, delivered structured state/signals and optional images/video, retention/tombstones, private export/redaction and report replay | 5, 12 | M2, M5; F13/N06/N08 | in_progress | CAS/outbox and deterministic report/journal exports, private-ID publication allowlist; full retention/tombstones, complete raw-reference replay and live evidence open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. |
 | C20 | Team/agent budget reservations/settlement/reconciliation, descendant/retry/practice/probe charges and unknown metering | 9–10, 15 | M1, M2; F11/N01 | in_progress | [Budgets](src/mcbench/budgets.py) support nested accounts/reservations/settles/reconciliation, retries and unknown blocking; provider/host metering and unknown reconciliation completion open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open. M0.1c.1a adds [private durable dispatch accounting](docs/verification/2026-09-19-inference-dispatch.md), with synthetic evidence only and live transport integration open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. |
 | C21 | Measured backend hardware/accounts/provider capacity (displays only when used), N=1/2/4, atomic team queue/reject, no time-sharing/substitution | 11, 15–16 | M4; F02/N07 | in_progress | Atomic team capacity/account reservations, queue/reject and expiry-cleanup tests; no measured certificate or authentic simultaneous N test. |
 | C22 | Persistent natural play, one-way disposable probes, matched fresh contexts/world/equipment/keymap, sealed instances and no tuning feedback | 13 | M1, M3; F08 | in_progress | [Matched clone manifests](evaluator/src/strata_evaluator/probes.py) and artifact taint rejection; actual fresh clone execution/disposal and canary isolation open. |
 | C23 | Full/frozen-persistence/frozen-skills/no-self-play policies; exact reset surfaces and budget-dependent experimental arms | 13.2 | M3, M5; F07/F08/F11 | in_progress | All four episode artifact projections implemented and tested; no campaign arm has run and native session reset enforcement remains open. |
-| C24 | Server-verified milestones, alternate strategies, sustained automation and positive/negative controls | 13, 16 | M0, M3; F10 | in_progress | [Private development predicates](evaluator/src/strata_evaluator/scorer.py), craft alternatives and sustained machine/negative controls; server telemetry/reachability/parity open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification. |
+| C24 | Server-verified milestones, alternate strategies, sustained automation and positive/negative controls | 13, 16 | M0, M1, M3; F10 | in_progress | [Private development predicates](evaluator/src/strata_evaluator/scorer.py), craft alternatives and sustained machine/negative controls; server telemetry/reachability/parity open.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M1.5a/b [exact-profile audit and machine completion resource seam](docs/verification/2026-09-26-m1-scorer-coverage.md):54 focused passes, no protected scorer qualification. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open. |
 | C25 | AG/absolute success/AULC/AUG, independent paired samples, clustering, CI/multiplicity, censoring/attrition bounds and power plan | 13 | M3, M5; F13 | in_progress | Paired family-weighted AG/absolute success, block bootstrap, common-support areas, Holm and attrition bounds implemented; survival/hierarchical generalization/power simulation and confirmation open. |
 | C26 | Retention and fresh-world target-pack transfer, source cost, fixed-system versus new-generation cohorts and drift quarantine | 13 | M3, M5, M6; F08/F12/F14/F15 | in_progress | Fixed-system drift/quarantine decision logic implemented; real cohort/anchor lifecycle, retention and fresh-pack transfer remain open/deferred to M6 where applicable. |
 | C27 | Fixed aggregate versus fixed-per-agent N comparisons; summed ticks/reserved body time, repeated-call costs and concurrency reporting | 13, 15 | M3, M4; F02/F11/N03 | in_progress | Hierarchical caps and reserved-body versus actual-tick accounting tested; resource-plan derivation and real fixed-team/per-agent comparisons remain open. |
@@ -932,16 +2334,16 @@ Record each test attempt in the progress log or linked report with its exact pro
 
 | Test | Owner | Scope (full acceptance is SPEC section 16) | Result | Profile / evidence / outstanding work |
 |---|---|---|---|---|
-| T01 | PL | Strict contracts, schemas, config, auth, paths and negative cases | not_run | All 13 canonical examples/schema checks pass in Python/TypeScript with negative cases; full cross-record references, migrations and runtime bindings remain incomplete. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). September 19 [live native read-only/auth/session/schema negatives and provider regression](docs/verification/2026-09-19-forge-live-api.md) add partial evidence only. September 19 [movement contracts](docs/verification/2026-09-19-forge-movement.md) add strict 30-second envelopes, finite tolerance and identical eleven-action policy negotiation across Java/TypeScript/Python; full suite remains incomplete. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md): twelve-action/recipe policy negotiation and strict bounded recipe pages pass synthetic Java/Node/Python checks; original aggregate result unchanged. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds strict close-window schema/field/duration checks and thirteen-action capability negotiation; 153 Java / 107 Node / 95 selected Python pass with synthetic game effects. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  [Connected E9E evidence](docs/verification/2026-09-19-forge-connected.md) adds exact-pack read-only decoding and transport negatives; no complete contract or OS-isolation pass.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. |
+| T01 | PL | Strict contracts, schemas, config, auth, paths and negative cases | not_run | All 13 canonical examples/schema checks pass in Python/TypeScript with negative cases; full cross-record references, migrations and runtime bindings remain incomplete. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). September 19 [live native read-only/auth/session/schema negatives and provider regression](docs/verification/2026-09-19-forge-live-api.md) add partial evidence only. September 19 [movement contracts](docs/verification/2026-09-19-forge-movement.md) add strict 30-second envelopes, finite tolerance and identical eleven-action policy negotiation across Java/TypeScript/Python; full suite remains incomplete. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md): twelve-action/recipe policy negotiation and strict bounded recipe pages pass synthetic Java/Node/Python checks; original aggregate result unchanged. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds strict close-window schema/field/duration checks and thirteen-action capability negotiation; 153 Java / 107 Node / 95 selected Python pass with synthetic game effects. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  [Connected E9E evidence](docs/verification/2026-09-19-forge-connected.md) adds exact-pack read-only decoding and transport negatives; no complete contract or OS-isolation pass.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open.  Latest M1.2b [private parity/upgrades](docs/verification/2026-09-27-m1-private-contract-parity.md) closes the seven reproduced private semantic defects and verifies supported schema transitions; cross-record/reference/Java/RPC/auth/path reconciliation remains.  [Admission/RPC/Java](docs/verification/2026-09-27-m1-admission-contracts.md) adds consistent preflight identities, 33 direct reference locations, 71 shared RPC cases and 24 Java action-profile cases. Remaining services/translations/path reconciliation explicit; aggregate unchanged. |
 | T02 | GI | Official clean provisioning, locked inventory, expert mode and blocked acquisition | not_run | Named G0 item-2 subset passes: [vanilla seal](docs/verification/2026-09-22-vanilla-packlock.md), [E9E thirteen checks/seal/materialization](docs/verification/2026-09-24-e9e-sealed-reference.md), [authentic sealed bootstrap](docs/verification/2026-09-24-sealed-forge-bootstrap.md). Actual cold starts, public expert recipe/quest/team references, all 21,718 files and 2,604 directories, typed incomplete-set refusal, 56 new focused tests and 34/34 launch audit. Retain historical five config findings, class/ZIP/strict-tree failures and optional renderer/network limits. Complete T02 across later supported modules/profiles remains unrun; no whole-suite promotion. |
 | T03 | GI | Structured vanilla and exact Forge/registry/recipe/machine actions; optional input parity separately | fail | [Vanilla mechanics](docs/verification/2026-09-20-vanilla-mechanics.md) now pass narrowly with saved mining, walking, chest, planks/sticks and Damage=0 pickaxe deltas. Preserve earlier [vanilla menu](docs/verification/2026-09-19-vanilla-menu.md) and [body revision](docs/verification/2026-09-19-body-revision.md) cases. Exact E9E Mineflayer handshake still fails. The separate D06 Forge backend has partial [connected](docs/verification/2026-09-19-forge-connected.md), movement/cancellation/quest and [machine processing/collection](docs/verification/2026-09-20-machine-crafting.md) evidence; [Earlier EMI/craft failures](docs/verification/2026-09-20-emi-crafting.md) remain retained; the selected expert furnace craft now has [authentic consumption/resource evidence](docs/verification/2026-09-20-craft-witness.md). Full geometry, metadata/custom serializers, placement/equipment/use, reliable recovery, broader machine/container/quest operations, filtering/isolation and optional rendered parity remain incomplete. Selected [Forge cancellation/restart](docs/verification/2026-09-20-forge-reconnect.md) preserves state/receipts/costs but fails shutdown. All original negative cases and failures remain in their reports/child rows.  Latest [vanilla cancel/reconnect](docs/verification/2026-09-20-vanilla-reconnect.md) has a passing narrow independent audit with all raw checker failures retained; complete profile/gate coverage remains open. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | T04 | AR | Native host/plugin/structured tools/helpers/accounting/interruption/resume; optional images | not_run | Actual pinned native Dovetail installation and Windows process-tree fixtures; durable runner/raw-usage/helper/interrupt tests use synthetic model streams. Model invocation, actual helpers/isolation/all-call accounting remain open. [Latest evidence](docs/verification/2026-09-18-long-horizon.md). [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. M0.1c.2b.2d adds [sealed bootstrap/source integrity evidence](docs/verification/2026-09-20-native-bootstrap.md), including native root/helper canaries; aggregate qualification remains incomplete.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row. |
-| T05 | GI | Stock-Mineflayer rejection plus full real keybinding-extension effects/restart/rollback/isolation cases | not_run | Exact client exported 253 bindings with sampled Controls UI correspondence. Prior JVM/HTTP transport/restart/lost-ack tests use synthetic runtime. September 20 [authentic encoding round trip/cold readback](docs/verification/2026-09-20-native-settings.md) and [pending transaction termination/recovery](docs/verification/2026-09-20-native-settings-recovery.md) now pass narrowly: source-bound Curios, preserved unrelated bytes, all 253 restored mappings, status before rollback and zero replay. [Authentic disk-conflict negatives](docs/verification/2026-09-20-native-settings-conflicts.md) also pass with one prepared transaction and exact restoration. Intended/competing effects, mid-write/in-memory-foreign cases, qualified CAS/isolation, physical pool and gameplay repair/accounting remain open. Controls invalid-scancode GL finding retained; shared input remains paused. [Original discovery](docs/verification/2026-09-18-long-horizon.md), [shared artifact-path fix](docs/verification/2026-09-19-forge-live-api.md). |
-| T06 | SI | Private/cross-agent/helper/filesystem/process/network/tool/holdout leaks | not_run | Synthetic scoped grants/CAS canaries/paths/probe-origin/messages and allowlisted client package checks pass. September 19 live bridge rejects unauthorized/browser-origin/foreign-host requests; these [limited transport checks](docs/verification/2026-09-19-forge-live-api.md) do not prove OS/process/network/helper or sealed-probe isolation, which remains unrun. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) rejects private/extra recipe response fields and body-generation drift in synthetic transport; actual book filtering and OS boundaries remain unverified. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  [Connected E9E evidence](docs/verification/2026-09-19-forge-connected.md) adds exact-pack read-only decoding and transport negatives; no complete contract or OS-isolation pass. M0.1c.2b.2d adds [sealed bootstrap/source integrity evidence](docs/verification/2026-09-20-native-bootstrap.md), including native root/helper canaries; aggregate qualification remains incomplete.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open. |
+| T05 | GI | Stock-Mineflayer rejection plus full real keybinding-extension effects/restart/rollback/isolation cases | not_run | Exact client exported 253 bindings with sampled Controls UI correspondence. Prior JVM/HTTP transport/restart/lost-ack tests use synthetic runtime. September 20 [authentic encoding round trip/cold readback](docs/verification/2026-09-20-native-settings.md) and [pending transaction termination/recovery](docs/verification/2026-09-20-native-settings-recovery.md) now pass narrowly: source-bound Curios, preserved unrelated bytes, all 253 restored mappings, status before rollback and zero replay. [Authentic disk-conflict negatives](docs/verification/2026-09-20-native-settings-conflicts.md) also pass with one prepared transaction and exact restoration. [Native04 named Curios E/F13 cycle](docs/verification/2026-09-27-m1-settings-cycle-plan.md) now passes actual intended/competing effects, same-server restart, native rollback and restored effects (M1.1b.1). Remaining context/modifier/hold/exhaustion/refusal/cross-client/essential-control cases, mid-write/in-memory-foreign cases, complete qualified CAS/isolation/pool and gameplay repair/accounting remain open. Controls invalid-scancode GL finding retained; shared input remains paused. [Original discovery](docs/verification/2026-09-18-long-horizon.md), [shared artifact-path fix](docs/verification/2026-09-19-forge-live-api.md). |
+| T06 | SI | Private/cross-agent/helper/filesystem/process/network/tool/holdout leaks | not_run | Synthetic scoped grants/CAS canaries/paths/probe-origin/messages and allowlisted client package checks pass. September 19 live bridge rejects unauthorized/browser-origin/foreign-host requests; these [limited transport checks](docs/verification/2026-09-19-forge-live-api.md) do not prove OS/process/network/helper or sealed-probe isolation, which remains unrun. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) rejects private/extra recipe response fields and body-generation drift in synthetic transport; actual book filtering and OS boundaries remain unverified. D08 [JEI query evidence](docs/verification/2026-09-19-jei-query.md) adds bounded focused discovery, strict scoped/body-bound transport and exact dependency/policy pins; native effects/isolation remain unverified, with no gate change. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open.  [Connected E9E evidence](docs/verification/2026-09-19-forge-connected.md) adds exact-pack read-only decoding and transport negatives; no complete contract or OS-isolation pass. M0.1c.2b.2d adds [sealed bootstrap/source integrity evidence](docs/verification/2026-09-20-native-bootstrap.md), including native root/helper canaries; aggregate qualification remains incomplete.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open. |
 | T07 | QA | Ack/lease/process/server/controller/disk/credential/snapshot faults and recovery | fail | Prior repair/vanilla cancellation (20.7 ms), native journal, release and guard foundation evidence retained. .2c.3b: **95 Node / 51 Python**, then final **20 Forge** checks pass; synthetic native freeze/worker kill/worker hang/parent kill stop the JVM in **1466/45/1922/31 ms**, with one native intent/no replay. Wrong grants/owners reject and normal shutdown retains hashed private evidence. Actual Minecraft timings/restore, controller authority, coordinated exhaustion/recovery and isolation remain open. [Prior](docs/verification/2026-09-18-long-horizon.md), [native](docs/verification/2026-09-18-forge-game-actions.md), [release](docs/verification/2026-09-18-worker-release.md), [routing](docs/verification/2026-09-18-forge-worker.md), [guard foundation](docs/verification/2026-09-18-process-guard.md), [guard integration](docs/verification/2026-09-18-forge-guard-integration.md). September 19 [movement lane evidence](docs/verification/2026-09-19-forge-movement.md) adds charged cancellation/deadline/damage/exhaustion on a synthetic walking body; latest 21 Forge tests retain guarded JVM fault stops at 492/42/1738/25 ms. These are not Minecraft timing results. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) adds crafting partial-effect/no-replay cases; 23 Forge tests pass, with disposable JVM stop times 511/45/1741/24 ms. Authentic timing/recovery remains open. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) adds menu-close cancellation/deadline/exhaustion without replay; disposable JVM freeze/worker-kill/worker-hang/parent-kill stops were 505/42/1731/24 ms. These are not Minecraft timing results. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open. [Body-revision evidence](docs/verification/2026-09-19-body-revision.md) fixes idle heartbeat invalidation and adds authentic scoped CLI acceptance/actual-turn/age negatives; full native host and body-transition conformance stay open. D09 [manual-craft evidence](docs/verification/2026-09-19-manual-craft.md) adds explicit source selection, ordinary confirmed grid filling and retained partial-effect charges; synthetic checks pass, authentic scope remains open. Latest current-policy [authentic guardian trial](docs/verification/2026-09-20-guardian-live.md) fails its 500 ms root wait at 510.8433 ms; no tree proof or stop receipt. Remaining T07 cases are still incomplete; this explicit failed required case changes the aggregate from not_run to fail.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  [Latest process-history/protected reference](docs/verification/2026-09-21-process-history.md): independent retained-history verification, complete expert craft/80 charges, but 500.1327-ms guardian failure and denied score import; no aggregate qualification.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged.  [D13](docs/verification/2026-09-21-d13-shutdown.md) authorizes a new 1,000-ms Java tree bound: authentic normal-stop proof 568.994 ms and normally closed craft/reference, with 33/33 trajectory and 28/28 policy/accounting checks. All 500-ms failures remain historical failures, other required fault/scorer/setup/isolation/provenance/recovery cases remain incomplete; no aggregate pass. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | T08 | QA | Ordered 1-hour, 8-hour, 24-hour operating-envelope soaks | not_run | — |
 | T09 | PL | N=1/2/4 simultaneous capacity, whole-team rejection, shared and independent topology | not_run | Synthetic atomic N=2/4 capacity/account tests and N=10,000 whole-team queue without body allocation pass. No measured simultaneous N=1/2/4 certificate. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). |
-| T10 | RS | Reachability, scorer positive/negative controls and alternative strategies | not_run | Synthetic registered craft/machine positive/negative/alternate/duplicate/sustained-window cases pass. Raw Forge recipe/tick evidence cannot score; authoritative consumption/machine provenance, identity, reference reachability and mechanics parity remain open. [Latest evidence](docs/verification/2026-09-18-long-horizon.md).  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open. |
+| T10 | RS | Reachability, scorer positive/negative controls and alternative strategies | not_run | Synthetic registered craft/machine positive/negative/alternate/duplicate/sustained-window cases pass. Raw Forge recipe/tick evidence cannot score; authoritative consumption/machine provenance, identity, reference reachability and mechanics parity remain open. [Latest evidence](docs/verification/2026-09-18-long-horizon.md).  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  M1.5a/b [complete coverage audit and source-only machine completion seam](docs/verification/2026-09-26-m1-scorer-coverage.md); all authentic controls/qualification remain required. M1.5b.1 [native furnace capture/private reader candidate](docs/verification/2026-09-26-m1-machine-producer.md): new module identity, raw-only authority; authentic integration/qualification open. M1.5b.2 [native registration candidate](docs/verification/2026-09-26-m1-machine-registration.md) adds direct/converted object lineage; authentic qualification remains open.  M1.5b.8 [operation09](docs/verification/2026-09-26-m1-furnace-interval-native.md) fails at telemetry capacity; gameplay and signed prefix cannot substitute for retirement/clean-stop/scoring acceptance.  M1.5b.9/.9a/.9b now retain authentic positive, short-first/later-success and [low-energy interruption](docs/verification/2026-09-26-m1-low-energy-native.md) candidate-window evidence. Protected scoring and the complete control suite remain unqualified. |
 | T11 | RS | Matched clones, probe disposal/non-feedback, exact ablation state | not_run | Synthetic clone-manifest equality, exact episode projections and probe-origin import rejection pass. Actual fresh process/world clones, disposal and canary feedback tests open. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md). |
 | T12 | PL | All nested usage, dedup/retries/reservations and reconciled clocks/caps | not_run | Synthetic hierarchical reserves/settles, ancestry/retries/races/unknown/overrun and repair interval tests pass. .2c.1 adds native attempted-event/safety-release reconciliation across broker epochs and preserved page capture age; these are local counters, not complete BudgetLedger settlement or clock qualification. Provider all-call and measured real-time reconciliation remain open. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md), [repair evidence](docs/verification/2026-09-18-long-horizon.md), [broker evidence](docs/verification/2026-09-18-forge-worker.md). September 19 [movement accounting](docs/verification/2026-09-19-forge-movement.md) charges active neutral/coasting/walking decisions and final release, including exhaustion with retained usage; aggregate/model/clock qualification is unchanged. September 19 [crafting evidence](docs/verification/2026-09-19-forge-crafting.md) charges recipe fills, refreshes, waits and output/remainder clicks; synthetic lane exhaustion preserves consumption and partial state. D07 [menu-close evidence](docs/verification/2026-09-19-menu-close.md) verifies charged close/refresh/active waits and preserved partial effects, without qualifying complete aggregate or provider accounting. [Authentic vanilla menu evidence](docs/verification/2026-09-19-vanilla-menu.md) adds player-menu cursor/grid returns, duplicate handling, retained pre-acceptance schema/revision rejections, 24 total charged primitives and final saved inventory; complete profile/reference/accounting gates remain open.  M0.1c.2b.2e adds [authenticated native request admission](docs/verification/2026-09-20-native-ingress.md), with source/native synthetic evidence; OAuth transport and complete isolation remain unqualified.  M0.1c.2b.2f adds [native OAuth transport candidate evidence](docs/verification/2026-09-20-native-oauth-transport.md); fabricated authentication does not qualify live TLS/account/usage.  [First OAuth trial/diagnostic/catalog evidence](docs/verification/2026-09-20-native-oauth-conformance.md): one unresolved request, $0.7554 hold; source checks and native metadata evidence do not close this row.  M0.1d.1/.2 add [read-only native/game and trace reconciliation](docs/verification/2026-09-21-native-game-traces.md); named source/authentic-scripted scope only, aggregate gaps unchanged.  Latest M0.2c.1d.1 [instrumented native join](docs/verification/2026-09-24-native-measurement-join.md) implements combined timing/resource consumers and independently reconstructs actual root/helper receipts; authentic combined profile and aggregate acceptance remain open. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
 | T13 | RS | Deterministic report/accounting reconstruction, retention and safe export | not_run | Synthetic deterministic outbox/report replay, CAS hashes, safe report/client export and cross-language canonical hashing pass. Complete evidence reconstruction, retention/tombstones and live replay open. [Core evidence](docs/verification/2026-09-18-controller-evaluator.md).  M0.2c.3 [private telemetry authentication](docs/verification/2026-09-20-authenticated-telemetry.md) adds source/synthetic byte/boot binding; no authentic score or aggregate gate pass.  M0.2c.3b.1 [sealed craft-reference source/synthetic evidence](docs/verification/2026-09-20-craft-reference-seal.md) verifies preserved bytes and the registered source/resource join; no protected score or aggregate gate pass.  M0.2c.3b.2b.1 [scoped writer candidate](docs/verification/2026-09-21-writer-boundary.md): native fixture write ownership advances; sibling reads and server/setup integration remain unqualified. M0.2c.3b.2b.2 [owned Java preparation](docs/verification/2026-09-21-writer-preparation.md) adds retained-token/copy/cleanup/restart controls using native synthetic files; continuous server custody and sibling-read isolation remain unqualified. M0.2c.3b.2b.3.1 [private pipe](docs/verification/2026-09-21-telemetry-pipe.md) adds native peer/durable stream/negative/replay evidence; complete server custody and isolation remain open. [Continuous custody/gate evidence](docs/verification/2026-09-21-writer-custody.md) adds native synthetic lifecycle/refusal/restart controls; full launcher and isolation qualification remain open. [Protected launcher integration](docs/verification/2026-09-21-protected-reference.md) adds native synthetic sealing/participant/import/replay evidence; authentic profile and isolation remain open.  Latest M0.2c.1d.1 [instrumented native join](docs/verification/2026-09-24-native-measurement-join.md) implements combined timing/resource consumers and independently reconstructs actual root/helper receipts; authentic combined profile and aggregate acceptance remain open. Latest M0.2c.1d.2 [recorded-outcome evidence](docs/verification/2026-09-24-pilot-outcomes.md) retains failed goals while reconstructing settled costs; atomic acceptance passes focused fixtures, current real-game qualification and accepted/refused-effect joins remain open. |
@@ -953,7 +2355,7 @@ Record each test attempt in the progress log or linked report with its exact pro
 | Gate | Required milestone/evidence | Result | Profile / evidence / remaining condition |
 |---|---|---|---|
 | G0 | M0; all six SPEC16.1 items under D14 | pass | [Exact-profile six-outcome assembly](docs/verification/2026-09-24-g0-assembly.md) and [318 child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md). Minor12 cancellation48/48 closes the remaining worker lineage gap; live15 host/helper, named official installations/mechanics, private development scorer and live18 costs/clocks retain their own identities. Isolation-unqualified feasibility only; no full T03/T05/T07, protected/scientific score or G1 claim. [Verbatim prior G0 row](docs/verification/2026-09-24-g0-gate-history.md) preserves every historical failure/checkpoint. |
-| G1 | G0; complete T01/T04/T05/T06/T10/T11 including settings extension | not_run | Partial synthetic contract and actual client-discovery evidence exist. Complete native-host, settings-effect, isolation, scorer and probe gates remain open. |
+| G1 | G0; complete T01/T04/T05/T06/T10/T11 including settings extension | not_run | Scoped contract/native/isolation/scorer/probe evidence and the named native Curios repair cycle exist; no complete required suite is yet closed. Complete native-host, settings-effect, isolation, scorer and probe gates remain open. |
 | G2 | G1; T07/T08/T12/T13 at N=1 | not_run | No durable single-agent/24-hour proof. |
 | G3 | G2; T09, actual N=2, explicit N=4 disposition, N=2 soak/security | not_run | No simultaneous capacity certificate. |
 | G4 | G3; development cost/power pilot, T14, locked protocol and T15 | not_run | No research MVP or scientific result. |
@@ -6283,3 +7685,3948 @@ checkout in `2026-09-24-g0-publication-01/publication-qa.json`. Merge authorizat
 is explicit; verify the final PR head and resulting origin/main ancestry.
 M0/G0's D14 scope, retained failures, all budget holds and M1–M7 remain unchanged;
 this publication performs no game or inference execution.
+
+
+### 2026-09-24 — D20 starts M1/G1 from merged PR8
+
+User authorization: complete M1 and its full G1 acceptance gate, beginning with
+an exact-profile audit and qualified gameplay-root/helper boundary. Necessary
+T10/T11 dependencies are included; unrelated M2-M7 work is untouched. This
+supersedes the M0-only stopping instruction without changing D14's historical
+scope or accepting a weaker gate. D18/D19 spending remains M0-only. No M1 paid
+request or allowance is authorized by this transition.
+
+Created the active long-horizon goal and fresh `codex/m1-g1-isolation` branch
+from fetched PR8 merge `215c4e0`. Read current instructions/status/handoff,
+ledger, G0 assembly/crosswalk and applicable SPEC contracts. Added M1.3a/M1.3b,
+M1.5/M1.6 as explicit work partitions. [Opening audit](docs/verification/2026-09-24-g1-coverage-audit.md)
+records required suites/profiles and gaps. WAL-aware read-only comparison of all
+40 tables passes unchanged;20 gateways CLOSED,15 FINALIZED/5 UNSETTLED jobs,
+$4.887796 exposure with all holds. Process inventory finds no matching owned
+Java/native runtime. `uv sync --frozen --offline` succeeds; isolated import
+resolves this checkout. No game/model experiment, qualification or gate pass.
+Next: implement and exercise the missing root/helper boundary checks before
+settings, scorer and probe integration. All historical failures remain retained.
+
+
+### 2026-09-24 — M1.3b.1 selected-runtime boundary slice
+
+Added conformance-only NativeToolProjection/3 for the existing GPT-6 Luna
+root/helper catalog without extending M0 /2 or paid/campaign authority.
+Added owned code-mode filesystem/process/network/credential/artifact probes and
+strict caller-bound duplicate/conflict/output verification. [Evidence](docs/verification/2026-09-24-m1-native-boundary.md):
+187 focused Python cases pass; final37 verifier cases, full Ruff and whitespace
+pass. Fresh native fixture01 rejects an unapproved canary environment variable
+before launch; preserve it and the unchanged environment allowlist. Changed
+fixture02 completes11 scripted requests/one helper in42.598341seconds with154
+synthetic units, zero actual inference/game processes, normal FINALIZED exit0.
+Original68/74 keeps six unrecognized import-denial findings. The inspected exact
+native rejection is recognized by a separately retained verifier; read-only
+reconstruction of unchanged raw/ingress/admission/catalog/settled evidence passes
+24/24. Both sealed bundles and all prior failures remain. No lucky rerun.
+
+All40 real authority tables remain unchanged; every hold/consumed decision and
+$4.887796 exposure persist. No owned fixture process remains. This marks only
+the named M1.3b.1 source/native conformance slice verified; M1.3b/M1 remain
+in_progress, T04/T06 and G1 remain not_run. Next qualify remaining media/output,
+cross-agent state/communication/lifecycle and then actual-game/credential
+integration. Full T05/scorer/probe requirements are unchanged; no M1 paid run
+or RuntimeQualification authorized/issued.
+
+Checkpoint review: all370 prior milestone IDs remain; five explicit M1 children
+were added. Every M2-M7 row and T01-T17/G0-G5 row is unchanged; the old progress
+log is an exact prefix. All1,398 local links in changed Markdown and fences
+check successfully. Both new private seals verify, including the original
+result digest against the audit reference. Final projection49/49 and verifier
+37/37 checks pass after the last edits. Private `checkpoint-qa.json` records
+these results; current handoff and SPEC describe the new conformance-only policy.
+
+
+### 2026-09-24 — M1.3b.2 native media-output slice
+
+Added owned output-helper probes and a strict captured-content verifier in
+`tools/native_output_boundary.py`, integrated as a separate native fixture
+option, and added49 passing corruption/target tests. Root/helper local-file
+and remote image/audio routes reject; both exact public PNG outputs pass.
+The11-request native scripted fixture closes normally with154 synthetic units
+and zero real inference. Original75/76 pending-review report is retained;
+independent33/33 audit joins captures, admissions, projection, receipts and
+closure without rerun. All40 real authority tables and holds remain unchanged.
+No matching owned fixture process remains. Focused Ruff passes.
+
+The first seal failed EVIDENCE_INVENTORY because ordinary Windows enumeration
+omitted long paths. It remains retained; extended-path inventory and independent
+readback verify the final seal in the [report](docs/verification/2026-09-24-m1-output-boundary.md).
+M1.3b.2 is verified only for these named routes; notification/other encodings,
+cross-agent boundaries, actual game/credential admission and full G1 remain
+open. Current status/handoff updated; M2-M7 and existing test/gate rows unchanged.
+
+
+### 2026-09-24 — M1.3b.3 selected state/notification boundary
+
+Added a narrowly scoped selected-model state mode to the native fixture and
+`tools/native_state_boundary.py`. The first actual attempt failed15/41 because
+notify emits an additional same-call-ID string output; original observer rejected
+it as STATE_OUTPUT_CHANGED. Preserve native exit1, one uncertain request and
+full120,000 synthetic-unit reservation. Changed observer accepts only the exact
+owned notification shape and preserves ordinary output conflict rejection.
+The changed run closes12 requests normally (168 fixture units), original45/46
+review-pending report retained; independent34/34 reconstruction binds every raw
+request,18 native call specifications, foreign-handle attacks, notifications,
+accounting and target-completion timing. No paid requests or Minecraft launches.
+
+41 existing cases and36 selected scope/parser/verifier cases pass; full Ruff
+and whitespace pass. All40 real authority tables remain unchanged, no owned
+fixture processes remain, and both evidence bundles are independently sealed.
+[Evidence and exact pins](docs/verification/2026-09-24-m1-state-boundary.md).
+Only named M1.3b.3 is verified. Next selected-profile lifecycle/retirement and
+cross-team communication; full root/helper/probe and G1 obligations stay open.
+Ledger/current handoff updated; no unrelated M2-M7 or gate promotion.
+
+
+### 2026-09-24 — M1.3b.4 selected helper retirement
+
+Added selected-model retirement fixture mode;40 existing retirement tests and
+66 selected verifier cases pass. Actual native profile admits15 requests and
+rejects one old-helper resume before forwarding, proves post-fence retirement,
+then admits a fresh replacement under the one-slot limit. Native FINALIZED,
+three CLOSED envelopes,210 synthetic units counted once. Original33/34 report
+retained: its upstream-credential count wrongly included the refused request.
+Corrected verifier joins forwarded operation/digest identities; independent16/16
+audit reads raw issuance/result/ingress/catalog/receipt and cell-drain evidence.
+[Report and seal](docs/verification/2026-09-24-m1-retirement-boundary.md).
+
+All40 real authority tables remain unchanged, no owned fixture processes remain;
+full Ruff and whitespace pass. No paid inference, Minecraft or new allowance.
+Next resolve the discovered notification/cell-drain parser gap, including
+spoofed terminal text and retained pending holds, then cross-team boundaries.
+M1.3b.4 verifies completed-helper retirement only; M1/G1 remain open.
+
+
+### 2026-09-24 — M1.3b.5 notification-safe native frames
+
+Changed native-source-bound-cell-drain to /2: model-controlled scalar notify
+outputs cannot establish handles/completion; require a separate exact native
+content frame, retain duplicate/change/source/type checks, allow inline image
+payloads without using them as status, and preserve pending/uncertain holds.
+Actual selected native retirement variant emits nine forged-status notifications
+and three public images;34/34 original checks and20/20 independent reconstruction
+pass,15 settled requests/210 synthetic units plus one denied old-helper resume.
+Historical /1 rejects this same capture as duplicate; its source/result is kept.
+200 focused lifecycle/retirement/broker/export/checkpoint/verifier tests pass;
+full Ruff/whitespace pass. All40 real authority tables remain unchanged, no
+owned process remains. [Source/native evidence and seal](docs/verification/2026-09-24-m1-notification-drain.md).
+
+SPEC6 and handoff now explicitly retain a current limitation: native scalar-only
+silent yields are indistinguishable from notification text at this seam and
+refuse with NATIVE_CELL_RESULT_MISSING. This was verified on the existing sealed
+selected-state capture without rerun or history mutation. M1.3b.5 is verified
+only for the content-frame path and conservative refusal; M1.3b.6 now tracks
+qualified whole-process drain or stronger runtime framing. No gate reduction,
+paid authority, release or unrelated M2-M7 scope is implied.
+
+
+### 2026-09-24 — M1.3b.6 held-process proof and stopped export
+
+Added held Windows Job zero-active observation and private NativeProcessDrain/1
+with exact launch/profile/start/return/event binding. The supervisor records it
+only after successful cleanup; observation failure still closes resources and
+retains uncertainty. Stopped export can classify unresolved cells as disposed
+through this proof without inventing tool success, settling costs or releasing
+a live helper slot. Existing source/receipt/ingress/broker/artifact checks remain.
+SPEC6 describes this independent process-fenced disposal path.
+
+217 focused tests pass; five new malformed-wait cases then pass with all17
+disposal tests (222 distinct). Actual Windows parent-exit/lingering-descendant
+control refuses drain until the held job stops. First selected native attempt
+retains29/48 STATE_PEER_CELL_NOT_READY failure: seven settled/one uncertain
+request, full120,000 synthetic-unit hold, physical proof insufficient for export.
+Changed focused fixture leaves two silent cells, observes the helper reply, then
+finishes:28/28 checks, nine settled requests/126 units, six lifetime/zero active
+processes and committed stopped export. Independent15/15 reconstructs all joins;
+early per-cell proof still refuses both scalar outputs. [Report/seals](docs/verification/2026-09-24-m1-process-drain.md).
+
+All40 real authority tables remain unchanged; no paid model/game process/shared
+input or allowance change. No owned fixture process remains. Full Ruff/whitespace
+pass. M1.3b.6 verifies this stopped path only; next selected concurrent helpers
+and correct-team/cross-team communication. Full G1 and unrelated M2-M7 unchanged.
+
+
+### 2026-09-24 — M1.3b.7 selected simultaneous helpers and permitted messages
+
+Added the bounded HelperPairProbe and selected profile mode in the native
+identity fixture. Two clean helpers require actual delivered readiness/release/
+peer/final messages, private artifact reads and denied sibling/root paths.
+Native overlap is recorded while both run; a third request is refused before
+forwarding or envelope creation. No production capability or spending scope
+changes; SPEC6.3/13.5 contracts remain intact.
+
+149 distinct focused cases pass (125 admission/projection/broker,15 new fixture,
+9 process-drain fixture). First native attempt21/37 retains the split-payload
+parser error,15 settled/one uncertain and320,000 synthetic-unit hold. Second
+attempt26/37 retains the global-wait-bound error,23 settled/one uncertain/one
+refused and320,000-unit hold. Changed bounded rendezvous completes37/37 with
+27 settled/one refused,378 units and three CLOSED participants. Root13 and
+helpers7 each; all costs retained exactly once. Independent audit initially13/15
+retains tuple/JSON and operation-versus-envelope counting mistakes; corrected
+15/15 reconstructs the same capture without rerun. [Report and all three seals](docs/verification/2026-09-24-m1-helper-pair.md).
+
+All40 real authority tables remain unchanged, no owned fixture process remains,
+and full Ruff/whitespace pass. M1.3b.7 verifies only the named same-team slice.
+M1.3b.8 next tests actual separate-job cross-team attempts. Full G1, actual-game/
+credential integration, executable skills, capable keybinding/scorer/probe
+requirements and unrelated M2-M7 retain their open or original dispositions.
+
+
+### 2026-09-24 — M1.3b.8 separate-job native communication and G1 team dependency
+
+Added the owned two-job CrossTeamProbe and strict known-ID denial reviewer.
+Two pinned native profiles run concurrently; each root/helper targets the other
+job's actual root/helper IDs for message/followup/interrupt, plus absent controls.
+Both local helper conversations complete and private peer markers remain absent.
+35 focused tests pass. Native original28/29 per job deliberately awaits exact
+error review; independent25/25 reconstructs all36 attempts, raw request/issued
+response/receipt joins, permitted deliveries, own artifacts and both stopped
+exports.36 requests settle exactly once,504 synthetic units total, no uncertainty.
+The outer optional timeline summary fails canonical JSON's nanosecond integer
+bound after both exports; preserve that failure and original reports. Future
+summary uses milliseconds; no rerun or invented lost timeline. [Report/seal](docs/verification/2026-09-24-m1-cross-job.md).
+
+Audit clarified SPEC10.2 team.send/team.receive is not native helper collaboration:
+the Communication service exists but the restricted broker lacks that facade.
+M1.3b.9 records the minimal M4.1 dependency needed for complete T01/T06/G1, including
+actual permitted roster delivery and cross-campaign refusal. This does not expand
+unrelated M4/N-body capacity work or reduce the gate. All40 real authority tables
+unchanged, no owned process remains, Ruff/whitespace pass. Next implement .9;
+full runtime qualification, actual game/credential admission, skills, capable
+keybindings, scorer controls and matched probes remain open.
+
+
+### 2026-09-24 — M1.3b.9a typed team core and M1.2a integer-bound correction
+
+Implemented auxiliary team wire/policy models and atomic Communication request
+handling with scoped durable cursors, explicit acknowledgments, running roster,
+epoch/lease/deadline guards, request/send dedup and migration provenance.72
+synthetic checks pass; initial62/64 exposed alias-overridden TTL/receive limits,
+then64/64 and eight added queue/migration/concurrency cases pass. Native facade
+and authentic team integration remain open; .9a is implemented_unverified.
+
+The same defect affected broker depth/quota, game primitive minimum and the
+private zero-active process proof. M1.2a fixes direct scalar constraints and
+revalidates copied grants. The previous process corruption negative was masked
+by an event-reference mismatch; coherent mutation now tests the actual limit.
+101 boundary tests and89 distinct game/admission tests pass (initial86/89;
+three build/import setup failures corrected and rechecked). Locked npm ci/build,
+full Ruff and whitespace pass. Read-only four-job/nine-grant audit reconstructs
+all exact committed exports with actual zero-active proofs; original sealed
+bytes and reports remain unchanged. [Report and seal](docs/verification/2026-09-24-m1-team-core.md).
+
+All40 durable authority tables and every historical hold remain unchanged.
+No native rerun, Minecraft, paid inference or shared-desktop input. Next add the
+versioned scoped native team facade and actual allowed/refused-path evidence.
+Complete T01/T04/T05/T06/T10/T11 and G1 remain open; unrelated M2-M7 untouched.
+
+
+### 2026-09-24 — M1.3b.9b explicit native team facade and receipt provenance
+
+Added the optional team broker policy, settings /3 and selected conformance
+projection /4, preserving historical four-tool policies and absent-extension
+profile hashes. Bind the private CommunicationPolicy reference into NativeLaunch.
+Preflight/native admission/broker calls require the current private controller,
+matching running roster/epoch/lease/policy and simulation identity. Only executor
+metadata can use team send/receive. Guards run inside the transaction before
+effects and before commit, plus the existing result-publication fence. Private
+receipts tie exact native calls to message/delivery/cursor/ack data; stopped
+exports include immutable scoped receipts, not shared queue restore authority.
+
+417 distinct focused tests pass; three existing opt-in launch cases stay skipped.
+Initial203/203; compatibility collection first lacks tools import path, then
+168 pass/eight outdated SimpleNamespace stubs fail/three skip. Explicit policy
+stubs and both catalog variants resolve those;105/105 core/facade and123 passes/
+three skips in final native/launch/export/facade group. Counts overlap.34 new
+facade cases include coherent receipt tampering and revocation rollback. Full
+Ruff/whitespace pass. [Source report/seal](docs/verification/2026-09-24-m1-native-team-source.md).
+
+The private source-only bundle verifies16 files/228,563 bytes; all40 durable
+real authority tables and every hold are unchanged. No matching owned fixture
+process remains; no actual native team conversation, Minecraft, paid inference
+or desktop input. .9b remains implemented_unverified and .9c explicitly tracks
+actual selected native roster delivery and refusal evidence. Use one private
+synthetic controller/queue with live heartbeat and separate native job/agent IDs.
+Full G1 and unrelated M2-M7 statuses remain unchanged.
+
+
+### 2026-09-24 — M1.3b.9c actual selected-native team delivery and refusals
+
+Added the bounded TeamChannelStore/Probe and an explicit shared-store extension
+to the native fixture. Real synthetic-controller transitions and an owned
+heartbeat maintain two declared rosters with identical agent IDs in different
+campaigns. Distinct native jobs/accounts execute sender then receiver, preserving
+the initial project cap and first job's costs. No copied-store equivalence.
+
+84 focused source tests pass. Actual sender and receiver each pass45/45, seven
+settled requests each; independent26/26 reconstructs raw CAS/ingress/projection/
+metadata/provider receipts, all22 team calls and both committed exports. Eight
+committed team receipts,14 exact refusals; two ordered messages survive sender
+shutdown, retry returns identical receipt, receive cursors and explicit ack work,
+foreign same-ID campaign mail remains untouched. Four participants CLOSED, both
+held jobs zero-active,14 settled requests/196 synthetic units and no uncertainty.
+Readback via EvidenceBundle/EvidenceCAS verifies both exports after acknowledgment.
+
+[Report](docs/verification/2026-09-24-m1-native-team.md) records exact profiles and
+seal89f56e976c653e3de60845f51f1c6d40989b5100918e4061293c7b4339903655,
+7,419files/147,280,454bytes. All40 real authority tables and holds unchanged; no
+matching owned fixture process remains. No paid inference, real game or desktop
+input. Ruff/whitespace pass. .9a-.9c verified only for their named controller/
+native conformance contracts; .9 remains in_progress and new .9d explicitly
+retains final qualified gameplay-profile binding. Projection /4 remains
+conformance-only. Next reconcile all SPEC13.5 routes/exact profile deltas, then
+actual game/credential, skill/handoff and probe-disposal boundaries. Complete
+G1 remains not_run, unrelated M2-M7 unchanged, all original failures retained.
+
+
+### 2026-09-24 — M1.3a/.9d profile reconciliation and campaign catalog
+
+Read-only verification checks nine externally pinned native bundles and eleven
+FINALIZED profiles. At45cf10f, all98 runtime modules match team-native-01;
+earlier slices differ in11–12 modules and lack two/three new modules. Complete
+per-file hashes and SPEC13.5 route dispositions are retained. No union of
+historical results becomes a qualification. Old failures and holds remain.
+
+Explicit NativeToolProjection/5 implements the campaign team catalog identity;
+/4 remains conformance-only. Exact selected model, one/two helpers, private team
+policy, closed settings and reviewed wire tools are mandatory. No paid authority
+or RuntimeQualification is issued; all six existing campaign proofs remain
+required. M1.3b.9d is in_progress pending authentic integrated gameplay evidence.
+Coverage F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, partial T01/T04/T06.
+SPEC6.1 records the auxiliary private artifact, with no changed acceptance gate.
+
+169 distinct focused tests pass (98 projection/team,71 admission/ingress/fixture),
+changed-file Ruff/whitespace pass. Read-only current-source reconstruction passes
+5/5: both /4 catalogs, both stopped exports unchanged, all40 authority tables
+unchanged. No game/native/model/desktop execution; exposure$4.887796 and every
+old hold/decision unchanged. Private audit has9files/125018bytes, seal
+3adcb73ce6512e6f1085a24222c29a84533f5dcc44c2efc7d3afe7a8edfbcff3.
+[Full audit and source evidence](docs/verification/2026-09-24-m1-profile-reconciliation.md).
+Next compose the credential-free /5 actual-worker candidate, permitted controls
+and affected isolation routes; then selected skill/handoff and probe disposal.
+No broad unchanged replay, M1 paid call, G1 promotion or unrelated M2–M7 work.
+
+
+### 2026-09-24 — M1.3b.9d integrated campaign candidate source
+
+The explicit CampaignBoundaryProbe combines the existing scoped worker path,
+team controller and owned runtime canaries under campaign projection /5. Native
+fixture execution remains simulation=True with scripted provider and synthetic
+roster readiness; no production or N-body claim. Exact worker scope, current
+heartbeat, private team policy, selected model and closed modes are required.
+Helpers retain artifact access but no game/team authority. Direct shell and
+both patch forms receive separate observed-refusal checks. Candidate limits are
+20 scripted requests/four helper requests,64 broker calls per participant,90s;
+original fixtures retain their limits. Fake credentials target the actual job
+profile and must exist. Failed entry drains its listener without rearming.
+
+89 focused source/scenario/verifier tests pass in16.43s; the earlier87-pass run
+is retained. Ruff/whitespace pass. All40 authority tables remain unchanged;
+no native/game/model/desktop execution. Exposure$4.887796 and every old hold
+remain. Private source bundle8files/125034bytes, seal
+ d818c8c390529facd727df57daf83a44ebb627fa0ff2726d18e3bba48dc53551.
+[Source report](docs/verification/2026-09-24-m1-campaign-candidate-source.md).
+Coverage F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36, partial T01/T04/T06.
+Next explicit M1 outer lifecycle and fresh pinned actual-worker/native case;
+do not bypass M0 retention/profile checks or reuse paid permits. Authentic
+invocation and complete qualification remain open; .9d/M1 in_progress/G1 not_run.
+
+### 2026-09-24 — M1.3b.9d actual worker/campaign boundary and stopped export
+
+Explicit M1NativeBoundary/1 orchestration preserves the shared M0 lifecycle's
+existing gates while selecting fresh actual-worker/campaign source. First93
+orchestration checks follow one stale companion-stub failure; corrected example
+admission adds two cases for95 distinct passes. Run01 connected but refused
+EXAMPLE_NOT_EXECUTABLE before native launch; normal terminal groups/zero actions,
+12/12 independent failure audit. Seal
+fdc85177a9d5bd258f70b2aa32f29dfe987fc9a093ba93759118a2ee23b19002.
+
+Changed fresh run02 passes97/97 native candidate checks: actual vanilla bounded
+look, artifact/team controls, root/helper boundary attempts,11 settled scripted
+requests/154 fixture units. Its outer result fails NATIVE_CELL_UNKNOWN_TOOL during
+stopped export; preserve it. All native/outer groups terminate normally, one
+worker primitive joins. Native profile
+88adebd2e3aec639198862bd969d202dff0cc7a6bd49fd26252a80cdf0469ecb;
+producer3,999files/116,659,953bytes sealed at
+11fb7582ab82269cc6f00a5135818681d4f6f1681936215a84f3cce49b959b7e.
+
+Stopped-cell disposal /2 conservatively retains unknown call IDs and requires
+the existing complete owned-process fence; early retirement remains strict,
+tool_success_inferred=false, no replay/refund/restore/qualification.108 focused
+lifecycle/process/export checks pass in37.20s,203 distinct with orchestration.
+Independent26/26 reads unchanged producer and exports only a copied stopped
+controller/CAS.3/3 retained-export/private-marker checks pass. Consumer326files/
+5,940,237bytes sealce2800d9e88603dcdb86d7adced8e87b7dfb76827ad415c9dc4b23e28affcb77.
+Retain initial WAL precheck, source-cache inventory and query-column audit
+failures. No game/native rerun to fix a reader. Ruff/diff pass; all40 authority
+tables/exposure$4.887796 and historical holds unchanged. No paid M1 inference.
+
+[Full evidence and commands](docs/verification/2026-09-24-m1-native-game.md).
+Coverage F03/F04/F07/F16, N01/N04/N06, C06/C12/C13/C20/C36 and partial T01/T04/T06.
+M1.3b.9d/M1 in_progress; complete G1 not_run. Next selected executable skills/
+fresh handoff and remaining client/log/registry/probe routes; no scope reduction,
+new RuntimeQualification, N-body claim or unrelated M2–M7 implementation.
+
+Final documentation checks preserve all388 prior milestone IDs and the complete
+previous append-only log;1,458 local links resolve. Changed-file Ruff and
+whitespace pass. No additional execution or authority mutation during closure.
+
+### 2026-09-24 — M1.4a active JavaScript execution fixture source
+
+Added an explicit optional activation-script phase to the existing native
+fixture. Each participant must receive exact active revision script bytes from
+its registered artifact-read call before the fixed provider issues them through
+native functions.exec. No operator evaluation or new shell/tool. Require echoed
+source, correct participant and framed completion; preserve changed/missing/
+pending outcomes without claiming successful effects.32 broker calls in this
+fixture, existing nine-request parent/four-request helper/90s limits unchanged;
+old fixture bounds and all historical profiles remain unchanged.
+
+53 focused source checks pass in20.53s. Initial11 Ruff test-style findings are
+corrected; final Ruff/diff pass. Actual selected native execution remains
+unverified, not replaced by synthetic frames. M1.4a is in_progress and inherits
+M1.4, SPEC6.2/6.3, F03/F04/F07/F11/F16, N01/N04/N06, C06/C07/C12/C14/C20/C36
+and partial T01/T04/T06. [Implementation and next dependency](docs/verification/2026-09-24-m1-active-script-source.md).
+
+Private source bundle7files/103767bytes seal
+d7282b917326f9ee34fcd0b8f675ba1e112f6a7f84c4091698b84254720f0f4e.
+All40 authority tables match; exposure$4.887796/holds unchanged. No model/game/
+native execution, no owned fixture process remains. Next new D17 checkpoint and
+JavaScript bundle source, exact owned target-epoch controller/heartbeat and
+campaign /5 catalog integration, followed by authentic script/effect/fresh-state
+checks. Historical GPT-5.6 activation stores cannot be relabeled. Complete
+skill/handoff/isolation/settings/scorer/probe contracts and G1 remain open.
+
+### 2026-09-24 — M1.4a sealed source and actual selected JavaScript
+
+Replaced blanket activation copying with exact stopped database/CAS custody,
+including WAL, inventory, path/link, hash and copy-race checks. Added owned
+selected-controller continuation through claim/readiness/heartbeat, preserving
+the original configuration/reservation and requiring its expired source lease.
+Explicit fixture parameters produce fresh GPT-6 Luna executable records without
+changing historical defaults; publication preserves executable kind.177 distinct
+focused tests pass (83/72.60s,94/12.69s); earlier overlapping89/21.14s preserves
+the first63pass/1fail heartbeat race. Ruff and whitespace pass.
+
+[Actual native and reconstruction](docs/verification/2026-09-24-m1-active-script-native.md)
+pass36/36 and22/22. Root/helper read and execute exact active JavaScript; root
+write receipt succeeds/helper write refuses. Eight requests settle112 synthetic
+units, retaining56 prior units. Held native stop/export and executable candidate2
+bind the exact parent, source writes and inherited script. The first21/22 audit
+used the wrong RETURNED-state label and is retained with its corrected reader;
+no native rerun. Initial preparation import failure also retained.
+
+Producer4,170files/78,459,675bytes seal
+5998eafaa4f4d0760da81df41002e1198be5a71a20eb26c2c418726dbfbffd04;
+audit5files/25,365bytes seal
+4638dc3c1b085cd09992e1ff9544df2870c2d58715f4ec7daa814d634411d1e9.
+All40 real authority tables and$4.887796 exposure/holds unchanged; no owned
+fixture process remains. Model/world/worker/readiness are synthetic; USD0,
+no RuntimeQualification. Next implement normal held CHECKPOINTING transition,
+complete source-bound checkpoint and fresh candidate activation. Do not mutate
+the sealed expired RUNNING controller. M1.4a/M1 in_progress; G1 not_run. Parent
+IDs/complete T01/T04/T05/T06/T10/T11 and unrelated later roadmap remain unchanged.
+
+### 2026-09-25 — M1.4a normal checkpoint and fresh selected episode
+
+Added an explicit selected activation checkpoint path. A held controller may
+enter CHECKPOINTING only after finalized normal native closure and the exact
+zero-active, zero-forced-termination process proof. Keep its heartbeat through
+source-bound publication, native retention, complete synthetic checkpoint and
+next active-set creation; failures still drain ownership without rewriting old
+state. Existing default fixtures remain unchanged. JavaScript uses current
+artifact references across episodes and exercises owner private-state storage.
+
+[Source/native evidence](docs/verification/2026-09-25-m1-native-handoff.md):91
+focused tests pass/161.58s, plus three disjoint strict-option guards/0.28s;
+earlier24/9.30s overlap. Ruff and whitespace pass. Two new sequential native
+episodes pass37/37 each. Independent read-only audit passes42/42, including raw
+calls/receipts, exact code/parent/checkpoint joins, scoped effects, clean helper,
+fresh thread/profile/context/private store and actual budget totals. Revision2
+executes at epoch3; stopped checkpoint activates revision3. Sixteen requests
+settle224 units, original56 retained (total280). No real model/game or USD spend.
+
+Producer7,976files/153,051,314bytes seal
+68a94c894938fcb7e304049f40c75de1bdcc8c6d96af1200c803d36774cb74d7;
+audit3files/19,845bytes seal
+8d5da4b962a38b4c57ee4ac0958097e98abb777b36a53c2cf3bd246114ca9a39.
+All40 real authority tables and$4.887796 exposure/holds unchanged; no owned
+fixture process remains. Original sealed RUNNING controller is untouched;
+new episodes use normal CHECKPOINTING states. M1.4a/M1 in_progress, G1 not_run.
+Next matched selected frozen/no-self-play controls and full session/cache reset
+evidence, then remaining combined-profile boundary qualification. Full arm
+continuation does not pass those control arms or T05/T10/T11. All inherited IDs
+and unrelated M2-M7/G2-G5 requirements retain their original scope/history.
+
+
+### 2026-09-25 — M1.4b explicit no-self-play native capability boundary
+
+SPEC13.2 audit found retention-only no-self-play fixtures still admitted helpers.
+Preserve their historical limited results; do not promote them to the complete
+control. New live native arm enforcement joins private preregistration and exact
+agent state at launch (including unbrokered plans), admission and broker calls.
+Zero helper capacity, executor-only scope, disabled native collaboration and new
+basic/team helper-free identities are required. Catalog /6 has only an executor
+pin; old catalog/settings identities and stopped export readers are unchanged.
+New registration and synthetic root-only retention/export fixtures obey the
+existing arm contract. Operator NativeLaunch schema updated in the same change.
+
+[Evidence](docs/verification/2026-09-25-m1-no-self-play-source.md): initial103
+checkpoint/projection/admission checks;250 regression checks; expanded25 arm
+cases; final108 passes/three existing Windows privilege skips includes26 arm
+cases. Selections overlap and are not a distinct summed total. Ruff/whitespace
+pass. Retain the nonexistent-module collection error and pre-write archive
+import error. Read-only current-source reconstruction42/42 preserves both sealed
+full-arm profiles/checkpoints/exports and costs. All40 real authority tables and
+$4.887796 exposure/holds unchanged. USD0, no native/game/paid run. Private403-file
+source/check bundle seal d73823a1abb111dcb69872dd8816dfd8af64dfef4ddca53fcf9584f913ae0ab7.
+Its process-filter artifact is not process absence evidence; recheck before
+execution. M1.4b inherits M1.4, SPEC13.2, F03/F04/F07/F11/F16, N01/N04/N06,
+C06/C07/C12/C14/C20/C36, T01/T04/T06/T11. M1.4b/M1 in_progress; G1 not_run.
+Next actual pinned native helper-free catalog/refusal/root-positive verification,
+then matched frozen controls and remaining settings/scorer/probe qualification.
+Unrelated M2-M7, historical failures and M0-only paid authority remain unchanged.
+
+
+### 2026-09-25 — M1.4b actual root-only native control and retained failures
+
+[Source/native evidence](docs/verification/2026-09-25-m1-no-self-play-native.md):
+explicit root-only selected activation mode, control registered before seed,
+pre-reviewed executor-only /6 catalog, wire-specific refused spawn calls and
+permitted artifact/game/private-state controls. Initial feature-only case01
+still advertised collaboration, so exact admission refused before any new call
+or cost; exit1 could not checkpoint. Add the independently documented
+agents.enabled=false switch to the candidate and live guard, preserving
+historical stopped readers. Case02 closes normally but stays35/37: unexpected
+native refusal wording and a real missing check.js read. Correct exact verifier
+strings and request all active supporting files; changed case03 passes37/37,
+independent reconstruction22/22. No lucky rerun or historical result rewrite.
+
+Overlapping focused selections60/45/42/66/14 pass; final Ruff/whitespace pass.
+Retain collection/CLI-option/patch-context setup errors. Case03's five requests
+settle70 synthetic units, prior14 preserved; zero helper participants/envelopes,
+normal zero-active native closure, complete synthetic checkpoint/revision2.
+Three stores retain all182 fixture units (140 actual native-call units plus42
+synthetic seed units); USD0. All40 durable real authority tables and$4.887796
+exposure/holds unchanged; no owned processes remain. Source/helper/model pins
+and four private bundle seals are in the report. Shared desktop input untouched.
+M1.4b/M1 in_progress, complete G1 not_run; inherited IDs unchanged. Next matched
+frozen controls/common schedules and complete session/cache/category enforcement,
+then remaining native/settings/scorer/probe qualification. Unrelated M2-M7 and
+M0-only inference authority remain unchanged.
+
+### 2026-09-25 — M1.4b matched native full/frozen episode retention
+
+[Exact source/native evidence](docs/verification/2026-09-25-m1-matched-retention.md)
+adds an explicit matched fixture mode, equal recovery seeds, common public
+schedule/opportunity ceilings and reversed second-phase order. Full retains
+source-bound notes/handoff/learned revisions; frozen restores initial artifacts
+at the normal episode boundary, yet can learn within the next episode. Fresh
+root/helper contexts and private stores, immutable reads/writes, root-history
+denials and permitted synthetic observation are joined to normal checkpoints.
+
+Sequence01 times out in local scripted transport, retaining one UNSETTLED
+request/job,90,000-unit hold and prior56; no checkpoint, other episodes not_run.
+Read-only WAL-aware snapshot diagnosis10/10 preserves the original sidecars.
+Batch path checks and single companion-path parsing reduce measured validation
+3.745 to1.582 seconds without removing integrity checks, caching across calls or
+changing deadlines. Sequence02 closes normally but retains33/36: its observation
+expired before dispatch and the clean-helper verifier rejected the launch task.
+Fixture /2 computes a bounded deadline at call time and validates only the
+exact public helper message. Neither old sequence resumes or changes verdict.
+
+Separate sequence03 passes36/36,36/36,38/38,36/36; independent sealed audit64/64
+episode plus7/7 common checks.24 calls settle336 synthetic units; two distinct
+seeds112 retained, total448 across final lineages without charging copied
+history again. All40 real authority tables/$4.887796 exposure and historical
+holds/consumed decisions unchanged. Owned native process checks empty; no
+Minecraft, paid inference, shared-desktop input or RuntimeQualification.
+
+Focused source selections63 pass; integrity/skill90 pass plus one missing-tools
+import setup failure/three native symlink-privilege skips, corrected focused32
+pass/three skips; final matched17 pass. Ruff and whitespace pass. Report pins
+all producer/diagnostic/audit seals and exact native profiles. Inherited IDs
+unchanged; M1.4b/M1 remain in_progress and G1 not_run. Next complete session/cache
+and frozen-skills category enforcement, disposable probe boundaries and exact
+combined-profile isolation; capable T05/settings and T10/T11 remain required.
+Unrelated M2-M7 and the M0-only spending scope remain unchanged. Final local
+documentation check resolves1361 links and preserves all390 milestone IDs
+and the prior append-only progress log.
+
+### 2026-09-25 — M1.4b.1 versioned frozen-skills note categories
+
+[Source and compatibility evidence](docs/verification/2026-09-25-m1-frozen-note-policy.md)
+records the missing live category boundary: frozen-skills blocked activation but
+still accepted executable/tool-triggering notes. NativeRetentionPolicy/2 now pins
+the declared lexical classifier, forbids new packages/publication, checks root
+notes/handoff and helper results before CAS mutation, and rechecks scope under
+the write transaction. Accepted notes retain exact source-call/content audit
+references and explicit implicit-procedure ambiguity. Initial registration and
+both checkpoint boundaries reject invalid notes or changed packages; complete
+checkpoint/reopen preserves valid notes and costs without learned activation.
+
+Keep original /1 schemas/readers unchanged. Frozen-skills /1 cannot execute as
+a campaign; explicitly synthetic conformance remains an unqualified legacy
+fixture. Existing test fixtures now declare that purpose explicitly. Initial
+selection116 pass/one wrong-purpose fixture assertion; corrected retention/
+activation101 pass, expanded category36 pass, admission/export94 pass. Final
+category/schema/checkpoint39 pass after permitting ordinary receipt hashes and
+denying computed-call packaging. Overlapping selections are not summed.
+Ruff/schema regeneration/whitespace pass. Both retained historical full/frozen
+readbacks pass64/64 episode+7/7 common checks, without native replay or source
+producer mutation. All40 real authority tables remain unchanged.
+
+M1.4b.1 implemented_unverified; inherited F03/F04/F07/F08/F11/F16,
+N01/N04/N06, C06/C07/C12/C14/C20/C22/C23/C36 and T01/T04/T06/T11. M1/M1.4b
+in_progress, G1 not_run. No paid/model/game execution, new allowance or runtime
+qualification. Next actual selected native v2 frozen-skills positive/negative
+root/helper writes and produced-note audit, then remaining session/cache/client/
+probe isolation, capable settings and scorer controls. Lexical classification
+does not prove semantic absence of procedures or satisfy the full gate. Unrelated
+M2-M7, all original failures, holds and consumed authorizations remain unchanged.
+Final source/check seal0bb1baf7a7c3273d83d3bab0de2670ddd96b78805612184bc8f1b7284bcbd648
+pins383 files;1497 local links resolve, all390 prior IDs/history remain and
+M1.4b.1 is the sole new milestone ID. Owned runtime enumeration is empty.
+
+
+### 2026-09-25 — M1.4b.1 selected native frozen-note verification
+
+[Exact-profile evidence](docs/verification/2026-09-25-m1-frozen-note-native.md):
+new v2 frozen-skills seed preserves initial procedures/prose without a learned
+publication. The fixture requires the absent publication only for that exact
+arm/version. Native root/helper packaging checks return27 exact denials and
+five successful prose writes with source-linked classification/ambiguity events.
+A root synthetic observation succeeds; helper game/history access refuses.
+Held normal stop joins an owned CHECKPOINTING transition and complete synthetic
+checkpoint with no learned package, retained root notes and unchanged initial
+procedures. Native44/44; independent20/20 episode+4/4 common checks reconstruct
+raw request/response, ingress/projection, exact rejected call digests/lifecycles,
+notes, costs and stopped source. All five scripted texts are sampled: ordinary
+conditional advice/handoff remains ambiguous; no model-produced-note claim.
+
+Focused four-file pytest selection52 pass; Ruff/whitespace pass. Producer
+4,144 files/78,408,146 bytes and independent4 files/19,894 bytes are sealed with
+exact hashes/profile in the report. Six fresh scripted calls settle84 synthetic
+units, prior56 preserved. All40 WAL-aware real authority tables unchanged;
+$4.887796/$10 exposure/holds/consumed decisions unchanged; USD0. No prior run
+replayed and no runtime remains. Inherits F03/F04/F07/F08/F11/F16,
+N01/N04/N06, C06/C07/C12/C14/C20/C22/C23/C36, T01/T04/T06/T11.
+M1.4b.1 stays implemented_unverified for its complete category/audit scope;
+M1/M1.4b in_progress, G1 not_run. Next complete session/cache, client/log/registry,
+disposable probes and combined-profile qualification; retain distinct required
+model-produced category audit and T05/scorer gaps. No M1 paid authority inferred.
+
+
+### 2026-09-25 — M1.6a committed-source probe artifact projection
+
+[Source and sealed readback](docs/verification/2026-09-25-m1-probe-artifact-projection.md)
+starts the missing private input boundary for actual matched clones. The prior
+matched_pair dictionary checker has no committed native provenance and retains
+its original synthetic scope. NativeProbeArtifactSelection/1 names reviewed
+paths/active skills from one committed native set; NativeProbeArtifactProjection/1
+derives refs and exposure through complete checkpoint/export/revision/account
+joins. No caller origin/ref replacement, inferred time-zero, draft/helper export
+or session/cache projection. Require initial procedures, final-union integrity/
+quotas and exact full/frozen-persistence/frozen-skills/no-self-play rules;
+evaluation-account plain notes also refuse. Models export only under evaluator;
+no canonical record, gameplay catalog or native runtime changes.
+
+31 initial tests pass; final union/account follow-up5 pass with27 deselected
+includes four repeat positives and one new refusal:32 distinct cases. Records/
+evaluator regression46 pass. Initial unused/import-order lint findings corrected;
+final Ruff/whitespace pass. Read-only full/frozen-persistence/frozen-skills actual
+stopped captures project24/24+2/2, preserving source seals, database dumps, costs
+and all40 durable authority tables. Private5-file/29,462-byte bundle and hash
+are recorded in the report. No game/native/model execution or new inference
+charge; $4.887796/$10 exposure with all historical holds/decisions unchanged.
+
+M1.6 transitions not_started to in_progress; new M1.6a implemented_unverified
+pending full pair/native/disposal integration. F03/F07/F08/F16, N01/N04/N06,
+C06/C12/C20/C22/C23/C36, T01/T04/T06/T11; G1 stays not_run. Next bind complete
+pre-start equal body/world/keymap/model/tools/budget/prompt manifests, then actual
+disposable clones and canary disposal. Content/corpus review remains necessary;
+matching selected artifacts is not proof of t=0 or an execution permit. Remaining
+client/log/registry, T05 and scorer contracts still block complete G1.
+
+
+### 2026-09-25 — M1.6b one-use matched pair staging
+
+[Executed preparation and audit](docs/verification/2026-09-25-m1-probe-pair-staging.md)
+adds private ProbeFixture/1 and ProbePairRequest/1, exact protocol instance/
+selection/order indices and full source-roster/checkpoint binding. Common model/
+runtime/plugin/backend/track/capability/information/communication/budget/goal/
+keymap/control settings accompany two separate actual disk copies. Admitted
+cognitive artifacts are the only permitted difference. Arm labels remain private;
+copy directories are neutral. Empty member profile/backend-cache directories are
+verified as empty, without claiming a live reset. Reserve instance/fixture/world
+identity before copying; overlapping/relabelled reuse refuses. Failed copies
+retain intent/files and cannot rearm. Complete source reconstruction and file/
+directory/byte/link checks precede PREPARED and every later verification.
+
+Initial10 pass/one fixture assertion failure: canonical file order copied the
+external team file first; replace the wrong level.dat expectation with actual
+first-success/second-absence checks. Intermediate28 pass and expanded9 pass/25
+deselected overlap; final34 pair+46 record/evaluator cases=80 pass. Ruff and
+whitespace pass. No runtime/canonical/public schema changes. Two isolated N=1
+synthetic preparations (retained/t0) pass18/18, including reopen; zero source
+exposure plus identical bytes produces zero designed seeded-policy gain at t=0.
+Independent read-only21/21+2/2 recomputes source plan, actual inventories/diffs,
+world independence, empty state, events and unchanged budgets/database dumps.
+Producer592 files/5,777,719 bytes and audit6 files/15,275 bytes are sealed; exact
+hashes in report. Each source fixture retains56 synthetic units, no added model/
+game call. All40 WAL-aware real authority tables unchanged, exposure/holds and
+consumed decisions preserved, USD0 and no owned runtime process.
+
+Read-only old matched-retention03/r11 source audit finds unresolved information,
+runtime, backend-capability, inference and agent-capability references; its team
+policy resolves. Never backfill/relabel this historical synthetic/native capture.
+Use a fresh fully resolved source for the new adapter. NativeLaunch has no probe
+purpose; campaign activation and evaluation-publication fences must remain while
+supporting disposable probe-local adaptation. M1.6b implemented_unverified;
+M1.6 in_progress, G1 not_run. Inherits F02/F03/F07/F08/F11/F16,
+N01/N04/N05/N06, C03/C04/C06/C12/C13/C20/C22/C23/C24/C36, T01/T04/T06/T11.
+Next actual paired native/world execution with held custody, matched live initial
+state, resources, development-only practice and canary disposal. N>1 preparation,
+real process-interruption custody and all remaining client/T05/scorer gates remain
+open. D18/D19 do not authorize paid M1 inference.
+
+
+### 2026-09-25 — M1.6b.1 irreversible verification failure and controller death
+
+Found that failed pair verification left PREPARED and allowed repaired bytes to
+pass again. `ProbePairs.verify` now commits VERIFYING before source/tree reads,
+returns PREPARED only after complete success, and leaves FAILED or interrupted
+VERIFYING consumed. Authentication precedes intent; intent-journal failure does
+not start inspection. Preserve files, reservations, fault history and costs.
+No native launch, campaign import, model/tool profile or paid authority changes.
+
+IDs: M1.6b.1, F08/F09/F16, N01/N05/N06/N08, C12/C20/C22/C23/C24/C36,
+T01/T06/T07/T11; parent M1.6b remains implemented_unverified, M1.6 in_progress,
+G1 not_run. This bounded preparation dependency does not start broader G2 work.
+
+Initial new selection six pass/two fail: crash wrapper passed str instead of
+Path to Database; neither failed case reached process-death injection. Preserve
+artifacts. Corrected focused selection42 pass (eight new plus34 staging cases),
+Ruff and whitespace pass. Two real Python processes exit83 without finalizers
+at first-copy and post-check/precommit boundaries. Reopened stores retain
+PREPARING/VERIFYING and refuse identity/world reuse. Read-only reconstruction
+19/19; all40 real authority tables unchanged, $4.887796/$10 exposure with holds,
+no owned runtime, USD0 actual inference. No native/game process was launched.
+
+[Report](docs/verification/2026-09-25-m1-probe-verification-fence.md) records the
+exact procedure, limits and private bundle seal. M1.6b.1 verified for this
+preparation boundary only. Continue the disposable native probe adapter and held
+launch/disposal fence with fresh resolved sources, permitted probe-local
+adaptation and unchanged campaign import guards. Actual matched worlds, resources,
+N>1 preparation, one-way canaries and remaining runtime/T05/scorer gates stay open.
+
+
+### 2026-09-25 — M1.6c native purpose/account separation
+
+Closed the source admission gap where a campaign-labelled native launch could
+use an evaluation reservation/account. A shared live guard joins purpose,
+durable leaf/ancestor categories, campaign/agent scope and reservation category
+at startup, request admission, dispatch and broker effects. Existing root/helper
+grants recheck after reopen. No label rewrite, refund, replay or stopped-reader
+change; explicit probe runtime admission remains unimplemented.
+
+IDs: M1.6c, F03/F07/F08/F11/F16, N01/N04/N06, C06/C12/C20/C22/C23/C24/C36,
+T01/T04/T06/T11/T12. Source cases prove permitted local mutable artifacts and
+private helper output; local probe adaptation need not publish into campaigns.
+Keep campaign publisher and checkpoint guards intact in the next implementation.
+
+Initial focused selection83 pass; final affected admission/broker/dispatch/export/
+revision selection198 pass,230 distinct cases including27 new policy cases.
+Review identifies an additional training-to-development relabelling route. Add
+original funded-operation/category binding and five cases; final changed source
+passes178 live-path plus57 stopped-export/revision cases (235 distinct,32 new).
+Keep the first source/evidence seal and pin the final source separately.
+Retain wrong test-file invocation (no tests ran) and the first reader failure:
+original native-game02 has no committed export due to its known outer failure.
+Corrected read-only reconstruction validates that stopped source and two committed
+frozen-note exports, preserving both source seals and database dumps. Ruff and
+whitespace pass. All40 real authority tables unchanged; $4.887796/$10 exposure
+and all holds/consumed decisions retained. No new native/game/provider execution
+or owned runtime remains; Python/synthetic fixture checks only.
+
+[Report](docs/verification/2026-09-25-m1-native-account-purpose.md) records exact
+scope, private source/evidence seal and limitations. M1.6c implemented_unverified
+for full native probe integration; M1.6 in_progress and G1 not_run. Continue the
+separate native probe bootstrap/catalog/artifact boundary, explicit evaluation
+account and complete held launch/disposal using fresh resolved source records.
+Actual matched state, resources, N>1 preparation, one-way canaries and remaining
+combined isolation/T05/scorer contracts remain open; unrelated M2-M7 untouched.
+
+
+### 2026-09-25 — M1.6d pair-derived native artifact/catalog views
+
+Added `ProbeNativeViews` to derive complete both-arm/member bootstrap inputs
+from the registered pair and committed checkpoint source. Exact native catalogs
+and active bytes, common ordinary instructions, role-specific inventories,
+operator-store public index and empty profiles are prepared behind one-use
+intents and full source/tree/hash/link checks. Helpers omit root notes/drafts/
+handoff; no-self-play omits helpers. Private manifests stay outside workspaces.
+No new NativeLaunch purpose, broker grant, checkpoint, publication or run.
+
+IDs: M1.6d, F03/F07/F08/F16, N01/N04/N06/N08, C06/C12/C20/C22/C23/C24/C36,
+T01/T04/T06/T11. Initial16 pass; expanded54 pass; final view23 plus unchanged
+pair34 provide57 distinct cases after adding public-index operator binding.
+Controls include full/frozen/no-self-play and t=0. Ruff/whitespace pass.
+Read-only reconstruction60/60+3/3 validates six successful preparations; final23
+cases retain six PREPARED, ten FAILED and seven without a view intent.
+
+The first archive reader refuses COST_DATABASE_NOT_FROZEN. Preserve original
+sealed fixture database/WAL and failure. Copy sealed DB/WAL to the audit store,
+make one read-only backup and inspect that separate snapshot, then reverify the
+original seal. No replay, journal deletion or silent immutable read of live WAL.
+All40 real authority tables unchanged, $4.887796/$10 exposure/holds and consumed
+decisions retained, no owned runtime, USD0. Synthetic records and actual disk
+preparation only; no Codex/Minecraft/provider or new process-death experiment.
+
+[Report](docs/verification/2026-09-25-m1-probe-native-views.md) pins producer/audit
+seals and exact limits. M1.6d implemented_unverified for native integration;
+M1.6 in_progress, G1 not_run. Next bind these views to separate native probe
+bootstrap/catalog/broker admission and evaluation accounting, then held launch,
+matched live state/resources and one-way disposal. Preserve campaign import
+fences; N>1 preparation, combined isolation, T05/scorer gates remain open.
+Unrelated M2-M7 work is unchanged.
+
+
+### 2026-09-25 — M1.6e disposable native artifact binding
+
+Compiled complete prepared views into atomic both-arm/member native artifact
+bindings with fresh evaluation leaves, jobs, operations and disjoint locations.
+Separate NativeLaunch probe purpose/root/helper refs bind exact ordinary goals,
+role inventories and catalogs; private records stay outside gameplay views.
+Fresh ephemeral roots cannot borrow campaign activation/recovery or old epochs.
+Absent fields preserve historical plan/profile hashes. Every probe startup
+still refuses before job/cost/process creation pending held launch custody;
+existing account/admission/dispatch/broker guards and six proofs stay intact.
+
+IDs: M1.6e, F03/F07/F08/F11/F16, N01/N04/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T11/T12. Initial11 passes/26 failures
+retain the nested CAS transaction error. Fixed code publishes inert private CAS
+records before atomic registration; content alone has no admission authority.
+Next40 pass/one fail retains a wrong test expectation: altered bytes correctly
+raise CORRUPT_EVIDENCE. Corrected assertion plus two additional catalog cases
+pass3/3, yielding43 distinct binding passes. Schema/native/account regression97
+passes (140 distinct total), Ruff/whitespace pass. Failure inputs/logs/JUnit and
+source versions remain in the sealed producer.
+
+Read-only reconstruction72/72 across six cases plus3/3 common checks validates
+exact registered identities/sources, approved role/physical files and catalogs,
+helper exclusions, fresh profiles, unused evaluation leaves, no new native job,
+unchanged databases and seal. One old actual native source and two committed
+exports also reconstruct unchanged with original seals preserved. Producer
+and audit hashes are in the [report](docs/verification/2026-09-25-m1-probe-native-binding.md).
+All40 real authority tables unchanged, exposure $4.887796/$10 with every hold
+and consumed decision retained, no owned runtime and no paid M1 execution.
+New binding cases are synthetic preparation; native lifecycle regression uses
+Python process fixtures, not Codex/Minecraft/provider experiments.
+
+M1.6e implemented_unverified for actual native admission/projection; M1.6 stays
+in_progress, G1 not_run. Next implement the held pair coordinator/all-N admission,
+immutable bootstrap and separate probe wire catalog, scoped root/helper broker
+projection, actual matched world/body/keymap/cache assertions and one-way
+session/artifact destruction. N>1 positive preparation, combined isolation,
+T05 and protected scorer controls remain open. Unrelated M2-M7 work unchanged.
+
+
+### 2026-09-25 — M1.6f held pair preparation and reservations
+
+Added evaluator-owned ProbeCustody with actual Windows file leases, durable
+verification before acquisition, one-use ownership, dual wall/monotonic expiry,
+atomic both-arm evaluation envelopes and shared worker capacity. Campaign
+admission counts these holds. Budget/capacity/journal failure rolls back the
+entire reservation transaction; failure/expiry/dead ownership never releases
+committed costs or resources. Explicit live-owner preparation-only resource
+release requires zero native intents and never refunds costs or rearms a pair.
+Native probe startup remains closed; no runtime qualification is issued.
+
+IDs: M1.6f, F03/F04/F07/F08/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T11/T12. Initial custody20 pass,
+expanded23 pass, final targeted delta6 pass with one new monotonic case:24
+distinct custody cases. Controller/budget/lease regression56 pass, three
+existing symbolic-link privilege skips; affected binding/account regression6
+pass, totaling86 distinct passes. Ruff/whitespace pass. Actual separate Python
+write and owner-exit cases prove OS handle behavior; synthetic N=1 game/native/
+capacity records do not prove gameplay or native integration.
+
+Read-only reconstruction73/73 across six final cases plus3/3 common checks
+passes. Both stores are sealed; producer15,904 files/67,945,198 bytes and
+audit3 files/9,777 bytes, with hashes and procedures in the
+[report](docs/verification/2026-09-25-m1-probe-custody.md). Original databases,
+seed costs and all40 real authority tables are unchanged. Exposure remains
+$4.887796/$10 with all holds and consumed decisions preserved. No owned runtime
+remains; no paid M1 execution or allowance extension occurs.
+
+M1.6f implemented_unverified for actual native/game admission; M1.6 in_progress,
+G1 not_run. Next connect held preparation to actual world/runtime custody,
+all-N live readiness, exact probe wire catalog and scoped root/helper projection,
+then matched live-state assertions and one-way disposal. N>1 positive pair
+preparation, combined isolation, T05 and protected scorer controls remain open.
+Unrelated M2-M7 work is unchanged.
+
+
+### 2026-09-25 — M1.6g prepared bootstrap and scoped broker projection
+
+Connected prepared native bindings to exact bootstrap validation, catalog checks
+before enrollment and role-specific projection after broker authentication.
+Every workspace/catalog file, size/hash and directory must match approved
+inputs and the complete pinned tree. Exact grant/model/profile/scope validation
+precedes copying; the commit rechecks authority and sources before publishing
+all role files and one private marker atomically. A fresh namespace cannot carry
+foreign files, and repeat enrollment cannot reset local notes or helper results.
+Private provenance stays outside broker paths; initial/docs/supplied/active files
+are immutable, and helpers receive no root memory or drafts.
+
+IDs: M1.6g, F03/F04/F07/F08/F16, N01/N04/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, T01/T04/T06/T11. New28 cases pass in225.92s;
+admission/broker/account regression113 pass in5.58s (141 total). Ruff/whitespace
+pass. Five positive control-arm preparations use synthetic source records,
+actual disk and broker methods with explicit simulation-only grant enrollment.
+No running native probe or production grant is fabricated. Native startup and
+purpose/account gates remain closed, including after successful projection.
+
+Read-only audit137/137 across five cases plus3/3 shared checks passes. The first
+reader's ordinary/extended Windows path mismatch remains sealed; normalize the
+source-root representation and rerun only the reader. Producer and original
+SQLite journals remain unchanged. The [report](docs/verification/2026-09-25-m1-probe-broker-projection.md)
+pins all three seals. All40 authority tables and $4.887796/$10 exposure/holds are
+unchanged; no owned runtime remains, no paid M1 execution or new allowance.
+
+M1.6g implemented_unverified for actual native integration; M1.6 in_progress,
+G1 not_run. Next connect the held world/runtime coordinator, all-N readiness,
+exact probe wire catalog, live frozen/no-self-play policy, stopped probe export
+and one-way disposal to these hooks. Preparation handles currently protect
+world files against writes; actual world launch needs an explicit held custody
+handover and mutable writer lifetime, not simply releasing those handles or
+removing the native gate. N>1 positive preparation, remaining combined isolation,
+T05 and protected scorer controls remain open. Unrelated M2-M7 work unchanged.
+
+
+### 2026-09-25 — M1.6h whole-pair protected world copies
+
+Connected both exact prepared worlds to the existing native protected writer
+path while retaining original file leases and whole-pair budget/capacity holds.
+Validate complete arms, exact source paths/hashes/sizes, fresh disjoint names,
+finite copy storage and nested deadlines. Hold the main native executable and
+all three pinned companions throughout both lifetimes. The operator borrows
+both copies together; returning closes explicit unlaunched custody. DISCARDED
+cannot satisfy a stopped-server reference, reopen a consumed pair or refund
+costs/resources. Native probe launch/account gates remain closed.
+
+IDs: M1.6h, F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24, T01/T06/T07/T11. Source47 pass in195.17s; changed coordinator
+selection2 pass in47.60s. Actual native case03 passes in35.36s (48 distinct cases
+including native), Ruff/whitespace pass. Unit writer/token doubles are explicitly
+synthetic. The native case uses real sandbox/Java/token/held process behavior and
+synthetic N=1 world bytes; no Minecraft, model, measured capacity certificate or
+RuntimeQualification. Both10/10 process trees stop normally; exact copies and
+originals deny operator writes, and fresh-path reacquisition refuses.
+
+Preserve native01 error5 (7/7 terminal, exit1, no force) and native02 wrong online
+writer token (10/10 terminal, forced exit125). Use the already verified readable
+runtime path and protected public-parent workspace, then the recorded online
+writer identity with unchanged runtime/home/helper and token checks. Do not
+change private ancestor ACLs or accept an observed token as its own authority.
+Both failures stay FAILED/FENCED with holds; the positive ends DISCARDED and
+caller teardown fences preparation with all holds retained. No retry/rearm of
+any used identity or source store.
+
+Read-only reconstruction58/58 across all three native cases passes, joining
+plans, exact source bytes, shared companion pins, retained process/token evidence,
+discard/failure semantics, unknown/forced history and reservations. All producer
+seals and databases remain unchanged; [report](docs/verification/2026-09-25-m1-probe-world-copies.md)
+pins the four private bundles. All40 authority tables remain unchanged, exposure
+$4.887796/$10 with every hold and consumed decision retained. No owned runtime
+remains and no paid M1 authority is inferred.
+
+M1.6h implemented_unverified for game/native probe integration; M1.6 in_progress,
+G1 not_run. Next bind reviewed immutable game software to the protected copies
+and extend the live coordinator through actual server/worker/native readiness,
+registered controls, matched live-state assertions, stopped exports and one-way
+disposal. Current unlaunched discard is not erasure or a completed probe. N>1
+positive preparation, full combined isolation, T05 and protected scorer controls
+remain open. Unrelated M2-M7 work is unchanged.
+
+### 2026-09-25 — M1.6i sealed software and state for paired vanilla copies
+
+Added `probe_vanilla_inputs.py` and its explicit held-pair-sealed-vanilla-inputs/1
+policy to the existing whole-pair copier. The fresh sealed PackLock must equal
+the registered pair; exact immutable server files and all registered state join
+under source custody. Require six vanilla mutable files and world/level.dat;
+map only those external files to the server root. Refuse unsupported paths,
+missing state, substitutions, extra files, restored templates and empty sealed
+software directories. Hold materialization/inventory metadata across both
+continuations and include software in the finite copy storage bound. Gameplay,
+native probe admission and live initial-state authority remain closed.
+
+Testing also identified Windows ordinary/extended path aliases bypassing writer
+containment comparisons. Normalize all writer roots and selected file paths
+before comparing; preserve serialized plan identity. Three focused alias cases
+and the two retained successful native writer plans establish the corrected
+preflight scope without repeating native work.
+
+IDs: M1.6i, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24 and T01/T06/T07/T11. All prior milestone rows and history remain.
+[Verification report](docs/verification/2026-09-25-m1-probe-software.md) records
+52 distinct focused passes:8 retained from the first corrected batch,43 remaining
+cases and one new restored-binding-object refusal. Twenty cases are new and32
+are affected existing checks. Writer execution is substituted; real Windows
+leases and the actual sealed-pack resolver are exercised with synthetic bytes.
+Retain missing spending-ceiling/wrong fixture-pack errors, the initial spelling
+case and the mutated-template test's wrong expected error. No old source is
+relabelled or rearmed. Ruff and whitespace checks pass.
+
+Sealed reconstruction passes29/29 across exact pair/pack/world joins, complete
+13-file output maps per arm, all copied bytes, unlaunched dispositions and
+retained200 synthetic units/capacity. Evidence stores and hashes are in the
+report; source/database seals remain unchanged. The empty-process-list collector
+failure is recorded; explicit array serialization fixes only that collector.
+All40 real authority tables match the preceding checkpoint and before/after;
+$4.887796 exposure, original holds and consumed decisions persist. No owned
+runtime remains, no Minecraft/native writer/model executes and no paid M1
+allowance is inferred.
+
+M1.6i implemented_unverified for authentic software/native game integration;
+M1.6 in_progress, G1-G5 not_run, M0/G0 unchanged. Next bind complete authentic
+vanilla fixture state and reviewed protected server/worker launch/readiness,
+then scoped native probe admission, live matching and one-way disposal. Current
+writer launch supports only synthetic and separate E9E reference identities;
+vanilla needs an explicit reviewed extension. Keep unsupported empty-directory
+preservation visible. Unrelated M2-M7 work remains untouched.
+
+### 2026-09-25 — M1.6j authentic protected vanilla server/worker lifetime
+
+Added writer plan /4 with held complete directory manifests, exact native copier
+receipt /3 and post-copy directory checks. Added a separate restored-vanilla
+session using the existing bounded native dispatcher: exact sealed Java/profile,
+complete file/directory custody, reviewed loopback/online/EULA settings, retained
+child identity/token join, held worker connection, one normal worker/server stop
+and stopped-state capture before process handles close. No fabricated telemetry,
+authoritative ticks, native probe admission or whole-profile isolation claim.
+
+IDs: M1.6j, F01/F04/F08/F09/F11, N01/N04/N05/N06/N08,
+C12/C22/C23/C24, T01/T06/T07/T11. [Verification report](docs/verification/2026-09-25-m1-protected-vanilla.md)
+records91 distinct source/component passes and32/32 sealed read-only checks.
+Retain the initial wrong synthetic launch fixture, metadata-test temporary-parent
+setup failure and evidence collector import error. Ruff and whitespace pass.
+
+Actual case01 connects/stops its worker but hits the unchanged180s server hard
+deadline with incomplete forced11/12 process history. Move complete worker
+validation/import before starting the finite server lifetime; fresh case02 with
+the same180s bound passes normal copier10/10/server12/12, connected Mineflayer,
+34.3396ms child drain and26-file/13,063,255-byte stopped capture. Three specific
+held operator write attempts refuse. Those checks do not qualify full read/
+process/network boundaries or a clean save. All original failed evidence stays.
+
+The audit identifies stale parent game_launched=false preparation metadata in
+native receipts, despite nested owned-ready JVM evidence. Source now records
+attempt/owned-readiness flags; two focused tests pass. Original receipts remain
+unchanged and native work is not repeated for this metadata correction. Sealed
+case02 distinguishes actual executed source and subsequent metadata source.
+Producer/audit seals, commands, pins and exact scope are recorded in the report.
+
+All40 real authority tables remain unchanged, exposure$4.887796/$10 and all
+prior holds/consumed decisions persist; no owned runtime remains. No model calls
+or paid inference, and D18/D19 are not extended. M1.6j remains
+implemented_unverified for paired/native probe integration, M1.6/M1 in_progress,
+G1-G5 not_run and M0/G0 unchanged. Next extend complete directory/software
+mapping into held paired execution, bind live matched state/readiness, stopped
+exports and one-way disposal before native probe admission. Keep T05, scorer
+controls and remaining combined runtime routes open. Unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6k complete declared directories through paired preparation
+
+Added explicit ProbeFixture/2, ProbePairRequest/2 and pair-staging/2. Require
+sorted, unique, case-unambiguous safe directory lists and every file/directory
+parent; reject file collisions, private/credential paths and policy mismatches.
+Bind directories into world identity and both staged trees. Native views parse
+the original versioned request; failed verification remains consumed. Legacy
+pair-plan literal construction and /1 identities remain unchanged.
+
+Added held-pair-sealed-vanilla-inputs/2 requiring that pair and writer /4. Combine
+sealed software directories with complete registered world directories, map only
+the existing six external mutable files to the server root, and reject unsupported
+layouts. Validate exact directory sets in both plans and before/after borrowing.
+A legacy policy/writer or file-only route cannot downgrade the pair. Keep original
+input/runtime custody, deadlines, resource/cost holds and unlaunched dispositions.
+
+IDs: M1.6k; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11. [Verification](docs/verification/2026-09-25-m1-probe-directories.md)
+records111 distinct focused passes (27 new,84 affected existing):10 new copy
+cases,71 contract/pair/native-view cases,28 remaining affected cases and two
+later single checks. Retain the original model-validator exception-type assertion
+failure; only its expectation changes. Actual leases and preparation are tested
+with synthetic world/checkpoint/protocol bytes and substituted writer execution.
+No Minecraft/native/model run, new allowance or promoted RuntimeQualification.
+Ruff and whitespace checks pass.
+
+Sealed read-only reconstruction passes66/66 across both layouts, exact staged/
+copied directories and bytes, versioned world identity, native-view records,
+policy joins, unlaunched disposal, both directory-mutation failures/fences and
+retained200-unit/capacity holds. Directory inventories are sealed alongside file
+inventories. Completed71-case outputs move once to a separately sealed private
+archive with explicit original-path mapping; no file bytes or stored absolute
+paths change. Three store seals and actual commands are in the report.
+
+All40 real authority tables remain unchanged; exposure$4.887796/$10, prior holds
+and consumed decisions persist. No owned runtime remains. M1.6k remains
+implemented_unverified for authentic paired/native probe integration; M1.6/M1
+in_progress, G1-G5 not_run and M0/G0 unchanged. Next bind registered pair state
+to a reviewed held game coordinator. Do not relabel M1.6j's restored-baseline
+identity as a pair launch. Keep both input/resource owners live through actual
+readiness, stopped exports and one-way disposal; prove live matching/all-N and
+scoped runtime admission before opening native probes. T05, scorer controls and
+remaining combined runtime routes remain open; unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6l held paired server references and private captures
+
+Added held-pair-protected-vanilla-reference/1. Validate and hold both registered
+initial trees and launch inputs before either dispatch, require matching helper
+pins/runtime/output limits and enough remaining custody time for both windows.
+Reserve output/growth storage before copying. Sequential arms use unchanged
+sealed server settings, require owned readiness and normal stop history, export
+state before handle closure and hold the first export through sibling execution.
+Both writers close STOPPED_REFERENCE; failure preserves consumed intent/fences.
+
+Added RegisteredProbeVanillaWorld/1 and StoppedVanillaSnapshot/3 for exact private
+namespace/pair/arm/fixture/PackLock/initial-world provenance. Validate complete
+registered state and immutable software, reject path collisions/imported locks,
+bound output copying and refuse ordinary/changed-worker restoration of probe
+captures. Legacy /1 and /2 meanings remain. Preparation-only resource release
+now refuses any game-reference intent; unlaunched copies retain their explicit
+capacity-only release. Costs remain held. This is not full probe disposal.
+
+IDs: M1.6l; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36; partial T01/T04/T06/T07/T11. The
+[report](docs/verification/2026-09-25-m1-probe-runtime.md) records115 distinct
+passes (30 new,85 affected existing), including final9 runtime checks in444.08s.
+Ruff/whitespace pass. Retain initial missing synthetic evidence-directory failure
+and missing provenance collision refusal, then their fixes and passing results.
+Preparation, budgets, Windows file leases and copying are real; native/JVM/token
+execution results and game bytes are synthetic. No native/game/model run occurs.
+
+Read-only reconstruction passes76/76: complete inventories/explicit archive
+mapping, both input holds before launch, exact initial identity and outcome
+bytes, provenance, stopped custody, five failures/fences and retained synthetic
+cost/capacity. The first audit refuses18 new SQLite sidecars created by an
+intervening read-only inspection. All8,294 sealed producer files are unchanged;
+all nine added WALs are empty. Preserve sidecars/path mapping/failed audit in a
+separate bundle, then use the frozen reader. Both producer seals remain unchanged.
+Three private evidence seals and actual checks are recorded in the report.
+
+All40 real authority tables remain unchanged; exposure$4.887796/$10, every old
+hold and consumed decision persists. No owned runtime remains. M1.6l stays
+implemented_unverified for authentic paired integration; M1.6/M1 in_progress,
+G1-G5 not_run, M0/G0 unchanged. Next execute the exact registered paired reference
+after host/resource/deadline preflight, then complete live all-N matching, native
+admission, clocks and one-way disposal. Keep T05, scorer controls and remaining
+combined runtime routes open. No M1 paid allowance; unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6m genuine paired preparation, retained timing failures
+
+Added an explicit opt-in paired-server integration fixture using the genuine
+sealed vanilla profile and26 saved-state files from M1.6j. Agent checkpoint,
+protocol and capacity certificates remain synthetic. No provider/native agent
+or worker body is launched. Exact pinned private inputs, original immutable
+source archive, host resources/port/process preflight and fresh namespaces are
+required. Both arm states and runtime limits remain matched.
+
+Retain preparation01's slash-spelling comparison refusal; pins are unchanged.
+Case02 refuses the operator-only streaming CAS import; use the existing bounded
+evaluator byte import without changing production authority. Cases03/04 refuse
+deadline admission before any native writer:90.13s/72.85s. The operator plan
+factory now uses the existing held software scope once, with complete checks
+after factory return. Positive and changed-source refusal cases pass; the initial
+wrong-error-name assertion and corrected32.23s negative result remain retained.
+Default invocation skips the native test without explicit pins; Ruff/whitespace pass.
+
+Cases05/06 allocate200/170s writer windows instead of250/200s, leaving100s for
+observed setup inside the same300s parent and unchanged two60s server windows.
+This is a fresh declared profile; no consumed deadline is extended. Case05 fails
+FileNotFoundError before native stages because the external evidence parent was
+missing. Create its fresh parent before custody in the corrected fixture.
+Case06 passes both real native copier process histories (10/10 normal exits each)
+and both initial-state validations, then refuses PROBE_WORLD_DEADLINE before
+Minecraft because the remaining lifetime cannot contain both server windows.
+The complete test fails in202.02s; outer/inner custody closes UNCERTAIN at128.750/
+115.282s, with FAILED/FENCED pair and every synthetic cost/capacity hold intact.
+No paired-game, all-N, live-matching, isolation or clean-save pass is claimed.
+
+IDs: M1.6m; F01/F02/F03/F04/F07/F08/F09/F11/F16, N01/N04/N05/N06/N08,
+C06/C12/C20/C22/C23/C24/C36; partial T01/T04/T06/T07/T11. The
+[report](docs/verification/2026-09-25-m1-paired-vanilla.md) records all six attempts,
+profiles, checks and nine private seals. Read-only reconstruction passes101/101:
+genuine source/pair identity, every staged/copied byte and directory, both native
+copier histories/tokens, exact plans/provenance, no launch intent after joint
+preflight, retained failures/holds and unchanged producer/source archives. Native
+copied trees use separate bundles and explicit path mappings. Retain the first
+audit's integer-key report-serialization failure; corrected string keys change
+only that report. No execution is repeated. Rename ambiguous pre-execution
+fixture metadata in current source to distinguish authentic inputs from required
+execution; actual old receipts remain unchanged.
+
+All40 real authority tables match before/after, exposure$4.887796/$10 with all
+historical holds and consumed decisions. No owned runtime remains and no M1 paid
+allowance is inferred. M1.6m/M1 stay in_progress, G1-G5 not_run and M0/G0 unchanged.
+Next measure the stopped validation path, resolve its demonstrated timing cost
+without dropping checks, and select a changed profile only on that evidence.
+Full source/native admission, all-N live matching, clocks/disposal, T05, scorer
+controls and combined runtime routes remain open. Unrelated M2-M7 untouched.
+
+### 2026-09-25 — M1.6m.1 measured source validation; retained case07 deadline
+
+Stopped case06 profiling finds two reconstructions of the complete native/
+checkpoint/pair chain within one custody call. Reuse only that call's checked
+pair for view derivation; retain every view-tree/plan/binding/account check and
+revalidate on the next call. Runtime.check retains the full software check
+which already includes live preparation/budget/resource/source validation,
+removing only its immediately preceding duplicate. No cross-call cache or
+deadline/policy/acceptance change. Production files: native_probe_views.py,
+probe_custody.py and probe_vanilla_runtime.py in evaluator/src/strata_evaluator.
+
+Before/after stopped measurements are3.2258/1.6808s, with identical pair/view
+digests, retained FENCED state and200 synthetic units, unchanged externally sealed
+source files/database and no dispatch. Preserve the initial diagnostic reader's
+missing-runtime failure. Focused custody/native-view/paired-runtime/contract
+verification passes63 cases in695.59s. Ruff/whitespace pass. Documentation QA
+preserves all405 original IDs, adds M1.6m.1, preserves append-only history and
+unchanged SPEC, and checks1,442 local links. [Verification report](docs/verification/2026-09-25-m1-pair-validation-cost.md).
+
+After fresh host/port/WAL-aware accounting preflight, changed-source case07 uses
+the same300s preparation,200/170s writer and two60s server windows. It fails in
+171.35s: both real copier trees stop normally with10/10 owned processes each,
+both initial-state checks finish29.547s apart, then joint preflight still refuses
+PROBE_WORLD_DEADLINE before Minecraft. Inner/outer custody closes UNCERTAIN at
+97.078/109.406s; pair FAILED/FENCED, whole8GiB/6GiB capacity and200 synthetic units
+retained. No server/model/worker body starts. Genuine world/software inputs and
+synthetic agent/protocol/capacity sources remain explicitly separate.
+
+Four producer/profile/tree stores and the final audit are sealed; corrected
+read-only reconstruction passes35/35 and final documentation QA resolves1,443
+local links. Preserve the reconciliation import-name collision and first audit's
+unsupported legacy directory-sidecar expectation, with original seals unchanged.
+All40 real authority tables match, exposure$4.887796/$10 with all historical holds
+and consumed decisions; no owned runtime remains. No M1 paid authority inferred.
+
+Coverage inherits M1.6m: F01/F02/F03/F04/F07/F08/F09/F11/F16,
+N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11.
+M1.6m.1/M1 remain in_progress; G1-G5 not_run, M0/G0 and unrelated M2-M7 unchanged.
+Next profile stopped initial-state/software/persistence validation and resolve
+the remaining measured cost without weakening checks. No unchanged native rerun.
+Full source/native admission, all-N matching, clocks/disposal, T05, scorer controls
+and combined runtime routes remain open.
+
+### 2026-09-25 — M1.6m.1 verified validation cost; authentic paired reference
+
+Stopped case07 persistence/software profiles identify repeated ancestor metadata
+queries and lexical parsing. storage.reject_links now uses one non-following
+query and still checks missing descendants' ancestors, links/reparse points and
+access errors. inventory.directory_layout reuses pure lexical parsing within one
+fixed-policy call, retaining collisions/quota/private-content checks. Measurements
+6.4363/10.5409s become5.6526/8.1547s with identical inventory/resolution digests.
+These diagnostic samples are not latency qualification.
+
+ProbeVanillaSession borrows the already-held installation inventory and acquires
+a separate helper lease, retaining exact launch inventory and quotas. Complete
+pair checks bracket construction and precede dispatch; local custody remains
+live. PairedVanillaRuntime and ProbeWorldCopies remove adjacent duplicate full
+checks while preserving joint preflight, immediately-before-dispatch validation,
+callback/stop checks and final stopped-export verification. No cross-call cache,
+deadline extension, schema change, scoring change or expanded gameplay access.
+Production changes are in src/mcbench/{storage,inventory}.py and evaluator/src/
+strata_evaluator/{probe_vanilla_runtime,probe_world_copies}.py.
+
+Focused source verification passes181 initial cases,15 runtime cases after
+borrowing inventory, then22 boundary/runtime-contract cases:189 distinct cases.
+Real Windows junction/lease checks and changed-authority launch/sibling refusals
+are included; native JVM/process/token outcomes in these source tests remain
+synthetic. Changed-source native case08 FAIL195.56s preserves normal initial
+server12/12 and26-file export, followed by sibling WRITER_EXPOSURE_INSUFFICIENT
+before its process starts. All cost/capacity holds remain. The next source
+change removes demonstrated consecutive scans; fresh case09 PASS229.74s with
+unchanged300/200/170/60/60s limits. Both genuine vanilla servers reach readiness,
+exit normally12/12 each and export26 tagged state files each; both copiers exit
+normally10/10. Initial/experienced writer times167.297/155.406s. Both arms deny
+three writes; first export stays held during sibling, premature release refuses.
+
+Case08/09 read-only reconstruction passes30/30 and37/37. Preserve the first
+case09 reader's missing optional failure-key exception; correcting that reader
+does not rerun native execution or change producer evidence. Eight source,
+producer and terminal-tree stores are sealed. [Evidence and exact pins](docs/verification/2026-09-25-m1-pair-validation-cost.md).
+All40 real authority tables are unchanged, exposure$4.887796/$10, historical
+holds/consumed decisions preserved, no owned process and no model calls.
+
+M1.6m.1 is verified for this bounded optimization/operator-reference scope;
+M1.6m/M1 remain in_progress and G1-G5 not_run. Coverage inherits M1.6m plus F05's
+sealed software dependency: F01/F02/F03/F04/F05/F07/F08/F09/F11/F16,
+N01/N04/N05/N06/N08, C06/C12/C20/C22/C23/C24/C36, partial T01/T04/T06/T07/T11.
+No complete native agent/all-N/live-clock/disposal/T11/G1 claim. Agent/protocol/
+capacity fixtures remain synthetic. Next complete those native probe boundaries,
+T05/scorer/combined-runtime contracts with exact authentic inputs. M0/G0 and
+unrelated M2-M7 unchanged; no M1 paid authority inferred, no unchanged rerun.
+
+Final focused Ruff/whitespace checks pass. Documentation QA preserves all406
+milestone IDs, prior append-only history and unchanged normative SPEC, and
+resolves1,438 local links in the edited ledger/status/handoff/report.
+
+Final audit store is sealed (18 files/92,970 bytes); report retains its exact pin,
+67/67 reconstruction checks, source-to-case09 equality and final40-table/process
+verification. All nine stores for this continuation are now sealed.
+
+### 2026-09-25 — M1.6n registered saved-player body binding
+
+The pair previously treated body-state refs as opaque. Add evaluator-only
+probe_saved_bodies.py: strict PrivateVanillaProbeBody/1, bounded1.19.2 NBT
+parsing, exact file/embedded UUID agreement, complete declared roster with
+distinct identities, finite coordinates, health/food/mode/slot and inventory
+structure. Full uncompressed NBT plus compressed CAS identity binds all remaining
+state, including item tags, effects, abilities, respawn and ender inventory.
+It is saved-state matching, not authenticated account or live-state authority.
+
+Explicit sealed-software /3 and paired-reference /2 profiles integrate this join
+before writer dispatch and into held validation. The software reuses the pinned
+pair identity only after current preparation has reconstructed and verified it;
+body records/player bytes are reread every time. Mixed policies, downgrades and
+altered pair identity refuse. Nested output preserves the strict body schema.
+Changed evaluator components: probe_vanilla_inputs, probe_vanilla_runtime and
+probe_world_copies, with SPEC13.1 documenting the additive profile contract.
+No old profile identity, deadline, budget, privacy, clock or scoring rule changes.
+
+Focused checks:35 initial cases in77.05s;30 after synthetic identity selection
+in66.02s;30 after recheck/downgrade negatives in59.50s;30 after strict result
+nesting in59.72s; one explicit unknown-schema case in0.19s. Affected legacy
+software/runtime/world-copy checks pass55 in876.35s, with the opt-in actual copier
+case explicitly skipped. Together91 distinct cases pass. Source fixtures use
+synthetic game/NBT/native checkpoint state and substituted process/JVM results;
+actual CAS, registration and Windows leases remain exercised. Retain the first
+fixture collection failure and original source; public fixture UUIDs are synthetic.
+
+Read-only authentic reconstruction passes12 checks on the sealed M1.6j player
+capture. It creates a new private declaration and checks original pins plus
+wrong health/food/position/slot/NBT negatives. It does not backfill old fixtures,
+launch Minecraft, prove live matching or qualify native /2 integration.
+[Report and private evidence pins](docs/verification/2026-09-25-m1-probe-saved-bodies.md).
+All40 durable authority tables remain unchanged at$4.887796/$10; no owned runtime
+or model calls, no inferred M1 spending authority. Terminal synthetic fixture
+archives have explicit original-path mappings; declared old paths grant no reads.
+
+M1.6n is implemented_unverified for authentic launch integration; M1/G1 stays
+open and G1-G5 not_run. Affected F01/F02/F04/F07/F08/F16, N01/N04/N06,
+C06/C20/C23/C24/C36, partial T01/T06/T11. Next connect authenticated worker
+identity and live observations to the saved-body binding, then complete native
+admission, all-N readiness, clocks/disposal and remaining T05/T10/isolation routes.
+M0/G0, all historical failures/holds/consumed decisions and unrelated M2-M7 remain.
+
+All three evidence stores are sealed; exact hashes and archive mappings are in
+the report. Preserve the final reader's initial skip-name mismatch and correction;
+no test outcome changes. Final Ruff/whitespace and documentation QA pass:
+406 prior IDs preserved plus M1.6n, prior progress and SPEC text preserved,
+1,588 local links resolved. Fresh40-table authority/process checks pass.
+
+### 2026-09-25 — M1.6o registered authenticated worker identity
+
+- Explicit DevelopmentWorker/2 binds the saved UUID to the protected account
+  before token refresh/connection and server login UUID before readiness.
+  Private WorkerPlayerIdentity/1 records scope, identity and spawn clocks;
+  mismatch or failed journal persistence fences permanently. Legacy /1 and
+  Forge identities and public observations/capabilities stay unchanged.
+- The private compiler requires both complete registered rosters, committed
+  destination scopes, fresh epoch/lease/path namespaces and no caller UUID.
+  It rechecks held source/resource state and grants no native admission.
+- [Verification](docs/verification/2026-09-25-m1-worker-identity.md):49 distinct
+  Python/28 Node source cases pass;15 actual emitted-receipt/Python/accounting
+  checks pass. Provider and game transport are synthetic. Two fixture compiler
+  failures and the wrong Python exception expectation remain retained; no live
+  run was repeated to repair tests. No game, model or authentication network run.
+- F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06, C06/C20/C23/C24/C36,
+  partial T01/T06/T11. M1.6o remains implemented_unverified for authentic native
+  use. Complete pinned worker integration, all-N live matching, scoped native
+  admission, clocks and disposal next. T05/T10/combined runtime remain open;
+  G1-G5 not_run. All40 authority tables/holds remain unchanged at$4.887796/$10;
+  no M1 spending authority. Historical failures and unrelated M2-M7 preserved.
+
+M1.6o final evidence seal
+`17950cd4dea1d7fd6f45260c49c5515419d6d26a23d4a798d9060322cd56e76b`
+verifies4,778 files/15,571,913 bytes. Final authority comparison preserves all40
+tables; owned runtime snapshot is empty. Focused Ruff/whitespace checks pass;
+documentation QA preserves407 IDs plus M1.6o, append-only history and prior SPEC
+text, with1,594 local links resolved. Source, tests, failures and actual emitted
+synthetic receipt remain private in the sealed store; no runtime authority added.
+
+### 2026-09-25 — M1.6o.1 authentic startup failure and M1.6o.1a correction
+
+- Prepared and imported a fresh11,725-file identity worker;3/3 preflight processes
+  normally terminal. New PackLock/profile publication preserves all old rows and
+  adds only objects/outbox/provisioning metadata.37 other tables and all monetary
+  authority remain unchanged; no download, model, allowance or consumed-decision reset.
+- [Authentic trial](docs/verification/2026-09-25-m1-worker-identity-native.md)
+  fails105.922s: owned server ready, parent worker CAPABILITY_MISSING before grant.
+  Copier10/10 normal; server forced exit125 with12/12 retained terminal processes.
+  No connection/identity receipt/observation/stopped capture; status uncertain kept.
+  All40 authority tables unchanged across trial; no owned runtime remains.
+- The separate supervisor allowlist omitted DevelopmentWorker/2. New real-parent/
+  fork/control regression reproduces the same refusal (2 pass/1 fail); explicit
+  /2 admission then passes26 focused cases in1.405s. Child IPC is synthetic, with
+  no auth/game network. /1 behavior, Forge refusal and2250ms drain remain intact.
+  SPEC clarifies this existing stop contract. Prior native source/failure preserved.
+- Read-only sealed failure reconstruction passes19/19. M1.6o.1a verified only for
+  supervisor selection; .1 remains in_progress for authentic identity. Next create
+  a new runtime/profile from the corrected source and execute a fresh bounded
+  trial. Old failed runtime cannot be retargeted. Registered all-N matched state,
+  native admission, clocks/disposal and other G1 requirements remain open.
+  M0/G0 and unrelated M2-M7 unchanged. D18/D19 still excludes M1 paid inference.
+
+Final M1.6o.1 evidence stores remain separate: runtime seal9374bb2e7e4531173f57dc520f02ed9694a942f3afc41edfc42aae3e43cce244;
+profile fd070a281e32d75e980b6bcf0ed0d273a1b791acc602c5ee95b598f0793539ed;
+failed native e4a96d4c4e21c387a42f7f9bfd07f9c1d6b79aafaf348514a8486c8dba5c834f;
+19-check audit81a02506f617e6243d109a2f3dd1fa1766a35ef12531776f959cb82945b8ed78;
+source correction eeb2729cc02abeeb85fc07806c561991c29c84af6bcd267ad0443bf568b6a724.
+Final40-table authority comparison is unchanged after publication; owned snapshot
+empty. Doc QA preserves408 prior IDs plus .1/.1a and prior progress/SPEC, with1,600
+local links resolved. Source/build/regression evidence is sealed; whitespace passes.
+
+### 2026-09-25 — M1.6o.1 authentic identity positive and negative verified
+
+- Corrected source020541f is packaged into a new runtime and PackLock; no old
+  profile is retargeted. Import passes3/3 normal. Publication preserves every
+  original row and adds only objects/outbox/provisioning metadata;37 other
+  tables and monetary authority remain unchanged. No download or model calls.
+- [Fresh case02](docs/verification/2026-09-25-m1-worker-identity-native.md)
+  passes118.188s under unchanged180/360/480s bounds. Copier10/10, preflight3/3,
+  worker7/7 and server12/12 exit normally. Scoped private identity precedes the
+  public observation and matches the predeclared/server/saved UUID. No actions
+  or primitives. Worker drain37.5321ms/owner110ms; server dispatch-to-capture43.235s.
+ 26 saved files/12,792,919 bytes; live-to-stopped projection matches. This is not
+  matched probe initial-state equivalence, clean-save authority or full checkpoint.
+- Separate actual wrong-UUID negative uses the same sealed runtime/profile and
+  protected cache, starts no server/model, fences AUTH_PLAYER_MISMATCH, refuses
+  public observation and records no identity/observation/action/primitive. Normal
+  worker7/7, child18.9218ms/owner46ms. No unchanged positive rerun.
+- Independent sealed read-only audits pass35 positive and19 negative checks.
+  All40 real authority tables unchanged across execution/final checks, exposure
+ $4.887796/$10 and all holds/consumed decisions retained. No owned runtime remains.
+  Original case01 failure/forced exit125 and its19-check audit remain intact.
+- M1.6o.1 verified only for its bounded authentic identity/stop contract;
+  M1.6o/.6n and full registered native integration remain implemented_unverified.
+  Next bind registered pair workers and complete matched live state using fresh
+  declared references. Do not backfill old incomplete native configuration refs.
+  G1-G5 not_run; M0/G0 and unrelated M2-M7 unchanged. T05/T10, runtime boundary,
+  native admission, clocks and disposal remain required. No M1 inference authority.
+
+Case02 seals: runtime79549b984dcfa66a3bd8dfc294a6c4012ce58ccab48fce63b76c148113f04e36;
+profile01e90b45d8a0545c4bec70ecc52a903b58206b7ebd8119d8e9aed8a9cefb848f;
+nativeaba45c9e2cd9d9a016a471ee811b4238e6740a6648dbfcccb45e515f89313ff8;
+negative6c0c10fdd4062fe09ee4e327316a5ab0938e913d887ae18000719c2857a4ff35;
+combined audit374646337f78528ab078a26e7fcfd6a5d72538ac6875d35d081cf62dcb922dc6.
+The54 read-only checks, final40-table comparison and255-file source match pass;
+no owned runtime remains. Documentation QA preserves all410 IDs, append-only
+progress and unchanged SPEC; local links and whitespace pass. The prior failed
+case and correction evidence remain separately sealed and unchanged.
+
+### 2026-09-25 — M1.6p complete worker inputs before dispatch
+
+- Added private `probe_worker_inputs.py` and the `VanillaProbeInputs` entry point,
+  strict account declaration checks and complete both-arm worker/config/runtime
+  custody. Every selected account is checked before any config creation. Own
+  one-use cleanup preserves configuration evidence and parent resource/cost holds.
+- Nine distinct focused cases pass on Windows with synthetic accounts/packs and
+  actual file leases. Late mismatch, account snapshot race, missing stop, helper,
+  roster loss, parent close, runtime check and partial construction paths refuse.
+  Retain the collection failure and three test setup/assertion failures; corrected
+  selections alone rerun. No worker/game/provider/model dispatch occurred.
+- M1.6p inherits F01/F02/F04/F07/F08/F09/F16, N01/N02/N04/N06,
+  C06/C20/C23/C24/C36, partial T01/T06/T11; SPEC documents this input-only policy.
+  [Report](docs/verification/2026-09-25-m1-probe-worker-inputs.md) distinguishes
+  actual custody from substituted profile/fault tests.426 source files retained;
+  all40 durable authority tables unchanged, exposure$4.887796 with holds intact.
+  No owned runtime remains; M1 paid inference still lacks authority.
+- Implemented_unverified for authentic registered runtime integration. Next connect
+  held inputs to bounded worker lifecycle, all-N live matching, native admission,
+  clocks and disposal. A selected single-account profile cannot reduce the roster.
+  G1-G5 remain not_run; T05/T10 and remaining isolation qualification stay open.
+  M0/G0, historic failures, consumed decisions and unrelated M2-M7 are unchanged.
+
+M1.6p evidence seal:3,477 files/15,619,247 bytes, SHA-256
+`e8200784ad3b22b3167b7408443b157f8ff06af335155c79aef9dda2dc6dc7ae`. Independent bundle verification passes.
+Documentation QA preserves410 prior IDs (411 current), append-only progress and
+prior SPEC text;1,607 local links resolve. Source426-file match, focused Ruff
+and whitespace pass. This post-seal pointer changes no source or test evidence.
+
+### 2026-09-25 — M1.6q registered worker lifecycle; preparation deadline refusal
+
+- Added `probe_worker_runtime.py`, `probe_worker_observation.py` and the private
+  `ProbeWorldCopies.run_vanilla_worker_reference` entry point. Complete held rosters
+  import before both registered servers; scope-checked observation only, normal
+  worker drain before server save, private journal/UUID/own-projection join and
+  first-worker export custody through sibling. No native/gameplay/model admission.
+- 31 distinct focused source cases pass with synthetic process/transport/JVM and
+  actual Windows input/export leases and SQLite. Changed input custody and existing
+  server-reference regressions pass. Before authentic execution, separate real
+  worker observation labels from synthetic agent/protocol source labels. Preserve
+  earlier passing versions/logs; the opt-in authentic case initially skips.
+- Fresh pinned profile02/identity-case02 world attempt fails in178.93s with
+  PROBE_WORLD_DEADLINE before world-copy intent, copier, worker import, worker or
+  server dispatch. Both scoped configs exist. Parent teardown fences; capacity/
+  cost holds remain. Failed attempt and source435-file comparison are retained.
+  Parent300s, writer200/170s and both server60s limits are unchanged.
+- Read-only cProfile measurement: server8.188s/client33.687s; client runtime entry
+  includes17.151s file-lease construction and35,207 safe calls overall. These are
+  instrumented diagnostics, not qualified latency figures. The first profiling
+  script shadowed stdlib profile and failed; corrected filename/fresh state runs
+  without configuration write or native execution. Retain both sources/results.
+- F01/F02/F04/F07/F08/F09/F16, N01/N02/N03/N04/N05/N06/N08,
+  C06/C20/C23/C24/C36, partial T01/T06/T11. SPEC records the separate lifecycle and
+  own-projection policies. [Report](docs/verification/2026-09-25-m1-probe-worker-runtime.md)
+  preserves full live state/tool parity, native admission, clocks/disposal and
+  T05/T10/isolation gaps. M1.6q implemented_unverified, G1-G5 not_run.
+- All40 real authority tables unchanged; exposure$4.887796 with original holds and
+  consumed decisions preserved. No M1 inference authority or model call, and no
+  owned runtime remains. Next reduce repeated validation without removing source,
+  link, file custody or binding checks; only then repeat this changed authentic
+  case. M0/G0, prior failures/profiles and unrelated M2-M7 remain unchanged.
+
+M1.6q seals: source6,798 files/26,179,360 bytes
+`5c325b62eb4d75c9fd5bc60357e6f8f94e9e84df2b381e7d6720a3c07033be1a`;
+failed native657 files/44,663,039 bytes
+`0eba0d649438eecee9d647e5cea48524226d7cca3d914b4df7e91a8eeab6fdfc`;
+resolution diagnostic14 files/227,016 bytes
+`ce76fc191572e81a690867353f7840173d4b7715ea3d420d8959931cb86df7d1`.
+All bundles independently verify.31 distinct source cases pass; authentic attempt
+remains failed.434 native code/tool/lock files match current source, with fixture
+JSON unchanged. Docs QA preserves411 prior IDs (412 current), append-only progress
+and prior SPEC text;1,613 links resolve. Ruff/whitespace pass. No model/owned runtime,
+all40 authority tables unchanged. Post-seal pointers alter no source/test evidence.
+
+
+### 2026-09-25 — M1.6q.1 reduced preparation cost; later deadline refusal
+
+- Batch preliminary worker-manifest and FileLease ancestor checks within a call;
+  preserve final per-file link validation under held parents, held-handle hashes,
+  exact membership, hardlink/size/path bounds and cleanup. No cross-call cache.
+- Resolve each registered worker once and hold its runtime while checking the
+  complete pair. Hold/recheck all account declarations before one-use config
+  commits. Deferred import/worker/server dispatch refuses. Freshness/hash/runtime
+  failure closes own custody and preserves partial evidence and parent holds.
+- Focused selections pass92/26.74s,57/210.82s,2/60.91s:108 distinct cases.
+  Three symlink cases skip for absent Windows privilege; actual junction-swap
+  race, write/delete/replace denials,8,300 native handles, late failure cleanup,
+  deferred config/refusal/failure paths and lifecycle ordering pass. Synthetic
+  game/process data with actual Windows file leases; not OS isolation qualification.
+- Same authentic read-only resolution after path batching measures8.422s server,
+  23.937s client, versus8.188s/33.687s before. Profiling includes instrumentation;
+  no config/process/model dispatch. Final per-file checks remain; safe calls fall
+ 35,207 to11,756. Server layout scanning still costs7.379s under cProfile.
+- Fresh case02 with unchanged pinned profile/world and300s parent,200/170s
+  writers,60/60s servers fails in118.32s at stage(0), before first copier.
+  The earlier preparation preflight passes and one world-copy row becomes FAILED,
+  with empty results. Both configs exist; native/worker evidence remains empty.
+  Parent FENCED, resources unreleased; no copier/import/worker/server/model runs.
+  Case01's178.93s pre-intent failure remains retained. No successful integration
+  or broadened gate is claimed. Read-only audit joins435 current source files.
+- Inherits M1.6q F/N/C and partial T01/T06/T11 mappings; SPEC records deferred
+  config/no-dispatch and retained final checks. [Report](docs/verification/2026-09-25-m1-worker-preparation-cost.md).
+  M1.6q.1 implemented_unverified; full live body/tool/policy parity, native probe
+  admission, clocks/disposal, T05/T10 and remaining isolation stay open. G1-G5
+  not_run; M0/G0 and unrelated M2-M7 remain unchanged.
+- All40 real authority tables unchanged at$4.887796, old$0.7554 and four$1 holds
+  and consumed decisions preserved; no owned runtime. No M1 inference authority.
+  Next resolve remaining repeated preparation validation with all authority,
+  source/link/hash/custody and deadline checks intact; then a changed-case retry.
+  No unchanged rerun or larger finite window is justified by this failure.
+
+M1.6q.1 final seals: source/path fixtures12,994 files/14,694,126 bytes
+`c344f835d76de3ba02c36a88cf7517955705ae92256691cdbab3a11609e8253d`;
+deferred fixtures6,299 files/16,036,255 bytes
+`326cbb0e6ca7c82ce971b3ebee189a967eb03fec33e78245e4d6334cbb0339ae`;
+failed native659 files/46,052,552 bytes
+`9e805a13a0e8a19353587db20798579b36e430206df451857336cc2485a3d420`;
+read-only diagnostic10 files/199,132 bytes
+`37722bbbbd216c49a6713ccfb622bd42a74966ef8f21c80e1aa608d80d227519`.
+All four final bundles independently verify. The original path archive seal
+fails EVIDENCE_INVENTORY because ordinary enumeration omitted one long-path
+fixture. Preserve it; extended-path copying compares all12,992 original files
+and retains the failed seal/inventory before store02 sealing. No source/test
+exclusion or rerun. Final435 source-file matches,108 distinct passing cases,
+412 prior milestone IDs retained/413 current,1,618 local links, append-only
+progress, SPEC history/JSON, Ruff and whitespace checks pass. G1 remains not_run;
+all40 authority tables unchanged. Final seal pointers follow archived docs.
+
+
+### 2026-09-25 — M1.6q.2 continuous resolution custody; paired pre-server refusal
+
+- Private context-managed pack/worker resolution lets HeldPackWorker retain the
+  same validated runtime through configuration and owned cleanup. Public resolver
+  JSON and release semantics remain unchanged. No cross-call caches, skipped
+  authority/layout/hash/link/membership checks, changed profiles or new dispatch.
+  Account whole-roster checks and deferred configuration ordering remain intact.
+- Source selections pass90/161.85s and3/41.22s (93 distinct cases): continuous
+  single runtime ownership, worker/server validation failure cleanup, public
+  no-write/release, strict config/profile/path refusal, whole-pair lifecycle,
+  Forge relocation and restored-worker compatibility. Synthetic processes/game
+  data with real Windows leases; no new authentic Forge/isolation claim.
+- Genuine profile diagnostic: deferred held entry23.844s,total24.891s under
+  cProfile,one runtime lease,11,725 files/654,090,742 bytes. Node write-open denied
+  while held,handles closed,no config/process/game/model. Instrumentation costs
+  are not a latency certificate. Worker runtime/profile identities unchanged.
+- Fresh authentic case03 preserves parent300s,writers200/170s,servers60/60s.
+  Both protected copiers produce374 files/239,730,374 bytes and162 directories;
+  each stops10/10 normally with zero active/terminated processes. Both worker
+  imports log vanilla_runtime_loaded,avatar_created=false. Import job receipts
+  pass transient checks but are not persisted; that retained proof remains open.
+- Case03 fails176.62s before server launch intent: experienced writer retains
+  PROBE_WORLD_DEADLINE; initial writer/world surface PROBE_WORLD_CLOSE_UNCERTAIN.
+  Aggregate120s server windows no longer fit remaining writer custody. Both
+  writers UNCERTAIN,world FAILED,parent FENCED; resource/cost holds remain.
+  No gameplay worker/server/model runs. Cases01/02 remain failed,not replaced.
+- Test-only timing: two worker inputs13.875s/13.734s;10 software checks60.546s;
+  15 parent checks12.594s overlap these. Initial state holds140.250s/145.625s from
+  acquisition start,later checks through159.437s. No double summing or campaign
+  clock claim. Audit verifies435 source matches,receipts/logs and full real-state
+  equality. All40 authority tables unchanged at$4.887796,old$0.7554/four$1 holds
+  and consumed decisions preserved,no owned runtime. No M1 inference authority.
+- Inherits M1.6q mappings and partial T01/T06/T11. SPEC preserves owning/public
+  resolver lifetime contracts. [Report](docs/verification/2026-09-25-m1-retained-worker-resolution.md).
+  M1.6q.2 implemented_unverified. Next compose repeated software checks without
+  losing authority/source/hash/link/membership guarantees, persist import receipts
+  and surface the retained nested error before changed-case retry. Original finite windows and
+  full G1 criteria remain. Live-state/tool parity,native admission,clocks/disposal,
+  T05/T10 and isolation stay open; G1-G5 not_run,M0/G0 and M2-M7 unchanged.
+
+M1.6q.2 final seals: source8,610 files/21,603,962 bytes
+`3bfff7b9648c5a9d0974b64d6c9fa756c93b60a8d7f2059c6e93c532d291664b`;
+failed native676 files/47,064,244 bytes
+`af573320a7f2b26eca76223a17dfbe48d1f5eed82f4db2cc69a4e14aa0c554e7`;
+no-dispatch diagnostic9 files/108,142 bytes
+`4bde799e42161e4ab9b80289b492dc829eedf04158611ea5cf125ec1ca23f735`.
+All independently verify with extended paths.93 source cases pass,435 source
+files match native03,413 previous IDs retained/414 current,1,623 links resolve;
+append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real tables
+unchanged,no owned runtime. These pointers follow the archived docs snapshot.
+Clarification: writer/world records already retain both inner deadline and outer
+close errors. The next diagnostic improvement is to surface that retained cause;
+only the import ownership receipts lack persistence. No sealed evidence is edited.
+
+### 2026-09-25 — M1.6q.3 composed worker checks and retained failure evidence
+
+- Compose shared software/parent validation once with all member bindings/files/
+  phases and an identical-holder guard; standalone checks retain full validation.
+  Persist/fsync each import receipt before phase advance. Retain the first inner
+  writer cause beside unchanged outer failure, fencing and holds. Inventory drops
+  only the redundant preliminary file ancestor walk; final hash-time checks stay.
+- Focused selections pass92/one opt-in native skip in536.41s, then3/26 deselected
+  in84.64s after the holder guard:94 distinct source passes. Actual junction-swap,
+  receipt-write, changed binding/runtime/scope and nested failure cases pass.
+  Initial source version retained separately. Ruff and whitespace pass.
+- Genuine profile02 no-dispatch server diagnostic7.312s with unchanged digest.
+  Fresh native04 keeps300/200-170/60-60s bounds, reaches both copiers/imports and
+  first server/worker; fails224.54s PROBE_INITIAL_OBSERVATION, outer close uncertain.
+  Normal copier10/10 each, persisted import jobs3 total/0 active each. Ordinary
+  inventory window0 fails a window=None predicate. Zero actions/primitives;
+  raw journal omits optional machine:null introduced by validation. Initial audit
+  JOURNAL_JOIN failure retained; corrected audit diagnoses without promoting pass.
+- Supervisor normal worker drain41.1524ms; complete worker job/owner stop result
+  checked in memory but not persisted before later failure. Server forced125,
+  all12 held/signaled,zero active. Writers UNCERTAIN,world FAILED,parent FENCED,
+  every reservation held.435 source pins match; all40 real tables unchanged at
+  $4.887796 with old$0.7554/four$1 holds and consumed decisions intact. No owned
+  runtime,no model calls,no M1 paid authority. Cases01-03 remain failed.
+- [Report](docs/verification/2026-09-25-m1-worker-check-composition.md).
+  M1.6q.3 implemented_unverified; mappings inherit M1.6q plus F05/partial T02.
+  Next reconcile ordinary inventory and journal representation with pinned worker
+  semantics, persist worker stop/job receipts before subsequent validation and
+  verify negatives before a changed native case. No window increase or lucky retry.
+  G1-G5 not_run; full live-state/tool parity,native admission,clocks/disposal,
+  T05/T10 and isolation remain open. M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.3 final seals: source9,968 files/42,915,288 bytes
+`484d1d594059edb7b04dc9505be85c0cd9aa92aa369633e26cbe39522c818a5b`;
+failed native696 files/48,958,109 bytes
+`888e625609285786e7120197f64ea2378e22d191f00302837aed6aaec6616360`;
+no-dispatch diagnostic8 files/69,342 bytes
+`71d1b59ac5243697dac667a414cedccb8f025ae1e38b1713b75493a8b29626fb`.
+All independently verify with extended paths.94 distinct source cases pass,
+435 source pins match,414 prior IDs retained/415 current,1,629 links resolve.
+Append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real
+tables unchanged,no owned runtime. Pointers follow the archived docs snapshot.
+
+### 2026-09-25 — M1.6q.4 exact initial projection and normal worker stop evidence
+
+- Reconcile pinned Mineflayer ordinary inventory window0 with the private initial
+  verifier: own slots only,no cursor/machine,connected state and all scope/zero
+  action/identity/saved-player checks remain. Preserve exact delivered JSON and
+  digest without model-added defaults; normalized substitution fails exact join.
+  Persist/fsync normal worker stop and job custody before later validation.
+- First source selection35 pass/one malformed held-key fixture fails348.79s;
+  corrected typed fixture,final positive lifecycle and new ready-binding negative
+  pass3/34 deselected55.69s:37 distinct passing cases. Initial source/failure kept.
+  Stop/custody write failures and later state failure retain correct evidence/holds.
+  Remove only the adjacent redundant worker-start check; complete post-ready
+  validation still rejects changed bindings before worker dispatch. Ruff passes.
+- Read-only sealed case04 journal/saved-player projection matches. The initial
+  diagnostic SQLite extended-path URI fails; retained script/output. Corrected
+  drive URI succeeds without changing old failed outcome or fabricating custody.
+- Fresh case05 preserves300/200-170/60-60s bounds and profile02/runtime02/world.
+  Both copiers normal10/10,both persisted imports3 total/zero active. First worker
+  exact journal/identity/saved projection passes; persisted normal stop/job receipts
+  agree (worker seven total/zero active or terminated,supervisor37.7704ms,owner94ms).
+  Pair fails224.87s: server watchdog REFERENCE_PAIR_HARD_DEADLINE,stop send
+  PROCESS_NOT_RUNNING,outer PROBE_WORLD_CLOSE_UNCERTAIN. Server forced125/all12
+  held terminal,no normal-stop event or saved export; second arm never dispatches.
+  Writers UNCERTAIN,world FAILED,parent FENCED,all reservations held.
+- Audit435 source pins,receipt/journal/watchdog joins and all40 unchanged real
+  tables at$4.887796;old$0.7554/four$1 holds and consumed decisions remain. No
+  owned runtime,no model calls,no M1 paid authority. Synthetic agent/protocol/
+  capacity source remains distinct from authentic game/runtime evidence.
+- [Report](docs/verification/2026-09-25-m1-initial-worker-projection.md).
+  M1.6q.4 implemented_unverified; inherits M1.6q mappings/partial T01/T06/T11.
+  Next reduce repeated full pack resolution under held custody and work delaying
+  normal stop,retaining authority/bytes/membership and pre-dispatch refusal. No
+  unchanged retry or larger window. Cases01-04 retained. Full live-state/tool
+  parity,native admission,clocks/disposal,T05/T10 and isolation remain open;
+  G1-G5 not_run,M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.4 final seals: source6,087 files/23,827,018 bytes
+`ac3ad129113f0dd20f9c875890eb8932ca9ed50bc4d562a8c62fa21a47e1211c`;
+failed native695 files/48,972,664 bytes
+`5f0aba48171015a17136e7063ac4ee3c2aeb88121f0ff2a0e211372e711223b5`.
+Both independently verify with extended paths.37 distinct source cases pass,
+435 source pins match,415 prior IDs retained/416 current,1,634 links resolve;
+append-only progress,SPEC history/JSON,Ruff and whitespace pass. All40 real
+tables unchanged,no owned runtime. Pointers follow the archived docs snapshot.
+
+### 2026-09-25 — M1.6q.5 materialization checks under continuous file custody
+
+- Private fresh vanilla-server rechecks use only hashes verified through live
+  deny-write/delete handles; the digest map is independent of mutable caller
+  inventory. Fresh provisioning/CAS/profile authority, exact root/role/empty-dir
+  layouts, names/types/sizes/hardlinks/reviewed paths and membership still check.
+  External executable now remains held with template/inventory. Public resolution
+  still hashes; closed/foreign/unknown/missing custody refuses, without authority.
+- First selection102 pass/one refusal-ordering failure/three symlink-privilege
+  skips38.77s. Add custody precheck; retain source/failure. A misspelled follow-up
+  selector collected no tests; retained. Corrected integration45 pass492.01s,
+  134 distinct source passes overall. Actual junction/handle/closure checks,
+  changed metadata/layout/content and paired worker/server lifecycle cases pass.
+  Ruff passes. No source fixture is authentic game or isolation qualification.
+- Read-only genuine profile02 diagnostic: public4.875s, custody acquire7.703s,
+  held resolution1.891s/1.953s with unchanged digest; write-opens denied and
+  custody closed. Diagnostic initial source retained; no config/game/model.
+- Fresh case06 keeps300/200-170/60-60s bounds. Both copiers normal10/10/imports
+  three total/zero active; first worker exact state/journal/identity passes and
+  stops normally (seven total/zero active,supervisor34.7719ms,owner93ms). First
+  server normal exit0/all12 held signaled,complete logs; export verifies27 files/
+  13,699,033 bytes. Complete-checkpoint/clean-save flags remain false.
+- Pair fails210.41s: second launch intent then WRITER_EXPOSURE_INSUFFICIENT before
+  process dispatch; outer PROBE_WORLD_CLOSE_UNCERTAIN. Writers UNCERTAIN,world
+  FAILED,parent FENCED,all reservations held. Preserve cases01-05. First audit
+  copied files but omitted empty dirs and failed VANILLA_CAPTURE_CHANGED; retain
+  its script/output. Correct directory-preserving copy verifies original export.
+- Audit436 source pins and exact worker/copier/import/server/snapshot records;
+  all40 real tables unchanged at$4.887796,old$0.7554/four$1 holds and consumed
+  decisions intact,no owned runtime or model calls. No M1 inference authority.
+  Thirteen software checks total42.095s; nineteen parent checks16.441s overlap.
+  Worker preparation still13.515s/13.062s. Timings are diagnostics,not campaign clocks.
+- [Report](docs/verification/2026-09-25-m1-held-materialization-checks.md).
+  M1.6q.5 implemented_unverified; mappings inherit M1.6q plus F05/partial T02.
+  Next reuse held materialization in private worker input resolution while keeping
+  fresh authority and separate member/runtime/config/account custody. Preserve
+  every bound, failed case and outstanding live-state/tool/native-admission/clock/
+  disposal/T05/T10/isolation requirement. G1-G5 not_run; M0/G0 and M2-M7 unchanged.
+
+M1.6q.5 final seals: native727 files/66,138,754 bytes
+`d79517c17ac0ec42a8274667aad2fb5c4785421e4825549cbd79e5f2780caa38`;
+phase1 test archive12,109 files/6,649,123 bytes
+`8b9778ba319b278b2706ef4308ae0b23194a0580c764b607bf0ddd18625d796f`;
+phase2 test archive11,069 files/31,893,950 bytes
+`b21c296dda4590227630eb3d6098b69106103a12b06212264d73b61cf6119265`;
+assembled main475 files/7,189,489 bytes
+`22aefffda03738a9c0725c90fecfb3c48c8e5cb7fe102e0efe44658145c250bf`.
+All independently verify with extended paths. Original checks-01 working evidence
+remains intact; quota-bounded assembly covers all23,647 files byte-for-byte across
+two complete test parts and main, with empty directories and failures preserved.
+134 distinct source passes,436 source pins,416 prior IDs retained/417 current,
+1,639 links,append-only progress,SPEC history/JSON,Ruff and whitespace pass.
+All40 real tables unchanged,no owned runtime. Pointers follow archived docs.
+
+### 2026-09-25 — M1.6q.6 private workers borrow held materialization
+
+- Factor the exact live-tree custody guard into private resolution. Fresh vanilla
+  clients can reuse verified installation hashes; their external Node executable
+  and runtime still validate independently. Public resolution is unchanged.
+  Simulation/restored/Forge/own-server borrowing remains unsupported. Every member
+  holds its own runtime/configuration; account declarations validate for the entire
+  roster before configuration commit. Lost borrowed custody refuses commit,
+  import/worker dispatch and receipts. Child close never closes its parent's lease.
+- Focused synthetic profiles with actual Windows leases: 88 passes in 38.79s;
+  whole-pair input/lifecycle checks: 9 passes in 161.938s. No skips or
+  failures. Covers equal public/private output without installation rehashing,
+  client executable hashing, separate member leases, closed/foreign/untyped
+  custody, changed authority/layout/runtime, loss before later effects/receipts,
+  late account mismatch, partial config failure, closed parent and retained holds.
+- Read-only genuine profile02/runtime02 diagnostic: ordinary entry 13.672s,
+  borrowed 11.078s, identical resolution digest; two write-open denials each,
+  separate runtimes released while parent custody stays held. No config, game,
+  model or account mutation. Timing is diagnostic, not an operating-envelope pass.
+- Case06 records place worker preparation before writer acquisition. This saves
+  parent preparation time, not the later writer exposure; no native rerun follows.
+  Retain case06's normal first server/export and second-launch refusal, all six
+  failures, original finite bounds, UNCERTAIN writers/FAILED world/FENCED parent,
+  all budget holds and consumed decisions. All 40 real tables remain unchanged
+  at $4.887796; no owned runtime or M1 inference authority.
+- [Report](docs/verification/2026-09-25-m1-worker-materialization.md).
+  M1.6q.6 implemented_unverified for authentic paired integration; inherits
+  M1.6q.5 mappings. Next move validation that delays normal stop into the drain
+  period, preserving complete acceptance checks before export/sibling dispatch,
+  and verify failure handling before any changed native attempt. Full live-state,
+  tool/policy, native-admission, clocks/disposal, T05/T10 and isolation contracts
+  remain open; G1-G5 not_run, M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.6 final seal: 10,776 files / 23,160,725 bytes,
+`22c284a5fd2b4b574d619b1bed0c17919683fc1822638fd5c933d0463ec48eb9`.
+The complete source/test/diagnostic archive independently verifies. 97 source
+passes, 437 source files, all 417 prior IDs retained / 418 current, 1,644 local
+links, append-only progress, SPEC history/JSON, Ruff and whitespace checks pass.
+All 40 real tables remain unchanged; no owned runtime or new native trial.
+This pointer follows the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.7 normal stop before complete drain validation, in progress
+
+- Move the complete paired check after the scoped server stop request, keeping
+  the drain bound fixed and requiring validation before capture and sibling
+  dispatch. Add positive ordering checks and account/member/software-custody
+  failures at the post-stop boundary; retain failure fencing and all holds.
+- Focused22-case selection remains running in exec session5194; no test pass is
+  claimed. Ruff and whitespace checks pass. Current handoff records the live
+  handle, private output and next inspection; never restart on buffered silence.
+- All40 real authority tables match the q6 checkpoint; no owned runtime before
+  execution. Fresh native07 prepared with437 source pins, but not dispatched.
+  Original bounds, failed cases01-06, profile identities and consumed decisions
+  remain unchanged. No game/model call or extension of M0-only spending authority.
+- M1.6q.7 in_progress, inheriting M1.6q.6 mappings plus partial T07. Next inspect
+  the running selection, resolve any actual failures, then perform the changed
+  authentic case only after its dispatch checks. G1-G5 remain not_run; all wider
+  live-state/tool/native-admission/clock/disposal/T05/T10/isolation gaps remain.
+
+### 2026-09-25 — M1.6q.7 verified source ordering and retained authentic case07
+
+- Source suite completed:22 pass601.28s, no failures/skips. Positive ordering
+  proves complete validation follows normal stop and precedes capture. Changed
+  account/member/software custody at stop still refuses export and sibling
+  launch, fences the pair and retains all reservations. Existing import, grant,
+  state, stop/receipt, early-exit/history and between-arm refusal cases pass.
+- Fresh case07 dispatch checks match437 source pins, unchanged real accounting,
+  available host/port and unused evidence. Original300/200-170/60-60s bounds and
+  genuine profile02/runtime02/source-world identities remain; no model/actions.
+  Test fails221.33s: second server refuses WRITER_EXPOSURE_INSUFFICIENT; outer
+  PROBE_WORLD_CLOSE_UNCERTAIN. No second worker/server dispatch. Keep cases01-06.
+- Both copiers/imports stop normally. First worker verifies exact journal,
+  authenticated saved-player identity and own-state projection, then stops
+  normally: seven total/zero active or terminated processes, supervisor50.4249ms,
+  owner109ms. First server normal exit0,12 held/12 signaled, complete logs and
+  verified27-file/13,625,307-byte export. No watchdog; clean-save and complete-
+  checkpoint flags remain false. Both writers UNCERTAIN, world FAILED, parent
+  FENCED, every hold retained. A normal first arm is not full pair completion.
+- Added diagnostic intervals show stop request0.109s, stopped capture3.969s and
+  five composed pair checks37.171s total/max8s. Software and parent intervals
+  overlap these; do not add them or treat them as authoritative campaign clocks.
+  Read source: member files recheck runtime, then phase receipt rechecks it again.
+  Next compose repeated runtime/preflight validation while preserving every
+  required authority/membership/process check before launch or export acceptance.
+- Native audit passes for the retained failed scope and matches all437 source
+  files; all40 real tables unchanged at$4.887796, no owned processes, no inference
+  calls or M1 paid authority. [Report](docs/verification/2026-09-25-m1-pair-stop-order.md).
+  M1.6q.7 implemented_unverified for authentic paired integration. Full live-state/
+  tool parity, native admission, clocks/disposal, T05/T10 and isolation remain
+  open. G1-G5 not_run; M0/G0 and unrelated M2-M7 unchanged.
+
+M1.6q.7 final seals: source8,029 files/28,975,169 bytes,
+`3c811f3e2e55a0406f0f54088aaab9f6edc5b44e8e2ac1c41cf5cfbe2fe3b94b`;
+native728 files/66,074,382 bytes,
+`b0dfdd7a688a572424e4745a2d5442b861cb1dd1af0898bed086d64680a975d7`.
+Both independently verify with extended paths. All22 source cases pass; native07
+remains failed in its full scope.437 source pins match, all418 prior IDs remain/
+419 current,1,650 links resolve, append-only progress and SPEC history/JSON pass.
+Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
+pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.8 runtime and first-preflight composition, in progress
+
+- Split member bindings/configuration from runtime validation. Preparation-only
+  checks remain complete; lifecycle checks validate each runtime directly in
+  HELD/RUNNING and through full owned-stop receipts in IMPORTED/STOPPED. Every
+  subsequent call revalidates and unknown phases refuse. Standalone lifecycle
+  checks retain complete shared software/parent and software-identity checks.
+- Move complete sequential-window admission immediately after the first-start
+  full pair check, retaining all parent/writer limits and charging preflight time.
+  Remove only the adjacent earlier complete check; later starts remain checked.
+- Source35-case selection is running in exec session17554, not yet a pass. New
+  actual-lease phase cases, once-per-member checks, post-stop failures and lost
+  complete-window admission are included. Ruff/whitespace pass. All40 durable
+  tables unchanged, no owned game runtime before execution, no paid calls.
+- Native08 prepared with438 source pins and fresh input, not dispatched. Current
+  handoff records the live verification handle and required dispatch checks.
+  M1.6q.8 in_progress, inherits M1.6q.7 mappings; original bounds, cases01-07,
+  reservations/consumed decisions and all wider G1 requirements remain unchanged.
+
+### 2026-09-25 — M1.6q.8 source pass and pre-writer native refusal
+
+- All35 source cases pass791.39s with actual Windows file custody and synthetic
+  processes/profiles. Phase custody losses, repeated validation, account/member
+  changes, post-stop failures and parent/either-writer aggregate-window refusal
+  remain covered. Ruff/whitespace pass; two Typer deprecations remain.
+- Fresh native08 passed438 source pins, one-use input, host and durable authority
+  checks. It fails125.69s (JUnit case124.398s), PROBE_WORLD_DEADLINE at first
+  writer admission after103.906s parent preparation. No copier/import/server/
+  worker dispatched; no writer table/row, empty worker state and writer evidence
+  parent. World FAILED, parent FENCED, all resource reservations retained.
+- Early-refusal audit passes without executing the prepared post-dispatch audit;
+  all40 real tables unchanged at$4.887796 and no owned runtime remains. No model
+  calls or M1 paid authority. Current source lifecycle changes were not reached
+  authentically; M1.6q.8 is implemented_unverified, never a new G1 pass.
+- Diagnostic preparations: software26.875s, workers36.235s; software checks25.094s
+  and parent checks10.095s overlap these intervals. Next profile preparation
+  without dispatch and reduce repeated work under continuously held custody,
+  keeping fresh authority/layout/account checks and original300/200-170/60-60s
+  limits. Preserve cases01-08, holds/consumed decisions and all wider G1 gaps.
+  Evidence: [runtime check composition](docs/verification/2026-09-25-m1-runtime-check-composition.md).
+
+M1.6q.8 final seals: source9,364 files/32,685,057 bytes,
+`1af8a31b6d387ad7bbf67cd18862dcfa9a6a384e4af2672f93825f2766da3455`;
+native666 files/46,119,790 bytes,
+`694dc4a2fcb7f10be95c6294de4132db2e0adc89b40ee001769fa6069b2e9ec8`.
+Both independently verify. Source35/35 passes; native08 remains failed before
+any writer dispatch.438 source pins match, all419 prior IDs remain/420 current,
+1,655 links resolve; append-only progress and prior SPEC text/JSON pass.
+Ruff/whitespace pass; all40 real tables unchanged, no owned runtime. These seal
+pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.9 held-parent validation, in progress
+
+- Revalidated clean8077751, all40 real authority tables unchanged and no owned
+  runtime. Last turn advanced implementation/evidence, not a no-progress wait.
+- Read-only profile02/runtime02 worker preparation completes with no configuration
+  writes, game/model dispatch or open runtime custody. Initial diagnostic failed
+  from naming its script profile.py (stdlib shadow); preserve that output and
+  corrected diagnostic separately. Profiled entry30.250s:18.492s in FileLease,
+  11,762 safe calls8.339s cumulative and263,150 stat calls. Timings overlap.
+- M1.6q.9 implements held-parent validation once per acquisition plus fresh leaf
+  checks/hashes. No cross-call cache, relaxed authority/membership requirement,
+  new paid allowance or longer runtime. Source/refusal verification remains
+  pending; original cases01-08 and all wider G1 contracts remain open.
+
+### 2026-09-25 — M1.6q.9 directory custody fixed; native09 finite-window refusal
+
+- FILE_LIST_DIRECTORY handles enforce deny-delete sharing before child opens;
+  OPEN_REPARSE_POINT retains link entries themselves through rejection. Recheck
+  held ancestors once, require every leaf's parent held, check leaves before/after
+  open and hash retained handles. No cached filesystem success or relaxed hashes.
+- Initial source104 passes/two failures/three privilege skips exposed zero-access
+  directory removal. Preserve that run; five targeted corrections pass and final
+  integrity/bundle/pack selection106 passes/three skips44.00s. Four complete-pair/
+  post-stop cases pass177.73s:110 distinct cases. Ruff/whitespace pass.
+- Exact-profile read-only entry30.250s to25.063s under cProfile, equal resolution;
+  FileLease18.492s to12.465s, stat calls263,150 to121,679. No config writes or
+  dispatch; held runtime/server write-opens denied. Retain the profiler naming
+  failure and distinguish instrumented diagnostics from native exposure clocks.
+- Fresh native09 passes110 source cases/declared skips,438 pins, host/authority/
+  one-use checks; fails202.19s total (JUnit200.869s). Both copiers normal10/10;
+  both imports exit0 with three total/zero active or terminated processes.
+  First full start check finishes179.110s after parent acquisition, then rejects
+  the complete120s server exposure: inner PROBE_WORLD_DEADLINE, outer close
+  uncertain. No server/worker dispatch, no stopped export. Writers UNCERTAIN,
+  world FAILED,parent FENCED,all holds retained; audit passes without promotion.
+- All40 real tables unchanged at$4.887796, no owned runtime or model call; D18/D19
+  remain M0-only. Preserve original bounds/cases01-09. Next compose redundant
+  membership scans within the full private two-role materialization resolution,
+  retaining fresh authority and every layout/type/size/hardlink/membership check.
+  Full matched state/tools, native admission, clocks/disposal, T05/T10 and isolation
+  remain open; G1-G5 not_run. [Evidence](docs/verification/2026-09-25-m1-held-parent-validation.md).
+
+M1.6q.9 final seals: initial source phase12,564 files/6,175,831 bytes,
+`83761e8a41111b3367d7ca1b80e35c662772d6ae61299a35854ee7106c3c40a8`;
+corrected phase12,564 files/6,198,557 bytes,
+`e230fe40a8beee5d6f45a660de52cb2a72fef4866f702170523ad32e5e735c70`;
+main1,930 files/11,839,556 bytes,
+`578b4b0b29deded585bb624ed70bfc3215839af36405a77d7437fa2c5f11ad09`;
+native684 files/47,132,251 bytes,
+`0cdd369f44624b8925efa74ac8e894e3d0bcfbe77c09b7482e5c82d5d25f6698`.
+All independently verify. Byte-equal complete subtrees/main represent all27,052
+original evidence files; original profile-01 remains retained unsealed. All420
+prior IDs remain/421 current,1,658 links resolve, append-only progress and prior
+SPEC text/JSON pass.110 distinct source cases pass/three privilege skips; native09
+remains failed. No owned runtime or model call, all40 real tables unchanged.
+These pointers follow the archived documentation snapshot.
+
+### 2026-09-25 — M1.6q.10 materialization scan composition, in progress
+
+- Last turn made progress: committedbd1df84,110 source passes/three privilege
+  skips, retained custody failures fixed and native09 refusal fully sealed.
+  Revalidated clean checkout, all40 real authority tables and no owned runtime.
+- Compose installation-wide membership checks around both complete role scans;
+  keep exact per-entry policy/type/size/hardlink/hash checks, current provisioning/
+  CAS, live custody and final membership. No public skip option or cached success.
+- Read-only before/after diagnosis and focused source/refusal tests are required
+  before any changed native trial. No deadline, paid authority, historical failure
+  or wider G1 requirement is changed. M1.6q.10 in_progress, G1-G5 not_run.
+
+### 2026-09-25 — M1.6q.10 source and read-only profile verification
+
+- Complete private resolution brackets both role layouts with two fresh whole-
+  installation membership checks. Exact live marker/tree scope precedes current
+  authority reads; every entry retains policy/type/size/hardlink/hash validation.
+  Ordinary public resolution hashes bytes; standalone scans and member effect/
+  receipt checks still validate custody. No skip flag or cross-call cache.
+- Main130 cases pass950.14s, paired4 pass175.57s, standalone4 pass5.91s:138
+  distinct cases/no skips or failures. Late additions to an already scanned role
+  and closure between/after scans refuse; repeated calls revalidate. Ruff and
+  whitespace pass. Two existing Typer deprecations remain.
+- Actual profile02 read-only held resolution7.828s to6.078s under cProfile,
+  identical public/held output, five-to-two whole-tree rechecks and two denied
+  write-opens per diagnostic. No config writes/model/game dispatch; leases close.
+  Profiling is diagnostic only and cannot qualify full paired timing.
+- All40 real authority tables unchanged at$4.887796 and no owned runtime. No new
+  native trial: preserve original300/200-170/60-60s windows, cases01-09, holds and
+  consumed decisions. Next reduce repeated lexical path reconstruction (4,691
+  relative_to calls/1.508s after composition), then inspect protected-session
+  preparation before a changed pair trial. Full G1 obligations remain open.
+  [Evidence](docs/verification/2026-09-25-m1-materialization-scan-composition.md).
+
+### 2026-09-25 — M1.6q.10 evidence preservation complete
+
+- Independently sealed two bounded test archives plus the remaining source and
+  diagnostic archive. Assembly accounts for all 18,904 original files and
+  11,003 directories, with byte-equal copies and empty directories preserved.
+  Raw working evidence is retained. Main seal:
+  `a922951d452f65ca77cd6a3fdc337095e2bd716725a6f8a00a85b5170314e28e`.
+  [All three pins](docs/verification/2026-09-25-m1-materialization-scan-composition.md).
+- Final review confirms 439 pinned source files, 138 passing distinct cases,
+  all 421 historical milestone IDs retained, new M1.6q.10, 1,664 valid local
+  links, append-only progress and unchanged prior SPEC text/JSON. Ruff and
+  whitespace pass; all 40 real authority tables still match, no owned runtime.
+- Authentic paired integration remains implemented_unverified; no new native
+  trial, paid call, deadline change, or G1 promotion. Continue the measured
+  lexical-path and protected-session preparation work before another trial.
+
+### 2026-09-25 — M1.6q.11 lexical scan preparation, in progress
+
+- Begin from clean a4f6c56. All 40 durable authority tables match q10's sealed
+  evidence at $4.887796. Reuse its 6.078s read-only diagnostic as the unchanged
+  baseline; do not rerun it. Archive the original implementation before editing.
+- Compute each walked directory's relative prefix once. Keep per-entry portable
+  path policy, collision/type/reparse/hardlink/size/hash checks and complete
+  before/after membership validation. No filesystem observation cache.
+- Focused source checks and one changed read-only profile are required. No new
+  native trial, model call, deadline change, consumed-decision reuse or G1 claim.
+
+### 2026-09-25 — M1.6q.11 focused verification
+
+- Compute each directory prefix once; keep per-entry policy/type/metadata/hash
+  checks and both membership boundaries. 114 focused cases pass50.47s without
+  skips/failures; Ruff/whitespace pass. Two existing Typer warnings remain.
+- Reuse sealed q10 baseline instead of rerunning it. One changed exact-profile
+  read-only resolution takes4.531s versus6.078s, identical output and two denied
+  write-opens, closed custody, no config writes/model calls/game dispatch. Core
+  scans take1.947s versus3.437s; two membership checks remain1.136s cumulative.
+- All 40 real authority tables unchanged at$4.887796; no owned runtime. No new
+  native trial; native01-09 failures, consumed inputs, holds and original bounds
+  remain. M1.6q.11 implemented_unverified for authentic paired integration,
+  G1-G5 not_run. Next measure protected-session preparation without dispatch.
+  [Evidence](docs/verification/2026-09-25-m1-layout-prefix.md).
+
+### 2026-09-25 — M1.6q.11 evidence sealed
+
+- Sealed 5,924 files / 17,152,579 bytes in the private layout-prefix archive,
+  independently verified SHA-256
+  `320ed4c38fb6e076dbb6fc5fccdbffa780e271b5f42496ce891f7ba458e14ff3`.
+  Source audit pins439 files and confirms only inventory.py changed from q10.
+  All114 focused cases pass, unchanged resolved digest,40 authority tables
+  unchanged/no owned runtime. Preserve422 prior milestone IDs, addM1.6q.11;
+  1,669 local links pass, append-only history and SPEC unchanged.
+- No native10 or model call. The full pair remains unverified; next measure
+  protected-session preparation under fresh diagnostic custody without dispatch
+  or reopening consumed decisions. G1-G5 remain not_run.
+
+### 2026-09-25 — M1.6q.12 protected preparation diagnosis begins
+
+- Clean644c5a1, all40 authority tables unchanged at$4.887796, no owned runtime.
+  Previous turn progressed with two committed changes and sealed verification.
+- Retained native09 initial/experienced trees still exist. Select read-only
+  component profiling on the initial tree under new diagnostic FileLease custody,
+  using sealed result/provenance and current public binding. Do not reconstruct
+  the consumed writer job, launch a ProbeVanillaSession or dispatch processes.
+- Measure tree validation and VanillaPersistence initialization separately,
+  retain original/full output and byte/membership/custody checks. Select the next
+  implementation only from the resulting evidence. No changed bounds or claims.
+
+### 2026-09-25 — M1.6q.12 measured persistence change selected
+
+- Read-only native09 initial-tree components: check_tree1.047s,
+  directories/settings0.109s, VanillaPersistence8.797s. Input bytes unchanged,
+  two denied write-opens and all custody closed; no job/session/process dispatch.
+  The persistence profile attributes4.802s to three snapshots; the third discards
+  all hashes and keeps only tree membership before FileLease hashes again.
+- Replace that discarded byte snapshot with fresh tree membership, matched
+  exactly to previously checked selected files within each root. Keep original
+  file/count/byte quotas and independent retained-handle hashing plus final
+  membership checks. A late unselected file must refuse instead of entering a
+  declared tree without a held handle. Focused mutation/custody and persistence/
+  pair checks plus changed read-only timing are required before acceptance.
+
+### 2026-09-25 — M1.6q.12 focused component verification
+
+- Retain exact fresh membership, quotas, selected-file hashes through acquired
+  handles and final membership checks while removing a discarded byte snapshot.
+  Late unselected files now refuse before they can enter an unheld tree.
+- Initial58 passes/one test assertion failure25.82s preserved. Correct canonical
+  extended-path expectation; final3 cases pass94.53s, including the corrected
+  late-addition cleanup case and relevant saved-body/worker pair paths.61
+  distinct passes/no skips. Initial unused-import lint failure fixed; final
+  Ruff/whitespace pass. Synthetic fixtures and real Windows custody only.
+- Read-only persistence8.797s to6.781s with identical complete state/inventory
+  and unchanged retained native09 input. Both diagnostics deny two write-opens
+  and close custody; no configuration writes, jobs reopened or live sessions.
+- All40 real tables unchanged at$4.887796/no owned runtime. No native10 or model
+  call. Preserve all failures, holds, consumed decisions and original windows.
+  Next inspect pre-writer import ordering under existing parent custody/clocks,
+  retaining durable receipts and full later validation. Full G1 remains open.
+  [Evidence](docs/verification/2026-09-25-m1-protected-preparation.md).
+
+### 2026-09-25 — M1.6q.12 evidence preservation complete
+
+- Final audit passes440 source pins,61 distinct passing cases, identical
+  diagnostic state/input,40 unchanged authority tables and no owned runtime.
+  All423 historical milestone IDs retained, newM1.6q.12,1,674 local links,
+  append-only progress and unchanged prior SPEC text/JSON. Preserve the first
+  audit's SOURCE_SCOPE refusal: its allowlist omitted the intentional SPEC
+  addition; corrected to exactly SPEC and vanilla_persistence.py.
+- Independently verified private archive4,243 files/12,231,390 bytes, SHA-256
+  `0d9152df0ba37c3d9081b31c0b715001f1d4179ecc99ba89c74797dd14ea4067`.
+  Initial test and lint failures, before/after profiles and complete outputs
+  remain. No native10, paid call, bounds change or G1 promotion.
+- Next inspect pre-writer import ordering with existing parent clocks,
+  configuration/runtime custody, durable receipts and complete later checks.
+
+### 2026-09-25 — M1.6q.13 pre-writer import ordering begins
+
+- Clean2f7d6e4; prior turn progressed with implementation,61 passing cases,
+  identical-state read-only profile and sealed evidence. All40 durable tables
+  unchanged at$4.887796/no owned runtime; no new spending authority.
+- Trace imports to already-held software, worker configurations/runtime/account
+  declarations and parent reservation. Copied server trees are not required.
+  Select a preparation context after durable PREPARING/storage/namespace
+  admission and native-input custody, before either writer acquisition.
+- Preserve one-use attempt semantics, bounded import process ownership, flushed
+  receipts, parent deadlines, later source/config checks and cleanup before
+  fencing. Add final dispatch deadline refusal after worker input rechecks.
+  Original300/200-170/60-60s limits stay; no native10 selected before verification.
+
+### 2026-09-25 — M1.6q.13 implementation under focused verification
+
+- Added a pre-writer preparation context after durable pair/storage/namespace
+  admission and native-input custody. Complete worker imports flush receipts and
+  validate parent/configuration/runtime/account state before writer acquisition.
+  Later run binds the same preparation and writer-plan digest. Early failures
+  clean imports/logs; running failures retain cleanup before writer unwind.
+- HeldPackWorker now accepts a private finite preflight deadline and checks it
+  after runtime/config revalidation immediately before process creation. Invalid,
+  expired and validation-consumed deadlines have focused no-dispatch cases.
+- Positive/failure tests check receipts before each writer, no writer roots on
+  import failure, parent expiry/copier refusal cleanup, durable fencing and held
+  budgets. Native verification now independently joins both import stop receipts
+  before each writer, but no native trial has been selected or run.
+- Ruff passes. Source hashes captured in the private evidence root. Exec2571
+  (deadline, pack-worker and full paired-worker suite) and exec23955 (copy and
+  selected server-only regressions) are live; no aggregate result yet. Preserve
+  their handles and distinct basetemps rather than restarting. G1-G5 not_run.
+
+### 2026-09-25 — M1.6q.13 server/copy regressions complete
+
+- Exec23955 is terminal:17 cases pass386.93s, one authentic opt-in case
+  explicitly deselected, no skips/failures. Includes copy admission/cleanup,
+  server-only complete paired stop/export and whole-scope reservation checks.
+  Preserve raw JUnit/logs. Exec2571 remains live in the worker failure matrix;
+  no aggregate source or native/G1 pass is claimed yet.
+
+### 2026-09-25 — M1.6q.13 focused suites pass; changed native10 selected
+
+- Main exec2571 passes78 cases849.16s; server/copy exec23955 passes17
+  cases386.93s, one authentic opt-in case deselected.95 distinct source passes,
+  no skips/failures. Tested source hashes unchanged; final Ruff passes.
+- Select one fresh native10 attempt for imports-before-writers and verified
+  q10-q12 preparation changes. Preserve original300/200-170/60-60s windows,
+  real profile02/world identity, source-bound helpers and every prior failure.
+  No inference call or budget extension. Fresh preparation exec54359 verifies
+  authority/host/source pins before making a one-use input; dispatch is pending.
+  Full matched-state/native admission/clocks/disposal and G1 remain open.
+
+### 2026-09-25 — M1.6q.13 native10 dispatched once
+
+- Preparation54359 passes original source-world/profile/helper and authority
+  checks. Fresh dispatch verifies95 passing cases,441 matching source files,
+  all40 unchanged authority tables, host resource capacity, free25565 and no
+  existing writer evidence parent. No paid inference authority is used.
+- Native exec24927 is running with input
+  `cf3aadb467a40cc6085ddeb3c5fafcceda3fb7a69a82ead9b27fa1a7830f58ea`.
+  Resume that handle; never replay it or prior cases on a timeout. All original
+  windows and accounting holds remain. Result is pending; no G1 promotion.
+
+### 2026-09-25 — M1.6q.13 native10 terminal refusal audited
+
+- Exec24927 fails233.02s, JUnit231.798s, PROBE_WORLD_DEADLINE before world-copy
+  admission. No import/copier/server/worker dispatch; new import ordering not
+  reached. Parent FENCED, resources reserved, no world row or writer table.
+  Configuration files exist; worker state directories and external writer
+  evidence parent remain empty. Do not replay the consumed input.
+- Parent preparation211.969s: first worker-input entry148.437s, second11.094s;
+  shared software preparation20.468s. Overlapping software/parent checks remain
+  separately labeled; never sum them as authoritative campaign time. Original
+  parent300s/writers200-170s/servers60-60s limits are unchanged. Cause unknown.
+- Independent audit passes actual empty-dispatch scope, fencing/holds,441 source
+  pins,40 real authority tables unchanged at$4.887796 and no owned runtime.95
+  focused source cases pass; full authentic integration/G1 remain unverified.
+- Next read-only phase diagnosis of the first HeldPackWorker input entry under
+  fresh custody. Preserve cases01-10; no unchanged game rerun or spending scope
+  expansion. [Evidence](docs/verification/2026-09-25-m1-prewriter-imports.md).
+
+### 2026-09-25 — M1.6q.13 and native10 evidence sealed
+
+- Independent source archive14,502 files/45,604,709 bytes:
+  `bfc91309dbe73cada303beac38afd7ab5ac6c5a75f408409bc91022075ad24e2`.
+  Failed native10 archive669 files/44,767,353 bytes:
+  `2ae54226446f86ea7334735d4a74dd1e24551015631663dccf9dcc48e30bd45b`.
+  Both verify; full artifacts and empty directories remain preserved.
+- Final audit confirms95 source passes,441 pinned source files, native ordering
+  unexercised, all40 authority tables unchanged and no owned runtime. Preserve
+  all424 historical milestone IDs/addM1.6q.13;1,679 links, append-only progress
+  and prior SPEC text/JSON pass. Ruff/whitespace pass; all sessions terminal.
+- Next isolate the148.437s first-entry delay with read-only phase profiling;
+  no unchanged native replay, no bounds change, no G1 promotion.
+
+### 2026-09-25 — M1.6q.14 read-only worker-entry phase diagnosis
+
+Native10 remains failed and consumed; no launch is selected. Fresh diagnostic
+custody holds two deferred workers using its unchanged profile02 binding.
+Record nested wall/CPU phases and cProfile for each entry without committing
+configuration, opening account sessions or spawning a game/model process.
+All40 real authority tables match native10's final readback at$4.887796; no
+owned runtime exists. Inherits M1.6q.13 F/N/C and partial T01/T02/T06/T07/T11
+mappings. This resolves a named preparation blocker; wider G1 remains open.
+Private root: `C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-entry-phases-01`.
+
+### 2026-09-25 — M1.6q.14 phase result and complete preparation diagnostic
+
+Read-only two-worker entries pass14.327s/13.865s; the148.437s native10 delay
+does not reproduce. Both complete pinned runtimes (11,725 files each) remain
+held together; all custody closes, four write-opens denied, zero config/game/
+model writes or dispatches. All379 Python source pins and40 authority tables
+match. Cause remains unknown; no fix or native11 selected.
+
+Add an explicitly opt-in preparation-only test using the real registered-pair
+fixture path, pinned authentic software/save and synthetic agent/protocol/budget
+records. It profiles both entries, permits fresh private configurations only,
+blocks ManagedProcess, stops before world-copy admission, and preserves original
+300s parent/fenced reservations. This checks the larger context omitted by the
+first diagnostic without selecting a game rerun. Result pending.
+
+### 2026-09-25 — M1.6q.14 registered preparation diagnostic verified
+
+The new opt-in diagnostic initially fails collection due to missing
+directory_fixture argument; retain that source/output. Corrected case passes
+73.46s, no skips and two existing warnings. Original300s parent includes59.711s
+preparation/cleanup. Worker entries14.499s/14.629s; bundle acquisitions7.999s/
+7.959s dominate routine input cost. Nested profile intervals are not additive.
+Actual pinned software/save and account declarations with synthetic agent/
+protocol/budget records; both configs held, states empty, no game/model/import/
+copier dispatch. All handles close; parent FENCED, full resources/budgets held;
+no world/writer tables. Delay not reproduced; no causal fix or native11 claim.
+Next inspect sharing continuously held exact immutable runtime across members
+without sharing member configurations, accounts, processes or cleanup ownership.
+[Evidence](docs/verification/2026-09-25-m1-worker-entry-phases.md). M1.6q.14 remains
+in_progress; wider G1 remains not_run and all prior failures remain.
+
+Final audit confirms442 source pins (all441 prior pins unchanged),426 unique
+milestone IDs preserving all425 prior IDs,1,685 local links, append-only history,
+unchanged SPEC content, Ruff and whitespace checks. An initial audit compared
+Windows CRLF worktree bytes against Git LF bytes and failed SPEC_CHANGED; both
+that script/output and the corrected normalized-text check are retained. The
+independent existing source hash check passes in both audits. All40 authority
+tables remain unchanged at$4.887796; no owned runtime remains.
+
+Q14 diagnostic evidence is sealed and independently verified:688 files,
+46,737,787 bytes, SHA-256
+`022401e06fb38ee1703a90ef3b50f941972c95c3ab15a66525ba0f15d237d453`.
+This pointer follows the archived documentation snapshot. Preserve this root
+and native01-10 unchanged; use fresh storage for subsequent implementation.
+
+### 2026-09-25 — M1.6q.15 pair-owned immutable runtime custody begins
+
+Q14 measures two full acquisitions of the identical pinned runtime at7.999s/
+7.959s under cProfile. Add a private pair-owned pool whose contexts outlive all
+member contexts/processes, keyed by exact manifest path/hash and checked live
+on every borrow. No global cache, mutable state sharing or byte-check bypass
+on first acquisition. Preserve configuration/account/process ownership and
+full fresh authority/layout/member checks. Inherits M1.6q.14 mappings. All40
+real authority tables match Q14 at$4.887796; native10 cause remains unknown.
+No native11 selected, paid call or original deadline change.
+
+### 2026-09-25 — M1.6q.15 implementation under focused verification
+
+Private HeldWorkerRuntimePool owns exact path/hash runtimes for one pair
+lifetime. First acquisition remains complete; later borrow checks live custody
+and membership. Pool registered before member contexts; member config/process
+cleanup precedes runtime release. Standalone ownership unchanged. Added focused
+closed/changed/invalid/independent-owner tests and paired cleanup-order assertions.
+Source session3141 is active with separate evidence/basetemp; poll it instead
+of restarting. No authentic preparation/game dispatch selected yet. SPEC records
+the lifetime rule without changing prior acceptance text or deadlines.
+
+### 2026-09-25 — M1.6q.15 source checks complete; authentic preparation selected
+
+Session3141 terminates with104 passes and one failure in660.87s. The ownership
+tracking test patches the old pack_worker constructor alias after acquisition
+moved into worker_bundle; preserve its complete failure/source. Change only
+that test import and rerun the exact case: pass.105 distinct source cases now
+pass, no skips, production source unchanged across both runs. Closed custody,
+changed references/membership, whole-pair partial failures, expiry, receipts
+and cleanup ordering pass. No broad rerun.
+
+Selection audit verifies all tested sources, the one-line test-only correction,
+443 source pins and all40 real authority tables unchanged. Fresh authentic
+preparation session8976 is active using the same pinned profile02 software/save
+and new synthetic pair records, with process dispatch blocked. Preserve original
+300s parent and all resource/cost holds; no Minecraft or model call is selected.
+
+### 2026-09-25 — M1.6q.15 authentic preparation and source verification complete
+
+Session8976 passes66.16s, original300s parent; preparation/cleanup51.673s versus
+Q14's59.711s. First entry15.578s, second4.787s; one full bundle acquisition8.651s.
+Same pinned runtime/whole registered source, with separate private configs and
+synthetic agent/protocol/reservations. No game/import/copier/model dispatch;
+all handles closed, empty worker states, parent FENCED, resources/budgets retained,
+no world/writer tables. This measures reduced repeated acquisition, not native10's
+unexplained148.437s delay or a full paired runtime pass.105 source cases pass after
+retained tracking-hook failure and test-only correction. M1.6q.15 becomes
+implemented_unverified for authentic paired gameplay; full G1 stays not_run.
+Next final source/custody/capacity checks, then one fresh changed paired-worker
+trial under original300/200-170/60-60s. Keep all native01-10 failures and consumed
+inputs. No M1 paid authority inferred.
+
+Final audit passes443 current source pins,427 unique milestone IDs with all426
+prior IDs retained,1,689 local links, append-only history, prior SPEC text/JSON
+preservation, Ruff and whitespace checks. All40 real authority tables remain
+unchanged at$4.887796; no owned runtime remains. No native11 is selected yet.
+
+Q15 evidence is sealed and independently verified:14,391 files,78,805,077 bytes,
+SHA-256`b1a146fb9ef69eacd32f7cffeccd1ce24130e16ff559e6f6dd4b380f97cb18b0`.
+Source failures/correction, both source runs, authentic preparation, complete
+private fixtures and final audits are retained. This seal pointer follows the
+archived documentation snapshot. Sealing57176 is terminal/pass; use fresh
+storage for the next attempt and never alter this root or native01-10.
+
+### 2026-09-25 — M1.6q.15 fresh changed native11 selected
+
+Recheck clean commit1c0f9f5, sealed Q15 evidence,105 distinct source passes and
+one authentic preparation pass.443 source pins and all40 real authority tables
+match; no owned runtime, port25565 free and capacity checked. Preparation54002
+terminates/pass. Native11 uses original profile02 software/save/UUID, fresh
+writer state and no model calls. Input SHA-256:
+`77f8851bcdce1bd6fa9583b350a09f9165bd8948e1ef2f753c58500bf462271f`.
+Original parent300s, writers200/170s, servers60/60s and all reservations remain.
+This one changed attempt exercises Q15 shared custody and Q13 pre-writer imports;
+no prior attempt is replayed and native10's delay is not assumed explained.
+Private root:`C:/Users/Darian/.strata/evidence/2026-09-25-m1-worker-pair-native-11`.
+Fresh external writer parent:`C:/Users/Darian/.codex/native-evidence/m1-worker-pair-native-11`.
+Outcome pending; no native probe, full-state, disposal or G1 claim.
+
+### 2026-09-25 — M1.6q.15 native11 dispatched once
+
+Final dispatch preflight passes105 source cases plus authentic preparation,443
+source pins, all40 real authority tables, capacity/free port and absent prior
+writer evidence. One-use dispatch-selected.json is persisted. Native session10935
+is active; poll that handle and retain the consumed input rather than restarting.
+No result or gate promotion yet; all original deadlines and holds remain.
+
+### 2026-09-25 — M1.6q.15 native11 paired worker reference passes
+
+Session10935 terminates/pass257.12s, JUnit256.489s, no skips/failures. Independent
+audit passes actual identity/journal/zero-action/stop/copy/export joins. Both
+imports stop3/3 before writer barriers; each copier10/10, worker7/7, server12/12
+normal. Both stopped exports have27 state files and independently verified
+private manifests; first worker export is held through sibling. No watchdog,
+resource refund or scope promotion. World STOPPED_REFERENCE, writers STOPPED,
+parent FENCED/resources held.443 source pins and40 real authority tables remain
+unchanged at$4.887796; no owned runtime or model calls.
+
+M1.6q.13 and M1.6q.15 become verified for this named vanilla N=1-per-arm operator
+reference. M1.6q remains in_progress for the outstanding complete integration.
+Own-state projection only: full live initial state/native admission/disposal and
+complete-checkpoint/clean-save flags remain false. Original300/200-170/60-60s
+bounds and all cases01-10 remain. No unchanged successful rerun.
+[Evidence](docs/verification/2026-09-25-m1-worker-pair-native.md). Next private
+full-state/tool-policy witness, native admission, clocks and disposal; T05/T10
+and root/helper isolation still gate G1. No unrelated later work selected.
+
+Final source/document audit passes443 unchanged source pins, all427 milestone
+IDs retained,1,695 local links, append-only history, unchanged SPEC and whitespace
+checks. Only M1.6q.13/.15 gain the named reference verification; wider G1 and all
+unrelated milestones remain open/unchanged.
+
+Native11 evidence is sealed and independently verified:792 files,83,461,489
+bytes, SHA-256
+`54d8b771f7fef9d8d14a4bcd81129682b3d514c88de7071bb5456f3cd7028615`.
+This pointer follows the archived documentation snapshot. All sessions are
+terminal; keep the archive and original writer evidence unchanged. No replay
+of the successful case or any prior failed input is authorized.
+
+### 2026-09-25 — M1.6r complete private live-state witness begins
+
+Native11's actual paired lifecycle passes but cannot witness unprojected live
+player state. Inspect existing private vanilla callback instrumentation and
+retained saved-body/export evidence, then pin the installed official serializer
+rather than invent an API or expose additional state through Mineflayer. M1.6r.1
+covers bounded complete serialization, exact class/method bindings and strict
+UUID/thread scope. Live callback/provenance, full matching, native admission,
+clocks/disposal and all other G1 obligations remain open.
+All40 real authority tables match native11 at$4.887796; no owned runtime. Fresh
+private root:`C:/Users/Darian/.strata/evidence/2026-09-25-m1-live-body-witness-01`.
+No paid allowance, game rerun or deadline change is selected.
+
+### 2026-09-25 — M1.6r.1 save-format codec and retained-state findings
+
+Added the evaluator-only Java codec, exact inspected serializer/thread/UUID
+bindings, 16 MiB output cap and focused installed-code conformance tests.
+Five distinct cases pass: first run three passes/one negative-zero failure,
+then corrected ordinary-value round-trip and explicit normalization tests pass.
+Keep the original diagnostic API failure and all test outputs. No live capture
+is claimed; save NBT omits transient state and does not prove producer identity.
+All 38 retained player fields were compared; both stopped arms differ from the
+source in XpSeed and warden_spawn_tracker. Do not normalize those differences
+away or infer live initial equality. Native11 is unchanged and not replayed.
+See [report](docs/verification/2026-09-25-m1-player-nbt-codec.md). Next bind actual
+loaded bytes/owned callback provenance and verify real capture, then complete
+matching/tools/clocks/disposal and remaining G1 obligations. M1.6r in_progress,
+M1.6r.1 implemented_unverified; no model/game dispatch or changed paid authority.
+
+Final audit: 447 source pins, all 429 milestone IDs, append-only history and
+1,550 local links pass. All 40 real authority tables remain unchanged at
+$4.887796 exposure and no owned runtime remains. Both stopped arms also differ
+from each other in XpSeed and warden_spawn_tracker; initial live equality remains
+unknown. A failed documentation write left the file intact; patch edits then
+succeeded. Actual loaded bytes/callbacks, live UUID/thread failures, transient
+state, overhead/parity and all remaining G1 contracts stay unverified.
+
+R1 evidence is sealed and independently verified: 48 files, 19,421,731 bytes,
+SHA-256 `9b23142694d2f3ebb08fedfa7b2ba480f57ceaf784eb54cd1612b5c2147a30b0`.
+This pointer follows the archived documentation snapshot. No milestone/gate is
+promoted by archive sealing; M1.6r.1 remains implemented_unverified.
+
+### 2026-09-25 — M1.6r.2 authentic callback binding begins
+
+R1 made concrete progress and is retained. Verify current HEAD f916666 and clean
+worktree, all 40 WAL-aware authority tables unchanged at $4.887796 and no owned
+runtime. Implement a distinct private body observer using inspected exact server
+and player methods, preserving the old clock agent/profile. Require byte, thread,
+receiver, roster and lifecycle scope; do not claim live evidence from fixtures.
+No game replay, inference spending or weakened matching criterion is authorized.
+
+### 2026-09-25 — M1.6r.2 distinct body observer implemented
+
+Added exact loaded-class/code-source/loader validation, receiver-preserving
+server/player instrumentation, immediate-caller checks, private one-shot same-tick
+roster capture and bounded create-once output. A closed final binding inventory
+prevents a terminal-record race; configuration reads are bounded and digest-bound.
+Post-capture player references are released, preserving ordinary respawn outcomes.
+Nine final-candidate checks pass in 7.66s; earlier five/seven-case runs are retained.
+Actual JVM cases verify methods without game initialization and reject forged
+callbacks, changed bytes/source/loader, absent attach protection and bad config.
+Synthetic roster cases do not prove real capture. See [report](docs/verification/2026-09-25-m1-player-body-callback.md).
+No game/model/native-probe dispatch, paid authority change, clock-profile mutation
+or native11 replay. M1.6r.2 implemented_unverified; next owned launch/custody and
+independent output verification, then authentic capture/parity and full matching.
+G1 remains not_run, including every unrelated still-required acceptance contract.
+
+R2 final audit passes: 454 source pins, all 430 milestone IDs, append-only
+history and 1,706 local links. All 40 real authority tables remain unchanged at
+$4.887796; no owned runtime. Candidate JAR is 143,995 bytes, SHA-256
+`999ad44d16b5d6255963c3571e70842ec4c4c642f28d993665c513671855cba6`.
+Eight native JVM cases are terminal: one normal noninitializing verification,
+four exit-126 producer refusals, three exit-1 configuration/agent refusals.
+No capture file exists; none of these cases is real player-state evidence.
+
+R2 archive sealed and independently verified: 230 files, 3,158,224 bytes,
+SHA-256 `60a824ed3aa2169df716fd34c4d449b7e6ba982bbfb9124fd0b12927335fa1eb`.
+This pointer follows the archived documentation snapshot; no gate promotion.
+
+### 2026-09-25 — M1.6r.3 output and launch custody begins
+
+R2 is concrete progress, not a wait or completed gate. Recheck clean HEAD 5c9ef23,
+all 40 WAL-aware authority tables unchanged at $4.887796 and no owned runtime.
+Implement independent stopped-output inspection and integrate the distinct
+observer with existing protected writer ownership. Derive transformation pins
+from actual retained bytes; never accept success from a header or script alone.
+Retain old clock/native11 identities and all consumed inputs. No game/model
+dispatch or new spending authority is selected.
+
+### 2026-09-25 — M1.6r.3a fresh authentic body capture selected
+
+Independent reader44 cases, custody/launch36 cases and wait/scope4 cases pass.
+Use the existing successful standalone identity-native02 reference as a source
+of pinned profile/runtime/input facts, not as a replay. Fresh native01 has a new
+writer ID/workspace, private evidence, worker configuration and observer run;
+writer/2 carries the exact R2 module/configuration identity. Keep predecessor
+480s writer/180s server limits; this is separate from native11's paired profile.
+Wait for a complete private capture record before stopping the worker, within
+existing deadlines. No model call, gameplay action or paid allowance is involved.
+Recheck authority, process/port/resources and exact source pins immediately before
+dispatch. Actual capture/parity/full matching remain unverified until evidence.
+
+### 2026-09-25 — M1.6r.3a native01 failure and retained-handle correction
+
+Native01 is terminal/failed/consumed with PROCESS_IDENTITY_UNAVAILABLE after
+normal 12/12 server exit. A complete real capture exists: 1,175 bytes/38 fields,
+tick118, stop185, 3,845 exact loaded classes. The independent post-stop diagnostic
+passes content only; no owned-producer or initial-equality claim is backfilled.
+All458 source pins and40 real authority tables match; exposure$4.887796 and all
+holds remain, no owned game runtime or model calls. Retain original480/180s bounds.
+
+The correction retains the Job/member handle authenticated live, then checks
+continuity and complete normal terminal history before export. An actual Windows
+child reproduces stopped image-query error31 while held creation time remains
+correct and all5 processes are signaled. Focused custody/writer/inherited-pair
+regression runs once, with real process lifetime and synthetic body bytes.
+Fresh native02 is prepared but not dispatched until those checks pass.
+
+Native01 originally sealed83files/17,779,726bytes, SHA-256
+ed3bf66417dbf26ad10d6a0cdbffc3a5604450483c36fd9f8aa80adab3f3b114.
+A post-seal mode=ro SQLite inspection created an empty WAL and SHM: original
+folder inventory now fails, all83 original bytes remain unchanged. Retain both
+sidecars and the failed check; exact original inventory copy verifies under the
+same seal at2026-09-25-m1-live-body-native-01-original-sealed-copy. The source
+archive records reconstruction. Use frozen/immutable DB reads subsequently.
+[Current report](docs/verification/2026-09-25-m1-player-body-custody.md) preserves
+these distinctions. G1 not_run; complete matching/parity and other gates remain.
+
+### 2026-09-25 — M1.6r.3a corrected native02 selected
+
+Retained-handle custody, writer and inherited paired-runtime regression passes
+63/63 in684.69s with two existing Typer warnings. With unchanged reader44, the
+current source selection totals107 distinct passes; no unchanged Java suite or
+native11 replay. Select fresh body-native02 with458 unchanged prepared source
+pins, new workspace/input/run identity and original480/180s limits. Dispatch
+rechecks complete authority/process/port/resource state. No model/actions;
+native02 outcome pending, native01 remains failed/consumed, G1 not_run.
+
+### 2026-09-25 — M1.6r.3/.3a owned capture verified, full gate still open
+
+Fresh body-native02 and independent audit pass: 1,175 bytes/38 save-format fields,
+capturetick106/stop164, single15.8526ms capture interval, 3,852 exact loaded class
+bindings. Normal12/12 server and7/7 worker exits; complete owned history but no
+all-external-writers exclusion claim. Source107 checks pass. Native02's first
+BODY_JOB_JOIN audit failure came from omitting two existing custody fields;
+corrected exact comparison retains both and passes without a game rerun.
+458 trial source pins/40 authority tables unchanged at$4.887796, zero model/actions
+and no owned runtime. Native02 sealed86files/17,975,544bytes:
+c1d39d45ea8b06e45b5ffe88407ca18eac0dd0bfd40eeea5df9e223598770ecc.
+
+[Report](docs/verification/2026-09-25-m1-player-body-custody.md) preserves native01,
+archive-sidecar incident, original limits and all failed checks. M1.6r.3/.3a gain
+only named save-format custody/reference verification. Full live initial and
+transient equality, overhead/mechanics parity, all-N/tools/clocks/disposal and
+remaining G1 contracts remain unverified. No catalog7/8 admission or qualification.
+M1.6r/M1 in_progress, G1-G5 not_run; unrelated M2-M7 untouched.
+
+R3 final source audit passes:458 source pins,432 unique/preserved milestone IDs,
+append-only progress history,1,715 local links and107 current source cases.
+Both native evidence bundles verify at their stated retained-copy/current roots;
+all40 authority tables and$4.887796 exposure/holds remain unchanged.
+
+R3 source archive sealed/independently verified:15,862files/436,387,761bytes,
+SHA-256 c31284fe15136bcf59eec26f8a04a343043803721c322317671c24bf36c91f31.
+This pointer follows the archived documentation snapshot; G1 remains not_run.
+
+### 2026-09-26 — M1.6r.4 paired complete-state comparison
+
+Previous goal work is progress: component capture committed9697edd. Recheck the
+clean baseline/all40 real authority tables unchanged at$4.887796/no owned runtime.
+R4 source root retains its preparation-date name2026-09-25-m1-body-matching-source-01.
+Exact official Player load bytecode confirms zero XpSeed invokes RNG. Original
+R1/native11 baseline is zero; body-native02 standalone saved state is also zero.
+Native11's stopped paired bodies are nonzero but remain probe-reference outputs,
+not authorized training imports. Existing authentic source loader accepts only
+StoppedVanillaSnapshot/2; do not loosen that boundary to reuse /3 probe outputs.
+
+Add separate paired server/3 and worker/2 observer profiles, complete registered
+roster/scope/module checks, all capture storage reservations, live roster barrier,
+retained producer/output joins and exact typed save-format comparison. Preserve
+all unknown/nested fields, integer types, array/list order and float bits;
+compound order alone is not state. Raw hashes remain. Bound diagnostic names/
+field listings and reserve8MiB while comparing all fields; overflow/refusal
+cannot silently pass. Persist mismatches before fencing; holds stay reserved.
+No full transient/initial-state or native admission flag is enabled.
+
+Initial comparator28pass/1fail was a test-fixture mistake (uppercasing an all-
+numeric UUID); retained source/output, corrected29pass. Initial paired15pass
+includes the unchanged legacy route. Review added bounded diagnostics; final
+45 comparator/paired cases pass116.93s, plus retained legacy case =46 distinct
+current source cases. Two existing Typer warnings; Ruff/whitespace pass.
+
+Select fresh2026-09-26-m1-body-pair-native-01 for the actual refusal path using
+the unchanged zero-seed source, with new observer profile and expected unequal
+captured state. Preserve parent300s, writers200/170s, servers60/60s; no model or
+gameplay action. Preparation/dispatch recheck private authority/source/host/port.
+Outcome pending. This is a negative integration case, not fair initial matching
+or full G1 completion. M1.6r/M1 remain in_progress; unrelated M2-M7 untouched.
+
+
+### 2026-09-26 — M1.6r.4 authentic preparation failure retained
+
+Body-pair native01 fails146.60s with PROBE_WORLD_DEADLINE before import/world-row/
+writer/server/worker dispatch. Worker entries98.891s/1.906s and preparation
+133.609s leave insufficient time for the first200s writer under the300s parent.
+No bound changes or unchanged rerun. Source46 distinct cases pass; R4 is
+implemented_unverified and R4a remains in_progress, intended mismatch refusal
+unverified. All461 pins/40 authority tables unchanged at$4.887796, parentFENCED,
+resources held, no owned runtime/model/actions. Independent audit passes after
+retaining the initial absent-parent assumption failure; fixture creates an empty
+parent and corrected audit requires that exact condition. Native root sealed236
+files/39,726,406bytes at bf2df15cbe1a06431aac114a4eebd3880245c5400eda94a633eacb19a32743d7.
+[Changed contracts, source checks and actual failure](docs/verification/2026-09-26-m1-paired-player-body.md).
+Next diagnose first-entry latency before selecting changed authentic execution;
+full initial/transient equality, parity and G1 remain open. D18/D19 stay M0-only.
+
+
+### 2026-09-26 — M1.6r.4b bounded first-entry interval diagnosis
+
+From f937f83, extend the existing preparation-only diagnostic with real path
+check/intervening-work wall/CPU intervals, bounded to32 slow samples per entry,
+plus aggregate counts/totals. No native I/O replacement or custody weakening.
+Fresh2026-09-26-m1-worker-entry-intervals-01 checks461 source pins, authentic
+sealed source, all40 real authority tables and host state before consuming its
+one diagnostic. Original300s parent and game/model dispatch prohibition remain.
+Ruff/whitespace pass; actual diagnostic pending. Preserve body-pair01 failure
+and all original timing limits. No game rerun selected; G1 not_run.
+
+
+### 2026-09-26 — M1.6r.4b diagnostic terminal; latency unresolved
+
+One authentic-input preparation diagnostic passes59.65s; preparation46.437s,
+entries14.341s/4.390s and one shared bundle acquisition8.267s. Top32 bounded
+private intervals per entry retained; largest2.102s is mostly CPU. Original
+98.891s body-pair01 and148.437s native10 stalls remain unexplained, not fixed.
+No native I/O/custody/time-limit changes or game/model dispatch. Source Ruff/
+whitespace pass. [Measurement and limits](docs/verification/2026-09-26-m1-worker-entry-intervals.md).
+M1.6r.4b remains in_progress; do not select an unchanged game rerun from this
+faster diagnostic. Next independent M1.5 scorer qualification coverage audit,
+with required G1 dependencies only. G1 not_run and M1 paid authority unchanged.
+
+
+### 2026-09-26 — M1.5a coverage audit and M1.5b machine completion witness
+
+From1dbbd96, audit every T10 control against exact retained profiles. Positive
+history5 remains one development furnace; negative history6 remains zero with
+no craft. Both retain all qualification flags false. Public visibility concern
+was disproved by existing GameEvent schema and a direct check; no scorer edit.
+Exact Thermal/CoFH source inspection distinguishes processTick RF use from
+processFinish validation/output/input resolution. Two guessed class names fail;
+outputs retained and final five-class inspection requires empty stderr.
+
+New private completion verifier requires exact scope/sequence/recipe and causal
+resource order with unchanged other resources. It is not authenticated scoring,
+sustained operation or energy/fluid authority. Initial38 setup errors use a
+non-JSON tuple; source/output retained, bounded-list fix gives38pass. Final53
+synthetic cases plus1 real compiled package exclusion/denial pass; changed-file
+Ruff/whitespace pass. [Audit and evidence](docs/verification/2026-09-26-m1-scorer-coverage.md).
+
+Retained negative root fails inventory because of one added Python cache; all329
+sealed files and original seal unchanged. Extra retained, exact original copy
+verifies under same seal. Initial receipt timestamp overflow corrected using
+strings without game replay or original mutation. Original folder stays
+inventory-invalid; use exact-copy path from report. No game/model launch or
+M1 spending extension. M1.5a verified for audit only, M1.5b implemented_unverified,
+M3.1b active only as the necessary G1 dependency, T10/G1 not_run. Next native
+producer with exact loaded-code/callback/thread/recipe/lifetime binding, then
+full registered window/setup/team/parity/negative controls. No later study run.
+
+### 2026-09-26 — M1.5b.1 native furnace phases and private ingestion
+
+From63cd6f1, verify40 real authority tables unchanged at$4.887796 and no owned
+runtime before work. Inspect pinned internal Thermal recipe/manager/inventory/
+augment APIs. Native SimpleMachineRecipe discards public recipe IDs; do not
+invent a registration binding. Add telemetry0.3.14/startup15 and distinct raw
+furnace capture policy. Observe validated native output/input boundaries, check
+thread/caller/tile/level/position/tick/recipe lifetime and retain refusals. Bound
+plain stacks/empty augments; full feature requirements stay open. Private models,
+offline/owned-pipe readers and startup prefix enforce new profile/duplicate/scope
+checks. Existing scorer and normalized M1.5b boundary contract are unchanged.
+
+Final Python79pass/3skip12.04s plus47 unchanged telemetry/pipe cases retained from
+initial run gives126 distinct Python passes; six Java tests pass (four synthetic
+phase cases and two actual installed-bytecode/compiled-hook cases). Offline
+compile/reobfuscated jar and Ruff/diff checks pass. Four opt-in native skips
+remain not_run evidence. Initial75pass/1skip/1failure/1error and intermediate
+29pass/1failure are retained test-fixture errors: scorer arguments, shared plan
+fixture order, then swapped tuple fields. No production gate weakening/game
+rerun. [Report](docs/verification/2026-09-26-m1-machine-producer.md).
+
+Private root2026-09-26-m1-machine-producer-01. No game/model calls, spending,
+installation or unrelated M2-M7 scope. M1.5b.1 implemented_unverified for authentic
+capture, parentM1/M1.5 in_progress, T10/G1 not_run. Next native registration and
+loaded-code authentication, protected reference/custody/effects/parity, then
+full RF/fluid/window/setup/team/controls and remaining G1 obligations.
+
+Final audit:474 source pins,438 preserved unique milestone IDs,1,753 local
+links,126 distinct Python passes and6 Java passes; four native opt-in skips.
+All40 real authority tables unchanged at$4.887796; no owned runtime/model/game
+calls. Source/evidence archive62files/2,640,219bytes, seal
+bb2dd188df41fc6369e0acb3a4d3d01ad560542ae5cedf566334c77702cd20ed.
+Module0.3.14 SHA25655477d9e33adfaf89d4c0b0ea42219b5e7120b72a5fdc19009356c1cee226d26.
+This pointer follows the archived documentation snapshot; authentic capture,
+registration/loaded-code authority and full G1 remain unverified.
+
+### 2026-09-26 — M1.5b.2 observed native recipe registration
+
+From5057204, actual authority40 tables unchanged at$4.887796/no owned runtime.
+Inspect pinned native registration/conversion/refresh code. Initial registration
+may precede MinecraftServer construction; bind actual server recipe-manager
+object and recheck it/source object against live server at completion. Observe
+direct and converted recipes with identity maps, both IDs, bounded generation,
+65536-entry maps/256-character names and complete same-thread pairing. Rebuild
+invalidates previous bindings; structural/quota/thread/reflection failure poisons
+the observer. Never reconstruct a recipe or match by output/equality/ID alone.
+
+New telemetry0.3.15/startup16/phases2 and completion/refusal2 record lineage while
+keeping qualification flags false. Private models, offline/pipe and prefix
+readers enforce new-profile/source-domain/generation guards. Old module0.3.14
+and its sealed evidence retain their original unbound identity. Existing scorer,
+normalized resource verifier, history6 and clock policy are unchanged.
+
+Python65pass2.68s plus focused compatibility48pass/1skip5.20s;113 distinct passes.
+Java final14pass, no skips; actual installed descriptors/return counts/refresh
+order plus synthetic index/phase controls. Initial13-case selection and subsequent
+reflection/name-bound hardening retained; offline compile/reobfuscated jar,
+Ruff/diff checks pass. No game/model/paid dispatch or new installation. Source
+and evidence at2026-09-26-m1-machine-registration-01; [report](docs/verification/2026-09-26-m1-machine-registration.md).
+
+M1.5b.2 implemented_unverified for authentic capture, parentM1/M1.5 in_progress;
+T10/G1 not_run. Next actual transformed/protected Forge registration/capture.
+Existing protected route requires a fresh native client binding; do not bypass
+it or reuse consumed grants. Then complete resource/fixture/setup/team/window/
+RF/fluid/controls/parity/isolation and the other G1 requirements. D18/D19 remain
+M0-only; unrelated M2-M7 untouched.
+
+Final audit:483 source pins,439 preserved unique milestone IDs,1,765 local links,
+113 Python passes/14 Java passes and1 native opt-in skip. All40 real authority
+tables unchanged at$4.887796; no owned runtime or game/model dispatch. Source/
+evidence archive66files/2,481,012bytes, seal
+312be18a0b9df81015e578e48d8bd29728971bd4439c396d6ce6c18bce7d6012.
+Module0.3.15 SHA256c462f6dfbbe675236c19b6d0d91b5f301053d1e15eef46ede712311972e72571.
+This pointer follows the archived documentation snapshot; authentic transformed
+capture, protected qualification and full G1 remain unverified.
+
+### 2026-09-26 — M1.5b.3 protected Forge observer preparation
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress from965dffb. Fresh native01 preparation preserves the protected
+writer/client binding, original deadlines and D13 cleanup. First scope is actual
+transformed-hook startup, ordinary filtered observation and normal stop; no craft
+replay, completion/scoring claim or model calls. All40 durable authority tables
+match at$4.887796 and no owned game process was present. Native result pending;
+T10/G1 remain not_run. Full resource effects and all other G1 criteria remain open.
+
+Initial private preflight looked for an absent authority-after.json filename;
+actual authority-final.json used successfully. No dispatch occurred. Fresh
+private source copy/preparation is in progress; preserve original references.
+
+### 2026-09-26 — M1.5b.3 native01 admission failure and early pin check
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+is in_progress. Native01 fails before Minecraft with REFERENCE_BOOTSTRAP_UNPINNED:
+its child inventory retained another worktree interpreter. Normal preparation10/10
+and pair15/15 exits; no game/client/model, all40 authority tables unchanged. The
+attempt remains UNCERTAIN/consumed and sealed; unused session retired. New early
+pair/launch pin checks pass11 focused cases. Fresh native02 corrects that exact
+pin with unchanged module/fixture/deadlines; result pending. T10/G1 remain not_run.
+
+Initial test selection skipped11 because the local JVM classpath file was absent.
+Offline writeTestClasspath succeeds; bound selection11passes5.90s, no skipped
+cases. Ten bad interpreter/bootstrap inventories reject before reservation or
+dispatch; one valid owned Python/JVM pair completes. Ruff/diff pass. Native01
+failure audit passes, preserving205 executed-source files and UNCERTAIN pair/
+protected/preparation states; no craft launch grant or server dispatch row.
+Native01 sealed435files/88,054,545bytes:
+f0bd12d57206bddf5909cebdbe15dc7785ae64ee935a00ad2f023e4f2fb89096.
+
+### 2026-09-26 — M1.5b.3 native02 startup evidence and retained guard failure
+
+M1.5b.3 [protected Forge observer integration](docs/verification/2026-09-26-m1-furnace-native.md)
+remains in_progress. Native02 reaches authenticated startup16 with the exact
+module/artifacts and registration-hook support, then fails worker startup with
+GAME_OBSERVATION_UNAVAILABLE. No public checks/actions/model calls; guardian
+fails and outer cleanup terminates the client. Server stops normally on abort;
+239 signed records inspect successfully, zero machine completions. Native02
+remains UNCERTAIN/consumed; no owned processes or session args remain. All40
+controller tables unchanged at$4.887796. New early launch-pin guard passes11
+focused cases. Native01 admission failure stays sealed. Next diagnose the
+500ms guard read's exact phase without raising bounds or replaying either run.
+Full completion/effects, authentication/parity and other G1 criteria stay open.
+
+Native02 pair604.844s/client startup233.391s. Private startup identity probe
+passes360ms with a5s bound, but subsequent guard reports unavailable under its
+500ms call policy. The retained record does not identify authority/identity/
+lane-status phase or establish cause; do not infer a timeout fix or lucky rerun.
+All24 client/29 server parent Job members and14 native server members are
+terminal; guardian has no passing timing and remains failed. Independent failure
+audit and complete signed-stream inspection pass only their named checks.
+Ledger440unique IDs preserve439 previous IDs;483 prior source pins unchanged
+except the declared pair/test change. SPEC unchanged; all G1 criteria retained.
+
+Final integrity audit:483 source pins,440 preserved unique milestone IDs,
+1,623 local links,11 focused passing cases;40 authority tables unchanged at
+$4.887796. Native01 seal435files/88,054,545bytes:
+f0bd12d57206bddf5909cebdbe15dc7785ae64ee935a00ad2f023e4f2fb89096.
+Native02 seal488files/88,078,316bytes:
+e87a1b633a885534334a2ac41cc24e60dbceee59500aa87d39d2440fb39fc993.
+Both reference attempts remain failed/consumed; native02 supplies partial
+startup evidence only. No model calls or remaining owned runtime. This pointer
+follows the archived documentation snapshot; M1/G1 remain open.
+
+### 2026-09-26 — M1.5b.3a private guard-phase diagnosis
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md)
+is in_progress from3933ee4. Add bounded failure phase/timing to the private
+supervisor journal after startup rejection or guard cleanup; retain original
+failure codes/deadlines and exclude contents/credentials.15 Python/9 TypeScript
+cases pass; exact installed FTB library resolves the first offline classpath
+failure. Real Java/HTTP phase checks pending. No game/model dispatch selected;
+all40 authority tables unchanged at$4.887796. Native02/full G1 remain failed/open.
+
+### 2026-09-26 — M1.5b.3a source/native-fixture phase checks
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md)
+is implemented_unverified for authentic diagnosis.19 distinct Python cases
+(including4 real synthetic Java/HTTP/process cases) and9 TypeScript cases pass.
+Retain first classpath failure and3 test failures caused by assuming the frozen
+fixture resumes. Corrected tests compare its actual unchanged action journal.
+Diagnostics are memory-only until rejection/cleanup and accepted only after a
+failure or confirmed stop; no read/lease/stop bound changes. Native02's exact
+failed phase remains unknown. Next fresh native03 with the changed diagnostic,
+original fixture/deadlines and zero model calls; full G1 remains open.
+
+### 2026-09-26 — M1.5b.3a protected native03 outcome
+
+M1.5b.3a [private guard-phase diagnosis](docs/verification/2026-09-26-m1-guard-phase.md) has source/transport evidence
+(19 distinct Python and9 TypeScript cases) and authentic native03 journal receipt.
+Native03 passes26 independent reference checks: protected Forge startup16,
+capabilities/two filtered observations, confirmed695.4081ms client-tree stop,
+normal server closure,295 authenticated records and complete30/30 client plus
+29/29 server parent process histories. All four durable reference states STOPPED;
+session arguments retired, no owned runtime,40 authority tables unchanged at
+$4.887796 and zero model calls. The diagnostic follows the confirmed stop and
+reports listener mismatch; it is not the cause of the requested shutdown.
+Native02's startup failure did not recur and its exact cause remains unknown.
+
+M1.5b.3/.3a remain in_progress: native03 proves the bounded observation/diagnostic
+integration only. No machine completion, loaded-code authentication, scorer or
+runtime isolation qualification is inferred. Retain native01/02 and initial
+source-test failures. Next bind and verify an actual furnace completion under
+protected custody, including exact recipe/input/output facts and retained
+negative controls; do not repeat native03 solely to reproduce native02. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 remain M0-only.
+
+Final integrity audit passes486 source pins,441 unique milestone IDs and1,783
+local links; append-only history and all40 authority tables remain unchanged.
+Source diagnostics archive2026-09-26-m1-guard-phase-01:36files/2,191,939bytes,
+seal4db8e097354d4faf584c9ba9da0b57ecee4d09ff9b96c1bd6996e2b972b1e5fd.
+Authentic reference2026-09-26-m1-furnace-native-03:492files/87,414,445bytes,
+seal4d17ace6759b9cc21d0cd850ae85deda2b322f65a77a958704cc33d0dcae2107.
+Both bundles independently verify. This pointer follows the archived source/
+documentation snapshot. Native01/02 failures remain; full M1/G1 remains open.
+
+### 2026-09-26 — M1.5b.3b authentic operation preparation
+
+M1.5b.3b begins the [actual furnace operation reference](docs/verification/2026-09-26-m1-furnace-operation.md).
+Verify a fresh declared fixture from archived clean-stop machine inputs before
+protected dispatch, then join ordinary scoped client effects to authenticated
+native recipe/completion facts. No new game/model dispatch yet; G1 remains open.
+
+### 2026-09-26 — M1.5b.3b fresh operation01 registered
+
+Declared composite preparation verifies8,609 files, two exact archived setup
+replacements, empty energized furnace, supplied dust3 and clean player counts.
+All40 authority tables unchanged at$4.887796; no existing Java. Fresh protected
+operation01 with554 input pins selects ordinary scoped dust/furnace actions,
+original deadlines and zero model calls. Outcome pending; no completion/scorer
+or G1 pass. [Evidence](docs/verification/2026-09-26-m1-furnace-operation.md).
+
+### 2026-09-26 — M1.5b.3b partial native capture and failed acknowledgment
+
+M1.5b.3b [authentic furnace operation01](docs/verification/2026-09-26-m1-furnace-operation.md) remains in_progress.
+The protected reference fails at deposit acknowledgment:
+GAME_MACHINE_TRANSFER_UNCONFIRMED, unknown/requires_resync, no replay. All four
+reference states remain UNCERTAIN/consumed. Separately, the authenticated server
+stream records three actual furnace completions, consistent generation2 direct
+expert recipe registration and all three correct resource boundaries. Saved
+terminal machine holds three iron ingots, no dust and8,000RF; this is partial
+capture evidence, not a client-action/scorer or G1 pass.
+
+Independent failure audit preserves six unique requests, explicit stop-all,
+370.5986ms guardian tree stop, normal server stop and complete94/94 client plus
+29/29 server parent histories. Session retired; no owned runtime; all40 authority
+tables unchanged at$4.887796 and no model calls. Late private samples show empty
+cursor/unchanged player inventory, but the owned snapshot at failure was not
+recorded. Next diagnose that precise acknowledgment mismatch without relaxing
+confirmation, replaying the deposit or relabeling the failed reference. Full
+T01/T04/T05/T06/T10/T11 and G1 remain open; D18/D19 stay M0-only.
+
+Final integrity audit passes486 unchanged source pins,442 unique milestone IDs
+and1,636 local links; SPEC and append-only history remain intact. All40 real
+authority tables/holds unchanged at$4.887796. Preparation/audit archive
+2026-09-26-m1-furnace-operation-preparation-01:18files/4,673,072bytes,
+sealb6da4668315d1dcca060d1bee784270247be870be37a34f46f584df2d3b7a61e.
+Actual operation01 archive:562files/96,120,115bytes,
+seala6bde2d4a71be1810b645349fe8749d076c0d68335c26a9128ed68663562a94d.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference remains failed/consumed; partial capture is not G1 completion.
+
+### 2026-09-26 — M1.5b.3c private acknowledgment diagnosis
+
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md)
+begins after the retained operation01 unknown receipt. Capture only bounded
+owned-state difference masks after normal failure handling; no acceptance or
+replay changes. Source/native evidence pending; full G1 remains open.
+
+### 2026-09-26 — M1.5b.3c source verification
+
+M1.5b.3c [private acknowledgment diagnosis](docs/verification/2026-09-26-m1-machine-ack-diagnostic.md) is implemented_unverified
+for authentic integration.50 distinct focused Java cases pass across the retained
+selections, including8 diagnostic cases; offline client build succeeds. Preserve
+the first missing-directory fixture failure and the release-test assertion that
+incorrectly expected the earlier cause to remain the terminal code. Corrected
+checks retain GAME_RELEASE_UNCONFIRMED precedence. No production acceptance rule,
+read/refresh count, action replay, deadline or installed client changed.
+
+The new bounded masks distinguish prediction/reply from reply/current mismatch,
+exclude hidden/machine slots and all item/component values, and publish only after
+existing fence/release/terminal handling. Logger failure cannot change the stored
+receipt. New client artifactd0e30db0 is archived; installed54568cb1 remains intact.
+Next validate the native operator-log receipt on a fresh changed-artifact operation,
+then resolve the observed cause. Operation01 stays failed/consumed; no game/model
+run in this increment, all40 authority tables unchanged at$4.887796. Full G1 open.
+
+Final integrity audit passes492 source pins,443 unique milestone IDs and1,797
+local links, preserving previous progress and all40 authority tables at$4.887796.
+Private source/build/test archive2026-09-26-m1-machine-ack-diagnostic-01:
+48files/2,938,735bytes, seal
+7ba6a132287b7c1bc720858b8ddecbd3b04638bcbd0fc1750252556522f1607e.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and full G1 not_run.
+
+### 2026-09-26 — M1.5b.3c changed client native reference
+
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) prepares one fresh changed-
+client reference. Old installed artifact/log preserved; candidate d0e30db0 is now
+installed. Same fixture/checker/deadlines, new scope/grant/session and private
+post-stop log retention. Operation01 remains failed/consumed; all40 authority
+tables unchanged at$4.887796. Native result pending; no model calls or G1 claim.
+
+### 2026-09-26 — M1.5b.3c authentic diagnostic result
+
+M1.5b.3c [authentic diagnostic operation02](docs/verification/2026-09-26-m1-machine-ack-native.md) confirms the native private
+diagnostic path; the gameplay reference remains fail/UNCERTAIN. At the sixth
+unique action (deposit), prediction/reply differ only in component identity of
+player-relative slot35, visible slot42: the untouched Sophisticated Backpacks
+backpack. IDs/counts match, received/current match exactly, no refresh was used.
+The changed field/caller is not established. No metadata is ignored or replayed.
+
+Three authenticated expert-furnace completions and saved output3/8,000RF remain
+partial evidence. Independent diagnostic and failure audits pass; the operation
+audit fails its public-action/stopped-state checks. Explicit stop-all,516.0927ms
+guardian,94/94 client and29/29 server terminal histories; session retired and no
+owned runtime. All40 authority tables unchanged at$4.887796; no model calls.
+Installed client is d0e30db0; prior54568cb1 and log are preserved privately.
+
+Next inspect pre-click baseline custody and exact component differences before
+choosing a correction. Historical minor39 restores reply/current drift; this
+prediction/reply failure is different and cannot inherit that result. Preserve
+both consumed failed references and original deadlines/holds. M1.5b.3c remains
+in_progress; full T01/T04/T05/T06/T10/T11 and G1 remain open. D18/D19 are M0-only.
+
+Final integrity audit passes492 unchanged source pins,443 unique milestone IDs
+and1,648 local links. SPEC/progress history and all40 authority tables preserved,
+exposure$4.887796. Preparation/audit archive16files/6,022,454bytes, seal
+9f5241f5e5b0b6ae59c7c86aeb71267f03149909effebed48505a49e9a8c2600.
+Authentic operation02 archive561files/96,528,579bytes, seal
+38630f898ff2c778cd4627a0ee9522c124de64403212fed25e025a039dc0a6c8.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Diagnostic passes; reference stays failed/consumed and G1 not_run.
+
+### 2026-09-26 — M1.5b.3d authoritative pre-click baseline
+
+M1.5b.3d adds an [authoritative machine preflight](docs/verification/2026-09-26-m1-machine-baseline.md). Before a machine click,
+one charged server read establishes the exact baseline, followed by the original
+observation/revision/age/input checks. Only untouched player metadata may be
+reacquired before input; clicked/cursor/resources stay exact. Post-click exact
+confirmation, no replay and original deadlines/budgets remain mandatory.
+Forge minor44/policy3 is a new unqualified identity; installed client is unchanged.
+Source verification passes40 distinct Java cases,2 TypeScript cases and1 Python
+cross-language case. Initial budget-fixture admission failure is retained.
+Next qualify the changed native client on a fresh protected operation. Both prior
+references remain failed/consumed. No paid model authority or G1 pass follows.
+
+Final integrity audit passes498 source pins,444 unique milestone IDs and1,808
+local links, preserving original progress and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-machine-baseline-source-01:
+41files/3,088,998bytes, seal
+8d139879678d967c776db049afb47b686e3e7f79a1e04f722d6b87231668c67b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic preflight and full G1 remain not_run.
+
+### 2026-09-26 — M1.5b.3d fresh native qualification
+
+M1.5b.3d [native server-baseline verification](docs/verification/2026-09-26-m1-machine-baseline-native.md) prepares fresh operation03.
+The source-tested client5fbb4eca is installed, with prior d0e30db0 and its log
+preserved. Both earlier failed references remain consumed. Same declared fixture,
+checker and limits; new protected scope/session. All40 durable authority tables
+match at$4.887796; no M1 paid allowance. Authentic result pending, G1 not_run.
+
+### 2026-09-26 — M1.5b.3d native preflight refusal
+
+M1.5b.3d [native operation03](docs/verification/2026-09-26-m1-machine-baseline-native.md) remains failed/consumed. Ordinary dust pickup
+passes, but deposit fails REVISION_CONFLICT during preflight. The hash-checked
+native journal binds exactly one refresh and one release to that request: no
+deposit click or replay. Exact failing comparison was not captured; operation02's
+backpack cause cannot be assigned to this run. No furnace completion occurs.
+
+Stopped save: empty furnace/20,000RF; late private cursor still holds three dust.
+Failure audit passes; overall operation audit fails. Guardian409.3859ms passes,
+98/98 client and29/29 server parent histories are terminal, session retired and
+no owned runtime. All40 authority tables remain unchanged at$4.887796. Installed
+candidate5fbb4eca stays unqualified. No model calls or shared-desktop input.
+
+Next retain bounded private preflight comparison evidence and resolve the failing
+comparison without replacing post-input baselines, stripping metadata or replay.
+The older exact-server/current restoration rule is a candidate to examine, not
+this run's proven cause. Prior failures and all G1 obligations remain intact.
+M1.5b.3d/M1 in_progress; full G1 not_run.
+
+Final integrity audit passes498 unchanged source pins,444 unique milestone IDs
+and1,659 local links. SPEC/progress history and all40 authority tables preserved
+at$4.887796. Preparation/audit archive17files/6,036,854bytes, seal
+9b0452155be39707f2f37d8494b082dbd0a6284dfc4df3937e5f3f55f8df1270.
+Authentic operation03 archive565files/96,981,802bytes, seal
+dd52dd86a7d01ec8fd051d5266a7048a0c5c384a7c27cada9853e8e65ce65bf7.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference stays failed/consumed; M1/G1 remains open.
+
+### 2026-09-26 — M1.5b.3e private preflight diagnostic source
+
+M1.5b.3e adds [private preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic.md) without changing acceptance.
+Fixed phases distinguish input-fence failures from current/selection/final-baseline
+comparisons. Value-free masks use already-read projected state, never hidden
+augment slots. Original errors and release precedence survive; publication occurs
+after the terminal receipt.61 focused Java cases pass with no failures/skips;
+new artifact is archived, installed5fbb4eca unchanged. Next authentic diagnostic
+capture on a fresh changed profile. Operation03 remains failed/consumed; G1 open.
+
+Final integrity audit passes500 source pins,445 unique milestone IDs and1,819
+local links, preserving earlier history and all40 authority tables at$4.887796.
+Private source/test/build archive2026-09-26-m1-preflight-diagnostic-source-01:
+29files/2,835,191bytes, seal
+b54aa40a4c57ca6e8abe1e4d6a4b8615ca355e964dfd7eb102de9d77807ba18b.
+Exact bundle verifies. This pointer follows the archived documentation snapshot.
+Installed client unchanged; authentic diagnostic integration and G1 not_run.
+
+### 2026-09-26 — M1.5b.3e native diagnostic preparation
+
+M1.5b.3e [native preflight diagnosis](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) prepares fresh operation04 with
+candidate1d4935ed installed; prior5fbb4eca and its log are preserved. Same fixture,
+checker and limits, new protected scope/session. All40 authority tables unchanged
+at$4.887796. Earlier failures remain consumed; result pending, no model calls.
+
+### 2026-09-26 — M1.5b.3b/.3d successful native furnace reference
+
+M1.5b.3b/.3d [authentic operation04](docs/verification/2026-09-26-m1-preflight-diagnostic-native.md) passes all17 reference checks:
+eight unique actions/27 action primitives, three signed furnace completions,
+output withdrawal and normal closure. Saved player counts add exactly three iron
+ingots; furnace is empty at8,000RF. All four reference states STOPPED/consumed.
+Guardian653.8858ms passes;140/140 client and29/29 server parents terminal, session
+retired and no owned runtime. All40 authority tables unchanged at$4.887796.
+
+M1.5b.3e's failure diagnostic was not exercised: no preflight refusal occurred,
+so its authentic diagnostic result stays not_run. Prior operation01/02/03 failures
+and unknown causes remain; this is no retrospective fix or general reliability
+claim. Installed1d4935ed is the exact successful profile. No model calls.
+
+Next use this retained positive trajectory to audit/complete the protected
+machine-scorer admission boundary, including loaded-code/custody/setup/team,
+full RF/window history, parity/isolation and T10 negative controls. Raw captures
+remain unscorable. Do not rerun unchanged gameplay solely to trigger diagnosis.
+Full T01/T04/T05/T06/T10/T11 and G1 remain open.
+
+Final integrity audit passes500 unchanged source pins,445 unique milestone IDs
+and1,671 local links, preserving SPEC/history and all40 authority tables at
+$4.887796. Preparation/audit archive17files/6,053,712bytes, seal
+8e7d3b58e6269b34c7eb6bbf21903e59c32d9333149c19e19aeea83de3a278f2.
+Authentic operation04 archive617files/99,056,420bytes, seal
+f0963cc8d19fcb2ba763901c4ac2880c7043161a0929b316cd72d108c19b537c.
+Both exact bundles verify. This pointer follows the archived documentation
+snapshot. Reference passes; failure diagnostic not_run; full G1 remains open.
+
+- 2026-09-26: M1.5b.4 implements native single-record resource verification sharing unchanged completion arithmetic.105 focused tests and three retained authentic completions pass; all230 signed records authenticated, original operation04 seal verified. Post-hoc recipe expectation does not become fixture authority; protected scoring/G1 remain unqualified. No new game/model run. Prior failed operations and consumed decisions preserved. See [source/reconstruction evidence](docs/verification/2026-09-26-m1-native-resource.md). Next bind pre-registered machine fixture/recipe, actual setup/team/loaded producer and remaining T10 controls.
+
+- 2026-09-26: M1.5b.5 adds PrivateCraftReferencePlan/4 machine resource expectations to the existing seal/launch/authenticated import.218 distinct focused cases pass,25 native opt-in skips; initial six fixture failures, subsequent wrong-column failure and lint finding retained. Prior operation04 replay authenticates230 records/three outputs but cannot become prior registration. No game/model run. See [verification](docs/verification/2026-09-26-m1-machine-reference.md). Next fresh V4 prelaunch-bound reference; full protected scoring/G1 remains open.
+
+- 2026-09-26: M1.5b.5 authentic operation05 fails at deposit preflight, no click/replay. M1.5b.3e current_match diagnostic binds server-reply/current drift solely to untouched player-relative35 components; actual field/caller unproven.227 signed records/zero completions, saved furnace20,000RF,505.8518ms guardian,96/96+29/29 terminal parents. V4 prelaunch bytes bind, but actual import refuses without a receipt; all four rows remain UNCERTAIN/consumed. All40 authority tables unchanged at$4.887796; no model calls. [Retained evidence](docs/verification/2026-09-26-m1-machine-reference-native.md). Next bounded exact-baseline preflight reacquisition and focused negatives before a changed-profile native attempt; full G1 open.
+
+- 2026-09-26: M1.5b.3f implements one bounded charged preflight reacquisition for operation05's actual current_match drift; preserves the first exact server baseline, original observation fence/budget/deadline and no replay.69 Java,2 TypeScript and1 Python focused cases pass; offline client/TypeScript builds succeed. Minor45/policy4 and private diagnostic policy2 are new identities, not upgrades to old evidence. Candidate31facc27 archived; installed1d4935ed unchanged. [Evidence](docs/verification/2026-09-26-m1-preflight-reacquire.md). Next fresh V4 native reference; all consumed failures and full G1 obligations preserved, no game/model call.
+
+- 2026-09-26: M1.5b.5 operation06 passes the changed minor45/policy4 native trajectory and actual prior-plan V4 import:17 operation checks,9 import checks, three signed completions among235 records, saved inventory +3 iron ingots and empty furnace8,000RF. All four rows STOPPED/consumed;704.1699ms guardian,138/138+29/29 parents terminal, session retired/no runtime. All40 authority tables unchanged at$4.887796; no model calls. M1.5b.3f authentic reacquisition-branch exercise remains unverified; no diagnostic or success marker, no unchanged rerun. [Evidence](docs/verification/2026-09-26-m1-preflight-reacquire-native.md). Next producer/setup/team/scoring admission and remaining T10/G1 controls. All historical failures/holds and unrelated M2-M7 preserved.
+
+- 2026-09-26: Begin M1.5b.6 actual processing RF/progress capture after operation06 positive sealed reference. Exact pinned processTick debits energy before decrementing progress; recipe cost and saved deltas cannot replace this evidence. All40 authority tables remain unchanged; no new dispatch/model allowance. Preserve every prior reference and G1 requirement.
+
+- 2026-09-26: M1.5b.6 implements private native processTick RF/progress capture and exact arithmetic, online profile/duplicate/generation guards and complete-stream private inspection.211 distinct focused Python cases pass,4 native skips;10 Java cases/offline build pass. Initial formatting/fixture-lint findings retained and corrected; operation06 original235-record inspection reproduced unchanged. [Evidence](docs/verification/2026-09-26-m1-furnace-energy.md). No game/model dispatch, artifact installation or authority change. Next fresh changed-producer reference; raw debit is not net recipe cost, sustained operation or protected score. M1.5b.6 implemented_unverified; all broader G1 requirements and historical outcomes retained.
+
+- 2026-09-26: M1.5b.6 prepares operation07, one fresh changed telemetry0.3.16/startup17 native processing reference;8,609 fixture files and557 dispatch inputs. Initial stale client server-module binding fails REFERENCE_CLIENT_SERVER before session/database/grant; retained and corrected. Original client/actions/machine plan/bounds preserved; all40 authority tables unchanged. Native result pending; no paid model call or gate promotion.
+
+- 2026-09-26: M1.5b.6 operation07 passes authentic telemetry0.3.16/startup17 processing capture:412 signed records,125 fully funded process ticks,12,000RF debited, two progress overshoots, three exact completion joins.17 operation/9 V4 import checks and processing/terminal audits pass, saved player +3 ingots/furnace8,000RF. All four rows STOPPED/consumed;556.0106ms guardian,126/126+29/29 parents terminal, no runtime/session. All40 authority tables unchanged at$4.887796; zero model calls. Initial stale module binding rejection retained/corrected before session/database/grant. [Evidence](docs/verification/2026-09-26-m1-furnace-energy-native.md). Next process-start/refund/continuous-interval evidence and remaining G1 controls; native underfunded/zero/refusal and client reacquisition branches remain unverified.
+
+- 2026-09-26: Begin M1.5b.7 native process-start carry/refund capture from c9586a5. Clean working tree, all40 authority tables unchanged at4,887,796microUSD and no owned runtime. No M1 paid execution authority inferred; every prior failure/hold remains.
+
+- 2026-09-26: M1.5b.7 implements telemetry0.3.17/startup18 private native process-start carry and stop-refund brackets, exact resource arithmetic and bounded authenticated ingestion.244 Python cases pass,4 native opt-in skips;13 Java cases/offline build pass. Retained operation07 inspection matches all412 records unchanged. Read-only audit wrong-key error retained/corrected. Candidate8a18fb62 archived, installed game unchanged; no game/model dispatch or authority change. [Evidence](docs/verification/2026-09-26-m1-furnace-transitions.md). Next fresh prior-bound two-item native reference for nonzero carry/refund, then complete intervals/setup/team/loaded-code and remaining G1 controls. All historical failures/holds and broader gates preserved.
+
+- 2026-09-26: Prepare M1.5b.7 operation08 from ffa13ea with telemetry0.3.17/startup18. Fresh two-item ordinary right-button pickup will exercise nonzero carry/refund; criteria and V4 output2 plan must bind before launch. All40 authority tables unchanged at4,887,796microUSD, previous pair terminal/seals verified, no owned runtime. No model calls or allowance change. Native result pending.
+
+- 2026-09-26: M1.5b.7 operation08 passes the authentic prior-bound two-item reference:329 signed records,84 fully funded processing calls/8,064RF debit, starts carrying0/−32 and a64RF final refund, two exact completion joins.17 operation/9 V4 import checks and processing/transition/terminal audits pass. Saved player +2 ingots/+1 dust, furnace empty12,000RF. All four rows STOPPED/consumed,745.6213ms guardian,134/134+29/29 parent histories terminal, session retired/no runtime. All40 authority tables unchanged at4,887,796microUSD; zero model calls. Initial processing audit stale identity assertion retained/corrected to prelaunch startup18, no game rerun or changed criterion. [Evidence](docs/verification/2026-09-26-m1-furnace-transitions-native.md). Next complete machine lifetime/intervals and remaining T10/G1 boundaries; native refusal/clamping and client reacquisition branches unverified. Full G1 not_run, all previous failures/holds preserved.
+
+- 2026-09-26: Begin M1.5b.8 from2066303 after successful native carry/refund reference. Add actual object-lifetime retirement and complete ordered server-tick resource boundaries; no inferred missing ticks or position-only identity. All40 authority tables remain unchanged at4,887,796microUSD, no owned runtime. Full T10/G1 criteria remain; no model/game dispatch yet.
+
+- 2026-09-26: M1.5b.8 source candidate implemented_unverified: [tick/lifetime report](docs/verification/2026-09-26-m1-furnace-interval.md). Java actual object registry and strict native hooks, private Python interval schemas/reader and exact sampled-window validator added; startup19/module0.3.18 keeps old profiles distinct.285 distinct Python pass/4 native opt-in skips,20 Java pass and offline reobfuscated build; final candidate061712cee52408d7514da3879c538ccb4cc496e485c378c43f23409decca2cf0. Original operation08 seal/329-record inspection unchanged; initial63 lint findings and guessed hierarchy lookup failure retained. No game/model run or installation; all40 accounting tables unchanged at4,887,796microUSD. Next prior-bound authentic interval/retirement/replacement verification, then remaining T10/G1 contracts; no M1 inference authority inferred.
+
+- 2026-09-26: Begin M1.5b.8 authentic interval reference preparation from37c80a6. All40 authority tables remain unchanged and no owned runtime is present. A fresh8,609-file source copy changes only telemetry0.3.17 to0.3.18; prior source remains intact. Keep the two-item ordinary checker/client/bounds; bind the unique first-start-to-final-refund84-tick window, complete child joins, no rejected ticks and actual terminal retirement before launch. This reference neither verifies replacement nor registers a protected scoring window. No paid model calls; prior consumed grants remain consumed.
+
+- 2026-09-26: M1.5b.8 operation09 fails with TELEMETRY_PIPE_QUOTA/REFERENCE_TELEMETRY_UNCERTAIN. Public eight-action checker passes; authenticated1,225-record/8,381,077byte prefix contains925 tick traces,84 processing calls/two completions and diagnostic84-tick interval3969-4052, but no retirement/clock/stop. Full reader and actual V4 import refuse; all four rows UNCERTAIN/consumed.130/130+29/29 outer parents terminal, inner cleanup forced, guardian fail/no timing, session retired/no runtime. All40 authority tables unchanged at4,887,796microUSD; zero model calls. Initial diagnostic frame/primitive labels corrected in a separate retained journal audit; no replay. [Report](docs/verification/2026-09-26-m1-furnace-interval-native.md). M1.5b.8a records the concrete capacity-contract/reservation dependency before any changed-profile attempt; all original bounds/failures and G1 criteria retained.
+
+- 2026-09-26: Begin M1.5b.8a from790ef45 after retained operation09 capacity failure. Verify40 unchanged authority tables and preserve old limits/consumed states. Implement a new prior launch capacity profile and durable logical spool reservation; unchanged historical profiles retain8 MiB/2,000 events. No inference/game dispatch. Full native interval acceptance remains failed; G1 not_run.
+
+- 2026-09-26: M1.5b.8a implemented_unverified: [capacity evidence](docs/verification/2026-09-26-m1-telemetry-capacity.md). Add private launch8/protected3 capacity binding, before-dispatch logical spool reservation, concurrent hold checks, broker agreement and terminal settlement atomic with STOPPED; preserve old profiles.163 distinct Python pass/62 native opt-in skips including34 new cases; initial two lint findings corrected and retained. Original operation08/09 seals/plans unchanged;329-record successful inspection unchanged and failed prefix still refuses clean-stop acceptance. All40 authority tables unchanged at4,887,796microUSD; no game/model run or installation. Next fresh changed launch-profile native verification with unchanged producer/criteria/bounds; full G1 and broader storage/isolation/scoring requirements remain open.
+
+- 2026-09-26: Begin M1.5b.8/.8a operation10 preparation from299da94. All40 authority tables unchanged at4,887,796microUSD; no owned runtime. Preserve operation09's sealed quota failure/UNCERTAIN states. Reuse and reverify the unchanged8,609-file interval source and client/checker; bind launch8/protected3 with256 MiB/100,000 events and logical spool reservation before native dispatch. Interval/transition criteria and all time/action bounds remain unchanged. This is a fresh reference, no consumed-grant replay or paid model call.
+
+- 2026-09-26: M1.5b.8/.8a operation10 fails before client dispatch on12/11/12 process inventory. Failure audit passes;256 MiB reserved before dispatch stays RESERVED. Pair UNCERTAIN, protected DISPATCHING, dispatch RUNNING and consumed launch preserved. Forced outer cleanup187s,29 held/27 signaled/zero active: terminal proof unqualified; later OS inventory empty. Unused pinned session arguments retired, no telemetry/gameplay/model calls. All40 authority tables unchanged at4,887,796microUSD. [Report](docs/verification/2026-09-26-m1-telemetry-capacity-native.md). Pending early abort was only published on later hard deadline; repair delayed-directory delivery and diagnostic detail before any changed-profile verification. Full G1 not_run; all prior failures/holds retained.
+
+- 2026-09-26: Begin M1.5b.8b from05cc6ba: fix first-failure abort delivery after delayed server-evidence creation and diagnose rejected retained-history reconciliation without changing its predicates. Required M1.5b.8/T01/T10 cleanup dependency, N01/N05/N08; no wider G2 scope. Operation10 original seal remains immutable,40 authority tables unchanged, no game/model dispatch.
+
+- 2026-09-26: M1.5b.8b implemented_unverified: [pending abort evidence](docs/verification/2026-09-26-m1-pending-abort.md). First durable failure delivered when server directory appears on later healthy iterations; single publication attempt and original shortened deadlines. Private observation2 gives one bounded rejection reason; all history predicates/no-retry/ownership semantics remain.57 distinct tests pass including12 new cases;3 strengthened native fixture terminal cases pass,3 JUnit property-format warnings retained. Ruff passes. No game/model run/installation,40 authority tables unchanged at4,887,796microUSD. Preserve operation10 failure, consumed/stale rows and256 MiB hold; next fresh changed-coordinator reference. M1 in_progress/G1 not_run.
+
+- 2026-09-26: Begin operation11 fromb6c5b0c after focused pending-abort/diagnostic verification. Original operation10 seal and256 MiB held reservation unchanged; its terminal history/stale inner rows remain unqualified. No current owned runtime or unused client session. All40 controller tables unchanged. Use a fresh workspace/instance/grant with unchanged producer/client/checker/interval criteria/capacity/time bounds and changed coordinator only; no model calls or consumed-grant replay.
+
+- 2026-09-26: M1.5b.8/.8a operation11 passes the prior positive native criteria onb6c5b0c:1,708 signed records,1,400 furnace ticks,84-tick window3549-3632/all89 child joins, unload retirement and clean stop;17 operation/9 actual import checks and processing/transition/interval/capacity audits pass.256 MiB reserved before dispatch,12,277,501 bytes consumed/256,157,955 unused settled atomically with STOPPED. Eight actions/28 primitives, two ingots/+one dust, empty furnace12,000RF;479.907s,913.6575ms guardian,134/134+29/29 terminal parents, session retired/no runtime. Initial terminal audit lacked the not-yet-recorded process-inventory input; retained traceback and read-only continuation verifies existing saved-copy bytes and passes without replay. No native early-abort/inventory anomaly/preflight diagnostic occurred. All40 authority tables unchanged at4,887,796microUSD; no model calls. [Report](docs/verification/2026-09-26-m1-pending-abort-native.md). Preserve operation10 consumed/stale rows and256 MiB held reservation. Next replacement/refusal and prior-window admission controls, remaining T10/G1 contracts; M1 in_progress/G1 not_run.
+
+- 2026-09-26: Begin M1.5b.9 from665f326: prior-bound operating-window admission over existing complete native interval/lifetime evidence, with deterministic first-episode/exact selectors and no replacement/gap/idle/resource/recipe borrowing. New sealed contract required; no retrospective registration of operation11. F10/F16, N01/N04/N06/N08, C12/C18/C24 and T01/T06/T10/G1. Original operation11 seal verifies,40 authority tables unchanged at4,887,796microUSD, no owned runtime. No game/model dispatch.
+
+- 2026-09-26: M1.5b.9 implemented_unverified: [prior operating-window source evidence](docs/verification/2026-09-26-m1-machine-window.md). New sealed plan5/machine-reference2 and inspection5 bind deterministic/exact windows, complete funded work/recipe/resource/net-RF joins, and original seal/consumed-launch order. No replacement, later-episode selection, idle padding or external resource borrowing.200 distinct focused tests pass/3 native skips,45 new cases; initial synthetic timing/exception/shared-state errors and41 formatting findings preserved. Operation11 original1,708-record inspection/seal unchanged; post-hoc window derives84 ticks/two outputs/8,000RF net without prior-registration authority.40 accounting tables unchanged at4,887,796microUSD, no game/model run/installation. Next fresh prior-bound V5 reference and actual replacement/refusal controls, then remaining T10/G1; no old evidence promoted or M1 paid authority inferred.
+
+
+### 2026-09-26 — M1.5b.9 authentic prior-window reference begins
+
+Source f6883f2 sealed/committed. Fresh operation12 binds PrivateCraftReferencePlan/5, machine-reference2 and the first-start/first-refund rule (minimum84 funded ticks,8,000RF net/two outputs) before dispatch. Existing producer/client/checker/time bounds and8,609 source files retained;565 pair inputs pinned. Authority40 tables unchanged/4,887,796microUSD, no owned runtime; operation10 hold and all failures remain. No model calls or M1 spending extension. Initial preparation shell omitted PYTHONPATH and failed before creating files; restored the explicit environment, retained the error, and prepared once. Acceptance remains unverified until actual import/terminal audits.
+
+
+### 2026-09-26 — M1.5b.9 authentic prior-window result
+
+M1.5b.9 [operation12](docs/verification/2026-09-26-m1-machine-window-native.md) passes the positive authentic V5 prior-window reference:1,798 signed records,1,485 complete ticks and the registered84-tick/two-cycle/8,000RF net window. 17 operation/17 actual store checks pass, including prior seal/launch order and idempotent reopening. Raw comparison remains unregistered; protected scoring remains false.
+
+Eight actions/27 primitives, two saved ingots/one leftover dust, furnace empty/12,000RF. Pair489.547s, guardian791.4342ms, complete terminal histories/session retirement/no owned runtime. Capacity settles at12,975,661 bytes; old operation10 hold remains. All40 authority tables unchanged/4,887,796microUSD; no model calls or new inference authority.
+
+M1.5b.9/M1 in_progress, G1 not_run. Next native replacement/refusal/negative window controls and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. Initial preparation environment error retained; no gameplay replay or altered limits. Do not repeat the unchanged positive reference.
+
+
+### 2026-09-26 — M1.5b.9a first-episode negative begins
+
+Prior turn made progress:6c9843d completes the positive V5 native reference. Rechecked clean branch, original operation10/12 seals, all40 unchanged authority tables/4,887,796microUSD and empty owned process inventory. Select a bounded native negative: ordinary one-item episode then a later two-item episode; same prior first-episode rule/minimum84 ticks/8,000RF/two outputs must refuse selection without searching ahead. Producer/client/game fixture and deadlines remain unchanged; no paid calls or new spending authority. Full T10/G1, underfunding/replacement/refusal and protected scoring remain open.
+
+
+### 2026-09-26 — M1.5b.9a first-episode negative result
+
+M1.5b.9a [operation13](docs/verification/2026-09-26-m1-first-episode-native.md) passes the native first-episode negative control: the first42-tick/one-output/4,000 RF episode is rejected, even though a later84-tick/two-output/8,000 RF episode is sufficient. The unchanged registered V5 rule returns zero selected credit with MACHINE_OPERATING_DURATION. The later comparison stays explicitly unregistered/unscorable.
+
+2,075 authenticated records/1,648 complete ticks,126 processing calls and134 child joins. 17 operation/17 actual import checks plus episode/capacity/saved-state/terminal audits pass. Twelve actions/44 primitives yield three saved ingots, empty furnace/8,000 RF. Pair 668.219s, guardian 841.9155ms; all rows STOPPED, session retired and no owned runtime. All40 authority tables unchanged/4,887,796 microUSD; historical holds preserved, no model calls.
+
+M1.5b.9a verified for this named control; M1.5b.9/M1 in_progress and G1 not_run. Next prepare a distinct sealed5,000 RF interruption reference, then remaining replacement/refusal/setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. The predicted52-tick/no-final-refund failure is source-only. This verified control is a short completed episode, not a mid-cycle interruption proof. D18/D19 remain M0-only.
+
+
+### 2026-09-26 — M1.5b.9b low-energy interruption begins
+
+Previous turn is progress:2632a4f verifies the first-episode negative. Original operation10/13 and preparation seals verify, all40 authority tables unchanged at4,887,796microUSD, no owned runtime. Prepare a new private fixture changing only the selected furnace Energy field from20,000 to5,000 RF; preserve all prior sources and verify semantic/byte scope before native dispatch. Same V5 minimum84 ticks/two outputs/8,000RF rule must reject the incomplete episode. Predicted52 fully funded ticks, one completion,8RF/one input left and no final refund; actual evidence remains pending. D18/D19 M0-only, no model calls; all historical holds/decisions remain.
+
+
+### 2026-09-26 — M1.5b.9b low-energy interruption result
+
+M1.5b.9b [operation14](docs/verification/2026-09-26-m1-low-energy-native.md) passes the authentic low-energy interruption control. A new5,000 RF fixture differs only in the selected Energy field. The furnace completes one item, starts another and stops after52 funded ticks with8 RF/one input remaining. Native processOff clears3,008 unfinished progress without refunding the992 RF spent on partial work. The unchanged prior V5 rule returns zero credit with MACHINE_OPERATING_REFUND_MISSING.
+
+2,001 authenticated records/1,647 complete ticks; 17 operation/17 actual import checks and all interruption/capacity/saved-state/terminal audits pass. Eight actions/30 primitives; pair 688.125s, guardian 841.8733ms. All rows STOPPED, session retired/no owned runtime. All40 authority tables unchanged/4,887,796 microUSD, historical holds preserved; no model calls or new inference authority. Initial temporary-region filename failure is retained; validation and limits unchanged.
+
+M1.5b.9b verified for this named interruption; M1.5b.9/M1 in_progress, G1 not_run. Next actual replacement/refusal and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. All processing calls were fully funded; partially funded native-call applicability remains separate. D18/D19 remain M0-only.
+
+### 2026-09-27 — M1.5b.9c replacement control preparation begins
+
+Operation14 is sealed and committed at41c2243; the prior turn made progress. All40 durable authority tables remain unchanged at4,887,796 microUSD. Inspect the exact ordinary dig/place route and pinned furnace item/placement semantics before preparing a fresh replacement fixture. Existing synthetic retirement/splice refusals remain distinct from missing authentic removal/replacement evidence. No model spending or game dispatch is authorized by this preparation record; D20 permits the bounded G1 control, while D18/D19 remain M0-only.
+
+### 2026-09-27 — M1.5b.9c fixture and checker prepared
+
+M1.5b.9c [replacement preparation](docs/verification/2026-09-27-m1-replacement-preparation.md) now has a fresh, verified 8,609-file fixture copy and a bounded 21-action checker. Only two declared chest items were added: a diamond pickaxe and a separate 20,000 RF furnace; the original furnace remains at 5,000 RF. Exact NBT/region invariants and source hashes pass. No game/model run occurred.
+
+The unchanged V5 rule must reject work spanning actual removal and replacement. This remains unexecuted: next bind the proposed limits into operation15, pin exact audits, prepare a fresh native session and recheck durable/process state before dispatch. All 40 authority tables remain unchanged at 4,887,796 microUSD; old failures/holds and M0-only inference authority persist. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
+### 2026-09-27 — M1.5b.9c operation15 prior binding
+
+M1.5b.9c operation15 is prepared for the full native removal/replacement control. All 569 pair inputs and eight audit scripts are pinned; the original V5 machine rule is unchanged. Prelaunch validation passes and all 40 authority tables remain unchanged at 4,887,796 microUSD.
+
+The earlier proposed 450s participant/720s server limits exceed the existing contracts. Before any dispatch, the actual plan binds a 60s worker, 340s client, 350s pair window and existing 360s participant/600s server limits, with 270s bootstrap and unchanged 1,000ms guardian. The complete 21-action control and acceptance remain; timeout is failure. No paid inference or shared-desktop input. Native result remains pending; M1/G1 stay open.
+
+### 2026-09-27 — M1.5b.9c native dispatch active
+
+Operation15 has dispatched once with a fresh native session. At the latest read-only checkpoint the server is participant-ready, the client is starting, and no public action requests or terminal result exist yet. The original process handle remains live; continue observing this attempt, never restart it on an observation timeout. Pre-pinned success/failure audits and conditional publication are prepared but unexecuted. M1.5b.9c/M1 remain in_progress; G1 remains not_run.
+
+### 2026-09-27 — M1.5b.9c native failure and checker correction
+
+M1.5b.9c [operation15](docs/verification/2026-09-27-m1-replacement-native.md) failed before placement: the checker observed dirt where it required grass. Fifteen actions/65 primitives remove the original furnace and equip the unplaced replacement; no placement request exists. Separately, the 1,000ms guardian fails, corroborated by a 1,038.4428–1,068.2396ms exit interval. Outer histories eventually terminate 206/206 client and 29/29 server, with no owned runtime and session retired.
+
+The authenticated 1,455-record stream and saved world confirm one removed lifetime, air at the old furnace and dirt support. The actual V5 store refuses the failed reference without creating a receipt. All four lifecycle rows remain UNCERTAIN; the new 256 MiB reservation stays held alongside operation10's separate 256 MiB hold. All 40 authority tables unchanged/4,887,796 microUSD; no model calls.
+
+A separate one-line checker correction accepts the delivered dirt/grass support while preserving native placement checks and the full control; it is implemented_unverified. Guardian cause remains unresolved and the 1,000ms bound stays intact. Next a fresh, prior-bound changed-checker control with all original acceptance criteria; no unchanged retry or general shutdown-remedy claim. M1.5b.9c/M1 in_progress, T10/G1 not_run; D18/D19 remain M0-only.
+
+### 2026-09-27 — M1.5b.9c corrected replacement prelaunch
+
+M1.5b.9c operation16 is prepared with the corrected dirt/grass support check, the full 21-action replacement control and unchanged 1,000ms guardian. All 571 pair inputs and eight unchanged acceptance audit scripts are pinned. Prelaunch authority/process checks pass; both operation10 and operation15 256 MiB holds remain. The original operation15 checker and shutdown failures remain authoritative history. No model calls or M1 inference authority; M1/G1 remain open. Native execution is next, with no result claimed.
+
+### 2026-09-27 — M1/G1 acceptance closure priority
+
+Execution priority reassessed after the user raised slow milestone progress: finish the active operation16, then close finite T01 coverage and keybinding/probe end-to-end deliverables before expanding furnace controls. Consolidate T10 and qualify the final T04/T06 profile. [Closure path](docs/verification/2026-09-27-m1-closure-path.md) preserves all acceptance criteria, authority and historical failures; no suite or G1 pass is claimed.
+
+### 2026-09-27 — M1.5b.9c operation16 failure and closure priority
+
+M1.5b.9c [operation16](docs/verification/2026-09-27-m1-replacement-corrected-native.md) fails at action18/GAME_MACHINE_TRANSFER_UNCONFIRMED after actual replacement placement. Eighteen requests/75 primitives; the unknown transfer is not replayed. The authenticated clean-stop stream and saved furnace confirm distinct removed/replacement lifetimes, but no replacement production window. The failed reference is refused without import.
+
+Guardian469.457ms and252/252 client plus29/29 server terminal histories pass this sample; operation15's original guardian failure remains. All four lifecycle rows UNCERTAIN; a third separate256MiB hold remains alongside operation10/15. All40 authority tables unchanged/4,887,796microUSD; no model calls. M1.5b.9c/M1 in_progress, T10/G1 not_run.
+
+Next follow the acceptance closure plan and fix the reproduced T01 KeybindingPatch semantic parity defect. No further furnace run is selected; original failures, holds and full G1 scope remain.
+
+### 2026-09-27 — M1.2b contract parity and finite T01 closure map
+
+M1.2b fixes the reproduced keybinding commit/schema disagreement and related public wire semantics for skills, actions, receipts and observations. [Contract evidence](docs/verification/2026-09-27-m1-contract-parity.md): shared140-case corpus agrees across Python/TypeScript;297 distinct Python and311 Node cases pass with43 unchanged opt-in skips. Initial fixture and earlier-rejection test failures are retained and resolved without weakening validation. Worker bundles include the six compiled startup schemas; gameplay packaging remains restricted.
+
+T01/G1 remain not_run. The finite acceptance map names seven reproduced operator/evaluator semantic disagreements plus GameEvent, cross-record references, migrations, conditional Java and RPC/auth/path integration still to close. These are next; no further furnace run. All40 authority tables unchanged/4,887,796microUSD, three separate256MiB holds preserved; no game/model execution or M1 spending authority.
+
+### 2026-09-27 — M1.2b private semantic parity and supported schema upgrades
+
+M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
+M1 must establish trustworthy data, permissions, controls, scoring and matched
+comparisons. No complete G1 suite is closed yet. Recent furnace work produced
+useful evidence but did not close T10; no further furnace trial is selected.
+
+The current M1.2b change fixes all seven reproduced private-record validation
+disagreements. All eight private canonical records now share 150 Python/TypeScript
+cases, complementing the five public records already covered. Supported SQLite
+schema upgrades preserve populated records and fail closed without inventing
+permissions or restoring consumed quota. [Current evidence](docs/verification/2026-09-27-m1-private-contract-parity.md).
+These local checks advance T01; they do not qualify native integration.
+
+| Required G1 suite | Current position | Closure work remaining |
+|---|---|---|
+| T01 contracts | Public/private canonical semantics and supported schema upgrades checked | Cross-record/reference admission, nested RPC/auth/path cases and conditional Java reconciliation |
+| T04 native host | Scoped native/root/helper evidence exists | Final game/settings/probe profile, selected skill, interruption/resume and all-call accounting |
+| T05 keybinding | Transaction, rollback, discovery and some native persistence/crash evidence | Complete real effects and full conflict/context/modifier/hold/failure matrix |
+| T06 isolation | Named native denial and permitted-access cases exist | Qualify the final integrated runtime, credentials and probe disposal on the exact profile |
+| T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
+| T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
+
+Next finish the finite T01 map, then keybinding and matched probes, consolidate
+T10, and qualify final T04/T06 before assembling G1. This follows the
+[closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
+remains outside scope. Report closed acceptance cases or end-to-end deliverables,
+not passing assertion counts as a proxy for completion.
+
+D20 implementation authority persists; D18/D19 inference authority remains M0-only.
+All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
+failures, consumed decisions and the three separate 256 MiB telemetry holds.
+No game/model execution was performed for this change.
+
+Executed 299 distinct Python and 161 Node cases; all pass, with two existing
+Typer/Click deprecation warnings. All 16 private generated bindings compile; all
+55 generated files reproduce. Package tests exclude private validator/schema
+canaries. See the linked report for commands, exact scope and remaining cases.
+
+Final custody audit passes: 23 changed-file pins, 458 preserved unique milestone
+IDs, 1,812 local links, all 40 authority tables and the three prior holds/seals
+unchanged, zero Java processes. The private archive verifies at 45 files /
+1,930,828 bytes, seal
+`aafdc12dd7e17f797fc98a1b57b8dbb430fff12afbbe3fb4f32d34f7c610a03e`.
+This pointer follows the archived documentation snapshot. T01/G1 remain not_run.
+
+### 2026-09-27 — M1.2b admission references, RPC nesting and Java action binding
+
+[Admission evidence](docs/verification/2026-09-27-m1-admission-contracts.md):
+preflight now shares canonical configuration/roster/account/system checks with
+creation. Direct lock/protocol/backend/agent references are verified before
+reservation; six old acceptance defects reproduced and refused. Shared nested
+RPC semantics pass in Python/TypeScript, and Java tests the actual canonical
+structured-action parser with explicit separate input-profile refusals.
+
+The initial fixture omitted spending ceilings; the CLI fixture later used a
+synthetic expiry against the real clock. Both failures and original sources
+are retained; fixtures corrected without weakening production checks. Actual
+commands, named scope and final counts are in the report. Application Java
+sources and installed game artifacts remain unchanged. Remaining T01 services,
+native translations and path reconciliation stay open; M1.2b/M1 in_progress,
+T01/G1 not_run. Continue contracts, then keybinding/probes and final scorer/runtime
+qualification; no further furnace trial and no M1 inference spending authority.
+
+Final integrity audit passes 13 changed-file pins, 458 preserved milestone IDs
+and 1,815 local links. All 40 authority tables are unchanged at 4,887,796 microUSD;
+three separate 256 MiB telemetry holds and prior sealed failures remain intact.
+No Java process remains. Private archive 2026-09-27-m1-admission-contracts-01
+verifies at 251 files / 2,573,970 bytes under seal
+`0b35aa5346c0cd472887886d08a0ced33b975d154102735735899066462d9f69`.
+This pointer follows the archived documentation snapshot. T01/G1 remain not_run.
+
+### 2026-09-27 — Native settings parity and dependency-directed T05 continuation
+
+M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
+values are now rejected by Java at admission. Shared cases and actual Python-to-Java
+store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](docs/verification/2026-09-27-m1-settings-contracts.md).
+The next implementation is M1.1b ordinary-input intended/competing effects. Its
+missing capable-extension interface is also required for final T01 reconciliation.
+T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
+
+Original Java20-pass/two-failure result retained; final27 Java and41 Python
+cases pass, including four actual JVM/HTTP integrations with synthetic bindings.
+Installed artifacts unchanged; no game/model call or M1 inference authority.
+
+Final audit: nine changed-file pins, 458 preserved milestone IDs, 1,820 local
+links, all40 authority tables unchanged/4,887,796microUSD and all three original
+256MiB holds preserved. Prior seals verify; zero Java processes remain. Archive
+2026-09-27-m1-settings-contracts-01 verifies at27files/1,835,659bytes, seal
+`9ca72bfa5a155df007407d222c63ac63710558376a7143e6c4b9fc38675d467c`.
+This pointer follows the archived documentation snapshot. T01/T05/G1 not_run.
+
+
+### September 27 — M1.1b bounded native key input
+
+Implemented the ordinary keyboard callback/polling engine and integrated safety release with native game/settings paths. [Evidence](docs/verification/2026-09-27-m1-key-input.md): 37 new synthetic cases plus 40 affected lane/store cases pass; offline compile/reobfuscation and diff check pass. Source-bound Curios consumer uses ordinary key consumption and actual window activity. F06/N02/N06, SPEC8.2 and T05/G1 remain incomplete: no native trial, effect observer/admission or public capability yet. Next connect the transaction-owned verification lane, then prove intended/competing effects and restart/rollback on the exact isolated profile. Forty authority tables and three distinct telemetry holds preserved, no model calls or new spending authority. Full M1/G1 remains active; no further furnace trial selected.
+
+Private key-input evidence sealed: 39 files/2,764,907 bytes, `4f3a3b20445f92abaaa4c40c3915b24a47a6e15b1993d6c23e7156fc64b611be`. Final audit preserves 458 milestone IDs, append-only history and 1,814 local links, with no Java process remaining. No native/game capability or gate pass is inferred from the rebuilt artifact.
+
+
+### September 27 — M1.1b transaction-owned native effects
+
+Connected the native input engine to the private game bridge, pending settings store and existing avatar lane/budget/journal. [Evidence](docs/verification/2026-09-27-m1-settings-lane.md): 22 new and 43 affected existing cases pass across the final applicable Java results, including actual loopback HTTP over synthetic game state; offline build/reobfuscation and diff check pass. Pending map/disk/metadata admission, durable plan/source joins, concurrent-action fencing, bounded observations and interrupted/consumed-ID handling remain explicit. Every effect result stays verified=false/committed=false. F04/F06/F09/F16, N01/N02/N03/N06 and T01/T05/T06 dependencies remain incomplete; next strict Python bindings/source joins, exact native preparation and authentic effects. No installation/game/model calls; forty authority tables and all three distinct telemetry holds preserved. M1/G1 active, no aggregate suite closed.
+
+Private settings-lane evidence sealed: 33 files/2,630,864 bytes, `f672512e5a15f2cbc18a72b18337bb0b6c23ffb0a2dc0768896ea282fb2de6f0`. Final audit preserves 458 milestone IDs and append-only history, validates 1,818 local links and confirms no Java process remains. Authentic effect, rendered-context and final-profile claims remain unverified.
+
+
+### September 27 — M1.1b Python/native effects and journal recovery
+
+Strict private Python bindings now join the production Java coordinator, store, lane and HTTP bridge. Apply/observe/query/rollback and actual JVM death/reopen pass with synthetic body/input. Original decimal-coordinate recovery failure and failed journals retained; game-only parser correction preserves integer sequence validation and hash fencing. [Evidence](docs/verification/2026-09-27-m1-settings-client.md): 46 distinct Python and 69 relevant Java cases pass across scoped runs, build/reobfuscation and changed-file lint pass. No Minecraft/model execution or paid authority change; full T01/T05/G1 remain not_run. Next authentic intended/competing effects, then restart/rollback and full T05 matrix.
+
+
+### September 27 — M1.1b baseline effects and native cycle preparation
+
+Added explicit /2 baseline effect/admission contracts with null transaction IDs and no pending/recovery transaction, retaining exact revision/budget/lane fencing; pending stages still require the actual transaction. Private E/F13 chord candidates and standalone modifiers enable conflict/essential-control checks while old title-only policy stays narrower. [Preparation evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md): 65 distinct focused Java and 47 Python cases pass across scoped runs; baseline fixture-context failure retained and corrected without relaxing checks. Candidate client and E-overlap options staged with original files backed up; preparation metadata collisions and stale compiled pins retained and corrected. No native game/model launch yet. Next dispatch the exact two-client/same-server repair/restart/rollback cycle after launch validation; T05/G1 remain not_run.
+
+
+### September 27 — native settings cycle preparation failure and corrected dispatch
+
+Attempt01 failed before Minecraft launch on the reproduced missing supplied_inputs declaration field. Preserve UNCERTAIN pair/protected/writer rows and unused issued authority; 15/15 pair and 10/10 writer process histories terminal, zero Java, unused session arguments retired. No model/game or new telemetry hold; all40 controller authority tables and old three holds unchanged. [Sealed failure and correction](docs/verification/2026-09-27-m1-settings-cycle-plan.md). Attempt02 now dispatched with fresh IDs/workspace and explicit typed supplied-input equality; follow its live handle, do not restart due to an observation timeout. Actual outcome pending; full T05/G1 remain not_run.
+
+### September 27 — M1.1b native baseline failure and source diagnosis
+
+Attempt02 reaches the real world but fails INTENDED_SCREEN_NOT_OBSERVED at the first E-key baseline: one inventory opening, no Curios opening. No patch/F13/restart/rollback; no post-input rendered frame. [Sealed result and corrected procedure](docs/verification/2026-09-27-m1-settings-cycle-plan.md). Native runtime/disk E overlap, 24 raw observations and hash-chain joins audited; 23 reconfiguration primitives plus two safety releases retained. Guardian full tree check677.3700ms, client18/18/server29/29 terminal, session arguments retired/zero Java. All40 authority tables unchanged; fourth separate256MiB hold retained with all UNCERTAIN lifecycle rows. No model calls or spending extension. Mapped Forge click lookup returns one active binding, invalidating the original both-screens fixture expectation. Separate undispatched procedure checks explicit inventory shadowing, then unchanged repaired separation/restart/rollback, capturing actual frames before assertions. Original failed criteria remain sealed; no retrospective pass. M1 in_progress, T05/G1 and all six aggregate suites not_run. Next fresh pinned corrected cycle, then full T05 and remaining G1 acceptance deliverables.
+
+Preparation/source seal:38files/2,445,032bytes, `3f1f3cceb677abb2e60b3780c3f575de461927aa8b86b946638b20604dde6052`. Native02 failure seal:271files/86,894,791bytes, `9e4f93f3c49b0b254440bbd15c84cb8627563c4fc8fb1cfade7f0b7ccca7e950`. All458 milestone IDs preserved;1,609 local ledger links checked. Changed Python lint and diff checks pass; no unchanged suite rerun. These pointers follow archived source/documentation snapshots.
+
+### September 27 — Corrected native shadowing cycle
+
+Continue from1196ce8; preceding goal turn made progress by sealing native02 failure and diagnosing Forge single-match lookup. Prepare native03 with fresh scope/workspace/authority and explicit inventory-only baseline/restored shadowing; unchanged repaired F13/Curios and E/inventory separation, restart/rollback, budgets and guardian. The separate corrected procedure captures actual settled frames before expectation checks. No old launch or authority reused, no model spending. Verify prior four holds and current source/process state before dispatch; native outcome not yet available. Full M1/G1 criteria remain.
+
+### September 27 — Native03 real F13 effects and retained frame-quota failure
+
+Native03 demonstrates inventory shadowing, native apply E→F13, Curios opening without inventory and ordinary E close, with four rendered frames and complete raw effect joins. It fails FRAME_TIMEOUT at the fifth request against the unchanged four-frame capture policy. No restart/native rollback/movement or repaired inventory test reached. [Evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md). Original pending journal preserved; stopped disposable fixture restored under profile lock with exact pretrial-byte CAS, explicitly no native rollback claim. All107 primitives, fifth separate256MiB hold and four UNCERTAIN rows retained. Client18/18/server29/29 terminal, guardian424.0296ms, no Java/session arguments/model calls; all40 authority tables unchanged. Failure seal338files/91,360,949bytes `9c3ee51373ad9195a2dad5ffc3c8b6043d62085945faf688246aef463c56ae7c`. Prepare native04 with explicit four-frame schedule/early check and all original actions, raw checks, limits and G1 criteria. M1 remains in_progress; no aggregate suite closure.
+
+Native04 dispatched once after current source/plan joins, all five old holds, native03 seal and empty Java inventory pass. Fresh scope/workspace/authority,588 pinned inputs; four-frame schedule matches unchanged native capture capacity before input. Follow live handle90970, never restart on an observation timeout. Native result pending; zero model calls.
+
+### September 27 — M1.1b.1 named native cycle verified
+
+Native04 passes the prior-bound Curios E/F13 preplay cycle: shadowing, one apply, intended/competing effects, bounded closes/sneak/release/forward, same-server restart with exact pending head/fresh session, repeated effects and native rollback/restored shadowing. [Evidence](docs/verification/2026-09-27-m1-settings-cycle-plan.md):13 effects/eight frames/331 observations joined,355 primitives retained, all bindings/pretrial E-fixture bytes restored. Client45/45/server29/29 terminal, guardians431.4892/501.0879ms, no Java/session arguments/model calls. Four lifecycle rows STOPPED; current256MiB reservation CONSUMED12,114,461bytes with256,320,995unused settled. Five old holds and all40 authority tables unchanged. Seal553files/107,150,026bytes `bc28613086e9b770e7f5cf7ffa492ea456e56efd96dd5212ceb9aca521507fd5`. Add verified childM1.1b.1; full parent/T05/G1 remain incomplete. Next M1.1c.3.2 gameplay-worker repair pause/adapter/restart-resume and remaining T05 cases, no unchanged cycle rerun. Initial current-position write returned OSError22 without changing the file; retained source was checked before atomic documentation update.
+
+Preparation/continuation seal11files/1,783,036bytes `ab661567537b27dac4be55f0b0cdf509d7c77ddd01cfba9c4d0b339a34d51d18`. All prior IDs preserved;459 total with explicit native-cycle child,1,613 local ledger links checked. Diff checks pass. This pointer follows the archived documentation snapshot.
+
+### September 27 — Begin owned gameplay-worker repair pause
+
+Continue from2d0ee43 after verified M1.1b.1 native cycle; preceding turn made progress. All40 authority tables, five historical holds and terminal runtime rechecked unchanged. M1.1c.3.2 now in_progress: implement a separate private operator capability for a fixed-expiry repair pause in the Forge worker, using the existing cancel/release and accounting paths. Reject gameplay during the pause; preserve source/body/epoch/lease joins and keep total authority unchanged. No implicit resume, qualification or public settings capability; full adapter/commit, restart/resume and authentic worker integration remain required. A new explicit worker profile preserves older profile identities. No game/model run selected for this source change; no M1 inference authority.
+
+### September 27 — Owned worker repair pause implemented and process-tested
+
+M1.1c.3.2 advances F06/F09/F11/F16 and N01/N02/N03/N04/N05/N08 through a distinct private ForgeDevelopmentWorker/3 pause/status profile. [Evidence](docs/verification/2026-09-27-m1-worker-repair.md). A durable fixed-expiry plan precedes cancellation/release; exact ownership, native body/connection/fence, no replay, cleanup consumption and recovery holds remain enforced. Gameplay grants/capabilities and package allowlist remain separate. Review corrected active-release on failed intent storage and draining pending pause work before journal disposal. Build and132 affected Node/JVM/Windows process checks pass without skips;18 packaging checks pass. A strengthened4-case HTTP/schema/journal rerun passes with the explicit oversized-body case; no unchanged broad rerun. Initial TypeScript diagnostic retained. All40 authority tables remain unchanged at4,887,796microUSD; five historical holds preserved. No Minecraft/model run or new inference authority. This is implemented but unverified on Minecraft; native transaction/effect admission, restart/rejoin and explicit resume/rollback recovery are next. M1 in_progress; all six complete G1 suites and G1 remain not_run.
+
+Private evidence sealed30files/2,462,176bytes at `0fb98c77aef06a71c515614fafaf1a85d3aa440c8ec66a7068e87718acc1aab8`. Final WAL-aware authority/hold checks and empty Java inventory pass. All459 existing milestone IDs preserved;1,616 local ledger links checked. Source snapshots precede this pointer. No aggregate acceptance result is promoted.
+
+### September 27 — Controller consumes actual worker pause evidence
+
+M1.1c.3.2 connects the private WorkerRepair client and durable controller handoff. [Evidence](docs/verification/2026-09-27-m1-repair-handoff.md). One intent precedes dispatch; uncertainty and CAS failure reconcile only by status within the original one-second quiescence window. Exact plan/grant identity, boolean wire semantics and worker-backed RepairStop are enforced; changed/manual proof substitution fails. Loss of a confirmed pause revokes controller repair permission. Actual Python controller/Node worker/Windows guardian/JVM fixtures verify active cancellation, single hold, retained budget, teammate continuity and expiry recovery, with synthetic game/settings.63 distinct affected cases pass across retained runs; final17 targeted cases pass with no skips, Ruff passes. Preserve original CLI-exit fixture failures, integer-boolean diagnostic, stale stricter-recovery assertion, lint and directory-setup failures. No Minecraft/model run, new allowance, native adapter qualification or resume claim. All six G1 suites/G1 remain not_run. Next native transaction/effect joins, adapter/commit and restart/resume/rollback integration.
+
+Final private seal183files/6,961,896bytes `d0e178efa8edb60cccc0c4855d065891689c42e5928e18c82fcfd7242b3360c8` retains failed/final fixtures, source and logs. All40 authority tables unchanged/4,887,796microUSD; five historical holds unchanged, zero Java processes. All459 IDs and1,619 local ledger links checked. Source snapshots precede this pointer; no gate promotion.
+
+- 2026-09-27 — M1.1c.3.2 native repair admission: the distinct private owned mode binds exact worker scope/lease/plan, one patch and allowed effects; expiry and recovery refuse forward work while transaction-owned rollback remains available. Python→Node→Windows guardian→JVM connected checks pass with synthetic body/settings, plus focused Java/Python regressions. [Evidence and limits](docs/verification/2026-09-27-m1-native-repair-admission.md). T01/T04/T05/T06/T10/T11 and G1 remain not_run; M1 in_progress. No installed game artifact changed or model call made. All40 authority tables and five historical capacity holds unchanged. Next controller-native mapping, qualified commit/restart/rejoin/resume and authentic gameplay repair; preserve complete remaining G1 criteria.
+
+- 2026-09-27 — M1.1c.3.2 controller-native admission connected: full keymap/physical-code/persisted-value translation, independently pinned native CAS revision, exact private descriptor and one durable bind dispatch. Actual controller→worker→Windows guardian→JVM settings tests pass normal and lost-reply paths; synthetic body/settings explicitly retained. Generic forward adapter bypass and controller-only readiness cannot release a real worker hold. [Evidence](docs/verification/2026-09-27-m1-native-controller.md). M1 in_progress; all six G1 aggregate suites and G1 not_run. No Minecraft/model run or installed artifact change. Next qualified adapter/commit, restart/rejoin and explicit resume/recovery; historical holds/decisions intact.
+
+- 2026-09-27 — M1.1c.3.2 private native commit path implemented: explicit operator-recorded-settings-commit/1 profile; durable exact-head controller decision, idempotent status, no effect/resume claims, retained commit/recovery history and guarded rollback. Focused Java/store/effect and Python/JVM checks pass; original wrong-exception assertion retained. [Evidence](docs/verification/2026-09-27-m1-native-commit.md). No game/model execution or installed artifact change. M1 in_progress; all six G1 aggregate suites/G1 not_run. Next qualified adapter/verification producer and owned restart/rejoin/resume; preserve same-team continuity and original accounting holds.
+
+- 2026-09-27 — M1.1c.3.2 controller native write flow connected: immutable plan/descriptor ownership, profile exclusion, durable one-dispatch apply/commit/rollback, full supplied verification/source checks and status-only reconciliation. [Evidence](docs/verification/2026-09-27-m1-native-repair-flow.md). Actual controller/worker/guardian/JVM checks pass with explicitly synthetic body and verification producer; missing/foreign proofs, changed state, storage failure and bypass attempts fail closed. All40 authority tables/five holds unchanged; no game/model run or installed artifact change. M1 in_progress; all six complete G1 suites/G1 not_run. Next qualified projection/authentic proof producer, complete consumption joins and owned restart/rejoin/resume; unchanged acceptance and M2-M7 exclusions.
+
+- 2026-09-27 — M1.1c.3.2 native restart dependency implemented under separate operator-owned-settings-restart/1 profile: durable exact pending-head checkpoint, single reopened-instance continuation, original authority/expiry/usage retained and stage-bound verification with gameplay fenced. [Evidence](docs/verification/2026-09-27-m1-native-restart.md). Actual JVM exit/reopen and lost-response reconciliation pass with synthetic body/input; original clock-rollback assertion and preparation failures retained. All40 authority tables/five holds unchanged; no game/model run or installed artifact change. M1 in_progress; all six complete G1 suites/G1 not_run. Next worker replacement/controller rebinding, qualified projection/authentic proof production, accounting and explicit resume; preserve full gate and unrelated M2-M7 exclusions.
+
+- 2026-09-27 — M1.1c.3.2 same-worker client replacement implemented under distinct ForgeDevelopmentWorker/4 and repair guardian/3 profiles: independent old-tree stop proof, guarded replacement, exact native continuation, retained epoch/history/usage and original expiry, no gameplay resume. [Evidence](docs/verification/2026-09-27-m1-worker-restart.md). Actual Windows/Node/JVM checks pass with synthetic body; initial legacy-guardian rejection, unused-import build failure and malformed test-response failure retained. No game/model execution or installed artifact change. M1 in_progress; all six complete G1 suites/G1 not_run. Next durable controller launch/adoption/rebinding, authentic proof production and complete accounting/resume; historical authority/holds and M2-M7 exclusions preserved.
+
+- 2026-09-27 — M1.1c.3.2 controller replacement adoption connected: WorkerRestartGrant/2 binds the existing repair capability; durable one-dispatch prepare/detach/attach and exact successor descriptor preserve original admission, deadline, reservation and input hold. [Evidence](docs/verification/2026-09-27-m1-controller-restart.md). Actual controller/worker/guardian/JVM replacement→effect→commit→rollback and three lost-reply paths pass with synthetic body/proofs. Foreign grant, old connection and pending-restart forward writes refused; original fixture name/cleanup failure retained. No game/model run or installed artifact change. M1 in_progress; full T01/T04/T05/T06/T10/T11/G1 not_run. Next real launcher, qualified projection/authentic verification, accounting and explicit resume; preserve full gate and M2-M7 exclusions.
+
+- 2026-09-27 — M1.1c.3.2 native effect and restart evidence producer connected: immutable complete per-binding expectation manifest, one dispatch, status reconciliation after uncertainty/publication failure, retained failed verdicts and adopted-process/settings persistence checks. [Evidence](docs/verification/2026-09-27-m1-effect-evidence.md). Actual controller/worker/guardian/JVM test consumes produced binding/restart checks before commit/rollback; body and remaining checks remain synthetic. Full sealed-bundle audit reproduces13 native04 effects and preserves native02 original failure without new game execution or profile promotion. M1 in_progress; all six complete G1 suites/G1 not_run. Next qualified projection/full authentic verification, launcher/accounting/resume; historical authority/holds and full roadmap retained.
+
+- 2026-09-27 — M1.1c.3.2 complete declared effect matrix and release evidence connected: explicit NativeSettingsEffects/3 release receipts, immutable matrix revalidation and intended/competing/release summaries feed actual guarded JVM replacement→commit→rollback. [Evidence](docs/verification/2026-09-27-m1-release-evidence.md). Body/input and essential-control proof remain synthetic; prior policy/evidence identities preserved. Original expanded-test controller-lease expiry retained, corrected with normal heartbeats without extending fixed repair authority. Focused Java/Python/HTTP/process checks pass; no game/model execution or installed artifact change. M1 in_progress; complete T01/T04/T05/T06/T10/T11/G1 not_run. Next full essential-control evidence, qualified projection/authentic integration, launcher/accounting/resume; authority/holds and M2-M7 exclusions unchanged.
+
+- 2026-09-27 — M1.1b/M1.1c.3.2 essential attack/use input dependency implemented: bounded ordinary mouse callbacks with original key/modifier safety, strict device release/activity wire contracts and declared local swing/use predicates. [Evidence](docs/verification/2026-09-27-m1-essential-input.md). Java/Python/HTTP and actual guarded JVM replacement→commit→rollback pass with synthetic body/input. Two initial wrong-exception assertions retained and corrected without weakening validation. Candidate /4 JAR built/archived, not installed or authentically qualified; no game/model run. M1 in_progress and complete T01/T04/T05/T06/T10/T11/G1 not_run. Next complete essential manifest/Escape/host recovery, qualified projection and authentic full workflow/accounting/resume. All40 authority tables/five holds, original identities and M2-M7 exclusions preserved.
+
+- 2026-09-27 — M1.1b/M1.1c.3.2 complete essential-input case collector and explicit fixed Escape implemented; before/after guarded JVM replacement and destructive stop-all/recovery checks pass with synthetic bodies. [Evidence](docs/verification/2026-09-27-m1-essential-plan.md). Missing prerequisites remain unverified_context; immutable coverage revalidates the physical release and cannot supply the generic essential-controls proof. Retain the initial nested-request fixture failure. No Minecraft/model run, installed artifact change, new allowance or rearm. M1 in_progress; all six full G1 suites and G1 not_run. Next close the complete gameplay repair/restart/resume workflow with qualified projection, authentic input/recovery, launcher and accounting, then remaining G1 cases. Historical holds, profile identities and M2-M7 exclusions preserved.
+
+- 2026-09-27 — M1.1c.3.2 native settings projection connected: exact qualification/source consumption, complete current keymap and body/connection joins, protected-binding and canonical encoding checks. [Evidence](docs/verification/2026-09-27-m1-native-projection.md). Selected controller/worker/guardian/JVM repair/restart/commit/rollback now uses actual native snapshot values instead of the synthetic settings adapter; body and qualification reports remain synthetic.163 distinct focused source cases and the changed connected test pass. No Minecraft/model run, installed artifact change or new spending. M1 in_progress; all six complete G1 suites/G1 not_run. Next authentic exact-profile qualification, real launcher, complete accounting and explicit resume; original authority/holds and M2-M7 exclusions preserved.
+
+- 2026-09-27 — M1.1b/M1.1c.3.2 essential sprint dependency connected: source-bound sprint plus forward mapping, bounded shared-lane input and reverse cleanup, versioned paired receipts, immutable two-key joins and declared motion/sprint predicates. [Evidence](docs/verification/2026-09-27-m1-sprint-input.md).87 Java cases and161 affected Python/process cases pass; expanded actual guarded JVM replacement captures four essential cases with synthetic body/qualification. Initial lambda-capture compile failure retained. /6 JAR built/archived, not installed. No Minecraft/model run or new spending. M1 in_progress; all full G1 suites/G1 not_run. Next complete authentic essential/recovery qualification, real launcher/accounting/resume and remaining gate cases; authority/holds and M2-M7 exclusions intact.
+
+### September 27 — exact /6 essential-control preparation
+
+The exact /6 essential-control procedure now has a verified fresh public fixture
+and declared before/after restart cases. Only initial player rotation changed;
+existing bow/arrows provide use prerequisites. The procedure covers all eleven
+essential roles, including sprint/forward, mouse attack/use and Escape in
+world/menu/chat. [Preparation and result](docs/verification/2026-09-27-m1-essential-native.md).
+Authentic execution is pending; independent recovery, the full context/failure
+matrix and gameplay repair/accounting/resume remain required. No G1 suite closes.
+
+Actual preparation: 8,609 fixture copies verified; only saved-player rotation changed. Twenty-six added case requests validate against current contracts. All40 authority tables/five holds unchanged; zero owned runtime. M1.1b/M1.1c.3.2 remain in_progress, T05/G1 not_run. Native execution is the next action.
+
+### September 27 — native /6 partial evidence and controller deadline correction
+
+The first authentic /6 attempt is failed, with useful partial control evidence:
+all declared first-stage controls passed, and movement/jump/sneak/sprint/attack/use
+passed after restart. Its next Escape reply became uncertain when the private
+driver requested a5-second deadline with4,061ms of authority left. No input was
+replayed. Independent audit joins32 completed effects/22 added passing cases,
+seven frames and884 charged primitives. Both process trees are terminal;
+guardians927.3386/375.1023ms. After-restart Escape/chat and native rollback remain
+unverified on /6. Only the owned options field was restored after terminal custody.
+A sixth separate256MiB telemetry hold remains reserved; the old five are unchanged.
+
+The controller now separates effect execution deadlines from its1-second response
+wait, bounded by both original repair clocks and worker expiry. Actual JVM tests
+reproduce the old timeout and pass long holds through the connected guarded
+replacement, lost-reply status recovery and commit/rollback with synthetic bodies.
+[Native failure and deadline correction](docs/verification/2026-09-27-m1-essential-native.md).
+Next bind the authentic driver to the remaining deadline and prepare a feasible
+complete procedure, then independent recovery and full gameplay repair/accounting/
+resume. The /6 JAR is installed; original E-overlap options are restored. No
+unchanged rerun was dispatched, and no G1 suite closes.
+
+Affected components: native_settings_effects/native_repair_flow and both effect producers; SPEC8.2, F06/F09/F11/F16, N01/N02/N03/N04/N06/N08, T01/T04/T05/T06/G1. Focused checks:157 source/JVM passes and one revised connected case pass; retained all intermediate errors. Current40 authority tables unchanged/4,887,796microUSD. No model calls; six separate telemetry holds. Full M1 remains in_progress; G1 not_run.
+
+Final essential-control audit: authentic failed attempt1,238files/128,099,519bytes, seal `7559bd5b5fa308358e02dc91a9f9800f202fccce8bd3b51626eb67528939d00a`; source/test preparation47files/4,313,096bytes, seal `d564d91a1cc15f3baf6c390d66789fa65030539f7b64b53160b4e32d410671b2`. Both exact bundles verify. All459 milestone IDs/1,664 ledger links preserved;40 authority tables unchanged; six separate telemetry holds retained; zero owned runtime. This pointer follows the archived documentation snapshot. M1/G1 remains open.
+
+### September27 — bounded native essential-control procedure
+
+A fresh native02 procedure now binds absolute wall/monotonic expiry across both
+starts, separates response/execution deadlines and reconciles uncertain starts
+by status only. All26 added cases and the full repair/restart/rollback procedure
+are unchanged. The new client allowance is410s, declared before dispatch inside
+existing participant420s/server600s limits; native01's400s failure stays consumed.
+Five focused driver checks pass. No model allowance changes; six holds persist.
+[Procedure/evidence](docs/verification/2026-09-27-m1-essential-native.md). Native02 is
+pending; no G1 suite closes.
+
+M1.1b/M1.1c.3.2 remain in_progress; T05/G1 not_run. This is a private conformance procedure decision within the existing420/600s limits, not altered benchmark budgets, thresholds, M1 inference authority or repaired historical evidence.
+
+### September27 — native02 prelaunch refusal and fresh native03
+
+M1.1b: native02 retained REFERENCE_PAIR_EXPOSURE before game launch; six database tables empty, no runtime authority or new telemetry hold, unused session retired. Seal51files/5,278,199bytes `5f13c104d2277b1751fc17f134aeed8a7def11bb88ba4153adbd05f23d7e67c5`. Fresh native03 corrects pair window to410s client+10s reserve=420s, with a pre-authentication cross-record check. No input/gate claim; all40 authority tables/six older holds unchanged.
+
+### September27 — native03 admission failure; reject impossible equal windows
+
+M1.1b/M1.1c.3.2, F06/F11/F16, N01/N02/N08, T01/T05/G1: native03's server
+launched, but the runtime refused client admission because its420s pair window
+equaled the entire participant window. Readiness publication consumes time,
+and remaining time must be strictly greater than the pair allowance. No client
+or game-input authority was created. All29 server processes are terminal without
+forced outer cleanup; the unused session file was retired after exact checks.
+All four lifecycle rows remain UNCERTAIN; a seventh256MiB telemetry hold is
+retained. All40 inference-authority tables and previous six holds are unchanged.
+
+Changed `reference_pair.py` to reject equality before durable dispatch; retained
+the runtime check. Five targeted unsafe-input tests pass, including the equality
+regression, under the explicit Windows/JVM fixture environment. The initial
+all-skipped invocation remains in the evidence. Ruff/diff checks pass. Authentic
+failed evidence434files/82,100,113bytes, seal
+`6a1d17db3495e8a49b190c7fcb40762e8245ff446b74b958e8cdf8d74d80e71b`.
+[Full disposition](docs/verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+Next establish a feasible admission/client/terminal window before selecting a
+fresh attempt; never renew native01/02/03. Then finish full gameplay repair/resume
+and the remaining gate cases. No essential case, aggregate suite or G1 closes.
+
+Final audit:459 milestone IDs/1,668 local ledger links preserved; all40 authority
+tables unchanged; seven distinct telemetry holds recorded; no owned runtime.
+Bounded-procedure/source/audit archive45files/7,774,404bytes, seal
+`4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
+This pointer follows the archived documentation snapshot. M1 remains in_progress.
+
+### September27 — native04 admission/client/terminal allocation
+
+M1.1b/M1.1c.3.2: fresh native04 passes typed preparation and cross-record timing
+checks for410s client+5s terminal=415s pair within420s participant, leaving5s
+admission margin. The reserve meets the existing5s contract minimum; runtime
+remaining-time checks,1s guardian and all26 added case predicates are unchanged.
+Previous attempts are terminal/consumed, all40 authority tables and seven holds
+unchanged. No model calls. [Procedure](docs/verification/2026-09-27-m1-essential-native.md#native04-feasible-window-procedure).
+Native04 prepared; acceptance remains unverified and G1 not_run.
+
+### September27 — native04 admitted; first effect interrupted by native-health guard
+
+M1.1b/M1.1c.3.2: actual admission now passes with the410+5/415/420s allocation.
+Minecraft joins; the baseline effect starts once, emits/releases input, then the
+750ms native-health guard stops the client. Only1/20 required settled observations
+and no terminal effect result exist. No patch/restart occurred; no essential case
+is newly verified. Six primitives remain charged. Termination668.7582ms is within
+the1s bound; normal stop fails honestly. Client18/18 and server29/29 terminal,
+no forced outer cleanup, no owned runtime, session retired, options unchanged.
+
+All40 accounting tables/previous seven holds unchanged; an eighth256MiB hold is
+retained with four UNCERTAIN lifecycle rows. No model calls. Source/driver and
+exact-profile arithmetic checks pass; this does not substitute for native effects.
+Authentic failure502files/94,778,274bytes, seal
+`7099a0f67b6196bc95f45343d02f1e64dd8f21806ac9bd79e2c2399cfae59ca5`.
+[Cause and limits](docs/verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
+No unchanged retry or looser health/stop threshold. Next complete explicit
+worker/native/controller resume and its integrated repair path while retaining
+the exact-profile health failure for authentic qualification. M1 in_progress;
+all six complete G1 suites and G1 not_run.
+
+Final native04 audit:459 milestone IDs/1,670 local links retained;40 authority
+tables unchanged, eight separate telemetry holds recorded, zero owned runtime.
+Procedure/preparation/audit archive25files/3,474,195bytes, seal
+`2022f6708272bbc32ec5ada928d61a1ec668c185e7bf332c0aca2a9153567a5a`.
+This pointer follows its archived documentation snapshot; no gate promotion.
+
+
+### September27 — explicit private native resume and transport
+
+M1.1c.3.4 added without changing prior IDs: native decision binds original worker
+plan, terminal settings head/phase, verification reference, generation and finite
+lease. Release/journal precede input; same epoch, sequence, receipts, charges and
+overall expiry remain. Repeated decision/status, stop and reopen cannot rearm.
+Committed proof identity and healthy rollback are distinguished from recovery.
+Python/TypeScript transport preserves single POST and status-only uncertainty.
+
+[Native resume evidence](docs/verification/2026-09-27-m1-native-resume.md):48 distinct
+Java cases,26 Python/actual-JVM cases,6 Node cases and112 affected Python regressions
+pass,192 distinct focused cases. Actual JVM replacement and compiled Node→JVM
+are exercised with synthetic body/verification. Initial parameter-resolver fixture
+failure retained and corrected. No game installation/model run; native04 failure
+and eight telemetry holds remain. Worker hold, replacement guardian transition,
+controller fresh-observation/settlement and authentic full repair/resume remain
+unfinished. SPEC8.2, F06/F09/F11/F16, N01/N02/N03/N04/N08, T01/T04/T05/T06/G1.
+M1 remains in_progress; no aggregate suite or gate closes.
+
+Native resume checkpoint sealed as `2026-09-27-m1-resume-source-01`:46 files,
+2,818,144 bytes, SHA-256
+`cd9a73bd9546b51908b9e1448c06fc2a213eb6e930ce36a82fd1565deb539d22`.
+Final slow-write/epoch Java suite11/11 and final JVM transport rerun10/10 pass;
+Ruff and diff checks pass. All40 authority tables/eight holds, installed JAR and
+options unchanged; no owned runtime remains.460 ledger IDs preserve all459 prior
+IDs;2,108 local links across the five reviewed documents resolve. The next
+acceptance target is the connected gameplay repair/resume workflow. Component
+test counts do not close any of G1's six full suites.
+
+### September27 — connect same-worker resume after replacement
+
+M1.1c.3.4 continues from95f51d6. Implement an explicit resume-capable worker and
+replacement guardian profile, durable single-dispatch resume intent and exact
+native receipt reconciliation while retaining original epoch/history/budgets.
+Existing worker/4 and guardian/3 remain fenced. Controller completion/public
+permission still require joined evidence; no full gate is promoted. Durable
+authority and eight holds match the prior checkpoint before execution.
+
+Same-worker resume now passes the connected commit, rollback and lost-reply
+cases under explicit worker/5 and guardian/4. A pre-repair action receipt remains
+in the same worker/epoch; the next CLI action uses sequence2, emits input and
+confirms release after the actual JVM replacement. Synthetic body/settings
+verification are explicit. [Evidence](docs/verification/2026-09-27-m1-worker-resume.md).
+Native reply loss, concurrent stop and failed durable completion tests retain
+one dispatch and fail closed. Private grants bind both repair/restart transports;
+public tokens/browser origins cannot call resume. Older profiles retain fencing.
+
+Final results:3 resume process cases;2 legacy replacement cases;39 guardian
+checks;56 Python consumer cases;13 focused Node cases pass. Initial fixture,
+assertion, cleanup and syntax failures remain recorded. Build/Java test-class
+compilation/Ruff/diff checks pass. All40 authority tables and eight telemetry
+holds are unchanged;460 ledger IDs are preserved. No Minecraft/model trial or
+installed JAR change. Remaining:controller lease/readiness/settlement join,
+qualified public keymap/skill and adapter issuer, repeated repair lifecycle,
+authentic control/isolation evidence and all six G1 suites. Keep M1 in_progress
+and G1 not_run; do not remove REPAIR_WORKER_RESUME_REQUIRED without those joins.
+
+Private evidence bundle `2026-09-27-m1-worker-resume-01` is sealed:47 files,
+2,800,647 bytes, SHA-256
+`9d903789ce04219cbc6e77dc93b58ec81bf03930901cca62301e6b998f0bc79c`.
+It preserves changed source, original failed/passing logs, compiled hashes and
+read-only authority/hold audits. All40 authority tables and eight holds match
+before/after. Installed JAR/options are unchanged; no owned runtime remains.
+All460 ledger IDs survive and2,109 local links in the five reviewed documents
+resolve. This is a candidate component checkpoint, not a G1 pass.
+
+### September27 — controller consumes verified native commit for resume
+
+M1.1c.3.4 continues fromb77a97a. Join the confirmed controller commit, private
+verification evidence, exact replacement adoption, native head and original
+worker scope to one durable resume intent and status-only reconciliation.
+Campaign completion stays closed until qualified keymap observation, original
+lease publication and complete accounting are joined. Rollback requires actual
+restored-effect verification, not a settings-byte-only success. All40 authority
+tables and eight holds match the previous sealed checkpoint before execution.
+
+Controller resume implementation and focused checks now pass for the candidate
+process profile. Changes: src/mcbench/native_repair_resume.py and its connected
+and synthetic fault tests; SPEC section8, current status and handoff record the
+remaining publication boundary. Two distinct connected JVM scenarios pass,
+including altered private evidence/uncertain accounting rejection; four focused
+storage/stop fault cases pass. No authentic Minecraft or model call was made.
+F06/F09/F11/F16/N01/N02/N04/N08 are affected; T01/T04/T05/T06 and full G1 remain
+not_run. [Evidence](docs/verification/2026-09-27-m1-controller-resume.md).
+Next complete public keymap/original-lease publication and full repair accounting,
+then restored-effect rollback and authentic qualification; retain all prior
+failures, consumed IDs, eight holds and M0-only spending authority.
+
+Private evidence bundle `2026-09-27-m1-controller-resume-01` is sealed:21 files,
+2,415,996 bytes, SHA-256
+`3f005fef69fdbf0868733a44cfaa98dd2b9bb01dafacbcc66d22df26e33a9f44`.
+All40 authority tables and eight retained telemetry holds remain unchanged.
+Installed JAR/options are unchanged and no owned runtime remains. All460 ledger
+IDs are preserved;2,113 local links in the five reviewed documents resolve.
+The bundle contains the source snapshot before this seal pointer was appended.
+
+### September27 — hold public gameplay until control publication
+
+M1.1c.3.4 continues fromc43e11f. Worker/5 opens public actions before controller
+settlement/publication; it remains a private candidate, not campaign admission.
+Implement an explicit successor profile with a durable pending publication hold,
+verified control metadata and consumed settlement reference before release.
+Preserve the original native action contract through a journaled public/native
+metadata translation. Existing profiles keep their identities and semantics.
+T01/T04/T05/T06/G1 remain not_run. Read-only durable checks: all40 authority tables
+and eight holds unchanged; no owned game/model/worker process before execution.
+
+Worker/6 publication boundary implemented and exercised through actual processes.
+Changed worker profile/config/private endpoint, durable pending publication,
+control metadata/CLI/native translation, and focused process/fault tests.
+F06/F09/F11/F16/N01/N02/N04/N08; T01/T04/T05/T06/G1 remain not_run.
+The named Python/Node/Windows/JVM test passes public refusal before publication,
+next action after publication and original receipt retrieval. Shared Worker/5
+lost-reply behavior passes. Node fault, reopen, config and shared action/CLI
+checks pass; original test failures retained. All producers/body remain synthetic.
+[Evidence](docs/verification/2026-09-27-m1-control-publication.md).
+Next join actual complete repair accounting to typed controller publication and
+original-lease completion; do not treat the worker's supplied private settlement
+reference as verified settlement. Preserve real health failure, eight holds,
+consumed IDs, historical profiles and full remaining G1 scope.
+
+Private evidence bundle `2026-09-27-m1-control-publication-01` is sealed:46 files,
+2,772,163 bytes, SHA-256
+`34f92bf83bd917769b481cba4a60851a049fd68b52f683d03336cb655aed9791`.
+It retains changed source, compiled pins and original failed/passing logs.
+All40 authority tables and eight retained holds match before/after. Installed
+JAR/options unchanged; no owned runtime remains. All460 ledger IDs are preserved
+and2,118 local links in the five reviewed documents resolve. The archived source
+snapshot precedes this appended seal pointer. M1 in_progress; G1 not_run.
+
+### September27 — measured repair accounting boundary
+
+M1.1c.3.4 continues from30748c5. Establish the worker's durable repair opening
+counter and same-process monotonic interval before pause; expose its measured
+closing interval only while the public publication hold remains active. Bind
+strict private consumers to the actual resume/publication grants. Do not infer
+Minecraft ticks from wall time, invent historical openings, settle prior holds,
+or accept an arbitrary supplied CAS reference as full accounting. All40 authority
+tables and eight retained holds match the last sealed checkpoint read-only.
+
+Measured worker interval and strict publication consumer now implemented:
+repair_accounting.ts, journal opening/closing receipts, private measurement route,
+worker_publication.py and controller measure_prepared. Actual Python/Node/Windows/
+JVM path passes matching opening/closing and summed journal charges, repeated
+receipt identity, CAS storage and later action/history continuity. Body/settings/
+verification/final settlement producers remain synthetic. Python29 focused cases
+and Node12 selected cases pass; build/lint/diff checks pass, initial failures kept.
+F06/F09/F11/F16/N01/N02/N03/N04/N08; T01/T04/T05/T06/T12 dependencies; G1 not_run.
+[Evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
+No budget was settled and no campaign permission was published by measurement.
+Next complete prior-gameplay allocation, native clocks/nested usage/publication
+tail and actual settlement before original-lease controller completion. Keep
+all G1 requirements, old failures/profiles/consumed decisions/eight holds intact.
+
+Private evidence bundle `2026-09-27-m1-repair-accounting-01` is sealed:45 files,
+2,997,931 bytes, SHA-256
+`e21c2d396fb09077f6bb40a80668c35bb8bd711d0a1f4fcbfa1ac7943cfb4a97`.
+It preserves source/compiled pins, failed/passing logs and WAL-aware synthetic
+process database snapshots. All40 authority tables/eight holds remain unchanged;
+installed JAR/options unchanged, no owned runtime remains. All460 ledger IDs
+survive and2,123 reviewed local links resolve. The archived source snapshot
+precedes this appended seal pointer. Full repair settlement and G1 remain open.
+
+
+### September 27 — M1.1c.3.4 live repair clock dependency
+
+M1.1c.3.4 now exports the native callback clock while the server runs, through
+telemetry0.3.19/ServerStarted20 and a private authenticated prefix reader. An
+actual JVM/Python fixture observes continued ticks across synthetic disconnect/
+reconnect without stopping the process. [Live clock evidence](docs/verification/2026-09-27-m1-live-repair-clocks.md).
+The candidate JAR is built, not installed or qualified in Minecraft. Next bind
+admitted server/roster identity and repair boundaries to these samples, reconcile
+prior gameplay/model/helper charges and the publication tail, then complete
+settlement and original-lease controller resume. Periodic samples alone cannot
+certify full repair coverage. M1 remains in_progress; G1 remains not_run.
+
+Affected F06/F09/F11/F16, N01/N02/N03/N04/N06/N08; T01/T04/T05/T06 and required T12 dependencies. Production callback source/strict stream consumer compile; 10 Java checks, 109 focused Python checks and one explicit actual JVM/Python check pass with synthetic game callbacks. One opt-in check skipped; four deselected. Prior fixture failure retained. No allowance, installation, health threshold or gate changed.
+
+Final audit preserves all460 milestone IDs, checks2,135 local links and confirms
+all40 authority tables unchanged at4,887,796 microUSD, eight existing telemetry
+holds unchanged, installed client JAR/options unchanged and zero owned runtime.
+Private source/build/test archive2026-09-27-m1-live-repair-clocks-01 verifies:
+37files/2,568,834bytes, seal
+`52d0dc4a246f28412ff1455be633080203c2450798040e5b92527b00cc711efa`.
+This pointer follows the archived source/document snapshot; that archive is
+immutable. M1/G1 and authentic live-clock/repair settlement qualification remain open.
+
+
+### September27 — M1.1c.3.4 owned clock-source and repair-body binding
+
+M1.1c.3.4 now binds live clock prefixes to the pipe launch owner's retained
+server handle, immutable setup/roster and actual native repair body identity.
+The controller stores immutable marks under the original repair authority while
+retaining its budget/input hold. [Clock binding evidence](docs/verification/2026-09-27-m1-repair-clock-binding.md).
+The Windows/JVM retained-handle check passes with synthetic telemetry/setup;
+Minecraft qualification remains open. Next add a single-use producer barrier
+that proves its clock sample was generated after the controller request, then
+join complete consumption, publication and original-lease resume. A periodic
+sample received later cannot supply that timing proof. M1/G1 remains open.
+
+Affected F06/F09/F11/F16, N01/N02/N03/N04/N06/N08; T01/T04/T05/T06 and necessary T12 dependencies.34 focused cases pass including actual JVM/Windows-handle checks with synthetic setup/body/transport lifecycle. No budget settlement, input publication or authentic qualification follows. Existing holds, failures and authority persist; no paid call or unchanged game rerun.
+
+Evidence preservation: the owned-clock bundle contains32files/2,527,143bytes,
+SHA-256 `afab36b82d9880c7479144f30b73fcbffc5fc7b6a45ede0a4f1d66b6b84fe0e7`. All40 durable authority tables/eight holds and installed
+client/options are unchanged; all460 milestone IDs preserved,2,141 local links
+resolve, final owned-runtime inventory0. Current status/handoff now lead with the
+complete unfinished G1 checklist and the connected repair/resume completion target.
+No aggregate suite was promoted. This seal pointer postdates the archived snapshot.
+
+### September27 — M1.1c.3.4 causal repair checkpoint on existing telemetry
+
+Added a durable immutable clock request under the broker's existing SQLite writer
+lock, and a controller-bound `/2` receipt requiring a strictly newer producer ACK.
+The actual Java/Python pipe/spool/held-process fixture rejects receipt1 at request1,
+then accepts receipt3 at sample5; normal process exit0 and broker stop retained.
+Synthetic game/setup/token qualification remain explicit. No new native command,
+production module identity or installation.43 focused Python checks pass with
+native cases enabled; offline test compilation and Ruff pass. Retain the initial
+wrong-group prelaunch refusal (8pass/1fail), followed by corrected sandbox-group
+1pass/8deselected. [Evidence](docs/verification/2026-09-27-m1-repair-clock-barrier.md).
+The previous goal turn made progress by committing owned-source/body binding
+(2a9f733); this turn resolves its named causal timing dependency. Next complete
+nonoverlapping prior-gameplay/repair, body/model/helper and publication-tail
+accounting before original-lease resume. Existing native-health and full T05
+qualification/rollback/skill gaps remain. No aggregate G1 suite is promoted.
+
+Causal-boundary evidence sealed:52files/2,691,898bytes,
+SHA-256 `7c3db279f9a2882616614499ed348f60db8ff169f041a3a029b43bd5ae942fc7`. All40 authority tables/eight telemetry holds and installed
+client/options unchanged;460 milestone IDs preserved,2,147 local links resolve,
+final runtime inventory0. The final focused reference-join check passes1/8deselected
+and rejects a valid request from another mark. This pointer postdates the archive.
+
+### September27 — M1.1c.3.4 confirmed repair consumption enters the budget ledger
+
+The previous goal turn advanced the causal clock boundary (4364f64). This turn
+identified and fixed a missing accounting connection: an actual worker repair
+measurement previously did not raise budget exposure beyond its reservation.
+Bounded immutable cumulative consumption floors now preserve known costs through
+CAS failure, retain unresolved reservations/uncertainty, propagate overruns through
+ancestor envelopes once, and prevent later settlement below confirmed consumption.
+The controller joins its typed worker receipt to the original repair operation
+before evidence publication; overrun blocks further repair while retaining costs.
+54 focused checks pass. The actual controller/Node/guardian/JVM publish fixture
+passes1/6deselected, retaining18 measured primitives under20 reserved. Its game,
+verification and settlement producer remain synthetic. Preserve initial7pass/2fail
+fixture deadline mistakes; no production thresholds changed. [Evidence](docs/verification/2026-09-27-m1-repair-consumption-floor.md).
+Next join pre-repair body costs, actual clocks, model/helper coverage and publication
+tail for full settlement and original-lease resume. All G1 suites remain not_run;
+no Minecraft/inference dispatch, later-milestone scope or budget authorization change.
+
+Evidence sealed:77files/3,885,383bytes,
+SHA-256 `7665a2e6751a42f6bc0a2987a8ad67b1270697090552d3e8cad9a82a9e7f4807`. All40 authority tables/eight telemetry holds and installed
+client/options unchanged;460 milestone IDs retained,2,152 local links resolve,
+final runtime inventory0. This pointer postdates the archived snapshot.
+
+### 2026-09-27 — publication accounting boundary
+
+M1.1c.3.4 now checks consumption after the final observation, in the same
+transaction that publishes controls. Two reproduced defects (late charges and
+changed source attribution) now refuse publication, retain costs and fence input.
+A durable private boundary survives later gameplay; a storage-failure test keeps
+recovery required.21 distinct source cases and the selected actual controller/
+Node/JVM process case pass, with synthetic game/verification/settlement producers.
+[Publication boundary evidence](docs/verification/2026-09-27-m1-publication-accounting.md).
+Complete body/model/helper accounting, original-lease completion and authentic
+play/repair/resume qualification remain open. No aggregate G1 suite closes.
+
+Changed the existing journal publication transaction, source fault tests and actual
+controller/JVM test. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06 G1
+dependency. Build and Ruff pass; pre-fix defects and the initial fixture compile
+failure are retained. No paid/game run, deadline relaxation or aggregate pass.
+Next join full accounting and original-lease completion before authentic workflow
+qualification; retain the native-health failure and all prior holds/decisions.
+
+### 2026-09-27 — owned repair tick consumption
+
+M1.1c.3.4 now joins two owned causal clock marks to a retained avatar-tick
+budget minimum. It preserves the original reservation, refuses origin changes
+and refunds, deduplicates cumulative extensions and retains overruns before
+blocking further work. Nine distinct source cases and one actual Java/pipe/
+controller test pass. The process test observes two Java callbacks and retains
+two ticks against a zero-tick reservation; game/setup/body/token qualification
+remain synthetic. [Clock consumption evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md).
+Complete interval allocation, model/helper costs, original-lease completion and
+authentic gameplay qualification remain open. M1/G1 and every aggregate G1 suite
+remain incomplete; no Minecraft or paid model run occurred.
+
+Changed evaluator clock/budget integration and focused source/actual-pipe tests; Java production unchanged. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1 dependency. Preserve the initial synthetic ACK-order failure. Next complete continuous allocation and controller lease completion, then authentic workflow qualification.
+
+### 2026-09-27 — repair inference attribution and closure
+
+M1.1c.3.4 now records root/helper/retry dispatches overlapping a repair and
+can freeze new inference for that avatar before completion. Existing calls keep
+their original budgets and late-settlement/unknown-hold paths; no costs are
+reposted. Missing legacy windows and frozen requests have durable, nonreplayable
+denials. Fourteen focused controller/concurrency cases, one real HTTP case and
+63 affected compatibility cases pass, using synthetic provider/native identities.
+[Repair inference evidence](docs/verification/2026-09-27-m1-repair-inference.md).
+Controller completion must still invoke this check and join complete primitive/
+body intervals and publication evidence. Authentic gameplay, native-health and
+all six aggregate G1 suites remain open; no paid model or Minecraft run occurred.
+
+Changed repair request/dispatch transactions, new private inference audit and versioned denial reader, focused concurrency/HTTP tests. F03/F06/F07/F09/F11/F16, N01/N02/N04/N08; T01/T04/T05/T06/G1 dependency. Unknown holds, consumed decisions and original costs persist; no aggregate pass. Next join this closure with interval settlement/publication and original-lease completion.
+
+### 2026-09-27 — inference closure before native resume
+
+M1.1c.3.4 now requires frozen, settled inference accounting in the actual
+native resume path. Pending helper/model calls refuse resume before a durable
+intent or worker call. New resume witnesses bind the immutable audit; status
+and measurement cannot silently discard that binding.31 distinct focused source
+cases and two selected controller/Node/JVM cases pass with synthetic game/helper/
+verification producers. [Resume integration evidence](docs/verification/2026-09-27-m1-resume-inference.md).
+The first publication process attempt correctly failed at21 primitives against
+20 reserved; the fixture now waits for the worker's terminal preplay receipt.
+The final case measured19 under the unchanged20 cap. Failure history is retained.
+Complete primitive/body allocation, controller settlement/original lease and
+authentic gameplay qualification remain open. No aggregate G1 suite closes.
+
+Changed controller resume/measurement evidence binding, transaction-composable inference audit and focused/process tests. F03/F06/F07/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1 dependency. No paid model or Minecraft run, cap change or gate waiver. Next complete interval allocation and original-lease controller completion before authentic workflow qualification.
+
+### 2026-09-27 — controller publication boundary retrieval
+
+M1.1c.3.4 now retrieves the exact stored worker publication boundary through
+its private typed endpoint and joins it to the controller's measured receipt,
+confirmed resume, committed controls and frozen inference audit. Later gameplay
+and stopped input do not change this historical evidence. Full settlement and
+campaign permission remain false. 55 focused Python cases, 23 selected TypeScript
+cases and one actual controller/Node/guardian/JVM process case pass; game,
+verification and settlement producers remain synthetic. The initial fixture
+identity errors and nested-transaction process failure are retained.
+[Publication receipt evidence](docs/verification/2026-09-27-m1-publication-receipt.md).
+Complete consumption allocation, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No paid model or Minecraft run occurred.
+
+Changed private TypeScript journal/endpoint and Python controller readers with strict cross-language scope/history checks. F03/F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1 dependency. Original reservations, consumed decisions and native-health failure remain. Next join full consumption allocation and original-lease controller completion before authentic qualification.
+
+### 2026-09-27 — continuous body-tick allocation through repair
+
+M1.1c.3.4 now maintains a continuous authenticated body-tick window on the
+original full-roster reservations. Repair coverage requires an opening before
+its request and a causal sample after publication; costs are never reposted to
+the repair tool. CAS failure and overruns retain observed consumption. 15 new
+source cases pass; 51 total affected source cases and one actual JVM/private-pipe
+case pass. Game/publication/body qualification remains synthetic; the actual
+pipe case proves tick allocation, not pre-request repair coverage.
+[Continuous body-tick evidence](docs/verification/2026-09-27-m1-body-tick-window.md).
+Wall/disconnected-time accounting, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No Minecraft or paid model run occurred.
+
+Changed evaluator body-tick source/budget integration and repair operation exclusivity, with source and actual-pipe tests. F02/F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1 dependency. Retain the first synthetic causal-order failure; original holds, budgets, native-health failure and wider gates remain. Next join full wall/disconnected-time and original-lease completion.
+
+### 2026-09-27 — requested source/documentation checkpoint and fresh-session handoff
+
+The user requested refreshing AGENTS, BUILD_PLAN, MILESTONES, README, SPEC and
+supporting handoff docs, creating a PR and merging to main, then resuming in a
+fresh session. This is checkpoint/publication authority, not a G1 pass or M1 paid
+allowance. The 141 implementation commits through `07737f3` are included so the
+merged handoff has its referenced code. Current STATUS/handoff are concise; their
+full previous text is preserved in linked archives. Product scope, all 460
+milestone IDs, M0–M7/T01–T17/G0–G5 and failures/holds remain unchanged.
+
+See [checkpoint verification](docs/verification/2026-09-27-session-handoff.md) for
+actual merge-check results, publication binding and evidence. No paid model or
+Minecraft trial is part of this task. Next session must verify actual merged
+main and durable process/accounting state, then continue M1/G1 under D20; the
+goal is paused for handoff, not closed as achieved.
+
+The merge-wide Python check exposed a stale probe-account fixture: account
+creation used evaluation while admission explicitly posted training. Its original
+failure and focused reproduction are retained. The test now checks the correct
+early budget refusal with zero jobs/postings; a separate synthetic decoded-source
+case checks independent probe-import refusal and unchanged durable state. Both
+focused checks passed (5.12 seconds). Only test code changed; F08/F11/N02 and
+T01/T11 supporting coverage advances without changing any aggregate status.
+
+The completed broad Python run retained 6,237 passes, 340 skips, two failures and
+two existing warnings (6,241.90 seconds). The second stale fixture omitted the
+explicit Forge selector in direct child IPC; it took the Mineflayer path and hit
+its unchanged timeout. Its original files remain private. Adding the selector
+and exit diagnostics leaves production code unchanged; all 29 worker-health
+cases then passed (1.83 seconds), including actual Node processes. Together with
+the two probe correction checks, both failures have focused passing corrections;
+the broad result remains recorded as failed. F09/F11/N03 supporting coverage only.
+
+Final checkpoint audit: all 40 authority tables, eight unresolved telemetry
+holds and two installed hashes unchanged; zero matching Java/worker/guardian
+processes. Node 566 passed/54 skipped; Java client 679 passed, telemetry 61
+passed/8 skipped; full lint and corrected-file lint passed. The documentation
+audit preserves 460 milestone IDs and 2,280 resolving local links. PR #9 carries
+the implementation history and handoff; verify actual remote merge state before
+continuing in a fresh session. No aggregate gate or milestone closes.
+
+Checkpoint evidence sealed: 608 files / 14,788,129 bytes, SHA-256
+`c84a4b04f7a7f497f1c304fd96bf4f20d4e5c4a56f5f78afc5ea14bafa363941`. This pointer postdates
+the archived documentation snapshot. Final publication scan: 562 changed paths,
+no sensitive runtime filenames or credential-pattern candidates; historical
+scan also retained. PR/merge metadata must be checked separately after publication.

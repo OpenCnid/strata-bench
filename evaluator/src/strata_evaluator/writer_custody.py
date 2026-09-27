@@ -13,7 +13,7 @@ from pydantic import Field, TypeAdapter
 
 from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
-from mcbench.launch_integrity import FileLease, snapshot
+from mcbench.launch_integrity import FileLease, safe, snapshot
 from mcbench.processes import ManagedProcess
 from mcbench.storage import digest, require
 from .craft_reference import PrivateFile, check_file, private_path, write_new
@@ -133,12 +133,20 @@ class WriterCustody:
         self.leases.append(FileLease(inventory))
         for pin in pins:
             check_file(Path(pin.path), pin)
+        arguments = ["-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
+            "-Djava.io.tmpdir=" + str(self.workspace.path / "tmp"),
+            "-Djna.tmpdir=" + str(self.workspace.path / "tmp"), *plan.arguments]
+        return self._dispatch(plan, inventory, arguments, ready, evidence_directory, descriptor)
+
+    def _dispatch(self, plan, inventory, arguments, ready, evidence_directory, descriptor=None):
+        """Run the common held-token gate after a mode-specific full preflight."""
+        online = online_preparation(self.plan)
         self._record("INTENT", launch_plan_digest=digest(plan.model_dump(by_alias=True)),
                      input_inventory_digest=digest(inventory))
         evidence = (Path(self.plan.evidence_directory) / "launch" if evidence_directory is None
                     else private_path(evidence_directory))
-        require(not evidence.is_relative_to(self.workspace.path)
-                and not self.workspace.path.is_relative_to(evidence), "WRITER_LAUNCH_EVIDENCE_SCOPE")
+        require(not safe(evidence).is_relative_to(safe(self.workspace.path))
+                and not safe(self.workspace.path).is_relative_to(safe(evidence)), "WRITER_LAUNCH_EVIDENCE_SCOPE")
         evidence.mkdir()
         write_new(evidence / "plan.json", plan.model_dump(by_alias=True))
         write_new(evidence / "inventory.json", inventory)
@@ -148,9 +156,7 @@ class WriterCustody:
         staged_helper = classes / "StrataWriterLaunch.class"
         staged_helper.write_bytes(Path(plan.helper_class.path).read_bytes())
         check_file(staged_helper, plan.helper_class)
-        command = [self.plan.java.path, "-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
-            "-Djava.io.tmpdir=" + str(self.workspace.path / "tmp"),
-            "-Djna.tmpdir=" + str(self.workspace.path / "tmp"), *plan.arguments]
+        command = [self.plan.java.path, *arguments]
         command_file = control / "launch-command.tsv"
         with command_file.open("xb") as stream:
             stream.write(b"\n".join(base64.b64encode(arg.encode("utf-8")) for arg in command))
@@ -165,8 +171,9 @@ class WriterCustody:
             environment.update(JAVA_HOME=str(Path(self.plan.java.path).parent.parent),
                 PATH=str(Path(self.plan.java.path).parent) + os.pathsep +
                      str(Path(os.environ["SystemRoot"]) / "System32"),
-                TEMP=str(self.workspace.path / "tmp"), TMP=str(self.workspace.path / "tmp"),
-                STRATA_TELEMETRY_CONFIG=str(descriptor))
+                TEMP=str(self.workspace.path / "tmp"), TMP=str(self.workspace.path / "tmp"))
+            if descriptor is not None:
+                environment["STRATA_TELEMETRY_CONFIG"] = str(descriptor)
         gate = [self.plan.java.path, "-Xms16m", "-Xmx128m", "-XX:-UsePerfData",
             "-Djava.io.tmpdir=" + str(self.workspace.path / "tmp"), "-cp", str(classes),
             "StrataWriterLaunch", str(self.tree.path), str(control), challenge]
@@ -180,7 +187,8 @@ class WriterCustody:
         except BaseException:
             process.close()  # Retained Job backstop if monitor installation itself fails.
             raise
-        broker.bind(process.job)
+        if self.broker is not None:
+            self.broker.bind(process.job)
         identity_file = control / "launch-identity.json"
         while not identity_file.exists():
             require(self.native.observe() is None, "WRITER_LAUNCH_EARLY_EXIT")
@@ -208,6 +216,22 @@ class WriterCustody:
                 and self.result["broker"]["status"] == "stopped", "WRITER_CUSTODY_TERMINAL_UNCERTAIN")
         self.check()
         self._record("STOPPED")
+        self.completed = True
+        return dict(self.result)
+
+    def discard_unlaunched(self):
+        """Close a held copy without claiming that a server was ever launched.
+
+        Used when preparing both probe worlds under one live parent custody.
+        A consumed launch attempt cannot take this path, even if it failed.
+        """
+        self.check()
+        require(not self.launched and self.native is None and self.broker is None
+                and not self.completed, "WRITER_CUSTODY_ALREADY_LAUNCHED")
+        prepared = self.body["stages"]["preparation"]
+        require(prepared["terminal_verified"] and prepared["logs_complete"]
+                and prepared["exit_code"] == 0 and not prepared["forced"], "WRITER_TERMINAL_UNCERTAIN")
+        self._record("DISCARDED", disposition="unlaunched_copy", game_launched=False)
         self.completed = True
         return dict(self.result)
 

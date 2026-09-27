@@ -11,6 +11,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
 from .storage import Fault, reject_links, require
@@ -21,21 +22,33 @@ class ProcessInventoryFault(Fault):
 
     STAGES = {"query", "incomplete_list", "invalid_pid", "retained_quota",
               "open_process", "membership_query", "foreign_member"}
+    RECONCILIATION_FAILURES = {"unretained_list_entry", "history_total_mismatch",
+                               "assigned_exceeds_history", "active_outside_history",
+                               "limit_termination"}
 
-    def __init__(self, stage, *, assigned=None, listed=None, retained, win32_error=None):
+    def __init__(self, stage, *, assigned=None, listed=None, retained, win32_error=None,
+                 reconciliation_failure=None):
         require(stage in self.STAGES, "INVALID_ARGUMENT")
         require(all(value is None or type(value) is int and 0 <= value <= 0xFFFFFFFF
                     for value in (assigned, listed, win32_error)), "INVALID_ARGUMENT")
         require(type(retained) is int and 0 <= retained <= 256, "INVALID_ARGUMENT")
+        require(reconciliation_failure is None or (
+            stage == "incomplete_list" and type(reconciliation_failure) is str
+            and reconciliation_failure in self.RECONCILIATION_FAILURES), "INVALID_ARGUMENT")
         self._observation = (stage, assigned, listed, retained, win32_error)
+        self._reconciliation_failure = reconciliation_failure
         super().__init__("PROCESS_MEMBER_QUOTA" if stage == "retained_quota"
                          else "PROCESS_MEMBER_INVENTORY_UNAVAILABLE")
 
     def observation(self):
         stage, assigned, listed, retained, win32_error = self._observation
-        return {"schema": "strata/ProcessInventoryObservation/1", "stage": stage,
+        result = {"schema": "strata/ProcessInventoryObservation/1", "stage": stage,
                 "assigned_processes": assigned, "listed_processes": listed,
                 "retained_processes": retained, "win32_error": win32_error}
+        if self._reconciliation_failure is not None:
+            result.update(schema="strata/ProcessInventoryObservation/2",
+                          reconciliation_failure=self._reconciliation_failure)
+        return result
 
 
 class WindowsJob:
@@ -144,14 +157,15 @@ class WindowsJob:
         query.restype = wintypes.BOOL
         value = Members()
 
-        def failed(stage, api_error=False):
+        def failed(stage, api_error=False, reconciliation_failure=None):
             # Read the calling thread's last-error slot before another Win32 call.
             # A successful API/failed predicate must not attach a stale API error.
             last_error = ctypes.get_last_error() if api_error and os.name == "nt" else None
             raise ProcessInventoryFault(
                 stage, assigned=None if stage == "query" else value.assigned,
                 listed=None if stage == "query" else value.count,
-                retained=len(self.members), win32_error=last_error)
+                retained=len(self.members), win32_error=last_error,
+                reconciliation_failure=reconciliation_failure)
 
         if not query(self.handle, 3, ctypes.byref(value), ctypes.sizeof(value), None):
             failed("query", api_error=True)
@@ -161,7 +175,9 @@ class WindowsJob:
         if len(set(pids)) != len(pids) or any(not 0 < pid <= 0xFFFFFFFF for pid in pids):
             failed("invalid_pid")
         if value.count != value.assigned:
-            if reconcile_history and set(pids) <= self.members.keys():
+            if reconcile_history:
+                if not set(pids) <= self.members.keys():
+                    failed("incomplete_list", reconciliation_failure="unretained_list_entry")
                 # TotalProcesses includes every association during this Job's
                 # lifetime, including exited/failed-limit processes. Equality
                 # with our distinct, already membership-validated held handles
@@ -169,6 +185,14 @@ class WindowsJob:
                 # A fresh list, a PID guess or active-count equality cannot.
                 accounting = self.accounting()
                 held = self.member_status()  # Invalid handles still fail closed.
+                for rejected, reason in (
+                    (accounting["total_processes"] != len(self.members), "history_total_mismatch"),
+                    (value.assigned > len(self.members), "assigned_exceeds_history"),
+                    (not 0 <= accounting["active_processes"] <= len(self.members), "active_outside_history"),
+                    (accounting["terminated_processes"] != 0, "limit_termination"),
+                ):
+                    if rejected:
+                        failed("incomplete_list", reconciliation_failure=reason)
                 if (accounting["total_processes"] == len(self.members)
                         <= self.MAX_TRACKED_PROCESSES
                         and value.assigned <= len(self.members)
@@ -337,6 +361,29 @@ class ManagedProcess:
                 self.process.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 raise Fault("PROCESS_STOP_FAILED") from None
+
+    def drain_evidence(self, *, timeout_s=2):
+        """Observe zero members while the original no-breakaway job stays held.
+
+        Parent exit or successful TerminateJobObject alone is insufficient.
+        POSIX groups do not supply this Windows qualification evidence.
+        """
+        require(type(timeout_s) in (int, float) and 0 < timeout_s <= 2, "INVALID_ARGUMENT")
+        require(self.job is not None and self.job.handle and self.process is not None,
+                "PROCESS_DRAIN_UNSUPPORTED")
+        started = time.monotonic_ns()
+        deadline = started + int(timeout_s * 1_000_000_000)
+        while True:
+            accounting = self.job.accounting()
+            code = self.process.poll()
+            if accounting["active_processes"] == 0 and type(code) is int:
+                require(accounting["total_processes"] > 0, "PROCESS_DRAIN_EMPTY_JOB")
+                return {"schema": "strata/HeldProcessDrain/1", "policy": "held-windows-job-zero-active/1",
+                        "root_returncode": code, "accounting": accounting,
+                        "observed_unix_ms": time.time_ns() // 1_000_000,
+                        "observation_elapsed_ns": time.monotonic_ns() - started}
+            require(time.monotonic_ns() < deadline, "PROCESS_DRAIN_PENDING")
+            time.sleep(0.005)
 
     def close(self):
         # Closing a completed parent still kills any lingering grandchildren.

@@ -7,13 +7,13 @@ Runtime-mutated instances need a separate recovery policy and cannot pass here.
 import json
 import os
 import sqlite3
-from contextlib import closing
+from contextlib import closing, contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Literal
 
 from .contracts import Digest, Id, Ref, Strict
-from .inventory import file_hash, inventory_directories, scan_layout, template_path
+from .inventory import file_hash, inventory_directories, scan_layout, template_path, _scan_held_materialization
 from .pack_policies import reviewed_vendor_paths
 from .provisioning import TARGETS, E9ELaunchProfile, VanillaLaunchProfile, parse_launch_profile, validate_launch_environment
 from .records import FileEntry, PackLock
@@ -73,7 +73,45 @@ def resolve_pack_launch(binding: PackLaunchBinding, role: str, *, simulation=Fal
 The caller must keep the binding private and enforce its own process, input,
 credential, runtime dependency and mutable-world boundaries.
 """
+    with _held_pack_launch(binding, role, simulation=simulation, worker_invocation=worker_invocation,
+                           forge_invocation=forge_invocation) as (result, _):
+        return result
+
+
+def _resolve_held_materialization(binding, lease):
+    """Private fresh vanilla-server recheck using bytes under continuous custody."""
+    require(lease is not None, "MATERIALIZATION_CUSTODY_REQUIRED")
+    with _held_pack_launch(binding, "server", _materialization_lease=lease) as (result, _):
+        return result
+
+
+def _check_materialization_custody(binding, lease):
+    """Check a borrowed owner's exact live tree without taking its ownership."""
+    _materialization_scope(binding, lease)
+    lease.recheck()
+
+
+def _materialization_scope(binding, lease):
+    """Scope/live-handle guard; complete resolution checks membership separately."""
+    from .launch_integrity import FileLease, safe
+    require(type(lease) is FileLease and type(binding) is PackLaunchBinding,
+            "MATERIALIZATION_CUSTODY_REQUIRED")
+    require({t["path"] for t in lease.inventory["trees"]} == {str(safe(binding.instance))},
+            "MATERIALIZATION_CUSTODY_SCOPE")
+    lease.held_digest(Path(binding.instance) / ".strata-instance.json")
+
+
+@contextmanager
+def _held_pack_launch(binding, role, *, simulation=False, worker_invocation=None, forge_invocation=None,
+                      _materialization_lease=None, _runtime_pool=None):
+    """Private ownership path; public resolution releases this custody on return."""
     require(role in {"client", "server"}, "ROLE_MISMATCH")
+    require(_runtime_pool is None or _materialization_lease is not None and role == "client"
+            and worker_invocation is not None and forge_invocation is None, "WORKER_RUNTIME_POOL_SCOPE")
+    if _materialization_lease is not None:
+        _materialization_scope(binding, _materialization_lease)
+        require(not simulation and forge_invocation is None
+                and (role == "server" or worker_invocation is not None), "MATERIALIZATION_CUSTODY_SCOPE")
     store = _absolute(binding.store)
     database = store / "controller.sqlite"
     objects = store / "objects"
@@ -135,6 +173,9 @@ credential, runtime dependency and mutable-world boundaries.
 
     instance = _absolute(binding.instance)
     restored = isinstance(binding, RestoredPackLaunchBinding)
+    if _materialization_lease is not None:
+        require(target == "vanilla" and isinstance(launch, VanillaLaunchProfile),
+                "MATERIALIZATION_CUSTODY_SCOPE")
     if restored:
         require(target == "vanilla" and isinstance(launch, VanillaLaunchProfile) and not simulation,
                 "PACK_RESTORE_UNSUPPORTED")
@@ -156,6 +197,9 @@ credential, runtime dependency and mutable-world boundaries.
     directories = inventory_directories(inventory, reviewed_world_paths=reviewed)
     entries = [FileEntry.model_validate(entry) for entry in inventory["files"]]
     require({entry.role for entry in entries} == {"client", "server"}, "ROLE_MISMATCH")
+    held_layouts = (_scan_held_materialization(instance, _materialization_lease,
+                                               reviewed_world_paths=reviewed)
+                    if _materialization_lease is not None else None)
     for selected in ("client", "server"):
         root = instance / selected
         if restored and selected == "server":
@@ -163,7 +207,8 @@ credential, runtime dependency and mutable-world boundaries.
             continue
         declared = sorted(({"path": entry.path, "digest": entry.digest, "bytes": entry.bytes}
                            for entry in entries if entry.role == selected), key=lambda e: e["path"])
-        require(scan_layout(root, reviewed_world_paths=reviewed)
+        actual = held_layouts[selected] if held_layouts is not None else scan_layout(root, reviewed_world_paths=reviewed)
+        require(actual
                 == {"files": declared, "directories": directories[selected]}, "MATERIALIZATION_CHANGED")
     relative = (Path(".") if command.working_directory == "."
                 else template_path(command.working_directory))
@@ -171,7 +216,9 @@ credential, runtime dependency and mutable-world boundaries.
     require(working_directory.is_dir(), "AWAITING_ARTIFACT")
     executable = _absolute(str(instance / role / command.executable_path)
                            if isinstance(launch, E9ELaunchProfile) else command.executable_path)
-    require(executable.stat().st_nlink == 1 and file_hash(executable) == command.executable.digest,
+    executable_hash = (file_hash(executable) if _materialization_lease is None or role == "client"
+                       else _materialization_lease.held_digest(executable))
+    require(executable.stat().st_nlink == 1 and executable_hash == command.executable.digest,
             "HASH_MISMATCH")
     require(all("\x00" not in arg for arg in command.arguments), "INVALID_ARGUMENT")
     validate_launch_environment(command.environment)
@@ -191,9 +238,12 @@ credential, runtime dependency and mutable-world boundaries.
     if restored:
         result.update(scope=restoration_scope(binding), restoration=binding.restoration.model_dump())
     if isinstance(launch, VanillaLaunchProfile) and role == "client":
-        from .pack_worker import resolve_worker_invocation
-        result.update(resolve_worker_invocation(launch, worker_invocation, binding))
+        from .pack_worker import _held_worker_invocation
+        with _held_worker_invocation(launch, worker_invocation, binding, _runtime_pool=_runtime_pool) as (worker, runtime):
+            result.update(worker)
+            yield result, runtime
+        return
     if isinstance(launch, E9ELaunchProfile) and role == "client":
         from .pack_forge import resolve_forge_invocation
         result.update(resolve_forge_invocation(launch, forge_invocation, binding, command))
-    return result
+    yield result, None

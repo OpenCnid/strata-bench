@@ -37,6 +37,18 @@ class NativeRetentionPolicy(Strict):
     resume_mode: Literal["fresh_handoff"]
 
 
+class NativeRetentionPolicyV2(NativeRetentionPolicy):
+    schema_: Literal["strata/NativeRetentionPolicy/2"] = Field(alias="schema")
+    policy: Literal["native-preregistered-retention-checkpoint/2"]
+    arm: Literal["frozen-skills"]
+    note_classifier: Literal["frozen-notes-markdown-no-code/1"]
+
+
+def parse_retention_policy(value):
+    model = NativeRetentionPolicyV2 if isinstance(value, dict) and value.get("schema") == "strata/NativeRetentionPolicy/2" else NativeRetentionPolicy
+    return model.model_validate(value)
+
+
 class NativeCheckpointState(Strict):
     schema_: Literal["strata/NativeCheckpointState/1"] = Field(alias="schema")
     is_example: bool
@@ -108,14 +120,17 @@ class NativeCheckpointStates:
     def register(self, config: CampaignConfig, agent: AgentConfig):
         """Freeze the declared baseline before any native job in this lineage."""
         self._controller_mode()
-        policy = NativeRetentionPolicy.model_validate(private_json(self.db.connection, self.cas, agent.memory_policy))
+        policy = parse_retention_policy(private_json(self.db.connection, self.cas, agent.memory_policy))
         require(not config.is_example and not agent.is_example and policy.is_example is self.runtime.simulation and
             policy.campaign_id == config.campaign_id and policy.agent_id == agent.agent_id and
             agent.agent_id in config.agent_ids and policy.system_digest == config.system_digest == agent.system_digest
             and agent.initial_skills == policy.initial_artifacts and agent.resume_mode == "fresh_handoff" and
-            (policy.arm != "no-self-play" or agent.self_play is False), "NATIVE_RETENTION_SCOPE")
+            (policy.arm != "no-self-play" or agent.self_play is False and agent.helper_limit == 0),
+            "NATIVE_RETENTION_SCOPE")
         initial = InitialArtifacts.model_validate(private_json(self.db.connection, self.cas, policy.initial_artifacts))
         check_files(self.cas, initial.files)
+        from .native_note_policy import validate_tree
+        validate_tree(policy, initial.files, initial.files, self.cas)
         values = (config.campaign_id, agent.agent_id, agent.memory_policy,
                   canonical(config.model_dump()).decode(), canonical(agent.model_dump()).decode())
         with self.db.transaction() as db:
@@ -142,7 +157,7 @@ class NativeCheckpointStates:
         self._controller_mode()
         config = CampaignConfig.model_validate_json(registered["config"])
         agent = AgentConfig.model_validate_json(registered["agent_config"])
-        policy = NativeRetentionPolicy.model_validate(private_json(db, self.cas, registered["ref"]))
+        policy = parse_retention_policy(private_json(db, self.cas, registered["ref"]))
         require(policy.is_example is self.runtime.simulation and policy.campaign_id == state.campaign_id and
             policy.agent_id == state.agent_id and policy.system_digest == config.system_digest == agent.system_digest and
             policy.initial_artifacts == agent.initial_skills and registered["ref"] == agent.memory_policy,
@@ -154,6 +169,8 @@ class NativeCheckpointStates:
             for p in current), "NATIVE_FROZEN_SKILLS_ACTIVE")
         check_files(self.cas, initial)
         check_files(self.cas, current, inventory["namespace"], "executor")
+        from .native_note_policy import validate_tree
+        validate_tree(policy, current, initial, self.cas, namespace=inventory["namespace"], role="executor")
         def immutable(path):
             return path.split("/")[0] in {"initial", "docs", "supplied"}
         require({k: v for k, v in initial.items() if immutable(k)} ==

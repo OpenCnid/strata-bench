@@ -20,7 +20,7 @@ OPERATOR = Principal("operator", "operator")
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example, configs, request):
+def admitted(database, cas, tmp_path, example, configs, request, *, model="gpt-5.6-luna", note_classifier=False):
     config, body, namespace, stop, _ = checkpoint_fixture(example, configs, cas, OPERATOR)
     for row in database.connection.execute("SELECT * FROM objects WHERE namespace=?", (namespace,)).fetchall():
         cas.put(OPERATOR, "operator", "operator", cas.read(OPERATOR, namespace, row["ref"]), media_type=row["media_type"])
@@ -33,17 +33,22 @@ def admitted(database, cas, tmp_path, example, configs, request):
     arm = getattr(request, "param", "full")
     policy = put({"schema": "strata/NativeRetentionPolicy/1", "policy": POLICY, "is_example": True,
         "campaign_id": "c1", "agent_id": "a1", "system_digest": config.system_digest, "arm": arm,
-        "initial_artifacts": baseline, "resume_mode": "fresh_handoff"})
+        "initial_artifacts": baseline, "resume_mode": "fresh_handoff", **({
+            "schema": "strata/NativeRetentionPolicy/2", "policy": "native-preregistered-retention-checkpoint/2",
+            "note_classifier": "frozen-notes-markdown-no-code/1"} if note_classifier else {})})
     config = type(config).model_validate(config.model_dump() | {"recovery_policy": "resume_development"})
     agent = AgentConfig.model_validate(configs()[1][0].model_dump() | {"memory_policy": policy,
         "initial_skills": baseline, "resume_mode": "fresh_handoff", "self_play": arm != "no-self-play",
-        "requested_model": "gpt-5.6-luna"})
+        "helper_limit": 0 if arm == "no-self-play" else configs()[1][0].helper_limit,
+        "requested_model": model})
     Controller(database, simulation=True).create(config, [agent])
     native = NativeCheckpointStates(NativeExec(database, cas, simulation=True))
     native.register(config, agent)
     database.checkpoint_fixture = {"config": config, "agent": agent, "body": body, "stop": stop,
-        "put": put, "arm": arm, "initial": initial_files}
-    return _admitted.__wrapped__(database, cas, tmp_path, example)
+        "put": put, "arm": arm, "initial": initial_files, "note_classifier": note_classifier}
+    return _admitted.__wrapped__(database, cas, tmp_path, example, model=model,
+        helpers=0 if arm == "no-self-play" else 2,
+        purpose="conformance" if arm == "frozen-skills" and not note_classifier else "campaign")
 
 
 def stage(stopped, *, boundary="episode"):

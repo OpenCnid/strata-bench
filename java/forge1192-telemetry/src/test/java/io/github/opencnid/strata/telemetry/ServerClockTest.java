@@ -8,6 +8,34 @@ import org.junit.jupiter.api.Test;
 class ServerClockTest {
     private static final UUID PLAYER = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
+    @Test void samplesKeepRunningAndRetainDisconnectedAndReconnectedExposure() {
+        var time = new AtomicLong(0); var clock = new ServerClock(time::get);
+        time.set(10); clock.startTick(); clock.avatarTick(PLAYER);
+        time.set(20); clock.endTick();
+        var first = clock.sample();
+        assertEquals("server_tick_end_sample", first.get("boundary").getAsString());
+        time.set(100); clock.startTick(); time.set(120); clock.endTick();
+        var disconnected = clock.sample();
+        assertEquals(2, disconnected.get("completed_server_ticks").getAsLong());
+        assertEquals(1, disconnected.getAsJsonObject("avatar_tick_events").get(PLAYER.toString()).getAsLong());
+        time.set(200); clock.startTick(); clock.avatarTick(PLAYER); time.set(210); clock.endTick();
+        var last = clock.sample();
+        assertEquals(3, last.get("completed_server_ticks").getAsLong());
+        assertEquals(2, last.getAsJsonObject("avatar_tick_events").get(PLAYER.toString()).getAsLong());
+        // Returned JSON is detached from the cumulative source.
+        first.addProperty("completed_server_ticks", 999);
+        time.set(220); var terminal = clock.stop();
+        assertEquals(3, terminal.get("completed_server_ticks").getAsLong());
+        assertEquals("server_stopped_callback", terminal.get("boundary").getAsString());
+        assertThrows(IllegalStateException.class, clock::sample);
+    }
+
+    @Test void partialTickCannotBePresentedAsACompleteSample() {
+        var clock = new ServerClock(() -> 0); clock.startTick(); clock.avatarTick(PLAYER);
+        assertThrows(IllegalStateException.class, clock::sample);
+        assertThrows(IllegalStateException.class, clock::endTick);
+    }
+
     @Test void includesStartupTailIdleAndActualPlayerEventsWithoutInventingTicks() {
         var time = new AtomicLong(100);
         var clock = new ServerClock(time::get);

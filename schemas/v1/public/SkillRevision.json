@@ -1,5 +1,22 @@
 {
   "additionalProperties": false,
+  "else": {
+    "properties": {
+      "activated_at": {
+        "type": "null"
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "status": {
+        "const": "active"
+      }
+    },
+    "required": [
+      "status"
+    ]
+  },
   "properties": {
     "is_example": {
       "title": "Is Example",
@@ -110,6 +127,13 @@
     "status",
     "activated_at"
   ],
+  "then": {
+    "properties": {
+      "activated_at": {
+        "type": "string"
+      }
+    }
+  },
   "title": "SkillRevision",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"

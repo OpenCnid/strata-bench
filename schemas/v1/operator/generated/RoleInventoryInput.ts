@@ -16,6 +16,10 @@ export type ProjectId = number | null;
 export type FileId = number | null;
 export type LicenseRef = string | null;
 export type Layer = "distribution" | "resolved" | "harness";
+/**
+ * @maxItems 12000
+ */
+export type ExtraDirectories = string[];
 export type ProvenanceEvidence = string;
 export type ExclusionsEvidence = string;
 
@@ -23,6 +27,7 @@ export interface RoleInventoryInput {
   role: Role;
   root: Root;
   files: Files;
+  extra_directories?: ExtraDirectories;
   provenance_evidence: ProvenanceEvidence;
   exclusions_evidence: ExclusionsEvidence;
 }

@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "NativeProbeArtifactSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "strata/NativeProbeArtifactSelection/1",
+          "title": "Schema",
+          "type": "string"
+        },
+        "policy": {
+          "const": "native-checkpoint-probe-artifact-projection/1",
+          "title": "Policy",
+          "type": "string"
+        },
+        "is_example": {
+          "title": "Is Example",
+          "type": "boolean"
+        },
+        "skill_set_ref": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "title": "Skill Set Ref",
+          "type": "string"
+        },
+        "initial_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Initial Paths",
+          "type": "array"
+        },
+        "retained_paths": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Retained Paths",
+          "type": "array"
+        },
+        "skill_names": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Skill Names",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema",
+        "policy",
+        "is_example",
+        "skill_set_ref",
+        "initial_paths",
+        "retained_paths",
+        "skill_names"
+      ],
+      "title": "NativeProbeArtifactSelection",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/ProbePairRequest/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "policy": {
+      "const": "private-matched-probe-pair-staging/1",
+      "title": "Policy",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "pair_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Pair Id",
+      "type": "string"
+    },
+    "protocol_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Protocol Ref",
+      "type": "string"
+    },
+    "fixture_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Fixture Ref",
+      "type": "string"
+    },
+    "selections": {
+      "minProperties": 1,
+      "patternProperties": {
+        "^[A-Za-z0-9_.:-]{1,128}$": {
+          "$ref": "#/$defs/NativeProbeArtifactSelection"
+        }
+      },
+      "title": "Selections",
+      "type": "object"
+    },
+    "arm_order": {
+      "items": {
+        "enum": [
+          "experienced",
+          "initial"
+        ],
+        "type": "string"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Arm Order",
+      "type": "array"
+    },
+    "max_materialized_bytes": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Max Materialized Bytes",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema",
+    "policy",
+    "is_example",
+    "pair_id",
+    "protocol_ref",
+    "fixture_ref",
+    "selections",
+    "arm_order",
+    "max_materialized_bytes"
+  ],
+  "title": "ProbePairRequest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

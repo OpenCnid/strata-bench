@@ -12,7 +12,7 @@ import shutil
 import sys
 
 from .launch_integrity import FileLease, encode, native_companion_inventory, read_manifest, safe, snapshot, tree_files
-from .native_broker_policy import BROKER_TOOLS, validate_broker_settings
+from .native_broker_policy import POLICY, broker_tools, broker_approvals, validate_broker_settings
 from .runtime import CODEX_COMPANION_PINS, native_companion_paths
 from .storage import require
 
@@ -37,7 +37,9 @@ def copy_software(source, target):
         shutil.copyfile(path, dest)
 
 
-def prepare_bundle(root, *, native_executable, plugin_root, broker_config, static_files=(), static_trees=()):
+def prepare_bundle(root, *, native_executable, plugin_root, broker_config, static_files=(), static_trees=(),
+                   broker_policy=POLICY):
+    broker_tools(broker_policy)
     companions = native_companion_paths(native_executable)
     root = safe(root)
     require(not root.exists(), "BOOTSTRAP_TARGET_EXISTS")
@@ -79,8 +81,8 @@ def prepare_bundle(root, *, native_executable, plugin_root, broker_config, stati
     sha = hashlib.sha256(raw).hexdigest()
     server = {"command": str(python), "args": ["-I", "-S", "-B", manifest["broker_bootstrap"],
         "--manifest", str(path), "--sha256", sha], "env": {}, "required": True,
-        "enabled_tools": list(BROKER_TOOLS), "tools": {"artifact_write": {"approval_mode": "approve"},
-            "game": {"approval_mode": "approve"}}, "startup_timeout_sec": 30, "tool_timeout_sec": 10}
+        "enabled_tools": list(broker_tools(broker_policy)), "tools": broker_approvals(broker_policy),
+        "startup_timeout_sec": 30, "tool_timeout_sec": 10}
     return {"path": str(path), "sha256": sha, "server": server}
 
 
@@ -92,7 +94,7 @@ def acquire_native_bootstrap(plan):
     pinned = {str(safe(entry["path"])).casefold() for entry in manifest["inventory"]["files"]}
     require(all(str(safe(manifest[key])).casefold() in pinned for key in required),
             "BOOTSTRAP_FILE_UNPINNED")
-    validate_broker_settings(plan.config_overrides)
+    validate_broker_settings(plan.config_overrides, policy=plan.broker_policy)
     server = plan.config_overrides["mcp_servers.strata_broker"]
     require(server.get("command") == manifest["python"] and server.get("args") == [
         "-I", "-S", "-B", manifest["broker_bootstrap"], "--manifest", plan.bootstrap_manifest,

@@ -1,13 +1,19 @@
 import { DatabaseSync } from 'node:sqlite';
+import { randomUUID } from 'node:crypto';
 import { closeSync, openSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
+import type { RepairPlan } from './worker_repair.js';
+import type { ResumeDecision, ResumeState } from './native_resume.js';
+import type { ControlPublication } from './control_publication.js';
+import { REPAIR_ACCOUNTING_POLICY, type ChargeBoundary, type RepairAccounting } from './repair_accounting.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
 
 /** Private, synchronous FULL journal. Nothing dispatches before acceptance is committed. */
 export class Journal {
+  private readonly clockId=randomUUID();
   private db!: DatabaseSync;
   private lockFd: number;
   private lockPath: string;
@@ -23,7 +29,15 @@ export class Journal {
           seq INTEGER NOT NULL, digest TEXT NOT NULL, request TEXT NOT NULL, ack TEXT NOT NULL,
           UNIQUE(epoch, seq));
         CREATE TABLE IF NOT EXISTS events(cursor INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT NULL);
-        CREATE TABLE IF NOT EXISTS counters(name TEXT PRIMARY KEY, value INTEGER NOT NULL);`);
+        CREATE TABLE IF NOT EXISTS counters(name TEXT PRIMARY KEY, value INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS repair_holds(transaction_id TEXT PRIMARY KEY,epoch INTEGER NOT NULL,
+          plan TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('HELD','RECOVERY_REQUIRED')));
+        CREATE TABLE IF NOT EXISTS repair_resumes(transaction_id TEXT PRIMARY KEY,resume_id TEXT UNIQUE NOT NULL,
+          decision TEXT NOT NULL,receipt TEXT,observation TEXT);
+        CREATE TABLE IF NOT EXISTS repair_publications(transaction_id TEXT PRIMARY KEY,
+          decision TEXT,observation TEXT);
+        CREATE TABLE IF NOT EXISTS repair_accounting(transaction_id TEXT PRIMARY KEY,
+          clock_id TEXT NOT NULL,opening TEXT NOT NULL,receipt TEXT);`);
       const last = this.db.prepare('SELECT MAX(epoch) AS epoch FROM epochs').get() as { epoch: number | null };
       requireThat(last.epoch === null || epoch > last.epoch, 'STALE_EPOCH');
       this.db.prepare('INSERT INTO epochs VALUES (?)').run(epoch);
@@ -45,6 +59,166 @@ export class Journal {
   next(kind: string): number { return this.counter(`${this.epoch}:${kind}`, 1); }
   event(kind: string, body: unknown): void {
     this.db.prepare('INSERT INTO events(kind,body) VALUES (?,?)').run(kind, JSON.stringify(body));
+  }
+  holdRepair(plan:RepairPlan,accounting=false):void {
+    this.transaction(()=>{
+      requireThat(plan.epoch===this.epoch && !this.unresolvedRepair(),
+        'REPAIR_RECOVERY_REQUIRED');
+      this.db.prepare("INSERT INTO repair_holds VALUES (?,?,?,'HELD')").run(plan.transaction_id,this.epoch,JSON.stringify(plan));
+      this.event('repair_pause_intent',{schema:'strata/WorkerRepairIntent/1',plan});
+      if(accounting) {
+        const opening=this.chargeBoundary();
+        this.db.prepare('INSERT INTO repair_accounting(transaction_id,clock_id,opening) VALUES (?,?,?)')
+          .run(plan.transaction_id,this.clockId,JSON.stringify(opening));
+        this.event('repair_accounting_opened',{policy:REPAIR_ACCOUNTING_POLICY,plan,clock_id:this.clockId,opening});
+      }
+    });
+  }
+  private chargeBoundary():ChargeBoundary {
+    const rows=this.db.prepare("SELECT name,value FROM counters WHERE name LIKE 'native:%' ORDER BY name").all() as unknown as {name:string;value:number}[];
+    requireThat(rows.length<=64 && rows.every(r=>/^native:[a-f0-9]{64}:[a-f0-9]{64}$/.test(r.name)
+      && Number.isSafeInteger(r.value) && r.value>=0),'REPAIR_ACCOUNTING_INVALID');
+    const total=this.counter('primitive_events');
+    requireThat(Number.isSafeInteger(total) && rows.reduce((n,r)=>n+r.value,0)===total,'REPAIR_ACCOUNTING_MISMATCH');
+    const cursor=this.db.prepare('SELECT MAX(cursor) AS value FROM events').get()!.value as number;
+    return {cursor,mono_ms:mono(),unix_ms:Date.now(),primitive_events:total,sources:Object.fromEntries(rows.map(r=>[r.name,r.value]))};
+  }
+  repairAccounting(plan:RepairPlan,resumeDigest:string):RepairAccounting {
+    return this.transaction(()=>{
+      const row=this.db.prepare('SELECT * FROM repair_accounting WHERE transaction_id=?').get(plan.transaction_id) as {clock_id:string;opening:string;receipt:string|null}|undefined;
+      const held=this.db.prepare('SELECT plan,state FROM repair_holds WHERE transaction_id=?').get(plan.transaction_id);
+      const resume=this.resumeRecord(plan.transaction_id),publication=this.publicationRecord(plan.transaction_id);
+      requireThat(row && row.clock_id===this.clockId && held?.state==='HELD'
+        && digest(JSON.parse(held.plan as string))===digest(plan) && resume?.receipt
+        && digest(resume.decision)===resumeDigest && publication && !publication.observation,'REPAIR_ACCOUNTING_UNAVAILABLE');
+      if(row.receipt) {
+        const saved=JSON.parse(row.receipt) as RepairAccounting,current=this.chargeBoundary();
+        requireThat(saved.closing.primitive_events===current.primitive_events
+          && digest(saved.closing.sources)===digest(current.sources),'REPAIR_ACCOUNTING_CHANGED');
+        return saved;
+      }
+      const opening:ChargeBoundary=JSON.parse(row.opening),closing=this.chargeBoundary();
+      requireThat(closing.mono_ms>=opening.mono_ms && closing.primitive_events>=opening.primitive_events
+        && closing.primitive_events>=resume.receipt.health.attempted_primitive_events
+        && Object.entries(opening.sources).every(([key,value])=>(closing.sources[key]??-1)>=value),'REPAIR_ACCOUNTING_INVALID');
+      const receipt:RepairAccounting={schema:'strata/WorkerRepairAccounting/1',policy:REPAIR_ACCOUNTING_POLICY,
+        worker_plan:plan,clock_id:this.clockId,resume_digest:resumeDigest,opening,closing,
+        charged_primitive_events:closing.primitive_events-opening.primitive_events,elapsed_ms:closing.mono_ms-opening.mono_ms,
+        complete_repair_accounting:false,avatar_ticks:null,model_usage:null,publication_tail_included:false};
+      this.db.prepare('UPDATE repair_accounting SET receipt=? WHERE transaction_id=?').run(JSON.stringify(receipt),plan.transaction_id);
+      this.event('repair_accounting_measured',receipt);return receipt;
+    });
+  }
+  measuredRepair(transaction:string):RepairAccounting|null {
+    const row=this.db.prepare('SELECT receipt FROM repair_accounting WHERE transaction_id=?').get(transaction);
+    return row?.receipt?JSON.parse(row.receipt as string) as RepairAccounting:null;
+  }
+  failRepair(plan:RepairPlan,reason:string):void {
+    this.transaction(()=>{
+      const result=this.db.prepare("UPDATE repair_holds SET state='RECOVERY_REQUIRED' WHERE transaction_id=? AND epoch=?")
+        .run(plan.transaction_id,this.epoch);
+      requireThat(result.changes===1,'REPAIR_NOT_OWNED');
+      this.event('repair_pause_failed',{plan,reason});
+    });
+  }
+  private unresolvedRepair():boolean {
+    return !!this.db.prepare(`SELECT 1 FROM repair_holds h LEFT JOIN repair_resumes r USING(transaction_id)
+      LEFT JOIN repair_publications p USING(transaction_id)
+      WHERE h.state='RECOVERY_REQUIRED' OR r.receipt IS NULL
+        OR (p.transaction_id IS NOT NULL AND p.observation IS NULL) LIMIT 1`).get();
+  }
+  resumeRecord(transaction:string):{decision:ResumeDecision;receipt:ResumeState|null;observation:unknown}|null {
+    const row=this.db.prepare('SELECT decision,receipt,observation FROM repair_resumes WHERE transaction_id=?')
+      .get(transaction) as {decision:string;receipt:string|null;observation:string|null}|undefined;
+    return row?{decision:JSON.parse(row.decision),receipt:row.receipt?JSON.parse(row.receipt):null,
+      observation:row.observation?JSON.parse(row.observation):null}:null;
+  }
+  beginResume(decision:ResumeDecision,publicationRequired=false):void {
+    this.transaction(()=>{
+      const plan=decision.worker_plan;
+      const row=this.db.prepare('SELECT plan,state,epoch FROM repair_holds WHERE transaction_id=?')
+        .get(plan.transaction_id) as {plan:string;state:string;epoch:number}|undefined;
+      requireThat(row && row.state==='HELD' && row.epoch===this.epoch && digest(JSON.parse(row.plan))===digest(plan),
+        'REPAIR_NOT_OWNED');
+      this.db.prepare('INSERT INTO repair_resumes(transaction_id,resume_id,decision) VALUES (?,?,?)')
+        .run(plan.transaction_id,decision.resume_id,JSON.stringify(decision));
+      this.event('repair_resume_intent',{decision});
+      if(publicationRequired)this.db.prepare('INSERT INTO repair_publications(transaction_id) VALUES (?)').run(plan.transaction_id);
+    });
+  }
+  publicationRecord(transaction:string):{decision:ControlPublication|null;observation:unknown}|null {
+    const row=this.db.prepare('SELECT decision,observation FROM repair_publications WHERE transaction_id=?')
+      .get(transaction) as {decision:string|null;observation:string|null}|undefined;
+    return row?{decision:row.decision?JSON.parse(row.decision):null,observation:row.observation?JSON.parse(row.observation):null}:null;
+  }
+  beginPublication(value:ControlPublication):void {
+    this.transaction(()=>{
+      const tx=value.worker_plan.transaction_id,old=this.publicationRecord(tx),resume=this.resumeRecord(tx);
+      requireThat(old && !old.decision && resume?.receipt && digest(resume.decision)===value.resume_digest
+        && digest(resume.decision.worker_plan)===digest(value.worker_plan),'REPAIR_NOT_OWNED');
+      this.db.prepare('UPDATE repair_publications SET decision=? WHERE transaction_id=?').run(JSON.stringify(value),tx);
+      this.event('repair_publication_intent',value);
+    });
+  }
+  finishPublication(value:ControlPublication,observation:unknown):void {
+    this.transaction(()=>{
+      const tx=value.worker_plan.transaction_id,old=this.publicationRecord(tx);
+      requireThat(old?.decision && !old.observation && digest(old.decision)===digest(value),'REPAIR_NOT_OWNED');
+      const held=this.db.prepare('SELECT epoch,plan,state FROM repair_holds WHERE transaction_id=?').get(tx);
+      const measured=this.measuredRepair(tx);
+      requireThat(held?.state==='HELD' && held.epoch===this.epoch
+        && digest(JSON.parse(held.plan as string))===digest(value.worker_plan)
+        && measured && measured.clock_id===this.clockId
+        && measured.resume_digest===value.resume_digest,'REPAIR_ACCOUNTING_UNAVAILABLE');
+      // The final observation can discover charges after the earlier preflight.
+      // Check and retain this boundary in the same commit that permits publication.
+      const boundary=this.chargeBoundary();
+      requireThat(boundary.primitive_events===value.primitive_events
+        && boundary.primitive_events===measured.closing.primitive_events
+        && digest(boundary.sources)===digest(measured.closing.sources)
+        && boundary.cursor>=measured.closing.cursor && boundary.mono_ms>=measured.closing.mono_ms,
+        'REPAIR_ACCOUNTING_CHANGED');
+      this.db.prepare('UPDATE repair_publications SET observation=? WHERE transaction_id=?')
+        .run(JSON.stringify(observation),tx);
+      this.event('repair_publication_confirmed',{schema:'strata/WorkerControlPublicationCommit/1',
+        decision:value,observation,clock_id:this.clockId,measurement_digest:digest(measured),boundary,
+        complete_repair_accounting:false});
+    });
+  }
+  publicationAccounting(value:ControlPublication):unknown {
+    return this.transaction(()=>{
+      const tx=value.worker_plan.transaction_id,saved=this.publicationRecord(tx),measurement=this.measuredRepair(tx);
+      requireThat(saved?.decision && saved.observation && digest(saved.decision)===digest(value)
+        && measurement && digest(measurement.worker_plan)===digest(value.worker_plan)
+        && measurement.resume_digest===value.resume_digest,'CONTROL_PUBLICATION_UNCONFIRMED');
+      const rows=this.db.prepare("SELECT body FROM events WHERE kind='repair_publication_confirmed' "
+        + "AND json_extract(body,'$.decision.worker_plan.transaction_id')=? LIMIT 2").all(tx);
+      requireThat(rows.length===1,'CONTROL_PUBLICATION_UNCONFIRMED');
+      const commit=JSON.parse(rows[0]!.body as string);
+      requireThat(commit.schema==='strata/WorkerControlPublicationCommit/1'
+        && digest(commit.decision)===digest(value) && digest(commit.observation)===digest(saved.observation)
+        && commit.clock_id===measurement.clock_id && commit.measurement_digest===digest(measurement)
+        && commit.complete_repair_accounting===false
+        && commit.boundary.primitive_events===value.primitive_events
+        && commit.boundary.primitive_events===measurement.closing.primitive_events
+        && digest(commit.boundary.sources)===digest(measurement.closing.sources)
+        && commit.boundary.cursor>=measurement.closing.cursor && commit.boundary.mono_ms>=measurement.closing.mono_ms,
+        'REPAIR_ACCOUNTING_CHANGED');
+      // Historical evidence only: never consult moving counters or grant input.
+      return {schema:'strata/WorkerPublicationAccounting/1',measurement,commit};
+    });
+  }
+  finishResume(decision:ResumeDecision,receipt:ResumeState,observation:unknown):void {
+    this.transaction(()=>{
+      const row=this.resumeRecord(decision.worker_plan.transaction_id);
+      requireThat(row && !row.receipt && digest(row.decision)===digest(decision)
+        && digest(receipt.decision)===digest(decision) && receipt.input_resumed,'REPAIR_NOT_OWNED');
+      const hold=this.db.prepare('SELECT state FROM repair_holds WHERE transaction_id=?').get(decision.worker_plan.transaction_id);
+      requireThat(hold?.state==='HELD','REPAIR_RECOVERY_REQUIRED');
+      this.db.prepare('UPDATE repair_resumes SET receipt=?,observation=? WHERE transaction_id=?')
+        .run(JSON.stringify(receipt),JSON.stringify(observation),decision.worker_plan.transaction_id);
+      this.event('repair_resume_confirmed',{decision,receipt,observation});
+    });
   }
   beginPrimitiveAccounting(scope: {campaign_id:string; agent_id:string; epoch:number}): void {
     this.transaction(() => {
@@ -111,6 +285,9 @@ export class Journal {
     });
   }
   recover(): void {
+    // A new executor epoch is not authority to bypass a pending settings repair.
+    // Only a durable confirmed resume clears the hold; intents retain recovery.
+    requireThat(!this.unresolvedRepair(),'REPAIR_RECOVERY_REQUIRED');
     const rows = this.db.prepare('SELECT ack FROM actions').all() as {ack: string}[];
     for (const row of rows) {
       const ack = JSON.parse(row.ack) as ActionAck;

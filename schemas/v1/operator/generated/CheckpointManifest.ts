@@ -1,5 +1,31 @@
 /* Operator-only generated binding. Never ship in a gameplay workspace. */
 
+export type CheckpointManifest = {
+  agents?: {
+    [k: string]: unknown;
+  };
+} & {
+  is_example: IsExample;
+  schema: Schema;
+  checkpoint_id: CheckpointId;
+  campaign_id: CampaignId;
+  parent_checkpoint_id: ParentCheckpointId;
+  status: Status;
+  created_at: CreatedAt;
+  source_epoch: SourceEpoch;
+  scheduled_active_s: ScheduledActiveS;
+  pack_lock: PackLock;
+  system_digest: SystemDigest;
+  server_boot_id: ServerBootId;
+  server_tick: ServerTick;
+  world_and_external_state: WorldAndExternalState;
+  agents: Agents;
+  event_cursor: EventCursor;
+  ledger_cursor: LedgerCursor;
+  clean_stop_report: CleanStopReport;
+  clocks: Clocks;
+  manifest_digest: ManifestDigest;
+};
 export type IsExample = boolean;
 export type Schema = "mcbench/CheckpointManifest/1";
 export type CheckpointId = string;
@@ -31,28 +57,6 @@ export type ElapsedWallS = number;
 export type AvatarTicks = number;
 export type ManifestDigest = string | null;
 
-export interface CheckpointManifest {
-  is_example: IsExample;
-  schema: Schema;
-  checkpoint_id: CheckpointId;
-  campaign_id: CampaignId;
-  parent_checkpoint_id: ParentCheckpointId;
-  status: Status;
-  created_at: CreatedAt;
-  source_epoch: SourceEpoch;
-  scheduled_active_s: ScheduledActiveS;
-  pack_lock: PackLock;
-  system_digest: SystemDigest;
-  server_boot_id: ServerBootId;
-  server_tick: ServerTick;
-  world_and_external_state: WorldAndExternalState;
-  agents: Agents;
-  event_cursor: EventCursor;
-  ledger_cursor: LedgerCursor;
-  clean_stop_report: CleanStopReport;
-  clocks: Clocks;
-  manifest_digest: ManifestDigest;
-}
 export interface AgentSnapshot {
   agent_id: AgentId;
   workspace: Workspace;

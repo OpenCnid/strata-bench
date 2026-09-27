@@ -4,11 +4,7 @@ Reuses the existing native accounting/identity harness. Never imports a live
 authorization, changes a copied allowance, or claims synthetic worlds are real.
 """
 
-import hashlib
 import json
-import shutil
-import sqlite3
-from pathlib import Path
 
 from mcbench.native_skill_activation import INSTRUCTIONS, NativeSkillSets, active_files
 from mcbench.storage import require
@@ -16,32 +12,22 @@ from mcbench.storage import require
 
 class ActivationProbe:
     def __init__(self, source, output):
-        require(set(source) == {"directory", "seal_sha256", "skill_set_ref"}, "ACTIVATION_FIXTURE_SOURCE")
+        from native_activation_source import copy_activation_source
+        self.source_copy = copy_activation_source(source, output)
         self.output = output
         self.ref = source["skill_set_ref"]
-        origin = Path(source["directory"])
-        raw = (origin / "seal.json").read_bytes()
-        require(hashlib.sha256(raw).hexdigest() == source["seal_sha256"], "ACTIVATION_SOURCE_CHANGED")
-        manifest = json.loads(raw)
-        selected = {f["path"]: f for f in manifest["files"] if f["path"] == "synthetic.sqlite" or f["path"].startswith("objects/")}
-        require("synthetic.sqlite" in selected, "ACTIVATION_FIXTURE_SOURCE")
-        for name, entry in selected.items():
-            path = origin / name
-            require(not path.is_symlink() and path.is_file(), "ACTIVATION_SOURCE_CHANGED")
-            with path.open("rb") as stream:
-                require(hashlib.file_digest(stream, "sha256").hexdigest() == entry["sha256"], "ACTIVATION_SOURCE_CHANGED")
-        require(not (output / "synthetic.sqlite").exists() and not (output / "objects").exists(), "TARGET_EXISTS")
-        with sqlite3.connect((origin / "synthetic.sqlite").as_uri() + "?mode=ro", uri=True) as src:
-            require(src.execute("SELECT simulation FROM native_profile").fetchone()[0] == 1, "SIMULATION_STORE")
-            with sqlite3.connect(output / "synthetic.sqlite") as dst:
-                src.backup(dst)
-        shutil.copytree(origin / "objects", output / "objects")
         self.source = source
         self.body = None
 
-    def prepare(self, runtime, plan):
+    def prepare(self, runtime, plan, *, helper_free=False):
         service = NativeSkillSets(runtime)
         self.body = service.load(self.ref)
+        require(type(helper_free) is bool, "ACTIVATION_FIXTURE_SCOPE")
+        if helper_free:
+            from mcbench.native_export import OPERATOR
+            state, _ = service.components.load(self.body["checkpoint_ref"])
+            policy = runtime.cas.json(OPERATOR, "operator", state.retention_policy)
+            require(policy["arm"] == "no-self-play", "ACTIVATION_FIXTURE_ARM")
         require(self.body["is_example"] is True and self.body["campaign_id"] == "c1" and
                 self.body["agent_id"] == "a1" and self.body["source_epoch"] >= 1,
                 "ACTIVATION_FIXTURE_SCOPE")
@@ -67,7 +53,7 @@ class ActivationProbe:
         self.runtime = runtime
         return plan.model_copy(update={"campaign_id": self.body["campaign_id"], "agent_id": self.body["agent_id"],
             "epoch": self.body["source_epoch"] + 1, "workspace": str(view), "skill_activation_ref": self.ref,
-            "helper_skill_activation_ref": self.ref, "purpose": "campaign"})
+            "helper_skill_activation_ref": None if helper_free else self.ref, "purpose": "campaign"})
 
     @property
     def instructions(self):
@@ -77,6 +63,9 @@ class ActivationProbe:
         calls = [("artifact_read", {"path": p}) for p in (
             "active/learned-crafting/SKILL.md", "active/learned-crafting/references/steps.md",
             "active/learned-crafting/scripts/check.py", "active/revisions.json")]
+        requested = {args["path"] for _, args in calls}
+        calls += [("artifact_read", {"path": p}) for p in sorted(active_files(self.body))
+                  if p.startswith("active/learned-crafting/") and p not in requested]
         calls += [("artifact_write", {"path": "active/learned-crafting/SKILL.md", "expected_ref": None, "text": "forbidden"}),
                   ("artifact_write", {"path": "active/revisions.json", "expected_ref": None, "text": "forbidden"})]
         if agent == "/root":
@@ -113,16 +102,17 @@ const path=prefix+"SKILL.md";
 const current=await artifact("artifact_read",{path});
 const updated=await artifact("artifact_write",{path,expected_ref:current.ref,text:current.text+"\nNative synthetic replacement.\n"});
 files[path]=updated.ref;
-const candidate={revision_id:REVISION_ID,name:"learned-crafting",kind:"procedure",
+const candidate={revision_id:REVISION_ID,name:"learned-crafting",kind:REVISION_KIND,
  parent_revision_id:index.skills["learned-crafting"],
  files:Object.fromEntries(Object.entries(files).filter(([p])=>p.startsWith(prefix)).map(([p,r])=>[p.slice(prefix.length),r])),
  inputs:{"notes/root.md":files["notes/root.md"]},
  development_evidence:{"notes/development.md":files["notes/development.md"]}};
 const publication={schema:"strata/NativeSkillPublicationRequest/2",policy:"native-root-written-skill-bundles/2",candidates:[candidate]};
 text({native_publication:await artifact("artifact_write",{path:"skills/publish.json",expected_ref:files["skills/publish.json"],text:JSON.stringify(publication)})});
-'''.replace("REVISION_ID", json.dumps(self.next_revision))
+'''.replace("REVISION_ID", json.dumps(self.next_revision)).replace(
+            "REVISION_KIND", json.dumps(self.body["skills"]["learned-crafting"]["revision"]["kind"]))
 
-    def report(self, provider, db, plan):
+    def report(self, provider, db, plan, *, helper_free=False):
         from mcbench.native_export import OPERATOR
         # Decode actual returned broker content, never echoed call inputs.
         def values(value):
@@ -173,12 +163,15 @@ text({native_publication:await artifact("artifact_write",{path:"skills/publish.j
             expected = self.runtime.cas.read(OPERATOR, "operator", self.body["skills"]["learned-crafting"]["files"]["SKILL.md"]).decode()
             checks["native_explicit_body_injection"] = bool(initial) and expected.strip() in text_content(json.loads(
                 self.runtime.cas.read(OPERATOR, "operator", initial[0], max_bytes=1024*1024))).replace("\r\n", "\n")
-        for name in ("/root", "/root/identity_child"):
+        for name in (("/root",) if helper_free else ("/root", "/root/identity_child")):
             reads = per_agent.get(name, {})
             checks[name + "_unchanged_active_reads"] = all(p in reads and reads[p]["ref"] == ref and
                 reads[p]["text"].encode() == self.runtime.cas.read(OPERATOR, "operator", ref) for p, ref in wanted.items())
         child = per_agent.get("/root/identity_child", {})
-        checks["helper_no_root_history_returned"] = not any(p.startswith(("notes/", "skills/", "handoff/")) for p in child)
+        if helper_free:
+            checks["only_root_artifact_returns"] = set(per_agent) == {"/root"}
+        else:
+            checks["helper_no_root_history_returned"] = not any(p.startswith(("notes/", "skills/", "handoff/")) for p in child)
         rows = list(db.connection.execute("SELECT g.body,f.path,f.ref,f.immutable FROM broker_grants g "
             "JOIN broker_files f ON json_extract(g.body,'$.namespace')=f.namespace WHERE g.runtime=?", (plan.job_id,)))
         checks["active_bytes_still_immutable"] = all(r["immutable"] == 1 and

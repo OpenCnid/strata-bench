@@ -10,7 +10,7 @@ import pytest
 from mcbench.inventory import file_hash
 from mcbench.launch_integrity import IntegrityError, encode, native_companion_inventory, snapshot
 from mcbench.native_bootstrap import acquire_native_bootstrap, prepare_bundle
-from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+from mcbench.native_broker_policy import BROKER_TOOLS, POLICY, restricted_settings
 from mcbench.runtime import CODEX_COMPANION_PINS, native_companion_paths
 from mcbench.storage import Fault, canonical
 
@@ -88,7 +88,7 @@ def test_companions_bound_to_adjacent_inventory_and_held(companions, tmp_path, c
         "enabled_tools": list(BROKER_TOOLS), "tools": {"artifact_write": {"approval_mode": "approve"},
                                                        "game": {"approval_mode": "approve"}}}
     plan = SimpleNamespace(bootstrap_manifest=str(path), bootstrap_digest=sha, executable=str(binary),
-        workspace=str(tmp_path / "gameplay"), job_id="job",
+        workspace=str(tmp_path / "gameplay"), job_id="job", broker_policy=POLICY,
         config_overrides=restricted_settings() | {"mcp_servers.strata_broker": server})
     if change:
         with pytest.raises(IntegrityError, match="BOOTSTRAP_COMPANION"):

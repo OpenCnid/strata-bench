@@ -74,6 +74,22 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "properties": {
+        "family_weights": {
+          "minProperties": 1
+        },
+        "system_digests": {
+          "minItems": 1
+        },
+        "exposure_s": {
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  ],
   "properties": {
     "is_example": {
       "title": "Is Example",

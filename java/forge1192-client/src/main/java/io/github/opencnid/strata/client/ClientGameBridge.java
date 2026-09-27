@@ -21,6 +21,7 @@ final class ClientGameBridge {
     private static NativeGameRuntime runtime;
     private static GameActionLane lane;
     private static GameBootstrap bootstrap;
+    private static NativeSettingsEffects settingsEffects;
     private static final GameStartupReadiness startup = new GameStartupReadiness();
     static void install() {
         MinecraftForge.EVENT_BUS.addListener(ClientGameBridge::tick);
@@ -28,6 +29,12 @@ final class ClientGameBridge {
         MinecraftForge.EVENT_BUS.addListener(ClientGameBridge::tagsUpdated);
         MinecraftForge.EVENT_BUS.addListener(ClientGameBridge::recipesUpdated);
         MinecraftForge.EVENT_BUS.addListener(ClientGameBridge::shutdown);
+        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.LOWEST, true,
+            (net.minecraftforge.client.event.ScreenEvent.Opening event) -> {
+                if (settingsEffects != null) try {
+                    settingsEffects.screenOpening(event.getCurrentScreen(), event.getNewScreen(), event.isCanceled());
+                } catch (IOException error) { throw new IllegalStateException("STRATA_SETTINGS_EFFECT_CAPTURE_FAILED", error); }
+            });
         MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.LOWEST, true,
             (net.minecraftforge.client.event.InputEvent.InteractionKeyMappingTriggered event) -> {
             if (runtime != null) runtime.onInput(event);
@@ -67,6 +74,7 @@ final class ClientGameBridge {
             startup.admit(client.level, client.player, client.getConnection(), unobstructed(client));
             if (bridge != null) {
                 runtime.tick(); bridge.drain(); // Reserved safety queue drains before the action motor.
+                if (settingsEffects != null) settingsEffects.tick();
                 if (lane != null) lane.tick();
                 return;
             }
@@ -97,6 +105,10 @@ final class ClientGameBridge {
                 lane = new GameActionLane(root, runtime.fingerprint(),
                     GameActionLane.Authority.read(SettingsJson.read(SettingsFiles.readOptions(authority))), runtime);
             }
+            if (NativeSettingsEffects.enabled()) {
+                settingsEffects = new NativeSettingsEffects(client, root, lane);
+                runtime.attachSettingsEffects(settingsEffects);
+            }
             NativeGameProtocol protocol = new NativeGameProtocol(runtime, lane);
             bridge = new SettingsHttpBridge(protocol::execute, protocol);
             // Credential material belongs only in the operator's private broker directory.
@@ -106,13 +118,14 @@ final class ClientGameBridge {
             attempted = true;
             if (bridge != null) bridge.close();
             bridge = null;
+            if (settingsEffects != null) try { settingsEffects.close(); } catch (IOException cleanup) { error.addSuppressed(cleanup); }
             if (lane != null) try { lane.close(); } catch (IOException ignored) { }
             throw new IllegalStateException("STRATA_GAME_BRIDGE_FAILED", error);
         }
     }
     private static void shutdown(GameShuttingDownEvent event) {
         if (bridge != null) bridge.close();
-        if (lane != null) try { lane.close(); }
+        if (lane != null) try { try { if (settingsEffects != null) settingsEffects.close(); } finally { lane.close(); } }
         catch (IOException error) { throw new IllegalStateException("STRATA_GAME_LANE_STOP_FAILED", error); }
     }
 }

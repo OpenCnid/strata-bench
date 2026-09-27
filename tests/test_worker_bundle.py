@@ -21,10 +21,13 @@ def inputs(tmp_path):
     for relative in ("package.json", "package-lock.json", "tools/auth_cache_acl.py",
                      "dist/src/worker.js", "dist/src/auth_cache.js", "node_modules/fixture/index.js"):
         put(backend / relative)
-    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest"):
+    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest",
+                 "SkillRevision", "KeybindingPatch"):
         put(repository / f"schemas/v1/public/{name}.json", b"{}")
     put(repository / "AGENTS.md", b"OPERATOR-ONLY-CANARY")
     put(repository / ".strata/auth.json", b"SYNTHETIC-SECRET-CANARY")
+    put(backend / "dist/operator/records.js", b"PRIVATE-VALIDATOR-CANARY")
+    put(repository / "schemas/v1/evaluator/EvaluationResult.json", b"PRIVATE-SCHEMA-CANARY")
     for relative in ("python.exe", "python312.dll", "Lib/encodings/__init__.py", "DLLs/_ctypes.pyd",
                      "Lib/__pycache__/pathlib.cpython-312.pyc", "Lib/site-packages/unreviewed.pth"):
         put(python / relative)
@@ -63,6 +66,22 @@ def test_operator_control_cannot_be_claimed_when_the_module_is_missing(inputs):
     assert not inputs[3].exists()
 
 
+@pytest.mark.parametrize("change", ["bytes", "membership"])
+def test_manifest_preflight_does_not_replace_final_held_validation(inputs, change):
+    from mcbench.launch_integrity import IntegrityError
+    from mcbench.worker_bundle import HeldWorkerBundle
+    result = prepare(inputs)
+    held = HeldWorkerBundle({"path": result["manifest"], "sha256": result["sha256"]})
+    if change == "bytes":
+        (inputs[3] / "node/node.exe").write_bytes(b"different bytes after preflight")
+    else:
+        (inputs[3] / "added.py").write_bytes(b"unlisted after preflight")
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_FILE_CHANGED|BOOTSTRAP_TREE_CHANGED"):
+        with held:
+            pytest.fail("preflight admitted changed runtime")
+    (inputs[3] / "node/node.exe").write_bytes(b"all handles released")
+
+
 def test_only_software_is_copied_and_every_output_is_pinned(inputs):
     result = prepare(inputs)
     raw = open(result["manifest"], "rb").read()
@@ -76,6 +95,8 @@ def test_only_software_is_copied_and_every_output_is_pinned(inputs):
     assert not manifest["auth_cache_copied"] and not manifest["game_state_copied"]
     output = inputs[3]
     assert not (output / "AGENTS.md").exists() and not (output / ".strata").exists()
+    assert not (output / "backends/mineflayer/dist/operator").exists()
+    assert not (output / "schemas/v1/evaluator").exists()
     assert not (output / ".venv/Scripts/Lib/site-packages").exists()
     assert not (output / ".venv/Scripts/Lib/__pycache__").exists()
     assert len(manifest["excluded_python_files"]) == 2

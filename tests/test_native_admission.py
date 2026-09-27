@@ -15,19 +15,22 @@ from mcbench.budgets import DIMENSIONS
 from mcbench.inference_dispatch import InferenceAttempt, InferenceDispatches
 from mcbench.native import NativeExec, NativeLaunch
 from mcbench.native_admission import NativeAdmission
-from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+from mcbench.native_broker_policy import BROKER_TOOLS, NO_HELPER_POLICY, restricted_settings
 from mcbench.records import BudgetLedger
 from mcbench.runtime import CODEX_VERSION, DOVETAIL_COMMIT
 from mcbench.storage import CAS, Database, Fault, Principal, canonical, digest
 
 
 @pytest.fixture
-def admitted(database, cas, tmp_path, example):
+def admitted(database, cas, tmp_path, example, *, model="gpt-5.6-luna", helpers=2, purpose="campaign"):
     NativeExec(database, cas, simulation=True)
     gate = InferenceDispatches(database, cas, simulation=True)
+    category = "training" if purpose == "campaign" else "development"
     gate.budgets.create_account("a1", dict.fromkeys(DIMENSIONS, 100000), "c1", "a1",
-                                category="training")
-    config = restricted_settings() | {"mcp_servers.strata_broker": {
+                                category=category)
+    policy = NO_HELPER_POLICY if helpers == 0 else POLICY
+    helper_config = {"agents.enabled": False} if helpers == 0 else {}
+    config = restricted_settings(policy=policy) | helper_config | {"mcp_servers.strata_broker": {
         "required": True, "enabled_tools": list(BROKER_TOOLS), "tools": {
             "artifact_write": {"approval_mode": "approve"}, "game": {"approval_mode": "approve"}}}}
     plan = NativeLaunch.model_validate({"schema": "strata/NativeLaunch/1", "job_id": "job",
@@ -35,10 +38,10 @@ def admitted(database, cas, tmp_path, example):
         "parent_job_id": None, "depth": 0, "account": "a1", "operation_id": "job-envelope",
         "workspace": str(tmp_path / "workspace"), "profile_directory": str(tmp_path / "profile"),
         "executable": sys.executable, "binary_digest": "a" * 64, "binary_version": CODEX_VERSION,
-        "dovetail_commit": DOVETAIL_COMMIT, "model": "gpt-5.6-luna", "config_overrides": config,
+        "dovetail_commit": DOVETAIL_COMMIT, "model": model, "config_overrides": config,
         "environment": {}, "prompt": "ordinary goal", "hard_timeout_s": 120,
         "output_limit_bytes": 1048576, "qualification_ref": None, "budget_mode": "per_dispatch",
-        "broker_policy": POLICY, "helper_limit": 2})
+        "broker_policy": policy, "helper_limit": helpers, "purpose": purpose})
     def put(value):
         return cas.put(Principal("operator", "operator"), "operator", "operator", canonical(value))
     price = put({"is_example": True, "schema": "synthetic-price"})
@@ -46,7 +49,7 @@ def admitted(database, cas, tmp_path, example):
     def reserve(op, parent, *, calls=1, spend=100, kind="model"):
         return BudgetLedger.model_validate(body | {"is_example": False, "posting": "reserve",
             "operation_id": op, "parent_operation_id": parent, "source_event_id": op + ":reserve",
-            "ledger_id": op + ":ledger", "kind": kind, "model_identity": plan.model,
+            "ledger_id": op + ":ledger", "kind": kind, "model_identity": plan.model, "campaign_account": category,
             "pricing_ref": price, "raw_usage_ref": None, "metering": "estimated",
             "usage": dict.fromkeys(body["usage"], 0) | {"input_tokens": 100 * calls,
                 "output_tokens": 20 * calls, "model_calls": calls, "spend_microusd": spend,
@@ -108,10 +111,10 @@ def admitted(database, cas, tmp_path, example):
     return admission, gate, broker, plan, request, prepare, put
 
 
-def broker_meta(thread="root", parent=None):
+def broker_meta(thread="root", parent=None, *, model="gpt-5.6-luna"):
     return {"callId": "call", "threadId": thread, "x-codex-turn-metadata": {
         "thread_id": thread, "session_id": "root", "parent_thread_id": parent,
-        "codex_version": CODEX_VERSION.removeprefix("codex-cli "), "model": "gpt-5.6-luna",
+        "codex_version": CODEX_VERSION.removeprefix("codex-cli "), "model": model,
         "thread_source": "subagent" if parent else "user", "subagent_kind": "thread_spawn"}}
 
 

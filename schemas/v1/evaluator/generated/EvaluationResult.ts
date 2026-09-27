@@ -1,28 +1,6 @@
 /* Operator-only generated binding. Never ship in a gameplay workspace. */
 
-export type IsExample = boolean;
-export type Schema = "mcbench/EvaluationResult/1";
-export type ResultId = string;
-export type ProtocolId = string;
-export type Visibility = "evaluator";
-export type LineageId = string;
-export type CheckpointId = string;
-export type PairId = string;
-export type InstanceId = string;
-export type Arm = "experienced" | "initial";
-export type Outcome = "success" | "failure" | "censored" | "invalid";
-export type Success = boolean | null;
-export type Progress = number | null;
-export type ActiveTimeS = number;
-export type EventObserved = boolean;
-export type CensorReason = string | null;
-export type Scores = string;
-export type EvidenceRefs = string[];
-export type BudgetLedgerRef = string;
-export type ValidityFlags = string[];
-export type ScoredAt = string;
-
-export interface EvaluationResult {
+export type EvaluationResult = {
   is_example: IsExample;
   schema: Schema;
   result_id: ResultId;
@@ -44,4 +22,25 @@ export interface EvaluationResult {
   budget_ledger_ref: BudgetLedgerRef;
   validity_flags: ValidityFlags;
   scored_at: ScoredAt;
-}
+};
+export type IsExample = boolean;
+export type Schema = "mcbench/EvaluationResult/1";
+export type ResultId = string;
+export type ProtocolId = string;
+export type Visibility = "evaluator";
+export type LineageId = string;
+export type CheckpointId = string;
+export type PairId = string;
+export type InstanceId = string;
+export type Arm = "experienced" | "initial";
+export type Outcome = "success" | "failure" | "censored" | "invalid";
+export type Success = boolean | null;
+export type Progress = number | null;
+export type ActiveTimeS = number;
+export type EventObserved = boolean;
+export type CensorReason = string | null;
+export type Scores = string;
+export type EvidenceRefs = string[];
+export type BudgetLedgerRef = string;
+export type ValidityFlags = string[];
+export type ScoredAt = string;

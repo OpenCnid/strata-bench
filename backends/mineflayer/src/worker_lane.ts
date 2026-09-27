@@ -6,9 +6,10 @@ import { digest, requireThat } from './protocol.js';
 import type { GameLane } from './server.js';
 import type { WorkerConfig } from './worker_config.js';
 import type { ForgeGuardReady } from './forge_guard.js';
+import { PLAYER_IDENTITY_POLICY, type PlayerIdentityMatch } from './player_identity.js';
 
 export async function workerLane(c: WorkerConfig, journal: Journal, guard?: ForgeGuardReady): Promise<{lane: GameLane; capabilities: unknown}> {
-  if (c.schema === 'strata/ForgeDevelopmentWorker/2') {
+  if (c.server_kind==='e9e') {
     const client = NativeGameClient.fromFile(c.connection_file);
     requireThat(client.connection.fingerprint === c.native_fingerprint, 'CAPABILITY_MISSING');
     requireThat(guard && guard.connection_digest === digest(client.connection)
@@ -17,14 +18,18 @@ export async function workerLane(c: WorkerConfig, journal: Journal, guard?: Forg
     const manifest = forgeCapabilities(c.native_fingerprint); const capability = digest(manifest);
     journal.event('guard_binding',guard);
     const lane = await ForgeLane.connect(c,capability,client,journal,c.body_fingerprint,c.primitive_limit,c.max_wall_ms,
-      guard.connection_generation);
+      guard.connection_generation,c.schema==='strata/ForgeDevelopmentWorker/3' || (c.schema==='strata/ForgeDevelopmentWorker/4' || (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6')) ? c.repair_policy : undefined);
     return {lane,capabilities:{...manifest,digest:capability,lease_id:c.lease_id,epoch:c.epoch}};
   }
   // The Forge executor must not pay Mineflayer's module/data initialization cost.
   // Neither backend is a fallback for the other; selection remains explicit.
   const [{ActionLane},{MineflayerBackend,ACTION_KINDS},{capabilityManifest,capabilityDigest}] = await Promise.all([
     import('./actions.js'),import('./adapter.js'),import('./capabilities.js')]);
-  const backend = new MineflayerBackend({host:c.host,port:c.port,username:c.username,profilesFolder:c.auth_cache});
+  const backend = new MineflayerBackend({host:c.host,port:c.port,username:c.username,profilesFolder:c.auth_cache,
+    ...(c.schema === 'strata/DevelopmentWorker/2' ? {expectedPlayerUuid:c.expected_player_uuid,
+      onIdentity:(receipt:PlayerIdentityMatch)=>journal.event('player_identity',
+        {schema:'strata/WorkerPlayerIdentity/1',policy:PLAYER_IDENTITY_POLICY,...receipt,
+          campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id})} : {})});
   return {lane:new ActionLane(c,capabilityDigest,backend,journal,ACTION_KINDS,c.primitive_limit,c.max_wall_ms),
     capabilities:{...capabilityManifest,digest:capabilityDigest,lease_id:c.lease_id,epoch:c.epoch}};
 }

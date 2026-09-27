@@ -13,6 +13,12 @@ import { ForgeProcessGuard, SupervisorEvidence, type ForgeGuardReady } from './f
 import { WorkerStartup, WORKER_STARTUP_MS, WORKER_STARTUP_POLICY } from './worker_startup.js';
 import { OPERATOR_STOP_ARGUMENT, WorkerControl } from './worker_control.js';
 import { WorkerHealth } from './worker_health.js';
+import { serveRepair, WORKER_REPAIR_POLICY } from './worker_repair.js';
+import { ForgeLane } from './forge_lane.js';
+import type { Server } from 'node:http';
+import { RestartGuardOwner, replyRestart, restartGuardClient, serveRestart } from './worker_restart.js';
+import { serveResume } from './worker_resume.js';
+import { servePublication } from './worker_publication.js';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
@@ -27,10 +33,71 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   const {lane,capabilities} = await workerLane(c,journal,guard).catch(error => {
     try {metrics.close();} finally {journal.close();} throw error;
   });
+  let repairServer:Server|undefined;
+  let restartServer:Server|undefined;
+  let resumeServer:Server|undefined;
+  let publicationServer:Server|undefined;
+  let restartClient:ReturnType<typeof restartGuardClient>|undefined;
   const server = await serve(lane,token,capabilities).catch(async error => {
     try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}} throw error;
   });
   const address = server.address(); requireThat(address && typeof address !== 'string', 'INTERNAL_ERROR');
+  if(c.schema==='strata/ForgeDevelopmentWorker/3' || (c.schema==='strata/ForgeDevelopmentWorker/4' || (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6'))) {
+    try {
+      requireThat(lane instanceof ForgeLane,'CAPABILITY_MISSING');
+      const repairToken=randomBytes(32).toString('hex');
+      repairServer=await serveRepair(lane,repairToken);
+      const repairAddress=repairServer.address();
+      requireThat(repairAddress && typeof repairAddress!=='string','INTERNAL_ERROR');
+      const grant={schema:'strata/WorkerRepairGrant/1',policy:WORKER_REPAIR_POLICY,
+        url:`http://127.0.0.1:${repairAddress.port}/v1/repair`,token:repairToken,
+        campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+      const fd=openSync(resolve(c.state_directory,`repair-grant-${c.epoch}.json`),'wx',0o600);
+      try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);} finally {closeSync(fd);}
+      journal.event('repair_gateway',{policy:WORKER_REPAIR_POLICY,epoch:c.epoch,port:repairAddress.port});
+      if((c.schema==='strata/ForgeDevelopmentWorker/4' || (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6'))) {
+        restartClient=restartGuardClient();lane.enableRestart(restartClient.call);
+        const restartToken=randomBytes(32).toString('hex');
+        restartServer=await serveRestart((...args)=>lane.restartControl(...args),restartToken);
+        const address=restartServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
+        const repairGrantDigest=digest(grant);
+        const restartGrant={schema:'strata/WorkerRestartGrant/2',policy:c.restart_policy,repair_binding_digest:repairGrantDigest,
+          url:`http://127.0.0.1:${address.port}/v1/restart`,token:restartToken,
+          campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+        const fd=openSync(resolve(c.state_directory,`restart-grant-${c.epoch}.json`),'wx',0o600);
+        try {writeFileSync(fd,JSON.stringify(restartGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+        journal.event('restart_gateway',{policy:c.restart_policy,epoch:c.epoch,port:address.port});
+        if((c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6')) {
+          lane.enableResume(c.schema==='strata/ForgeDevelopmentWorker/6');const resumeToken=randomBytes(32).toString('hex');
+          resumeServer=await serveResume((...args)=>lane.resumeControl(...args),resumeToken);
+          const address=resumeServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
+          const resumeGrant={schema:'strata/WorkerResumeGrant/1',policy:c.resume_policy,
+            repair_binding_digest:repairGrantDigest,restart_binding_digest:digest(restartGrant),
+            url:`http://127.0.0.1:${address.port}/v1/resume`,token:resumeToken,
+            campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+          const fd=openSync(resolve(c.state_directory,`resume-grant-${c.epoch}.json`),'wx',0o600);
+          try {writeFileSync(fd,JSON.stringify(resumeGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+          journal.event('resume_gateway',{policy:c.resume_policy,epoch:c.epoch,port:address.port});
+          if(c.schema==='strata/ForgeDevelopmentWorker/6') {
+            const publicationToken=randomBytes(32).toString('hex');
+            publicationServer=await servePublication((...args)=>lane.publishControls(...args),publicationToken,
+              plan=>lane.measureRepair(plan),decision=>lane.publicationAccounting(decision));
+            const address=publicationServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
+            const publicationGrant={schema:'strata/WorkerControlPublicationGrant/1',policy:c.publication_policy,
+              resume_binding_digest:digest(resumeGrant),url:`http://127.0.0.1:${address.port}/v1/publication`,token:publicationToken,
+              campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+            const fd=openSync(resolve(c.state_directory,`publication-grant-${c.epoch}.json`),'wx',0o600);
+            try{writeFileSync(fd,JSON.stringify(publicationGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+            journal.event('publication_gateway',{policy:c.publication_policy,epoch:c.epoch,port:address.port});
+          }
+        }
+      }
+    } catch(error) {
+      repairServer?.close();restartServer?.close();resumeServer?.close();publicationServer?.close();restartClient?.close();server.close();
+      try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}}
+      throw error;
+    }
+  }
   const beat = setInterval(() => process.send?.({kind: 'alive', health: lane.health()}), 100);
   const disk = setInterval(() => {
     try {
@@ -41,7 +108,7 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   let shutdown: Promise<void> | undefined;
   const stop = () => {
     shutdown ??= (async () => {
-      clearInterval(beat); clearInterval(disk); server.close();
+      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();restartServer?.close();resumeServer?.close();publicationServer?.close();restartClient?.close();
       let code = healthFailed ? 1 : 0;
       try { await lane.close(); } catch { code = 1; }
       finally {
@@ -90,7 +157,8 @@ async function main(): Promise<void> {
   const operatorControl=process.argv.length===4 && process.argv[3]===OPERATOR_STOP_ARGUMENT;
   requireThat(process.argv.length === 3 || operatorControl, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
-  requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1','CAPABILITY_MISSING');
+  requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1'
+    || c.schema==='strata/DevelopmentWorker/2' || (c.schema==='strata/ForgeDevelopmentWorker/4' || (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6')),'CAPABILITY_MISSING');
   const fs = statfsSync(c.state_directory);
   requireThat(fs.bavail * fs.bsize >= 5 * 1024**3, 'DISK_RESERVE_LOW');
   const token = randomBytes(32).toString('hex');
@@ -98,7 +166,8 @@ async function main(): Promise<void> {
   let executorExit:Promise<number>|undefined;
   let acceptExitEvidence=true;
   let guard: ForgeProcessGuard | undefined;
-  const evidence = c.schema === 'strata/ForgeDevelopmentWorker/2' ? new SupervisorEvidence(c.state_directory,c.epoch) : undefined;
+  let restartOwner:RestartGuardOwner|undefined;
+  const evidence = c.server_kind==='e9e' ? new SupervisorEvidence(c.state_directory,c.epoch) : undefined;
   let startup:WorkerStartup|undefined;
   let rejectBoot:((error:Fault)=>void)|undefined;
   let stopping = false;
@@ -156,6 +225,10 @@ async function main(): Promise<void> {
     lease = setInterval(() => {if (activeWorker.connected && !stopping && lifecycle.phase==='active') activeWorker.send('renew',() => {});},2000);
     worker.on('message', (raw:unknown) => {
     try {
+    if(raw && typeof raw==='object' && (raw as {kind?:unknown}).kind==='restart_guard_request') {
+      requireThat(restartOwner && lifecycle.phase==='active' && !stopping && !forced,'RESTART_SUPERVISOR_UNAVAILABLE');
+      replyRestart(restartOwner,activeWorker,raw,fail);return;
+    }
     const m=lifecycle.receive(raw);
     if (m.kind==='bootstrap_ready') {
       evidence?.event('worker_bootstrap_ready',{policy:WORKER_STARTUP_POLICY,elapsed_ms:performance.now()-started});
@@ -186,11 +259,14 @@ async function main(): Promise<void> {
     await booted;rejectBoot=undefined;
     requireThat(!forced && !stopping && lifecycle.canRenew(),'WORKER_BOOT_UNAVAILABLE');
     let binding: ForgeGuardReady | undefined;
-    if (c.schema === 'strata/ForgeDevelopmentWorker/2') {
+    if (c.server_kind==='e9e') {
       guard = new ForgeProcessGuard(c,digest(forgeCapabilities(c.native_fingerprint)),evidence!,
         () => !forced && lifecycle.canRenew(),fail);
       binding = await guard.ready;
       requireThat(!forced && !stopping,'PROCESS_GUARD_UNAVAILABLE');
+      if((c.schema==='strata/ForgeDevelopmentWorker/4' || (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6')))restartOwner=new RestartGuardOwner(c,repository,
+        digest(forgeCapabilities(c.native_fingerprint)),evidence!,()=>c.max_wall_ms-(performance.now()-started),
+        ()=>!forced && !stopping && lifecycle.canRenew(),()=>guard!,value=>{guard=value;},fail);
     }
     lifecycle.initialize();
     evidence?.event('worker_initializing',{policy:WORKER_STARTUP_POLICY,elapsed_ms:performance.now()-started,

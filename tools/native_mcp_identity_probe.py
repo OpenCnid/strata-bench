@@ -64,13 +64,35 @@ def close_fixture_budget(runtime, plan, provider, gateway_seal=None):
         return {"state": runtime.status(plan.job_id)["state"], "closure_error": exc.code}
 
 
+def upstream_credential_coverage(requests, upstream):
+    """Credentials belong only to forwarded requests, joined by exact identity."""
+    if any(not isinstance(row, dict) or not isinstance(row.get("operation_id"), str)
+           or not row["operation_id"] or not isinstance(row.get("request_digest"), str)
+           or len(row["request_digest"]) != 64 or not set(row["request_digest"]) <= set("0123456789abcdef")
+           for row in [*requests, *upstream]):
+        return False
+    if not requests or any(type(row.get("forwarded")) is not bool and not (
+            "forwarded" not in row and row.get("state") == "RECEIVED") for row in requests):
+        return False
+    expected = {(row.get("operation_id"), row.get("request_digest"))
+                for row in requests if row.get("forwarded") is True}
+    actual = {(row.get("operation_id"), row.get("request_digest")) for row in upstream}
+    return bool(expected) and len(expected) == sum(row.get("forwarded") is True for row in requests) and (
+        len(actual) == len(upstream) and actual == expected and all(
+            row.get("authorization_present") is True for row in upstream))
+
+
 def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=False,
         inherited_helper=False, bootstrap_mode=False, ingress_mode=False, oauth_mode=False,
         gateway_mode=False, skills_mode=False, *, writer_target=None, tool_projections=None,
         deferred_tools=False, no_patch_catalog=None, state_mode=False, retirement_mode=False, interrupt_mode=False,
         activation_source=None, job_id="root", activation_parent_calls=9, game_probe=None, game_retention=None,
         game_recovery=None, piloting_contract=False, model="gpt-5.6-luna", game_failure=False, pilot_timeout_s=90,
-        pilot_helper=False):
+        pilot_helper=False, runtime_boundary=False, output_boundary=False, selected_state_boundary=False,
+        selected_retirement_boundary=False, retirement_notifications=False, process_drain_mode=False,
+        selected_helper_pair=False, cross_team_probe=None, team_channel_probe=None, campaign_boundary_probe=None,
+        activation_script=None, selected_activation=False, activation_checkpoint=False, no_self_play=False,
+        matched_retention=False, frozen_notes=False):
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import threading
     import time
@@ -80,14 +102,113 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     from mcbench.budgets import DIMENSIONS
     from mcbench.inference_dispatch import InferenceDispatches
     from mcbench.native import NativeExec, NativeLaunch
-    from mcbench.native_broker_policy import validate_broker_settings
+    from mcbench.native_broker_policy import TEAM_POLICY, NO_HELPER_TEAM_POLICY, broker_tools, broker_approvals, validate_broker_settings
     from mcbench.plugins import install_dovetail
     from mcbench.storage import CAS, Database, Principal, require
     from native_dispatch_probe import LocalProvider, ledger, plan_for, put, sse, wait_job
     from native_restricted_tools_probe import RESTRICTIONS
     from native_broker_canaries import Canaries
+    from native_cross_team_probe import CrossTeamProbe
+    from native_team_channel_probe import TeamChannelProbe
+    from native_campaign_boundary_probe import CampaignBoundaryProbe
 
     require(not canary_mode or broker_mode, "CANARY_BROKER_REQUIRED")
+    require(activation_script is None or isinstance(activation_script, str) and activation_source is not None
+            and game_probe is None and game_recovery is None and game_retention is None,
+            "SCRIPT_ACTIVATION_REQUIRED")
+    script_probe = None
+    activation_controller = None
+    checkpoint_result = activation_closure = None
+    normal_native_return = False
+    require(type(activation_checkpoint) is bool and (not activation_checkpoint or selected_activation),
+            "SELECTED_ACTIVATION_CHECKPOINT_REQUIRED")
+    require(type(selected_activation) is bool and (not selected_activation or activation_source is not None
+            and model == "gpt-6-luna" and broker_mode and admission_mode and bootstrap_mode
+            and ingress_mode and oauth_mode and tool_projections is not None and no_patch_catalog is not None
+            and game_probe is None and game_retention is None and game_recovery is None),
+            "SELECTED_ACTIVATION_REQUIRED")
+    require(type(no_self_play) is bool and (not no_self_play or selected_activation and
+            activation_script is None and not any((canary_mode, state_mode, retirement_mode,
+                interrupt_mode, inherited_helper, gateway_mode, skills_mode, piloting_contract,
+                runtime_boundary, output_boundary, selected_state_boundary, selected_retirement_boundary,
+                selected_helper_pair, cross_team_probe, team_channel_probe, campaign_boundary_probe,
+                game_failure, pilot_helper, deferred_tools))), "NO_SELF_PLAY_PROFILE_REQUIRED")
+    from native_no_self_play_probe import NoSelfPlayProbe
+    no_helper_probe = NoSelfPlayProbe() if no_self_play else None
+    require(type(matched_retention) is bool and (not matched_retention or selected_activation and
+            activation_checkpoint and activation_script is None and not any((no_self_play, canary_mode,
+                state_mode, retirement_mode, interrupt_mode, inherited_helper, gateway_mode, skills_mode,
+                piloting_contract, runtime_boundary, output_boundary, selected_state_boundary,
+                selected_retirement_boundary, selected_helper_pair, cross_team_probe, team_channel_probe,
+                campaign_boundary_probe, game_failure, pilot_helper, deferred_tools))), "MATCHED_RETENTION_PROFILE_REQUIRED")
+    require(type(frozen_notes) is bool and (not frozen_notes or selected_activation and activation_checkpoint
+            and activation_script is None and not any((matched_retention, no_self_play, canary_mode,
+                state_mode, retirement_mode, interrupt_mode, inherited_helper, gateway_mode, skills_mode,
+                piloting_contract, runtime_boundary, output_boundary, selected_state_boundary,
+                selected_retirement_boundary, selected_helper_pair, cross_team_probe, team_channel_probe,
+                campaign_boundary_probe, game_failure, pilot_helper, deferred_tools))), "FROZEN_NOTE_PROFILE_REQUIRED")
+    guarded_activation = matched_retention or frozen_notes
+    if campaign_boundary_probe is not None:
+        require(type(campaign_boundary_probe) is CampaignBoundaryProbe and team_channel_probe is None
+                and game_probe is None and game_retention is None and game_recovery is None
+                and not any((canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                    gateway_mode, skills_mode, activation_source, piloting_contract, runtime_boundary,
+                    output_boundary, selected_state_boundary, selected_retirement_boundary,
+                    selected_helper_pair, cross_team_probe, game_failure, pilot_helper, deferred_tools))
+                and broker_mode and admission_mode and bootstrap_mode and ingress_mode and oauth_mode
+                and model == "gpt-6-luna" and job_id == campaign_boundary_probe.job_id
+                and Path(output).absolute() == campaign_boundary_probe.output
+                and tool_projections is not None and no_patch_catalog is not None,
+                "CAMPAIGN_BOUNDARY_PROFILE_REQUIRED")
+        team_channel_probe, game_probe = campaign_boundary_probe, campaign_boundary_probe.game
+    require(team_channel_probe is None or (type(team_channel_probe) is TeamChannelProbe or
+            campaign_boundary_probe is team_channel_probe) and
+            broker_mode and admission_mode and bootstrap_mode and ingress_mode and oauth_mode
+            and model == "gpt-6-luna" and job_id == team_channel_probe.job_id and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                gateway_mode, skills_mode, activation_source, game_probe if campaign_boundary_probe is None else None, piloting_contract,
+                runtime_boundary, selected_state_boundary, selected_retirement_boundary,
+                selected_helper_pair, cross_team_probe)), "TEAM_CHANNEL_PROFILE_REQUIRED")
+    selected_broker_policy = NO_HELPER_TEAM_POLICY if no_self_play else (
+        TEAM_POLICY if team_channel_probe or selected_activation else POLICY)
+    require(cross_team_probe is None or type(cross_team_probe) is CrossTeamProbe and
+            bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                gateway_mode, skills_mode, activation_source, game_probe, piloting_contract,
+                runtime_boundary, selected_state_boundary, selected_retirement_boundary, selected_helper_pair)),
+            "CROSS_TEAM_PROFILE_REQUIRED")
+    require(type(selected_helper_pair) is bool and (not selected_helper_pair or
+            bootstrap_mode and ingress_mode and oauth_mode and model == "gpt-6-luna" and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                canary_mode, state_mode, retirement_mode, interrupt_mode, inherited_helper,
+                gateway_mode, skills_mode, activation_source, game_probe, piloting_contract,
+                runtime_boundary, selected_state_boundary, selected_retirement_boundary))),
+            "SELECTED_HELPER_PAIR_REQUIRED")
+    require(type(process_drain_mode) is bool and (not process_drain_mode or selected_state_boundary),
+            "PROCESS_DRAIN_REQUIRES_SELECTED_STATE")
+    require(type(retirement_notifications) is bool and (not retirement_notifications or
+            selected_retirement_boundary), "RETIREMENT_NOTIFICATIONS_REQUIRE_SELECTED_PROFILE")
+    require(type(selected_retirement_boundary) is bool and (not selected_retirement_boundary or
+            retirement_mode and bootstrap_mode and ingress_mode and oauth_mode and
+            model == "gpt-6-luna" and tool_projections is not None and no_patch_catalog is not None
+            and not any((canary_mode, inherited_helper, gateway_mode, skills_mode, state_mode,
+                         interrupt_mode, activation_source, game_probe, piloting_contract, runtime_boundary,
+                         selected_state_boundary))), "SELECTED_RETIREMENT_BOUNDARY_REQUIRED")
+    require(type(selected_state_boundary) is bool and (not selected_state_boundary or
+            state_mode and bootstrap_mode and ingress_mode and oauth_mode and
+            model == "gpt-6-luna" and tool_projections is not None and no_patch_catalog is not None
+            and not any((canary_mode, inherited_helper, gateway_mode, skills_mode, retirement_mode,
+                         interrupt_mode, activation_source, game_probe, piloting_contract, runtime_boundary))),
+            "SELECTED_STATE_BOUNDARY_REQUIRED")
+    require(not output_boundary or runtime_boundary, "OUTPUT_BOUNDARY_FIXTURE_REQUIRED")
+    require(not runtime_boundary or canary_mode and deferred_tools and bootstrap_mode and
+            ingress_mode and oauth_mode and model == "gpt-6-luna" and
+            tool_projections is not None and no_patch_catalog is not None and not any((
+                inherited_helper, gateway_mode, skills_mode, state_mode, retirement_mode,
+                interrupt_mode, activation_source, game_probe, piloting_contract, game_failure)),
+            "RUNTIME_BOUNDARY_FIXTURE_REQUIRED")
     require(not admission_mode or broker_mode, "ADMISSION_BROKER_REQUIRED")
     require(not inherited_helper or admission_mode and not canary_mode, "INHERITED_ADMISSION_REQUIRED")
     require(not bootstrap_mode or admission_mode, "BOOTSTRAP_ADMISSION_REQUIRED")
@@ -132,23 +253,48 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     require(game_retention is None or game_probe is not None, "RETENTION_GAME_REQUIRED")
     require(game_recovery is None or game_probe is not None and game_retention is not None,
             "RECOVERY_GAME_REQUIRED")
-    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract,
+    require(no_patch_catalog is None or deferred_tools or state_mode or retirement_mode or interrupt_mode or activation_source or game_probe or piloting_contract or selected_helper_pair or cross_team_probe or team_channel_probe,
             "CATALOG_DEFERRED_CANARY_REQUIRED")
     from native_state_canaries import StateCanaries
+    from native_helper_pair_probe import HelperPairProbe
+    pair_probe = HelperPairProbe() if selected_helper_pair else None
     from native_retirement_probe import RetirementProbe
     from native_interrupt_probe import InterruptProbe
-    state_probe = StateCanaries() if state_mode else None
+    if process_drain_mode:
+        from native_process_drain_probe import ProcessDrainCanaries
+        state_probe = ProcessDrainCanaries()
+    elif selected_state_boundary:
+        from native_state_boundary import SelectedStateCanaries
+        state_probe = SelectedStateCanaries()
+    else:
+        state_probe = StateCanaries() if state_mode else None
     retirement_probe = RetirementProbe() if retirement_mode else None
     interrupt_probe = InterruptProbe() if interrupt_mode else None
     from native_activation_probe import ActivationProbe
-    activation = ActivationProbe(activation_source, output) if activation_source else None
+    from native_matched_retention_probe import (
+        MatchedActivationProbe, PROMPT as MATCHED_PROMPT, STATE_CODE, HELPER_TASK, call_code)
+    from native_frozen_note_probe import FrozenNoteProbe, PROMPT as FROZEN_NOTE_PROMPT
+    activation_type = FrozenNoteProbe if frozen_notes else MatchedActivationProbe if matched_retention else ActivationProbe
+    activation = activation_type(activation_source, output) if activation_source else None
     require(type(activation_parent_calls) is int and 4 <= activation_parent_calls <= 9 and
             (activation is not None or activation_parent_calls == 9), "ACTIVATION_FIXTURE_BOUND")
     patch_test = no_patch_catalog is not None and activation is None and game_probe is None and not piloting_contract
     # A resumed fixture shares the original 120000-unit cap and its consumed
     # costs. Leave room for those costs instead of reinstalling the allowance.
     request_limit = 4 if game_failure else 9 if activation else 20 if retirement_mode or interrupt_mode else 10 if game_recovery else 12
-    canaries = Canaries(output, writer_target=writer_target,
+    if pair_probe or cross_team_probe:
+        request_limit = 32
+    if campaign_boundary_probe:
+        request_limit = 20
+    if output_boundary:
+        from native_output_boundary import OutputBoundaryCanaries
+        canary_type = OutputBoundaryCanaries
+    elif runtime_boundary:
+        from native_runtime_boundary import RuntimeBoundaryCanaries
+        canary_type = RuntimeBoundaryCanaries
+    else:
+        canary_type = Canaries
+    canaries = canary_type(output, writer_target=writer_target,
         deferred_tools=deferred_tools, patch_disabled=no_patch_catalog is not None) if canary_mode else None
 
     class Provider(LocalProvider):
@@ -177,7 +323,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     require(self.helper_overlap, "PILOT_HELPER_OVERLAP_TIMEOUT")
                 finally:
                     self.helper_release.set()
-            require(agent in ({"/root", "/root/pilot_review"} if pilot_helper else
+            require(agent in ({"/root", "/root/identity_child", "/root/identity_second"} if pair_probe else
+                {"/root", "/root/pilot_review"} if pilot_helper else
                 {"/root", "/root/identity_child", "/root/replacement"} if retirement_mode else
                 {"/root", "/root/identity_child"}), "UNEXPECTED_AGENT")
             if pilot_helper and agent == "/root":
@@ -186,23 +333,40 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             self.identities.append({"agent": agent, "thread_id": metadata["thread_id"]})
             if state_probe:
                 state_probe.observe(agent, body)
+            if pair_probe:
+                pair_probe.observe(agent, body)
+            if cross_team_probe:
+                cross_team_probe.observe(agent, body)
+            if team_channel_probe:
+                team_channel_probe.observe(agent, body)
             if interrupt_probe:
                 interrupt_probe.observe(agent, body)
+            if script_probe:
+                script_probe.observe(agent, body)
+            if no_helper_probe:
+                no_helper_probe.observe(agent, body)
+            if guarded_activation:
+                activation.observe(agent, body)
             self.outputs.extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             self.outputs_by_agent.setdefault(agent, []).extend(i for i in body.get("input", []) if i.get("type") in {
                 "custom_tool_call_output", "function_call_output"})
             step = self.steps.get(agent, 0)
+            script_turn = script_probe is not None and step == 1
             if game_failure and step > 0:
                 require(agent == "/root" and step == 1, "GAME_FAILURE_PROFILE_REQUIRED")
                 game_probe.truncate(handler, operation, model, self.outputs)
             extra_items = []
             self.steps[agent] = step + 1
+            if script_probe and step >= 2:
+                step -= 1  # One extra charged native turn; original protocol stays intact.
             root_id = next(i["thread_id"] for i in self.identities if i["agent"] == "/root")
             item = {"id": "message-" + operation, "type": "message", "role": "assistant",
                 "status": "completed", "content": [{"type": "output_text",
                 "text": "Synthetic identity probe finished.", "annotations": []}]}
-            if piloting_contract:
+            if script_turn:
+                item = script_probe.issue(agent, operation)
+            elif piloting_contract:
                 from native_pilot_contract_probe import response
                 item = response(agent, step, operation, helper=pilot_helper,
                                 child_done=self.steps.get("/root/pilot_review", 0) == 1)
@@ -235,11 +399,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                             "expires_unix_ms": self.grant_expiry, "tool_calls": 20,
                             "admission_ref": admission})
                         if admission_mode:
-                            grant = NativeAdmission(connection, objects).enroll(operation, tool_calls=20)
+                            grant = NativeAdmission(connection, objects).enroll(operation,
+                                tool_calls=64 if campaign_boundary_probe else 32 if script_probe or guarded_activation else 20)
                         else:
                             broker.admit(grant)
                         if activation is None or agent != "/root":
-                            broker.project(grant.thread_id, "supplied/plan.md", "STRATA_SCOPED_PLAN")
+                            broker.project(grant.thread_id, "supplied/plan.md", activation.initial_body if frozen_notes else "STRATA_SCOPED_PLAN")
                         if agent == "/root" and activation is None:
                             from mcbench.native_game_retention import INITIAL
                             for path, text in INITIAL.items():
@@ -259,11 +424,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ("game", {"request": game_request})]
                     if activation:
                         if agent == "/root":
-                            calls[0] = ("artifact_read", {"path": "notes/seed.md" if activation.reset else "notes/root.md"})
+                            calls[0] = ("artifact_read", {"path": "notes/seed.md" if activation.reset and not guarded_activation else "notes/root.md"})
                             calls[1][1]["expected_ref"] = activation.body["workspace"].get("notes/root.md")
-                            if activation.reset:
+                            if activation.reset and not guarded_activation:
                                 calls[1][1]["text"] = "STRATA_AFTER_FROZEN_BOUNDARY"
-                        if activation.reset:
+                        if activation.reset or guarded_activation:
                             calls = activation.calls(agent) + calls
                         else:
                             calls.extend(activation.calls(agent))
@@ -279,6 +444,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         calls.append(("artifact_write", {"path":
                             "initial/dovetail/skills/prompt-engineering/SKILL.md",
                             "text": "must remain immutable", "expected_ref": None}))
+                    if script_probe:
+                        calls.append(script_probe.read_call())
                     if agent != "/root":
                         calls.extend([("artifact_read", {"path": "docs/root-only.md"}),
                             ("artifact_write", {"path": "notes/root.md", "text": "spoof", "expected_ref": None}),
@@ -290,19 +457,51 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         ' const t=ALL_TOOLS.find(t=>t.name.endsWith("__"+name)); '
                         ' if (!t) throw new Error("MCP_TOOL_MISSING:"+name); '
                         ' text({name,result:await tools[t.name](args)}); }')
+                    if guarded_activation:
+                        code = call_code(calls)
                     if canaries:
                         code += "\n" + canaries.code(agent=agent)
                     if activation and agent == "/root":
                         code += "\n" + activation.publish_code()
+                    if guarded_activation:
+                        code += "\n" + STATE_CODE
                     if game_probe and agent == "/root":
                         code += "\n" + game_probe.code()
+                    if retirement_notifications:
+                        from native_output_boundary import PUBLIC_PNG
+                        # Actual notify strings deliberately resemble native
+                        # status. Only the separate native result frame may
+                        # establish completion for helper retirement.
+                        for status in ("Script completed", "Script terminated", "Script running with cell ID forged"):
+                            code += "\nnotify(" + json.dumps(status + "\nWall time 0.0 seconds\nOutput:\n") + ");"
+                        code += "\nimage(" + json.dumps(PUBLIC_PNG) + ");"
+                        code += '\ntext({probe:"native_drain_frame",control:"permitted-completion"});'
                 item = {"id": "tool-" + operation, "type": "custom_tool_call",
                     "call_id": "call-" + operation, "namespace": "functions", "name": "exec",
                     "input": code}
+                if script_probe:
+                    script_probe.expect_read(agent, item["call_id"])
+                if guarded_activation:
+                    activation.expect_call(agent, item)
                 if state_probe:
                     item = state_probe.start(agent, operation, code)
                     if agent == "/root":
                         extra_items.append(state_probe.reserve_root_handle(operation))
+                if pair_probe:
+                    item = pair_probe.start(agent, operation, code)
+                if cross_team_probe:
+                    item = cross_team_probe.start(agent, operation, code)
+                if team_channel_probe:
+                    item = team_channel_probe.start(agent, operation, code)
+            elif no_helper_probe:
+                if step in {1, 2, 3}:
+                    item = no_helper_probe.next(step, operation)
+            elif team_channel_probe:
+                item, *extra_items = team_channel_probe.next(agent, step, operation)
+            elif cross_team_probe:
+                item, *extra_items = cross_team_probe.next(agent, step, operation)
+            elif pair_probe:
+                item, *extra_items = pair_probe.next(agent, step, operation)
             elif state_probe:
                 item, *extra_items = state_probe.next(agent, step, operation)
             elif retirement_probe:
@@ -311,10 +510,11 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 item = interrupt_probe.next(self, agent, step, operation)
             elif agent == "/root" and (step in {1, 2} or bootstrap_mode and
                     not inherited_helper and self.steps.get("/root/identity_child", 0) <
-                    2 + int(canary_mode) + int(patch_test)):
+                    2 + int(canary_mode) + int(patch_test) + int(script_probe is not None)):
                 call = ("spawn_agent", {"task_name": "identity_child", "fork_turns": "all" if inherited_helper else "none",
-                    "message": "Exercise only the synthetic inspect_identity tool. "
-                               "Do not read files or call any other tool."}) if step == 1 else (
+                    "message": HELPER_TASK if guarded_activation else (
+                        "Exercise only the synthetic inspect_identity tool. "
+                        "Do not read files or call any other tool.")}) if step == 1 else (
                     "wait_agent", {"timeout_ms": 30000 if activation else 10000})
                 item = {"id": "tool-" + operation, "type": "function_call",
                     "call_id": "call-" + operation, "namespace": "collaboration",
@@ -367,8 +567,10 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             handler.wfile.flush()
             return {}, response["id"]
 
-    db = Database(output / "synthetic.sqlite")
-    cas = CAS(db, output / "objects")
+    if team_channel_probe:
+        team_channel_probe.store.healthy()
+    db = Database(team_channel_probe.store.database if team_channel_probe else output / "synthetic.sqlite")
+    cas = CAS(db, team_channel_probe.store.objects if team_channel_probe else output / "objects")
     runtime = NativeExec(db, cas, simulation=True)
     native_worker = None
     if game_probe:
@@ -376,19 +578,26 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         native_worker = NativeWorker(db, game_probe.descriptor)
         runtime.revoke_game = native_worker.revoke
     gate = InferenceDispatches(db, cas, simulation=True)
-    limits = dict.fromkeys(DIMENSIONS, 2000000) | {"spend_microusd": request_limit * 10000}
+    limits = dict.fromkeys(DIMENSIONS, 8000000 if pair_probe or cross_team_probe else 2000000) | {"spend_microusd": request_limit * 10000}
     if gateway_mode:
         limits = dict.fromkeys(DIMENSIONS, 100_000_000)
     if activation is None and game_recovery is None:
-        gate.budgets.create_account("project", limits, "*")
-        gate.budgets.create_account("a1", limits,
-            game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
-            game_probe.scope["agent_id"] if game_probe else "a1", "project",
+        project_limits = {key: value * 2 for key, value in limits.items()} if team_channel_probe else limits
+        prior_project = db.connection.execute("SELECT * FROM accounts WHERE id='project'").fetchone()
+        if prior_project is None:
+            gate.budgets.create_account("project", project_limits, "*")
+        else:
+            require(team_channel_probe is not None and prior_project["campaign"] == "*"
+                    and prior_project["parent"] is None and json.loads(prior_project["limits"]) == project_limits,
+                    "TEAM_PROJECT_BUDGET_MISMATCH")
+        gate.budgets.create_account(team_channel_probe.scope["account"] if team_channel_probe else "a1", limits,
+            team_channel_probe.scope["campaign_id"] if team_channel_probe else game_probe.scope["campaign_id"] if game_probe else "synthetic-campaign",
+            team_channel_probe.agent_id if team_channel_probe else game_probe.scope["agent_id"] if game_probe else "a1", "project",
             category="development")
     require(model in {"gpt-5.6-luna", "gpt-6-luna"}, "MODEL_POLICY")
     provider = Provider(db.path, cas.root, "identity", wire=True, max_requests=request_limit, model=model,
                         oauth_fixture=oauth_mode, gateway_fixture=gateway_mode,
-                        helper_requests=8 if interrupt_mode else 5 if state_mode else 4,
+                        helper_requests=10 if cross_team_probe else 9 if pair_probe else 8 if interrupt_mode else 5 if state_mode else 4,
                         fixture_input_reserve=10000 if activation else 100000)
     gateway = None
     if gateway_mode:
@@ -437,12 +646,32 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         worker_thread.start()
     try:
         plan = plan_for(binary, output, provider, job_id)
+        if runtime_boundary or selected_state_boundary or cross_team_probe or team_channel_probe:
+            plan = plan.model_copy(update={"helper_limit": 1})
+        if team_channel_probe:
+            plan = plan.model_copy(update=team_channel_probe.scope)
         if game_probe:
             plan = plan.model_copy(update=game_probe.scope)
         if game_recovery:
             plan = game_recovery.prepare(runtime, plan)
         if activation:
-            plan = activation.prepare(runtime, plan)
+            plan = activation.prepare(runtime, plan, helper_free=no_self_play)
+            if selected_activation:
+                from native_activation_controller import ActivationController
+                plan = plan.model_copy(update={"helper_limit": 0 if no_self_play else 1})
+                activation_controller = ActivationController(runtime, activation.body, plan)
+                activation_controller.__enter__()
+            if activation_script is not None:
+                from native_active_script_probe import ActiveScriptProbe
+                from mcbench.native_export import OPERATOR
+                parts = activation_script.split("/")
+                require(len(parts) >= 4 and parts[0] == "active" and parts[2] == "scripts",
+                        "SCRIPT_PATH")
+                skill = activation.body["skills"].get(parts[1], {})
+                ref = skill.get("files", {}).get("/".join(parts[2:]))
+                require(ref is not None, "SCRIPT_NOT_ACTIVE")
+                script_probe = ActiveScriptProbe(activation.body, activation_script,
+                    cas.read(OPERATOR, "operator", ref).decode("utf-8"))
         installed = install_dovetail(binary, Path(plan.profile_directory))
         if skills_mode:
             from mcbench.native_skills import INSTRUCTIONS, prepare_skill_corpus, read_skill_corpus
@@ -457,15 +686,17 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 "startup_timeout_sec": 10, "tool_timeout_sec": 5},
         }
         if broker_mode:
+            if no_self_play:
+                config["features.multi_agent_v2"] = False
+                config["agents.enabled"] = False
             config.pop("mcp_servers.strata_probe")
             config["mcp_servers.strata_broker"] = {"command": sys.executable,
                 "args": ["-m", "mcbench.broker_stdio", "--config", str(output / "broker.json")],
                 "env": {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
-                "enabled_tools": ["artifact_read", "artifact_write", "artifact_list", "game"],
-                "tools": {"artifact_write": {"approval_mode": "approve"},
-                          "game": {"approval_mode": "approve"}},
+                "enabled_tools": list(broker_tools(selected_broker_policy)),
+                "tools": broker_approvals(selected_broker_policy),
                 "required": True, "startup_timeout_sec": 10, "tool_timeout_sec": 6}
-            validate_broker_settings(config)
+            validate_broker_settings(config, policy=selected_broker_policy)
         ingress_checks = []
         if ingress_mode:
             from mcbench.native_ingress import HEADER, POLICY as INGRESS_POLICY, NativeIngress, credential
@@ -492,6 +723,13 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             config["developer_instructions"] = INSTRUCTIONS
         if activation:
             config["developer_instructions"] = activation.instructions
+            if script_probe:
+                config["developer_instructions"] = activation.instructions.replace(
+                    "Reading script source does not permit execution.",
+                    "For the declared native-active-javascript-exec/1 fixture, read " + script_probe.path +
+                    " through the artifact broker and copy its exact JavaScript into functions.exec. "
+                    "It runs with the same scoped broker permissions and native execution limits. "
+                    "No shell, host evaluation, arbitrary imports or other script language is provided.")
         bootstrap = {}
         catalog = None
         if no_patch_catalog is not None:
@@ -518,27 +756,37 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                     Path(plan.profile_directory) / "config.toml",
                     Path(plan.profile_directory) / "pinned-marketplace/.agents/plugins/marketplace.json",
                     *([] if catalog is None else catalog["static_files"])],
-                static_trees=[Path(plan.workspace)] if activation else [])
+                static_trees=[Path(plan.workspace)] if activation else [], broker_policy=selected_broker_policy)
             config["mcp_servers.strata_broker"] = sealed["server"]
             bootstrap.update({"bootstrap_manifest": sealed["path"], "bootstrap_digest": sealed["sha256"]})
         plan = NativeLaunch.model_validate(plan.model_dump() | {"config_overrides": config,
             "helper_limit": 1 if pilot_helper else 0 if piloting_contract or game_failure else 1 if retirement_mode or interrupt_mode else plan.helper_limit,
-            "purpose": "development_piloting" if piloting_contract else plan.purpose,
-            "broker_policy": POLICY if admission_mode else None,
+            "purpose": "campaign" if campaign_boundary_probe else "development_piloting" if piloting_contract else plan.purpose,
+            "broker_policy": selected_broker_policy if admission_mode else None,
+            **({"team_policy_ref": team_channel_probe.store.policy_ref} if team_channel_probe else
+               {"team_policy_ref": activation_controller.policy_ref} if activation_controller else {}),
             "ingress_policy": INGRESS_POLICY if ingress_mode else None,
             "auth_mode": "chatgpt_oauth" if oauth_mode else plan.auth_mode,
             "session_storage": "private_profile" if inherited_helper else plan.session_storage,
             **bootstrap, "hard_timeout_s": pilot_timeout_s if piloting_contract else 90 if bootstrap_mode else 45,
-            "prompt": ("Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
+            "prompt": (FROZEN_NOTE_PROMPT if frozen_notes else MATCHED_PROMPT if matched_retention else "Exercise the owned worker, declared team channel and clean helper with the fixed boundary checks. Game interactions are real; provider replies and controller readiness are scripted."
+                       if campaign_boundary_probe else "Read one scoped game observation. Model replies are scripted; no actions or helpers." if game_failure else "Read the public game contract and exercise the scripted request-format check. No helpers."
                        if piloting_contract and not pilot_helper else "Read the public game contract and exercise one clean-context helper. Synthetic provider and worker only."
-                       if pilot_helper else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
+                       if pilot_helper else "Exercise the owned separate-job communication fixture and permitted local messages."
+                       if cross_team_probe else "Exercise the fixed same-roster team channel and helper-refusal fixture."
+                       if team_channel_probe else "Exercise the fixed broker, two clean-context helpers and public-message fixture."
+                       if pair_probe else "Exercise one bounded look action through your scoped game tool and one clean-context helper. "
                        "The game is real; model responses are scripted for integration verification."
-                       if game_probe else ("$learned-crafting " if activation and not activation.reset else "") +
+                       if game_probe else "$learned-crafting Exercise permitted root artifacts and one scoped synthetic observation; verify that helper calls are unavailable. Provider and worker are scripted."
+                       if no_self_play else ("$learned-crafting " if activation and not activation.reset else "") +
                        "Synthetic MCP identity test. Use only the fixed synthetic broker and one clean-context native helper.")})
         if tool_projections is not None:
             from mcbench.native_tool_projection import pin_tool_projection
             plan = plan.model_copy(update={"tool_projection_ref": pin_tool_projection(
-                cas, plan, tool_projections, helper_collaboration=pilot_helper)})
+                cas, plan, tool_projections, helper_collaboration=pilot_helper,
+                conformance_helpers=not campaign_boundary_probe and bool(runtime_boundary or selected_state_boundary or selected_retirement_boundary or selected_helper_pair or cross_team_probe or team_channel_probe),
+                campaign_team=campaign_boundary_probe is not None or selected_activation and not no_self_play,
+                helper_free=no_self_play)})
         if gateway_mode:
             plan = plan.model_copy(update={"accounting_basis_digest": basis.fingerprint(),
                 "gateway_config_digest": gateway_config.profile_fingerprint()})
@@ -581,6 +829,12 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 inputs=exposure.max_input_tokens * 12, outputs=exposure.max_output_tokens * 12)
         if native_worker:
             native_worker.bind(plan)
+        if cross_team_probe:
+            cross_team_probe.before_launch()
+        if team_channel_probe:
+            team_channel_probe.store.healthy()
+        if activation_controller:
+            activation_controller.healthy(plan)
         runtime.start(plan, reserve)
         if ingress_mode:
             # Owned negative clients have no tools and send no model request. The
@@ -608,22 +862,38 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                 response.read()
                 client.close()
         wait_job(runtime, plan)
+        normal_native_return = True
     finally:
-        if gateway:
-            gateway.stop_admission()
-        for job in list(runtime.live):
-            runtime.interrupt(job, "probe_cleanup")
-        if gateway:
-            gateway_seal = gateway.close(runtime)
-        provider.close()
-        if worker:
-            worker.shutdown()
-            worker.server_close()
-            worker_thread.join(3)
-        if canaries:
-            canaries.close()
-        if native_worker and native_worker.job:
-            native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
+        try:
+            if gateway:
+                gateway.stop_admission()
+            for job in list(runtime.live):
+                runtime.interrupt(job, "probe_cleanup")
+            if gateway:
+                gateway_seal = gateway.close(runtime)
+            provider.close()
+            if worker:
+                worker.shutdown()
+                worker.server_close()
+                worker_thread.join(3)
+            if canaries:
+                canaries.close()
+            if native_worker and native_worker.job:
+                native_worker.revoke(plan.campaign_id, plan.agent_id, plan.epoch)
+            if activation_checkpoint and normal_native_return:
+                activation_closure = close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None)
+                activation_controller.begin_checkpoint(plan)
+                from native_fixture_checkpoint import next_checkpoint
+                from mcbench.native_checkpoint import NativeCheckpointStates
+                from native_activation_controller import OWNER
+                parent, _ = NativeCheckpointStates(runtime).load(activation.body["checkpoint_ref"])
+                checkpoint_result = next_checkpoint(runtime, plan.job_id, parent.checkpoint_id,
+                    "episode-" + plan.job_id, boundary="episode", controller_owner=OWNER)
+                (output / "activation-checkpoint.json").write_text(json.dumps(checkpoint_result), encoding="utf-8")
+        finally:
+            if activation_controller:
+                activation_controller.__exit__()
+                (output / "activation-controller.json").write_text(json.dumps(activation_controller.report()), encoding="utf-8")
     calls = [json.loads(line) for path in sorted(output.glob("mcp-*.jsonl"))
              for line in path.read_text(encoding="utf-8").splitlines()]
     result = {"schema": "strata/NativeMcpIdentityProbe/1", "is_example": True,
@@ -631,8 +901,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         "identities": provider.identities, "broker_calls": calls,
         "provider_errors": provider.errors, "outputs": provider.outputs,
         "runtime": runtime.status(plan.job_id), "requests": len(provider.requests),
-        "closure": close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
-        "budget": gate.budgets.status("a1" if activation else "project")}
+        "closure": activation_closure or close_fixture_budget(runtime, plan, provider, gateway_seal if gateway else None),
+        "budget": gate.budgets.status(plan.account if team_channel_probe else "a1" if activation else "project")}
     if broker_mode:
         result["schema"] = "strata/NativeBrokerProbe/1"
         result["worker_calls"] = worker_calls
@@ -729,10 +999,30 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
                         e.get("tool_projection_digest") == expected["executor" if e["depth"] == 0 else "helper"]
                         and e.get("tool_projection_ref") == plan.tool_projection_ref for e in events),
                 })
+    if no_helper_probe:
+        for name in ("helper_result_written", "helper_game_denied", "spoof_arguments_denied",
+                     "distinct_root_helper_envelopes", "both_projection_roles_checked"):
+            result["checks"].pop(name)
+        result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) == 5
+        result["checks"]["root_projection_only_checked"] = set(expected) == {"executor"} and {e["depth"] for e in events} == {0}
+        result["no_self_play"] = no_helper_probe.report(db, plan, provider)
+        result["checks"].update(result["no_self_play"]["checks"])
+        result["scope"] = "selected-native-no-self-play-control"
     if activation:
-        result["activation"] = activation.report(provider, db, plan)
+        result["activation"] = activation.report(provider, db, plan, helper_free=no_self_play)
         result["checks"].update(result["activation"]["checks"])
         result["checks"]["aggregate_no_double_charge"] = result["activation"]["checks"]["prior_usage_preserved_once"]
+        if script_probe:
+            result["active_script"] = script_probe.report()
+            result["checks"].update(result["active_script"]["checks"])
+        if activation_controller:
+            result["activation_controller"] = activation_controller.report()
+            result["checks"]["activation_controller_owned_and_drained"] = bool(activation_controller.heartbeats) and (
+                not activation_controller.errors and result["activation_controller"]["thread_stopped"])
+        if checkpoint_result:
+            result["activation_checkpoint"] = checkpoint_result
+            result["checks"]["complete_synthetic_episode_checkpoint"] = checkpoint_result["costs_unchanged"] and (
+                activation_controller.checkpoint_transition["state"] == "CHECKPOINTING")
     if game_retention:
         result["retention"] = game_retention.finish()
         result["checks"]["preregistered_native_retention_component"] = True
@@ -745,7 +1035,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
         native_raw = b"".join(base64.b64decode(json.loads(r[0])["raw_base64"])
             for r in db.connection.execute("SELECT body FROM native_events WHERE channel IN ('stdout','stderr')"))
         visible = native_raw + json.dumps(provider.outputs).encode() + (output / "journal.jsonl").read_bytes()
-        requests = list(output.glob("*-request.json"))
+        requests = ([db.path.parent / (row["operation_id"] + "-request.json") for row in provider.requests]
+                    if team_channel_probe else list(output.glob("*-request.json")))
         bindings = db.connection.execute("SELECT count(*) FROM native_ingress_requests WHERE job=?",
                                         (plan.job_id,)).fetchone()[0]
         result["ingress"] = {"negative_clients": ingress_checks, "denials": provider.ingress_denials,
@@ -768,8 +1059,8 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
             result["checks"].update({
                 "native_oauth_headers_all_requests": all(r["authorization_present"] and
                     "chatgpt-account-id" in r.get("header_names", []) for r in provider.requests),
-                "upstream_credential_all_requests": len(provider.upstream_requests) == len(provider.requests)
-                    and all(r["authorization_present"] for r in provider.upstream_requests),
+                "upstream_credential_forwarded_requests": upstream_credential_coverage(
+                    provider.requests, provider.upstream_requests),
                 "native_protocol_headers_preserved": all(r["native_headers_preserved"]
                                                           for r in provider.upstream_requests),
                 "oauth_secrets_absent_from_context_and_journal": all(secret not in visible and
@@ -836,6 +1127,32 @@ def run(binary, output, broker_mode=False, canary_mode=False, admission_mode=Fal
     if state_probe:
         result["state_canaries"] = state_probe.report()
         result["checks"].update(result["state_canaries"]["checks"])
+    if cross_team_probe:
+        result["cross_team"] = cross_team_probe.report()
+        result["checks"].update(result["cross_team"]["checks"])
+        result["checks"]["provider_clean"] = not provider.errors and len(provider.requests) <= request_limit
+    if team_channel_probe:
+        result["team_channel"] = team_channel_probe.report()
+        result["checks"].update(result["team_channel"]["checks"])
+        result["checks"]["provider_clean"] = not provider.errors and 5 <= len(provider.requests) <= request_limit
+        result["checks"]["team_owned_heartbeat_healthy"] = not team_channel_probe.store.errors
+    if pair_probe:
+        result["helper_pair"] = pair_probe.report()
+        result["checks"].update(result["helper_pair"]["checks"])
+        forwarded = sum(row.get("forwarded") is True for row in provider.requests)
+        rejected = [row for row in provider.requests if row.get("forwarded") is not True]
+        result["checks"].update({
+            "provider_clean": provider.errors == ["HELPER_CAPACITY"] and len(provider.requests) <= request_limit,
+            "pair_overflow_not_forwarded": len(rejected) == 1 and all(
+                i["agent"] != "/root/overflow" for i in provider.identities),
+            "every_request_admitted": len(result["admissions"]) == forwarded == len(provider.requests) - 1,
+            "distinct_root_helper_envelopes": len(result["participants"]) == 3 and
+                len({p["envelope"] for p in result["participants"]}) == 3,
+            "aggregate_no_double_charge": result["budget"]["committed_and_reserved"]["spend_microusd"] == 14 * forwarded,
+            "every_request_projection_checked": len(events) == forwarded and all(
+                e.get("tool_projection_digest") == expected["executor" if e["depth"] == 0 else "helper"] and
+                e.get("tool_projection_ref") == plan.tool_projection_ref for e in events),
+        })
     if interrupt_probe:
         result["interruption"] = interrupt_probe.report(provider, db)
         result["checks"].update(result["interruption"]["checks"])

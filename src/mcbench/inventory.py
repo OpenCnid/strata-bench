@@ -37,11 +37,19 @@ def file_hash(path: Path) -> str:
 
 def directory_layout(files, extra_directories=(), *, reviewed_world_paths=None):
     """Portable complete directory closure, including explicitly empty paths."""
-    reviewed = reviewed_world_paths or {}
+    reviewed = dict(reviewed_world_paths or {})
     names, kinds, directories = {}, {}, set()
+    paths = {}
+
+    def validated_path(name):
+        # Pure lexical validation against this call's fixed review policy.
+        # Repeated parents need no reparsing; no filesystem state is cached.
+        if name not in paths:
+            paths[name] = template_path(name, reviewed_world_paths=reviewed)
+        return paths[name]
 
     def add(name, is_directory):
-        template_path(name, reviewed_world_paths=reviewed)
+        path = validated_path(name)
         folded = name.casefold()
         require(folded not in names or names[folded] == name and kinds[folded] == is_directory,
                 "PATH_COLLISION")
@@ -50,21 +58,22 @@ def directory_layout(files, extra_directories=(), *, reviewed_world_paths=None):
             require(name not in reviewed or reviewed[name] is None, "VENDOR_CONTENT_MISMATCH")
             directories.add(name)
             require(len(directories) <= 200000, "ARTIFACT_QUOTA")
+        return path
 
     seen_files, seen_extras = set(), set()
     for name in files:
         require(name not in seen_files, "PATH_COLLISION")
         seen_files.add(name)
-        add(name, False)
-        for parent in safe_relative(name).parents:
+        path = add(name, False)
+        for parent in path.parents:
             if str(parent) != ".":
                 add(parent.as_posix(), True)
     for name in extra_directories:
-        template_path(name, reviewed_world_paths=reviewed)
+        path = validated_path(name)
         require(name not in seen_extras, "PATH_COLLISION")
         seen_extras.add(name)
         add(name, True)
-        for parent in safe_relative(name).parents:
+        for parent in path.parents:
             if str(parent) != ".":
                 add(parent.as_posix(), True)
     return sorted(directories)
@@ -98,32 +107,65 @@ def scan_tree(root: Path, **kwargs) -> list[dict]:
 
 
 def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
-                reviewed_world_paths=None) -> dict:
+                reviewed_world_paths=None, _lease=None) -> dict:
     """Inventory ALL files of an already prepared dedicated, stopped installation.
 
     Nothing is silently excluded. Clean source trees must be prepared separately;
     executable startup configuration and transitive downloads remain hash-bound.
     Path names are portable and case collisions are rejected even on Linux.
     """
+    if _lease is not None:
+        from .launch_integrity import FileLease
+        require(type(_lease) is FileLease, "MATERIALIZATION_CUSTODY_REQUIRED")
+        _lease.recheck()
+    result = _scan_layout(root, max_files=max_files, max_bytes=max_bytes,
+                          reviewed_world_paths=reviewed_world_paths,
+                          hash_file=file_hash if _lease is None else _lease.held_digest)
+    if _lease is not None:
+        _lease.recheck()
+    return result
+
+
+def _scan_held_materialization(root: Path, lease, *, reviewed_world_paths=None):
+    """Check both role layouts between fresh whole-installation membership scans."""
+    from .launch_integrity import FileLease, safe
+    require(type(lease) is FileLease, "MATERIALIZATION_CUSTODY_REQUIRED")
+    root = safe(root)
+    require({t["path"] for t in lease.inventory["trees"]} == {str(root)},
+            "MATERIALIZATION_CUSTODY_SCOPE")
+    lease.recheck()
+    result = {role: _scan_layout(root / role, reviewed_world_paths=reviewed_world_paths,
+                                 hash_file=lease.held_digest) for role in ("client", "server")}
+    lease.recheck()
+    return result
+
+
+def _scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
+                 reviewed_world_paths=None, hash_file):
+    """Per-entry scan; owning entry points supply hashing and any custody checks."""
     root = root.absolute()
     reject_links(root)
     require(root.is_dir(), "AWAITING_ARTIFACT")
     reviewed_world_paths = reviewed_world_paths or {}
     entries, directory_entries, seen, total = [], [], set(), 0
     for current, directories, files in os.walk(root, followlinks=False):
+        directory = Path(current)
+        prefix = directory.relative_to(root).as_posix()
+        prefix = "" if prefix == "." else prefix + "/"
         for name in sorted(directories + files):
-            path = Path(current) / name
-            relative = path.relative_to(root).as_posix()
+            path = directory / name
+            relative = prefix + name
             template_path(relative, reviewed_world_paths=reviewed_world_paths)
             require(relative.casefold() not in seen, "PATH_COLLISION")
             seen.add(relative.casefold())
-            reject_links(path)
             info = path.lstat()
-            require(stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode), "UNSAFE_PATH")
+            require((stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode))
+                    and not getattr(info, "st_file_attributes", 0) & 0x400, "UNSAFE_PATH")
             if relative in reviewed_world_paths:
                 require(stat.S_ISDIR(info.st_mode) == (reviewed_world_paths[relative] is None),
                         "VENDOR_CONTENT_MISMATCH")
             if stat.S_ISDIR(info.st_mode):
+                reject_links(path)
                 directory_entries.append(relative)
                 require(len(directory_entries) <= 200000, "ARTIFACT_QUOTA")
             if stat.S_ISREG(info.st_mode):
@@ -132,7 +174,9 @@ def scan_layout(root: Path, *, max_files=200000, max_bytes=64 * 1024**3,
                 require(info.st_nlink == 1, "UNSAFE_PATH")
                 total += info.st_size
                 require(len(entries) < max_files and total <= max_bytes, "ARTIFACT_QUOTA")
-                sha = file_hash(path)
+                # file_hash checks this path and every ancestor immediately
+                # before opening. Do not repeat that same check above for files.
+                sha = hash_file(path)
                 if relative in reviewed_world_paths:
                     require(sha == reviewed_world_paths[relative], "VENDOR_CONTENT_MISMATCH")
                 entries.append({"path": relative, "digest": sha,

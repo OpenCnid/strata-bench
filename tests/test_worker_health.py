@@ -137,15 +137,20 @@ health.close(); journal.close();
 
 def test_actual_worker_initialization_failure_still_closes_measurement(tmp_path):
     module = Path(__file__).resolve().parents[1] / "backends/mineflayer/dist/src/worker.js"
+    # Direct child IPC bypasses the supervisor's config parser. Select the Forge
+    # lane explicitly so the absent connection file fails before game/network I/O.
     config = {**SCOPE, "state_directory": str(tmp_path), "schema": "strata/ForgeDevelopmentWorker/2",
+              "server_kind": "e9e",
               "connection_file": str(tmp_path / "deliberately-missing-private-connection.json")}
     script = tmp_path / "failed-start.mjs"
     script.write_text(f"""import {{fork}} from 'node:child_process';
 const child = fork({json.dumps(str(module))}, [], {{stdio:['ignore','ignore','pipe','ipc'],windowsHide:true}});
-child.stderr.resume();
+child.stderr.on('data',data=>process.stderr.write(data));
 const timeout=setTimeout(()=>{{child.kill();process.exitCode=2;}},10000);
 child.on('message',m=>{{if(m.kind==='bootstrap_ready')child.send({{config:{json.dumps(config)},token:'unused'}});}});
-child.on('exit',code=>{{clearTimeout(timeout);process.exitCode=code===1?0:3;}});
+child.on('exit',(code,signal)=>{{clearTimeout(timeout);
+if(code!==1)console.error(JSON.stringify({{unexpected_child_exit:code,signal}}));
+process.exitCode=code===1?0:3;}});
 """, encoding="utf-8")
     result = subprocess.run([shutil.which("node"), str(script)], capture_output=True, text=True, timeout=15)
     assert result.returncode == 0, result.stderr

@@ -11,9 +11,10 @@ from mcbench.contracts import Strict
 from mcbench.inference_transport import strict_json
 from mcbench.storage import Database, canonical, digest, require
 from .craft_reference import (
-    CraftReferencePlan, CraftReferencePlanV2, CraftReferencePlanV3, CraftReferenceStore, private_path, write_new,
+    CraftReferencePlan, CraftReferencePlanV2, CraftReferencePlanV3, CraftReferencePlanV4, CraftReferencePlanV5,
+    CraftReferenceStore, private_path, write_new,
 )
-from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLauncher, same_path
+from .reference_launch import ReferenceLaunchPlanV4, ReferenceLaunchPlanV5, ReferenceLaunchPlanV8, ReferenceLauncher, same_path
 from .telemetry_auth import private_read
 from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, WriterPreparationPlanV3, WriterPreparations
 
@@ -21,7 +22,7 @@ from .writer_preparation import WriterPreparationPlan, WriterPreparationPlanV2, 
 class ProtectedReferencePlan(Strict):
     schema_: Literal["strata/ProtectedReferencePlan/1"] = Field(alias="schema")
     preparation: WriterPreparationPlan
-    setup: CraftReferencePlan | CraftReferencePlanV2 | CraftReferencePlanV3
+    setup: CraftReferencePlan | CraftReferencePlanV2 | CraftReferencePlanV3 | CraftReferencePlanV4 | CraftReferencePlanV5
     launch: ReferenceLaunchPlanV4
     evidence_directory: str
 
@@ -58,8 +59,13 @@ class ProtectedReferencePlanV2(ProtectedReferencePlan):
     launch: ReferenceLaunchPlanV5
 
 
+class ProtectedReferencePlanV3(ProtectedReferencePlanV2):
+    schema_: Literal["strata/ProtectedReferencePlan/3"] = Field(alias="schema")
+    launch: ReferenceLaunchPlanV8
+
+
 def parse_protected_plan(value):
-    return TypeAdapter(ProtectedReferencePlan | ProtectedReferencePlanV2).validate_python(value)
+    return TypeAdapter(ProtectedReferencePlan | ProtectedReferencePlanV2 | ProtectedReferencePlanV3).validate_python(value)
 
 
 class ProtectedReferences:
@@ -79,7 +85,7 @@ class ProtectedReferences:
 
     def run(self, value, *, client_binding=None):
         plan = parse_protected_plan(value)
-        online = plan.schema_ == "strata/ProtectedReferencePlan/2"
+        online = isinstance(plan, ProtectedReferencePlanV2)
         require((plan.launch.mode == "e9e-serverstarter") == (client_binding is not None),
                 "PROTECTED_REFERENCE_CLIENT_BINDING")
         if client_binding is not None:

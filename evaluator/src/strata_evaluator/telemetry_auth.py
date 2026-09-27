@@ -161,11 +161,12 @@ class SpoolVerifier:
                 "stream_authentication_verified": True, "process_identity_qualified": False}
 
 
-def inspect_authenticated_spool(path, authority_path):
+def inspect_authenticated_spool(path, authority_path, *, machine_reference=None):
     from .telemetry import inspect_spool
     authority = parse_authority(strict_json(private_read(authority_path, 65536)))
     with SpoolVerifier(authority) as verifier:
-        return inspect_spool(path, authority.campaign_id, authority.epoch, authentication=verifier)
+        return inspect_spool(path, authority.campaign_id, authority.epoch, authentication=verifier,
+                             machine_reference=machine_reference)
 
 
 def main():

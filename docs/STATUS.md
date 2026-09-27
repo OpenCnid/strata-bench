@@ -1,40 +1,66 @@
 # Strata current status
 
-**September 24 closure: M0 verified; G0 pass for the D14 development feasibility
-slice; G1–G5 not_run.** The [final assembly](verification/2026-09-24-g0-assembly.md)
-records all six required outcomes, exact profile bindings and remaining
-qualification boundaries. All51 M1–M7 ledger rows remain unchanged.
+**M1 is in progress. G1 is not complete.** M0 is verified; G0 passes only
+its named D14 development feasibility slice. All six complete G1 suites below
+remain `not_run`; component checks do not close their acceptance contracts.
 
-The development harness lets GPT-6 Luna choose actions from filtered observations
-and pilot an authentic Minecraft character through Mineflayer. Live15 passed
-turn/walk/helper play. Live18 verified a rejected sequence followed by a corrected
-turn and complete action/cost/clock joins; its original two-action goal still
-fails because no walk occurred. Scripted conformance and providers remain labeled.
+This is the September 27 source/documentation checkpoint for continuation in a
+fresh session. Read [the handoff](STATUS_AND_HANDOFF.md) and
+[checkpoint verification](verification/2026-09-27-session-handoff.md). The
+[ledger](../MILESTONES.md) remains the detailed source of progress and decisions.
 
-| Area | Accepted G0 evidence | Remaining qualification |
-|---|---|---|
-| Native host/helper | Actual model-selected play, delivered helper and settled receipts | Full helper/worker isolation at M1/G1 |
-| Vanilla/E9E provisioning | Official locked vanilla and sealed E9E Forge launch | Exact E9E Mineflayer stays unsupported |
-| Mechanics | Selected vanilla operations and separate modded block, expert recipe and machine | Full API/pack conformance; historical profiles do not qualify every latest operation |
-| Cancel/reconnect | Fresh minor12 dig cancellation, release, fencing, next epoch, deduplication and saved-state join:48/48 | Full T05/G1; canonical faults, checkpoints and soaks at G2 |
-| Private milestone | Connected development craft scorer and negative controls | Protected/scientific scoring and isolation remain unqualified |
-| Costs/time/evidence | Live18 combined audit19/19; zero-inference conformance charges and measured intervals | Complete campaign clocks, overhead and capacity |
+## What changed since M0
 
-The fresh cancellation check required no production code repair or model call.
-Its first route-selector failure is retained; the changed dig selector uses only
-public observations. The independent audit verifies48/48 and all owned processes
-stop normally. The [318-child crosswalk](verification/2026-09-24-g0-child-dispositions.md)
-carries wider contracts at their existing statuses with explicit later gates.
+M0 demonstrated model-selected bounded gameplay through Mineflayer, including
+turn/walk/helper play. M1 is building the contracts and trust boundaries needed
+to make that gameplay a valid benchmark: agent/helper isolation, verified control
+repair, complete accounting, protected scoring and matched disposable probes.
 
-WAL-aware read-only comparison keeps all40 authority tables unchanged from stopped
-live18. Exposure remains **$4.887796/$10**, including the old $0.7554 hold and four
-full $1 unresolved job envelopes. All20 native gateways are closed; consumed
-decisions stay consumed. D18/D19 authority persists without replay, refund or new
-allowance. No further experiment is selected; shared-desktop input stays paused.
+There is real partial progress: native boundary/control evidence, a narrow
+[authentic Curios repair/restart/restore cycle](verification/2026-09-27-m1-settings-cycle-plan.md),
+owned repair/restart/resume services, retained inference closure, immutable
+publication evidence and continuous body-tick reservations. The latest three
+implementation checkpoints are `b483f4d`, `c1d3055` and `07737f3`.
 
-See the [current handoff](STATUS_AND_HANDOFF.md),
-[ledger checklist](../MILESTONES.md#m0-closure-checklist--spec-161), and
-[final evidence assembly](verification/2026-09-24-g0-assembly.md).
-The [merged checkpoint](verification/2026-09-24-session-handoff.md),
-[historical status](STATUS_HISTORY_2026-09-24.md) and append-only ledger retain
-earlier results and instructions; their next actions are superseded.
+## Immediate completion target
+
+One connected authentic workflow: **play → diagnose conflict → owned pause →
+repair → restart and verify effects → account → commit or verify restoration →
+resume play**. Complete wall/disconnected-time allocation, original-lease
+controller completion and restored rollback remain missing. The successful
+component/process tests use synthetic producers where their reports say so.
+
+The last authentic essential-controls attempt failed with
+`PROCESS_NATIVE_HEALTH_TIMEOUT`. Its cause remains unproven; preserve the failure
+and diagnose it before a relevant changed trial. No threshold relaxation or
+unchanged rerun is selected. See [retained failure](verification/2026-09-27-m1-essential-native.md).
+
+| G1 suite | Required remaining completion |
+|---|---|
+| T01 contracts | Final-profile references/admission, path boundaries, strict schemas and cross-language coverage. |
+| T04 native host | Selected skill, integrated game/settings/probe profile, helper permissions, interruption/resume and every-call accounting. |
+| T05 keybindings | Complete public repair/resume/restore workflow, effects/context/modifier/failure cases and authentic extension qualification. |
+| T06 isolation | Integrated root/helper filesystem, process, network, credential, tool, cross-agent and probe-disposal boundaries. |
+| T10 scoring | Protected admission plus complete positive/negative/alternative-strategy controls and mechanics/overhead parity. |
+| T11 probes | Complete initial/transient matching, native admission, clocks, exact cache resets and one-way canary exclusion. |
+
+## Authority and runtime state
+
+D20 authorizes M1 implementation and scripted conformance, including required G1
+dependencies. Unrelated M2–M7 work remains outside scope. D17 selects GPT-6 Luna.
+D18/D19's $10 allowance is **M0-only**; it does not authorize M1 paid verification.
+Known exposure remains $4.887796, retaining the old $0.7554 hold and four full
+$1 failed-job envelopes. Eight separate telemetry holds remain unresolved.
+Revalidate the durable ledger and process inventory before new execution.
+
+Shared-desktop input remains paused. Installations, raw runs, credentials and
+private evaluator data stay outside this repository and every gameplay/helper
+context. Separate folders or conversations are not isolation proof.
+
+## Evidence and history
+
+- [Latest continuous body-tick evidence](verification/2026-09-27-m1-body-tick-window.md): 51 affected source checks and one actual JVM/private-pipe case; complete repair accounting remains false.
+- [Publication boundary](verification/2026-09-27-m1-publication-receipt.md): immutable controller/worker join, with synthetic game/settlement producers.
+- [Inference closure](verification/2026-09-27-m1-resume-inference.md): pending tracked calls prevent native resume; original costs and failure history remain.
+- [Opening exact-profile audit](verification/2026-09-24-g1-coverage-audit.md) and [MILESTONES](../MILESTONES.md): full coverage beyond the immediate workflow.
+- [Archived status history](archive/2026-09-27-m1-status-history.md): all earlier progress text and evidence pointers, retained without promoting failed or incomplete results.

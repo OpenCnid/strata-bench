@@ -124,6 +124,25 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "properties": {
+        "agent_ids": {
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "checkpoints_active_s": {
+          "minItems": 1,
+          "prefixItems": [
+            {
+              "const": 0
+            }
+          ],
+          "uniqueItems": true
+        }
+      }
+    }
+  ],
   "properties": {
     "is_example": {
       "title": "Is Example",

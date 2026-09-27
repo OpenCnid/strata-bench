@@ -13,13 +13,14 @@ from typing import Annotated, Literal
 
 from pydantic import Field
 
-from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict, UInt
+from .contracts import Digest, Id, Positive, Ref, RpcRequest, Strict
 from .budgets import Budgets
 from . import broker_lifecycle
 from .runtime import CODEX_VERSION
+from .native_broker_policy import POLICY, TEAM_POLICIES, NO_HELPER_POLICIES
 from .storage import Fault, Principal, canonical, digest, require, safe_relative
+from .team_protocol import TeamRequest
 
-POLICY = "native-stdio-projected-artifacts-executor-game/1"
 NATIVE_METADATA_VERSION = CODEX_VERSION.removeprefix("codex-cli ")
 MAX_TEXT = 256 * 1024
 GAME_REQUEST_POLICY = "broker-durable-game-request/1"
@@ -99,9 +100,9 @@ class BrokerGrant(Strict):
     campaign_id: Id
     agent_id: Id
     epoch: Positive
-    depth: UInt = Field(le=2)
+    depth: Annotated[int, Field(ge=0, le=2)]
     expires_unix_ms: Positive
-    tool_calls: Positive = Field(le=10000)
+    tool_calls: Annotated[int, Field(ge=1, le=10000)]
     # The enrollment caller must first admit the model job/child reservation.
     admission_ref: Ref
 
@@ -123,6 +124,10 @@ class GameCall(Strict):
     request: RpcRequest
 
 
+class TeamCall(Strict):
+    request: TeamRequest
+
+
 ARGUMENTS = {"artifact_read": ArtifactRead, "artifact_write": ArtifactWrite,
              "artifact_list": Empty, "game": GameCall}
 
@@ -131,6 +136,18 @@ class NativeBroker:
     def __init__(self, database, cas, runtime_id, profile_digest, *, clock=time.time):
         self.db, self.cas = database, cas
         self.runtime_id, self.profile_digest, self.clock = runtime_id, profile_digest, clock
+        self.policy, self.team_policy_ref = POLICY, None
+        self.arguments = dict(ARGUMENTS)
+        if self.db.connection.execute("SELECT 1 FROM sqlite_master WHERE name='native_jobs'").fetchone():
+            row = self.db.connection.execute("SELECT plan FROM native_jobs WHERE id=?", (runtime_id,)).fetchone()
+            if row is not None and json.loads(row[0]).get("broker_policy") in TEAM_POLICIES | NO_HELPER_POLICIES:
+                from .native import NativeLaunch
+                plan = NativeLaunch.model_validate_json(row[0])
+                require(plan.job_id == runtime_id and plan.profile_digest() == profile_digest,
+                        "BROKER_SCOPE")
+                self.policy, self.team_policy_ref = plan.broker_policy, plan.team_policy_ref
+                if plan.broker_policy in TEAM_POLICIES:
+                    self.arguments["team"] = TeamCall
         with self.db.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS broker_grants (runtime TEXT, thread TEXT, "
                 "namespace TEXT UNIQUE, parent TEXT, body TEXT, fingerprint TEXT, "
@@ -144,9 +161,13 @@ class NativeBroker:
             db.execute("CREATE TABLE IF NOT EXISTS broker_artifact_writes (event INTEGER PRIMARY KEY, "
                 "runtime TEXT, thread TEXT, namespace TEXT, path TEXT, ref TEXT, expected_ref TEXT)")
             broker_lifecycle.install(db)
+        if self.team_policy_ref is not None:
+            from .communication import Communication
+            self.team = Communication(self.db, clock=self.clock)
 
     def admit(self, grant: BrokerGrant):
         """Operator enrollment, after job/budget admission; never model-callable."""
+        grant = BrokerGrant.model_validate(grant.model_dump())
         require(grant.runtime_id == self.runtime_id and grant.profile_digest == self.profile_digest,
                 "BROKER_SCOPE")
         visibility = self.db.connection.execute("SELECT visibility FROM objects WHERE namespace=? "
@@ -180,7 +201,7 @@ class NativeBroker:
             db.execute("INSERT INTO broker_grants VALUES(?,?,?,?,?,?,?,0)", (
                 self.runtime_id, grant.thread_id, grant.namespace, grant.parent_thread_id,
                 canonical(body).decode(), digest(body), grant.tool_calls))
-            self.db.event(db, "broker.admitted", {"policy": POLICY, "grant": body})
+            self.db.event(db, "broker.admitted", {"policy": self.policy, "grant": body})
 
     def _grant(self, db, thread):
         row = db.execute("SELECT * FROM broker_grants WHERE runtime=? AND thread=?",
@@ -199,7 +220,7 @@ class NativeBroker:
                                            grant.admission_ref, max_bytes=65536))
         if evidence.get("schema") != "strata/NativeBrokerAdmission/1":
             table = db.execute("SELECT 1 FROM sqlite_master WHERE name='native_profile'").fetchone()
-            require(evidence.get("is_example") is True and table is not None and
+            require(self.policy == POLICY and evidence.get("is_example") is True and table is not None and
                     db.execute("SELECT simulation FROM native_profile").fetchone()[0] == 1,
                     "BROKER_RUNTIME_ADMISSION_REQUIRED")
             return  # Historical fixture enrollment is explicitly simulation-only.
@@ -217,10 +238,18 @@ class NativeBroker:
                 row["request_digest"] == evidence.get("request_digest"), "BROKER_RUNTIME_REVOKED")
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(row["plan"])
-        require(plan.profile_digest() == grant.profile_digest and plan.broker_policy == POLICY and
+        from .native_account_policy import require_native_account
+        require_native_account(db, plan)
+        from .native_arm_policy import require_arm_policy
+        require_arm_policy(db, self.cas, plan)
+        require(plan.profile_digest() == grant.profile_digest and plan.broker_policy == self.policy and
+                plan.team_policy_ref == self.team_policy_ref and
                 all(getattr(plan, k) == getattr(grant, k)
                 for k in ("campaign_id", "agent_id", "epoch", "model")) and
                 grant.role == ("executor" if row["depth"] == 0 else "helper"), "BROKER_ADMISSION_MISMATCH")
+        if self.team_policy_ref is not None:
+            from .native_team import require_team_plan
+            require_team_plan(db, self.cas, plan, now=self.clock())
         require(grant.expires_unix_ms <= int((row["started"] + plan.hard_timeout_s) * 1000),
                 "BROKER_ADMISSION_MISMATCH")
         root = db.execute("SELECT thread FROM native_participants WHERE job=? AND parent IS NULL",
@@ -290,8 +319,8 @@ class NativeBroker:
             self.db.event(db, "broker.revoked", {"runtime": self.runtime_id, "thread": thread})
 
     def call(self, name, arguments, meta, *, game_transport=None):
-        require(name in ARGUMENTS, "BROKER_TOOL_FORBIDDEN")
-        value = ARGUMENTS[name].model_validate(arguments)
+        require(name in self.arguments, "BROKER_TOOL_FORBIDDEN")
+        value = self.arguments[name].model_validate(arguments)
         # Authenticate before resolving any artifact name or forwarding game data.
         start = time.monotonic_ns()
         with self.db.transaction() as db:
@@ -299,7 +328,8 @@ class NativeBroker:
             event = self.db.event(db, "broker.call", {"runtime": self.runtime_id, "thread": g.thread_id,
                 "tool": name, "call_id": meta["callId"], "arguments_digest": digest(arguments),
                 "lifecycle_policy": broker_lifecycle.POLICY,
-                **({"game_arguments": arguments} if name == "game" else {})})
+                **({"game_arguments": arguments} if name == "game" else {}),
+                **({"team_arguments": arguments} if name == "team" else {})})
             broker_lifecycle.started(db, event)
         try:
             result = self._execute(name, value, g, game_transport, event)
@@ -325,6 +355,14 @@ class NativeBroker:
         return result
 
     def _execute(self, name, value, g, game_transport, event):
+        if name == "team":
+            require(self.team_policy_ref is not None and g.role == "executor", "BROKER_TEAM_FORBIDDEN")
+            r = value.request
+            require((r.campaign_id, r.agent_id, r.epoch) == (g.campaign_id, g.agent_id, g.epoch),
+                    "BROKER_SCOPE")
+            return self.team.request(Principal(f"campaign:{g.campaign_id}:agent:{g.agent_id}", "executor"),
+                r.model_dump(), self.cas, expected_policy_ref=self.team_policy_ref,
+                authority_guard=lambda db: self._grant(db, g.thread_id), native_call_event=event)
         if name == "artifact_list":
             return {"files": [dict(r) for r in self.db.connection.execute(
                 "SELECT path,ref,immutable FROM broker_files WHERE namespace=? ORDER BY path LIMIT 1024",
@@ -343,12 +381,15 @@ class NativeBroker:
                     and "/" in path and (row is None or not row["immutable"]), "BROKER_WRITE_FORBIDDEN")
             require(len(value.text.encode("utf-8")) <= (8000 if prefix == "handoff" else MAX_TEXT),
                     "ARTIFACT_QUOTA")
+            from .native_note_policy import write_policy
+            category = write_policy(self.db.connection, self.cas, g, path, value.text)
             # Service writes only the caller's permitted result/draft namespace.
             # This does not activate a learned revision or mutate initial skills.
             ref = self.cas.put(Principal(g.namespace, "executor"), g.namespace, "agent",
                                value.text.encode("utf-8"), media_type="text/plain")
             with self.db.transaction() as db:
                 self._grant(db, g.thread_id)
+                require(write_policy(db, self.cas, g, path, value.text) == category, "NATIVE_ARM_SCOPE")
                 old = db.execute("SELECT ref FROM broker_files WHERE namespace=? AND path=?",
                     (g.namespace, path)).fetchone()
                 if old is None or old[0] != ref:
@@ -359,6 +400,9 @@ class NativeBroker:
                         "DO UPDATE SET ref=excluded.ref", (g.namespace, path, ref))
                 db.execute("INSERT INTO broker_artifact_writes VALUES(?,?,?,?,?,?,?)",
                     (event, self.runtime_id, g.thread_id, g.namespace, path, ref, value.expected_ref))
+                if category:
+                    self.db.event(db, "broker.note_classified", {"runtime": self.runtime_id,
+                        "thread": g.thread_id, "source_event": event, "path": path, "ref": ref, **category})
             return {"path": path, "ref": ref}
         require(g.role == "executor" and game_transport is not None, "BROKER_GAME_FORBIDDEN")
         r = value.request

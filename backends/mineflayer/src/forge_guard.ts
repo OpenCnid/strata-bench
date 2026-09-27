@@ -6,10 +6,10 @@ import { resolve } from 'node:path';
 import { hashFile } from './capability_pins.js';
 import { fields, NativeGameClient, strictJson } from './native_game.js';
 import { canonical, digest, Fault, mono, requireThat } from './protocol.js';
-import type { ForgeConfig } from './worker_config.js';
+import type { ForgeWorkerConfig } from './worker_config.js';
 
 export function guardImplementationDigest(): string {
-  const names = ['forge_guard.py','process_guard.py','processes.py','native_game.py',
+  const names = ['forge_guard.py','process_guard.py','processes.py','native_game.py','native_restart.py','native_resume.py','worker_repair.py',
     'native_settings.py','contracts.py','storage.py','client_discovery.py'];
   return digest(Object.fromEntries(names.map(name => [name,
     hashFile(new URL(`../../../../src/mcbench/${name}`,import.meta.url))])));
@@ -17,7 +17,7 @@ export function guardImplementationDigest(): string {
 export interface ForgeGuardReady {
   schema:'strata/ProcessGuardEvent/1'; kind:'ready'; process_digest:string;
   campaign_id:string; agent_id:string; epoch:number; whole_client_lifetime:true;
-  campaign_admission:false; remaining_wall_ms:number; policy:'forge-process-listener-client-thread/2';
+  campaign_admission:false; remaining_wall_ms:number; policy:'forge-process-listener-client-thread/2'|'forge-process-listener-client-thread/3'|'forge-process-listener-client-thread/4';
   connection_digest:string; body_fingerprint:string; connection_generation:number;
   implementation_digest:string; python:'3.12.14';
 }
@@ -51,6 +51,22 @@ export function recordGuardFailure(evidence: SupervisorEvidence, message: Record
     && message.termination_confirmed === false && typeof message.reason === 'string'
     && /^[A-Z_]{1,96}$/.test(message.reason), 'PROCESS_GUARD_PROTOCOL');
   evidence.event('guard_failed',message);
+}
+
+/** One private terminal phase; no response contents, health renewal, or stop proof. */
+export function recordNativeHealthFailure(evidence: SupervisorEvidence, message: Record<string,unknown>,
+  terminal:boolean): void {
+  fields(message,['schema','kind','policy','phase','elapsed_ms','read_timeout_ms','initialized','reason']);
+  const reads=['authority','identity','lane_status','restart_status','resume_status'];
+  requireThat(terminal === true && message.schema === 'strata/ProcessGuardEvent/1' && message.kind === 'native_health_failure'
+    && message.policy === 'forge-native-health-phase/1' && typeof message.phase === 'string'
+    && [...reads,'authority_scope','listener','state'].includes(message.phase)
+    && Number.isSafeInteger(message.elapsed_ms) && Number(message.elapsed_ms)>=0
+    && message.read_timeout_ms === (reads.includes(message.phase) ? 500 : null)
+    && typeof message.initialized === 'boolean' && typeof message.reason === 'string'
+    && (!['authority','authority_scope'].includes(message.phase) || message.initialized === false)
+    && /^[A-Z_]{1,96}$/.test(message.reason), 'PROCESS_GUARD_PROTOCOL');
+  evidence.event('guard_native_health_failure',message);
 }
 
 /** Diagnostic timestamps never replace a separate confirmed-stop receipt. */
@@ -121,7 +137,7 @@ export class ForgeProcessGuard {
   private pendingRenew: {kind:'renew';seq:number;nonce:string} | null = null;
   private challengeSeq = 0;
 
-  constructor(c: ForgeConfig, capability: string, private evidence: SupervisorEvidence,
+  constructor(c: ForgeWorkerConfig, capability: string, private evidence: SupervisorEvidence,
     private canRenew: () => boolean, private onFailure: (reason: string) => void) {
     requireThat(process.platform === 'win32', 'PROCESS_GUARD_UNSUPPORTED');
     requireThat(statSync(c.process_guard_file).size <= 8192,'PROCESS_GRANT_QUOTA');
@@ -129,9 +145,12 @@ export class ForgeProcessGuard {
     fields(grant,
       ['schema','purpose','campaign_id','agent_id','epoch','process','expires_unix_ms','max_wall_ms',
         'connection_file','connection_digest','native_fingerprint','body_fingerprint','capability_digest','primitive_limit',
-        'shutdown_policy']);
+        'shutdown_policy',...(['strata/ForgeProcessGuardGrant/3','strata/ForgeProcessGuardGrant/4'].includes(String(grant.schema))?['restart_checkpoint','repair_plan']:[]),
+        ...(grant.schema==='strata/ForgeProcessGuardGrant/4'?['resume_policy']:[])]);
     const connection = NativeGameClient.fromFile(c.connection_file).connection;
-    requireThat(grant.schema === 'strata/ForgeProcessGuardGrant/2'
+    requireThat((grant.schema === 'strata/ForgeProcessGuardGrant/2' || grant.schema==='strata/ForgeProcessGuardGrant/3'
+      && c.schema==='strata/ForgeDevelopmentWorker/4' || grant.schema==='strata/ForgeProcessGuardGrant/4'
+      && (c.schema==='strata/ForgeDevelopmentWorker/5' || c.schema==='strata/ForgeDevelopmentWorker/6') && grant.resume_policy===c.resume_policy)
       && grant.shutdown_policy === 'java-tree1000-lease750/1'
       && grant.purpose === 'dedicated-development-client-lifetime'
       && grant.campaign_id === c.campaign_id && grant.agent_id === c.agent_id && grant.epoch === c.epoch
@@ -161,7 +180,7 @@ export class ForgeProcessGuard {
     const startup = setTimeout(() => {this.fail('PROCESS_GUARD_START_TIMEOUT'); this.child.kill();},5000);
     const renew = setInterval(() => this.renew(),20);
     this.exited.then(() => {clearTimeout(startup); clearInterval(renew);}).catch(() => {});
-    let pending = '';
+    let pending = ''; let healthDiagnostic = false;
     this.child.stdout.on('data',(chunk:Buffer) => {
       try {
         pending += chunk.toString('utf8'); requireThat(pending.length <= 16384,'PROCESS_GUARD_PROTOCOL');
@@ -176,7 +195,7 @@ export class ForgeProcessGuard {
             requireThat(!this.readyValue && message.process_digest === processDigest
               && message.campaign_id === c.campaign_id && message.agent_id === c.agent_id && message.epoch === c.epoch
               && message.whole_client_lifetime === true && message.campaign_admission === false
-              && message.policy === 'forge-process-listener-client-thread/2' && message.python === '3.12.14'
+              && message.policy === `forge-process-listener-client-thread/${grant.schema==='strata/ForgeProcessGuardGrant/4'?4:grant.schema==='strata/ForgeProcessGuardGrant/3'?3:2}` && message.python === '3.12.14'
               && message.connection_digest === digest(connection) && message.body_fingerprint === c.body_fingerprint
               && Number.isSafeInteger(message.connection_generation) && Number(message.connection_generation) >= 0
               && Number.isSafeInteger(message.remaining_wall_ms) && Number(message.remaining_wall_ms) >= c.max_wall_ms+2250
@@ -209,6 +228,10 @@ export class ForgeProcessGuard {
           } else if (message.kind === 'failed') {
             recordGuardFailure(this.evidence,message);
             this.fail('PROCESS_GUARD_FAILED');
+          } else if (message.kind === 'native_health_failure') {
+            requireThat(!healthDiagnostic, 'PROCESS_GUARD_PROTOCOL');
+            recordNativeHealthFailure(this.evidence,message,this.failure !== null || this.stoppedReceipt);
+            healthDiagnostic = true;
           } else throw new Fault('PROCESS_GUARD_PROTOCOL');
         }
       } catch {this.fail('PROCESS_GUARD_PROTOCOL'); this.child.stdin.destroy();}

@@ -319,6 +319,11 @@ test('loopback gateway rejects wrong auth, scope, malformed JSON and settings; C
   }
   assert.equal((await call(request,'wrong')).error?.code,'FORBIDDEN');
   assert.equal((await call({...request,agent_id:'other'})).error?.code,'FORBIDDEN');
+  assert.equal((await call({...request,epoch:0})).error?.code,'STALE_EPOCH');
+  assert.equal((await call({...request,deadline_at:new Date(Date.now()-1).toISOString()})).error?.code,'DEADLINE_EXCEEDED');
+  assert.equal((await call({...request,deadline_at:new Date(Date.now()+10000).toISOString()})).error?.code,'DEADLINE_EXCEEDED');
+  assert.equal((await call({...request,deadline_at:'2026-02-30T00:00:00Z'})).error?.code,'SCHEMA_UNSUPPORTED');
+  assert.equal((await call({...request,method:'act',action:{...f.batch('invalid-nested'),duration_ms:10001}})).error?.code,'SCHEMA_UNSUPPORTED');
   assert.equal((await call({...request,private_canary:1})).error?.code,'SCHEMA_UNSUPPORTED');
   assert.equal((await call({...request,method:'controls.apply'})).error?.code,'CAPABILITY_MISSING');
   assert.equal((await call(request)).status,'ok');

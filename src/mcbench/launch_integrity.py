@@ -21,23 +21,45 @@ def check(value, code):
         raise IntegrityError(code)
 
 
-def safe(path):
+def _absolute(path):
     path = Path(path)
     check(path.is_absolute(), "BOOTSTRAP_PATH")
     if os.name == "nt" and not str(path).startswith("\\\\?\\"):
         value = str(path)
         path = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\") else "\\\\?\\" + value)
-    for part in (path, *path.parents):
-        try:
-            info = part.lstat()
-        except (FileNotFoundError, NotADirectoryError):
-            continue
-        # Inspect each component without first following it via exists(). This
-        # also rejects dangling links and halves metadata queries on existing
-        # paths. No component result is cached across checks or leases.
-        check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
-              "BOOTSTRAP_LINK")
     return path
+
+
+def _check_link(path):
+    try:
+        info = path.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        return
+    check(not stat.S_ISLNK(info.st_mode) and not getattr(info, "st_file_attributes", 0) & 0x400,
+          "BOOTSTRAP_LINK")
+
+
+def safe_many(paths):
+    """Check every component once in this batch; retain no filesystem cache.
+
+    This is a path check, not a lease. Live callers still hold the separate
+    file/directory handles that deny replacement throughout execution.
+    """
+    result = [_absolute(path) for path in paths]
+    checked = set()
+    for path in result:
+        part = path
+        # A checked component implies its ancestors were visited by an earlier
+        # path in this call. Stop there instead of rebuilding the same chain.
+        while part not in checked:
+            _check_link(part)
+            checked.add(part)
+            part = part.parent
+    return result
+
+
+def safe(path):
+    return safe_many([path])[0]
 
 
 def encode(value):
@@ -117,9 +139,12 @@ def native_companion_inventory(manifest):
           "BOOTSTRAP_COMPANION_INVENTORY")
     check(all(isinstance(e, dict) and isinstance(e.get("path"), str) for e in inventory["files"]),
           "BOOTSTRAP_COMPANION_INVENTORY")
+    by_path = {}
+    for entry in inventory["files"]:
+        path = PureWindowsPath(entry["path"].removeprefix("\\\\?\\"))
+        by_path.setdefault(path, []).append(entry)
     for name, sha in companions.items():
-        entries = [e for e in inventory["files"] if
-                   PureWindowsPath(e["path"].removeprefix("\\\\?\\")) == executable.parent / name]
+        entries = by_path.get(executable.parent / name, [])
         check(len(entries) == 1 and entries[0].get("sha256") == sha and type(entries[0].get("bytes")) is int
               and 0 < entries[0]["bytes"] <= 512 * 1024**2, "BOOTSTRAP_COMPANION_UNPINNED")
     return dict(companions)
@@ -130,6 +155,7 @@ class FileLease:
 
     def __init__(self, inventory):
         self.inventory, self.handles, self.directories = inventory, [], []
+        self._held_digests = {}
         self.closed = False
         check(os.name == "nt", "BOOTSTRAP_PLATFORM_UNQUALIFIED")
         check(inventory.get("schema") == "strata/LaunchFileInventory/1" and
@@ -159,17 +185,29 @@ class FileLease:
             def native_path(path):
                 text = str(path)
                 return text if text.startswith("\\\\?\\") else "\\\\?\\" + text
-            parents = {p for name in self.paths for p in safe(name).parents}
+            # Discover ancestors, acquire their deny-delete handles, then check
+            # them again under custody. No result survives this constructor.
+            parents = {p for path in safe_many(self.paths) for p in path.parents}
             check(len(parents) <= 12000, "BOOTSTRAP_QUOTA")
             for path in sorted(parents, key=str):
-                handle = create(native_path(path), 0, 3, None, 3, 0x02000000, None)
+                # Hold the entry itself if a reparse point appeared during
+                # discovery; the subsequent link check must see that same entry.
+                # FILE_LIST_DIRECTORY participates in sharing checks; a zero-
+                # access metadata handle does not reliably deny deletion.
+                handle = create(native_path(path), 1, 3, None, 3, 0x02200000, None)
                 check(handle not in (None, ctypes.c_void_p(-1).value), "BOOTSTRAP_DIRECTORY_LOCK_FAILED")
                 self.directories.append(handle)
+            safe_many(parents)
             for entry in inventory["files"]:
-                path = safe(entry["path"])
-                handle = create(native_path(path), 0x80000000, 1, None, 3, 0x80, None)
+                path = _absolute(entry["path"])
+                check(path.parent in parents, "BOOTSTRAP_UNHELD_PARENT")
+                # Held ancestors cannot be replaced after the check above.
+                # File entries remain mutable until their own handles open.
+                _check_link(path)
+                handle = create(native_path(path), 0x80000000, 1, None, 3, 0x00200080, None)
                 check(handle not in (None, ctypes.c_void_p(-1).value), "BOOTSTRAP_LOCK_FAILED")
                 self.handles.append(handle)  # Retained before any hash/size failure.
+                _check_link(path)
                 # Large authentic inventories exceed the CRT descriptor table.
                 # Hash the retained native handle directly; never reopen by name
                 # or exchange the deny-write/delete handle for a transient read.
@@ -188,6 +226,9 @@ class FileLease:
                     sha.update(buffer.raw[:received.value])
                 check(count == entry["bytes"] and sha.hexdigest() == entry["sha256"],
                       "BOOTSTRAP_FILE_CHANGED")
+                # Record the bytes actually hashed through this retained handle,
+                # independently of the caller's mutable inventory dictionary.
+                self._held_digests[str(path)] = sha.hexdigest()
             self.recheck()
         except BaseException:
             self.close()
@@ -201,6 +242,16 @@ class FileLease:
         # Held file and ancestor-directory handles already deny replacement.
         # Only additions need re-enumeration; do not rescan every ancestor per file.
 
+    def held_digest(self, path):
+        """Reuse verified bytes only while their deny-write/delete handles live."""
+        check(not self.closed and len(self.handles) == len(self._held_digests)
+              == len(self.inventory["files"]), "BOOTSTRAP_LEASE_CLOSED")
+        # Those same handles retain every ancestor against replacement. The
+        # caller still checks current membership, file type, size and hardlinks.
+        path = str(_absolute(path))
+        check(path in self._held_digests, "BOOTSTRAP_UNHELD_FILE")
+        return self._held_digests[path]
+
     def close(self):
         self.closed = True
         for handle in self.handles:
@@ -209,6 +260,7 @@ class FileLease:
         for handle in self.directories:
             self.close_handle(handle)
         self.directories.clear()
+        self._held_digests.clear()
 
     def __enter__(self):
         return self

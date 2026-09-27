@@ -55,6 +55,7 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     private long windowRevision;
     private long generation, lastCapturedRevision;
     private String activeRequest;
+    private NativeSettingsEffects settingsEffects;
     private String entitySalt = UUID.randomUUID().toString();
     private boolean ownedUse, permittedUseEvent;
     private boolean ownedMovement, expectedForward;
@@ -82,11 +83,27 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
         identity.addProperty("java_runtime", System.getProperty("java.runtime.version"));
         identity.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
         identity.add("capabilities", NativeGameProtocol.capabilities());
+        if (NativeSettingsEffects.enabled()) identity.addProperty("settings_effects_candidate_policy", NativeKeyInput.POLICY);
+        if (Boolean.getBoolean(NativeSettingsEffects.REPAIR_PROPERTY)) identity.addProperty("settings_repair_candidate_policy", NativeRepairAdmission.POLICY);
+        if (Boolean.getBoolean(NativeSettingsEffects.COMMIT_PROPERTY)) identity.addProperty("settings_commit_candidate_policy", NativeSettingsEffects.COMMIT_POLICY);
+        if (Boolean.getBoolean(NativeSettingsEffects.RESTART_PROPERTY)) identity.addProperty("settings_restart_candidate_policy", NativeSettingsEffects.RESTART_POLICY);
+        if (Boolean.getBoolean(NativeSettingsEffects.RESUME_PROPERTY)) identity.addProperty("settings_resume_candidate_policy", NativeRepairResume.POLICY);
         fingerprint = KeyOptions.sha256(identity.toString());
         runtimeIdentity = identity.deepCopy();
     }
     String fingerprint() { return fingerprint; }
     JsonObject bootstrapIdentity() { return runtimeIdentity.deepCopy(); }
+    void attachSettingsEffects(NativeSettingsEffects effects) throws IOException {
+        requireClientThread();
+        if (settingsEffects != null) throw new IOException("SETTINGS_PROFILE_BUSY");
+        settingsEffects = effects;
+    }
+    public boolean settingsEffectsEnabled() { return settingsEffects != null; }
+    public JsonObject settingsRequest(JsonObject request) throws IOException {
+        if (settingsEffects == null) throw new IOException("CAPABILITY_MISSING");
+        return settingsEffects.execute(request);
+    }
+    public void stopSettingsEffects() throws IOException { if (settingsEffects != null) settingsEffects.stop(); }
     public void requireClientThread() throws IOException {
         if (!client.isSameThread()) throw new IOException("CLIENT_THREAD_REQUIRED");
     }
@@ -454,6 +471,10 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
             public void mismatch(GameInventory.View reply, GameInventory.View current) { NativeItemDiagnostics.mismatch(reply,current); }
         };
     }
+    public void privateMotorDiagnostic(String requestId, JsonObject diagnostic) {
+        com.mojang.logging.LogUtils.getLogger().warn("STRATA_PRIVATE_MACHINE_ACK_DIAGNOSTIC request={} {}",
+            requestId, diagnostic);
+    }
     private GameMenuClose.Port closePort() throws IOException {
         var base = inventoryPort(false); base.validate();
         var menu = client.player.containerMenu; var inventory = client.player.inventoryMenu;
@@ -766,7 +787,11 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
                 var menu = client.player.containerMenu;
                 requireInventoryMotor(menu, slot, quick);
                 if (NativeThermalMenu.known(menu))
-                    return GameMachineInventory.click(inventoryPort(false), NativeThermalMenu.layout(menu), slot, right, quick, emitter);
+                    return GameMachinePreflight.start(inventoryPort(false), NativeThermalMenu.layout(menu), slot, right, quick, () -> {
+                        if (SettingsJson.integer(snapshot(SettingsJson.string(snapshot, "snapshot_id")), "age_ms") > 2000)
+                            throw new IOException("STALE_OBSERVATION");
+                        validate(batch, snapshot);
+                    }, emitter);
                 return GameInventory.click(inventoryPort(false), slot, right, quick, emitter);
             }
             case "interact_block", "dig" -> {
@@ -807,14 +832,20 @@ final class NativeGameRuntime implements NativeGameProtocol.RuntimePort, GameAct
     }
     public void releaseInputs() throws IOException {
         requireClientThread(); Throwable primary = null;
+        try { NativeKeyInput.stopActive(); }
+        catch (IOException | RuntimeException | Error failure) { primary = failure; }
         try { releasePlayerInputs(); }
-        catch (IOException | RuntimeException | Error failure) { primary = failure; throw failure; }
+        catch (IOException | RuntimeException | Error failure) {
+            if (primary != null) failure.addSuppressed(primary);
+            primary = failure; throw failure;
+        }
         finally {
             try { JeiRecipeInput.release(); }
             catch (IOException | RuntimeException | Error cleanup) {
                 if (primary != null) primary.addSuppressed(cleanup); else throw cleanup;
             }
         }
+        if (primary != null) throw new IOException("SETTINGS_INPUT_RELEASE_UNCONFIRMED", primary);
     }
     private void releasePlayerInputs() throws IOException {
         requireClientThread(); ownedUse = false; permittedUseEvent = false;

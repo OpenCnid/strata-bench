@@ -17,8 +17,9 @@ test('choice opening binds an observed rewards page and grants no claim or raw t
   actionSemantics(validate<ActionBatch>('ActionBatch',batch));
   for(const patch of [{operation:'claim'},{choice_index:1},{table_id:'canary'},{selection:null},{expected_screen_revision:true}])
     assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
-  const task=validate<ActionBatch>('ActionBatch',{...batch,action:{...action,selection:{...selection,query:{...query,part:'tasks'}}}});
-  assert.throws(()=>actionSemantics(task),/PRECONDITION_FAILED/);
+  const task={...batch,action:{...action,selection:{...selection,query:{...query,part:'tasks'}}}};
+  assert.throws(()=>validate('ActionBatch',task),/SCHEMA_UNSUPPORTED/);
+  assert.throws(()=>actionSemantics(task as ActionBatch),/PRECONDITION_FAILED/);
 });
 
 test('machine GUI observations preserve bounds and reject hidden fields or mismatched layouts',()=>{
@@ -96,7 +97,8 @@ test('quest navigation binds UI and catalog selections with strict operation sem
     selection:{query:{source:'ftb_quests',chapter_id:'0000000000000001',after:0},revision:1,entry_id:'0000000000000002'}};
   const batch={...example,is_example:false,duration_ms:10000,action};actionSemantics(validate<ActionBatch>('ActionBatch',batch));
   for(const patch of [{operation:'back'},{operation:'chapter'},{selection:null}]) {
-    assert.throws(()=>actionSemantics(validate<ActionBatch>('ActionBatch',{...batch,action:{...action,...patch}})),/PRECONDITION_FAILED/);
+    assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
+    assert.throws(()=>actionSemantics({...batch,action:{...action,...patch}} as ActionBatch),/PRECONDITION_FAILED/);
   }
   for(const patch of [{operation:'claim'},{expected_screen_generation:true},{expected_screen_revision:-1},{team_id:'private'}])
     assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
@@ -143,8 +145,9 @@ test('item-task open never grants reward or submission authority',()=>{
   for(const patch of [{operation:'submit'},{selection:null},{team_id:'canary'},{expected_screen_revision:true},
     {selection:{...selection,query:{...query,after:513}}},{selection:{...selection,include_hidden:true}}])
     assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
-  const reward=validate<ActionBatch>('ActionBatch',{...batch,action:{...action,selection:{...selection,query:{...query,part:'rewards'}}}});
-  assert.throws(()=>actionSemantics(reward),/PRECONDITION_FAILED/);
+  const reward={...batch,action:{...action,selection:{...selection,query:{...query,part:'rewards'}}}};
+  assert.throws(()=>validate('ActionBatch',reward),/SCHEMA_UNSUPPORTED/);
+  assert.throws(()=>actionSemantics(reward as ActionBatch),/PRECONDITION_FAILED/);
 });
 
 test('item-menu actions bind menu revision and cannot submit or multiply scrolling',()=>{
@@ -157,8 +160,10 @@ test('item-menu actions bind menu revision and cannot submit or multiply scrolli
   actionSemantics(validate<ActionBatch>('ActionBatch',batch));
   for(const patch of [{operation:'submit'},{direction:1},{direction:'left'},{steps:99},{team_id:'private'},{expected_menu_revision:true}])
     assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
-  for(const patch of [{operation:'back'},{direction:null}])
-    assert.throws(()=>actionSemantics(validate<ActionBatch>('ActionBatch',{...batch,action:{...action,...patch}})),/PRECONDITION_FAILED/);
+  for(const patch of [{operation:'back'},{direction:null}]) {
+    assert.throws(()=>validate('ActionBatch',{...batch,action:{...action,...patch}}),/SCHEMA_UNSUPPORTED/);
+    assert.throws(()=>actionSemantics({...batch,action:{...action,...patch}} as ActionBatch),/PRECONDITION_FAILED/);
+  }
 });
 
 test('craft selection carries only a bounded visible query and source revision',()=>{

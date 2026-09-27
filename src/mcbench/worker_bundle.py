@@ -5,13 +5,14 @@ copied. Preparation does not authenticate, start an avatar or admit a campaign.
 """
 
 import hashlib
+from contextlib import ExitStack, contextmanager
 import json
 import os
 from pathlib import Path
 import re
 import shutil
 
-from .launch_integrity import FileLease, encode, safe, snapshot, tree_files
+from .launch_integrity import FileLease, encode, safe, safe_many, snapshot, tree_files
 from .storage import digest, require, safe_relative
 from .worker_stop import ARGUMENT, POLICY as STOP_POLICY
 
@@ -61,13 +62,17 @@ class HeldWorkerBundle:
         require(set(inventory) == {"schema", "files", "trees"}
                 and inventory["schema"] == "strata/LaunchFileInventory/1"
                 and 0 < len(inventory["files"]) < 12000, "WORKER_BUNDLE_INVENTORY")
-        paths, total = [], 0
         for entry in inventory["files"]:
             require(set(entry) == {"path", "bytes", "sha256"}
+                    and isinstance(entry["path"], str)
                     and type(entry["bytes"]) is int and 0 <= entry["bytes"] <= 512 * 1024**2
                     and isinstance(entry["sha256"], str) and re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]),
                     "WORKER_BUNDLE_INVENTORY")
-            path = safe(Path(entry["path"]))
+        # This is manifest preflight only. __enter__ still acquires every file
+        # handle, checks its path under held parents and hashes the held bytes.
+        checked = safe_many(entry["path"] for entry in inventory["files"])
+        paths, total = [], 0
+        for entry, path in zip(inventory["files"], checked, strict=True):
             require(".." not in path.parts and path.is_relative_to(self.root)
                     and str(path) == entry["path"] and path.is_file() and path.stat().st_nlink == 1,
                     "WORKER_BUNDLE_FILE_UNSAFE")
@@ -108,6 +113,58 @@ class HeldWorkerBundle:
     def __exit__(self, *_):
         if self.lease:
             self.lease.close()
+
+
+class HeldWorkerRuntimePool:
+    """Private owner of immutable runtimes shared by a bounded member lifetime.
+
+    Enter before member contexts and close after their owned processes. This is
+    never a persistent cache or a container for member state/configuration.
+    """
+
+    def __init__(self):
+        self._resources = None
+        self._runtimes = {}
+        self._entered = False
+
+    def __enter__(self):
+        require(not self._entered, "WORKER_RUNTIME_POOL_CONSUMED")
+        self._entered = True
+        self._resources = ExitStack()
+        return self
+
+    def acquire(self, reference):
+        require(self._resources is not None, "WORKER_RUNTIME_POOL_CLOSED")
+        require(isinstance(reference, dict) and set(reference) == {"path", "sha256"}
+                and isinstance(reference["path"], str) and isinstance(reference["sha256"], str),
+                "WORKER_BUNDLE_REFERENCE")
+        reference = {"path": launch_path(Path(reference["path"])), "sha256": reference["sha256"]}
+        key = (reference["path"], reference["sha256"])
+        runtime = self._runtimes.get(key)
+        if runtime is None:
+            runtime = self._resources.enter_context(HeldWorkerBundle(reference))
+            self._runtimes[key] = runtime
+        else:
+            require(runtime.reference == reference, "WORKER_BUNDLE_CHANGED")
+            runtime.recheck()
+        return runtime
+
+    def __exit__(self, *_):
+        if self._resources is not None:
+            try:
+                self._resources.close()
+            finally:
+                self._resources = None
+
+
+@contextmanager
+def _held_worker_runtime(reference, pool=None):
+    if pool is None:
+        with HeldWorkerBundle(reference) as runtime:
+            yield runtime
+    else:
+        require(type(pool) is HeldWorkerRuntimePool, "WORKER_RUNTIME_POOL_REQUIRED")
+        yield pool.acquire(reference)
 
 
 def launch_path(path: Path) -> str:
@@ -163,7 +220,10 @@ def prepare_worker_bundle(repository: Path, node: Path, python_root: Path, desti
     for value in tree_files(backend / "dist/src"):
         path = Path(value)
         add(path, path.relative_to(repository).as_posix())
-    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest"):
+    # protocol.js checks all compiled public record schemas at startup. The
+    # worker's four game-message capability schemas remain a separate identity.
+    for name in ("ActionBatch", "ActionAck", "Observation", "RpcRequest",
+                 "SkillRevision", "KeybindingPatch"):
         relative = f"schemas/v1/public/{name}.json"
         add(repository / relative, relative)
     exclusions = []

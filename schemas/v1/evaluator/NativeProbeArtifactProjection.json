@@ -1,0 +1,211 @@
+{
+  "$defs": {
+    "ProbeSkill": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "revision_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "procedure",
+            "executable"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "files": {
+          "additionalProperties": {
+            "pattern": "^cas:sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Files",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "revision_id",
+        "kind",
+        "files"
+      ],
+      "title": "ProbeSkill",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/NativeProbeArtifactProjection/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "policy": {
+      "const": "native-checkpoint-probe-artifact-projection/1",
+      "title": "Policy",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "selection_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Selection Digest",
+      "type": "string"
+    },
+    "skill_set_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Skill Set Ref",
+      "type": "string"
+    },
+    "checkpoint_ref": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Checkpoint Ref",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Checkpoint Id",
+      "type": "string"
+    },
+    "checkpoint_manifest_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Checkpoint Manifest Digest",
+      "type": "string"
+    },
+    "scheduled_active_s": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scheduled Active S"
+    },
+    "actual_active_s": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Actual Active S",
+      "type": "integer"
+    },
+    "source_export": {
+      "pattern": "^cas:sha256:[0-9a-f]{64}$",
+      "title": "Source Export",
+      "type": "string"
+    },
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "agent_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "system_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "System Digest",
+      "type": "string"
+    },
+    "model_identity": {
+      "title": "Model Identity",
+      "type": "string"
+    },
+    "arm": {
+      "enum": [
+        "full",
+        "frozen-persistence",
+        "frozen-skills",
+        "no-self-play"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "initial_files": {
+      "additionalProperties": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Initial Files",
+      "type": "object"
+    },
+    "experienced_files": {
+      "additionalProperties": {
+        "pattern": "^cas:sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Experienced Files",
+      "type": "object"
+    },
+    "experienced_skills": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ProbeSkill"
+      },
+      "title": "Experienced Skills",
+      "type": "object"
+    },
+    "session": {
+      "title": "Session",
+      "type": "null"
+    },
+    "runtime_cache": {
+      "title": "Runtime Cache",
+      "type": "null"
+    },
+    "dispatch_authorized": {
+      "const": false,
+      "title": "Dispatch Authorized",
+      "type": "boolean"
+    },
+    "campaign_feedback_allowed": {
+      "const": false,
+      "title": "Campaign Feedback Allowed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema",
+    "policy",
+    "is_example",
+    "selection_digest",
+    "skill_set_ref",
+    "checkpoint_ref",
+    "checkpoint_id",
+    "checkpoint_manifest_digest",
+    "scheduled_active_s",
+    "actual_active_s",
+    "source_export",
+    "campaign_id",
+    "agent_id",
+    "system_digest",
+    "model_identity",
+    "arm",
+    "initial_files",
+    "experienced_files",
+    "experienced_skills",
+    "session",
+    "runtime_cache",
+    "dispatch_authorized",
+    "campaign_feedback_allowed"
+  ],
+  "title": "NativeProbeArtifactProjection",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,1415 @@
+{
+  "profiles": {
+    "planned": {
+      "record": "KeybindingPatch",
+      "set": {}
+    },
+    "committed": {
+      "record": "KeybindingPatch",
+      "set": {
+        "phase": "committed",
+        "backup_ref": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "resulting_revision": 2,
+        "resulting_keymap_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "restart_check/status": "pass",
+        "restart_check/refs": [
+          "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "changes/0/checks/0/status": "pass",
+        "changes/0/checks/0/refs": [
+          "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ]
+      }
+    },
+    "candidate": {
+      "record": "SkillRevision",
+      "set": {}
+    },
+    "active": {
+      "record": "SkillRevision",
+      "set": {
+        "status": "active",
+        "activated_at": "2026-09-18T12:00:03Z"
+      }
+    },
+    "action": {
+      "record": "ActionBatch",
+      "set": {}
+    },
+    "input": {
+      "record": "ActionBatch",
+      "set": {
+        "mode": "input",
+        "action": null,
+        "duration_ms": 1000,
+        "events": [
+          {
+            "at_ms": 0,
+            "kind": "key_down",
+            "key": {
+              "backend": "glfw",
+              "representation": "keysym",
+              "code": 65,
+              "name": "A",
+              "modifiers": [
+                "SHIFT",
+                "CONTROL"
+              ],
+              "persisted": "key.keyboard.a"
+            }
+          },
+          {
+            "at_ms": 1000,
+            "kind": "key_up",
+            "key": {
+              "backend": "glfw",
+              "representation": "keysym",
+              "code": 65,
+              "name": "A",
+              "modifiers": [
+                "SHIFT",
+                "CONTROL"
+              ],
+              "persisted": "key.keyboard.a"
+            }
+          }
+        ]
+      }
+    },
+    "observation": {
+      "record": "Observation",
+      "set": {}
+    },
+    "pixels": {
+      "record": "Observation",
+      "set": {
+        "mode": "pixels",
+        "state": null,
+        "frame": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "width": 32,
+        "height": 32,
+        "media_type": "image/png"
+      }
+    },
+    "ack": {
+      "record": "ActionAck",
+      "set": {}
+    }
+  },
+  "cases": [
+    {
+      "id": "planned",
+      "base": "planned",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "committed",
+      "base": "committed",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "candidate",
+      "base": "candidate",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "active",
+      "base": "active",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "original-incomplete-commit",
+      "base": "planned",
+      "set": {
+        "phase": "committed"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-missing-backup_ref",
+      "base": "committed",
+      "set": {
+        "backup_ref": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-missing-resulting_revision",
+      "base": "committed",
+      "set": {
+        "resulting_revision": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-missing-resulting_keymap_digest",
+      "base": "committed",
+      "set": {
+        "resulting_keymap_digest": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-failure-code",
+      "base": "committed",
+      "set": {
+        "failure_code": "FAILED"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-restart-not_run",
+      "base": "committed",
+      "set": {
+        "restart_check/status": "not_run"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-effect-not_run",
+      "base": "committed",
+      "set": {
+        "changes/0/checks/0/status": "not_run"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-restart-fail",
+      "base": "committed",
+      "set": {
+        "restart_check/status": "fail"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-effect-fail",
+      "base": "committed",
+      "set": {
+        "changes/0/checks/0/status": "fail"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "commit-no-effects",
+      "base": "committed",
+      "set": {
+        "changes/0/checks": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-no-changes",
+      "base": "planned",
+      "set": {
+        "changes": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-duplicate-binding",
+      "base": "planned",
+      "set": {},
+      "valid": false,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "planned-duplicate-binding-different-content",
+      "base": "planned",
+      "set": {
+        "changes/1/owner_mod": "different"
+      },
+      "valid": false,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "planned-distinct-bindings",
+      "base": "planned",
+      "set": {
+        "changes/1/binding_id": "second"
+      },
+      "valid": true,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "planned-restart_check-pass-no-refs",
+      "base": "planned",
+      "set": {
+        "restart_check/status": "pass",
+        "restart_check/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-restart_check-fail-no-refs",
+      "base": "planned",
+      "set": {
+        "restart_check/status": "fail",
+        "restart_check/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-changes-0-checks-0-pass-no-refs",
+      "base": "planned",
+      "set": {
+        "changes/0/checks/0/status": "pass",
+        "changes/0/checks/0/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-changes-0-checks-0-fail-no-refs",
+      "base": "planned",
+      "set": {
+        "changes/0/checks/0/status": "fail",
+        "changes/0/checks/0/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-before-missing-code",
+      "base": "planned",
+      "set": {
+        "changes/0/before/code": null
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-before-duplicate-modifier",
+      "base": "planned",
+      "set": {
+        "changes/0/before/modifiers": [
+          "SHIFT",
+          "SHIFT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-before-unbound-code",
+      "base": "planned",
+      "set": {
+        "changes/0/before/representation": "unbound"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-before-unbound-modifier",
+      "base": "planned",
+      "set": {
+        "changes/0/before/representation": "unbound",
+        "changes/0/before/code": null,
+        "changes/0/before/modifiers": [
+          "ALT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-before-unbound",
+      "base": "planned",
+      "set": {
+        "changes/0/before/representation": "unbound",
+        "changes/0/before/code": null
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-before-modifiers",
+      "base": "planned",
+      "set": {
+        "changes/0/before/modifiers": [
+          "SHIFT",
+          "CONTROL"
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-after-missing-code",
+      "base": "planned",
+      "set": {
+        "changes/0/after/code": null
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-after-duplicate-modifier",
+      "base": "planned",
+      "set": {
+        "changes/0/after/modifiers": [
+          "SHIFT",
+          "SHIFT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-after-unbound-code",
+      "base": "planned",
+      "set": {
+        "changes/0/after/representation": "unbound"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-after-unbound-modifier",
+      "base": "planned",
+      "set": {
+        "changes/0/after/representation": "unbound",
+        "changes/0/after/code": null,
+        "changes/0/after/modifiers": [
+          "ALT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-after-unbound",
+      "base": "planned",
+      "set": {
+        "changes/0/after/representation": "unbound",
+        "changes/0/after/code": null
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-after-modifiers",
+      "base": "planned",
+      "set": {
+        "changes/0/after/modifiers": [
+          "SHIFT",
+          "CONTROL"
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "committed-no-changes",
+      "base": "committed",
+      "set": {
+        "changes": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-duplicate-binding",
+      "base": "committed",
+      "set": {},
+      "valid": false,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "committed-duplicate-binding-different-content",
+      "base": "committed",
+      "set": {
+        "changes/1/owner_mod": "different"
+      },
+      "valid": false,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "committed-distinct-bindings",
+      "base": "committed",
+      "set": {
+        "changes/1/binding_id": "second"
+      },
+      "valid": true,
+      "copy": {
+        "changes/1": "changes/0"
+      }
+    },
+    {
+      "id": "committed-restart_check-pass-no-refs",
+      "base": "committed",
+      "set": {
+        "restart_check/status": "pass",
+        "restart_check/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-restart_check-fail-no-refs",
+      "base": "committed",
+      "set": {
+        "restart_check/status": "fail",
+        "restart_check/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-changes-0-checks-0-pass-no-refs",
+      "base": "committed",
+      "set": {
+        "changes/0/checks/0/status": "pass",
+        "changes/0/checks/0/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-changes-0-checks-0-fail-no-refs",
+      "base": "committed",
+      "set": {
+        "changes/0/checks/0/status": "fail",
+        "changes/0/checks/0/refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-before-missing-code",
+      "base": "committed",
+      "set": {
+        "changes/0/before/code": null
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-before-duplicate-modifier",
+      "base": "committed",
+      "set": {
+        "changes/0/before/modifiers": [
+          "SHIFT",
+          "SHIFT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-before-unbound-code",
+      "base": "committed",
+      "set": {
+        "changes/0/before/representation": "unbound"
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-before-unbound-modifier",
+      "base": "committed",
+      "set": {
+        "changes/0/before/representation": "unbound",
+        "changes/0/before/code": null,
+        "changes/0/before/modifiers": [
+          "ALT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-before-unbound",
+      "base": "committed",
+      "set": {
+        "changes/0/before/representation": "unbound",
+        "changes/0/before/code": null
+      },
+      "valid": true
+    },
+    {
+      "id": "committed-before-modifiers",
+      "base": "committed",
+      "set": {
+        "changes/0/before/modifiers": [
+          "SHIFT",
+          "CONTROL"
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "committed-after-missing-code",
+      "base": "committed",
+      "set": {
+        "changes/0/after/code": null
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-after-duplicate-modifier",
+      "base": "committed",
+      "set": {
+        "changes/0/after/modifiers": [
+          "SHIFT",
+          "SHIFT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-after-unbound-code",
+      "base": "committed",
+      "set": {
+        "changes/0/after/representation": "unbound"
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-after-unbound-modifier",
+      "base": "committed",
+      "set": {
+        "changes/0/after/representation": "unbound",
+        "changes/0/after/code": null,
+        "changes/0/after/modifiers": [
+          "ALT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "committed-after-unbound",
+      "base": "committed",
+      "set": {
+        "changes/0/after/representation": "unbound",
+        "changes/0/after/code": null
+      },
+      "valid": true
+    },
+    {
+      "id": "committed-after-modifiers",
+      "base": "committed",
+      "set": {
+        "changes/0/after/modifiers": [
+          "SHIFT",
+          "CONTROL"
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-revision-0",
+      "base": "committed",
+      "set": {
+        "resulting_revision": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "commit-revision-1",
+      "base": "committed",
+      "set": {
+        "resulting_revision": 1
+      },
+      "valid": false
+    },
+    {
+      "id": "commit-maximum-revision",
+      "base": "committed",
+      "set": {
+        "expected_revision": 9007199254740990,
+        "resulting_revision": 9007199254740991
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-unsafe-revision",
+      "base": "committed",
+      "set": {
+        "resulting_revision": 9007199254740992
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "noncommit-planned",
+      "base": "planned",
+      "set": {
+        "phase": "planned",
+        "failure_code": "diagnostic"
+      },
+      "valid": true
+    },
+    {
+      "id": "noncommit-applying",
+      "base": "planned",
+      "set": {
+        "phase": "applying",
+        "failure_code": "diagnostic"
+      },
+      "valid": true
+    },
+    {
+      "id": "noncommit-verifying",
+      "base": "planned",
+      "set": {
+        "phase": "verifying",
+        "failure_code": "diagnostic"
+      },
+      "valid": true
+    },
+    {
+      "id": "noncommit-rolled_back",
+      "base": "planned",
+      "set": {
+        "phase": "rolled_back",
+        "failure_code": "diagnostic"
+      },
+      "valid": true
+    },
+    {
+      "id": "noncommit-failed",
+      "base": "planned",
+      "set": {
+        "phase": "failed",
+        "failure_code": "diagnostic"
+      },
+      "valid": true
+    },
+    {
+      "id": "active-without-time",
+      "base": "active",
+      "set": {
+        "activated_at": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "candidate-with-time",
+      "base": "active",
+      "set": {
+        "status": "candidate"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "candidate-without-time",
+      "base": "candidate",
+      "set": {
+        "status": "candidate"
+      },
+      "valid": true
+    },
+    {
+      "id": "rejected-with-time",
+      "base": "active",
+      "set": {
+        "status": "rejected"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "rejected-without-time",
+      "base": "candidate",
+      "set": {
+        "status": "rejected"
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-bad-date-2026-02-31T01:00:00Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-bad-date-0000-01-01T00:00:00Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-bad-date-2026-12-31T23:59:60Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-bad-date-2026-01-01T24:00:00Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "2026-01-01T24:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "planned-date-2024-02-29T01:02:03.123456Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "2024-02-29T01:02:03.123456Z"
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-date-0001-01-01T00:00:00Z",
+      "base": "planned",
+      "set": {
+        "recorded_at": "0001-01-01T00:00:00Z"
+      },
+      "valid": true
+    },
+    {
+      "id": "active-bad-date-2026-02-31T01:00:00Z",
+      "base": "active",
+      "set": {
+        "activated_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "active-bad-date-0000-01-01T00:00:00Z",
+      "base": "active",
+      "set": {
+        "activated_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "active-bad-date-2026-12-31T23:59:60Z",
+      "base": "active",
+      "set": {
+        "activated_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "active-bad-date-2026-01-01T24:00:00Z",
+      "base": "active",
+      "set": {
+        "activated_at": "2026-01-01T24:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "active-date-2024-02-29T01:02:03.123456Z",
+      "base": "active",
+      "set": {
+        "activated_at": "2024-02-29T01:02:03.123456Z"
+      },
+      "valid": true
+    },
+    {
+      "id": "active-date-0001-01-01T00:00:00Z",
+      "base": "active",
+      "set": {
+        "activated_at": "0001-01-01T00:00:00Z"
+      },
+      "valid": true
+    },
+    {
+      "id": "planned-unknown-field",
+      "base": "planned",
+      "set": {
+        "private_field": "denied"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "planned-unknown-schema",
+      "base": "planned",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-unknown-field",
+      "base": "committed",
+      "set": {
+        "private_field": "denied"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "committed-unknown-schema",
+      "base": "committed",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "candidate-unknown-field",
+      "base": "candidate",
+      "set": {
+        "private_field": "denied"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "candidate-unknown-schema",
+      "base": "candidate",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "active-unknown-field",
+      "base": "active",
+      "set": {
+        "private_field": "denied"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "active-unknown-schema",
+      "base": "active",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "action-valid",
+      "base": "action",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "input-valid",
+      "base": "input",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "observation-valid",
+      "base": "observation",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "pixels-valid",
+      "base": "pixels",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "ack-valid",
+      "base": "ack",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "ack-accepted",
+      "base": "ack",
+      "set": {
+        "status": "accepted",
+        "result_observation_id": null,
+        "completed_mono_ms": null
+      },
+      "valid": true
+    },
+    {
+      "id": "ack-executing",
+      "base": "ack",
+      "set": {
+        "status": "executing",
+        "result_observation_id": null,
+        "completed_mono_ms": null
+      },
+      "valid": true
+    },
+    {
+      "id": "ack-emitted",
+      "base": "ack",
+      "set": {
+        "status": "emitted",
+        "result_observation_id": null,
+        "completed_mono_ms": null
+      },
+      "valid": true
+    },
+    {
+      "id": "ack-rejected",
+      "base": "ack",
+      "set": {
+        "status": "rejected",
+        "result_observation_id": null,
+        "completed_mono_ms": null
+      },
+      "valid": true
+    },
+    {
+      "id": "unknown-without-resync",
+      "base": "ack",
+      "set": {
+        "status": "unknown",
+        "requires_resync": false
+      },
+      "valid": false
+    },
+    {
+      "id": "unknown-with-resync",
+      "base": "ack",
+      "set": {
+        "status": "unknown",
+        "requires_resync": true
+      },
+      "valid": true
+    },
+    {
+      "id": "completed-without-result_observation_id",
+      "base": "ack",
+      "set": {
+        "status": "completed",
+        "result_observation_id": null
+      },
+      "valid": false
+    },
+    {
+      "id": "completed-without-completed_mono_ms",
+      "base": "ack",
+      "set": {
+        "status": "completed",
+        "completed_mono_ms": null
+      },
+      "valid": false
+    },
+    {
+      "id": "failed-without-state",
+      "base": "ack",
+      "set": {
+        "status": "failed",
+        "result_observation_id": null,
+        "requires_resync": false
+      },
+      "valid": false
+    },
+    {
+      "id": "failed-resync",
+      "base": "ack",
+      "set": {
+        "status": "failed",
+        "result_observation_id": null,
+        "requires_resync": true
+      },
+      "valid": true
+    },
+    {
+      "id": "failed-observation",
+      "base": "ack",
+      "set": {
+        "status": "failed",
+        "requires_resync": false
+      },
+      "valid": true
+    },
+    {
+      "id": "cancelled-without-state",
+      "base": "ack",
+      "set": {
+        "status": "cancelled",
+        "result_observation_id": null,
+        "requires_resync": false
+      },
+      "valid": false
+    },
+    {
+      "id": "cancelled-resync",
+      "base": "ack",
+      "set": {
+        "status": "cancelled",
+        "result_observation_id": null,
+        "requires_resync": true
+      },
+      "valid": true
+    },
+    {
+      "id": "cancelled-observation",
+      "base": "ack",
+      "set": {
+        "status": "cancelled",
+        "requires_resync": false
+      },
+      "valid": true
+    },
+    {
+      "id": "structured-without-action",
+      "base": "action",
+      "set": {
+        "action": null
+      },
+      "valid": false
+    },
+    {
+      "id": "structured-with-events",
+      "base": "action",
+      "set": {
+        "events": [
+          {
+            "kind": "wait",
+            "at_ms": 0
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "input-with-action",
+      "base": "action",
+      "set": {
+        "mode": "input"
+      },
+      "valid": false
+    },
+    {
+      "id": "input-too-long",
+      "base": "input",
+      "set": {
+        "duration_ms": 2001
+      },
+      "valid": false
+    },
+    {
+      "id": "input-decreasing-time",
+      "base": "input",
+      "set": {
+        "events/0/at_ms": 100,
+        "events/1/at_ms": 99
+      },
+      "valid": false
+    },
+    {
+      "id": "input-beyond-duration",
+      "base": "input",
+      "set": {
+        "events/1/at_ms": 1001
+      },
+      "valid": false
+    },
+    {
+      "id": "input-empty",
+      "base": "input",
+      "set": {
+        "events": []
+      },
+      "valid": true
+    },
+    {
+      "id": "input-duplicate-down",
+      "base": "input",
+      "set": {
+        "events/1/kind": "key_down"
+      },
+      "valid": false
+    },
+    {
+      "id": "input-up-without-down",
+      "base": "input",
+      "set": {
+        "events/0/kind": "key_up"
+      },
+      "valid": false
+    },
+    {
+      "id": "input-unreleased",
+      "base": "input",
+      "set": {
+        "events": [
+          {
+            "at_ms": 0,
+            "kind": "key_down",
+            "key": {
+              "backend": "glfw",
+              "representation": "keysym",
+              "code": 65,
+              "name": "A",
+              "modifiers": [
+                "SHIFT",
+                "CONTROL"
+              ],
+              "persisted": "key.keyboard.a"
+            }
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "input-modifier-order",
+      "base": "input",
+      "set": {
+        "events/1/key/modifiers": [
+          "CONTROL",
+          "SHIFT"
+        ]
+      },
+      "valid": true
+    },
+    {
+      "id": "input-different-key",
+      "base": "input",
+      "set": {
+        "events/1/key/code": 66
+      },
+      "valid": false
+    },
+    {
+      "id": "input-different-backend",
+      "base": "input",
+      "set": {
+        "events/1/key/backend": "lwjgl2"
+      },
+      "valid": false
+    },
+    {
+      "id": "input-unbound",
+      "base": "input",
+      "set": {
+        "events/0/key/representation": "unbound",
+        "events/0/key/code": null,
+        "events/0/key/modifiers": []
+      },
+      "valid": false
+    },
+    {
+      "id": "input-duplicate-modifiers",
+      "base": "input",
+      "set": {
+        "events/0/key/modifiers": [
+          "SHIFT",
+          "SHIFT"
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "useitem-hold-exceeds-duration",
+      "base": "action",
+      "set": {
+        "action": {
+          "kind": "use_item",
+          "hand": "main",
+          "hold_ms": 1001
+        },
+        "duration_ms": 1000
+      },
+      "valid": false
+    },
+    {
+      "id": "useitem-valid",
+      "base": "action",
+      "set": {
+        "action": {
+          "kind": "use_item",
+          "hand": "main",
+          "hold_ms": 1000
+        },
+        "duration_ms": 1000
+      },
+      "valid": true
+    },
+    {
+      "id": "look-over-cap",
+      "base": "action",
+      "set": {
+        "duration_ms": 10001,
+        "action": {
+          "kind": "look_at",
+          "target": {
+            "x": 0,
+            "y": 64,
+            "z": 0
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "move-full-cap",
+      "base": "action",
+      "set": {
+        "action": {
+          "kind": "move_to",
+          "target": {
+            "x": 1,
+            "y": 64,
+            "z": 1
+          },
+          "tolerance": 0.5
+        },
+        "duration_ms": 30000
+      },
+      "valid": true
+    },
+    {
+      "id": "place-non-axis",
+      "base": "action",
+      "set": {
+        "action": {
+          "kind": "place",
+          "support": {
+            "x": 0,
+            "y": 64,
+            "z": 0
+          },
+          "face": {
+            "x": 1,
+            "y": 1,
+            "z": 0
+          },
+          "expected_item_id": "minecraft:stone"
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "observation-wrong-age",
+      "base": "observation",
+      "set": {
+        "age_at_send_ms": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "observation-clock-backward",
+      "base": "observation",
+      "set": {
+        "captured_mono_ms": 1000,
+        "gateway_sent_mono_ms": 999,
+        "age_at_send_ms": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "observation-zero-age",
+      "base": "observation",
+      "set": {
+        "captured_mono_ms": 1000,
+        "gateway_sent_mono_ms": 1000,
+        "age_at_send_ms": 0
+      },
+      "valid": true
+    },
+    {
+      "id": "observation-no-state",
+      "base": "observation",
+      "set": {
+        "state": null
+      },
+      "valid": false
+    },
+    {
+      "id": "pixels-without-frame",
+      "base": "pixels",
+      "set": {
+        "frame": null
+      },
+      "valid": false
+    },
+    {
+      "id": "pixels-without-width",
+      "base": "pixels",
+      "set": {
+        "width": null
+      },
+      "valid": false
+    },
+    {
+      "id": "pixels-without-height",
+      "base": "pixels",
+      "set": {
+        "height": null
+      },
+      "valid": false
+    },
+    {
+      "id": "pixels-without-media_type",
+      "base": "pixels",
+      "set": {
+        "media_type": null
+      },
+      "valid": false
+    },
+    {
+      "id": "observation-held-missing-code",
+      "base": "observation",
+      "set": {
+        "held_keys": [
+          {
+            "backend": "glfw",
+            "representation": "keysym",
+            "code": null,
+            "name": "A",
+            "modifiers": [
+              "SHIFT",
+              "CONTROL"
+            ],
+            "persisted": "key.keyboard.a"
+          }
+        ]
+      },
+      "valid": false
+    },
+    {
+      "id": "action-invalid-date",
+      "base": "action",
+      "set": {
+        "recorded_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "ack-invalid-date",
+      "base": "ack",
+      "set": {
+        "recorded_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "observation-invalid-date",
+      "base": "observation",
+      "set": {
+        "recorded_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    },
+    {
+      "id": "action-invalid-deadline",
+      "base": "action",
+      "set": {
+        "deadline_at": "2026-02-31T01:00:00Z"
+      },
+      "valid": false
+    }
+  ]
+}

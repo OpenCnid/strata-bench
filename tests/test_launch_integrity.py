@@ -9,9 +9,48 @@ import sys
 
 import pytest
 
-from mcbench.launch_integrity import FileLease, IntegrityError, encode, read_manifest, safe, snapshot
+from mcbench.launch_integrity import FileLease, IntegrityError, encode, read_manifest, safe, safe_many, snapshot
 
 pytestmark = pytest.mark.skipif(os.name != "nt", reason="Windows deny-write sharing contract")
+
+
+def test_batched_paths_check_every_component_without_cross_call_cache(tmp_path, monkeypatch):
+    from collections import Counter
+    paths = [tmp_path / "shared" / name for name in ("first", "second", "first")]
+    calls = Counter()
+    original = Path.lstat
+    def observe(path, *args, **kwargs):
+        calls[str(path)] += 1
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", observe)
+    checked = safe_many(paths)
+    components = {str(p) for path in checked for p in (path, *path.parents)}
+    assert set(calls) == components and set(calls.values()) == {1}
+    assert checked[0] == checked[2]
+    safe_many(paths)
+    assert set(calls.values()) == {2}
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_PATH"):
+        safe_many([paths[0], Path("relative")])
+
+
+@pytest.mark.parametrize("failure", ["link", "reparse", "denied"])
+def test_batched_paths_reject_changed_shared_ancestor_each_call(tmp_path, monkeypatch, failure):
+    from types import SimpleNamespace
+    import stat
+    paths = [tmp_path / "shared" / name for name in ("first", "second")]
+    safe_many(paths)
+    original = Path.lstat
+    def changed(path, *args, **kwargs):
+        if path.name == "shared":
+            if failure == "denied":
+                raise PermissionError("unreadable ancestor")
+            return SimpleNamespace(st_mode=stat.S_IFLNK if failure == "link" else stat.S_IFDIR,
+                                   st_file_attributes=0x400 if failure == "reparse" else 0)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "lstat", changed)
+    expected = PermissionError if failure == "denied" else IntegrityError
+    with pytest.raises(expected, match="unreadable ancestor" if failure == "denied" else "BOOTSTRAP_LINK"):
+        safe_many(paths)
 
 
 @pytest.mark.parametrize("target_kind", ["file", "dangling", "directory"])
@@ -93,6 +132,131 @@ def test_changed_bytes_and_partial_acquisition_release_prior_handles(tmp_path):
     with pytest.raises(IntegrityError, match="BOOTSTRAP_FILE_CHANGED"):
         FileLease(inventory)
     a.write_bytes(b"not left locked")
+
+
+def test_held_digest_comes_from_retained_handle_not_mutable_inventory(tmp_path):
+    path, foreign = tmp_path / "held", tmp_path / "foreign"
+    path.write_bytes(b"verified bytes")
+    foreign.write_bytes(b"verified bytes")
+    inventory = snapshot([path], [])
+    expected = hashlib.sha256(path.read_bytes()).hexdigest()
+    with FileLease(inventory) as lease:
+        inventory["files"][0]["sha256"] = "a" * 64
+        assert lease.held_digest(path) == expected
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_UNHELD_FILE"):
+            lease.held_digest(foreign)
+        with pytest.raises(PermissionError):
+            path.write_bytes(b"changed")
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_LEASE_CLOSED"):
+        lease.held_digest(path)
+
+
+def test_parent_changed_to_junction_after_discovery_is_rechecked_under_handles(tmp_path, monkeypatch):
+    """Same bytes behind a new junction must not pass merely by matching hashes."""
+    from mcbench import launch_integrity as module
+    source, retained = tmp_path / "source", tmp_path / "retained"
+    source.mkdir()
+    (source / "file").write_bytes(b"identical bytes")
+    inventory = snapshot([source / "file"], [])
+    original = module.safe_many
+    original_link = module._check_link
+    changed = False
+    held_junction = []
+
+    def swap(paths):
+        nonlocal changed
+        result = original(paths)
+        if not changed:
+            changed = True
+            assert source.resolve().parent == retained.resolve().parent == tmp_path.resolve()
+            source.rename(retained)
+            def quote(path):
+                return "'" + str(path).replace("'", "''") + "'"
+            subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+                f"New-Item -ItemType Junction -Path {quote(source)} -Target {quote(retained)} -ErrorAction Stop | Out-Null"],
+                capture_output=True, check=True, timeout=15, creationflags=subprocess.CREATE_NO_WINDOW)
+        return result
+
+    monkeypatch.setattr(module, "safe_many", swap)
+
+    def check_held_entry(path):
+        if changed and path == module._absolute(source):
+            # OPEN_REPARSE_POINT must hold the junction itself, not only its
+            # destination. Otherwise it can disappear before link validation.
+            with pytest.raises(OSError):
+                source.rmdir()
+            held_junction.append(True)
+        return original_link(path)
+
+    monkeypatch.setattr(module, "_check_link", check_held_entry)
+    try:
+        with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+            FileLease(inventory)
+        assert changed and held_junction
+    finally:
+        if source.exists() and source.lstat().st_file_attributes & 0x400:
+            source.rmdir()  # Remove the junction only, not its target.
+    # Failed acquisition releases the parent handles too.
+    (retained / "file").write_bytes(b"released")
+
+
+@pytest.mark.parametrize("when", ["before_open", "after_open"])
+def test_late_leaf_link_refuses_and_releases_acquired_handles(tmp_path, monkeypatch, when):
+    from types import SimpleNamespace
+    import stat
+    from mcbench import launch_integrity as module
+
+    source = tmp_path / "source"
+    source.write_bytes(b"same bytes")
+    inventory = snapshot([source], [])
+    original = Path.lstat
+    visits = []
+
+    def changed(path, *args, **kwargs):
+        if path == module._absolute(source):
+            visits.append(True)
+            # Discovery succeeds. Inject the changed file type at the final
+            # leaf boundary, with an actual held Windows handle after opening.
+            if len(visits) == (2 if when == "before_open" else 3):
+                if when == "after_open":
+                    with pytest.raises(OSError):
+                        source.write_bytes(b"cannot change held bytes")
+                return SimpleNamespace(st_mode=stat.S_IFLNK, st_file_attributes=0x400)
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "lstat", changed)
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_LINK"):
+        FileLease(inventory)
+    source.write_bytes(b"released after refusal")
+
+
+def test_inventory_cannot_introduce_unheld_parent_after_directory_acquisition(tmp_path, monkeypatch):
+    from mcbench import launch_integrity as module
+
+    source, foreign = tmp_path / "source", tmp_path / "foreign"
+    source.mkdir()
+    foreign.mkdir()
+    first, second = source / "file", foreign / "file"
+    first.write_bytes(b"same bytes")
+    second.write_bytes(b"same bytes")
+    inventory = snapshot([first], [])
+    original = module.safe_many
+    calls = []
+
+    def changed(paths):
+        result = original(paths)
+        calls.append(True)
+        if len(calls) == 2:
+            with pytest.raises(OSError):
+                source.rename(tmp_path / "moved")
+            inventory["files"][0]["path"] = str(module._absolute(second))
+        return result
+
+    monkeypatch.setattr(module, "safe_many", changed)
+    with pytest.raises(IntegrityError, match="BOOTSTRAP_UNHELD_PARENT"):
+        FileLease(inventory)
+    source.rename(tmp_path / "released")
+    second.write_bytes(b"never held")
 
 
 def test_native_lease_exceeds_crt_capacity_and_releases_after_late_hash_failure(tmp_path):
@@ -217,10 +381,11 @@ def run_config(path,**kwargs):
 @pytest.mark.parametrize("mutation", ["arguments", "environment", "native_executable", "omitted_file",
                                       "workspace_overlap", "job_scope", "catalog_unpinned",
                                       "catalog_pinned", "valid"])
-def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path, mutation):
+@pytest.mark.parametrize("team", [False, True])
+def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path, mutation, team):
     from types import SimpleNamespace
     from mcbench.native_bootstrap import acquire_native_bootstrap
-    from mcbench.native_broker_policy import BROKER_TOOLS, restricted_settings
+    from mcbench.native_broker_policy import POLICY, TEAM_POLICY, broker_tools, broker_approvals, restricted_settings
     from mcbench.storage import Fault
     names = ("python", "broker_bootstrap", "process_bootstrap", "broker_config", "native_executable")
     files = {name: str(tmp_path / name) for name in names}
@@ -237,11 +402,11 @@ def test_native_seal_binds_command_environment_and_all_bootstrap_files(tmp_path,
     path = tmp_path / "manifest.json"
     path.write_bytes(encode(manifest))
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    policy = TEAM_POLICY if team else POLICY
     server = {"command": files["python"], "args": ["-I", "-S", "-B", files["broker_bootstrap"],
         "--manifest", str(path), "--sha256", sha], "env": {}, "required": True,
-        "enabled_tools": list(BROKER_TOOLS), "tools": {"artifact_write": {"approval_mode": "approve"},
-                                                       "game": {"approval_mode": "approve"}}}
-    plan = SimpleNamespace(bootstrap_manifest=str(path), bootstrap_digest=sha,
+        "enabled_tools": list(broker_tools(policy)), "tools": broker_approvals(policy)}
+    plan = SimpleNamespace(bootstrap_manifest=str(path), bootstrap_digest=sha, broker_policy=policy,
         executable=files["native_executable"], workspace=str(tmp_path / "gameplay"), job_id="job",
         config_overrides=restricted_settings() | {
             "mcp_servers.strata_broker": server})

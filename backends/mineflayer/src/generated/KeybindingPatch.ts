@@ -11,6 +11,10 @@ export type TransactionId = string;
 export type ExpectedRevision = number;
 export type ExpectedKeymapDigest = string;
 export type BackendFingerprint = string;
+/**
+ * @minItems 1
+ */
+export type Changes = [BindingChange, ...BindingChange[]];
 export type BindingId = string;
 export type OwnerMod = string;
 export type OwnerEvidence = string;
@@ -29,7 +33,6 @@ export type TestId = string;
 export type Status = "not_run" | "pass" | "fail";
 export type Refs = string[];
 export type Checks = Evidence[];
-export type Changes = BindingChange[];
 export type BackupRef = string | null;
 export type Phase = "planned" | "applying" | "verifying" | "committed" | "rolled_back" | "failed";
 export type ResultingRevision = number | null;

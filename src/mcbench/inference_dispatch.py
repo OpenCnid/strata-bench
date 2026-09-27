@@ -10,7 +10,7 @@ import json
 import time
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, TypeAdapter
 
 from .accounting import EstimateBasis, FiniteExposure, UsageValuation
 from .authorization import Authorizations
@@ -18,10 +18,12 @@ from .budgets import Budgets
 from .contracts import Digest, Id, Positive, Ref, Strict
 from .records import BudgetLedger
 from .storage import Fault, Principal, canonical, digest, require
+from . import repair_inference
 
 POLICY = "reserve-intent-before-distinct-dispatch/1"
 REJECTION_POLICY = "durable-budget-denial-before-dispatch/1"
 BUDGET_DENIALS = {"BUDGET_EXHAUSTED", "ENVELOPE_EXHAUSTED", "METERING_UNKNOWN"}
+REPAIR_DENIALS = {"REPAIR_INFERENCE_FROZEN", "REPAIR_INFERENCE_UNTRACKED"}
 
 
 class InferenceAttempt(Strict):
@@ -65,10 +67,19 @@ class PreDispatchRejection(Strict):
     reason: Literal["BUDGET_EXHAUSTED", "ENVELOPE_EXHAUSTED", "METERING_UNKNOWN"]
 
 
+class RepairDispatchRejection(PreDispatchRejection):
+    schema_: Literal["strata/InferencePreDispatchRejection/2"] = Field(alias="schema")
+    policy: Literal["durable-repair-denial-before-dispatch/1"]
+    reason: Literal["REPAIR_INFERENCE_FROZEN", "REPAIR_INFERENCE_UNTRACKED"]
+
+
+REJECTION = TypeAdapter(PreDispatchRejection | RepairDispatchRejection)
+
+
 def rejection_event(body):
     return {"operation_id": body.reservation.operation_id, "runtime_job_id": body.attempt.runtime_job_id,
             "request_digest": body.attempt.request_digest, "reason": body.reason,
-            "record_digest": digest(body.model_dump()), "policy": REJECTION_POLICY}
+            "record_digest": digest(body.model_dump()), "policy": body.policy}
 
 
 def verified_rejections(db, job, simulation):
@@ -78,7 +89,7 @@ def verified_rejections(db, job, simulation):
     result = {}
     for row in db.execute("SELECT * FROM inference_rejections WHERE "
                           "json_extract(body,'$.attempt.runtime_job_id')=? ORDER BY operation", (job,)):
-        body = PreDispatchRejection.model_validate_json(row["body"])
+        body = REJECTION.validate_json(row["body"])
         op = body.reservation.operation_id
         require(body.simulation is simulation and row["operation"] == op and row["fingerprint"] == digest({
             "account": body.account, "attempt": body.attempt.model_dump(), "reserve": body.reservation.model_dump()})
@@ -211,6 +222,9 @@ class InferenceDispatches:
             (attempt.runtime_job_id,)).fetchone() if exists else None
         from .native import NativeLaunch
         plan = NativeLaunch.model_validate_json(job["plan"]) if job else None
+        if plan is not None:
+            from .native_account_policy import require_native_account
+            require_native_account(self.db.connection, plan, reserve)
         if not self.simulation or plan is not None and (
                 plan.broker_policy is not None or plan.ingress_policy is not None):
             require(job is not None and job["state"] == "RUNNING", "RUNTIME_NOT_RUNNING")
@@ -254,22 +268,25 @@ class InferenceDispatches:
                              (reserve.operation_id,)).fetchone()
             if old:
                 require(old[0] == fingerprint, "IDEMPOTENCY_CONFLICT")
-                raise Fault(PreDispatchRejection.model_validate_json(old[1]).reason)
+                raise Fault(REJECTION.validate_json(old[1]).reason)
             require(db.execute("SELECT 1 FROM inference_exposure_faults LIMIT 1").fetchone() is None,
                     "INFERENCE_EXPOSURE_QUARANTINED")
             self._validate_bound(account, attempt, reserve)
             db.execute("SAVEPOINT dispatch_reservation")
             try:
+                window = repair_inference.active_window(db, reserve)
                 require(self.budgets.post_in_transaction(db, account, reserve),
                         "DISPATCH_RESERVATION_REUSED")
             except Fault as exc:
-                if exc.code not in BUDGET_DENIALS:
+                if exc.code not in BUDGET_DENIALS | REPAIR_DENIALS:
                     raise
                 db.execute("ROLLBACK TO dispatch_reservation")
                 require(db.execute("SELECT 1 FROM operations WHERE id=?", (reserve.operation_id,)).fetchone() is None,
                         "DISPATCH_REJECTION_INVALID")
-                rejected = PreDispatchRejection.model_validate({"schema": "strata/InferencePreDispatchRejection/1",
-                    "policy": REJECTION_POLICY, "simulation": self.simulation, "account": account,
+                repair_denied = exc.code in REPAIR_DENIALS
+                rejected = REJECTION.validate_python({"schema": "strata/InferencePreDispatchRejection/2" if repair_denied else "strata/InferencePreDispatchRejection/1",
+                    "policy": "durable-repair-denial-before-dispatch/1" if repair_denied else REJECTION_POLICY,
+                    "simulation": self.simulation, "account": account,
                     "attempt": attempt, "reservation": reserve, "reason": exc.code})
                 db.execute("INSERT INTO inference_rejections VALUES(?,?,?)", (
                     reserve.operation_id, fingerprint, canonical(rejected.model_dump()).decode()))
@@ -285,6 +302,7 @@ class InferenceDispatches:
                     "operation_id": reserve.operation_id, "runtime_job_id": attempt.runtime_job_id,
                     "request_digest": attempt.request_digest, "bound_ref": attempt.bound_ref,
                     "policy": POLICY, "simulation": self.simulation})
+                repair_inference.admitted(db, window, reserve.operation_id)
         if rejected is not None:
             raise Fault(rejected.reason)  # Committed denial; this operation can never forward.
         return True  # Only this first caller may forward, after the durable commit.
@@ -411,9 +429,9 @@ class InferenceDispatches:
             row = self.db.connection.execute("SELECT body FROM inference_rejections WHERE operation=?",
                                              (operation,)).fetchone()
             require(row is not None, "DISPATCH_NOT_FOUND")
-            rejected = PreDispatchRejection.model_validate_json(row[0])
+            rejected = REJECTION.validate_json(row[0])
             return {"operation_id": operation, "state": "REJECTED_BEFORE_DISPATCH", "reason": rejected.reason,
-                    "simulation": self.simulation, "policy": REJECTION_POLICY,
+                    "simulation": self.simulation, "policy": rejected.policy,
                     "request_digest": rejected.attempt.request_digest, "usage_receipt": False}
         return {"operation_id": operation, "state": row["state"], "reason": row["reason"],
                 "simulation": self.simulation, "policy": POLICY,

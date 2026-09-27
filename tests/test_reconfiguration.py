@@ -1,4 +1,5 @@
 import copy
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -16,13 +17,14 @@ from test_storage_controller import CAPACITY, READINESS, REF, setup_campaign, st
 
 
 @pytest.fixture
-def repair_env(database, cas, operator, configs, example):
+def repair_env(database, cas, operator, configs, example, request):
+    real_clock = getattr(request, "param", None) == "real-clock"
     now, mono = [100.0], [1000.0]
-    controller = Controller(database, simulation=True, cas=cas, clock=lambda: now[0])
+    controller = Controller(database, simulation=True, cas=cas, clock=time.time if real_clock else lambda: now[0])
     config, epoch = setup_campaign(controller, configs)
     adapter = SyntheticSettings()
     controls = Controls(database, adapter)
-    repairs = Reconfigurations(controller, controls, monotonic=lambda: mono[0])
+    repairs = Reconfigurations(controller, controls, monotonic=time.monotonic if real_clock else lambda: mono[0])
     def put(value):
         return cas.put(operator, 'operator', 'operator', canonical(value))
     witness = cas.put(operator, 'operator', 'operator', b'Synthetic worker witness; no Minecraft.')

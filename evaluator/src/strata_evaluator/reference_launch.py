@@ -27,6 +27,8 @@ from .telemetry import LAUNCH_STARTUP_MODELS
 from .telemetry_auth import MAX_WIRE_RECORD, SpoolVerifier, inspect_authenticated_spool, private_read
 from .setup_control import SetupControl, SetupControlPlan, saved_mode, startup_prefix
 from .operator_control import OperatorControl, OperatorControlPlan
+from .telemetry_capacity import TelemetryCapacity, limits as telemetry_limits
+from .telemetry_capacity import reserve as reserve_telemetry, consume as consume_telemetry
 
 # Only this inspected official E9E 1.27.0 bootstrap profile is admitted. Its
 # YAML disables autoRestart/ramDisk, uses the working directory and PATH Java,
@@ -100,10 +102,16 @@ class ReferenceLaunchPlanV7(ReferenceLaunchPlan):
     setup_control: OperatorControlPlan
 
 
+class ReferenceLaunchPlanV8(ReferenceLaunchPlanV5):
+    """Online protected reference with prior finite telemetry capacity."""
+    schema_: Literal["strata/PrivateReferenceLaunch/8"] = Field(alias="schema")
+    telemetry_capacity: TelemetryCapacity
+
+
 def parse_launch_plan(value):
     return TypeAdapter(ReferenceLaunchPlan | ReferenceLaunchPlanV2 | ReferenceLaunchPlanV3 |
                        ReferenceLaunchPlanV4 | ReferenceLaunchPlanV5 | ReferenceLaunchPlanV6 |
-                       ReferenceLaunchPlanV7).validate_python(value)
+                       ReferenceLaunchPlanV7 | ReferenceLaunchPlanV8).validate_python(value)
 
 
 def same_path(a, b):
@@ -194,10 +202,16 @@ class ReferenceLauncher:
                        "plan TEXT NOT NULL, state TEXT NOT NULL, body TEXT NOT NULL)")
 
     def _record(self, instance, state, body):
+        recorded = dict(body)
         with self.database.transaction() as db:
-            db.execute("UPDATE reference_dispatches SET state=?,body=? WHERE instance=?",
-                       (state, canonical(body).decode(), instance))
-            self.database.event(db, "private.reference_dispatch", {"instance": instance, "state": state, **body})
+            if state == "STOPPED" and "telemetry_capacity" in body:
+                recorded["telemetry_capacity_settlement"] = consume_telemetry(self.database, db, instance, body)
+            changed = db.execute("UPDATE reference_dispatches SET state=?,body=? WHERE instance=?",
+                                 (state, canonical(recorded).decode(), instance)).rowcount
+            if "telemetry_capacity" in body:
+                require(changed == 1, "TELEMETRY_STORAGE_DISPATCH_MISSING")
+            self.database.event(db, "private.reference_dispatch", {"instance": instance, "state": state, **recorded})
+        body.update(recorded)
 
     def run(self, value, *, client_binding=None, custody=None):
         require(os.name == "nt", "REFERENCE_PLATFORM_UNQUALIFIED")
@@ -287,6 +301,10 @@ class ReferenceLauncher:
                     "scoring_eligible": False, "started_unix": time.time()}
             if binding is not None:
                 body["client_binding_digest"] = digest(binding.model_dump(by_alias=True))
+            if isinstance(plan, ReferenceLaunchPlanV8):
+                body["telemetry_capacity"] = reserve_telemetry(
+                    self.database, db, plan.instance_id, body["plan_digest"],
+                    plan.telemetry_capacity, evidence.parent)
             db.execute("INSERT INTO reference_dispatches VALUES (?,?,?,?)",
                        (plan.instance_id, canonical(plan.model_dump(by_alias=True)).decode(), "INTENT", canonical(body).decode()))
             self.database.event(db, "private.reference_dispatch", {"instance": plan.instance_id, **body})
@@ -315,7 +333,7 @@ class ReferenceLauncher:
                     scope_sid=custody.tree.scope_sid,
                     deadline=min(custody.deadline, started + plan.max_wall_s + plan.graceful_stop_s),
                     settings={"schema": "strata/ForgeTelemetryBrokerSettings/1", "campaign_id": setup.campaign_id,
-                        "epoch": setup.epoch, "max_bytes": 8388608, "max_events": 2000,
+                        "epoch": setup.epoch, **telemetry_limits(plan),
                         "recipe_ids": list(setup.recipe_digests), "config_queries": []})
                 config_path = custody.workspace.path / "control/reference-telemetry.json"
                 config = broker.descriptor
@@ -325,7 +343,7 @@ class ReferenceLauncher:
                 spool.mkdir()
                 config_path = evidence / "telemetry-config.json"
                 config = {"schema": "strata/ForgeTelemetryConfig/3", "campaign_id": setup.campaign_id,
-                    "epoch": setup.epoch, "spool_directory": str(spool), "max_bytes": 8388608, "max_events": 2000,
+                    "epoch": setup.epoch, "spool_directory": str(spool), **telemetry_limits(plan),
                     "recipe_ids": list(setup.recipe_digests), "config_queries": [], "authentication": authority.producer_config()}
             write_new(config_path, config)
             write_new(evidence / "launch-plan.json", plan.model_dump(by_alias=True))
@@ -549,7 +567,13 @@ class ReferenceLauncher:
                 body.setdefault("error", "REFERENCE_OUTER_ABORTED")
             body["elapsed_s"] = time.monotonic() - started
             state = "STOPPED" if body["status"] == "stopped_reference" else "UNCERTAIN"
-            self._record(plan.instance_id, state, body)
+            try:
+                self._record(plan.instance_id, state, body)
+            except BaseException as error:
+                if state != "STOPPED" or "telemetry_capacity" not in body:
+                    raise
+                body.update(status="uncertain", capacity_close_error=getattr(error, "code", type(error).__name__))
+                self._record(plan.instance_id, "UNCERTAIN", body)
             if evidence.is_dir():
                 write_new(evidence / "result.json", body)
         return body

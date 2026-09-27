@@ -1,0 +1,230 @@
+{
+  "$defs": {
+    "NativeProbeCatalogSkill": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "revision_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "files": {
+          "additionalProperties": {
+            "pattern": "^cas:sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "maxProperties": 1024,
+          "minProperties": 1,
+          "title": "Files",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "revision_id",
+        "files"
+      ],
+      "title": "NativeProbeCatalogSkill",
+      "type": "object"
+    },
+    "NativeProbeDestination": {
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Job Id",
+          "type": "string"
+        },
+        "campaign_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Campaign Id",
+          "type": "string"
+        },
+        "agent_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "account": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Account",
+          "type": "string"
+        },
+        "operation_id": {
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "supply_helper_artifacts": {
+          "title": "Supply Helper Artifacts",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "job_id",
+        "campaign_id",
+        "agent_id",
+        "account",
+        "operation_id",
+        "supply_helper_artifacts"
+      ],
+      "title": "NativeProbeDestination",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "strata/NativeProbeArtifactBinding/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "policy": {
+      "const": "disposable-native-artifact-binding/1",
+      "title": "Policy",
+      "type": "string"
+    },
+    "is_example": {
+      "title": "Is Example",
+      "type": "boolean"
+    },
+    "destination": {
+      "$ref": "#/$defs/NativeProbeDestination"
+    },
+    "pair_namespace": {
+      "maxLength": 256,
+      "pattern": "^evaluation:.+",
+      "title": "Pair Namespace",
+      "type": "string"
+    },
+    "pair_id": {
+      "pattern": "^[A-Za-z0-9_.:-]{1,128}$",
+      "title": "Pair Id",
+      "type": "string"
+    },
+    "pair_plan_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Pair Plan Digest",
+      "type": "string"
+    },
+    "views_plan_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Views Plan Digest",
+      "type": "string"
+    },
+    "workspace": {
+      "title": "Workspace",
+      "type": "string"
+    },
+    "profile_directory": {
+      "title": "Profile Directory",
+      "type": "string"
+    },
+    "model": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "provider": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Provider",
+      "type": "string"
+    },
+    "helper_limit": {
+      "maximum": 32,
+      "minimum": 0,
+      "title": "Helper Limit",
+      "type": "integer"
+    },
+    "helper_depth": {
+      "maximum": 2,
+      "minimum": 0,
+      "title": "Helper Depth",
+      "type": "integer"
+    },
+    "control_arm": {
+      "enum": [
+        "full",
+        "frozen-persistence",
+        "frozen-skills",
+        "no-self-play"
+      ],
+      "title": "Control Arm",
+      "type": "string"
+    },
+    "public_goal": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Public Goal",
+      "type": "string"
+    },
+    "instructions": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Instructions",
+      "type": "string"
+    },
+    "broker_files": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "pattern": "^cas:sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "propertyNames": {
+        "enum": [
+          "executor",
+          "helper"
+        ]
+      },
+      "title": "Broker Files",
+      "type": "object"
+    },
+    "catalog": {
+      "additionalProperties": {
+        "$ref": "#/$defs/NativeProbeCatalogSkill"
+      },
+      "title": "Catalog",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "policy",
+    "is_example",
+    "destination",
+    "pair_namespace",
+    "pair_id",
+    "pair_plan_digest",
+    "views_plan_digest",
+    "workspace",
+    "profile_directory",
+    "model",
+    "provider",
+    "helper_limit",
+    "helper_depth",
+    "control_arm",
+    "public_goal",
+    "instructions",
+    "broker_files",
+    "catalog"
+  ],
+  "title": "NativeProbeArtifactBinding",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

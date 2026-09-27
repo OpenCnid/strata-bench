@@ -12,6 +12,9 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
         JsonObject observe(String cursor) throws IOException;
         String bodyFingerprint() throws IOException;
         long connectionGeneration();
+        default boolean settingsEffectsEnabled() { return false; }
+        default JsonObject settingsRequest(JsonObject request) throws IOException { throw new IOException("CAPABILITY_MISSING"); }
+        default void stopSettingsEffects() throws IOException {}
         default JsonObject recipes(int after) throws IOException { throw new IOException("MECHANIC_UNSUPPORTED"); }
         default JsonObject recipeQuery(GameRecipeQuery.Query query) throws IOException { throw new IOException("MECHANIC_UNSUPPORTED"); }
         default JsonObject quests(GameQuestCatalog.Query query) throws IOException { throw new IOException("MECHANIC_UNSUPPORTED"); }
@@ -59,6 +62,13 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
             default -> {
                 if (lane == null) throw new IOException("CAPABILITY_MISSING");
                 switch (SettingsJson.string(request, "operation")) {
+                    case "settings_snapshot", "settings_apply", "settings_status", "settings_rollback",
+                            "settings_effect_start", "settings_effect_status", "settings_repair_bind", "settings_repair_status",
+                            "settings_commit", "settings_commit_status", "settings_restart_prepare", "settings_restart_continue", "settings_restart_status",
+                            "settings_resume", "settings_resume_status" -> {
+                        if (!runtime.settingsEffectsEnabled()) throw new IOException("CAPABILITY_MISSING");
+                        SettingsEffectsCoordinator.validate(request, session, now);
+                    }
                     case "lane_status", "stop_all", "authority" -> SettingsJson.fields(args);
                     case "arm", "renew" -> {
                         if (SettingsJson.string(request, "operation").equals("arm")) {
@@ -85,6 +95,10 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
 
     JsonObject execute(JsonObject request) throws IOException {
         runtime.requireClientThread();
+        if (SettingsJson.string(request, "operation").startsWith("settings_")) {
+            if (lane == null || !runtime.settingsEffectsEnabled()) throw new IOException("CAPABILITY_MISSING");
+            return runtime.settingsRequest(request);
+        }
         JsonObject args = request.getAsJsonObject("args");
         return switch (SettingsJson.string(request, "operation")) {
             case "capabilities" -> capabilities(lane != null);
@@ -151,7 +165,10 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
                 yield switch (SettingsJson.string(request, "operation")) {
                     case "lane_status" -> lane.health();
                     case "authority" -> lane.authority();
-                    case "stop_all" -> lane.stopAll();
+                    case "stop_all" -> {
+                        try { runtime.stopSettingsEffects(); } finally { lane.stopAll(); }
+                        yield lane.health();
+                    }
                     case "arm" -> lane.arm(SettingsJson.integer(args, "epoch"), GameBatch.id(args, "lease_id"), SettingsJson.integer(args, "lease_until_unix_ms"), GameBatch.id(args, "expected_fence_token"));
                     case "renew" -> lane.renew(SettingsJson.integer(args, "epoch"), GameBatch.id(args, "lease_id"), SettingsJson.integer(args, "lease_until_unix_ms"));
                     case "deliver" -> lane.deliver(GameBatch.id(args, "observation_id"), GameBatch.id(args, "snapshot_id"), SettingsJson.integer(args, "state_revision"));
@@ -203,7 +220,7 @@ final class NativeGameProtocol implements SettingsHttpBridge.Protocol {
         value.addProperty("crafting_policy", GameCrafting.POLICY);
         value.addProperty("manual_crafting_policy", GameRecipeGrid.POLICY);
         value.addProperty("machine_observation_policy", GameMachineMenu.POLICY);
-        value.addProperty("machine_inventory_policy", GameMachineInventory.POLICY);
+        value.addProperty("machine_inventory_policy", GameMachinePreflight.POLICY);
         value.addProperty("machine_input_policy", GameMachineMenu.INPUT_POLICY);
         value.addProperty("navigation_policy", GameRoute.POLICY);
         value.addProperty("collision_policy", NativeCollisionView.POLICY);

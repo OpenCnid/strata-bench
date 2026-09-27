@@ -5,32 +5,34 @@ leases protect selected bytes; neither this launcher nor a fresh directory is
 a general process/network sandbox or a complete checkpoint protocol.
 """
 
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 import hashlib
+import math
 import os
 from pathlib import Path
 import re
 import shutil
 import threading
 import time
-from typing import Annotated
+from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from .contracts import Id, Positive, Strict
+from .contracts import Id, Positive, Strict, Utc
 from .inventory import file_hash
 from .launch_integrity import FileLease, safe, snapshot
 from .processes import ManagedProcess
 from .provisioning import VanillaLaunchProfile, WORKER_CONFIG_ARGUMENT, validate_launch_environment
 from .server_health import inspect_server_log
 from .storage import Fault, canonical, digest, require
-from .worker_bundle import HeldWorkerBundle, launch_path
+from .worker_bundle import HeldWorkerBundle, _held_worker_runtime, launch_path
 from .worker_stop import ARGUMENT
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVER_READY_SECONDS = 80
 SERVER_STOP_SECONDS = 120
+PlayerUuid = Annotated[str, Field(pattern=r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")]
 
 
 class WorkerInvocation(Strict):
@@ -40,6 +42,39 @@ class WorkerInvocation(Strict):
     lease_id: Id
     state_directory: Annotated[str, Field(min_length=1)]
     configuration_path: Annotated[str, Field(min_length=1)]
+    expected_player_uuid: PlayerUuid | None = Field(
+        default=None, exclude_if=lambda v: v is None)
+
+
+class WorkerPlayerIdentity(Strict):
+    """Private worker journal record; parsing alone cannot authenticate its producer."""
+    schema_: Literal["strata/WorkerPlayerIdentity/1"] = Field(alias="schema")
+    policy: Literal["authenticated-saved-player-binding/1"]
+    campaign_id: Id
+    agent_id: Id
+    epoch: Positive
+    lease_id: Id
+    expected_player_uuid: PlayerUuid
+    authenticated_player_uuid: PlayerUuid
+    connected_player_uuid: PlayerUuid
+    spawn_seq: Positive
+    recorded_at: Utc
+    mono_ms: Annotated[float, Field(ge=0)]
+
+    @model_validator(mode="after")
+    def matched_player(self):
+        require(self.expected_player_uuid == self.authenticated_player_uuid == self.connected_player_uuid,
+                "AUTH_PLAYER_MISMATCH")
+        return self
+
+    @classmethod
+    def for_invocation(cls, value, invocation):
+        record, expected = cls.model_validate(value), WorkerInvocation.model_validate(invocation)
+        require(expected.expected_player_uuid is not None and all(
+            getattr(record, field) == getattr(expected, field)
+            for field in ("campaign_id", "agent_id", "epoch", "lease_id", "expected_player_uuid")),
+            "WORKER_IDENTITY_SCOPE")
+        return record
 
 
 def _path(value):
@@ -110,6 +145,13 @@ def validate_worker_profile(profile):
 
 def resolve_worker_invocation(profile, value, binding):
     """Resolve the single declared argument slot, with no caller setting overrides."""
+    with _held_worker_invocation(profile, value, binding) as (result, _):
+        return result
+
+
+@contextmanager
+def _held_worker_invocation(profile, value, binding, *, _runtime_pool=None):
+    """Keep the exact validated runtime continuously held for an owning caller."""
     require(value is not None, "WORKER_INVOCATION_REQUIRED")
     invocation = WorkerInvocation.model_validate(value)
     from .pack_launch import WorkerProfileBaseline
@@ -124,7 +166,7 @@ def resolve_worker_invocation(profile, value, binding):
         for second in (_path(binding.store), _path(binding.instance), cache, safe(ROOT), manifest):
             _apart(first, second)
     _apart(state, config)
-    with HeldWorkerBundle(profile.worker_runtime.model_dump()) as runtime:
+    with _held_worker_runtime(profile.worker_runtime.model_dump(), _runtime_pool) as runtime:
         check_worker_command(profile, runtime)
         for first in (state, config):
             _apart(first, runtime.root)
@@ -133,6 +175,8 @@ def resolve_worker_invocation(profile, value, binding):
         configuration = {"schema": "strata/DevelopmentWorker/1", "purpose": "manual-conformance",
             "server_kind": "vanilla", **profile.worker_settings.model_dump(),
             **invocation.model_dump(exclude={"configuration_path"})}
+        if invocation.expected_player_uuid is not None:
+            configuration["schema"] = "strata/DevelopmentWorker/2"
         configuration["state_directory"] = launch_path(state)
         configuration["auth_cache"] = launch_path(cache)
         raw = canonical(configuration)
@@ -140,10 +184,10 @@ def resolve_worker_invocation(profile, value, binding):
         command = profile.client.model_dump() | {
             "arguments": [runtime.body["worker"], launch_path(config), *([ARGUMENT] if runtime.operator_stop else [])],
             "working_directory": launch_path(_path(binding.instance) / "client")}
-        return {"schema": "strata/ResolvedPackLaunch/2", "launch": command,
+        yield {"schema": "strata/ResolvedPackLaunch/2", "launch": command,
             "worker_runtime": profile.worker_runtime.model_dump(), "worker_configuration": configuration,
             "worker_configuration_path": launch_path(config),
-            "worker_configuration_sha256": hashlib.sha256(raw).hexdigest(), "update_policy": profile.update_policy}
+            "worker_configuration_sha256": hashlib.sha256(raw).hexdigest(), "update_policy": profile.update_policy}, runtime
 
 
 class HeldPackWorker:
@@ -154,10 +198,20 @@ class HeldPackWorker:
     Nothing dispatches inference or accepts account terms here.
     """
 
-    def __init__(self, binding, invocation, *, simulation=False, own_server=False):
-        require(type(own_server) is bool, "WORKER_LAUNCH_PROFILE")
+    def __init__(self, binding, invocation, *, simulation=False, own_server=False, defer_configuration=False,
+                 _materialization_lease=None, _runtime_pool=None):
+        require(type(own_server) is bool and type(defer_configuration) is bool, "WORKER_LAUNCH_PROFILE")
+        require(_materialization_lease is None or not own_server, "MATERIALIZATION_CUSTODY_SCOPE")
+        require(_runtime_pool is None or _materialization_lease is not None and not own_server,
+                "WORKER_RUNTIME_POOL_SCOPE")
         self.binding, self.invocation, self.simulation = deepcopy(binding), deepcopy(invocation), simulation
         self.own_server = own_server
+        self.defer_configuration = defer_configuration
+        self._materialization_lease = _materialization_lease
+        self._runtime_pool = _runtime_pool
+        self._entered = False
+        self._configuration_attempted = False
+        self.config_lease = None
         self._server_resolved = None
         self._resources = None
         self._resolved = None
@@ -175,17 +229,19 @@ class HeldPackWorker:
         return deepcopy(self._server_resolved)
 
     def __enter__(self):
-        from .pack_launch import resolve_pack_launch
-        require(self._resources is None, "WORKER_LAUNCH_ALREADY_HELD")
-        resolved = resolve_pack_launch(self.binding, "client", simulation=self.simulation,
-                                       worker_invocation=self.invocation)
-        # Resolve both roles while the materialization is still pristine. The
-        # server may then create its world/logs without invalidating worker start.
-        server = (resolve_pack_launch(self.binding, "server", simulation=self.simulation)
-                  if self.own_server else None)
+        from .pack_launch import _held_pack_launch, resolve_pack_launch
+        require(not self._entered and self._resources is None, "WORKER_LAUNCH_ALREADY_HELD")
+        self._entered = True
         resources = ExitStack()
         try:
-            self.runtime = resources.enter_context(HeldWorkerBundle(resolved["worker_runtime"]))
+            resolved, self.runtime = resources.enter_context(_held_pack_launch(
+                self.binding, "client", simulation=self.simulation, worker_invocation=self.invocation,
+                _materialization_lease=self._materialization_lease, _runtime_pool=self._runtime_pool))
+            require(self.runtime is not None, "WORKER_LAUNCH_PROFILE")
+            # Resolve both roles while materialization is pristine, retaining
+            # the worker runtime already checked by the client resolver.
+            server = (resolve_pack_launch(self.binding, "server", simulation=self.simulation)
+                      if self.own_server else None)
             if server:
                 require(server["lock"] == resolved["lock"]
                         and server["launch_profile"] == resolved["launch_profile"], "PACK_BINDING_MISMATCH")
@@ -200,7 +256,29 @@ class HeldPackWorker:
                     FileLease(snapshot([Path(server["launch"]["executable_path"])], [])))
                 require(file_hash(Path(server["launch"]["executable_path"]))
                         == server["launch"]["executable"]["digest"], "HASH_MISMATCH")
+            self._resolved, self._resources = resolved, resources
+            self._server_resolved = server
+            if not self.defer_configuration:
+                self.commit_configuration()
+        except BaseException:
+            resources.close()
+            self._resources = None
+            raise
+        return self
+
+    def commit_configuration(self):
+        """One attempt after whole-roster validation; failure releases own custody."""
+        require(self._resources is not None and not self._configuration_attempted
+                and self.config_lease is None and not self.processes, "WORKER_CONFIGURATION_ORDER")
+        self._configuration_attempted = True
+        try:
+            self._check_borrowed_materialization()
+            self.runtime.recheck()
+            resolved = self._resolved
+            state = _path(resolved["worker_configuration"]["state_directory"])
             config = _path(resolved["worker_configuration_path"])
+            require(state.is_dir() and not any(state.iterdir()) and config.parent.is_dir()
+                    and not config.exists(), "WORKER_INVOCATION_NOT_FRESH")
             raw = canonical(resolved["worker_configuration"])
             require(hashlib.sha256(raw).hexdigest() == resolved["worker_configuration_sha256"],
                     "WORKER_LAUNCH_CONFIG_CHANGED")
@@ -208,17 +286,20 @@ class HeldPackWorker:
                 stream.write(raw)
                 stream.flush()
                 os.fsync(stream.fileno())
-            self.config_lease = resources.enter_context(FileLease(snapshot([config], [])))
+            self.config_lease = self._resources.enter_context(FileLease(snapshot([config], [])))
             require(file_hash(config) == resolved["worker_configuration_sha256"], "WORKER_LAUNCH_CONFIG_CHANGED")
-            self._resolved, self._resources = resolved, resources
-            self._server_resolved = server
         except BaseException:
-            resources.close()
+            self.__exit__()
             raise
-        return self
+
+    def _check_borrowed_materialization(self):
+        if self._materialization_lease is not None:
+            from .pack_launch import _check_materialization_custody
+            _check_materialization_custody(self.binding, self._materialization_lease)
 
     def start_server(self):
         require(self._resources is not None and self._server_resolved is not None, "SERVER_LAUNCH_NOT_HELD")
+        require(self.config_lease is not None, "WORKER_CONFIGURATION_NOT_HELD")
         require("server" not in self.processes and "worker" not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
         previous = self.processes.get("preflight")
         require(previous is not None and previous.poll() == 0
@@ -246,8 +327,11 @@ class HeldPackWorker:
         self.restored_journal = HeldRestoredJournal(reference, self._resolved["worker_configuration"])
         self._resources.callback(self.restored_journal.close)
 
-    def start(self, *, preflight=False):
+    def start(self, *, preflight=False, _deadline=None):
         require(self._resources is not None and type(preflight) is bool, "WORKER_LAUNCH_NOT_HELD")
+        require(self.config_lease is not None, "WORKER_CONFIGURATION_NOT_HELD")
+        require(_deadline is None or preflight and type(_deadline) in (int, float) and math.isfinite(_deadline),
+                "WORKER_PREFLIGHT_DEADLINE")
         mode = "preflight" if preflight else "worker"
         require(mode not in self.processes, "WORKER_LAUNCH_ALREADY_STARTED")
         if not preflight and "preflight" in self.processes:
@@ -261,6 +345,7 @@ class HeldPackWorker:
         require(self.restored_journal is not None and not preflight
                 or not any(_path(self._resolved["worker_configuration"]["state_directory"]).iterdir()),
                 "WORKER_INVOCATION_NOT_FRESH")
+        self._check_borrowed_materialization()
         self.runtime.recheck()
         self.config_lease.recheck()
         if self.restored_journal is not None:
@@ -268,6 +353,9 @@ class HeldPackWorker:
         command = self._resolved["launch"]
         argv = ([command["executable_path"], command["arguments"][0], "--check-vanilla-runtime"]
                 if preflight else [command["executable_path"], *command["arguments"]])
+        # Input rechecks consume the parent's exposure too. Refuse an expired
+        # import after those checks, before creating the owned process.
+        require(_deadline is None or time.monotonic() < _deadline, "WORKER_PREFLIGHT_DEADLINE")
         # The pinned base interpreter avoids an unowned venv redirector child
         # before the bootstrap can wait for Job Object assignment.
         process = ManagedProcess(argv, Path(command["working_directory"]), command["environment"], "",
@@ -279,6 +367,7 @@ class HeldPackWorker:
 
     def receipt(self):
         require(self._resources is not None and self.processes, "WORKER_LAUNCH_NOT_HELD")
+        self._check_borrowed_materialization()
         owned = {}
         for name, process in self.processes.items():
             require(process.poll() == 0 and process.job is not None, "WORKER_LAUNCH_STOP_UNPROVEN")

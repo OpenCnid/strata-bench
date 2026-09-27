@@ -22,6 +22,7 @@ from .telemetry import KINDS, PAYLOADS, LAUNCH_STARTUP_MODELS
 from .setup_history import HISTORY_MODELS, HISTORY_SCHEMAS
 from .telemetry_auth import MAX_RECORD, MAX_WIRE_RECORD, POLICY, private_read
 from .windows_writer import WindowsSecurity
+from .telemetry_capacity import limits as telemetry_limits
 
 
 def controller_start_ms(security):
@@ -58,6 +59,9 @@ class TelemetryPipeBroker:
             and type(settings["max_bytes"]) is int and 65536 <= settings["max_bytes"] <= 1024**3
             and type(settings["max_events"]) is int and 1 <= settings["max_events"] <= 1000000,
             "TELEMETRY_PIPE_SETTINGS")
+        if getattr(launch_plan, "telemetry_capacity", None) is not None:
+            require(all(settings[k] == v for k, v in telemetry_limits(launch_plan).items()),
+                    "TELEMETRY_PIPE_CAPACITY_BINDING")
         self.settings, self.pipe, self.job = settings, None, None
         self.armed = threading.Event()
         self.closing = threading.Event()
@@ -134,6 +138,10 @@ class TelemetryPipeBroker:
         return identity
 
     def _event(self, raw, identity, key):
+        from .machine_capture import KINDS as MACHINE_KINDS, require_capture_scope
+        from .machine_energy import KINDS as TICK_KINDS, POLICY as TICK_POLICY, parse_tick
+        from .machine_transitions import KINDS as TRANSITION_KINDS, POLICY as TRANSITION_POLICY, parse_transition
+        from .machine_interval import KINDS as INTERVAL_KINDS, POLICY as INTERVAL_POLICY, parse_interval
         require(0 < len(raw) <= MAX_RECORD and raw.endswith(b"\n"), "TELEMETRY_PIPE_EVENT_FRAMING")
         event = GameEvent.model_validate(strict_json(raw))
         require(not self.stopped and not event.is_example and event.visibility == "evaluator"
@@ -143,7 +151,24 @@ class TelemetryPipeBroker:
                 "TELEMETRY_PIPE_EVENT_SCOPE")
         if self.count:
             require(event.kind != "server_started", "TELEMETRY_PIPE_EVENT_SCOPE")
-            if event.kind == "setup_history":
+            if self.clock_samples and self.last_kind == "server_health":
+                require(event.kind == "server_clock_sample", "TELEMETRY_CLOCK_SAMPLE_MISSING")
+            if event.kind == "server_clock_sample":
+                require(self.clock_samples and self.last_kind == "server_health"
+                        and event.server_tick == self.last_tick and not event.actor_ids,
+                        "TELEMETRY_CLOCK_SAMPLE_SCOPE")
+            if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS:
+                captured = (parse_interval(event, self.interval_supported) if event.kind in INTERVAL_KINDS else
+                            parse_transition(event, self.transition_supported) if event.kind in TRANSITION_KINDS else
+                            parse_tick(event, self.tick_supported) if event.kind in TICK_KINDS else
+                            require_capture_scope(event, self.machine_supported, self.machine_policy))
+                registration = getattr(captured, "registration", None)
+                if registration is not None:
+                    require(registration.generation >= self.machine_generation, "MACHINE_REGISTRATION_ROLLBACK")
+                    self.machine_generation = registration.generation
+                require(captured.transaction_id not in self.machine_ids, "MACHINE_CAPTURE_DUPLICATE")
+                self.machine_ids.add(captured.transaction_id)
+            elif event.kind == "setup_history":
                 require(self.history_policy is not None
                         and event.payload_schema == HISTORY_SCHEMAS[self.history_policy],
                         "TELEMETRY_PIPE_HISTORY_SCOPE")
@@ -157,12 +182,24 @@ class TelemetryPipeBroker:
                     "TELEMETRY_PIPE_FIRST_EVENT")
             model = LAUNCH_STARTUP_MODELS[event.payload_schema]
             payload = model.model_validate(event.payload)
-            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14"}
+            self.clock_samples = getattr(payload, "clock_sample_policy", None) == "server-event-monotonic-samples/1"
+            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14", "strata/ServerStarted/15", "strata/ServerStarted/16", "strata/ServerStarted/17", "strata/ServerStarted/18", "strata/ServerStarted/19", "strata/ServerStarted/20"}
                     or payload.telemetry_transport == "windows-owned-pipe/1", "TELEMETRY_PIPE_TRANSPORT")
             from .reference_launch import bind_identity
             binding = bind_identity(self.plan, self.setup, payload.launch_identity, identity)
             support = getattr(payload, "setup_history_support", None)
             self.history_policy = support.policy if support is not None else None
+            machine = getattr(payload, "machine_capture_support", None)
+            self.machine_supported = machine is not None and machine.status == "supported"
+            self.machine_policy = getattr(payload, "machine_capture_policy", None)
+            self.tick_supported = (self.machine_supported
+                and getattr(payload, "machine_process_tick_policy", None) == TICK_POLICY)
+            self.transition_supported = (self.machine_supported
+                and getattr(payload, "machine_transition_policy", None) == TRANSITION_POLICY)
+            self.interval_supported = (self.machine_supported
+                and getattr(payload, "machine_interval_policy", None) == INTERVAL_POLICY)
+            self.machine_generation = 0
+            self.machine_ids = set()
             self.boot = event.server_boot_id
             safe_relative(self.boot)
             claim = f"{POLICY}\nclaim\n{self.authority.fingerprint()}\n{self.authority.challenge}\n{self.boot}\n"
@@ -186,8 +223,10 @@ class TelemetryPipeBroker:
         self.output.flush()
         os.fsync(self.output.fileno())
         self.count, self.previous, self.bytes, self.last_tick = event.seq, mac, self.bytes + len(wire), event.server_tick
+        self.last_kind = event.kind
         self.stopped = event.kind == "server_stopped" and event.payload_schema == "strata/ServerStopped/1"
-        self._record("DURABLE", records=self.count, bytes=self.bytes, last_event_sha256=event_hash)
+        sample = {"clock_sample_cursor": self.count} if event.kind == "server_clock_sample" else {}
+        self._record("DURABLE", records=self.count, bytes=self.bytes, last_event_sha256=event_hash, **sample)
         self.pipe.send(canonical({"schema": "strata/TelemetryPipeReceipt/1", "sequence": self.count,
                                   "event_sha256": event_hash}))
 

@@ -144,6 +144,32 @@ def test_gateway_root_receipt_and_fenced_envelope(gateway):
     assert value["amount_microusd"] == 7
 
 
+def test_repair_denial_survives_http_and_native_budget_closure(gateway):
+    """Real HTTP/dispatch/export; synthetic already-frozen controller window."""
+    from mcbench import repair_inference
+    from mcbench.inference_dispatch import verified_rejections
+    g = gateway
+    with g.gate.db.transaction() as db:
+        db.execute("CREATE TABLE avatar_lanes (campaign TEXT,agent TEXT,repair TEXT)")
+        db.execute("INSERT INTO avatar_lanes VALUES ('c1','a1','repair')")
+        repair_inference.install(db)
+        repair_inference.begin(db, "repair", "c1", "a1", 1)
+        cursor = g.gate.db.event(db, "repair.inference_frozen", {"transaction_id": "repair"})
+        db.execute("UPDATE repair_inference_windows SET closing_cursor=?", (cursor,))
+    before = g.gate.budgets.status("a1")
+    status, _ = g.post()
+    assert status != 200 and g.upstream == []
+    assert g.gate.budgets.status("a1") == before
+    denied = verified_rejections(g.gate.db.connection, "job", True)
+    assert len(denied) == 1
+    assert next(iter(denied.values())).reason == "REPAIR_INFERENCE_FROZEN"
+    assert g.gate.db.connection.execute("SELECT count(*) FROM inference_attempts").fetchone()[0] == 0
+    g.gate.db.connection.execute("UPDATE native_jobs SET state='UNSETTLED'")
+    seal = g.service.close(g.runtime)
+    assert g.runtime.close_dispatch_budget("job", seal)["state"] == "FINALIZED"
+    assert g.gate.budgets.status("a1")["committed_and_reserved"]["spend_microusd"] == 0
+
+
 @pytest.mark.parametrize("headers,route", [({HEADER: "x" * 43}, "/v1/responses"),
     ({"Authorization": "Bearer real-not-fixture"}, "/v1/responses"),
     ({}, "/v1/responses?redirect=x"), ({"Content-Encoding": "gzip"}, "/v1/responses")])

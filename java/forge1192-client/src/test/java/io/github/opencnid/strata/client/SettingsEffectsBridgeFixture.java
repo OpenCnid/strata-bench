@@ -1,0 +1,151 @@
+package io.github.opencnid.strata.client;
+
+import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
+
+/** Real production coordinator/HTTP/journals, synthetic body and input. Test classes never enter the client JAR. */
+public final class SettingsEffectsBridgeFixture {
+    static final class Runtime implements SettingsStore.RuntimePort, GameActionLane.RuntimePort,
+            NativeGameProtocol.RuntimePort, SettingsEffectRun.Port, KeyInputSession.Port {
+        private final SettingsBridgeFixture.SyntheticRuntime settings;
+        private KeyInputSession input;
+        private SettingsEffectsCoordinator coordinator;
+        private long tick;
+        private boolean down, screen, left, right;
+        private final Set<Integer> held = new java.util.HashSet<>();
+        private double distance;
+        private final GamePages pages = new GamePages();
+        private long revision;
+        private double yaw;
+        Runtime(Path profile) throws IOException {
+            settings = new SettingsBridgeFixture.SyntheticRuntime(profile);
+            var persisted = KeyOptions.parse(SettingsFiles.readOptions(profile.resolve("options.txt")));
+            for (String action : new String[]{"attack", "use", "forward", "sprint"}) {
+                String translation = "key." + action;
+                if (persisted.values().containsKey(translation)) settings.bindings.put("minecraft:" + translation + ":0",
+                    new SettingsStore.Binding(translation, persisted.values().get(translation), false));
+            }
+        }
+        public void requireClientThread() throws IOException { settings.requireClientThread(); }
+        public Map<String, SettingsStore.Binding> bindings() { return settings.bindings(); }
+        public void validateKeys(Map<String, String> changes) throws IOException { settings.validateKeys(changes); }
+        public void setKeys(Map<String, String> changes) throws IOException { settings.setKeys(changes); }
+        public void releaseInputs() throws IOException { if (input != null) input.cancel(); down = false; }
+        public String bodyFingerprint() { return "b".repeat(64); }
+        public long connectionGeneration() { return 1; }
+        public JsonObject snapshot(String id) throws IOException { return observe(id); }
+        public JsonObject observe(String cursor) throws IOException {
+            requireClientThread();
+            if (cursor != null) return pages.page(cursor, "minecraft:overworld");
+            long captured = pages.beginCapture();
+            var state = com.google.gson.JsonParser.parseString("""
+                {"dimension":"minecraft:overworld","position":{"x":0.0,"y":65.0,"z":0.0},
+                 "yaw":0.0,"pitch":0.0,"health":20.0,"food":20.0,"inventory":[],"window":null,
+                 "active_request_id":null,"connected":true}
+                """).getAsJsonObject();
+            state.addProperty("yaw", yaw);
+            var result = pages.capture(state, new com.google.gson.JsonArray(), new com.google.gson.JsonArray(), captured);
+            revision = SettingsJson.integer(result, "state_revision"); return result;
+        }
+        public void resetObservations() { pages.reset(); }
+        public void validate(GameBatch batch, JsonObject observation) throws IOException {
+            if (batch.revision != revision) throw new IOException("REVISION_CONFLICT");
+        }
+        public GameActionLane.Motor begin(GameBatch batch, JsonObject observation, GameActionLane.Emitter emitter) throws IOException {
+            if (!batch.kind.equals("look_at")) throw new IOException("CAPABILITY_MISSING");
+            emitter.invoke(() -> yaw += 0.25); // Synthetic body change; never a Minecraft effect claim.
+            return ignored -> true;
+        }
+        public boolean settingsEffectsEnabled() { return true; }
+        public JsonObject settingsRequest(JsonObject request) throws IOException { return coordinator.execute(request); }
+        public void stopSettingsEffects() throws IOException { coordinator.stop(); }
+        public Set<String> fixedControls() { return Set.of(NativeSettingsRuntime.FIXED_ESCAPE); }
+        public void validateBinding(String binding, long hold) throws IOException {
+            if (NativeSettingsRuntime.FIXED_ESCAPE.equals(binding)) return;
+            if (!bindings().containsKey(binding) || !Set.of("fixture:key.mod.action:0", "minecraft:key.inventory:0",
+                    "minecraft:key.attack:0", "minecraft:key.use:0", "minecraft:key.forward:0", "minecraft:key.sprint:0").contains(binding)) throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+        }
+        public KeyInputSession start(String binding, long hold, GameActionLane.Emitter ordinary,
+                GameActionLane.Emitter safety) throws IOException {
+            validateBinding(binding, hold);
+            String[] parts = (NativeSettingsRuntime.FIXED_ESCAPE.equals(binding) ? "key.keyboard.escape" : bindings().get(binding).value()).split(":", -1);
+            var modifier = parts.length == 2 ? KeyInputSession.Modifier.valueOf(parts[1]) : KeyInputSession.Modifier.NONE;
+            var device = parts[0].startsWith("key.mouse.") ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD;
+            int key = switch (parts[0]) {
+                case "key.keyboard.escape" -> 256;
+                case "key.keyboard.left.control" -> 341;
+                case "key.keyboard.w" -> 87;
+                case "key.mouse.left" -> 0;
+                case "key.mouse.right" -> 1;
+                case "key.keyboard.f13" -> 302;
+                case "key.keyboard.e" -> 69;
+                default -> 71;
+            };
+            var pool = new java.util.HashSet<Integer>(); pool.add(key);
+            Integer companion = null;
+            if (binding.equals("minecraft:key.sprint:0")) {
+                if (screen || !"key.keyboard.w".equals(bindings().get("minecraft:key.forward:0").value()))
+                    throw new IOException("SETTINGS_SPRINT_CONTEXT_UNVERIFIED");
+                companion = 87; pool.add(companion);
+            }
+            if (modifier != KeyInputSession.Modifier.NONE) pool.add(modifier.key);
+            input = KeyInputSession.start(this, new KeyInputSession.Request(key, modifier, hold, device, companion),
+                pool, ordinary, safety); return input;
+        }
+        public void validate() throws IOException { requireClientThread(); }
+        public long monotonicMillis() { return System.nanoTime() / 1000000; }
+        public void event(int key, boolean pressed, int modifiers) {
+            if (pressed) held.add(key); else held.remove(key);
+            down = pressed;
+            if (pressed && key < 340 && key != 87) screen = key == 69 || key == 71 || key == 256 ? !screen : true;
+        }
+        public void mouseEvent(int button, boolean pressed, int modifiers) {
+            if (button == 0) left = pressed; else right = pressed;
+        }
+        public void clear() { down = false; left = false; right = false; held.clear(); }
+        public JsonObject observe() {
+            JsonObject value = new JsonObject(); value.addProperty("client_tick", tick);
+            value.addProperty("context", screen ? "GUI" : "IN_GAME");
+            value.addProperty("screen", screen ? "fixture.Screen" : "none"); value.addProperty("window_active", true);
+            value.addProperty("menu_id", 0); value.addProperty("menu_type", "fixture.Menu");
+            if (held.contains(87)) distance += .1;
+            value.addProperty("x", 1.0 + distance); value.addProperty("y", 64.0); value.addProperty("z", 2.0);
+            value.addProperty("swinging", left); value.addProperty("mouse_grabbed", !screen);
+            value.addProperty("mouse_left", left); value.addProperty("mouse_right", right);
+            value.addProperty("sneaking", false); value.addProperty("sprinting", held.contains(341) && held.contains(87)); value.addProperty("using_item", right);
+            return value;
+        }
+    }
+    public static void main(String[] args) throws Exception {
+        if (args.length != 4) throw new IllegalArgumentException("TEST_ARGUMENTS_REQUIRED");
+        Path profile = Path.of(args[0]), settingsRoot = Path.of(args[1]), gameRoot = Path.of(args[2]), descriptor = Path.of(args[3]);
+        Runtime runtime = new Runtime(profile);
+        var authority = GameActionLane.Authority.read(SettingsJson.read(SettingsFiles.readOptions(gameRoot.resolve("game-authority.json"))));
+        try (var store = new SettingsStore(profile, settingsRoot, "d".repeat(64), runtime);
+                var lane = new GameActionLane(gameRoot, "a".repeat(64), authority, runtime)) {
+            runtime.coordinator = new SettingsEffectsCoordinator(store, runtime, lane, runtime,
+                Boolean.getBoolean(NativeSettingsEffects.REPAIR_PROPERTY), Boolean.getBoolean(NativeSettingsEffects.COMMIT_PROPERTY),
+                Boolean.getBoolean(NativeSettingsEffects.RESTART_PROPERTY), Boolean.getBoolean(NativeSettingsEffects.RESUME_PROPERTY));
+            NativeGameProtocol protocol = new NativeGameProtocol(runtime, lane);
+            try (var bridge = new SettingsHttpBridge(protocol::execute, protocol)) {
+                SettingsFiles.writeNew(descriptor, (bridge.descriptor("a".repeat(64)) + "\n").getBytes(StandardCharsets.UTF_8));
+                System.out.println("SYNTHETIC_SETTINGS_EFFECTS_READY"); System.out.flush();
+                try {
+                    while (System.in.available() == 0) {
+                        if (java.nio.file.Files.exists(gameRoot.resolve("fixture-freeze"))) {
+                            // Named between-tick fault boundary; never package this test-only hook.
+                            SettingsFiles.writeNew(gameRoot.resolve("fixture-frozen"), "frozen\n".getBytes(StandardCharsets.UTF_8));
+                            while (System.in.available() == 0) Thread.sleep(5);
+                            break;
+                        }
+                        runtime.tick++; bridge.drain(); runtime.coordinator.tick(); lane.tick(); Thread.sleep(5);
+                    }
+                } finally { runtime.coordinator.stop(); }
+            }
+        }
+    }
+}

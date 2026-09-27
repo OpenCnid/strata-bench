@@ -17,12 +17,15 @@ import net.minecraftforge.fml.ModList;
 final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
     static final String CURIOS_SHA256 = "1f7742d6c4f6b6cd8d106e54181255c2d264194ba232d42901ef90da6b91e635";
     static final String TARGET = "curios:key.curios.open.desc:0";
+    static final String FIXED_ESCAPE = "strata:fixed.escape";
     private final Minecraft client;
     private final KeyMapping owned;
     private final String fingerprint;
+    private final boolean effectCandidates;
 
     NativeSettingsRuntime(Minecraft client) throws IOException {
         this.client = client;
+        effectCandidates = NativeSettingsEffects.enabled();
         requireClientThread();
         var mod = ModList.get().getModFileById("curios");
         if (mod == null || !CURIOS_SHA256.equals(fileHash(mod.getFile().getFilePath()))) {
@@ -55,7 +58,8 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
         artifacts.addProperty("artifact_hash_policy", ArtifactFiles.POLICY);
         artifacts.addProperty("java_runtime", System.getProperty("java.runtime.version"));
         artifacts.addProperty("os", System.getProperty("os.name") + ":" + System.getProperty("os.arch"));
-        artifacts.addProperty("policy", "strata/native-settings-development/1");
+        artifacts.addProperty("policy", effectCandidates
+            ? "strata/native-settings-effect-candidates/1" : "strata/native-settings-development/1");
         fingerprint = KeyOptions.sha256(artifacts.toString());
     }
 
@@ -64,6 +68,38 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
     }
 
     String fingerprint() { return fingerprint; }
+
+    KeyInputSession.Request effectKey(String id, long holdMs) throws IOException {
+        requireClientThread();
+        if (FIXED_ESCAPE.equals(id)) return new KeyInputSession.Request(256, KeyInputSession.Modifier.NONE, holdMs);
+        KeyMapping mapping = mappings().get(id);
+        var options = client.options;
+        if (mapping == null || !(mapping == owned || mapping == options.keyInventory
+                || mapping == options.keyUp || mapping == options.keyDown || mapping == options.keyLeft
+                || mapping == options.keyRight || mapping == options.keyJump || mapping == options.keyShift
+                || mapping == options.keySprint || mapping == options.keyChat || mapping == options.keyAttack || mapping == options.keyUse)) {
+            throw new IOException("SETTINGS_CONSUMER_UNQUALIFIED");
+        }
+        var type = mapping.getKey().getType();
+        if (mapping == options.keySprint) {
+            if (client.screen != null || type != InputConstants.Type.KEYSYM
+                    || mapping.getKeyModifier() != KeyModifier.NONE || options.keyUp.getKeyModifier() != KeyModifier.NONE
+                    || options.keyUp.getKey().getType() != InputConstants.Type.KEYSYM) {
+                throw new IOException("SETTINGS_SPRINT_CONTEXT_UNVERIFIED");
+            }
+            return new KeyInputSession.Request(mapping.getKey().getValue(), KeyInputSession.Modifier.NONE,
+                holdMs, KeyInputSession.Device.KEYBOARD, options.keyUp.getKey().getValue());
+        }
+        if (type != InputConstants.Type.KEYSYM && type != InputConstants.Type.MOUSE) throw new IOException("SETTINGS_INPUT_UNSUPPORTED");
+        KeyInputSession.Modifier modifier = switch (mapping.getKeyModifier()) {
+            case NONE -> KeyInputSession.Modifier.NONE;
+            case SHIFT -> KeyInputSession.Modifier.SHIFT;
+            case CONTROL -> KeyInputSession.Modifier.CONTROL;
+            case ALT -> KeyInputSession.Modifier.ALT;
+        };
+        return new KeyInputSession.Request(mapping.getKey().getValue(), modifier, holdMs,
+            type == InputConstants.Type.MOUSE ? KeyInputSession.Device.MOUSE : KeyInputSession.Device.KEYBOARD);
+    }
 
     JsonObject ownershipEvidence() {
         JsonObject result = new JsonObject();
@@ -119,11 +155,17 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
             throw new IOException("PROTECTED_OR_UNKNOWN_BINDING");
         }
         String value = changes.get(TARGET);
-        // A narrowly scoped configuration-write probe, NOT a tested physical key pool.
-        if (!"key.keyboard.unknown".equals(value) && !"key.keyboard.f13".equals(value)) {
-            throw new IOException("SETTINGS_DEVELOPMENT_KEY_UNSUPPORTED");
-        }
+        validateDevelopmentValue(value, effectCandidates);
         parse(value);
+    }
+
+    static void validateDevelopmentValue(String value, boolean effects) throws IOException {
+        // Private candidates permit an E/inventory conflict and its repair. None
+        // is a qualified free key until ordinary-input/context verification passes.
+        boolean base = "key.keyboard.unknown".equals(value) || "key.keyboard.f13".equals(value);
+        boolean candidate = effects && value != null && value.matches(
+            "key\\.keyboard\\.(?:e|f13)(?::(?:SHIFT|CONTROL|ALT))?");
+        if (!base && !candidate) throw new IOException("SETTINGS_DEVELOPMENT_KEY_UNSUPPORTED");
     }
 
     private record Parsed(InputConstants.Key key, KeyModifier modifier) {}
@@ -148,6 +190,11 @@ final class NativeSettingsRuntime implements SettingsStore.RuntimePort {
 
     @Override public void releaseInputs() throws IOException {
         requireClientThread();
+        try { NativeKeyInput.stopActive(); }
+        finally { releaseMappings(); }
+    }
+
+    private void releaseMappings() throws IOException {
         KeyMapping.releaseAll();
         for (KeyMapping mapping : client.options.keyMappings) {
             int drained = 0;

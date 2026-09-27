@@ -20,7 +20,7 @@ final class SettingsJson {
         return read(text, false);
     }
 
-    /** Game coordinates admit signed finite numbers; settings/journal integers stay strict. */
+    /** Game coordinates admit signed finite numbers; typed sequence/revision fields stay strict. */
     static JsonObject readGame(String text) throws IOException { return read(text, true); }
 
     private static JsonObject read(String text, boolean gameNumbers) throws IOException {

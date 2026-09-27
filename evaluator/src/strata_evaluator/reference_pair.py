@@ -21,7 +21,7 @@ from mcbench.storage import Database, Fault, canonical, digest, reject_links, re
 
 from .craft_reference import CraftReferenceStore, PrivateFile, check_file, private_path
 from .reference_abort import AbortSignal, failure_record, request_abort
-from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, parse_launch_plan
+from .reference_launch import ReferenceLaunchPlanV3, ReferenceLaunchPlanV5, ReferenceLaunchPlanV8, parse_launch_plan
 from .reference_participant import ParticipantReady, publish, REPORT_LIMIT
 from .telemetry_auth import private_read
 
@@ -282,8 +282,9 @@ class ReferencePair:
         if isinstance(plan, ReferencePairPlanV2):
             from .protected_reference import parse_protected_plan
             protected = parse_protected_plan(read_pinned(plan.protected_file, 32 * 1024**2))
-            require(protected.schema_ == "strata/ProtectedReferencePlan/2"
-                    and type(launch) is ReferenceLaunchPlanV5, "REFERENCE_PAIR_PROFILE")
+            require(type(launch) is {"strata/ProtectedReferencePlan/2": ReferenceLaunchPlanV5,
+                                    "strata/ProtectedReferencePlan/3": ReferenceLaunchPlanV8}.get(protected.schema_),
+                    "REFERENCE_PAIR_PROFILE")
             require(protected.launch.model_dump(by_alias=True) == launch.model_dump(by_alias=True),
                     "REFERENCE_PAIR_PROTECTED_BINDING")
             setup = protected.setup
@@ -326,6 +327,14 @@ class ReferencePair:
             and Path(plan.bootstrap.path).resolve() == source / "src/mcbench/process_bootstrap.py",
             "REFERENCE_PAIR_BOOTSTRAP",
         )
+        # The child launcher must pin the same interpreter/bootstrap as this
+        # pair. Reject stale worktree pins before reserving or copying a world.
+        for required in (plan.python, plan.bootstrap):
+            matching = [pin for pin in launch.immutable_files
+                        if str(Path(pin.path).resolve()).casefold()
+                        == str(Path(required.path).resolve()).casefold()]
+            require(matching and all((pin.sha256, pin.bytes) == (required.sha256, required.bytes)
+                                     for pin in matching), "REFERENCE_PAIR_LAUNCH_BOOTSTRAP")
         private_path(plan.client_driver.path)
         pins = [plan.launch_file, plan.client_driver, plan.python, plan.bootstrap, *plan.inputs]
         if protected:
@@ -356,8 +365,10 @@ class ReferencePair:
             from .reference_preparation import read_preparation, validate_preparation
             preparation = read_preparation(plan.client_preparation)
             pins.extend([plan.client_preparation, preparation.session_receipt])
+        # Readiness starts the participant clock before client admission. Equal
+        # windows can never satisfy the remaining-time check at dispatch.
         require(
-            plan.client_window_ms <= launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
+            plan.client_window_ms < launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
         )
         inventory = {}
         for pin in pins:
@@ -415,7 +426,8 @@ class ReferencePair:
         started = time.monotonic()
         ready = None
         aborted_at = None
-        published = False
+        pending_abort = None
+        publication_attempted = False
         claimed = False
         signal = AbortSignal(launch, server_evidence)
         try:
@@ -505,6 +517,13 @@ class ReferencePair:
             )
             while True:
                 try:
+                    # An early failure can precede the server-owned directory.
+                    # Deliver that original durable failure on a later healthy
+                    # monitor iteration, without waiting for another exception.
+                    if (pending_abort is not None and not publication_attempted
+                            and server_evidence.is_dir() and not signal.poll()):
+                        publication_attempted = True
+                        request_abort(server_evidence, launch, *pending_abort)
                     for role, owned in processes.items():
                         phase = role + ("_deadline" if owned.fired else "_monitor")
                         owned.observe()
@@ -604,6 +623,7 @@ class ReferencePair:
                         self._record(launch.instance_id, "ABORT_REQUESTED", body)
                     if aborted_at is None:
                         aborted_at = time.monotonic()
+                        pending_abort = (phase, error)
                         for role, owned in processes.items():
                             cleanup = launch.abort_cleanup_ms / 1000
                             if role == "server":
@@ -611,9 +631,12 @@ class ReferencePair:
                             owned.shorten(aborted_at + cleanup)
                     # The server owns creation of its evidence directory. An early
                     # failure remains durable while waiting for it; no client starts.
-                    if not published and server_evidence.is_dir() and not signal.poll():
-                        request_abort(server_evidence, launch, phase, error)
-                        published = True
+                    if (not publication_attempted and server_evidence.is_dir()
+                            and not signal.poll()):
+                        # Attempt at most once even if publication itself is
+                        # ambiguous. Preserve its failure; the watchdog remains.
+                        publication_attempted = True
+                        request_abort(server_evidence, launch, *pending_abort)
                     if all(owned.process.poll() is not None for owned in processes.values()):
                         break
                 time.sleep(0.025)

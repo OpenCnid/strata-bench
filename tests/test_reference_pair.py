@@ -186,6 +186,35 @@ def test_actual_owned_pair_completes_only_coordination_and_preserves_exact_repor
     ]
 
 
+@pytest.mark.parametrize("role", ["python", "bootstrap"])
+@pytest.mark.parametrize("fault", ["missing", "stale_path", "hash", "bytes", "conflict"])
+def test_launch_bootstrap_mismatch_rejects_before_reservation_or_dispatch(pair, monkeypatch, role, fault):
+    runner, plan, launch_plan, _ = pair
+    expected = Path(plan[role]["path"]).resolve()
+    target = next(pin for pin in launch_plan["immutable_files"]
+                  if Path(pin["path"]).resolve() == expected)
+    if fault == "missing":
+        launch_plan["immutable_files"].remove(target)
+    elif fault == "stale_path":
+        target["path"] = str(expected.with_name("old-worktree-" + expected.name))
+    elif fault == "hash":
+        target["sha256"] = "0" * 64
+    elif fault == "bytes":
+        target["bytes"] += 1
+    else:
+        launch_plan["immutable_files"].append({**target, "sha256": "0" * 64})
+    path = Path(plan["launch_file"]["path"])
+    path.write_bytes(canonical(launch_plan))
+    plan["launch_file"] = {"path": str(path), **pin(path)}
+    monkeypatch.setattr(module, "ManagedProcess", lambda *args, **kwargs: pytest.fail("dispatched"))
+    before = list(runner.database.connection.iterdump())
+    with pytest.raises(Fault, match="^REFERENCE_PAIR_LAUNCH_BOOTSTRAP$"):
+        runner.run(plan)
+    assert list(runner.database.connection.iterdump()) == before
+    assert not Path(plan["evidence_directory"]).exists()
+    assert not Path(launch_plan["evidence_directory"]).exists()
+
+
 def test_owned_pair_observes_dynamic_desktop_guardian_jobs_through_close(pair):
     """The real nested lifecycle used by the client, with a disposable JVM body."""
     java = os.environ.get("STRATA_CLIENT_TEST_JAVA")
@@ -325,6 +354,71 @@ def test_failed_first_monitor_never_starts_client(pair, monkeypatch, interrupted
         assert result["failures"][0]["error_type"] == "KeyboardInterrupt"
         row = runner.database.connection.execute("SELECT body FROM reference_pairs").fetchone()
         assert json.loads(row["body"])["failures"][0] == result["failures"][0]
+
+
+@pytest.mark.parametrize("publication_error", [None, "before_write", "after_write"])
+def test_single_early_fault_delivers_first_abort_after_directory_appears(
+    pair, monkeypatch, publication_error, record_property
+):
+    runner, plan, launch_plan, _ = pair
+    evidence = Path(launch_plan["evidence_directory"])
+    original_observe, original_is_dir = module.OwnedCli.observe, Path.is_dir
+    request = module.request_abort
+    state = {"observations": 0, "hidden": False, "requests": 0}
+
+    def observe(self):
+        state["observations"] += 1
+        if state["observations"] == 1:
+            raise ProcessInventoryFault("incomplete_list", assigned=12, listed=11,
+                retained=12, reconciliation_failure="unretained_list_entry")
+        return original_observe(self)
+
+    def is_dir(path):
+        # Hide only the first publication opportunity. Subsequent monitor
+        # iterations succeed; no second exception is needed for delivery.
+        if path == evidence and state["observations"] == 1 and not state["hidden"]:
+            state["hidden"] = True
+            return False
+        return original_is_dir(path)
+
+    def abort(*args):
+        state["requests"] += 1
+        assert state["requests"] == 1 and state["hidden"]
+        row = runner.database.connection.execute(
+            "SELECT state,body FROM reference_pairs").fetchone()
+        body = json.loads(row["body"])
+        assert row["state"] == "ABORT_REQUESTED" and len(body["failures"]) == 1
+        assert body["process_observations"][0]["schema"] == "strata/ProcessInventoryObservation/2"
+        assert body["process_observations"][0]["reconciliation_failure"] == "unretained_list_entry"
+        assert args[2] == "server_monitor" and isinstance(args[3], ProcessInventoryFault)
+        if publication_error == "before_write":
+            raise OSError("private publication detail")
+        value = request(*args)
+        if publication_error == "after_write":
+            raise OSError("private publication detail")
+        return value
+
+    monkeypatch.setattr(module.OwnedCli, "observe", observe)
+    monkeypatch.setattr(Path, "is_dir", is_dir)
+    monkeypatch.setattr(module, "request_abort", abort)
+    result = runner.run(plan)
+    record_property("pair_result", json.dumps(result))
+    assert result["status"] == "uncertain" and state["requests"] == 1
+    assert "client_process" not in result
+    assert not (Path(plan["evidence_directory"]) / "client-intent.json").exists()
+    assert result["failures"][0]["code"] == "PROCESS_MEMBER_INVENTORY_UNAVAILABLE"
+    assert "private publication detail" not in json.dumps(result)
+    if publication_error != "before_write":
+        value = json.loads((evidence / "outer-abort.json").read_bytes())
+        assert value["failure"] == result["failures"][0]
+    else:
+        assert not (evidence / "outer-abort.json").exists()
+    if publication_error:
+        assert any(f["error_type"] == "OSError" for f in result["failures"])
+    else:
+        assert all(f["code"] != "REFERENCE_PAIR_HARD_DEADLINE" for f in result["failures"])
+        assert result["server_process"]["terminal_verified"]
+        assert not result["server_process"]["forced"]
 
 
 def test_prior_interrupted_intent_cannot_be_overwritten_by_new_output_paths(pair):
@@ -477,6 +571,7 @@ module.main()
         ("pin", "CRAFT_FILE_CHANGED"),
         ("source", "REFERENCE_PAIR_SOURCE_UNPINNED"),
         ("exposure", "REFERENCE_PAIR_EXPOSURE"),
+        ("equal_exposure", "REFERENCE_PAIR_EXPOSURE"),
         ("path", "REFERENCE_PAIR_PATH"),
     ],
 )
@@ -488,6 +583,8 @@ def test_pair_rejects_unsafe_inputs_before_durable_dispatch(pair, change, code):
         plan["inputs"].pop(0)
     elif change == "exposure":
         plan["client_window_ms"] = 5000
+    elif change == "equal_exposure":
+        plan["client_window_ms"] = launch_plan["participant"]["window_s"] * 1000
     else:
         plan["evidence_directory"] = str(Path(launch_plan["evidence_directory"]) / "nested")
         Path(launch_plan["evidence_directory"]).mkdir()

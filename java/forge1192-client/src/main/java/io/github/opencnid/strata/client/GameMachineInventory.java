@@ -29,6 +29,19 @@ final class GameMachineInventory {
     }
     static GameActionLane.Motor click(GameInventory.Port port, Layout layout, int slot, boolean right, boolean quick,
                                      GameActionLane.Emitter emit) throws IOException {
+        var before = validateClick(port, layout, slot, quick);
+        return new Step(port, layout, before, slot, right, quick, emit);
+    }
+    static GameActionLane.Motor clickConfirmed(GameInventory.Port port, Layout layout,
+                                               GameInventory.View baseline, int slot, boolean right, boolean quick,
+                                               GameActionLane.Emitter emit) throws IOException {
+        var actual = validateClick(port, layout, slot, quick);
+        if (!actual.equals(baseline)) throw new GameMachinePreflightFailure(
+            GameMachinePreflightFailure.Phase.FINAL_BASELINE, new IOException("REVISION_CONFLICT"),
+            layout, slot, baseline, actual);
+        return new Step(port, layout, baseline, slot, right, quick, emit);
+    }
+    static GameInventory.View validateClick(GameInventory.Port port, Layout layout, int slot, boolean quick) throws IOException {
         port.validate(); var before = port.view(); layout.check(before);
         if (!layout.visible(slot) || quick && layout.player(slot)) throw new IOException("MECHANIC_UNSUPPORTED");
         var target = before.slots().get(slot); var cursor = before.cursor();
@@ -37,7 +50,7 @@ final class GameMachineInventory {
         if (!target.empty() && !port.mayPickup(slot)) throw new IOException("PRECONDITION_FAILED");
         if (!quick && !cursor.empty() && !port.mayPlace(slot, cursor)
                 && (target.empty() || !target.same(cursor))) throw new IOException("PRECONDITION_FAILED");
-        return new Step(port, layout, before, slot, right, quick, emit);
+        return before;
     }
     private static final class Step implements GameActionLane.Motor {
         final GameInventory.Port port; final Layout layout;
@@ -80,11 +93,15 @@ final class GameMachineInventory {
                     emit.invoke(() -> ticket = port.requestSync());
                     return false;
                 }
-                throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
+                throw new GameMachineMismatch(layout, GameMachineMismatch.Phase.PREDICTION_REPLY,
+                    echoedBefore, before, predicted, received, current);
             }
             // A later GUI update may advance processing, but cannot alter the
             // confirmed owned inventory/cursor before this terminal receipt.
-            var current = port.view(); layout.check(current); requireOwned(layout, received, current);
+            var current = port.view(); layout.check(current);
+            if (!sameOwned(layout, received, current))
+                throw new GameMachineMismatch(layout, GameMachineMismatch.Phase.REPLY_CURRENT,
+                    echoedBefore, before, predicted, received, current);
             return true;
         }
     }
@@ -101,9 +118,6 @@ final class GameMachineInventory {
             if (!before.cursor().equals(after.cursor()) || !end.empty() && (!end.same(start) || end.count() >= start.count()))
                 throw new IOException("PRECONDITION_FAILED");
         }
-    }
-    private static void requireOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) throws IOException {
-        if (!sameOwned(layout, expected, actual)) throw new IOException("GAME_MACHINE_TRANSFER_UNCONFIRMED");
     }
     private static boolean sameOwned(Layout layout, GameInventory.View expected, GameInventory.View actual) {
         if (!expected.cursor().equals(actual.cursor())) return false;

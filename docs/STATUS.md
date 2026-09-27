@@ -1,48 +1,46 @@
 # Strata current status
 
-## Current position — September 27, native keybinding baseline failure
+## Current position — September 27, native keybinding cycle passes
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b now supports explicit baseline observations without a fake settings
-transaction, alongside pending-patch observations. Candidate E/F13 chords and
-standalone Shift/Ctrl/Alt enable the planned conflict and essential-control checks.
-[Cycle plan and preparation](verification/2026-09-27-m1-settings-cycle-plan.md).
-Focused synthetic and actual JVM/HTTP checks pass. Attempt01 failed before launch.
-Attempt02 joined Minecraft, but its first E-key baseline opened inventory and
-failed the original Curios-screen expectation. No patch, F13, restart or rollback
-occurred. Both failures are sealed. Source inspection identifies the invalid
-both-screens assumption: Forge click lookup selects one active binding. A separate
-corrected shadowing procedure is prepared but undispatched; original criteria
-and failure remain retained. Client/server are terminal and session arguments retired.
-The private conformance driver does not yet qualify the gameplay worker's repair
-integration. All six G1 suites and G1 remain not_run.
+M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
+owned repair, independent Curios/inventory effects, sneak/release and forward
+movement, same-server client restart, repeated effects, native rollback and exact
+pretrial restoration. [Sealed native04 evidence](verification/2026-09-27-m1-settings-cycle-plan.md).
+Thirteen raw effect runs/eight frames/355 primitives audited; client45/45 and
+server29/29 terminal. Guardian431.4892/501.0879ms. All old failures remain sealed.
+The latest reservation settled; five historical 256MiB holds remain unchanged.
+This verifies the named private preplay cycle, not the full keybinding skill,
+context/failure matrix or gameplay-worker repair integration. All six G1 suites
+and G1 remain not_run.
 
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
 | T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
 | T04 native host | Scoped native/root/helper evidence exists | Final game/settings/probe profile, selected skill, interruption/resume and all-call accounting |
-| T05 keybinding | Transaction, rollback, discovery and some native persistence/crash evidence | Complete real effects and full conflict/context/modifier/hold/failure matrix |
+| T05 keybinding | Named native repair/restart/rollback cycle passes; earlier discovery/crash evidence retained | Gameplay-worker/skill integration and remaining context/modifier/hold/failure/isolation matrix |
 | T06 isolation | Named native denial and permitted-access cases exist | Qualify the final integrated runtime, credentials and probe disposal on the exact profile |
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next bind fresh authority and pins for the corrected native keybinding cycle,
-complete repair/restart/rollback, then reconcile T01 against the resulting interface,
-complete matched probes, consolidate T10, and qualify
-final T04/T06 before assembling G1. This follows the
+Next implement M1.1c.3.2's owned gameplay-worker repair pause, settings adapter and
+restart/resume integration using the new native cycle evidence. Complete remaining
+T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
+before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
 remains outside scope. Report closed acceptance cases or end-to-end deliverables,
 not passing assertion counts as a proxy for completion.
 
 D20 implementation authority persists; D18/D19 inference authority remains M0-only.
 All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
-failures, consumed decisions and four separate 256 MiB telemetry holds, including
-attempt02. Its 25 primitives are retained; no model calls or new inference authority.
+failures, consumed decisions and five separate 256 MiB telemetry holds, including
+native03. Native04 adds355 charged primitives and settles its own reservation;
+no model calls or new inference authority.
 
 ## Historical updates — superseded next steps
 

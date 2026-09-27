@@ -190,3 +190,128 @@ input-engine XML was inspected during execution but overwritten by later Gradle
 results; its passing count is a captured execution result, not a recreated XML.
 All 458 milestone IDs are preserved; 1,609 local ledger links checked. This seal
 pointer is appended after the archived documentation snapshot.
+
+## Attempt03: native repair observed; frame quota stops the cycle
+
+The fresh `2026-09-27-m1-settings-cycle-native-03` used the corrected, prior-bound
+inventory-shadowing baseline with the same client JAR and input policy. It joined
+in 165.422 seconds and observed E→inventory, applied only Curios E→F13, closed
+inventory by E, opened Curios by F13 without an inventory opening, and closed
+Curios by E. Four complete raw effect observations and their journal joins pass
+inspection. The four captured frames show the initial world, baseline inventory,
+closed world and repaired Curios. Operator visual inspection confirms the latter
+two menu identities, including Curios' expanded slots. This is actual scripted
+Minecraft evidence for those steps, not a complete repair-cycle or T05 pass.
+
+The next capture request, after closing Curios, failed `FRAME_TIMEOUT`. The
+unchanged `private-main-target-pre-display-png4/1` session permits four frames;
+`PrivateFrames.capture` returns without consuming request five. Its request is
+retained, with no fifth intent or receipt. This is a driver capacity mismatch,
+not evidence that Curios failed to close. No repaired inventory-opening test,
+movement/sneak test, restart or native rollback was reached.
+
+The game journal retains 107 charged primitives. The client/server are terminal,
+session arguments retired and the input desktop unchanged; guardian full tree
+check is 424.0296 ms under the original 1,000 ms bound. All four lifecycle rows
+remain UNCERTAIN. A fifth separate 256 MiB telemetry hold stays RESERVED with
+unknown actual bytes. All 40 authority tables remain unchanged at 4,887,796
+microUSD; no model calls or extended inference authority.
+
+The original native settings journal remains `applied_pending_verification`.
+After verifying terminal custody, the operator saved the F13 options bytes and
+restored the disposable fixture's one owned field to E under its profile lock.
+The result matches the exact pretrial options SHA-256, preserving every other
+byte. This stopped fixture cleanup does not count as native rollback, does not
+rewrite the old journal, and does not rearm the consumed authority. The original
+pending journal, restoration intent and receipt remain with the failed attempt.
+
+Failure seal: 338 files, 91,360,949 bytes, SHA-256
+`9c3ee51373ad9195a2dad5ffc3c8b6043d62085945faf688246aef463c56ae7c`.
+
+The separate next procedure allocates four frames per client: initial world plus
+baseline/repaired Curios/repaired inventory before restart; initial world plus
+repaired Curios/repaired inventory/restored baseline after restart. Closing,
+movement and release retain all bounded raw observations and assertions. This
+keeps the original capture quota, all native actions and full gate criteria;
+neither the failed attempt nor unexecuted checks are promoted. The driver must
+check this schedule against the session quota before input and reject any excess
+frame request immediately. A fresh complete cycle remains required.
+
+
+## Native04 dispatch and remaining worker integration
+
+Native04 dispatched once with fresh scope/workspace/authority and 588 input pins.
+Prelaunch checks verify the sealed native03 failure, five retained holds, empty
+Java inventory, plan digests and the four-frame schedule. Both generated Python
+procedures compile; the native client JAR and all source dependencies remain
+unchanged. Follow the active process handle to its terminal outcome; no result
+is claimed here.
+
+Read-only integration review confirms the already-open M1.1c.3.2 dependency:
+`ForgeLane.checkHealth` requires an unfenced native lane, and `renewLease` invokes
+that check. Native settings verification deliberately fences gameplay input.
+A qualified worker repair state must admit that exact owned transition while
+preserving expired-lease rejection, action suspension, budget/deadline accounting,
+credential/source binding, restart continuity and fresh resume authority. The
+private cycle's independent guardian does not satisfy this worker contract.
+
+## Native04 terminal result: named cycle passes
+
+M1.1b.1 is verified for this exact **scripted preplay Curios E/F13 cycle** on the
+same `c8afc1af…e060e53c` client artifact and `native-window-key-callback-polling/2`
+profile. It is not a complete T05 or gameplay-worker qualification.
+
+| Prior-bound check | Actual result |
+|---|---|
+| Initial E overlap | Inventory alone opens while Curios and inventory runtime/persisted mappings are both E |
+| Native repair | Exactly one owned Curios E→F13 apply; protected inventory remains E |
+| Repaired controls | F13 opens Curios without inventory; E opens inventory without Curios; ordinary E closes both screens |
+| Essential-control slice | Sneak is observed held then released; forward changes position under the bounded native input route |
+| Restart continuity | Same running server and one unchanged game authority; second client queries the exact pending settings head; fresh connection session, no forward replay |
+| Effects after restart | F13/Curios and E/inventory separation plus ordinary closes pass again |
+| Native rollback | One rollback restores every binding and the exact pretrial options bytes; E again opens inventory while shadowing Curios |
+| Evidence custody | Thirteen completed raw effect runs, eight frame receipts/PNG hashes, complete game/settings journal chains and all observation joins |
+| Stop and accounting | All processes terminal; no model calls, unchanged authority tables, no old hold released |
+
+First/second client startup took 168.578/165.406 seconds. Both phase reports pass;
+guardian full tree checks take 431.4892/501.0879 ms under the unchanged 1,000 ms
+bound. Client 45/45 and server 29/29 process histories are terminal without forced
+outer cleanup. The server reports a recognized clean stop after 508.687 seconds
+with 1,787 records. Both session argument paths are retired and zero Java
+processes remain. This supplies no new machine/scorer acceptance claim.
+
+The single game journal retains 30 ordinary safety primitives and 325
+reconfiguration primitives, 355 total. Fifteen begin/end pairs cover thirteen
+effect runs plus apply/rollback; all 331 reconfiguration observations remain
+joined. The settings journal contains one prepared/apply and one rollback pair.
+The two connection sessions differ while the source/profile and total authority
+remain the same. The actual native rollback restores the exact E-overlap fixture,
+not the older user's unbound configuration, whose backup remains separately kept.
+
+All four reference lifecycle rows are STOPPED. The new 256 MiB reservation is
+CONSUMED with 12,114,461 actual bytes, settling 256,320,995 unused bytes; the five
+older reservations remain separate and RESERVED. All 40 controller authority
+tables remain unchanged at 4,887,796 microUSD. D18/D19 still do not authorize M1
+inference. The private terminal audit uses WAL-aware reads and a frozen database.
+
+Native04 seal: 553 files, 107,150,026 bytes, SHA-256
+`bc28613086e9b770e7f5cf7ffa492ea456e56efd96dd5212ceb9aca521507fd5`.
+The audit procedure is retained inside the seal. Operator image inspection also
+confirms the post-restart Curios, repaired inventory and restored-overlap frames.
+No unchanged passing suite or successful native cycle should be repeated absent
+a relevant implementation/profile change or named missing acceptance case.
+
+Full T05/G1 remain not_run. The coverage matrix above still requires the remaining
+contexts/modifiers, exhaustion/refusals, interruption/concurrency, cross-client
+isolation and complete essential-control checks. M1.1c.3.2 must now connect the
+qualified native effect path to the gameplay worker's owned repair pause,
+restart/resume and Controls verification/commit workflow; M1.1c.3.3 retains full
+repair accounting and the scoped skill/CLI/control-card projection. This cycle
+does not advertise keybindings or relax any of those requirements.
+
+Preparation/continuation seal: 11 files, 1,783,036 bytes, SHA-256
+`ab661567537b27dac4be55f0b0cdf509d7c77ddd01cfba9c4d0b339a34d51d18`.
+This retains the generated procedures, terminal audit and documentation snapshot.
+All prior milestone IDs are preserved; the explicit M1.1b.1 child brings the total
+to 459, with 1,613 local ledger links checked. Diff checks pass. This pointer is
+appended after the archived snapshot; no unchanged synthetic suite was repeated.

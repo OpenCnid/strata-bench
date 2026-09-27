@@ -41,8 +41,10 @@ public final class CausalClockFixture {
                     spool.publish(ticks, "server_stopped", "strata/ServerStopped/1", new JsonObject(), new JsonArray());
                     return;
                 }
-                if (!command.equals("sample")) throw new IllegalStateException("FIXTURE_COMMAND");
-                clock.startTick(); clock.endTick(); ticks++;
+                if (!command.equals("sample") && !command.startsWith("sample ")) throw new IllegalStateException("FIXTURE_COMMAND");
+                clock.startTick();
+                if (command.startsWith("sample ")) clock.avatarTick(java.util.UUID.fromString(command.substring(7)));
+                clock.endTick(); ticks++;
                 var now = clock.sample();
                 long nextWall = now.get("elapsed_wall_ns").getAsLong();
                 long nextWork = now.get("observed_tick_work_ns").getAsLong();

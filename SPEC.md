@@ -2829,6 +2829,17 @@ commit its primitive minimum before CAS publication. An overrun must remain visi
 and fence further repair against the exhausted reservation. This is partial
 consumption, not full settlement or input authority. [Implementation and evidence](docs/verification/2026-09-27-m1-repair-consumption-floor.md).
 
+An owned server-clock interval may also supply a partial avatar-tick minimum.
+Require two stored, revalidated causal repair marks with the same held source,
+registered roster, native body, controller clock and worker plan. Subtract actual
+callback counts for that repair's avatar only; health-roster counts and elapsed
+time cannot substitute. Fix the first accounting opening and extend cumulative
+closures without adding overlapping intervals. Store the clock witness and budget
+minimum atomically before checking for an overrun. Retain the original reservation
+and reject any settlement that refunds observed ticks. This does not certify
+coverage before the opening, after the closing, campaign active time or model/
+helper consumption. [Clock consumption evidence](docs/verification/2026-09-27-m1-repair-tick-consumption.md).
+
 Responsibility: PL (F02/F11), QA (N03/N05/N07). Real simultaneous capacity is measured, not promised by configuration syntax or simulator agent counts.
 
 **D04 — initial live-validation authorization (2026-09-18), clarified by D11 (2026-09-20):** the user selected Codex ChatGPT OAuth and `gpt-5.6-luna`, with one **$10 total estimated model-usage allowance** for live validation, including development experiments, training, probes, helpers, retries and summaries. D11 clarifies that this is a rough model-price estimate of subscription consumption. Use a pinned published model-price schedule to report API-equivalent usage; do not label it an actual OAuth dollar bill or an exact share of subscription quota. The user confirms no outside Strata model experiments; together with the inspected synthetic-only experiment records this establishes the zero opening experimental-usage baseline. Preserve this original allowance across jobs/restarts and charge every distinct root/helper/retry/summary request. Missing usage and ambiguous requests retain conservative reservations and are never blindly replayed. Keep finite per-run exposure and stop admission before the estimated aggregate allowance is exhausted. More expensive models or an increased allowance require a later user decision. The machine-readable [live-validation.json](configs/operator/live-validation.json) now uses `ExecutionAuthorization/2` with a pinned `ApiEquivalentEstimateBasis/1`. Explicit migration from the archived D04 record preserves the original account/cap and all ledger amounts/holds; source and synthetic evidence is recorded in [D11 verification](docs/verification/2026-09-20-estimated-accounting.md). No production qualification follows merely from this clarification. Acquisition, account, credential, benchmark-isolation and real acceptance gates remain; no scientific sample or game threshold is reduced.

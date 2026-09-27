@@ -199,7 +199,8 @@ def test_controller_barrier_binds_original_repair_and_never_grants_completion(cl
         service.capture("tx", "closed", "owner", e.epoch, worker, client, source.source)
 
 
-def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monkeypatch):
+@pytest.mark.parametrize("charge_repair", [False, True])
+def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monkeypatch, native_env, charge_repair):
     """Actual Java/Python pipe and held job; fixture bypasses token qualification."""
     from mcbench.processes import WindowsJob
     from strata_evaluator.bound_clocks import BoundClockSource
@@ -215,6 +216,27 @@ def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monke
         pytest.skip("Explicit Windows Java/classpath and existing local group required")
     fixture, _, _ = sampled
     store, setup, events, directory, _ = fixture
+    if charge_repair:
+        from test_craft_reference import ACTOR
+        e, worker, client, target, *_ = native_env
+        setup["campaign_id"] = "c1"
+        setup["roster"] = {"a1": ACTOR, "a2": "22222222-2222-2222-2222-222222222222"}
+        setup["predicate"]["actors"] = list(setup["roster"].values())
+        setup["native_team_ids"] = dict.fromkeys(setup["roster"], next(iter(setup["native_team_ids"].values())))
+        for event in events:
+            event["campaign_id"] = "c1"
+        body = hashlib.sha256(("127.0.0.1:25569\n" + ACTOR).encode()).hexdigest()
+        original = client.call
+        def native_call(*args, **kwargs):
+            result = original(*args, **kwargs)
+            if "body_fingerprint" in result:
+                result["body_fingerprint"] = body
+            return result
+        monkeypatch.setattr(client, "call", native_call)
+        monkeypatch.setattr(NativeGameClient, "call", lambda *args, **kwargs: {
+            "schema": "strata/NativeGameIdentity/1", "body_fingerprint": body, "connection_generation": 1})
+        e.repairs.admit_native("tx", "owner", e.epoch, worker, client, target.model_copy(update={"body_fingerprint": body}))
+        service = RepairClockEvidence(e.repairs)
     store.seal(setup, directory)  # Fresh authority, not the shared signed fixture claim.
     authority = parse_authority(json.loads((directory / "authority.json").read_bytes()))
     module = tmp_path / "synthetic-module.jar"
@@ -270,12 +292,15 @@ def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monke
         assert output.get(timeout=10) == "ready"
         source = BoundClockSource(broker)
         request = source.begin_barrier("d" * 64, {"fixture": "causal-pipe"}, 10)
+        if charge_repair:
+            service.request_barrier("tx", "opening", "owner", e.epoch, worker, client, source)
         assert request["receipt_cursor_after"] == 1
-        command("sample")
+        sample_command = "sample " + ACTOR if charge_repair else "sample"
+        command(sample_command)
         assert output.get(timeout=5) == "3"
         with pytest.raises(Fault, match="CLOCK_BARRIER_NOT_REACHED"):
             source.barrier_sample(request)
-        command("sample")
+        command(sample_command)
         assert output.get(timeout=5) == "5"
         proof = source.barrier_sample(request)
         assert proof["prefix"]["producer_receipt_cursor"] == 3
@@ -283,6 +308,20 @@ def test_actual_jvm_pipe_receipt_precedes_causal_sample(sampled, tmp_path, monke
         assert proof["prefix"]["clock"]["completed_server_ticks"] == 2
         assert proof["is_example"] and not proof["process_isolation_qualified"]
         assert process.poll() is None
+        if charge_repair:
+            service.capture("tx", "opening", "owner", e.epoch, worker, client, source)
+            service.request_barrier("tx", "closing", "owner", e.epoch, worker, client, source)
+            for cursor in (7, 9):
+                command(sample_command)
+                assert output.get(timeout=5) == str(cursor)
+            service.capture("tx", "closing", "owner", e.epoch, worker, client, source)
+            with pytest.raises(Fault, match="REPAIR_BUDGET_EXHAUSTED"):
+                service.retain_consumption("tx", "opening", "closing", "owner", e.epoch, worker, client, source)
+            assert e.budgets.status("a1")["committed_and_reserved"]["avatar_ticks"] == 2
+            assert e.controller.input_authority("c1", "owner", e.epoch, "a1")["lease_id"] is None
+            observed = json.loads(e.database.connection.execute("SELECT body FROM repair_clock_consumption").fetchone()[0])
+            assert observed["avatar_ticks"] == observed["server_ticks"] == 2
+            (tmp_path / "actual-tick-consumption.json").write_bytes(canonical(observed))
         command("stop")
         assert process.wait(timeout=5) == 0
         assert broker.close()["status"] == "stopped"

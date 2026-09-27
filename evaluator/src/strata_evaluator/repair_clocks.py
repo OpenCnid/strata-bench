@@ -9,8 +9,9 @@ from mcbench.control_lock import profile_operation
 from mcbench.native_control_plan import TARGET
 from mcbench.native_game import GameIdentity, NativeGameClient
 from mcbench.native_repair_flow import NativeRepairFlow
-from mcbench.storage import digest, require
+from mcbench.storage import canonical, digest, require
 from .bound_clocks import BoundClockSource
+from .telemetry_clocks import ServerClockSample, advance_clock
 
 
 class RepairClockEvidence:
@@ -23,6 +24,67 @@ class RepairClockEvidence:
                        "PRIMARY KEY(repair,mark))")
             db.execute("CREATE TABLE IF NOT EXISTS repair_clock_barriers (repair TEXT, mark TEXT, "
                        "request_ref TEXT NOT NULL, PRIMARY KEY(repair,mark))")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_clock_consumption (repair TEXT PRIMARY KEY, "
+                       "opening_ref TEXT NOT NULL, closing_cursor INTEGER NOT NULL, body TEXT NOT NULL)")
+
+    def retain_consumption(self, transaction, opening, closing, owner, epoch, worker, native, source):
+        """Charge the owned avatar's observed interval, retaining unknown coverage.
+
+        The immutable opening must have been generated after a repair-owned
+        causal request. Later closures extend that same cumulative interval;
+        they never add overlapping deltas or infer an unobserved zero origin.
+        """
+        require(opening != closing, "REPAIR_CLOCK_INTERVAL")
+        # Reuse the full source/receipt/body validation. This does not accept
+        # caller-supplied clocks, marks from another repair or an unheld server.
+        refs = [self.capture(transaction, mark, owner, epoch, worker, native, source)["source_ref"]
+                for mark in (opening, closing)]
+        profile = self.repairs.controls.status(transaction)["plan"]["profile_id"]
+        with profile_operation(self.database, "repair:" + transaction), profile_operation(self.database, profile):
+            repair, _, admission = self.flow._context(transaction, owner, epoch, worker, native, False, observe=False)
+            first, last = [self.repairs.controller.evidence(ref) for ref in refs]
+            for mark, witness in zip((opening, closing), (first, last), strict=True):
+                require(witness["schema"] == "strata/RepairClockWitness/2"
+                        and witness["sample_generation_after_request_proven"] is True
+                        and witness["transaction_id"] == transaction and witness["mark"] == mark
+                        and witness["worker_plan"] == admission.worker_plan.model_dump()
+                        and witness["controller_clock_id"] == self.repairs.clock_instance,
+                        "REPAIR_CLOCK_CAUSAL_REQUIRED")
+            a, b = first["source"], last["source"]
+            require(a["source_binding"] == b["source_binding"] and a["roster"] == b["roster"]
+                    and a["prefix"]["cursor"] < b["prefix"]["cursor"], "REPAIR_CLOCK_INTERVAL")
+            before = ServerClockSample.model_validate(a["prefix"]["clock"])
+            after = ServerClockSample.model_validate(b["prefix"]["clock"])
+            advance_clock(before, after)
+            actor = a["roster"][repair["agent"]]
+            ticks = after.avatar_tick_events.get(actor, 0) - before.avatar_tick_events.get(actor, 0)
+            require(ticks >= 0, "REPAIR_CLOCK_INTERVAL")
+            body = {"schema": "strata/RepairClockConsumption/1", "is_example": self.repairs.controller.simulation,
+                "transaction_id": transaction, "campaign_id": repair["campaign"], "agent_id": repair["agent"],
+                "operation_id": repair["request"]["operation_id"], "source_binding": a["source_binding"],
+                "opening_ref": refs[0], "closing_ref": refs[1], "opening_cursor": a["prefix"]["cursor"],
+                "closing_cursor": b["prefix"]["cursor"], "actor_uuid": actor, "avatar_ticks": ticks,
+                "elapsed_server_ns": after.elapsed_wall_ns - before.elapsed_wall_ns,
+                "server_ticks": after.completed_server_ticks - before.completed_server_ticks,
+                "complete_repair_accounting": False, "consumption_settled": False,
+                "campaign_permission_published": False}
+            with self.database.transaction() as db:
+                self.repairs._owned(db, self.repairs.status(transaction), owner, epoch)
+                old = db.execute("SELECT * FROM repair_clock_consumption WHERE repair=?", (transaction,)).fetchone()
+                if old:
+                    require(old["opening_ref"] == refs[0], "REPAIR_CLOCK_ORIGIN_CHANGED")
+                    require(body["closing_cursor"] >= old["closing_cursor"], "REPAIR_CLOCK_INTERVAL")
+                    if body["closing_cursor"] == old["closing_cursor"]:
+                        require(json.loads(old["body"]) == body, "REPAIR_CLOCK_CHANGED")
+                self.repairs.budgets.retain_consumption_floor(db, repair["request"]["account"],
+                    body["operation_id"], "repair-clock:" + digest(body), "avatar_ticks", ticks, body)
+                db.execute("INSERT INTO repair_clock_consumption VALUES (?,?,?,?) "
+                           "ON CONFLICT(repair) DO UPDATE SET closing_cursor=excluded.closing_cursor,body=excluded.body",
+                           (transaction, refs[0], body["closing_cursor"], canonical(body).decode()))
+            # Preserve actual consumption even if it exceeds the old reservation.
+            with self.database.transaction() as db:
+                self.repairs._budget(db, repair["request"])
+            return body
 
     def _barrier_scope(self, repair, mark, owner, epoch, admission):
         return {"transaction_id": repair["id"], "mark": mark, "campaign_id": repair["campaign"],

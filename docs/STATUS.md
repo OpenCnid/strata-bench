@@ -23,7 +23,26 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, publication accounting boundary
+## Current position — September27, repair tick consumption
+
+Private evidence sealed:62 files/4,044,298 bytes,
+SHA-256 `a87878072c57d8cfd28306ee0119437b1bca7c2e17009956a65b1c8602308329`.
+All40 authority tables, eight telemetry holds and installed client/options hashes
+are unchanged; final matching runtime process count0. All460 milestone IDs and
+2,166 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now joins two owned causal clock marks to a retained avatar-tick
+budget minimum. It preserves the original reservation, refuses origin changes
+and refunds, deduplicates cumulative extensions and retains overruns before
+blocking further work. Nine distinct source cases and one actual Java/pipe/
+controller test pass. The process test observes two Java callbacks and retains
+two ticks against a zero-tick reservation; game/setup/body/token qualification
+remain synthetic. [Clock consumption evidence](verification/2026-09-27-m1-repair-tick-consumption.md).
+Complete interval allocation, model/helper costs, original-lease completion and
+authentic gameplay qualification remain open. M1/G1 and every aggregate G1 suite
+remain incomplete; no Minecraft or paid model run occurred.
+
+### Previous publication checkpoint
 
 Private evidence sealed:84 files/4,242,093 bytes,
 SHA-256 `1b20009ffda21e3bb7ecb8cb5524b8902c1b94007cb684f45f912e341d85305c`.

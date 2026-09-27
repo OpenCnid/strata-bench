@@ -76,3 +76,13 @@ Private case/result files are t01-keybinding-semantic-case.json and
 root. Next fix and verify semantic parity against a shared negative corpus;
 review the other canonical validators for the same class of omission. Do not
 change inputs while the active native reference holds their pins.
+
+## September27 dependency refinement
+
+[Settings contract evidence](2026-09-27-m1-settings-contracts.md) fixes the
+reproduced empty-value disagreement and checks the actual JVM/HTTP route.
+The full T01 settings binding depends on the unfinished T05 capable extension.
+Proceed next to M1.1b ordinary-input intended/competing effects, reconcile T01
+against the resulting interface, and retain all remaining reference/path cases.
+Then matched probes, consolidated scoring and final native/isolation qualification
+continue as above. This changes order only; no T01/T05/G1 completion is claimed.

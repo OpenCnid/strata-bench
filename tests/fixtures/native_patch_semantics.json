@@ -1,0 +1,429 @@
+{
+  "base": {
+    "transaction_id": "tx",
+    "expected_revision": 1,
+    "expected_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "changes": {
+      "binding": {
+        "before": "key.keyboard.g",
+        "after": "key.keyboard.f13"
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "valid",
+      "set": {},
+      "valid": true
+    },
+    {
+      "id": "before-invalid-0",
+      "set": {
+        "changes/binding/before": ""
+      },
+      "valid": false
+    },
+    {
+      "id": "before-invalid-1",
+      "set": {
+        "changes/binding/before": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "valid": false
+    },
+    {
+      "id": "after-invalid-0",
+      "set": {
+        "changes/binding/after": ""
+      },
+      "valid": false
+    },
+    {
+      "id": "after-invalid-1",
+      "set": {
+        "changes/binding/after": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-0",
+      "set": {
+        "expected_revision": 0
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-1",
+      "set": {
+        "expected_revision": -1
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-2",
+      "set": {
+        "expected_revision": 1.5
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-3",
+      "set": {
+        "expected_revision": true
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-4",
+      "set": {
+        "expected_revision": "1"
+      },
+      "valid": false
+    },
+    {
+      "id": "revision-invalid-5",
+      "set": {
+        "expected_revision": 9007199254740992
+      },
+      "valid": false
+    },
+    {
+      "id": "boundary-expected_revision",
+      "set": {
+        "expected_revision": 9007199254740991
+      },
+      "valid": true
+    },
+    {
+      "id": "boundary-changes-binding-before",
+      "set": {
+        "changes/binding/before": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "valid": true
+    },
+    {
+      "id": "boundary-changes-binding-after",
+      "set": {
+        "changes/binding/after": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "valid": true
+    },
+    {
+      "id": "unchanged",
+      "set": {
+        "changes/binding/after": "key.keyboard.g"
+      },
+      "valid": false
+    },
+    {
+      "id": "empty-changes",
+      "set": {
+        "changes": {}
+      },
+      "valid": false
+    },
+    {
+      "id": "extra",
+      "set": {
+        "arbitrary": true
+      },
+      "valid": false
+    },
+    {
+      "id": "change-extra",
+      "set": {
+        "changes/binding/raw_input": true
+      },
+      "valid": false
+    },
+    {
+      "id": "bad-digest",
+      "set": {
+        "expected_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
+      "valid": false
+    },
+    {
+      "id": "bad-id",
+      "set": {
+        "transaction_id": "../other"
+      },
+      "valid": false
+    },
+    {
+      "id": "too-many",
+      "set": {
+        "changes": {
+          "key0": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key1": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key2": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key3": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key4": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key5": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key6": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key7": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key8": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key9": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key10": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key11": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key12": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key13": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key14": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key15": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key16": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key17": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key18": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key19": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key20": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key21": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key22": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key23": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key24": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key25": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key26": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key27": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key28": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key29": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key30": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key31": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key32": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          }
+        }
+      },
+      "valid": false
+    },
+    {
+      "id": "max-changes",
+      "set": {
+        "changes": {
+          "key0": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key1": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key2": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key3": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key4": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key5": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key6": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key7": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key8": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key9": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key10": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key11": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key12": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key13": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key14": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key15": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key16": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key17": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key18": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key19": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key20": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key21": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key22": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key23": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key24": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key25": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key26": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key27": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key28": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key29": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key30": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          },
+          "key31": {
+            "before": "key.keyboard.g",
+            "after": "key.keyboard.f13"
+          }
+        }
+      },
+      "valid": true
+    }
+  ]
+}

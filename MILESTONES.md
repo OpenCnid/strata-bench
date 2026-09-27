@@ -7,12 +7,13 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.2b now fixes preflight roster/system checks and unresolved backend, overlay,
-lock and protocol references. Six prior acceptance defects are reproduced and
-refused by the new code; 33 declared reference locations are checked before
-reservation. Nested RPC semantics agree across Python/TypeScript, and the actual
-Java structured-action parser exercises shared cases. [Current evidence](docs/verification/2026-09-27-m1-admission-contracts.md).
-These local checks advance T01; they do not qualify native integration.
+M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
+values are now rejected by Java at admission. Shared cases and actual Python-to-Java
+store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](docs/verification/2026-09-27-m1-settings-contracts.md).
+The next implementation is M1.1b ordinary-input intended/competing effects. Its
+missing capable-extension interface is also required for final T01 reconciliation.
+T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
+
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -23,8 +24,9 @@ These local checks advance T01; they do not qualify native integration.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next finish the finite T01 map, then keybinding and matched probes, consolidate
-T10, and qualify final T04/T06 before assembling G1. This follows the
+Next implement the missing keybinding effect boundary, reconcile T01 against
+the resulting interface, complete matched probes, consolidate T10, and qualify
+final T04/T06 before assembling G1. This follows the
 [closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
 remains outside scope. Report closed acceptance cases or end-to-end deliverables,
 not passing assertion counts as a proxy for completion.
@@ -10606,3 +10608,23 @@ No Java process remains. Private archive 2026-09-27-m1-admission-contracts-01
 verifies at 251 files / 2,573,970 bytes under seal
 `0b35aa5346c0cd472887886d08a0ced33b975d154102735735899066462d9f69`.
 This pointer follows the archived documentation snapshot. T01/G1 remain not_run.
+
+### 2026-09-27 — Native settings parity and dependency-directed T05 continuation
+
+M1.2b fixes a reproduced Java/Python settings-request disagreement: empty binding
+values are now rejected by Java at admission. Shared cases and actual Python-to-Java
+store/HTTP checks pass; the binding runtime remains synthetic. [Current evidence](docs/verification/2026-09-27-m1-settings-contracts.md).
+The next implementation is M1.1b ordinary-input intended/competing effects. Its
+missing capable-extension interface is also required for final T01 reconciliation.
+T01/T05/G1 remain not_run; no settings capability or commit is newly advertised.
+
+Original Java20-pass/two-failure result retained; final27 Java and41 Python
+cases pass, including four actual JVM/HTTP integrations with synthetic bindings.
+Installed artifacts unchanged; no game/model call or M1 inference authority.
+
+Final audit: nine changed-file pins, 458 preserved milestone IDs, 1,820 local
+links, all40 authority tables unchanged/4,887,796microUSD and all three original
+256MiB holds preserved. Prior seals verify; zero Java processes remain. Archive
+2026-09-27-m1-settings-contracts-01 verifies at27files/1,835,659bytes, seal
+`9ca72bfa5a155df007407d222c63ac63710558376a7143e6c4b9fc38675d467c`.
+This pointer follows the archived documentation snapshot. T01/T05/G1 not_run.

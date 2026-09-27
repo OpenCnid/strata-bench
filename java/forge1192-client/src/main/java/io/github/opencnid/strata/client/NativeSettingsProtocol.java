@@ -62,7 +62,8 @@ final class NativeSettingsProtocol {
             JsonObject change = entry.getValue().getAsJsonObject();
             SettingsJson.fields(change, "before", "after");
             String before = SettingsJson.string(change, "before"), after = SettingsJson.string(change, "after");
-            if (before.length() > 256 || after.length() > 256 || before.equals(after)) throw new IOException("SETTINGS_PATCH_INVALID");
+            if (before.isEmpty() || after.isEmpty() || before.length() > 256 || after.length() > 256
+                    || before.equals(after)) throw new IOException("SETTINGS_PATCH_INVALID");
             result.put(entry.getKey(), new SettingsStore.Change(before, after));
         }
         return result;

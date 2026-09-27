@@ -16,6 +16,7 @@ from .budgets import Budgets
 from .contracts import Digest, Id, Observation, Positive, Ref, Strict, UInt
 from .control_lock import profile_operation
 from .storage import Fault, Principal, canonical, digest, require
+from .worker_repair import POLICY, WorkerRepairClient, WorkerRepairPlan
 
 
 class RepairPolicy(Strict):
@@ -76,6 +77,9 @@ class Reconfigurations:
                        "budget_operation TEXT UNIQUE, profile TEXT)")
             db.execute("CREATE UNIQUE INDEX IF NOT EXISTS repairs_active_profile ON repairs(profile) "
                        "WHERE phase<>'COMPLETE'")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_worker_handoffs (id TEXT PRIMARY KEY, "
+                       "binding_digest TEXT NOT NULL, plan TEXT NOT NULL, phase TEXT NOT NULL "
+                       "CHECK(phase IN ('INTENT','UNKNOWN','CONFIRMED')), stop_ref TEXT)")
 
     def _read(self, ref, model):
         require(self.controller.cas is not None, "EVIDENCE_STORE_REQUIRED")
@@ -205,6 +209,10 @@ class Reconfigurations:
         with self.database.transaction() as db:
             repair = self.status(transaction_id)
             self._owned(db, repair, owner, epoch)
+            worker_handoff = db.execute("SELECT stop_ref FROM repair_worker_handoffs WHERE id=?",
+                                        (transaction_id,)).fetchone()
+            require(worker_handoff is None or worker_handoff["stop_ref"] == stop_ref,
+                    "REPAIR_WORKER_EVIDENCE_REQUIRED")
             if repair["phase"] == "RECONFIGURING":
                 require(repair["stop_ref"] == stop_ref, "IDEMPOTENCY_CONFLICT")
                 return
@@ -218,6 +226,86 @@ class Reconfigurations:
             db.execute("UPDATE avatar_lanes SET state='RECONFIGURING' WHERE campaign=? AND agent=?",
                        (repair["campaign"], repair["agent"]))
             self.database.event(db, "repair.entered", {"transaction_id": transaction_id, "stop_ref": stop_ref})
+
+    def quiesce_worker(self, transaction_id, owner, epoch, worker: WorkerRepairClient):
+        """Consume one private pause dispatch, then reconcile only by status.
+
+        This supplies actual worker stop evidence to enter(); it grants neither
+        native settings capability nor permission to resume a paused executor.
+        """
+        require(isinstance(worker, WorkerRepairClient), "REPAIR_GRANT_INVALID")
+        with profile_operation(self.database, "repair:" + transaction_id):
+            with self.database.transaction() as db:
+                repair = self.status(transaction_id)
+                self._owned(db, repair, owner, epoch)
+                require(repair["phase"] in {"QUIESCING", "RECONFIGURING"}, "REPAIR_RECOVERY_REQUIRED")
+                request = repair["request"]
+                plan = WorkerRepairPlan.model_validate({"schema": "strata/WorkerRepairPlan/1", "policy": POLICY,
+                    "campaign_id": repair["campaign"], "agent_id": repair["agent"], "epoch": repair["epoch"],
+                    "lease_id": request["old_lease_id"], "transaction_id": transaction_id,
+                    "plan_digest": request["plan_digest"], "expires_unix_ms": int(request["deadline_unix"] * 1000)})
+                worker.validate_scope(plan)
+                # The original one-second controller quiescence bound includes
+                # transport, CAS storage and publication; it is never restarted.
+                remaining = min(request["deadline_unix"] - self.clock(),
+                                request["deadline_mono"] - self.monotonic(), 1.0)
+                if repair["phase"] == "QUIESCING":
+                    remaining = min(remaining, request["started_unix"] + 1 - self.clock(),
+                                    request["started_mono"] + 1 - self.monotonic())
+                timeout_ms = int(remaining * 1000)
+                require(timeout_ms > 0, "REPAIR_DEADLINE_EXPIRED")
+                old = db.execute("SELECT * FROM repair_worker_handoffs WHERE id=?", (transaction_id,)).fetchone()
+                if old:
+                    require(old["binding_digest"] == worker.binding_digest
+                            and json.loads(old["plan"]) == plan.model_dump(), "REPAIR_NOT_OWNED")
+                    operation = "status"
+                else:
+                    require(repair["phase"] == "QUIESCING", "REPAIR_RECOVERY_REQUIRED")
+                    db.execute("INSERT INTO repair_worker_handoffs VALUES (?,?,?,'INTENT',NULL)",
+                               (transaction_id, worker.binding_digest, canonical(plan.model_dump()).decode()))
+                    self.database.event(db, "repair.worker_intent", {"transaction_id": transaction_id,
+                        "binding_digest": worker.binding_digest, "plan": plan.model_dump()})
+                    operation = "pause"
+            reply = None
+            try:
+                reply = worker.call(operation, plan, timeout_ms=timeout_ms)
+                require(reply.result.phase == "paused" and reply.result.inputs_released
+                        and reply.result.plan == plan, "INPUT_RELEASE_REQUIRED")
+                observed = self.clock()
+                witness = {"schema": "strata/WorkerRepairWitness/1", "is_example": self.controller.simulation,
+                    "binding_digest": worker.binding_digest, "operation": operation,
+                    "observed_unix": observed, "reply": reply.model_dump()}
+                principal = Principal("operator", "operator")
+                source = self.controller.cas.put(principal, self.controller.evidence_namespace, "operator",
+                                                 canonical(witness))
+                control = self.controls.status(transaction_id)["plan"]
+                proof = RepairStop.model_validate({"schema": "strata/RepairStop/1",
+                    "is_example": self.controller.simulation, "campaign_id": repair["campaign"],
+                    "agent_id": repair["agent"], "transaction_id": transaction_id, "epoch": epoch,
+                    "generation": repair["generation"], "profile_id": control["profile_id"],
+                    "fingerprint": control["fingerprint"], "observed_unix": observed, "source_refs": [source],
+                    "old_lease_id": plan.lease_id, "pending_cancelled": True, "inputs_released": True})
+                stop_ref = old["stop_ref"] if old and old["stop_ref"] else self.controller.cas.put(
+                    principal, self.controller.evidence_namespace, "operator", canonical(proof.model_dump()))
+                with self.database.transaction() as db:
+                    self._owned(db, self.status(transaction_id), owner, epoch)
+                    db.execute("UPDATE repair_worker_handoffs SET stop_ref=? WHERE id=?", (stop_ref, transaction_id))
+                    self.database.event(db, "repair.worker_observed", {"transaction_id": transaction_id,
+                        "operation": operation, "source_ref": source, "stop_ref": stop_ref})
+                self.enter(transaction_id, owner, epoch, stop_ref)
+                with self.database.transaction() as db:
+                    db.execute("UPDATE repair_worker_handoffs SET phase='CONFIRMED' WHERE id=?", (transaction_id,))
+                return self.status(transaction_id)
+            except BaseException:
+                # The input hold and budget reservation remain. Within the
+                # original window, retrying this method queries status only.
+                with self.database.transaction() as db:
+                    db.execute("UPDATE repair_worker_handoffs SET phase='UNKNOWN' WHERE id=?", (transaction_id,))
+                    self.database.event(db, "repair.worker_uncertain", {"transaction_id": transaction_id,
+                        "operation": operation})
+                if repair["phase"] == "RECONFIGURING" or reply is not None and reply.result.phase == "failed":
+                    self._fail(transaction_id, "WORKER_REPAIR_UNAVAILABLE")
+                raise
 
     def apply(self, transaction_id, owner, epoch):
         return self._run(transaction_id, owner, epoch, rollback=False)

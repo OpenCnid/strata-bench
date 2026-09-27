@@ -1,6 +1,6 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, worker repair pause implemented
+## Current position — September 27, controller-to-worker repair handoff implemented
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -29,6 +29,14 @@ The settings adapter, native transaction admission, restart/rejoin and explicit
 resume/rollback recovery remain unfinished. This is implemented but unverified
 in Minecraft; it closes no complete G1 suite.
 
+The controller now consumes one durable worker pause dispatch and obtains its
+stop proof from the actual private response. Lost replies reconcile by status;
+failed confirmed pauses revoke controller repair permission. The Python→Node→
+Windows guardian→Java fixture path passes active cancellation and expiry checks.
+[Handoff evidence](verification/2026-09-27-m1-repair-handoff.md).
+Settings/body are synthetic; native transaction/effects and full repair/resume
+remain unfinished. No complete G1 suite is newly closed.
+
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
 | T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
@@ -38,8 +46,8 @@ in Minecraft; it closes no complete G1 suite.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's worker-owned pause to actual settings transaction/effect
-admission, restart/rejoin and explicit resume/rollback recovery. Complete remaining
+Next bind actual native settings transaction/effect admission to M1.1c.3.2's
+controller-to-worker handoff, then restart/rejoin and explicit resume/rollback recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work

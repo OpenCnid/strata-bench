@@ -29,6 +29,14 @@ The settings adapter, native transaction admission, restart/rejoin and explicit
 resume/rollback recovery remain unfinished. This is implemented but unverified
 in Minecraft; it closes no complete G1 suite.
 
+The controller now consumes one durable worker pause dispatch and obtains its
+stop proof from the actual private response. Lost replies reconcile by status;
+failed confirmed pauses revoke controller repair permission. The Python→Node→
+Windows guardian→Java fixture path passes active cancellation and expiry checks.
+[Handoff evidence](docs/verification/2026-09-27-m1-repair-handoff.md).
+Settings/body are synthetic; native transaction/effects and full repair/resume
+remain unfinished. No complete G1 suite is newly closed.
+
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
 | T01 contracts | Canonical semantics, supported upgrades, direct admission references, nested RPC and Java action parser checked | Remaining reference-bearing services, translated native/settings bindings and path/reparse reconciliation |
@@ -38,8 +46,8 @@ in Minecraft; it closes no complete G1 suite.
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next connect M1.1c.3.2's worker-owned pause to actual settings transaction/effect
-admission, restart/rejoin and explicit resume/rollback recovery. Complete remaining
+Next bind actual native settings transaction/effect admission to M1.1c.3.2's
+controller-to-worker handoff, then restart/rejoin and explicit resume/rollback recovery. Complete remaining
 T05 cases, then reconcile T01, matched probes, scorer controls and final T04/T06
 before assembling G1. This follows the
 [closure path](docs/verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
@@ -1517,7 +1525,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1c.2 | GI/PL | Transaction/plan/binding/context/restart evidence matrix, bounded hashed proof/source reads and simulation separation | implemented_unverified | [Controls tests](tests/test_controls.py) and [evidence tests](tests/test_controls_fencing.py); actual private CAS integration with synthetic proofs passes. No authentic effect producer/provenance, physical input or verified native commit yet. |
 | M1.1c.3 | GI/PL | Qualified native adapter/commit, per-avatar RECONFIGURING, action-lease fencing, worker restart, charged continuity and public patch/CLI projection | in_progress | Children c.3.1–c.3.3 retain the complete integration scope; the development bridge is unqualified and has no commit operation. |
 | M1.1c.3.1 | PL/QA | Durable per-avatar repair holds, scoped grant revocation, stop/fresh-observation receipts, recovery fencing and clock attribution | implemented_unverified | [Coordinator](src/mcbench/reconfiguration.py), [32 synthetic cases](tests/test_reconfiguration.py); partial controller/settings/budget/clock integration with private CAS proofs. Actual worker transport, receipt provenance and complete measured charges remain unqualified. |
-| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. Native settings admission, commit, restart/rejoin, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification. |
+| M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. Native settings admission, commit, restart/rejoin, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification. |
 | M1.1c.3.3 | PL/GI | Full repair budget/telemetry settlement, public KeybindingPatch/control card and scoped gameplay CLI | not_started | Retain nested charging, fresh-probe repair policy and complete public/private projections. |
 | M3.2 | RS/SI | Matched fresh clone plans, artifact controls and drift quarantine decisions | in_progress | [Probe planner](evaluator/src/strata_evaluator/probes.py); actual isolated clone execution/disposal and supervisor drift handling open. |
 | M3.3 | RS | Paired lineage analysis, absolute competence, uncertainty/attrition and common support | in_progress | [Analysis](evaluator/src/strata_evaluator/analysis.py); full survival/hierarchical/power/confirmatory workflow open. |
@@ -10740,3 +10748,9 @@ Continue from2d0ee43 after verified M1.1b.1 native cycle; preceding turn made pr
 M1.1c.3.2 advances F06/F09/F11/F16 and N01/N02/N03/N04/N05/N08 through a distinct private ForgeDevelopmentWorker/3 pause/status profile. [Evidence](docs/verification/2026-09-27-m1-worker-repair.md). A durable fixed-expiry plan precedes cancellation/release; exact ownership, native body/connection/fence, no replay, cleanup consumption and recovery holds remain enforced. Gameplay grants/capabilities and package allowlist remain separate. Review corrected active-release on failed intent storage and draining pending pause work before journal disposal. Build and132 affected Node/JVM/Windows process checks pass without skips;18 packaging checks pass. A strengthened4-case HTTP/schema/journal rerun passes with the explicit oversized-body case; no unchanged broad rerun. Initial TypeScript diagnostic retained. All40 authority tables remain unchanged at4,887,796microUSD; five historical holds preserved. No Minecraft/model run or new inference authority. This is implemented but unverified on Minecraft; native transaction/effect admission, restart/rejoin and explicit resume/rollback recovery are next. M1 in_progress; all six complete G1 suites and G1 remain not_run.
 
 Private evidence sealed30files/2,462,176bytes at `0fb98c77aef06a71c515614fafaf1a85d3aa440c8ec66a7068e87718acc1aab8`. Final WAL-aware authority/hold checks and empty Java inventory pass. All459 existing milestone IDs preserved;1,616 local ledger links checked. Source snapshots precede this pointer. No aggregate acceptance result is promoted.
+
+### September 27 — Controller consumes actual worker pause evidence
+
+M1.1c.3.2 connects the private WorkerRepair client and durable controller handoff. [Evidence](docs/verification/2026-09-27-m1-repair-handoff.md). One intent precedes dispatch; uncertainty and CAS failure reconcile only by status within the original one-second quiescence window. Exact plan/grant identity, boolean wire semantics and worker-backed RepairStop are enforced; changed/manual proof substitution fails. Loss of a confirmed pause revokes controller repair permission. Actual Python controller/Node worker/Windows guardian/JVM fixtures verify active cancellation, single hold, retained budget, teammate continuity and expiry recovery, with synthetic game/settings.63 distinct affected cases pass across retained runs; final17 targeted cases pass with no skips, Ruff passes. Preserve original CLI-exit fixture failures, integer-boolean diagnostic, stale stricter-recovery assertion, lint and directory-setup failures. No Minecraft/model run, new allowance, native adapter qualification or resume claim. All six G1 suites/G1 remain not_run. Next native transaction/effect joins, adapter/commit and restart/resume/rollback integration.
+
+Final private seal183files/6,961,896bytes `d0e178efa8edb60cccc0c4855d065891689c42e5928e18c82fcfd7242b3360c8` retains failed/final fixtures, source and logs. All40 authority tables unchanged/4,887,796microUSD; five historical holds unchanged, zero Java processes. All459 IDs and1,619 local ledger links checked. Source snapshots precede this pointer; no gate promotion.

@@ -78,6 +78,8 @@ def test_resume_inference_binding_cannot_be_lost_or_replaced(repair_env, damage)
         db.execute("INSERT INTO repair_resume_inference VALUES ('tx',?)", (ref,))
         e.database.event(db, "repair.resume_intent", {"transaction_id": "tx", "inference_ref": ref})
     assert joined._inference("tx", "owner", e.epoch) == ref
+    with e.database.transaction() as db:
+        assert joined._inference("tx", "owner", e.epoch, db=db) == ref
     if damage is None:
         return
     with e.database.transaction() as db:

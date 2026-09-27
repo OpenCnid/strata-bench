@@ -327,6 +327,13 @@ export class ForgeLane implements GameLane {
     })().finally(()=>{this.publicationTask=null;});
     return this.publicationTask;
   }
+  async publicationAccounting(raw:ControlPublication):Promise<unknown> {
+    requireThat(this.publicationRequired,'CAPABILITY_MISSING');
+    const value=controlPublication(raw),plan=value.worker_plan;
+    requireThat(plan.campaign_id===this.scope.campaign_id && plan.agent_id===this.scope.agent_id
+      && plan.epoch===this.scope.epoch && plan.lease_id===this.scope.lease_id,'REPAIR_NOT_OWNED');
+    return this.journal.publicationAccounting(value);
+  }
   private resumeStatus(decision:ResumeDecision,native:ResumeState,observation:unknown) {
     return {schema:'strata/WorkerResumeState/1',decision,native,observation,
       primitive_events:this.journal.counter('primitive_events'),

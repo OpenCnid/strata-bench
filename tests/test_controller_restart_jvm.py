@@ -513,10 +513,30 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                         assert published["observation"]["keymap_digest"] == control["keymap_digest"]
                         assert published["observation"]["control_revision"] == control["revision"]
                         assert publish("status")["decision"] == publication
+                        publication_value = WorkerControlPublication.model_validate(publication)
+                        published_accounting = publisher.publication_accounting(publication_value)
+                        assert published_accounting.measurement == measured
+                        # A failed private store must not complete the repair or repeat publication.
+                        original_put = joined.flow._put
+                        def unavailable_store(_):
+                            raise OSError("synthetic publication evidence storage failure")
+                        with monkeypatch.context() as fault:
+                            fault.setattr(joined.flow, "_put", unavailable_store)
+                            with pytest.raises(OSError, match="synthetic publication evidence"):
+                                joined.capture_publication("tx", "owner", e.epoch, publisher, publication_value)
+                        assert joined.flow._put == original_put
+                        assert e.database.connection.execute("SELECT count(*) FROM repair_publication_evidence").fetchone()[0] == 0
+                        captured_publication = joined.capture_publication("tx", "owner", e.epoch, publisher, publication_value)
+                        publication_witness = e.cas.json(e.operator, "operator", captured_publication["source_ref"])
+                        assert publication_witness["worker_receipt"] == published_accounting.model_dump()
+                        assert publication_witness["measurement_ref"] == measurement["source_ref"]
+                        assert publication_witness["inference_ref"] == witness["inference_ref"]
+                        assert not publication_witness["consumption_settled"] and not publication_witness["campaign_permission_published"]
                         with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
                             commits = db.execute("SELECT body FROM events WHERE kind='repair_publication_confirmed'").fetchall()
                             assert len(commits) == 1
                             publication_commit = json.loads(commits[0][0])
+                            assert published_accounting.commit.model_dump() == publication_commit
                             assert publication_commit["schema"] == "strata/WorkerControlPublicationCommit/1"
                             assert publication_commit["decision"] == publication
                             assert publication_commit["observation"] == published["observation"]
@@ -541,6 +561,9 @@ def test_controller_adopts_replacement_and_finishes_native_writes_without_replay
                             time.sleep(.01)
                         assert outcome["status"] == "emitted" and outcome["release_confirmed"]
                         assert native_game.call("observe", {"cursor": None})["state"]["yaw"] == .25
+                        assert publisher.publication_accounting(publication_value) == published_accounting
+                        assert joined.capture_publication("tx", "owner", e.epoch, publisher, publication_value) == captured_publication
+                        assert e.database.connection.execute("SELECT count(*) FROM repair_publication_evidence").fetchone()[0] == 1
                         with sqlite3.connect((state / "actions.sqlite").as_uri() + "?mode=ro", uri=True) as db:
                             assert db.execute("SELECT body FROM events WHERE kind='repair_publication_confirmed'").fetchall() == commits
                             public_batch = json.loads(db.execute("SELECT request FROM actions WHERE request_id=?", (ack["request_id"],)).fetchone()[0])

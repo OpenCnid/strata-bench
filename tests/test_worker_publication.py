@@ -6,7 +6,8 @@ import pytest
 
 from mcbench.storage import Fault, digest
 from mcbench.worker_publication import (WorkerControlPublication, WorkerControlPublicationGrant,
-    WorkerControlPublicationState, WorkerPublicationClient, WorkerPublicationUnknown, WorkerRepairAccounting)
+    WorkerControlPublicationState, WorkerPublicationClient, WorkerPublicationUnknown, WorkerRepairAccounting,
+    WorkerPublicationAccounting)
 from mcbench.worker_resume import WorkerResumeClient, WorkerResumeGrant
 from test_worker_resume import state
 
@@ -111,3 +112,45 @@ def test_unusable_publish_reply_is_unknown_and_never_replayed(example, monkeypat
     with pytest.raises(WorkerPublicationUnknown):
         publisher.publish("publish", decision)
     assert len(calls) == 1 and calls[0][0] == "publish"
+
+
+def committed(example):
+    m, d = measured(example), publication(example)
+    d |= {"worker_plan": m["worker_plan"], "resume_digest": m["resume_digest"]}
+    o = state(example)["observation"] | {"control_revision": d["control_revision"], "keymap_digest": d["keymap_digest"]}
+    return {"schema": "strata/WorkerPublicationAccounting/1", "measurement": m,
+        "commit": {"schema": "strata/WorkerControlPublicationCommit/1", "decision": d, "observation": o,
+            "clock_id": m["clock_id"], "measurement_digest": digest(m),
+            "boundary": m["closing"] | {"cursor": 12, "mono_ms": 130}, "complete_repair_accounting": False}}
+
+
+@pytest.mark.parametrize("path,value", [
+    ("commit.clock_id", "replacement"), ("commit.measurement_digest", "0" * 64),
+    ("commit.boundary.cursor", 8), ("commit.boundary.mono_ms", 124),
+    ("commit.complete_repair_accounting", 0), ("commit.complete_repair_accounting", True),
+    ("commit.decision.primitive_events", 6), ("commit.decision.resume_digest", "0" * 64),
+    ("commit.decision.worker_plan.agent_id", "sibling"), ("commit.observation.held_keys", ["key.keyboard.w"]),
+    ("commit.boundary.sources", {"native:" + "c" * 64 + ":" + "d" * 64: 7}),
+    ("commit.published", True),
+])
+def test_publication_boundary_rejects_substituted_or_invented_history(example, path, value):
+    proof = committed(example)
+    assert WorkerPublicationAccounting.model_validate(proof).commit.boundary.mono_ms == 130
+    target = proof
+    parts = path.split(".")
+    for part in parts[:-1]:
+        target = target[part]
+    target[parts[-1]] = value
+    with pytest.raises(ValueError):
+        WorkerPublicationAccounting.model_validate(proof)
+
+
+def test_publication_history_read_is_bound_to_the_exact_decision(example, monkeypatch):
+    publisher, _ = clients()
+    proof = committed(example)
+    monkeypatch.setattr(publisher, "_call", lambda *args: proof)
+    decision = WorkerControlPublication.model_validate(proof["commit"]["decision"])
+    assert publisher.publication_accounting(decision).commit.decision == decision
+    proof["commit"]["decision"]["settlement_ref"] = "cas:sha256:" + "f" * 64
+    with pytest.raises(ValueError, match="REPAIR_NOT_OWNED"):
+        publisher.publication_accounting(decision)

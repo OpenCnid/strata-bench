@@ -185,6 +185,29 @@ export class Journal {
         complete_repair_accounting:false});
     });
   }
+  publicationAccounting(value:ControlPublication):unknown {
+    return this.transaction(()=>{
+      const tx=value.worker_plan.transaction_id,saved=this.publicationRecord(tx),measurement=this.measuredRepair(tx);
+      requireThat(saved?.decision && saved.observation && digest(saved.decision)===digest(value)
+        && measurement && digest(measurement.worker_plan)===digest(value.worker_plan)
+        && measurement.resume_digest===value.resume_digest,'CONTROL_PUBLICATION_UNCONFIRMED');
+      const rows=this.db.prepare("SELECT body FROM events WHERE kind='repair_publication_confirmed' "
+        + "AND json_extract(body,'$.decision.worker_plan.transaction_id')=? LIMIT 2").all(tx);
+      requireThat(rows.length===1,'CONTROL_PUBLICATION_UNCONFIRMED');
+      const commit=JSON.parse(rows[0]!.body as string);
+      requireThat(commit.schema==='strata/WorkerControlPublicationCommit/1'
+        && digest(commit.decision)===digest(value) && digest(commit.observation)===digest(saved.observation)
+        && commit.clock_id===measurement.clock_id && commit.measurement_digest===digest(measurement)
+        && commit.complete_repair_accounting===false
+        && commit.boundary.primitive_events===value.primitive_events
+        && commit.boundary.primitive_events===measurement.closing.primitive_events
+        && digest(commit.boundary.sources)===digest(measurement.closing.sources)
+        && commit.boundary.cursor>=measurement.closing.cursor && commit.boundary.mono_ms>=measurement.closing.mono_ms,
+        'REPAIR_ACCOUNTING_CHANGED');
+      // Historical evidence only: never consult moving counters or grant input.
+      return {schema:'strata/WorkerPublicationAccounting/1',measurement,commit};
+    });
+  }
   finishResume(decision:ResumeDecision,receipt:ResumeState,observation:unknown):void {
     this.transaction(()=>{
       const row=this.resumeRecord(decision.worker_plan.transaction_id);

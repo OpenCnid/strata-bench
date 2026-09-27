@@ -123,6 +123,46 @@ class WorkerRepairAccounting(Strict):
         return self
 
 
+class WorkerControlPublicationCommit(Strict):
+    schema_: Literal["strata/WorkerControlPublicationCommit/1"] = Field(alias="schema")
+    decision: WorkerControlPublication
+    observation: Observation
+    clock_id: Id
+    measurement_digest: Digest
+    boundary: WorkerChargeBoundary
+    complete_repair_accounting: Literal[False]
+
+    @model_validator(mode="before")
+    @classmethod
+    def historical_only(cls, value):
+        require(isinstance(value, dict) and value.get("complete_repair_accounting") is False,
+                "REPAIR_ACCOUNTING_INVALID")
+        return value
+
+    @model_validator(mode="after")
+    def observation_join(self):
+        WorkerControlPublicationState.model_validate({"schema": "strata/WorkerControlPublicationState/1",
+            "decision": self.decision.model_dump(), "observation": self.observation.model_dump(),
+            "primitive_events": self.boundary.primitive_events, "published": False})
+        return self
+
+
+class WorkerPublicationAccounting(Strict):
+    schema_: Literal["strata/WorkerPublicationAccounting/1"] = Field(alias="schema")
+    measurement: WorkerRepairAccounting
+    commit: WorkerControlPublicationCommit
+
+    @model_validator(mode="after")
+    def joins(self):
+        m, c = self.measurement, self.commit
+        require(c.measurement_digest == digest(m.model_dump()) and c.clock_id == m.clock_id
+                and c.decision.worker_plan == m.worker_plan and c.decision.resume_digest == m.resume_digest
+                and c.boundary.primitive_events == c.decision.primitive_events == m.closing.primitive_events
+                and c.boundary.sources == m.closing.sources and c.boundary.cursor >= m.closing.cursor
+                and c.boundary.mono_ms >= m.closing.mono_ms, "REPAIR_ACCOUNTING_CHANGED")
+        return self
+
+
 class WorkerPublicationUnknown(Fault):
     def __init__(self, request_id):
         super().__init__("CONTROL_PUBLICATION_OUTCOME_UNKNOWN")
@@ -175,11 +215,21 @@ class WorkerPublicationClient:
                 raise WorkerPublicationUnknown("unusable-publication-reply") from None
             raise Fault("CONTROL_PUBLICATION_STATUS_UNAVAILABLE") from None
 
+    def publication_accounting(self, decision: WorkerControlPublication, *, timeout_ms=1000):
+        """Read the immutable commit, with no current input-authority claim."""
+        decision = WorkerControlPublication.model_validate(decision.model_dump())
+        self._scope(decision.worker_plan)
+        result = WorkerPublicationAccounting.model_validate(self._call("publication_accounting",
+            {"decision": decision.model_dump()}, timeout_ms))
+        require(result.commit.decision == decision, "REPAIR_NOT_OWNED")
+        return result
+
     def _call(self, operation, fields, timeout_ms):
         require(type(timeout_ms) is int and 100 <= timeout_ms <= 6000, "CONTROL_PUBLICATION_DEADLINE_INVALID")
         accounting = operation == "accounting"
         request_id = str(uuid.uuid4())
-        kind = "WorkerRepairAccounting" if accounting else "WorkerControlPublication"
+        kind = ("WorkerRepairAccounting" if accounting else "WorkerPublicationAccounting"
+                if operation == "publication_accounting" else "WorkerControlPublication")
         body = canonical({"schema": "strata/" + kind + "Request/1", "request_id": request_id, **fields})
         require(len(body) <= 16384, "CONTROL_PUBLICATION_REQUEST_INVALID")
         until = time.monotonic() + timeout_ms / 1000
@@ -210,6 +260,7 @@ class WorkerPublicationClient:
         except (OSError, ValueError, http.client.HTTPException):
             if operation == "publish":
                 raise WorkerPublicationUnknown(request_id) from None
-            raise Fault("REPAIR_ACCOUNTING_UNAVAILABLE" if accounting else "CONTROL_PUBLICATION_STATUS_UNAVAILABLE") from None
+            raise Fault("REPAIR_ACCOUNTING_UNAVAILABLE" if accounting or operation == "publication_accounting"
+                        else "CONTROL_PUBLICATION_STATUS_UNAVAILABLE") from None
         finally:
             connection.close()

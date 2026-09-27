@@ -23,7 +23,27 @@ It does not resolve the retained native-health failure or qualify the final prof
 M1 paid model verification also needs authority beyond the M0-only D18/D19
 allowance. Implementation and authorized scripted checks can continue independently.
 
-## Current position — September27, inference-gated native resume
+## Current position — September 27, publication boundary retrieval
+
+Private evidence sealed: 151 files / 6,305,414 bytes,
+SHA-256 `96e14ce9f863bd9e6f4796685e03cc16c72e177710b76a1deda02d20a2c179fe`.
+All 40 authority tables, eight telemetry holds and two installed-file hashes
+are unchanged; final matching runtime process count is 0. All 460 milestone IDs
+and 2,182 local links were checked. This pointer postdates the archived snapshot.
+
+M1.1c.3.4 now retrieves the exact stored worker publication boundary through
+its private typed endpoint and joins it to the controller's measured receipt,
+confirmed resume, committed controls and frozen inference audit. Later gameplay
+and stopped input do not change this historical evidence. Full settlement and
+campaign permission remain false. 55 focused Python cases, 23 selected TypeScript
+cases and one actual controller/Node/guardian/JVM process case pass; game,
+verification and settlement producers remain synthetic. The initial fixture
+identity errors and nested-transaction process failure are retained.
+[Publication receipt evidence](verification/2026-09-27-m1-publication-receipt.md).
+Complete consumption allocation, controller completion, authentic gameplay and
+all aggregate G1 suites remain open. No paid model or Minecraft run occurred.
+
+### Previous inference-resume checkpoint
 
 Private evidence sealed: 285 files / 9,591,768 bytes,
 SHA-256 `295aaaede79d6c26db9ba6bab48ce4ae1b51e6bf18bba6511216a309e31f7376`.

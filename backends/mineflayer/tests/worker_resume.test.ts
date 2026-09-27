@@ -131,7 +131,43 @@ test('stop during native resume prevents late receipt from releasing the worker 
 function publication(d:ReturnType<typeof decision>){return controlPublication({schema:'strata/WorkerControlPublication/1',
   policy:'verified-controls-after-settlement/1',publication_id:'publish',worker_plan:d.worker_plan,resume_digest:digest(d),
   control_revision:d.expected_revision,keymap_digest:'d'.repeat(64),verification_ref:d.verification_ref,
-  settlement_ref:'cas:sha256:'+'e'.repeat(64),primitive_events:7});}
+    settlement_ref:'cas:sha256:'+'e'.repeat(64),primitive_events:7});}
+
+test('publication accounting retains exact historical boundary through later usage and stop',async t=>{
+  const f=await paused(t,true),p=publication(f.d);
+  await assert.rejects(f.lane.publicationAccounting(p),/CONTROL_PUBLICATION_UNCONFIRMED/);
+  await f.lane.resumeControl('resume',f.d);await f.lane.measureRepair(f.d.worker_plan);
+  await f.lane.publishControls('publish',p);
+  const saved=await f.lane.publicationAccounting(p) as any;
+  assert.equal(saved.commit.boundary.primitive_events,7);
+  assert.equal(saved.commit.measurement_digest,digest(saved.measurement));
+  const source=Object.keys(saved.commit.boundary.sources)[0]!;
+  f.journal.counter(source,3);f.journal.counter('primitive_events',3);
+  assert.deepEqual(await f.lane.publicationAccounting(p),saved);
+  await assert.rejects(f.lane.publicationAccounting({...p,settlement_ref:'cas:sha256:'+'f'.repeat(64)}),/CONTROL_PUBLICATION_UNCONFIRMED/);
+  await assert.rejects(f.lane.publicationAccounting({...p,worker_plan:{...p.worker_plan,agent_id:'sibling'}}),/REPAIR_NOT_OWNED/);
+  await f.lane.stopAll();assert.deepEqual(await f.lane.publicationAccounting(p),saved);
+  assert.equal((await f.lane.publishControls('status',p) as any).published,false);
+  assert.equal(f.mutations(),1);
+  f.journal.event('repair_publication_confirmed',saved.commit);
+  await assert.rejects(f.lane.publicationAccounting(p),/CONTROL_PUBLICATION_UNCONFIRMED/);
+});
+
+test('publication accounting endpoint is private, read-only and strict',async t=>{
+  const p=publication(decision());let reads=0,mutations=0;
+  const server=await servePublication(async()=>{mutations++;return {};},'operator-token',undefined,
+    async value=>{assert.deepEqual(value,p);reads++;return {fixture:true};});
+  t.after(()=>{server.closeAllConnections();server.close();});const address=server.address();assert(address&&typeof address!=='string');
+  const body={schema:'strata/WorkerPublicationAccountingRequest/1',request_id:'history',decision:p};
+  const send=(value:unknown,token='operator-token',extra:Record<string,string>={})=>fetch(`http://127.0.0.1:${address.port}/v1/publication`,
+    {method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json',...extra},body:JSON.stringify(value)});
+  assert.equal((await send(body,'gameplay-token')).status,403);
+  assert.equal((await send(body,'operator-token',{Origin:'https://example.test'})).status,403);
+  assert.equal((await send({...body,operation:'publish'})).status,400);
+  assert.equal((await send({...body,decision:{...p,primitive_events:-1}})).status,400);
+  assert.equal(reads,0);assert.equal((await send(body)).status,200);
+  assert.equal(reads,1);assert.equal(mutations,0);
+});
 
 test('publication profile retains durable and public hold until exact settled controls are published',async t=>{
   const f=await paused(t,true),p=publication(f.d);

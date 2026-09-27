@@ -7,7 +7,7 @@ import { repairPlan, type RepairPlan } from './worker_repair.js';
 
 /** Operator-only endpoint. A duplicate decision is status reconciliation, never a second dispatch. */
 export function servePublication(call:(operation:'publish'|'status',decision:ControlPublication)=>Promise<unknown>,token:string,
-  measure?:(plan:RepairPlan)=>Promise<unknown>):Promise<Server> {
+  measure?:(plan:RepairPlan)=>Promise<unknown>,published?:(decision:ControlPublication)=>Promise<unknown>):Promise<Server> {
   const bearer=Buffer.from(`Bearer ${token}`);
   const server=createServer(async(req,res)=>{
     let id:string|null=null;
@@ -19,6 +19,13 @@ export function servePublication(call:(operation:'publish'|'status',decision:Con
       let size=0;const chunks:Buffer[]=[];
       for await(const chunk of req){size+=chunk.length;requireThat(size<=16384,'CAPACITY_EXCEEDED');chunks.push(Buffer.from(chunk));}
       const v=strictJson(Buffer.concat(chunks).toString('utf8'));
+      if(v && typeof v==='object' && !Array.isArray(v) && 'schema' in v && v.schema==='strata/WorkerPublicationAccountingRequest/1') {
+        fields(v,['schema','request_id','decision']);
+        const request=v as Record<string,unknown>;
+        requireThat(published && typeof request.request_id==='string' && /^[A-Za-z0-9_.:-]{1,128}$/.test(request.request_id),'REPAIR_ACCOUNTING_INVALID');
+        id=request.request_id;const result=await published(controlPublication(request.decision));
+        send(200,{schema:'strata/WorkerPublicationAccountingResponse/1',request_id:id,status:'ok',result});return;
+      }
       if(v && typeof v==='object' && !Array.isArray(v) && 'schema' in v && v.schema==='strata/WorkerRepairAccountingRequest/1') {
         fields(v,['schema','request_id','plan']);
         const request=v as Record<string,unknown>;

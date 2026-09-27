@@ -923,6 +923,18 @@ usage and the publication tail without refunds or overlapping charges. Never use
 a partial worker receipt as a complete settlement certificate.
 [Measured evidence](docs/verification/2026-09-27-m1-repair-accounting.md).
 
+The private `WorkerPublicationAccountingRequest/1` reads the original measured
+interval and exactly one immutable publication commit through the operator
+publication endpoint. Bind the full decision, clock, measurement digest, stored
+observation and source counters; reject missing/duplicate or contradictory
+history. Later gameplay counters never replace this boundary. The controller
+joins it to its confirmed resume, measured receipt, committed controls and frozen
+inference audit, storing one private `ControllerPublicationEvidence/1`. Reads
+after stop are historical evidence only. They cannot resume input, qualify an
+arbitrary settlement reference, settle the budget or supply missing body/time
+coverage. Existing state responses retain their original meaning.
+[Controller boundary evidence](docs/verification/2026-09-27-m1-publication-receipt.md).
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

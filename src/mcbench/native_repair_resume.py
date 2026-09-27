@@ -18,7 +18,7 @@ from .storage import Principal, canonical, digest, require
 from .worker_repair import WorkerRepairState
 from .worker_restart import WorkerRestartClient, WorkerRestartState
 from .worker_resume import WorkerResumeClient
-from .worker_publication import WorkerPublicationClient
+from .worker_publication import WorkerControlPublication, WorkerPublicationClient
 from .repair_inference import RepairInference
 
 
@@ -35,8 +35,10 @@ class NativeRepairResume:
                        "binding TEXT NOT NULL, receipt TEXT NOT NULL, source_ref TEXT NOT NULL)")
             db.execute("CREATE TABLE IF NOT EXISTS repair_resume_inference (id TEXT PRIMARY KEY, "
                        "source_ref TEXT NOT NULL)")
+            db.execute("CREATE TABLE IF NOT EXISTS repair_publication_evidence (id TEXT PRIMARY KEY, "
+                       "binding TEXT NOT NULL, source_ref TEXT NOT NULL)")
 
-    def _inference(self, transaction, owner, epoch, *, required=True):
+    def _inference(self, transaction, owner, epoch, *, required=True, db=None):
         row = self.database.connection.execute("SELECT source_ref FROM repair_resume_inference WHERE id=?",
                                                (transaction,)).fetchone()
         intents = self.database.connection.execute("SELECT json_extract(body,'$.inference_ref') FROM outbox "
@@ -47,7 +49,9 @@ class NativeRepairResume:
         require(row is not None, "REPAIR_INFERENCE_REQUIRED")
         require(len(intents) == 1 and intents[0][0] == row["source_ref"], "REPAIR_INFERENCE_CHANGED")
         proof = self._read(row["source_ref"])
-        require(proof == self.inference.audit(transaction, owner, epoch)
+        audit = (self.inference.audit_in_transaction(db, transaction, owner, epoch) if db is not None
+                 else self.inference.audit(transaction, owner, epoch))
+        require(proof == audit
                 and proof["tracked_dispatches_settled"], "REPAIR_INFERENCE_CHANGED")
         return row["source_ref"]
 
@@ -253,3 +257,53 @@ class NativeRepairResume:
                     "closing_primitive_events": receipt.closing.primitive_events,
                     "complete_repair_accounting": False})
             return {"source_ref": source, "receipt": receipt.model_dump(), "complete_repair_accounting": False}
+
+    def capture_publication(self, transaction, owner, epoch, publisher, decision):
+        """Join historical publication to owned measurement; never resume or settle."""
+        require(isinstance(publisher, WorkerPublicationClient), "CONTROL_PUBLICATION_GRANT_INVALID")
+        decision = WorkerControlPublication.model_validate(decision.model_dump())
+        with profile_operation(self.database, "repair:" + transaction):
+            repair = self.repairs.status(transaction)
+            with self.database.transaction() as db:
+                self.repairs._owned(db, repair, owner, epoch, unexpired=False)
+            measured = self.database.connection.execute(
+                "SELECT * FROM repair_worker_measurements WHERE id=?", (transaction,)).fetchone()
+            resumed = self.database.connection.execute(
+                "SELECT * FROM repair_worker_resumes WHERE id=?", (transaction,)).fetchone()
+            require(measured is not None and measured["binding"] == publisher.binding_digest
+                    and resumed is not None and resumed["phase"] == "CONFIRMED"
+                    and publisher.grant.resume_binding_digest == resumed["binding"], "REPAIR_RESUME_UNCONFIRMED")
+            original = NativeResumeDecision.model_validate_json(resumed["request"])
+            control = self.controls.status(transaction)
+            require(control["phase"] == "committed" and decision.worker_plan == original.worker_plan
+                    and decision.worker_plan.transaction_id == transaction
+                    and decision.resume_digest == digest(original.model_dump())
+                    and decision.verification_ref == original.verification_ref
+                    and decision.control_revision == control["receipt"]["revision"]
+                    and decision.keymap_digest == control["receipt"]["keymap_digest"], "REPAIR_NOT_OWNED")
+            inference_ref = self._inference(transaction, owner, epoch)
+            receipt = publisher.publication_accounting(decision)
+            require(canonical(receipt.measurement.model_dump()).decode() == measured["receipt"],
+                    "REPAIR_ACCOUNTING_CHANGED")
+            witness = {"schema": "strata/ControllerPublicationEvidence/1",
+                "is_example": self.repairs.controller.simulation, "transaction_id": transaction,
+                "publication_binding": publisher.binding_digest, "measurement_ref": measured["source_ref"],
+                "inference_ref": inference_ref, "worker_receipt": receipt.model_dump(),
+                "complete_repair_accounting": False, "consumption_settled": False,
+                "campaign_permission_published": False}
+            old = self.database.connection.execute(
+                "SELECT * FROM repair_publication_evidence WHERE id=?", (transaction,)).fetchone()
+            if old:
+                require(old["binding"] == publisher.binding_digest and self._read(old["source_ref"]) == witness,
+                        "REPAIR_ACCOUNTING_CHANGED")
+                return {"source_ref": old["source_ref"], "complete_repair_accounting": False}
+            ref = self.flow._put(witness)
+            with self.database.transaction() as db:
+                self.repairs._owned(db, self.repairs.status(transaction), owner, epoch, unexpired=False)
+                require(self._inference(transaction, owner, epoch, db=db) == inference_ref,
+                        "REPAIR_INFERENCE_CHANGED")
+                db.execute("INSERT INTO repair_publication_evidence VALUES (?,?,?)",
+                           (transaction, publisher.binding_digest, ref))
+                self.database.event(db, "repair.publication_observed", {"transaction_id": transaction,
+                    "source_ref": ref, "campaign_permission_published": False})
+            return {"source_ref": ref, "complete_repair_accounting": False}

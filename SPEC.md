@@ -2299,6 +2299,21 @@ Preparation `/3` binds the prospective `hotspot-processors4-heap512-6144mib/1` d
 
 **Private inventory failure diagnostics.** `ProcessInventoryObservation/1` retains only the fixed failing stage, bounded assigned/listed/retained counts and immediate Win32 error for a failed API. Successful calls must not report stale last-error values. Preserve this operator-only observation durably before abort/cleanup, separately from the unchanged abort-v1 control record. It grants no new process authority and does not waive failed observations, history, quotas or deadlines. No retries or game replay are implied. [Authentic failure and source verification](docs/verification/2026-09-21-native-craft-points.md).
 
+**M1 early-abort delivery and diagnostic extension.** Carry the first durably
+recorded monitor failure across healthy monitor iterations when the server-owned
+evidence directory does not yet exist. Publish that original failure once the
+directory becomes available, before any participant admission, without extending
+cleanup deadlines. Attempt publication at most once; an ambiguous write remains
+a failure and never triggers replacement or replay. Independent hard cleanup
+still applies. `ProcessInventoryObservation/2` adds only a fixed rejection reason
+for an attempted incomplete-list reconciliation: unretained list entry, lifetime
+total mismatch, assigned/active count outside retained history, or limit
+termination. The original qualification predicates and API/handle-error behavior
+remain unchanged; old observations retain version1. Neither diagnostics nor a
+later empty process inventory retroactively qualify failed history. This private
+extension adds no gameplay route or new spending authority.
+[Source and fixture evidence](docs/verification/2026-09-26-m1-pending-abort.md).
+
 **Complete retained-history verification.** The private reference supervisor explicitly declares `complete-retained-job-history/1`; other process observers retain strict list equality by default. An incomplete successful list can resolve only when all listed entries are valid/distinct/already held, counts fit the unchanged quota, and an independent query on the same held Job reports lifetime total exactly equal to the distinct previously membership-validated retained handles. Active/assigned counts must fit that history; limit terminations and invalid retained handles reject. No PID guessing, new handle or later list retry supplies missing history. Durably publish each anomaly and its measurements before continuing, bounded to 64 per supervisor; publication/quota failures stay latched. Include proofs in the terminal report. Final active-zero, complete held/signaled/lifetime equality, logs and watchdogs remain required; the guardian uses its declared bound (D13 for new Forge grants, legacy 500 ms). Historical failed instances cannot be relabeled. [Implementation and focused/native evidence](docs/verification/2026-09-21-process-history.md).
 
 ### 13.4 Replication, uncertainty, censoring and power

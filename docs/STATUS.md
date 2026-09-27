@@ -1,5 +1,11 @@
 # Strata current status
 
+M1.5b.8b [pending early-abort delivery](verification/2026-09-26-m1-pending-abort.md) now carries the first durable monitor failure across healthy iterations until the server-owned evidence directory appears. Publication is attempted once, without extending cleanup bounds. Private inventory observation2 records the rejected history predicate; qualification and old observation1 behavior remain unchanged.
+
+57 distinct focused cases pass, including12 new cases; real owned Windows/JVM fixtures verify delayed-directory delivery and before/after-write failures. Three strengthened terminal cases also pass with archived result properties. No game/model run or artifact installation. All40 accounting tables remain unchanged at4,887,796microUSD.
+
+M1.5b.8b implemented_unverified on the authentic game profile. Next a fresh changed-coordinator reference for complete capacity/interval/retirement/settlement evidence. Operation10 remains failed with consumed launch, stale inner rows and256 MiB held; terminal history remains unqualified. Full M1/G1, native-host/isolation/keybinding/scorer/probe criteria remain open; D18/D19 remain M0-only.
+
 M1.5b.8/.8a [operation10](verification/2026-09-26-m1-telemetry-capacity-native.md) fails during server preparation: process inventory reports12 assigned/11 listed/12 retained. No client dispatch or telemetry stream. The declared256 MiB spool reservation is durable before server dispatch and remains held; complete interval/retirement/settlement acceptance is unverified.
 
 The outer watchdog forces cleanup at187s. Final history has29 held/27 signaled and zero active, so terminal proof remains unqualified despite a later empty process inventory. Pair UNCERTAIN, protected DISPATCHING and dispatch RUNNING remain preserved; the one-use launch is consumed. The unused client session is retired. All40 accounting tables remain unchanged at4,887,796microUSD; no model calls.

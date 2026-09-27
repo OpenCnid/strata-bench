@@ -424,7 +424,8 @@ class ReferencePair:
         started = time.monotonic()
         ready = None
         aborted_at = None
-        published = False
+        pending_abort = None
+        publication_attempted = False
         claimed = False
         signal = AbortSignal(launch, server_evidence)
         try:
@@ -514,6 +515,13 @@ class ReferencePair:
             )
             while True:
                 try:
+                    # An early failure can precede the server-owned directory.
+                    # Deliver that original durable failure on a later healthy
+                    # monitor iteration, without waiting for another exception.
+                    if (pending_abort is not None and not publication_attempted
+                            and server_evidence.is_dir() and not signal.poll()):
+                        publication_attempted = True
+                        request_abort(server_evidence, launch, *pending_abort)
                     for role, owned in processes.items():
                         phase = role + ("_deadline" if owned.fired else "_monitor")
                         owned.observe()
@@ -613,6 +621,7 @@ class ReferencePair:
                         self._record(launch.instance_id, "ABORT_REQUESTED", body)
                     if aborted_at is None:
                         aborted_at = time.monotonic()
+                        pending_abort = (phase, error)
                         for role, owned in processes.items():
                             cleanup = launch.abort_cleanup_ms / 1000
                             if role == "server":
@@ -620,9 +629,12 @@ class ReferencePair:
                             owned.shorten(aborted_at + cleanup)
                     # The server owns creation of its evidence directory. An early
                     # failure remains durable while waiting for it; no client starts.
-                    if not published and server_evidence.is_dir() and not signal.poll():
-                        request_abort(server_evidence, launch, phase, error)
-                        published = True
+                    if (not publication_attempted and server_evidence.is_dir()
+                            and not signal.poll()):
+                        # Attempt at most once even if publication itself is
+                        # ambiguous. Preserve its failure; the watchdog remains.
+                        publication_attempted = True
+                        request_abort(server_evidence, launch, *pending_abort)
                     if all(owned.process.poll() is not None for owned in processes.values()):
                         break
                 time.sleep(0.025)

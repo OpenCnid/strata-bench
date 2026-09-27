@@ -82,6 +82,43 @@ def test_duplicate_list_entries_never_establish_ownership(synthetic_member_job):
     assert not job.members and not state.opened
 
 
+@pytest.mark.parametrize("reason", sorted(ProcessInventoryFault.RECONCILIATION_FAILURES))
+def test_rejected_reconciliation_reports_only_the_failed_predicate(synthetic_member_job, reason):
+    job, state = synthetic_member_job
+    accounting = prepared(job, state)
+    if reason == "unretained_list_entry":
+        state.pids = [125]
+    elif reason == "history_total_mismatch":
+        accounting["total_processes"] = 3
+    elif reason == "assigned_exceeds_history":
+        job.members.pop(124)
+        accounting["total_processes"] = 1
+    elif reason == "active_outside_history":
+        accounting["active_processes"] = 3
+    else:
+        accounting["terminated_processes"] = 1
+    before, opened, queries = dict(job.members), list(state.opened), state.queries
+    with pytest.raises(ProcessInventoryFault) as caught:
+        job.observe_members(reconcile_history=True)
+    assert caught.value.observation() == {
+        "schema": "strata/ProcessInventoryObservation/2", "stage": "incomplete_list",
+        "assigned_processes": 2, "listed_processes": 1, "retained_processes": len(before),
+        "win32_error": None, "reconciliation_failure": reason}
+    assert job.members == before and state.opened == opened and state.queries == queries + 1
+    assert caught.value.code == "PROCESS_MEMBER_INVENTORY_UNAVAILABLE"
+    mutated = caught.value.observation()
+    mutated["reconciliation_failure"] = "private data"
+    assert caught.value.observation()["reconciliation_failure"] == reason
+
+
+@pytest.mark.parametrize("reason,stage", [
+    ("private path", "incomplete_list"), (True, "incomplete_list"),
+    (["history_total_mismatch"], "incomplete_list"), ("history_total_mismatch", "query")])
+def test_reconciliation_diagnostics_reject_unstructured_or_unrelated_data(reason, stage):
+    with pytest.raises(Fault, match="INVALID_ARGUMENT"):
+        ProcessInventoryFault(stage, retained=1, reconciliation_failure=reason)
+
+
 def observer(tmp_path):
     proof = {"schema": "strata/ProcessInventoryReconciliation/1",
         "policy": "complete-retained-job-history/1", "assigned_processes": 2,

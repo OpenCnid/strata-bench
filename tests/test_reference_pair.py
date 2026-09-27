@@ -356,6 +356,71 @@ def test_failed_first_monitor_never_starts_client(pair, monkeypatch, interrupted
         assert json.loads(row["body"])["failures"][0] == result["failures"][0]
 
 
+@pytest.mark.parametrize("publication_error", [None, "before_write", "after_write"])
+def test_single_early_fault_delivers_first_abort_after_directory_appears(
+    pair, monkeypatch, publication_error, record_property
+):
+    runner, plan, launch_plan, _ = pair
+    evidence = Path(launch_plan["evidence_directory"])
+    original_observe, original_is_dir = module.OwnedCli.observe, Path.is_dir
+    request = module.request_abort
+    state = {"observations": 0, "hidden": False, "requests": 0}
+
+    def observe(self):
+        state["observations"] += 1
+        if state["observations"] == 1:
+            raise ProcessInventoryFault("incomplete_list", assigned=12, listed=11,
+                retained=12, reconciliation_failure="unretained_list_entry")
+        return original_observe(self)
+
+    def is_dir(path):
+        # Hide only the first publication opportunity. Subsequent monitor
+        # iterations succeed; no second exception is needed for delivery.
+        if path == evidence and state["observations"] == 1 and not state["hidden"]:
+            state["hidden"] = True
+            return False
+        return original_is_dir(path)
+
+    def abort(*args):
+        state["requests"] += 1
+        assert state["requests"] == 1 and state["hidden"]
+        row = runner.database.connection.execute(
+            "SELECT state,body FROM reference_pairs").fetchone()
+        body = json.loads(row["body"])
+        assert row["state"] == "ABORT_REQUESTED" and len(body["failures"]) == 1
+        assert body["process_observations"][0]["schema"] == "strata/ProcessInventoryObservation/2"
+        assert body["process_observations"][0]["reconciliation_failure"] == "unretained_list_entry"
+        assert args[2] == "server_monitor" and isinstance(args[3], ProcessInventoryFault)
+        if publication_error == "before_write":
+            raise OSError("private publication detail")
+        value = request(*args)
+        if publication_error == "after_write":
+            raise OSError("private publication detail")
+        return value
+
+    monkeypatch.setattr(module.OwnedCli, "observe", observe)
+    monkeypatch.setattr(Path, "is_dir", is_dir)
+    monkeypatch.setattr(module, "request_abort", abort)
+    result = runner.run(plan)
+    record_property("pair_result", json.dumps(result))
+    assert result["status"] == "uncertain" and state["requests"] == 1
+    assert "client_process" not in result
+    assert not (Path(plan["evidence_directory"]) / "client-intent.json").exists()
+    assert result["failures"][0]["code"] == "PROCESS_MEMBER_INVENTORY_UNAVAILABLE"
+    assert "private publication detail" not in json.dumps(result)
+    if publication_error != "before_write":
+        value = json.loads((evidence / "outer-abort.json").read_bytes())
+        assert value["failure"] == result["failures"][0]
+    else:
+        assert not (evidence / "outer-abort.json").exists()
+    if publication_error:
+        assert any(f["error_type"] == "OSError" for f in result["failures"])
+    else:
+        assert all(f["code"] != "REFERENCE_PAIR_HARD_DEADLINE" for f in result["failures"])
+        assert result["server_process"]["terminal_verified"]
+        assert not result["server_process"]["forced"]
+
+
 def test_prior_interrupted_intent_cannot_be_overwritten_by_new_output_paths(pair):
     runner, plan, launch_plan, _ = pair
     original = {"status": "uncertain", "original": "retained missing terminal proof"}

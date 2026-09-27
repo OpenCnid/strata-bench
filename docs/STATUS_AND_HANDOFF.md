@@ -1,5 +1,11 @@
 # M1/G1 implementation handoff
 
+M1.5b.9b [operation14](verification/2026-09-26-m1-low-energy-native.md) passes the authentic low-energy interruption control. A new5,000 RF fixture differs only in the selected Energy field. The furnace completes one item, starts another and stops after52 funded ticks with8 RF/one input remaining. Native processOff clears3,008 unfinished progress without refunding the992 RF spent on partial work. The unchanged prior V5 rule returns zero credit with MACHINE_OPERATING_REFUND_MISSING.
+
+2,001 authenticated records/1,647 complete ticks; 17 operation/17 actual import checks and all interruption/capacity/saved-state/terminal audits pass. Eight actions/30 primitives; pair 688.125s, guardian 841.8733ms. All rows STOPPED, session retired/no owned runtime. All40 authority tables unchanged/4,887,796 microUSD, historical holds preserved; no model calls or new inference authority. Initial temporary-region filename failure is retained; validation and limits unchanged.
+
+M1.5b.9b verified for this named interruption; M1.5b.9/M1 in_progress, G1 not_run. Next actual replacement/refusal and remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. All processing calls were fully funded; partially funded native-call applicability remains separate. D18/D19 remain M0-only.
+
 M1.5b.9a [operation13](verification/2026-09-26-m1-first-episode-native.md) passes the native first-episode negative control: the first42-tick/one-output/4,000 RF episode is rejected, even though a later84-tick/two-output/8,000 RF episode is sufficient. The unchanged registered V5 rule returns zero selected credit with MACHINE_OPERATING_DURATION. The later comparison stays explicitly unregistered/unscorable.
 
 2,075 authenticated records/1,648 complete ticks,126 processing calls and134 child joins. 17 operation/17 actual import checks plus episode/capacity/saved-state/terminal audits pass. Twelve actions/44 primitives yield three saved ingots, empty furnace/8,000 RF. Pair 668.219s, guardian 841.9155ms; all rows STOPPED, session retired and no owned runtime. All40 authority tables unchanged/4,887,796 microUSD; historical holds preserved, no model calls.

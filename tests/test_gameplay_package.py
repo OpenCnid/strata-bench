@@ -19,7 +19,8 @@ def test_real_compiled_gameplay_client_bundle_excludes_operator_material(tmp_pat
     assert not manifest["proves_runtime_isolation"]
     assert not any(p.name in {"SPEC.md", "AGENTS.md", "MILESTONES.md", "worker.js", "adapter.js",
                              "desktop_process.py", "desktop_client.py", "saved_blocks.py",
-                             "run_costs.py", "craft_witness.py"}
+                             "run_costs.py", "craft_witness.py", "native_settings_effects.py",
+                             "SettingsEffectsCoordinator.class", "SettingsEffectsBridgeFixture.class"}
                    for p in output.rglob("*"))
     environment = dict(os.environ)
     environment.pop("STRATA_GAME_GRANT", None)

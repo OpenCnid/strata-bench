@@ -7,15 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1b now connects native key input to transaction-owned verification under the
-existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
-concurrent-input fencing, bounded raw observations and interruption/recovery
-controls pass source/synthetic integration checks, including actual loopback HTTP.
-[Current evidence](verification/2026-09-27-m1-settings-lane.md).
-The opt-in native route remains private and unqualified; results never assert
-verified effects or commit. Next add the strict Python operator bindings/source
-joins, then prepare and run the authentic intended/competing-control cycle.
-T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay open.
+M1.1b now has strict Python operator bindings to the production Java transaction,
+lane and HTTP coordinator. Apply/observe/query/rollback and actual JVM
+process-death recovery pass with synthetic body/input. The first recovery run
+exposed a decimal-coordinate journal parsing defect; it is fixed, with the
+original failure and journals retained. [Current evidence](verification/2026-09-27-m1-settings-client.md).
+No authentic Minecraft effects or complete G1 suite are newly verified. Next
+prepare the intended/competing-control cycle on the changed exact client profile,
+then complete its restart/rollback and full T05 matrix. T01/T05/G1 remain not_run.
 
 
 | Required G1 suite | Current position | Closure work remaining |
@@ -27,7 +26,7 @@ T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay op
 | T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
 | T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
 
-Next implement the missing keybinding effect boundary, reconcile T01 against
+Next verify the implemented keybinding effect boundary in Minecraft, reconcile T01 against
 the resulting interface, complete matched probes, consolidate T10, and qualify
 final T04/T06 before assembling G1. This follows the
 [closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
@@ -42,6 +41,16 @@ No game/model execution was performed for this change.
 ## Historical updates — superseded next steps
 
 The entries below preserve history. Use the current position above for execution priority.
+
+M1.1b now connects native key input to transaction-owned verification under the
+existing avatar lane, budget and journal. Pending keymap/runtime/disk checks,
+concurrent-input fencing, bounded raw observations and interruption/recovery
+controls pass source/synthetic integration checks, including actual loopback HTTP.
+[Current evidence](verification/2026-09-27-m1-settings-lane.md).
+The opt-in native route remains private and unqualified; results never assert
+verified effects or commit. Next add the strict Python operator bindings/source
+joins, then prepare and run the authentic intended/competing-control cycle.
+T01/T05/G1 remain not_run; the full repair and restart/rollback criteria stay open.
 
 M1.1b is now in_progress: a bounded native key-input engine routes ordinary
 keyboard callbacks with matching window/thread-scoped polling, modifier ordering,

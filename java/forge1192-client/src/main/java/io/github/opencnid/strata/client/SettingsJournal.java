@@ -46,7 +46,8 @@ final class SettingsJournal {
             for (int index = 0; index < lines.length - 1; index++) {
                 String line = lines[index];
                 if (line.isEmpty()) throw new IOException("SETTINGS_JOURNAL_INVALID");
-                JsonObject frame = SettingsJson.read(line);
+                JsonObject frame = "strata/NativeGameJournalFrame/1".equals(frameSchema)
+                    ? SettingsJson.readGame(line) : SettingsJson.read(line);
                 SettingsJson.fields(frame, "schema", "seq", "previous", "payload", "sha256");
                 if (!frameSchema.equals(SettingsJson.string(frame, "schema"))
                         || SettingsJson.integer(frame, "seq") != entries.size() + 1L

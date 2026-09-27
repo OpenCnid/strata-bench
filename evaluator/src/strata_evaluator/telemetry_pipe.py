@@ -151,6 +151,12 @@ class TelemetryPipeBroker:
                 "TELEMETRY_PIPE_EVENT_SCOPE")
         if self.count:
             require(event.kind != "server_started", "TELEMETRY_PIPE_EVENT_SCOPE")
+            if self.clock_samples and self.last_kind == "server_health":
+                require(event.kind == "server_clock_sample", "TELEMETRY_CLOCK_SAMPLE_MISSING")
+            if event.kind == "server_clock_sample":
+                require(self.clock_samples and self.last_kind == "server_health"
+                        and event.server_tick == self.last_tick and not event.actor_ids,
+                        "TELEMETRY_CLOCK_SAMPLE_SCOPE")
             if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS:
                 captured = (parse_interval(event, self.interval_supported) if event.kind in INTERVAL_KINDS else
                             parse_transition(event, self.transition_supported) if event.kind in TRANSITION_KINDS else
@@ -176,7 +182,8 @@ class TelemetryPipeBroker:
                     "TELEMETRY_PIPE_FIRST_EVENT")
             model = LAUNCH_STARTUP_MODELS[event.payload_schema]
             payload = model.model_validate(event.payload)
-            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14", "strata/ServerStarted/15", "strata/ServerStarted/16", "strata/ServerStarted/17", "strata/ServerStarted/18", "strata/ServerStarted/19"}
+            self.clock_samples = getattr(payload, "clock_sample_policy", None) == "server-event-monotonic-samples/1"
+            require(event.payload_schema not in {"strata/ServerStarted/7", "strata/ServerStarted/8", "strata/ServerStarted/9", "strata/ServerStarted/10", "strata/ServerStarted/11", "strata/ServerStarted/12", "strata/ServerStarted/13", "strata/ServerStarted/14", "strata/ServerStarted/15", "strata/ServerStarted/16", "strata/ServerStarted/17", "strata/ServerStarted/18", "strata/ServerStarted/19", "strata/ServerStarted/20"}
                     or payload.telemetry_transport == "windows-owned-pipe/1", "TELEMETRY_PIPE_TRANSPORT")
             from .reference_launch import bind_identity
             binding = bind_identity(self.plan, self.setup, payload.launch_identity, identity)
@@ -216,6 +223,7 @@ class TelemetryPipeBroker:
         self.output.flush()
         os.fsync(self.output.fileno())
         self.count, self.previous, self.bytes, self.last_tick = event.seq, mac, self.bytes + len(wire), event.server_tick
+        self.last_kind = event.kind
         self.stopped = event.kind == "server_stopped" and event.payload_schema == "strata/ServerStopped/1"
         self._record("DURABLE", records=self.count, bytes=self.bytes, last_event_sha256=event_hash)
         self.pipe.send(canonical({"schema": "strata/TelemetryPipeReceipt/1", "sequence": self.count,

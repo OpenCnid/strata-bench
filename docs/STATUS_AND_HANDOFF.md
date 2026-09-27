@@ -1,6 +1,17 @@
 # M1/G1 implementation handoff
 
-## Current position — September 27, guarded control publication
+## Current position — September 27, live repair clock dependency
+
+M1.1c.3.4 now exports the native callback clock while the server runs, through
+telemetry0.3.19/ServerStarted20 and a private authenticated prefix reader. An
+actual JVM/Python fixture observes continued ticks across synthetic disconnect/
+reconnect without stopping the process. [Live clock evidence](verification/2026-09-27-m1-live-repair-clocks.md).
+The candidate JAR is built, not installed or qualified in Minecraft. Next bind
+admitted server/roster identity and repair boundaries to these samples, reconcile
+prior gameplay/model/helper charges and the publication tail, then complete
+settlement and original-lease controller resume. Periodic samples alone cannot
+certify full repair coverage. M1 remains in_progress; G1 remains not_run.
+
 
 M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
 M1 must establish trustworthy data, permissions, controls, scoring and matched
@@ -54,7 +65,7 @@ are terminal, options unchanged and sessions retired. Eight telemetry holds
 are preserved; inference authority is unchanged. No unchanged retry is selected.
 [Actual result and limits](verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
 
-No live process/session remains. Native01/02/03/04 stay consumed and their
+No live process/session remains. The live-clock source/JVM evidence now supersedes terminal-only clock availability; exact admitted repair attribution and complete settlement still remain. No candidate telemetry JAR was installed. Native01/02/03/04 stay consumed and their
 sealed evidence must not be changed. The typed publication client and measured
 worker/controller interval are now implemented. Next reconcile prior-gameplay
 allocation with this interval, actual body/server clocks, related model/helper
@@ -2036,3 +2047,12 @@ This pointer follows the archived document snapshot; both archives are unchanged
 The named native transition reference passes; full M1/G1 remains open.
 
 Final essential-control audit: authentic failed attempt1,238files/128,099,519bytes, seal `7559bd5b5fa308358e02dc91a9f9800f202fccce8bd3b51626eb67528939d00a`; source/test preparation47files/4,313,096bytes, seal `d564d91a1cc15f3baf6c390d66789fa65030539f7b64b53160b4e32d410671b2`. Both exact bundles verify. All459 milestone IDs/1,664 ledger links preserved;40 authority tables unchanged; six separate telemetry holds retained; zero owned runtime. This pointer follows the archived documentation snapshot. M1/G1 remains open.
+
+Final audit preserves all460 milestone IDs, checks2,135 local links and confirms
+all40 authority tables unchanged at4,887,796 microUSD, eight existing telemetry
+holds unchanged, installed client JAR/options unchanged and zero owned runtime.
+Private source/build/test archive2026-09-27-m1-live-repair-clocks-01 verifies:
+37files/2,568,834bytes, seal
+`52d0dc4a246f28412ff1455be633080203c2450798040e5b92527b00cc711efa`.
+This pointer follows the archived source/document snapshot; that archive is
+immutable. M1/G1 and authentic live-clock/repair settlement qualification remain open.

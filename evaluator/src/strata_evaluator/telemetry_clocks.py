@@ -28,6 +28,23 @@ class ServerClock(Strict):
         return self
 
 
+class ServerClockSample(ServerClock):
+    boundary: Literal["server_tick_end_sample"]
+
+
+def advance_clock(previous, current):
+    """Check cumulative callbacks, never interpolate between samples."""
+    if previous is None:
+        return
+    ticks = current.completed_server_ticks - previous.completed_server_ticks
+    wall = current.elapsed_wall_ns - previous.elapsed_wall_ns
+    work = current.observed_tick_work_ns - previous.observed_tick_work_ns
+    require(ticks >= 0 and wall >= 0 and 0 <= work <= wall
+            and set(previous.avatar_tick_events) <= set(current.avatar_tick_events)
+            and all(0 <= value - previous.avatar_tick_events.get(actor, 0) <= ticks
+                    for actor, value in current.avatar_tick_events.items()), "TELEMETRY_CLOCK_ROLLBACK")
+
+
 def reconcile_clock(clock, *, final_tick, sampled_ticks, sampled_wall_ns, sampled_work_ns):
     require(clock.completed_server_ticks == final_tick >= sampled_ticks
             and clock.elapsed_wall_ns >= sampled_wall_ns

@@ -11,6 +11,7 @@ import java.util.function.LongSupplier;
 /** Private callback exposure, not admitted active time or an inferred 20 Hz clock. */
 final class ServerClock {
     static final String POLICY = "server-event-monotonic-cumulative/1";
+    static final String SAMPLE_POLICY = "server-event-monotonic-samples/1";
     private final Thread owner = Thread.currentThread();
     private final LongSupplier nanoTime;
     private final long origin;
@@ -68,10 +69,20 @@ final class ServerClock {
         long elapsed = now();
         require(!inTick && work <= elapsed);
         closed = true;
+        return value(elapsed, "server_stopped_callback");
+    }
+
+    synchronized JsonObject sample() {
+        long elapsed = now();
+        require(!inTick && work <= elapsed);
+        return value(elapsed, "server_tick_end_sample");
+    }
+
+    private JsonObject value(long elapsed, String boundary) {
         var result = new JsonObject();
         result.addProperty("policy", POLICY);
         result.addProperty("origin", "server_started_callback");
-        result.addProperty("boundary", "server_stopped_callback");
+        result.addProperty("boundary", boundary);
         result.addProperty("elapsed_wall_ns", elapsed);
         result.addProperty("completed_server_ticks", ticks);
         result.addProperty("observed_tick_work_ns", work);

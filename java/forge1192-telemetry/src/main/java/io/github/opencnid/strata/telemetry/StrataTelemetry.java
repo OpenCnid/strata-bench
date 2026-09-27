@@ -70,8 +70,9 @@ public final class StrataTelemetry {
             spool = new EventSpool(config);
             SetupHistory.activate();
             JsonObject boot = new JsonObject();
-            boot.addProperty("module", "strata-forge1192-telemetry/0.3.18");
+            boot.addProperty("module", "strata-forge1192-telemetry/0.3.19");
             boot.addProperty("clock_policy", ServerClock.POLICY);
+            boot.addProperty("clock_sample_policy", ServerClock.SAMPLE_POLICY);
             boot.addProperty("minecraft", "1.19.2");
             boot.addProperty("forge", "43.4.23");
             boot.addProperty("scoring_provenance_supported", false);
@@ -93,7 +94,7 @@ public final class StrataTelemetry {
             boot.addProperty("machine_process_tick_policy",FurnaceCapture.TICK_POLICY);
             boot.addProperty("machine_transition_policy",FurnaceCapture.TRANSITION_POLICY);
             boot.addProperty("machine_interval_policy",FurnaceCapture.INTERVAL_POLICY);
-            emit("server_started", "strata/ServerStarted/19", boot, new JsonArray());
+            emit("server_started", "strata/ServerStarted/20", boot, new JsonArray());
             for (String id : config.recipeIds()) recipe(event.getServer(), id);
             CraftCapture.activate(this::emit);
             FurnaceCapture.activate(event.getServer(),this::emit);
@@ -165,6 +166,7 @@ public final class StrataTelemetry {
         avatarTicks.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(e -> exposures.addProperty(e.getKey().toString(), e.getValue()));
         sample.add("avatar_ticks_since_boot", exposures);
         emit("server_health", "strata/ServerHealth/1", sample, new JsonArray());
+        emit("server_clock_sample", "strata/ServerClockSample/1", clock.sample(), new JsonArray());
         lastSample = now;
         lastSampleTick = ticks;
         workNanos = 0;

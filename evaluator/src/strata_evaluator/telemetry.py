@@ -23,7 +23,7 @@ from .craft_witness import CraftBegin, CraftEnd, qualify_click
 from .setup_facts import SetupSnapshot, SetupSupport
 from .setup_history import (HistorySupport, HistorySupportV2, HistorySupportV3, HistorySupportV4, HistorySupportV5, HistorySupportV6, SetupHistory,
                             HISTORY_MODELS, HISTORY_SCHEMAS, advance, qualify_history)
-from .telemetry_clocks import ServerClock, reconcile_clock
+from .telemetry_clocks import ServerClock, ServerClockSample, advance_clock, reconcile_clock
 from .machine_capture import (FurnaceSupport, FurnaceSupportV2, KINDS as MACHINE_KINDS,
                               PAYLOADS as MACHINE_PAYLOADS, require_capture_scope, known_capture_schema)
 from .machine_reference import MachineReferenceInspection
@@ -185,6 +185,11 @@ class ServerStartedV19(ServerStartedV18):
     machine_interval_policy: Literal["thermal1192-native-furnace-server-tick/1"]
 
 
+class ServerStartedV20(ServerStartedV19):
+    module: Literal["strata-forge1192-telemetry/0.3.19"]
+    clock_sample_policy: Literal["server-event-monotonic-samples/1"]
+
+
 LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/6": ServerStartedV6,
                         "strata/ServerStarted/7": ServerStartedV7,
@@ -199,7 +204,8 @@ LAUNCH_STARTUP_MODELS = {"strata/ServerStarted/5": ServerStartedV5,
                         "strata/ServerStarted/16": ServerStartedV16,
                         "strata/ServerStarted/17": ServerStartedV17,
                         "strata/ServerStarted/18": ServerStartedV18,
-                        "strata/ServerStarted/19": ServerStartedV19}
+                        "strata/ServerStarted/19": ServerStartedV19,
+                        "strata/ServerStarted/20": ServerStartedV20}
 
 
 class RecipeSnapshot(Strict):
@@ -251,6 +257,9 @@ class RawCraftCallback(Strict):
 PAYLOADS = dict(zip(KINDS, (ServerStarted, RecipeSnapshot, ServerHealth,
                           RawCraftCallback, Strict, ConfigSnapshot, CraftBegin, CraftEnd, SetupSnapshot,
                           SetupHistory, ServerClock), strict=True))
+
+KINDS["server_clock_sample"] = "strata/ServerClockSample/1"
+PAYLOADS["server_clock_sample"] = ServerClockSample
 
 KINDS.update(MACHINE_KINDS)
 KINDS.update(TICK_KINDS)
@@ -304,6 +313,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
     history_support, previous_history, pending_history, terminal_history = None, None, None, None
     health_wall_ns, health_ticks, wire_bytes = 0, 0, 0
     health_work_ns, terminal_clock = 0, None
+    clock_sample, previous_kind = None, None
     with path.open("rb") as stream:
         while line := stream.readline(limit + 1):
             require(len(line) <= limit and line.endswith(b"\n"), "TELEMETRY_PARTIAL_RECORD")
@@ -333,13 +343,14 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             version13 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/13"
             version14 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/14"
             version15 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/15"
+            version20 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/20"
             version19 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/19"
             version18 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/18"
             version17 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/17"
             version16 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/16"
             history_versioned = event.kind == "setup_history" and event.payload_schema in HISTORY_SCHEMAS.values()
             version9 = event.kind == "server_started" and event.payload_schema == "strata/ServerStarted/9"
-            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or history_versioned or known_capture_schema(event)),
+            require(event.kind in KINDS and (KINDS[event.kind] == event.payload_schema or version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20 or history_versioned or known_capture_schema(event)),
                     "SCHEMA_UNSUPPORTED")
             require(event.seq == event.server_event_seq == count + 1, "TELEMETRY_SEQUENCE_GAP")
             require(event.server_tick >= previous_tick, "TELEMETRY_TICK_ROLLBACK")
@@ -363,10 +374,11 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                             or (version16 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.15")
                             or (version17 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.16")
                             or (version18 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.17")
-                            or (version19 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.18"),
+                            or (version19 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.18")
+                            or (version20 and event.payload.get("module") == "strata-forge1192-telemetry/0.3.19"),
                             "TELEMETRY_AUTH_MODULE")
-                startup_model = ServerStartedV19 if version19 else ServerStartedV18 if version18 else ServerStartedV17 if version17 else ServerStartedV16 if version16 else ServerStartedV15 if version15 else ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
-                module = ("strata-forge1192-telemetry/0.3.18" if version19 else "strata-forge1192-telemetry/0.3.17" if version18 else "strata-forge1192-telemetry/0.3.16" if version17 else "strata-forge1192-telemetry/0.3.15" if version16 else "strata-forge1192-telemetry/0.3.14" if version15 else "strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
+                startup_model = ServerStartedV20 if version20 else ServerStartedV19 if version19 else ServerStartedV18 if version18 else ServerStartedV17 if version17 else ServerStartedV16 if version16 else ServerStartedV15 if version15 else ServerStartedV14 if version14 else ServerStartedV13 if version13 else ServerStartedV12 if version12 else ServerStartedV11 if version11 else ServerStartedV10 if version10 else ServerStartedV9 if version9 else ServerStartedV8 if version8 else ServerStartedV7 if version7 else ServerStartedV6 if version6 else ServerStartedV5 if version5 else ServerStartedV4 if version4 else ServerStartedV3 if version3 else ServerStartedV2 if version2 else ServerStarted
+                module = ("strata-forge1192-telemetry/0.3.19" if version20 else "strata-forge1192-telemetry/0.3.18" if version19 else "strata-forge1192-telemetry/0.3.17" if version18 else "strata-forge1192-telemetry/0.3.16" if version17 else "strata-forge1192-telemetry/0.3.15" if version16 else "strata-forge1192-telemetry/0.3.14" if version15 else "strata-forge1192-telemetry/0.3.13" if version14 else "strata-forge1192-telemetry/0.3.12" if version13 else "strata-forge1192-telemetry/0.3.11" if version12 else "strata-forge1192-telemetry/0.3.10" if version11 else "strata-forge1192-telemetry/0.3.9" if version10 else "strata-forge1192-telemetry/0.3.8" if version9 else "strata-forge1192-telemetry/0.3.7" if version8 else "strata-forge1192-telemetry/0.3.6" if version7 else "strata-forge1192-telemetry/0.3.5" if version6 else "strata-forge1192-telemetry/0.3.4" if version5 else ("strata-forge1192-telemetry/0.3.1", "strata-forge1192-telemetry/0.3.2",
                            "strata-forge1192-telemetry/0.3.3") if version4 else
                           "strata-forge1192-telemetry/0.3.0" if version3 else
                           "strata-forge1192-telemetry/0.2.0" if version2 else
@@ -432,28 +444,38 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                         "SETUP_HISTORY_MODULE")
             parsed = captured if event.kind in MACHINE_KINDS or event.kind in TICK_KINDS or event.kind in TRANSITION_KINDS or event.kind in INTERVAL_KINDS else (startup_model if event.kind == "server_started" else
                       HISTORY_MODELS[history_support.policy] if event.kind == "setup_history" else PAYLOADS[event.kind]).model_validate(data)
-            if version19:
+            if version19 or version20:
                 interval_supported = parsed.machine_capture_support.status == "supported"
                 interval_inspection = IntervalInspection()
-            if version18 or version19:
+            if version18 or version19 or version20:
                 transition_supported = parsed.machine_capture_support.status == "supported"
-            if version17 or version18 or version19:
+            if version17 or version18 or version19 or version20:
                 tick_supported = parsed.machine_capture_support.status == "supported"
-            if version15 or version16 or version17 or version18 or version19:
+            if version15 or version16 or version17 or version18 or version19 or version20:
                 machine_policy = parsed.machine_capture_policy
                 machine_supported = parsed.machine_capture_support.status == "supported"
-            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 startup_identity = parsed.launch_identity.model_dump()
-            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 startup_transport = parsed.telemetry_transport
-            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 setup_support = parsed.setup_capture_support.model_dump()
-            if version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 history_support = parsed.setup_history_support
-            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version2 or version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 config_queries = {q.file_name: q.paths for q in parsed.config_queries}
-            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19:
+            if version3 or version4 or version5 or version6 or version7 or version8 or version9 or version10 or version11 or version12 or version13 or version14 or version15 or version16 or version17 or version18 or version19 or version20:
                 craft_policy = parsed.craft_capture_policy
+            if issubclass(startup_model, ServerStartedV20) and previous_kind == "server_health":
+                require(event.kind == "server_clock_sample", "TELEMETRY_CLOCK_SAMPLE_MISSING")
+            if event.kind == "server_clock_sample":
+                require(issubclass(startup_model, ServerStartedV20) and previous_kind == "server_health"
+                        and event.server_tick == previous_tick and not event.actor_ids,
+                        "TELEMETRY_CLOCK_SAMPLE_SCOPE")
+                reconcile_clock(parsed, final_tick=event.server_tick, sampled_ticks=health_ticks,
+                                sampled_wall_ns=health_wall_ns, sampled_work_ns=health_work_ns)
+                advance_clock(clock_sample, parsed)
+                clock_sample = parsed
             if terminal_clock is not None:
                 require(event.server_tick == terminal_clock.completed_server_ticks
                         and (event.kind == "server_stopped" or
@@ -464,6 +486,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
                         and not event.actor_ids, "TELEMETRY_CLOCK_SCOPE")
                 reconcile_clock(parsed, final_tick=event.server_tick, sampled_ticks=health_ticks,
                                 sampled_wall_ns=health_wall_ns, sampled_work_ns=health_work_ns)
+                advance_clock(clock_sample, parsed)
                 terminal_clock = parsed
             if pending_setup is not None:
                 observed_event, point = pending_setup
@@ -586,6 +609,7 @@ def inspect_spool(path: Path, campaign_id: str, epoch: int, *, authentication=No
             stopped = event.kind == "server_stopped"
             kinds[event.kind] = kinds.get(event.kind, 0) + 1
             previous_tick = event.server_tick
+            previous_kind = event.kind
             count += 1
             require(count <= 1000000, "TELEMETRY_QUOTA_EXHAUSTED")
     require(stopped, "TELEMETRY_CLEAN_STOP_MISSING")

@@ -1,5 +1,13 @@
 # Strata current status
 
+M1.5b.8/.8a [operation11](verification/2026-09-26-m1-pending-abort-native.md) passes the fresh changed-coordinator native reference:1,708 authenticated records,1,400 complete furnace ticks, the prior84-tick processing interval, all89 child joins, actual unload retirement and clean stop. All17 operation/9 prior-plan import checks plus processing/transition/interval/capacity audits pass.
+
+The256 MiB logical reservation settles atomically with STOPPED at12,277,501 actual bytes. Eight actions/28 primitives yield two ingots and one leftover dust; furnace empty/12,000RF. Pair479.907s, guardian913.6575ms,134/134 client and29/29 server terminal histories, session retired/no owned runtime. All40 accounting tables unchanged at4,887,796microUSD; no model calls.
+
+The initial terminal audit ran before its final process-inventory input existed; traceback and copied artifacts remain. A read-only continuation verifies unchanged copies and all terminal assertions and passes, without gameplay replay. No native early-abort/inventory anomaly or preflight diagnostic occurred; their additional failure branches remain separately qualified by fixture evidence only.
+
+M1.5b.8/.8a/M1 in_progress, G1 not_run. Next machine lifetime/replacement controls and prior-bound operating-window admission, then remaining setup/team/loaded-code/scorer/isolation/native-host/keybinding/probe criteria. Preserve operation09/10 failures and operation10's separate256 MiB held reservation. D18/D19 remain M0-only; do not repeat the unchanged positive reference.
+
 M1.5b.8b [pending early-abort delivery](verification/2026-09-26-m1-pending-abort.md) now carries the first durable monitor failure across healthy iterations until the server-owned evidence directory appears. Publication is attempted once, without extending cleanup bounds. Private inventory observation2 records the rejected history predicate; qualification and old observation1 behavior remain unchanged.
 
 57 distinct focused cases pass, including12 new cases; real owned Windows/JVM fixtures verify delayed-directory delivery and before/after-write failures. Three strengthened terminal cases also pass with archived result properties. No game/model run or artifact installation. All40 accounting tables remain unchanged at4,887,796microUSD.

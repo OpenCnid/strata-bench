@@ -1,7 +1,7 @@
 # M1/G1 fresh-session handoff
 
-The user requested a checkpoint PR merged to main, then continuation in a fresh
-session. **This is a handoff, not M1/G1 completion.** The current session should
+Checkpoint: [PR #9](https://github.com/OpenCnid/strata-bench/pull/9). The user
+requested merging it to main, then continuation in a fresh session. **This is a handoff, not M1/G1 completion.** The current session should
 stop implementation after publishing the checkpoint. M0 is verified; G0 passes
 only its named D14 development slice. M1 is `in_progress`; G1 and every complete
 T01/T04/T05/T06/T10/T11 suite remain `not_run`.
@@ -109,7 +109,8 @@ Read-only authority database:
 `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite`.
 Last verified exposure: 4,887,796 microUSD, including the old 755,400 hold and four
 full 1,000,000 failed-job envelopes. Forty authority tables were unchanged through
-`07737f3`. D12 and all used pilots, including D19.11, stay consumed. Do not replay,
+the checkpoint publication checks; all eight holds and both installed hashes
+matched, and the final matching runtime process count was zero. D12 and all used pilots, including D19.11, stay consumed. Do not replay,
 refund, rearm, duplicate child charges or interpret this as an exact OAuth bill.
 
 Eight distinct telemetry reservations remain `RESERVED`, each 268,435,456 bytes,
@@ -160,7 +161,7 @@ failures and historical profiles remain in [MILESTONES](../MILESTONES.md).
 
 Suggested continuation:
 
-> Continue Strata M1/G1 from the merged September 27 checkpoint. Read AGENTS.md,
+> Continue Strata M1/G1 from checkpoint PR #9 (verify it is merged). Read AGENTS.md,
 > docs/STATUS.md, docs/STATUS_AND_HANDOFF.md, the dated checkpoint, MILESTONES.md
 > and applicable SPEC contracts. Verify the merged remote state and durable
 > accounting/process state, preserve existing work and branch from updated main.

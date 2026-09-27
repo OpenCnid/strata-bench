@@ -8,6 +8,9 @@ implementation; it does **not** declare M1/G1 complete. Resume through
 
 ## Repository scope
 
+Publication: [PR #9](https://github.com/OpenCnid/strata-bench/pull/9).
+Its actual GitHub state and fetched `origin/main` establish whether it has merged.
+
 At preparation, `origin/main` was PR #8's merge commit
 `215c4e0d01f0602c91504ad631dc2343ffc9f354`; GitHub independently reported PR #8
 merged. `codex/m1-g1-isolation` contained 141 subsequent implementation commits,
@@ -67,7 +70,7 @@ does not authorize M1 paid inference, another allowance, account changes or
 new experiments. The authority database is private at
 `C:/Users/Darian/.strata/operator/provisioning/controller.sqlite`.
 
-Before these checks, all 40 authority tables matched the last sealed audit.
+Before and after these checks, all 40 authority tables matched the last sealed audit.
 Exposure was 4,887,796 microUSD, preserving the old 755,400 hold and four full
 1,000,000 failed-job envelopes without double charging settled children. All
 consumed pilots/decisions remain consumed. Eight separate 256-MiB telemetry
@@ -83,17 +86,77 @@ remain unrun; prior exact-profile evidence is not replaced with a broad claim.
 
 | Check | Result |
 |---|---|
-| Python default suite | Running; final result will be recorded before merge. |
+| Python default suite, before fixture corrections | 6,237 passed, 340 skipped, two failed, two existing Typer/Click deprecation warnings; 6,241.90 seconds. Both failures are retained below. The broad run was not repeated or relabeled as a clean pass. |
+| Focused probe-account correction | Two cases passed in 5.12 seconds after retaining the earlier budget refusal and separately checking decoded-source import refusal. |
+| Focused worker-health correction | All 29 worker-health cases passed in 1.83 seconds, including actual Node stall and initialization-failure processes. |
 | Node build/default suite | 566 passed, 54 opt-in skips, 0 failures; 620 cases, 10.602 seconds test time. |
 | Offline Java client | 679 tests, 0 failures/errors/skips. |
 | Offline Java telemetry | 69 tests: 61 passed, 8 skipped, 0 failures/errors. |
 | Java build | Offline Gradle successful in 46 seconds; existing pinned official FTB Library input, no game launch. |
-| Ruff | `ruff check src evaluator/src tests tools` passed. |
-| Initial publication scan | 556 implementation-diff files checked; no sensitive runtime filenames or provider-token/private-key pattern candidates. This is a bounded scan, not a universal secret-proof claim. |
+| Documentation | 10 documents, 2,280 local links resolve; all 460 milestone IDs retained; both archives match prior text after relative-link relocation. |
+| Ruff | `ruff check src evaluator/src tests tools` passed; both corrected test files passed the focused follow-up. |
+| Final private-state audit | 40 authority tables, eight telemetry holds and two installed hashes unchanged; zero matching Java/worker/guardian processes. |
+| Publication scans | 562 changed paths and 1,526 unpublished-history blobs (272,578,183 bytes) checked; no sensitive runtime filename or provider-token/private-key pattern candidates. These are bounded scans, not a universal secret-proof claim. |
 
 Local logs and the final read-only authority/process audit are retained under
 `C:/Users/Darian/.strata/evidence/2026-09-27-m1-session-checkpoint-01`.
-Final documentation/link/ID checks and publication/merge state follow below.
+The retained audit scripts and logs identify the checks and exact outcomes.
+
+Executed check commands (PowerShell; existing local dependencies):
+
+```powershell
+$env:PYTHONDONTWRITEBYTECODE='1'
+$env:PYTHONPATH='src;tools;evaluator/src'
+.venv/Scripts/python.exe -m pytest -q --tb=short
+.venv/Scripts/ruff.exe check src evaluator/src tests tools
+# From backends/mineflayer:
+npm test
+# From the repository root, with the existing pinned FTB Library JAR:
+$env:JAVA_HOME='C:/Program Files/Eclipse Adoptium/jdk-17.0.20.101-hotspot'
+$env:STRATA_FTB_LIBRARY_JAR='C:/Users/Darian/.strata/clients/e9e-noninput-01/mods/ftb-library-forge-1902.4.1-build.236.jar'
+./java/gradlew.bat -p java --offline :forge1192-client:test :forge1192-telemetry:test --no-daemon --console plain
+```
+
+These commands record the checkpoint procedure; they are not instructions to
+repeat unchanged suites in the fresh session.
+
+## Retained merge-check failures and fixture corrections
+
+The full run found `test_evaluation_account_cannot_be_relabeled_as_campaign_knowledge`
+failing during setup. A separate focused run reproduced it in 0.62 seconds. The
+fixture changed account creation to evaluation but the newer admission fixture
+explicitly posts campaign training records; the real budget guard correctly
+refused that mismatch before the intended projection assertion.
+
+The original test now asserts that early `FORBIDDEN` refusal and absence of native
+jobs or ledger postings. A separate case supplies a synthetic decoded evaluation
+identity to the projection reader and requires `PROBE_IMPORT_FORBIDDEN`, without
+changing durable state. Its substitution is explicitly a unit fixture, not proof
+of a valid evaluation checkpoint or authentic isolation. Both checks passed;
+production code and acceptance criteria are unchanged. Retain the original full
+run failure and its focused reproduction rather than relabeling the broad run as
+a clean pass. This is F08/F11/N02 and T01/T11 supporting coverage only.
+
+The second failure was `test_actual_worker_initialization_failure_still_closes_measurement`.
+Its direct child-IPC fixture omitted `server_kind`, which the lane now uses for
+explicit backend selection. It entered the Mineflayer branch, recorded connection
+failure and nine nonterminal health windows, then the unchanged ten-second test
+timeout killed it. The original SQLite/WAL, lock and script are retained privately.
+The fixture now explicitly selects `server_kind="e9e"`, so its intentionally absent
+connection file exercises the intended early Forge initialization failure. Child
+stderr/exit diagnostics are retained on failure. All 29 worker-health tests passed,
+including actual Node processes; production routing and timing limits are unchanged.
+This is supporting F09/F11/N03 coverage, not native Minecraft/G1 acceptance.
+
+## Private checkpoint seal
+
+Final evidence: **608 files / 14,788,129 bytes**, SHA-256
+`c84a4b04f7a7f497f1c304fd96bf4f20d4e5c4a56f5f78afc5ea14bafa363941`. The private root contains the
+full test logs and original failures, passing focused process evidence, final
+source/diff snapshot, documentation/publication audits and read-only before/after
+state. This public seal pointer and final changed-path count postdate the archived
+document snapshot. Subsequent PR/merge metadata is separate from the sealed root;
+GitHub and fetched main remain authoritative for actual publication state.
 
 ## Fresh-session release discipline
 

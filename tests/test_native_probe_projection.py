@@ -116,11 +116,39 @@ def test_evaluation_account_cannot_be_relabeled_as_campaign_knowledge(
         value = example(name)
         return value | {"campaign_account": "evaluation"} if name == "BudgetLedger" else value
     monkeypatch.setattr(Budgets, "create_account", evaluation_account)
-    # No learned publication: its existing publisher already refuses evaluation.
-    # Plain notes still need the independent account-provenance guard here.
-    _, sets, ref = selected_seed(database, cas, tmp_path, evaluation_example, configs, arm="frozen-skills")
+    # Admission now assigns the campaign posting category explicitly. Relabeling
+    # its account is refused before a campaign checkpoint can even be produced.
+    with pytest.raises(Fault, match="^FORBIDDEN$"):
+        selected_seed(database, cas, tmp_path, evaluation_example, configs, arm="frozen-skills")
+    assert database.connection.execute("SELECT count(*) FROM native_jobs").fetchone()[0] == 0
+    assert database.connection.execute("SELECT count(*) FROM ledger").fetchone()[0] == 0
+
+
+def test_projection_independently_rejects_evaluation_source_identity(source, monkeypatch):
+    """Synthetic decoded identity tests the downstream guard independently."""
+    from strata_evaluator import native_probe_projection as projection
+    _, sets, ref = source
+    chosen = selection(sets, ref, retained_paths=["notes/root.md"])
+    body = sets.load(ref)
+    state, _ = sets.components.load(body["checkpoint_ref"])
+    exported = sets.publications.exports.load(state.source_export)
+    original = projection.private_json
+    intercepted = []
+
+    def evaluation_identity(db, cas, reference):
+        value = original(db, cas, reference)
+        if reference == exported.source_ref:
+            intercepted.append(reference)
+            return value | {"account_identities": [
+                identity | {"category": "evaluation"} for identity in value["account_identities"]]}
+        return value
+
+    before = list(sets.db.connection.iterdump())
+    monkeypatch.setattr(projection, "private_json", evaluation_identity)
     with pytest.raises(Fault, match="PROBE_IMPORT_FORBIDDEN"):
-        project_native_checkpoint(EVALUATOR, sets, selection(sets, ref, retained_paths=["notes/root.md"]))
+        project_native_checkpoint(EVALUATOR, sets, chosen)
+    assert intercepted == [exported.source_ref]
+    assert list(sets.db.connection.iterdump()) == before
 
 
 @pytest.mark.parametrize("patch", [

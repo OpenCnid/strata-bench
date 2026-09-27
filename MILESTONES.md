@@ -11599,3 +11599,34 @@ actual merge-check results, publication binding and evidence. No paid model or
 Minecraft trial is part of this task. Next session must verify actual merged
 main and durable process/accounting state, then continue M1/G1 under D20; the
 goal is paused for handoff, not closed as achieved.
+
+The merge-wide Python check exposed a stale probe-account fixture: account
+creation used evaluation while admission explicitly posted training. Its original
+failure and focused reproduction are retained. The test now checks the correct
+early budget refusal with zero jobs/postings; a separate synthetic decoded-source
+case checks independent probe-import refusal and unchanged durable state. Both
+focused checks passed (5.12 seconds). Only test code changed; F08/F11/N02 and
+T01/T11 supporting coverage advances without changing any aggregate status.
+
+The completed broad Python run retained 6,237 passes, 340 skips, two failures and
+two existing warnings (6,241.90 seconds). The second stale fixture omitted the
+explicit Forge selector in direct child IPC; it took the Mineflayer path and hit
+its unchanged timeout. Its original files remain private. Adding the selector
+and exit diagnostics leaves production code unchanged; all 29 worker-health
+cases then passed (1.83 seconds), including actual Node processes. Together with
+the two probe correction checks, both failures have focused passing corrections;
+the broad result remains recorded as failed. F09/F11/N03 supporting coverage only.
+
+Final checkpoint audit: all 40 authority tables, eight unresolved telemetry
+holds and two installed hashes unchanged; zero matching Java/worker/guardian
+processes. Node 566 passed/54 skipped; Java client 679 passed, telemetry 61
+passed/8 skipped; full lint and corrected-file lint passed. The documentation
+audit preserves 460 milestone IDs and 2,280 resolving local links. PR #9 carries
+the implementation history and handoff; verify actual remote merge state before
+continuing in a fresh session. No aggregate gate or milestone closes.
+
+Checkpoint evidence sealed: 608 files / 14,788,129 bytes, SHA-256
+`c84a4b04f7a7f497f1c304fd96bf4f20d4e5c4a56f5f78afc5ea14bafa363941`. This pointer postdates
+the archived documentation snapshot. Final publication scan: 562 changed paths,
+no sensitive runtime filenames or credential-pattern candidates; historical
+scan also retained. PR/merge metadata must be checked separately after publication.

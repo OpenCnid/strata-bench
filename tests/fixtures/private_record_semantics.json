@@ -1,0 +1,1519 @@
+{
+  "profiles": {
+    "PackLock": {
+      "record": "PackLock",
+      "set": {}
+    },
+    "CampaignConfig": {
+      "record": "CampaignConfig",
+      "set": {}
+    },
+    "AgentConfig": {
+      "record": "AgentConfig",
+      "set": {}
+    },
+    "CheckpointManifest": {
+      "record": "CheckpointManifest",
+      "set": {}
+    },
+    "BudgetLedger": {
+      "record": "BudgetLedger",
+      "set": {}
+    },
+    "GameEvent": {
+      "record": "GameEvent",
+      "set": {}
+    },
+    "EvaluationProtocol": {
+      "record": "EvaluationProtocol",
+      "set": {}
+    },
+    "EvaluationResult": {
+      "record": "EvaluationResult",
+      "set": {}
+    },
+    "sealed": {
+      "record": "PackLock",
+      "set": {
+        "status": "sealed",
+        "distribution_refs": [
+          "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "resolved_inventory": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "installed_root_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "java": {
+          "version": "17",
+          "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "launcher": {
+          "version": "1",
+          "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "launch_profile": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "acquisition_report": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "sealed_at": "2026-09-27T00:00:00Z",
+        "pack_slug": "enigmatica9expert",
+        "client_file_id": 1,
+        "server_file_id": 2,
+        "expert_assertions": "cas:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "committed": {
+      "record": "CheckpointManifest",
+      "set": {
+        "status": "committed",
+        "manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "success": {
+      "record": "EvaluationResult",
+      "set": {
+        "outcome": "success",
+        "success": true,
+        "event_observed": true,
+        "censor_reason": null
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "PackLock-valid",
+      "base": "PackLock",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "CampaignConfig-valid",
+      "base": "CampaignConfig",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "AgentConfig-valid",
+      "base": "AgentConfig",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "CheckpointManifest-valid",
+      "base": "CheckpointManifest",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "BudgetLedger-valid",
+      "base": "BudgetLedger",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-valid",
+      "base": "GameEvent",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationProtocol-valid",
+      "base": "EvaluationProtocol",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationResult-valid",
+      "base": "EvaluationResult",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "sealed-valid",
+      "base": "sealed",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "committed-valid",
+      "base": "committed",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "success-valid",
+      "base": "success",
+      "set": {},
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "PackLock-extra-field",
+      "base": "PackLock",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "PackLock-unknown-schema",
+      "base": "PackLock",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "CampaignConfig-extra-field",
+      "base": "CampaignConfig",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "CampaignConfig-unknown-schema",
+      "base": "CampaignConfig",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "AgentConfig-extra-field",
+      "base": "AgentConfig",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "AgentConfig-unknown-schema",
+      "base": "AgentConfig",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "CheckpointManifest-extra-field",
+      "base": "CheckpointManifest",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "CheckpointManifest-unknown-schema",
+      "base": "CheckpointManifest",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "BudgetLedger-extra-field",
+      "base": "BudgetLedger",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "BudgetLedger-unknown-schema",
+      "base": "BudgetLedger",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "GameEvent-extra-field",
+      "base": "GameEvent",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "GameEvent-unknown-schema",
+      "base": "GameEvent",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationProtocol-extra-field",
+      "base": "EvaluationProtocol",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationProtocol-unknown-schema",
+      "base": "EvaluationProtocol",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationResult-extra-field",
+      "base": "EvaluationResult",
+      "set": {
+        "unknown": "canary"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationResult-unknown-schema",
+      "base": "EvaluationResult",
+      "set": {
+        "schema": "mcbench/Unknown/1"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-java",
+      "base": "sealed",
+      "set": {
+        "java": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-launcher",
+      "base": "sealed",
+      "set": {
+        "launcher": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-launch_profile",
+      "base": "sealed",
+      "set": {
+        "launch_profile": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-resolved_inventory",
+      "base": "sealed",
+      "set": {
+        "resolved_inventory": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-installed_root_digest",
+      "base": "sealed",
+      "set": {
+        "installed_root_digest": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-acquisition_report",
+      "base": "sealed",
+      "set": {
+        "acquisition_report": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-sealed_at",
+      "base": "sealed",
+      "set": {
+        "sealed_at": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-client_file_id",
+      "base": "sealed",
+      "set": {
+        "client_file_id": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-server_file_id",
+      "base": "sealed",
+      "set": {
+        "server_file_id": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-null-expert_assertions",
+      "base": "sealed",
+      "set": {
+        "expert_assertions": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-no-distribution",
+      "base": "sealed",
+      "set": {
+        "distribution_refs": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "nonexpert-optional",
+      "base": "sealed",
+      "set": {
+        "pack_slug": "vanilla",
+        "client_file_id": null,
+        "server_file_id": null,
+        "expert_assertions": null
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "none-loader-with-version",
+      "base": "PackLock",
+      "set": {
+        "loader/name": "none",
+        "loader/version": "17"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "forge-loader-without-version",
+      "base": "PackLock",
+      "set": {
+        "loader/name": "forge",
+        "loader/version": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "none-loader-valid",
+      "base": "PackLock",
+      "set": {
+        "loader/name": "none",
+        "loader/version": null
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "bad-n-0",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 0
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-n--1",
+      "base": "CampaignConfig",
+      "set": {
+        "n": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-n-1.5",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 1.5
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-n-True",
+      "base": "CampaignConfig",
+      "set": {
+        "n": true
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-n-2",
+      "base": "CampaignConfig",
+      "set": {
+        "n": "2"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-n-9007199254740992",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 9007199254740992
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "roster-count",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 2
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "roster-duplicates",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 2,
+        "agent_ids": [
+          "a1",
+          "a1"
+        ]
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "roster-empty",
+      "base": "CampaignConfig",
+      "set": {
+        "agent_ids": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "roster-pair",
+      "base": "CampaignConfig",
+      "set": {
+        "n": 2,
+        "agent_ids": [
+          "a1",
+          "a2"
+        ]
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "bad-checkpoints-[]",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-checkpoints-[1]",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": [
+          1
+        ]
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-checkpoints-[0, 0]",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": [
+          0,
+          0
+        ]
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "bad-checkpoints-[0, 2, 1]",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": [
+          0,
+          2,
+          1
+        ]
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "checkpoint-beyond-budget",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": [
+          0,
+          86401
+        ]
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "checkpoint-at-budget",
+      "base": "CampaignConfig",
+      "set": {
+        "checkpoints_active_s": [
+          0,
+          86400
+        ]
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "immutable-empty-None",
+      "base": "AgentConfig",
+      "set": {
+        "identity_assurance": "immutable",
+        "immutable_model_id": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "immutable-empty-",
+      "base": "AgentConfig",
+      "set": {
+        "identity_assurance": "immutable",
+        "immutable_model_id": ""
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "immutable-known",
+      "base": "AgentConfig",
+      "set": {
+        "identity_assurance": "immutable",
+        "immutable_model_id": "pinned"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "unverified-empty",
+      "base": "AgentConfig",
+      "set": {
+        "immutable_model_id": ""
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "checkpoint-empty-agents",
+      "base": "CheckpointManifest",
+      "set": {
+        "agents": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "checkpoint-duplicate-agent",
+      "base": "CheckpointManifest",
+      "set": {},
+      "valid": false,
+      "schema_reject": false,
+      "copy": {
+        "agents/1": "agents/0"
+      }
+    },
+    {
+      "id": "checkpoint-distinct-agents",
+      "base": "CheckpointManifest",
+      "set": {
+        "agents/1/agent_id": "second"
+      },
+      "valid": true,
+      "schema_reject": false,
+      "copy": {
+        "agents/1": "agents/0"
+      }
+    },
+    {
+      "id": "checkpoint-clock-order",
+      "base": "CheckpointManifest",
+      "set": {
+        "clocks/active_wall_s": 3701
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "checkpoint-clock-equal",
+      "base": "CheckpointManifest",
+      "set": {
+        "clocks/active_wall_s": 3700
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "checkpoint-staging-digest",
+      "base": "CheckpointManifest",
+      "set": {
+        "manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "checkpoint-committed-without-digest",
+      "base": "committed",
+      "set": {
+        "manifest_digest": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-input_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/input_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-cached_input_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/cached_input_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-output_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/output_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-reasoning_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/reasoning_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-model_calls",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/model_calls": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-primitive_events",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/primitive_events": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-avatar_ticks",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/avatar_ticks": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-wall_ms",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/wall_ms": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-negative-spend_microusd",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/spend_microusd": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "reserve-cached-over-input",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/cached_input_tokens": 1001
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "reserve-reasoning-over-output",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/reasoning_tokens": 101
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "reserve-subsets-equal",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/cached_input_tokens": 1000,
+        "usage/reasoning_tokens": 100
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "reserve-null-metering",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "reserve",
+        "usage/reasoning_tokens": null,
+        "usage/spend_microusd": null
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "settle-negative-input_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/input_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-cached_input_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/cached_input_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-output_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/output_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-reasoning_tokens",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/reasoning_tokens": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-model_calls",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/model_calls": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-primitive_events",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/primitive_events": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-avatar_ticks",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/avatar_ticks": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-wall_ms",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/wall_ms": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-negative-spend_microusd",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/spend_microusd": -1
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "settle-cached-over-input",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/cached_input_tokens": 1001
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "settle-reasoning-over-output",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/reasoning_tokens": 101
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "settle-subsets-equal",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/cached_input_tokens": 1000,
+        "usage/reasoning_tokens": 100
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "settle-null-metering",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "settle",
+        "usage/reasoning_tokens": null,
+        "usage/spend_microusd": null
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "signed-adjustment",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "adjust",
+        "usage/input_tokens": -1,
+        "usage/cached_input_tokens": -1,
+        "usage/output_tokens": -1,
+        "usage/reasoning_tokens": -1,
+        "usage/model_calls": -1,
+        "usage/primitive_events": -1,
+        "usage/avatar_ticks": -1,
+        "usage/wall_ms": -1,
+        "usage/spend_microusd": -1
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "adjustment-independent-subsets",
+      "base": "BudgetLedger",
+      "set": {
+        "posting": "adjust",
+        "usage/input_tokens": -1,
+        "usage/cached_input_tokens": 5,
+        "usage/output_tokens": -4,
+        "usage/reasoning_tokens": 3
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "protocol-empty-system_digests",
+      "base": "EvaluationProtocol",
+      "set": {
+        "system_digests": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "protocol-empty-exposure_s",
+      "base": "EvaluationProtocol",
+      "set": {
+        "exposure_s": []
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "protocol-empty-families",
+      "base": "EvaluationProtocol",
+      "set": {
+        "family_weights": {}
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "protocol-unscheduled-primary",
+      "base": "EvaluationProtocol",
+      "set": {
+        "primary_checkpoint_s": 22
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "protocol-duplicate-exposure",
+      "base": "EvaluationProtocol",
+      "set": {
+        "exposure_s": [
+          0,
+          86400,
+          86400
+        ]
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "protocol-descending-exposure",
+      "base": "EvaluationProtocol",
+      "set": {
+        "exposure_s": [
+          86400,
+          0
+        ]
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "protocol-single-exposure",
+      "base": "EvaluationProtocol",
+      "set": {
+        "exposure_s": [
+          1
+        ],
+        "primary_checkpoint_s": 1
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "protocol-nonzero-start",
+      "base": "EvaluationProtocol",
+      "set": {
+        "exposure_s": [
+          1,
+          86400
+        ]
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "success-value-False",
+      "base": "success",
+      "set": {
+        "success": false
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "success-value-None",
+      "base": "success",
+      "set": {
+        "success": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "success-without-event",
+      "base": "success",
+      "set": {
+        "event_observed": false
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "failure-value-True",
+      "base": "success",
+      "set": {
+        "outcome": "failure",
+        "success": true
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "failure-value-None",
+      "base": "success",
+      "set": {
+        "outcome": "failure",
+        "success": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "failure-valid",
+      "base": "success",
+      "set": {
+        "outcome": "failure",
+        "success": false,
+        "event_observed": false
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "invalid-missing-reason-None",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "invalid",
+        "censor_reason": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "invalid-missing-reason-",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "invalid",
+        "censor_reason": ""
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-missing-reason-None",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "censored",
+        "censor_reason": null
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-missing-reason-",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "censored",
+        "censor_reason": ""
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "invalid-valid",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "invalid"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "invalid-nonnull-True",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "invalid",
+        "success": true
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-unobserved-nonnull-True",
+      "base": "EvaluationResult",
+      "set": {
+        "success": true
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-observed-True",
+      "base": "EvaluationResult",
+      "set": {
+        "success": true,
+        "event_observed": true
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "invalid-nonnull-False",
+      "base": "EvaluationResult",
+      "set": {
+        "outcome": "invalid",
+        "success": false
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-unobserved-nonnull-False",
+      "base": "EvaluationResult",
+      "set": {
+        "success": false
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "censored-observed-False",
+      "base": "EvaluationResult",
+      "set": {
+        "success": false,
+        "event_observed": true
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-public-visibility",
+      "base": "GameEvent",
+      "set": {
+        "visibility": "public"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationProtocol-public-visibility",
+      "base": "EvaluationProtocol",
+      "set": {
+        "visibility": "public"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "EvaluationResult-public-visibility",
+      "base": "EvaluationResult",
+      "set": {
+        "visibility": "public"
+      },
+      "valid": false,
+      "schema_reject": true
+    },
+    {
+      "id": "sealed-bad-date-2026-02-31T00:00:00Z",
+      "base": "sealed",
+      "set": {
+        "sealed_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "sealed-bad-date-0000-01-01T00:00:00Z",
+      "base": "sealed",
+      "set": {
+        "sealed_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "sealed-bad-date-2026-12-31T23:59:60Z",
+      "base": "sealed",
+      "set": {
+        "sealed_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "sealed-leap-date",
+      "base": "sealed",
+      "set": {
+        "sealed_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "committed-bad-date-2026-02-31T00:00:00Z",
+      "base": "committed",
+      "set": {
+        "created_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "committed-bad-date-0000-01-01T00:00:00Z",
+      "base": "committed",
+      "set": {
+        "created_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "committed-bad-date-2026-12-31T23:59:60Z",
+      "base": "committed",
+      "set": {
+        "created_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "committed-leap-date",
+      "base": "committed",
+      "set": {
+        "created_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "BudgetLedger-bad-date-2026-02-31T00:00:00Z",
+      "base": "BudgetLedger",
+      "set": {
+        "recorded_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "BudgetLedger-bad-date-0000-01-01T00:00:00Z",
+      "base": "BudgetLedger",
+      "set": {
+        "recorded_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "BudgetLedger-bad-date-2026-12-31T23:59:60Z",
+      "base": "BudgetLedger",
+      "set": {
+        "recorded_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "BudgetLedger-leap-date",
+      "base": "BudgetLedger",
+      "set": {
+        "recorded_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-bad-date-2026-02-31T00:00:00Z",
+      "base": "GameEvent",
+      "set": {
+        "recorded_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-bad-date-0000-01-01T00:00:00Z",
+      "base": "GameEvent",
+      "set": {
+        "recorded_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-bad-date-2026-12-31T23:59:60Z",
+      "base": "GameEvent",
+      "set": {
+        "recorded_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "GameEvent-leap-date",
+      "base": "GameEvent",
+      "set": {
+        "recorded_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationProtocol-bad-date-2026-02-31T00:00:00Z",
+      "base": "EvaluationProtocol",
+      "set": {
+        "preregistered_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationProtocol-bad-date-0000-01-01T00:00:00Z",
+      "base": "EvaluationProtocol",
+      "set": {
+        "preregistered_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationProtocol-bad-date-2026-12-31T23:59:60Z",
+      "base": "EvaluationProtocol",
+      "set": {
+        "preregistered_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationProtocol-leap-date",
+      "base": "EvaluationProtocol",
+      "set": {
+        "preregistered_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationResult-bad-date-2026-02-31T00:00:00Z",
+      "base": "EvaluationResult",
+      "set": {
+        "scored_at": "2026-02-31T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationResult-bad-date-0000-01-01T00:00:00Z",
+      "base": "EvaluationResult",
+      "set": {
+        "scored_at": "0000-01-01T00:00:00Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationResult-bad-date-2026-12-31T23:59:60Z",
+      "base": "EvaluationResult",
+      "set": {
+        "scored_at": "2026-12-31T23:59:60Z"
+      },
+      "valid": false,
+      "schema_reject": false
+    },
+    {
+      "id": "EvaluationResult-leap-date",
+      "base": "EvaluationResult",
+      "set": {
+        "scored_at": "2024-02-29T00:00:00.123456Z"
+      },
+      "valid": true,
+      "schema_reject": false
+    },
+    {
+      "id": "payload-is-not-a-model",
+      "base": "GameEvent",
+      "set": {
+        "payload": {
+          "recorded_at": "not-a-dateZ",
+          "private-test": [
+            "synthetic",
+            1,
+            null
+          ]
+        }
+      },
+      "valid": true,
+      "schema_reject": false
+    }
+  ]
+}

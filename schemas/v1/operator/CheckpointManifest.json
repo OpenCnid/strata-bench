@@ -103,6 +103,41 @@
     }
   },
   "additionalProperties": false,
+  "allOf": [
+    {
+      "properties": {
+        "agents": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "else": {
+        "properties": {
+          "manifest_digest": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "manifest_digest": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
   "properties": {
     "is_example": {
       "title": "Is Example",

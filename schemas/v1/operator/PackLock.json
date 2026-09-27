@@ -2,6 +2,23 @@
   "$defs": {
     "Loader": {
       "additionalProperties": false,
+      "else": {
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "name": {
+            "const": "none"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "properties": {
         "name": {
           "enum": [
@@ -27,6 +44,13 @@
         "name",
         "version"
       ],
+      "then": {
+        "properties": {
+          "version": {
+            "type": "null"
+          }
+        }
+      },
       "title": "Loader",
       "type": "object"
     },
@@ -53,6 +77,16 @@
     }
   },
   "additionalProperties": false,
+  "if": {
+    "properties": {
+      "status": {
+        "const": "sealed"
+      }
+    },
+    "required": [
+      "status"
+    ]
+  },
   "properties": {
     "is_example": {
       "title": "Is Example",
@@ -280,6 +314,74 @@
     "acquisition_report",
     "sealed_at"
   ],
+  "then": {
+    "if": {
+      "properties": {
+        "pack_slug": {
+          "const": "enigmatica9expert"
+        }
+      }
+    },
+    "properties": {
+      "java": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "launcher": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "launch_profile": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "resolved_inventory": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "installed_root_digest": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "acquisition_report": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "sealed_at": {
+        "not": {
+          "type": "null"
+        }
+      },
+      "distribution_refs": {
+        "minItems": 1
+      }
+    },
+    "then": {
+      "properties": {
+        "client_file_id": {
+          "not": {
+            "type": "null"
+          }
+        },
+        "server_file_id": {
+          "not": {
+            "type": "null"
+          }
+        },
+        "expert_assertions": {
+          "not": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  },
   "title": "PackLock",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"

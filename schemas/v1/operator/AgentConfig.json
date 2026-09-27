@@ -23,6 +23,16 @@
     }
   },
   "additionalProperties": false,
+  "if": {
+    "properties": {
+      "identity_assurance": {
+        "const": "immutable"
+      }
+    },
+    "required": [
+      "identity_assurance"
+    ]
+  },
   "properties": {
     "is_example": {
       "title": "Is Example",
@@ -172,6 +182,14 @@
     "self_play",
     "resume_mode"
   ],
+  "then": {
+    "properties": {
+      "immutable_model_id": {
+        "minLength": 1,
+        "type": "string"
+      }
+    }
+  },
   "title": "AgentConfig",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"

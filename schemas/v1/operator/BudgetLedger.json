@@ -88,6 +88,19 @@
     }
   },
   "additionalProperties": false,
+  "if": {
+    "properties": {
+      "posting": {
+        "enum": [
+          "reserve",
+          "settle"
+        ]
+      }
+    },
+    "required": [
+      "posting"
+    ]
+  },
   "properties": {
     "is_example": {
       "title": "Is Example",
@@ -263,6 +276,41 @@
     "raw_usage_ref",
     "reason"
   ],
+  "then": {
+    "properties": {
+      "usage": {
+        "properties": {
+          "input_tokens": {
+            "minimum": 0
+          },
+          "cached_input_tokens": {
+            "minimum": 0
+          },
+          "output_tokens": {
+            "minimum": 0
+          },
+          "reasoning_tokens": {
+            "minimum": 0
+          },
+          "model_calls": {
+            "minimum": 0
+          },
+          "primitive_events": {
+            "minimum": 0
+          },
+          "avatar_ticks": {
+            "minimum": 0
+          },
+          "wall_ms": {
+            "minimum": 0
+          },
+          "spend_microusd": {
+            "minimum": 0
+          }
+        }
+      }
+    }
+  },
   "title": "BudgetLedger",
   "type": "object",
   "$schema": "https://json-schema.org/draft/2020-12/schema"

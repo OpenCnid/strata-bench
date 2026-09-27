@@ -26,6 +26,8 @@ def inputs(tmp_path):
         put(repository / f"schemas/v1/public/{name}.json", b"{}")
     put(repository / "AGENTS.md", b"OPERATOR-ONLY-CANARY")
     put(repository / ".strata/auth.json", b"SYNTHETIC-SECRET-CANARY")
+    put(backend / "dist/operator/records.js", b"PRIVATE-VALIDATOR-CANARY")
+    put(repository / "schemas/v1/evaluator/EvaluationResult.json", b"PRIVATE-SCHEMA-CANARY")
     for relative in ("python.exe", "python312.dll", "Lib/encodings/__init__.py", "DLLs/_ctypes.pyd",
                      "Lib/__pycache__/pathlib.cpython-312.pyc", "Lib/site-packages/unreviewed.pth"):
         put(python / relative)
@@ -93,6 +95,8 @@ def test_only_software_is_copied_and_every_output_is_pinned(inputs):
     assert not manifest["auth_cache_copied"] and not manifest["game_state_copied"]
     output = inputs[3]
     assert not (output / "AGENTS.md").exists() and not (output / ".strata").exists()
+    assert not (output / "backends/mineflayer/dist/operator").exists()
+    assert not (output / "schemas/v1/evaluator").exists()
     assert not (output / ".venv/Scripts/Lib/site-packages").exists()
     assert not (output / ".venv/Scripts/Lib/__pycache__").exists()
     assert len(manifest["excluded_python_files"]) == 2

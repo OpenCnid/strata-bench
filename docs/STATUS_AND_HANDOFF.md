@@ -1,5 +1,43 @@
 # M1/G1 implementation handoff
 
+## Current position — September 27, private contracts
+
+M1 remains in_progress and G1 remains not_run. M0 established bounded LLM gameplay;
+M1 must establish trustworthy data, permissions, controls, scoring and matched
+comparisons. No complete G1 suite is closed yet. Recent furnace work produced
+useful evidence but did not close T10; no further furnace trial is selected.
+
+The current M1.2b change fixes all seven reproduced private-record validation
+disagreements. All eight private canonical records now share 150 Python/TypeScript
+cases, complementing the five public records already covered. Supported SQLite
+schema upgrades preserve populated records and fail closed without inventing
+permissions or restoring consumed quota. [Current evidence](verification/2026-09-27-m1-private-contract-parity.md).
+These local checks advance T01; they do not qualify native integration.
+
+| Required G1 suite | Current position | Closure work remaining |
+|---|---|---|
+| T01 contracts | Public/private canonical semantics and supported schema upgrades checked | Cross-record/reference admission, nested RPC/auth/path cases and conditional Java reconciliation |
+| T04 native host | Scoped native/root/helper evidence exists | Final game/settings/probe profile, selected skill, interruption/resume and all-call accounting |
+| T05 keybinding | Transaction, rollback, discovery and some native persistence/crash evidence | Complete real effects and full conflict/context/modifier/hold/failure matrix |
+| T06 isolation | Named native denial and permitted-access cases exist | Qualify the final integrated runtime, credentials and probe disposal on the exact profile |
+| T10 scorer | Authentic craft/machine evidence and selected controls exist | Protected scoring admission and complete positive/negative/alternate/parity controls |
+| T11 probes | Matched references and artifact/reset work exist | Full initial/transient equality, native admission, clocks and parent-canary exclusion |
+
+Next finish the finite T01 map, then keybinding and matched probes, consolidate
+T10, and qualify final T04/T06 before assembling G1. This follows the
+[closure path](verification/2026-09-27-m1-closure-path.md); acceptance criteria are unchanged. Unrelated M2-M7 work
+remains outside scope. Report closed acceptance cases or end-to-end deliverables,
+not passing assertion counts as a proxy for completion.
+
+D20 implementation authority persists; D18/D19 inference authority remains M0-only.
+All 40 authority tables remain unchanged at 4,887,796 microUSD. Preserve all original
+failures, consumed decisions and the three separate 256 MiB telemetry holds.
+No game/model execution was performed for this change.
+
+## Historical updates — superseded next steps
+
+The entries below preserve history. Use the current position above for execution priority.
+
 M1.2b fixes the reproduced keybinding commit/schema disagreement and related public wire semantics for skills, actions, receipts and observations. [Contract evidence](verification/2026-09-27-m1-contract-parity.md): shared140-case corpus agrees across Python/TypeScript;297 distinct Python and311 Node cases pass with43 unchanged opt-in skips. Initial fixture and earlier-rejection test failures are retained and resolved without weakening validation. Worker bundles include the six compiled startup schemas; gameplay packaging remains restricted.
 
 T01/G1 remain not_run. The finite acceptance map names seven reproduced operator/evaluator semantic disagreements plus GameEvent, cross-record references, migrations, conditional Java and RPC/auth/path integration still to close. These are next; no further furnace run. All40 authority tables unchanged/4,887,796microUSD, three separate256MiB holds preserved; no game/model execution or M1 spending authority.

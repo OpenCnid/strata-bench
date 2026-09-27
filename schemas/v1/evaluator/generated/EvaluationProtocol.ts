@@ -1,5 +1,41 @@
 /* Operator-only generated binding. Never ship in a gameplay workspace. */
 
+export type EvaluationProtocol = {
+  family_weights?: {
+    [k: string]: unknown;
+  };
+  system_digests?: {
+    [k: string]: unknown;
+  };
+  exposure_s?: {
+    [k: string]: unknown;
+  };
+} & {
+  is_example: IsExample;
+  schema: Schema;
+  protocol_id: ProtocolId;
+  visibility: Visibility;
+  preregistered_at: PreregisteredAt;
+  system_digests: SystemDigests;
+  suite_digest: SuiteDigest;
+  sealed_instances: SealedInstances;
+  scorer: Scorer;
+  family_weights: FamilyWeights;
+  exposure_s: ExposureS;
+  primary_checkpoint_s: PrimaryCheckpointS;
+  probe_limits: Limits;
+  artifact_projection: ArtifactProjection;
+  control_keymap: ControlKeymap;
+  primary_estimand: PrimaryEstimand;
+  sample_plan: SamplePlan;
+  randomization_plan: RandomizationPlan;
+  censoring_plan: CensoringPlan;
+  alpha: Alpha;
+  min_effect: MinEffect;
+  retention_margin: RetentionMargin;
+  analysis_plan: AnalysisPlan;
+  access_log: AccessLog;
+};
 export type IsExample = boolean;
 export type Schema = "mcbench/EvaluationProtocol/1";
 export type ProtocolId = string;
@@ -31,32 +67,6 @@ export type RetentionMargin = number;
 export type AnalysisPlan = string;
 export type AccessLog = string;
 
-export interface EvaluationProtocol {
-  is_example: IsExample;
-  schema: Schema;
-  protocol_id: ProtocolId;
-  visibility: Visibility;
-  preregistered_at: PreregisteredAt;
-  system_digests: SystemDigests;
-  suite_digest: SuiteDigest;
-  sealed_instances: SealedInstances;
-  scorer: Scorer;
-  family_weights: FamilyWeights;
-  exposure_s: ExposureS;
-  primary_checkpoint_s: PrimaryCheckpointS;
-  probe_limits: Limits;
-  artifact_projection: ArtifactProjection;
-  control_keymap: ControlKeymap;
-  primary_estimand: PrimaryEstimand;
-  sample_plan: SamplePlan;
-  randomization_plan: RandomizationPlan;
-  censoring_plan: CensoringPlan;
-  alpha: Alpha;
-  min_effect: MinEffect;
-  retention_margin: RetentionMargin;
-  analysis_plan: AnalysisPlan;
-  access_log: AccessLog;
-}
 export interface FamilyWeights {
   [k: string]: number;
 }

@@ -64,6 +64,10 @@ class Header(Strict):
 
 
 class Loader(Strict):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"name": {"const": "none"}}, "required": ["name"],
+    }, "then": {"properties": {"version": {"type": "null"}}},
+        "else": {"properties": {"version": {"type": "string"}}}})
     name: Literal["forge", "none"]
     version: str | None
 
@@ -75,6 +79,16 @@ class Loader(Strict):
 
 
 class PackLock(Header):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"status": {"const": "sealed"}}, "required": ["status"],
+    }, "then": {"properties": {
+        **{name: {"not": {"type": "null"}} for name in (
+            "java", "launcher", "launch_profile", "resolved_inventory",
+            "installed_root_digest", "acquisition_report", "sealed_at")},
+        "distribution_refs": {"minItems": 1},
+    }, "if": {"properties": {"pack_slug": {"const": "enigmatica9expert"}}},
+        "then": {"properties": {name: {"not": {"type": "null"}} for name in (
+            "client_file_id", "server_file_id", "expert_assertions")}}}})
     wire_schema: Literal["mcbench/PackLock/1"] = Field(alias="schema")
     lock_id: Id
     status: Literal["candidate", "sealed"]
@@ -118,6 +132,11 @@ class BackendProfile(Strict):
 
 
 class CampaignConfig(Header):
+    model_config = ConfigDict(json_schema_extra={"allOf": [{"properties": {
+        "agent_ids": {"minItems": 1, "uniqueItems": True},
+        "checkpoints_active_s": {"minItems": 1, "uniqueItems": True,
+                                 "prefixItems": [{"const": 0}]},
+    }}]})
     wire_schema: Literal["mcbench/CampaignConfig/1"] = Field(alias="schema")
     campaign_id: Id
     lineage_id: Id
@@ -159,6 +178,10 @@ class CampaignConfig(Header):
 
 
 class AgentConfig(Header):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"identity_assurance": {"const": "immutable"}},
+        "required": ["identity_assurance"],
+    }, "then": {"properties": {"immutable_model_id": {"type": "string", "minLength": 1}}}})
     wire_schema: Literal["mcbench/AgentConfig/1"] = Field(alias="schema")
     agent_id: Id
     system_digest: Digest
@@ -309,6 +332,12 @@ class Clocks(Strict):
 
 
 class CheckpointManifest(Header):
+    model_config = ConfigDict(json_schema_extra={"allOf": [
+        {"properties": {"agents": {"minItems": 1}}},
+        {"if": {"properties": {"status": {"const": "committed"}}, "required": ["status"]},
+         "then": {"properties": {"manifest_digest": {"type": "string"}}},
+         "else": {"properties": {"manifest_digest": {"type": "null"}}}},
+    ]})
     wire_schema: Literal["mcbench/CheckpointManifest/1"] = Field(alias="schema")
     checkpoint_id: Id
     campaign_id: Id
@@ -352,6 +381,11 @@ class Usage(Strict):
 
 
 class BudgetLedger(Stream):
+    model_config = ConfigDict(json_schema_extra={"if": {
+        "properties": {"posting": {"enum": ["reserve", "settle"]}}, "required": ["posting"],
+    }, "then": {"properties": {"usage": {"properties": {
+        name: {"minimum": 0} for name in Usage.model_fields
+    }}}}})
     wire_schema: Literal["mcbench/BudgetLedger/1"] = Field(alias="schema")
     ledger_id: Id
     campaign_account: Literal["training", "evaluation", "development"]
@@ -382,6 +416,10 @@ class BudgetLedger(Stream):
 
 
 class EvaluationProtocol(Header):
+    model_config = ConfigDict(json_schema_extra={"allOf": [{"properties": {
+        "family_weights": {"minProperties": 1}, "system_digests": {"minItems": 1},
+        "exposure_s": {"minItems": 1, "uniqueItems": True},
+    }}]})
     wire_schema: Literal["mcbench/EvaluationProtocol/1"] = Field(alias="schema")
     protocol_id: Id
     visibility: Literal["evaluator"]
@@ -418,6 +456,18 @@ class EvaluationProtocol(Header):
 
 
 class EvaluationResult(Header):
+    model_config = ConfigDict(json_schema_extra={"allOf": [
+        {"if": {"properties": {"outcome": {"const": "success"}}},
+         "then": {"properties": {"success": {"const": True}, "event_observed": {"const": True}}}},
+        {"if": {"properties": {"outcome": {"const": "failure"}}},
+         "then": {"properties": {"success": {"const": False}}}},
+        {"if": {"properties": {"outcome": {"enum": ["censored", "invalid"]}}},
+         "then": {"properties": {"censor_reason": {"type": "string", "minLength": 1}}}},
+        {"if": {"anyOf": [
+            {"properties": {"outcome": {"const": "invalid"}}},
+            {"properties": {"outcome": {"const": "censored"}, "event_observed": {"const": False}}},
+        ]}, "then": {"properties": {"success": {"type": "null"}}}},
+    ]})
     wire_schema: Literal["mcbench/EvaluationResult/1"] = Field(alias="schema")
     result_id: Id
     protocol_id: Id

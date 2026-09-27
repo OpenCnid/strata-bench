@@ -1,5 +1,41 @@
 /* Operator-only generated binding. Never ship in a gameplay workspace. */
 
+export type CampaignConfig = {
+  agent_ids?: {
+    [k: string]: unknown;
+  };
+  checkpoints_active_s?: {
+    [k: string]: unknown;
+  };
+} & {
+  is_example: IsExample;
+  schema: Schema;
+  campaign_id: CampaignId;
+  lineage_id: LineageId;
+  cohort_id: CohortId;
+  system_digest: SystemDigest;
+  pack_lock: PackLock;
+  protocol_ref: ProtocolRef;
+  world_baseline: WorldBaseline;
+  track: Track;
+  backend: BackendProfile;
+  n: N;
+  agent_ids: AgentIds;
+  topology: Topology;
+  information_policy: InformationPolicy;
+  communication_policy: CommunicationPolicy;
+  runtime_profile: RuntimeProfile;
+  budget_policy: BudgetPolicy;
+  training_team_limits: Limits;
+  per_agent_limits: Limits;
+  evaluation_limits: Limits;
+  checkpoints_active_s: CheckpointsActiveS;
+  episode_s: EpisodeS;
+  checkpoint_period_s: CheckpointPeriodS;
+  admission: Admission;
+  drift_policy: DriftPolicy;
+  recovery_policy: RecoveryPolicy;
+};
 export type IsExample = boolean;
 export type Schema = "mcbench/CampaignConfig/1";
 export type CampaignId = string;
@@ -36,35 +72,6 @@ export type Admission = "queue" | "reject";
 export type DriftPolicy = "split_quarantine";
 export type RecoveryPolicy = "terminate_confirmatory" | "resume_development";
 
-export interface CampaignConfig {
-  is_example: IsExample;
-  schema: Schema;
-  campaign_id: CampaignId;
-  lineage_id: LineageId;
-  cohort_id: CohortId;
-  system_digest: SystemDigest;
-  pack_lock: PackLock;
-  protocol_ref: ProtocolRef;
-  world_baseline: WorldBaseline;
-  track: Track;
-  backend: BackendProfile;
-  n: N;
-  agent_ids: AgentIds;
-  topology: Topology;
-  information_policy: InformationPolicy;
-  communication_policy: CommunicationPolicy;
-  runtime_profile: RuntimeProfile;
-  budget_policy: BudgetPolicy;
-  training_team_limits: Limits;
-  per_agent_limits: Limits;
-  evaluation_limits: Limits;
-  checkpoints_active_s: CheckpointsActiveS;
-  episode_s: EpisodeS;
-  checkpoint_period_s: CheckpointPeriodS;
-  admission: Admission;
-  drift_policy: DriftPolicy;
-  recovery_policy: RecoveryPolicy;
-}
 export interface BackendProfile {
   kind: Kind;
   implementation: Pin;

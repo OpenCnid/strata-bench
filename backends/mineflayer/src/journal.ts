@@ -3,6 +3,7 @@ import { closeSync, openSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { digest, Fault, mono, requireThat, utc, type ActionBatch, type ActionAck } from './protocol.js';
 import type { RepairPlan } from './worker_repair.js';
+import type { ResumeDecision, ResumeState } from './native_resume.js';
 
 export const PRIMITIVE_ACCOUNTING_POLICY = 'durable-pre-dispatch-charge/1';
 export const ACTION_ADMISSION_POLICY = 'atomic-acceptance-sequence-refusal/1';
@@ -26,7 +27,9 @@ export class Journal {
         CREATE TABLE IF NOT EXISTS events(cursor INTEGER PRIMARY KEY, kind TEXT NOT NULL, body TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS counters(name TEXT PRIMARY KEY, value INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS repair_holds(transaction_id TEXT PRIMARY KEY,epoch INTEGER NOT NULL,
-          plan TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('HELD','RECOVERY_REQUIRED')));`);
+          plan TEXT NOT NULL,state TEXT NOT NULL CHECK(state IN ('HELD','RECOVERY_REQUIRED')));
+        CREATE TABLE IF NOT EXISTS repair_resumes(transaction_id TEXT PRIMARY KEY,resume_id TEXT UNIQUE NOT NULL,
+          decision TEXT NOT NULL,receipt TEXT,observation TEXT);`);
       const last = this.db.prepare('SELECT MAX(epoch) AS epoch FROM epochs').get() as { epoch: number | null };
       requireThat(last.epoch === null || epoch > last.epoch, 'STALE_EPOCH');
       this.db.prepare('INSERT INTO epochs VALUES (?)').run(epoch);
@@ -51,7 +54,7 @@ export class Journal {
   }
   holdRepair(plan:RepairPlan):void {
     this.transaction(()=>{
-      requireThat(plan.epoch===this.epoch && !this.db.prepare('SELECT 1 FROM repair_holds LIMIT 1').get(),
+      requireThat(plan.epoch===this.epoch && !this.unresolvedRepair(),
         'REPAIR_RECOVERY_REQUIRED');
       this.db.prepare("INSERT INTO repair_holds VALUES (?,?,?,'HELD')").run(plan.transaction_id,this.epoch,JSON.stringify(plan));
       this.event('repair_pause_intent',{schema:'strata/WorkerRepairIntent/1',plan});
@@ -63,6 +66,40 @@ export class Journal {
         .run(plan.transaction_id,this.epoch);
       requireThat(result.changes===1,'REPAIR_NOT_OWNED');
       this.event('repair_pause_failed',{plan,reason});
+    });
+  }
+  private unresolvedRepair():boolean {
+    return !!this.db.prepare(`SELECT 1 FROM repair_holds h LEFT JOIN repair_resumes r USING(transaction_id)
+      WHERE h.state='RECOVERY_REQUIRED' OR r.receipt IS NULL LIMIT 1`).get();
+  }
+  resumeRecord(transaction:string):{decision:ResumeDecision;receipt:ResumeState|null;observation:unknown}|null {
+    const row=this.db.prepare('SELECT decision,receipt,observation FROM repair_resumes WHERE transaction_id=?')
+      .get(transaction) as {decision:string;receipt:string|null;observation:string|null}|undefined;
+    return row?{decision:JSON.parse(row.decision),receipt:row.receipt?JSON.parse(row.receipt):null,
+      observation:row.observation?JSON.parse(row.observation):null}:null;
+  }
+  beginResume(decision:ResumeDecision):void {
+    this.transaction(()=>{
+      const plan=decision.worker_plan;
+      const row=this.db.prepare('SELECT plan,state,epoch FROM repair_holds WHERE transaction_id=?')
+        .get(plan.transaction_id) as {plan:string;state:string;epoch:number}|undefined;
+      requireThat(row && row.state==='HELD' && row.epoch===this.epoch && digest(JSON.parse(row.plan))===digest(plan),
+        'REPAIR_NOT_OWNED');
+      this.db.prepare('INSERT INTO repair_resumes(transaction_id,resume_id,decision) VALUES (?,?,?)')
+        .run(plan.transaction_id,decision.resume_id,JSON.stringify(decision));
+      this.event('repair_resume_intent',{decision});
+    });
+  }
+  finishResume(decision:ResumeDecision,receipt:ResumeState,observation:unknown):void {
+    this.transaction(()=>{
+      const row=this.resumeRecord(decision.worker_plan.transaction_id);
+      requireThat(row && !row.receipt && digest(row.decision)===digest(decision)
+        && digest(receipt.decision)===digest(decision) && receipt.input_resumed,'REPAIR_NOT_OWNED');
+      const hold=this.db.prepare('SELECT state FROM repair_holds WHERE transaction_id=?').get(decision.worker_plan.transaction_id);
+      requireThat(hold?.state==='HELD','REPAIR_RECOVERY_REQUIRED');
+      this.db.prepare('UPDATE repair_resumes SET receipt=?,observation=? WHERE transaction_id=?')
+        .run(JSON.stringify(receipt),JSON.stringify(observation),decision.worker_plan.transaction_id);
+      this.event('repair_resume_confirmed',{decision,receipt,observation});
     });
   }
   beginPrimitiveAccounting(scope: {campaign_id:string; agent_id:string; epoch:number}): void {
@@ -131,8 +168,8 @@ export class Journal {
   }
   recover(): void {
     // A new executor epoch is not authority to bypass a pending settings repair.
-    // Release requires the forthcoming qualified native repair/resume workflow.
-    requireThat(!this.db.prepare('SELECT 1 FROM repair_holds LIMIT 1').get(),'REPAIR_RECOVERY_REQUIRED');
+    // Only a durable confirmed resume clears the hold; intents retain recovery.
+    requireThat(!this.unresolvedRepair(),'REPAIR_RECOVERY_REQUIRED');
     const rows = this.db.prepare('SELECT ack FROM actions').all() as {ack: string}[];
     for (const row of rows) {
       const ack = JSON.parse(row.ack) as ActionAck;

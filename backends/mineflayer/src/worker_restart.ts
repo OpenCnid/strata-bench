@@ -6,7 +6,7 @@ import { fields, NativeGameClient, strictJson } from './native_game.js';
 import { restartCheckpoint, type RestartCheckpoint } from './native_restart.js';
 import { repairPlan, type RepairPlan } from './worker_repair.js';
 import { ForgeProcessGuard, type SupervisorEvidence } from './forge_guard.js';
-import { outside, type ForgeRestartConfig } from './worker_config.js';
+import { outside, type ForgeRestartConfig, type ForgeResumeConfig } from './worker_config.js';
 import { canonical, digest, errorBody, Fault, requireThat } from './protocol.js';
 
 export type ReplacementPaths={connection_file:string;process_guard_file:string};
@@ -23,7 +23,7 @@ export function replacementPaths(raw:unknown):ReplacementPaths {
 export class RestartGuardOwner {
   private plan:RepairPlan|null=null;private checkpoint:RestartCheckpoint|null=null;
   private stopped:Promise<unknown>|null=null;private attaching:Promise<unknown>|null=null;private paths:ReplacementPaths|null=null;
-  constructor(private config:ForgeRestartConfig,private repository:string,private capability:string,
+  constructor(private config:ForgeRestartConfig|ForgeResumeConfig,private repository:string,private capability:string,
     private evidence:SupervisorEvidence,private remaining:()=>number,private usable:()=>boolean,
     private getGuard:()=>ForgeProcessGuard,private setGuard:(guard:ForgeProcessGuard)=>void,
     private fail:(reason:string)=>void) {}
@@ -69,7 +69,7 @@ export class RestartGuardOwner {
         && digest(connection)!==digest(old),'RESTART_CONNECTION_MISMATCH');
       requireThat(statSync(config.process_guard_file).size<=8192,'PROCESS_GRANT_QUOTA');
       const grant=strictJson(readFileSync(config.process_guard_file,'utf8')) as Record<string,unknown>;
-      requireThat(grant.schema==='strata/ForgeProcessGuardGrant/3'
+      requireThat(grant.schema===(this.config.schema==='strata/ForgeDevelopmentWorker/5'?'strata/ForgeProcessGuardGrant/4':'strata/ForgeProcessGuardGrant/3')
         && canonical(restartCheckpoint(grant.restart_checkpoint))===canonical(checkpoint)
         && canonical(repairPlan(grant.repair_plan))===canonical(plan),'RESTART_CHECKPOINT_MISMATCH');
       this.evidence.event('repair_restart_attach_intent',{checkpoint_digest:digest(checkpoint),connection_digest:digest(connection),remaining_wall_ms:remaining});

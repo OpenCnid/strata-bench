@@ -18,7 +18,7 @@ export async function workerLane(c: WorkerConfig, journal: Journal, guard?: Forg
     const manifest = forgeCapabilities(c.native_fingerprint); const capability = digest(manifest);
     journal.event('guard_binding',guard);
     const lane = await ForgeLane.connect(c,capability,client,journal,c.body_fingerprint,c.primitive_limit,c.max_wall_ms,
-      guard.connection_generation,c.schema==='strata/ForgeDevelopmentWorker/3' || c.schema==='strata/ForgeDevelopmentWorker/4' ? c.repair_policy : undefined);
+      guard.connection_generation,c.schema==='strata/ForgeDevelopmentWorker/3' || (c.schema==='strata/ForgeDevelopmentWorker/4' || c.schema==='strata/ForgeDevelopmentWorker/5') ? c.repair_policy : undefined);
     return {lane,capabilities:{...manifest,digest:capability,lease_id:c.lease_id,epoch:c.epoch}};
   }
   // The Forge executor must not pay Mineflayer's module/data initialization cost.

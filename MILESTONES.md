@@ -7,13 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1c.3.4 now supplies the private native resume decision and durable receipt,
-with strict Python/TypeScript transports. Actual JVM/HTTP tests pass commit and
-healthy rollback, same-epoch continuation after JVM replacement, lost-reply
-status recovery and refusal cases, using synthetic game bodies/verification.
-[Native resume evidence](docs/verification/2026-09-27-m1-native-resume.md).
-The worker hold, replacement guardian transition and controller readiness/
-settlement are still closed. The installed game JAR is unchanged; full gameplay
+M1.1c.3.4 now connects native resume to the same worker and a replacement
+Windows guardian. Commit, rollback and lost-reply status recovery execute a
+subsequent scoped action through the actual Node/JVM process chain, with a
+synthetic game body and verification. Worker/5 and guardian/4 are explicit
+candidate profiles; older profiles retain their fencing behavior.
+[Worker resume evidence](docs/verification/2026-09-27-m1-worker-resume.md).
+Controller completion, full consumption settlement and the public keymap/skill
+remain unfinished. The installed game JAR is unchanged; authentic gameplay
 repair/resume and all G1 suites remain incomplete.
 
 Latest checkpoint: essential-native04 passed client admission and joined
@@ -1663,7 +1664,7 @@ These children advance authorized software work while real M0 dependencies remai
 | M1.1c.3.1 | PL/QA | Durable per-avatar repair holds, scoped grant revocation, stop/fresh-observation receipts, recovery fencing and clock attribution | implemented_unverified | [Coordinator](src/mcbench/reconfiguration.py), [32 synthetic cases](tests/test_reconfiguration.py); partial controller/settings/budget/clock integration with private CAS proofs. Actual worker transport, receipt provenance and complete measured charges remain unqualified. |
 | M1.1c.3.2 | GI/PL | Qualified native adapter/commit, worker action-lease transport, restart/rejoin and authentic effect evidence | in_progress | [Worker-owned pause](docs/verification/2026-09-27-m1-worker-repair.md) implemented with actual JVM/Windows synthetic-body integration: fixed hold, active cancellation, private token separation, expiry/parent-loss cleanup and no implicit rearm. [Controller handoff](docs/verification/2026-09-27-m1-repair-handoff.md) now consumes actual worker stop evidence with no replay. [Native repair admission](docs/verification/2026-09-27-m1-native-repair-admission.md) binds the same plan/patch/effects/deadline with connected synthetic-body evidence. [Controller-native translation/admission](docs/verification/2026-09-27-m1-native-controller.md) now joins immutable keymaps, exact target/descriptor and durable bind/status evidence. [Native commit decision storage](docs/verification/2026-09-27-m1-native-commit.md) now passes pending-head/status/reopen/owned-rollback checks under separate opt-in. [Connected controller-native writes](docs/verification/2026-09-27-m1-native-repair-flow.md) now pass apply/complete supplied-proof validation/commit/rollback and no-replay checks through the actual worker/JVM with synthetic body/proofs. [Native restart handoff](docs/verification/2026-09-27-m1-native-restart.md) now passes actual JVM exit/reopen, exact pending-head continuation and no rearm/replay with synthetic body. [Same-worker replacement](docs/verification/2026-09-27-m1-worker-restart.md) now passes actual guardian/JVM terminal-old, guarded-new and original-expiry checks with a synthetic body; gameplay stays fenced. [Controller adoption](docs/verification/2026-09-27-m1-controller-restart.md) now joins prepare, worker detach/attach, successor descriptor and subsequent commit/rollback, including lost-reply status reconciliation with synthetic body/proofs. [Effect/restart producer](docs/verification/2026-09-27-m1-effect-evidence.md) now derives exact declared per-binding effects and adopted-checkpoint persistence; actual JVM integration and retained native04/native02 classification pass with scopes separate. [Complete effect summaries/release receipts](docs/verification/2026-09-27-m1-release-evidence.md) now feed four declared before/after effects and three generic summaries into actual controller/worker/JVM commit/rollback; body and essential-control proof remain synthetic. [Attack/use input dependency](docs/verification/2026-09-27-m1-essential-input.md) adds bounded private mouse callbacks and typed local activity, with synthetic JVM/HTTP evidence only. Real launcher orchestration, qualified projection/complete authentic verification, accounting/settlement, explicit resume and authentic gameplay repair remain incomplete; no T05/G1 qualification.  [Essential plan/fixed Escape/recovery](docs/verification/2026-09-27-m1-essential-plan.md) now has explicit admission, immutable complete context/stage dispositions, offline physical-release joins and synthetic-body JVM restart/stop-all evidence; full authentic essential proof and resume remain open.  [Native projection](docs/verification/2026-09-27-m1-native-projection.md) now reads actual state under exact qualification consumption in the connected JVM restart/commit/rollback path; reports/body remain synthetic and authentic qualification/accounting/resume remain incomplete.  [Sprint companion](docs/verification/2026-09-27-m1-sprint-input.md) supplies bounded ordinary sprint/forward input, exact paired release and synthetic before/after JVM replacement evidence; /6 authentic qualification remains open. |
 | M1.1c.3.3 | PL/GI | Full repair budget/telemetry settlement, public KeybindingPatch/control card and scoped gameplay CLI | not_started | Retain nested charging, fresh-probe repair policy and complete public/private projections. |
-| M1.1c.3.4 | GI/PL | Explicit native/worker/controller resume after verified commit or restored rollback; same history/charges/expiry, fresh observation, no implicit recovery | in_progress | [Native decision/journal and Python/Node/JVM transport](docs/verification/2026-09-27-m1-native-resume.md) pass synthetic-body cases. Worker hold, replacement guardian transition, controller readiness/settlement and authentic gameplay remain unfinished. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1. |
+| M1.1c.3.4 | GI/PL | Explicit native/worker/controller resume after verified commit or restored rollback; same history/charges/expiry, fresh observation, no implicit recovery | in_progress | [Native/worker/guardian resume and private transport](docs/verification/2026-09-27-m1-worker-resume.md) pass synthetic-body process cases. Controller readiness/settlement, public keymap/skill, repeated repair chains and authentic gameplay remain unfinished. F06/F09/F11/F16, N01/N02/N03/N04/N08; T01/T04/T05/T06/G1. |
 | M3.2 | RS/SI | Matched fresh clone plans, artifact controls and drift quarantine decisions | in_progress | [Probe planner](evaluator/src/strata_evaluator/probes.py); actual isolated clone execution/disposal and supervisor drift handling open. |
 | M3.3 | RS | Paired lineage analysis, absolute competence, uncertainty/attrition and common support | in_progress | [Analysis](evaluator/src/strata_evaluator/analysis.py); full survival/hierarchical/power/confirmatory workflow open. |
 | M4.1 | PL | Whole-team resource/account admission, scoped grants and bounded communication | in_progress | [Controller/message tests](tests/test_storage_controller.py); actual simultaneous N=1/2/4 certificates remain required. M1.3b.9a-.9c [actual native team conformance](docs/verification/2026-09-24-m1-native-team.md) adds45/45 per job and26/26 independent joins; final qualified gameplay binding remains .9d, with no N-body/aggregate promotion. |
@@ -11067,3 +11068,40 @@ options unchanged; no owned runtime remains.460 ledger IDs preserve all459 prior
 IDs;2,108 local links across the five reviewed documents resolve. The next
 acceptance target is the connected gameplay repair/resume workflow. Component
 test counts do not close any of G1's six full suites.
+
+### September27 — connect same-worker resume after replacement
+
+M1.1c.3.4 continues from95f51d6. Implement an explicit resume-capable worker and
+replacement guardian profile, durable single-dispatch resume intent and exact
+native receipt reconciliation while retaining original epoch/history/budgets.
+Existing worker/4 and guardian/3 remain fenced. Controller completion/public
+permission still require joined evidence; no full gate is promoted. Durable
+authority and eight holds match the prior checkpoint before execution.
+
+Same-worker resume now passes the connected commit, rollback and lost-reply
+cases under explicit worker/5 and guardian/4. A pre-repair action receipt remains
+in the same worker/epoch; the next CLI action uses sequence2, emits input and
+confirms release after the actual JVM replacement. Synthetic body/settings
+verification are explicit. [Evidence](docs/verification/2026-09-27-m1-worker-resume.md).
+Native reply loss, concurrent stop and failed durable completion tests retain
+one dispatch and fail closed. Private grants bind both repair/restart transports;
+public tokens/browser origins cannot call resume. Older profiles retain fencing.
+
+Final results:3 resume process cases;2 legacy replacement cases;39 guardian
+checks;56 Python consumer cases;13 focused Node cases pass. Initial fixture,
+assertion, cleanup and syntax failures remain recorded. Build/Java test-class
+compilation/Ruff/diff checks pass. All40 authority tables and eight telemetry
+holds are unchanged;460 ledger IDs are preserved. No Minecraft/model trial or
+installed JAR change. Remaining:controller lease/readiness/settlement join,
+qualified public keymap/skill and adapter issuer, repeated repair lifecycle,
+authentic control/isolation evidence and all six G1 suites. Keep M1 in_progress
+and G1 not_run; do not remove REPAIR_WORKER_RESUME_REQUIRED without those joins.
+
+Private evidence bundle `2026-09-27-m1-worker-resume-01` is sealed:47 files,
+2,800,647 bytes, SHA-256
+`9d903789ce04219cbc6e77dc93b58ec81bf03930901cca62301e6b998f0bc79c`.
+It preserves changed source, original failed/passing logs, compiled hashes and
+read-only authority/hold audits. All40 authority tables and eight holds match
+before/after. Installed JAR/options are unchanged; no owned runtime remains.
+All460 ledger IDs survive and2,109 local links in the five reviewed documents
+resolve. This is a candidate component checkpoint, not a G1 pass.

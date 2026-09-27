@@ -18,6 +18,9 @@ public final class SettingsEffectsBridgeFixture {
         private boolean down, screen, left, right;
         private final Set<Integer> held = new java.util.HashSet<>();
         private double distance;
+        private final GamePages pages = new GamePages();
+        private long revision;
+        private double yaw;
         Runtime(Path profile) throws IOException {
             settings = new SettingsBridgeFixture.SyntheticRuntime(profile);
             var persisted = KeyOptions.parse(SettingsFiles.readOptions(profile.resolve("options.txt")));
@@ -34,12 +37,28 @@ public final class SettingsEffectsBridgeFixture {
         public void releaseInputs() throws IOException { if (input != null) input.cancel(); down = false; }
         public String bodyFingerprint() { return "b".repeat(64); }
         public long connectionGeneration() { return 1; }
-        public JsonObject snapshot(String id) throws IOException { throw new IOException("CAPABILITY_MISSING"); }
-        public JsonObject observe(String cursor) throws IOException { throw new IOException("CAPABILITY_MISSING"); }
-        public void resetObservations() {}
-        public void validate(GameBatch batch, JsonObject observation) throws IOException { throw new IOException("CAPABILITY_MISSING"); }
+        public JsonObject snapshot(String id) throws IOException { return observe(id); }
+        public JsonObject observe(String cursor) throws IOException {
+            requireClientThread();
+            if (cursor != null) return pages.page(cursor, "minecraft:overworld");
+            long captured = pages.beginCapture();
+            var state = com.google.gson.JsonParser.parseString("""
+                {"dimension":"minecraft:overworld","position":{"x":0.0,"y":65.0,"z":0.0},
+                 "yaw":0.0,"pitch":0.0,"health":20.0,"food":20.0,"inventory":[],"window":null,
+                 "active_request_id":null,"connected":true}
+                """).getAsJsonObject();
+            state.addProperty("yaw", yaw);
+            var result = pages.capture(state, new com.google.gson.JsonArray(), new com.google.gson.JsonArray(), captured);
+            revision = SettingsJson.integer(result, "state_revision"); return result;
+        }
+        public void resetObservations() { pages.reset(); }
+        public void validate(GameBatch batch, JsonObject observation) throws IOException {
+            if (batch.revision != revision) throw new IOException("REVISION_CONFLICT");
+        }
         public GameActionLane.Motor begin(GameBatch batch, JsonObject observation, GameActionLane.Emitter emitter) throws IOException {
-            throw new IOException("CAPABILITY_MISSING");
+            if (!batch.kind.equals("look_at")) throw new IOException("CAPABILITY_MISSING");
+            emitter.invoke(() -> yaw += 0.25); // Synthetic body change; never a Minecraft effect claim.
+            return ignored -> true;
         }
         public boolean settingsEffectsEnabled() { return true; }
         public JsonObject settingsRequest(JsonObject request) throws IOException { return coordinator.execute(request); }

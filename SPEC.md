@@ -835,6 +835,19 @@ hold, guardian transition, complete accounting, fresh controller observation and
 public permission publication must still be joined before gameplay use. This
 candidate is not full T05/G1 qualification.
 
+**Private worker resume candidate (M1.1c.3.4).** Worker/5 explicitly selects
+`operator-owned-settings-resume/1` and binds a separate private resume grant to
+its repair and restart grants. Replacement guardian/4 retains the original
+health/termination/lifetime bounds and requires a native resume receipt for the
+exact plan, replacement instance, generation and epoch before accepting active
+input. Worker intent precedes the single native dispatch; uncertainty reconciles
+by status. The same epoch/lease/action history and consumption survive. A fresh
+observation and durable completion precede release of the worker hold; stop or
+storage failure prevents release. Consumed intents/holds remain journaled.
+Worker/4 and guardian/3 retain their prior behavior. The candidate does not
+settle controller budgets, publish a qualified keymap, grant campaign readiness
+or qualify repeated repair chains; those joins remain required before T05/G1.
+
 **Private worker pause candidate (M1.1c.3.2).** The opt-in manual-conformance
 `ForgeDevelopmentWorker/3` profile selects `operator-owned-fixed-repair-pause/1`;
 the older `/2` profile retains no repair endpoint. A separate private bearer

@@ -6,6 +6,7 @@ import { Journal } from './journal.js';
 import { Signals } from './signals.js';
 import { repairPlan, WORKER_REPAIR_POLICY, type RepairPlan } from './worker_repair.js';
 import { restartCheckpoint, type RestartCheckpoint } from './native_restart.js';
+import { resumeDecision, type ResumeDecision, type ResumeState } from './native_resume.js';
 import { type ReplacementPaths, type RestartGuardCall } from './worker_restart.js';
 import type { ForgeGuardReady } from './forge_guard.js';
 import { fields } from './native_game.js';
@@ -50,7 +51,7 @@ export class ForgeLane implements GameLane {
   private closeTask: Promise<void> | null = null;
   private usageKey = '';
   private repair:RepairPlan|null = null;
-  private repairPhase:'quiescing'|'paused'|'failed'|null = null;
+  private repairPhase:'quiescing'|'paused'|'resuming'|'failed'|null = null;
   private repairUntil = 0;
   private repairTask:Promise<unknown>|null = null;
   private repairAbort:Promise<void>|null = null;
@@ -59,6 +60,10 @@ export class ForgeLane implements GameLane {
     old_connection_digest:string;old_terminal:unknown;paths:ReplacementPaths|null;replacement:ForgeGuardReady|null;
     continuation_sent:boolean}|null=null;
   private restartTask:Promise<unknown>|null=null;
+  private resumeEnabled=false;
+  private resumeTask:Promise<unknown>|null=null;
+  private resumeIntent:ResumeDecision|null=null;
+  private resumeUntil=0;
   private constructor(readonly scope: Scope, readonly capabilityDigest: string,
     private client: NativeGameClient, readonly journal: Journal, private body: string,
     private primitiveLimit: number, maxWallMs: number, private repairPolicy?:typeof WORKER_REPAIR_POLICY) {
@@ -93,6 +98,9 @@ export class ForgeLane implements GameLane {
       const armed = await client.call('arm', {...lane.lease(),expected_fence_token:health.fence_token});
       lane.checkHealth(armed); lane.charge(armed);
       lane.watchdog = setInterval(() => {
+        if(lane.repairPhase==='resuming' && lane.resumeIntent && Date.now()>=lane.resumeIntent.lease_until_unix_ms) {
+          lane.background(lane.abortRepair('REPAIR_RESUME_EXPIRED'));return;
+        }
         if(lane.repair && lane.repairPhase!=='failed' && (mono()>=lane.repairUntil
           || Date.now()>=lane.repair.expires_unix_ms || mono()>=lane.deadline)) {
           lane.background(lane.abortRepair('REPAIR_DEADLINE_EXPIRED'));return;
@@ -180,6 +188,75 @@ export class ForgeLane implements GameLane {
   }
   enableRestart(guard:RestartGuardCall):void {
     requireThat(this.repairPolicy===WORKER_REPAIR_POLICY && !this.restartGuard,'CAPABILITY_MISSING');this.restartGuard=guard;
+  }
+  enableResume():void {
+    requireThat(this.restartGuard && !this.resumeEnabled,'CAPABILITY_MISSING');this.resumeEnabled=true;
+  }
+  async resumeControl(operation:'resume'|'status',raw:ResumeDecision):Promise<unknown> {
+    requireThat(this.resumeEnabled,'CAPABILITY_MISSING');
+    const decision=resumeDecision(raw), plan=decision.worker_plan;
+    const old=this.journal.resumeRecord(plan.transaction_id);
+    if(old)requireThat(canonical(old.decision)===canonical(decision),'REPAIR_NOT_OWNED');
+    if(old?.receipt) {
+      const native=await this.client.call('settings_resume_status',{transaction_id:plan.transaction_id},500);
+      requireThat(canonical(native.decision)===canonical(decision),'REPAIR_NOT_OWNED');
+      try {this.charge(native.health);} catch(error) {await this.fence('EVIDENCE_UNAVAILABLE');throw error;}
+      return this.resumeStatus(decision,native,old.observation);
+    }
+    requireThat(this.repair && canonical(this.repair)===canonical(plan) && this.repairLive()
+      && this.repairPhase!=='failed' && this.restart?.phase==='attached'
+      && this.restart.replacement?.policy==='forge-process-listener-client-thread/4','REPAIR_NOT_OWNED');
+    requireThat(decision.connection_generation===this.generation,'CONNECTION_CHANGED');
+    if(this.resumeTask)return this.resumeTask;
+    requireThat(operation==='resume' || old,'REPAIR_RESUME_UNKNOWN');
+    const remaining=decision.lease_until_unix_ms-Date.now();
+    requireThat(remaining>0 && remaining<=6000,'REPAIR_RESUME_EXPIRED');
+    // Monotonic expiry is fixed before any durable I/O or native request.
+    const until=Math.min(mono()+remaining,this.repairUntil,this.deadline,...(this.resumeIntent?[this.resumeUntil]:[]));
+    this.resumeUntil=until;
+    this.repairPhase='resuming';this.resumeIntent=decision;
+    this.resumeTask=(async()=>{
+      try {
+        if(this.renewTask)await this.renewTask;
+        requireThat(this.repairLive() && this.repairPhase==='resuming','REPAIR_DEADLINE_EXPIRED');
+        if(!old) {
+          await this.pollRepair();
+          this.write(()=>this.journal.beginResume(decision));
+        }
+        this.releaseTask=null;this.fenceTask=null;this.lastRelease=false;
+        const native:ResumeState=old
+          ? await this.client.call('settings_resume_status',{transaction_id:plan.transaction_id},500)
+          : await this.client.call('settings_resume',decision,500);
+        requireThat(canonical(native.decision)===canonical(decision),'REPAIR_NOT_OWNED');
+        this.charge(native.health);
+        requireThat(native.input_resumed && this.repairLive() && this.repairPhase==='resuming'
+          && mono()<until && Date.now()<decision.lease_until_unix_ms,'REPAIR_RESUME_UNCONFIRMED');
+        this.checkHealth(native.health);
+        this.captures.clear();this.observations.clear();this.last=null;
+        this.releaseTask=null;this.fenceTask=null;this.lastRelease=false;
+        this.leaseUntil=until;this.fenced=false;this.reason=null;
+        // Input admission still sees this.repair until a fresh observation and
+        // durable receipt are both present. No public action can race this join.
+        const observation=await this.observe(true);
+        requireThat(this.repairLive() && this.repairPhase==='resuming' && !this.fenced
+          && mono()<until && Date.now()<decision.lease_until_unix_ms,'REPAIR_RESUME_UNCONFIRMED');
+        this.write(()=>this.journal.finishResume(decision,native,observation));
+        this.repair=null;this.repairPhase=null;this.repairUntil=0;this.repairAbort=null;
+        this.restart=null;this.resumeIntent=null;
+        return this.resumeStatus(decision,native,observation);
+      } catch(error) {
+        if(!(error instanceof Fault && error.code==='GAME_OUTCOME_UNKNOWN'))
+          await this.abortRepair(error instanceof Fault?error.code:'REPAIR_RESUME_UNAVAILABLE');
+        throw error;
+      }
+    })().finally(()=>{this.resumeTask=null;});
+    return this.resumeTask;
+  }
+  private resumeStatus(decision:ResumeDecision,native:ResumeState,observation:unknown) {
+    return {schema:'strata/WorkerResumeState/1',decision,native,observation,
+      primitive_events:this.journal.counter('primitive_events'),
+      gameplay_resumed:!this.closed && !this.fenced && this.repair===null && native.input_resumed
+        && mono()<this.deadline && mono()<this.leaseUntil};
   }
   private restartStatus() {
     requireThat(this.restart && this.repair,'REPAIR_NOT_OWNED');
@@ -380,7 +457,7 @@ export class ForgeLane implements GameLane {
   renewLease(): Promise<void> {
     if(this.repair) {
       if(this.restart && this.restart.phase!=='attached')return Promise.resolve();
-      if(this.repairPhase==='quiescing')return Promise.resolve();
+      if(this.repairPhase==='quiescing' || this.repairPhase==='resuming')return Promise.resolve();
       if(this.renewTask)return this.renewTask;
       this.renewTask=this.pollRepair().catch(async error=>{
         await this.abortRepair(error instanceof Fault ? error.code : 'REPAIR_UNAVAILABLE');throw error;
@@ -644,7 +721,7 @@ export class ForgeLane implements GameLane {
       clearInterval(this.watchdog); this.closed = true;
       this.closeTask = (this.repair ? this.abortRepair('STOPPED') : this.fence('STOPPED')).finally(async () => {
         await Promise.allSettled([this.observationTail,this.renewTask ?? Promise.resolve(),this.repairTask ?? Promise.resolve(),
-          this.restartTask ?? Promise.resolve()]); this.signals.close();
+          this.restartTask ?? Promise.resolve(),this.resumeTask ?? Promise.resolve()]); this.signals.close();
       });
     }
     return this.closeTask;

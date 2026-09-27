@@ -7,13 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
-M1.1c.3.4 now supplies the private native resume decision and durable receipt,
-with strict Python/TypeScript transports. Actual JVM/HTTP tests pass commit and
-healthy rollback, same-epoch continuation after JVM replacement, lost-reply
-status recovery and refusal cases, using synthetic game bodies/verification.
-[Native resume evidence](verification/2026-09-27-m1-native-resume.md).
-The worker hold, replacement guardian transition and controller readiness/
-settlement are still closed. The installed game JAR is unchanged; full gameplay
+M1.1c.3.4 now connects native resume to the same worker and a replacement
+Windows guardian. Commit, rollback and lost-reply status recovery execute a
+subsequent scoped action through the actual Node/JVM process chain, with a
+synthetic game body and verification. Worker/5 and guardian/4 are explicit
+candidate profiles; older profiles retain their fencing behavior.
+[Worker resume evidence](verification/2026-09-27-m1-worker-resume.md).
+Controller completion, full consumption settlement and the public keymap/skill
+remain unfinished. The installed game JAR is unchanged; authentic gameplay
 repair/resume and all G1 suites remain incomplete.
 
 Latest checkpoint: essential-native04 passed client admission and joined
@@ -26,9 +27,11 @@ are preserved; inference authority is unchanged. No unchanged retry is selected.
 [Actual result and limits](verification/2026-09-27-m1-essential-native.md#native04-terminal-result-admission-passes-health-failure-interrupts-first-effect).
 
 No live process/session remains. Native01/02/03/04 stay consumed and their
-sealed evidence must not be changed. Next connect worker/guardian and
-controller resume to the native decision with existing history, charges, fixed expiry,
-verified settings and fresh observation. The real launcher/accounting and
+sealed evidence must not be changed. Next connect controller completion and
+public keymap/skill publication to the worker resume receipt, preserving the
+original lease, history and complete accounting. The current worker observation
+uses the structured-action epoch/null keymap and cannot satisfy the qualified
+settings ready proof unchanged. The real launcher/accounting and
 complete qualification remain required. Keep the native04 health failure open;
 a longer status-read wait alone cannot resolve a client already stopped by its
 guardian. No changed health/stop threshold or unchanged trial is selected.

@@ -67,7 +67,7 @@ class RestartGuardReady(Strict):
     whole_client_lifetime: bool
     campaign_admission: bool
     remaining_wall_ms: Positive
-    policy: Literal["forge-process-listener-client-thread/3"]
+    policy: Literal["forge-process-listener-client-thread/3", "forge-process-listener-client-thread/4"]
     connection_digest: Digest
     body_fingerprint: Digest
     connection_generation: UInt

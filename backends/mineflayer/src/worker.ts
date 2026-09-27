@@ -17,6 +17,7 @@ import { serveRepair, WORKER_REPAIR_POLICY } from './worker_repair.js';
 import { ForgeLane } from './forge_lane.js';
 import type { Server } from 'node:http';
 import { RestartGuardOwner, replyRestart, restartGuardClient, serveRestart } from './worker_restart.js';
+import { serveResume } from './worker_resume.js';
 
 const repository = fileURLToPath(new URL('../../../../', import.meta.url));
 
@@ -33,12 +34,13 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   });
   let repairServer:Server|undefined;
   let restartServer:Server|undefined;
+  let resumeServer:Server|undefined;
   let restartClient:ReturnType<typeof restartGuardClient>|undefined;
   const server = await serve(lane,token,capabilities).catch(async error => {
     try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}} throw error;
   });
   const address = server.address(); requireThat(address && typeof address !== 'string', 'INTERNAL_ERROR');
-  if(c.schema==='strata/ForgeDevelopmentWorker/3' || c.schema==='strata/ForgeDevelopmentWorker/4') {
+  if(c.schema==='strata/ForgeDevelopmentWorker/3' || (c.schema==='strata/ForgeDevelopmentWorker/4' || c.schema==='strata/ForgeDevelopmentWorker/5')) {
     try {
       requireThat(lane instanceof ForgeLane,'CAPABILITY_MISSING');
       const repairToken=randomBytes(32).toString('hex');
@@ -51,7 +53,7 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
       const fd=openSync(resolve(c.state_directory,`repair-grant-${c.epoch}.json`),'wx',0o600);
       try {writeFileSync(fd,JSON.stringify(grant)+'\n');fsyncSync(fd);} finally {closeSync(fd);}
       journal.event('repair_gateway',{policy:WORKER_REPAIR_POLICY,epoch:c.epoch,port:repairAddress.port});
-      if(c.schema==='strata/ForgeDevelopmentWorker/4') {
+      if((c.schema==='strata/ForgeDevelopmentWorker/4' || c.schema==='strata/ForgeDevelopmentWorker/5')) {
         restartClient=restartGuardClient();lane.enableRestart(restartClient.call);
         const restartToken=randomBytes(32).toString('hex');
         restartServer=await serveRestart((...args)=>lane.restartControl(...args),restartToken);
@@ -63,9 +65,21 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
         const fd=openSync(resolve(c.state_directory,`restart-grant-${c.epoch}.json`),'wx',0o600);
         try {writeFileSync(fd,JSON.stringify(restartGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
         journal.event('restart_gateway',{policy:c.restart_policy,epoch:c.epoch,port:address.port});
+        if(c.schema==='strata/ForgeDevelopmentWorker/5') {
+          lane.enableResume();const resumeToken=randomBytes(32).toString('hex');
+          resumeServer=await serveResume((...args)=>lane.resumeControl(...args),resumeToken);
+          const address=resumeServer.address();requireThat(address && typeof address!=='string','INTERNAL_ERROR');
+          const resumeGrant={schema:'strata/WorkerResumeGrant/1',policy:c.resume_policy,
+            repair_binding_digest:repairGrantDigest,restart_binding_digest:digest(restartGrant),
+            url:`http://127.0.0.1:${address.port}/v1/resume`,token:resumeToken,
+            campaign_id:c.campaign_id,agent_id:c.agent_id,epoch:c.epoch,lease_id:c.lease_id};
+          const fd=openSync(resolve(c.state_directory,`resume-grant-${c.epoch}.json`),'wx',0o600);
+          try {writeFileSync(fd,JSON.stringify(resumeGrant)+'\n');fsyncSync(fd);}finally{closeSync(fd);}
+          journal.event('resume_gateway',{policy:c.resume_policy,epoch:c.epoch,port:address.port});
+        }
       }
     } catch(error) {
-      repairServer?.close();restartServer?.close();restartClient?.close();server.close();
+      repairServer?.close();restartServer?.close();resumeServer?.close();restartClient?.close();server.close();
       try {await lane.close();} finally {try {metrics.close();} finally {journal.close();}}
       throw error;
     }
@@ -80,7 +94,7 @@ async function child(c: WorkerConfig, token: string, initialized:()=>void, guard
   let shutdown: Promise<void> | undefined;
   const stop = () => {
     shutdown ??= (async () => {
-      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();restartServer?.close();restartClient?.close();
+      clearInterval(beat); clearInterval(disk); server.close();repairServer?.close();restartServer?.close();resumeServer?.close();restartClient?.close();
       let code = healthFailed ? 1 : 0;
       try { await lane.close(); } catch { code = 1; }
       finally {
@@ -130,7 +144,7 @@ async function main(): Promise<void> {
   requireThat(process.argv.length === 3 || operatorControl, 'SCHEMA_UNSUPPORTED');
   const c = workerConfig(resolve(process.argv[2]!),repository);
   requireThat(!operatorControl || c.schema==='strata/DevelopmentWorker/1'
-    || c.schema==='strata/DevelopmentWorker/2' || c.schema==='strata/ForgeDevelopmentWorker/4','CAPABILITY_MISSING');
+    || c.schema==='strata/DevelopmentWorker/2' || (c.schema==='strata/ForgeDevelopmentWorker/4' || c.schema==='strata/ForgeDevelopmentWorker/5'),'CAPABILITY_MISSING');
   const fs = statfsSync(c.state_directory);
   requireThat(fs.bavail * fs.bsize >= 5 * 1024**3, 'DISK_RESERVE_LOW');
   const token = randomBytes(32).toString('hex');
@@ -236,7 +250,7 @@ async function main(): Promise<void> {
         () => !forced && lifecycle.canRenew(),fail);
       binding = await guard.ready;
       requireThat(!forced && !stopping,'PROCESS_GUARD_UNAVAILABLE');
-      if(c.schema==='strata/ForgeDevelopmentWorker/4')restartOwner=new RestartGuardOwner(c,repository,
+      if((c.schema==='strata/ForgeDevelopmentWorker/4' || c.schema==='strata/ForgeDevelopmentWorker/5'))restartOwner=new RestartGuardOwner(c,repository,
         digest(forgeCapabilities(c.native_fingerprint)),evidence!,()=>c.max_wall_ms-(performance.now()-started),
         ()=>!forced && !stopping && lifecycle.canRenew(),()=>guard!,value=>{guard=value;},fail);
     }

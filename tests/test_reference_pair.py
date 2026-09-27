@@ -571,6 +571,7 @@ module.main()
         ("pin", "CRAFT_FILE_CHANGED"),
         ("source", "REFERENCE_PAIR_SOURCE_UNPINNED"),
         ("exposure", "REFERENCE_PAIR_EXPOSURE"),
+        ("equal_exposure", "REFERENCE_PAIR_EXPOSURE"),
         ("path", "REFERENCE_PAIR_PATH"),
     ],
 )
@@ -582,6 +583,8 @@ def test_pair_rejects_unsafe_inputs_before_durable_dispatch(pair, change, code):
         plan["inputs"].pop(0)
     elif change == "exposure":
         plan["client_window_ms"] = 5000
+    elif change == "equal_exposure":
+        plan["client_window_ms"] = launch_plan["participant"]["window_s"] * 1000
     else:
         plan["evidence_directory"] = str(Path(launch_plan["evidence_directory"]) / "nested")
         Path(launch_plan["evidence_directory"]).mkdir()

@@ -365,8 +365,10 @@ class ReferencePair:
             from .reference_preparation import read_preparation, validate_preparation
             preparation = read_preparation(plan.client_preparation)
             pins.extend([plan.client_preparation, preparation.session_receipt])
+        # Readiness starts the participant clock before client admission. Equal
+        # windows can never satisfy the remaining-time check at dispatch.
         require(
-            plan.client_window_ms <= launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
+            plan.client_window_ms < launch.participant.window_s * 1000, "REFERENCE_PAIR_EXPOSURE"
         )
         inventory = {}
         for pin in pins:

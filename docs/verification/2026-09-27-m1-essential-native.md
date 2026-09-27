@@ -130,3 +130,81 @@ Both complete bundles verify. The final audit preserves459 milestone IDs,
 1,664 local ledger links, all40 authority tables and all six distinct holds;
 534 compiled inputs are unchanged. No owned runtime remains. This pointer is
 appended after the archived documentation snapshot; sealed bundles are unchanged.
+
+## Bounded native02 procedure
+
+The fresh `PrivateEssentialSettingsCyclePlan/2` keeps every essential case,
+predicate, hold and20-tick settling interval, both client stages, native rollback,
+four frames per client,3,000 primitives and the1,000-ms guardian. The client
+allowance is declared as410 seconds before dispatch, within the existing
+420-second participant and600-second server limits. This is a new finite private
+conformance allowance selected for the complete expanded procedure, not an
+extension of native01's consumed400-second authority or a new inference budget.
+The previous failure remains failed. No gate threshold changes.
+
+`fixed-wall-monotonic-effect-response-separation/1` binds one absolute wall and
+monotonic expiry across both starts. Each response waits at most1 second; an
+effect gets at most5 seconds inside the remaining original window. A50-ms
+construction margin prevents rounding/delivery preparation from exceeding that
+bound. Insufficient time refuses before a call. An uncertain effect start records
+its dispatch identity and queries that same effect's status; it never starts it
+again. Other uncertain mutations still stop the procedure.
+
+Five focused private-driver checks pass, including the exact4,061-ms remainder,
+monotonic expiry, no-replay status recovery and equality of all26 declared cases
+with native01. All40 authority tables and six existing telemetry holds remain
+unchanged, and no owned runtime was present at preparation. Native02 is pending.
+
+Native02 subsequently failed before any game launch with
+`REFERENCE_PAIR_EXPOSURE`: its outer pair window was410,000 ms rather than the
+required410,000-ms client allowance plus10,000-ms terminal reserve. This was a
+missed cross-record preparation check, not a native input result. All six
+reference database tables are empty; no runtime authority or telemetry reservation
+was created. The unused session argument file was retired after terminal checks.
+The failure remains sealed:51 files/5,278,199 bytes,
+`5f13c104d2277b1751fc17f134aeed8a7def11bb88ba4153adbd05f23d7e67c5`.
+
+Native03 uses fresh identities and a420,000-ms outer pair window, exactly equal
+to410,000+10,000 and within the existing420-second participant limit. Both builder
+and dispatch now check that relationship before authentication. All native01
+control cases, effect predicates and the corrected fixed-window driver are
+unchanged. The native02 preparation failure is explicitly linked. No prior
+dispatch is rearmed; native03 has no result yet.
+
+## Native03 admission failure and prelaunch correction
+
+Native03 is now terminal and failed at client admission. Its420,000-ms pair
+window equaled the participant's entire420,000-ms window. The runtime correctly
+requires the remaining participant time to be strictly greater than the pair
+window; the equal declarations could never pass after readiness publication.
+The earlier preparation check missed that strict relationship. The server
+launched, but no client or native game authority was created and no client input
+was emitted. The secondary client-cleanup `TELEMETRY_AUTH_FILE` report reflects
+that absent client authority; it is retained with the original admission fault.
+
+All29 retained server processes are signaled and the job is empty, without forced
+outer termination. The unused phase1 session argument file was retired only after
+its exact hash and terminal custody were checked. All four lifecycle records
+remain UNCERTAIN and the new256MiB telemetry hold remains RESERVED with unknown
+actual bytes. This is the seventh distinct hold; the previous six and all40
+inference-authority tables remain unchanged at4,887,796 microUSD. No model calls.
+
+`reference_pair.py` now rejects equality before any durable dispatch, preserving
+the existing runtime remaining-time check. Five focused unsafe-input cases pass,
+including the equal-window regression; the first invocation skipped because its
+explicit JVM fixture environment was absent, and is retained separately. Ruff
+and diff checks pass. No timing threshold is relaxed and no consumed attempt is
+rearmed. A future fresh procedure must leave admission margin as well as its
+declared terminal reserve; feasibility must be checked before another launch.
+
+The failed authentic bundle preserves224 exact executed repository inputs and
+contains434 files/82,100,113 bytes, seal
+`6a1d17db3495e8a49b190c7fcb40762e8245ff446b74b958e8cdf8d74d80e71b`.
+No essential-control case is newly verified by native03. The complete controls
+cycle, gameplay repair/resume, T05 and all aggregate G1 suites remain open.
+
+The bounded-procedure/source/audit archive contains45 files/7,774,404 bytes,
+seal `4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
+All459 milestone IDs and1,668 local ledger links are retained. Seven distinct
+holds are recorded and no owned runtime remains. This pointer follows the
+archived documentation snapshot; both sealed native failures remain unchanged.

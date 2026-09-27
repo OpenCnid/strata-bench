@@ -7,6 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+Latest checkpoint: essential-native03 failed at admission because equal client
+and participant windows left no admission margin. No client controls ran; all29
+server processes are terminal. The prelaunch check now rejects that impossible
+combination, with a passing focused regression. Seven telemetry holds are
+preserved; inference authority is unchanged. The expanded essential-controls
+cycle and full gameplay repair/resume remain unfinished. No G1 suite closes.
+[Actual result and correction](docs/verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+
 M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
 owned repair, independent Curios/inventory effects, sneak/release and forward
 movement, same-server client restart, repeated effects, native rollback and exact
@@ -141,6 +149,19 @@ Next bind the authentic driver to the remaining deadline and prepare a feasible
 complete procedure, then independent recovery and full gameplay repair/accounting/
 resume. The /6 JAR is installed; original E-overlap options are restored. No
 unchanged rerun was dispatched, and no G1 suite closes.
+
+
+A fresh native02 procedure now binds absolute wall/monotonic expiry across both
+starts, separates response/execution deadlines and reconciles uncertain starts
+by status only. All26 added cases and the full repair/restart/rollback procedure
+are unchanged. The new client allowance is410s, declared before dispatch inside
+existing participant420s/server600s limits; native01's400s failure stays consumed.
+Five focused driver checks pass. No model allowance changes; six holds persist.
+[Procedure/evidence](docs/verification/2026-09-27-m1-essential-native.md). Native02 failed before game launch because the outer pair window omitted the
+10s terminal reserve. No runtime authority/reservation was issued; its unused
+session was retired and failure sealed. Fresh native03 checks410s+10s=420s in
+both builder and pre-authentication dispatch. Native03 subsequently failed at
+client admission as recorded above; no G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|
@@ -10923,3 +10944,48 @@ unchanged rerun was dispatched, and no G1 suite closes.
 Affected components: native_settings_effects/native_repair_flow and both effect producers; SPEC8.2, F06/F09/F11/F16, N01/N02/N03/N04/N06/N08, T01/T04/T05/T06/G1. Focused checks:157 source/JVM passes and one revised connected case pass; retained all intermediate errors. Current40 authority tables unchanged/4,887,796microUSD. No model calls; six separate telemetry holds. Full M1 remains in_progress; G1 not_run.
 
 Final essential-control audit: authentic failed attempt1,238files/128,099,519bytes, seal `7559bd5b5fa308358e02dc91a9f9800f202fccce8bd3b51626eb67528939d00a`; source/test preparation47files/4,313,096bytes, seal `d564d91a1cc15f3baf6c390d66789fa65030539f7b64b53160b4e32d410671b2`. Both exact bundles verify. All459 milestone IDs/1,664 ledger links preserved;40 authority tables unchanged; six separate telemetry holds retained; zero owned runtime. This pointer follows the archived documentation snapshot. M1/G1 remains open.
+
+### September27 — bounded native essential-control procedure
+
+A fresh native02 procedure now binds absolute wall/monotonic expiry across both
+starts, separates response/execution deadlines and reconciles uncertain starts
+by status only. All26 added cases and the full repair/restart/rollback procedure
+are unchanged. The new client allowance is410s, declared before dispatch inside
+existing participant420s/server600s limits; native01's400s failure stays consumed.
+Five focused driver checks pass. No model allowance changes; six holds persist.
+[Procedure/evidence](docs/verification/2026-09-27-m1-essential-native.md). Native02 is
+pending; no G1 suite closes.
+
+M1.1b/M1.1c.3.2 remain in_progress; T05/G1 not_run. This is a private conformance procedure decision within the existing420/600s limits, not altered benchmark budgets, thresholds, M1 inference authority or repaired historical evidence.
+
+### September27 — native02 prelaunch refusal and fresh native03
+
+M1.1b: native02 retained REFERENCE_PAIR_EXPOSURE before game launch; six database tables empty, no runtime authority or new telemetry hold, unused session retired. Seal51files/5,278,199bytes `5f13c104d2277b1751fc17f134aeed8a7def11bb88ba4153adbd05f23d7e67c5`. Fresh native03 corrects pair window to410s client+10s reserve=420s, with a pre-authentication cross-record check. No input/gate claim; all40 authority tables/six older holds unchanged.
+
+### September27 — native03 admission failure; reject impossible equal windows
+
+M1.1b/M1.1c.3.2, F06/F11/F16, N01/N02/N08, T01/T05/G1: native03's server
+launched, but the runtime refused client admission because its420s pair window
+equaled the entire participant window. Readiness publication consumes time,
+and remaining time must be strictly greater than the pair allowance. No client
+or game-input authority was created. All29 server processes are terminal without
+forced outer cleanup; the unused session file was retired after exact checks.
+All four lifecycle rows remain UNCERTAIN; a seventh256MiB telemetry hold is
+retained. All40 inference-authority tables and previous six holds are unchanged.
+
+Changed `reference_pair.py` to reject equality before durable dispatch; retained
+the runtime check. Five targeted unsafe-input tests pass, including the equality
+regression, under the explicit Windows/JVM fixture environment. The initial
+all-skipped invocation remains in the evidence. Ruff/diff checks pass. Authentic
+failed evidence434files/82,100,113bytes, seal
+`6a1d17db3495e8a49b190c7fcb40762e8245ff446b74b958e8cdf8d74d80e71b`.
+[Full disposition](docs/verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+Next establish a feasible admission/client/terminal window before selecting a
+fresh attempt; never renew native01/02/03. Then finish full gameplay repair/resume
+and the remaining gate cases. No essential case, aggregate suite or G1 closes.
+
+Final audit:459 milestone IDs/1,668 local ledger links preserved; all40 authority
+tables unchanged; seven distinct telemetry holds recorded; no owned runtime.
+Bounded-procedure/source/audit archive45files/7,774,404bytes, seal
+`4aff922557c61d49e2b7d67a211ade482002a128c80aa9526d02656041633f48`.
+This pointer follows the archived documentation snapshot. M1 remains in_progress.

@@ -7,6 +7,14 @@ M1 must establish trustworthy data, permissions, controls, scoring and matched
 comparisons. No complete G1 suite is closed yet. Recent furnace work produced
 useful evidence but did not close T10; no further furnace trial is selected.
 
+Latest checkpoint: essential-native03 failed at admission because equal client
+and participant windows left no admission margin. No client controls ran; all29
+server processes are terminal. The prelaunch check now rejects that impossible
+combination, with a passing focused regression. Seven telemetry holds are
+preserved; inference authority is unchanged. The expanded essential-controls
+cycle and full gameplay repair/resume remain unfinished. No G1 suite closes.
+[Actual result and correction](verification/2026-09-27-m1-essential-native.md#native03-admission-failure-and-prelaunch-correction).
+
 M1.1b.1 now passes its named scripted native Curios E/F13 cycle: conflict observed,
 owned repair, independent Curios/inventory effects, sneak/release and forward
 movement, same-server client restart, repeated effects, native rollback and exact
@@ -142,6 +150,19 @@ Next bind the authentic driver to the remaining deadline and prepare a feasible
 complete procedure, then independent recovery and full gameplay repair/accounting/
 resume. The /6 JAR is installed; original E-overlap options are restored. No
 unchanged rerun was dispatched, and no G1 suite closes.
+
+
+A fresh native02 procedure now binds absolute wall/monotonic expiry across both
+starts, separates response/execution deadlines and reconciles uncertain starts
+by status only. All26 added cases and the full repair/restart/rollback procedure
+are unchanged. The new client allowance is410s, declared before dispatch inside
+existing participant420s/server600s limits; native01's400s failure stays consumed.
+Five focused driver checks pass. No model allowance changes; six holds persist.
+[Procedure/evidence](verification/2026-09-27-m1-essential-native.md). Native02 failed before game launch because the outer pair window omitted the
+10s terminal reserve. No runtime authority/reservation was issued; its unused
+session was retired and failure sealed. Fresh native03 checks410s+10s=420s in
+both builder and pre-authentication dispatch. Native03 subsequently failed at
+client admission as recorded above; no G1 suite closes.
 
 | Required G1 suite | Current position | Closure work remaining |
 |---|---|---|

@@ -13,13 +13,19 @@ the authorized development fallback for exact E9E compatibility work.
 actions and control a Minecraft character. G0 passes only its named D14
 development slice. M1 adds complete typed contracts, trustworthy agent/helper
 boundaries, verified keybinding repair, protected scoring and matched probes.
-None of G1's six complete acceptance suites has closed. Unrelated M2–M7 work
-remains outside the current scope; G1–G5 are `not_run`.
+None of G1's six complete acceptance suites has closed; G1–G5 are `not_run`.
 
-The current integration target is ordinary play → diagnose a control conflict →
-pause → repair → restart/verify → account for all costs → resume, with verified
-restoration on failure. A narrow authentic Curios repair/restart/restore cycle
-passed; the complete workflow and final isolation profile remain unqualified.
+**September 29 priority (D21): build the task benchmark MVP first.** The next
+delivery is task → fresh fixture → bounded agent run → checked outcome → report
+with time, consumption and failure reasons. Start with one avatar and the existing
+vanilla profile. This task-suite workflow is planned, not yet delivered.
+Repair/resume and complete G1 qualification follow; an interrupted MVP attempt
+stops and records its failure. Initial development results do not establish
+adaptation or protected benchmark validity. See [the MVP contract](SPEC.md#13-scope-and-non-goals)
+and [current work](MILESTONES.md).
+
+A narrow authentic Curios repair/restart/restore cycle passed; the complete
+repair workflow and final isolation profile remain unqualified and retained.
 Exact E9E's Mineflayer handshake failed, and the Forge fallback retains its own
 identity. See the [September 27 checkpoint](docs/verification/2026-09-27-session-handoff.md).
 

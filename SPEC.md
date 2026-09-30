@@ -1,5 +1,14 @@
 # Strata: Minecraft adaptation benchmark meta-harness
 
+**D21 — task benchmark MVP first (2026-09-29):** the user explicitly directed
+prioritizing actual tasks and benchmark execution before repair/resume and other
+advanced features. The next deliverable is M1.7's short development task benchmark,
+defined in section 1.3. This supersedes D20/the September 27 checkpoint's delivery
+order; full G1 and repair are no longer prerequisites for that initial MVP.
+All existing F/N requirements, M0-M7, T01-T17 and G0-G5 remain required at their
+full research-release scopes. No existing gate is passed or threshold relaxed.
+Paid authority, consumed decisions and unresolved reservations are unchanged.
+
 **September 27 handoff checkpoint:** M1 remains `in_progress`; G1 and all six
 complete T01/T04/T05/T06/T10/T11 suites remain `not_run`. The user requested a
 documentation/source checkpoint PR merged to main and continuation in a fresh
@@ -103,7 +112,7 @@ The changed M0 pilot transport profile allows 60 seconds per model request, with
 
 **Project:** Strata. **Repository:** [OpenCnid/strata-bench](https://github.com/OpenCnid/strata-bench).
 
-**Specification version:** 0.2.183, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-24 (fresh-session authority/evidence reconciliation; contracts unchanged). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
+**Specification version:** 0.2.185, target contract with partial implementation. **Written:** 2026-09-18. **Updated:** 2026-09-29 (D21 adds the earlier task benchmark MVP and changes delivery order; full research contracts retained). **Research baseline:** 2026-09-17; primary-source spot checks repeated 2026-09-18.
 
 **Classification: operator/research only. Never mount this document, BUILD_PLAN.md, research/, or evaluator material into a gameplay agent.**
 
@@ -154,7 +163,46 @@ Null/negative findings, inability to reach prerequisites, and initial ceiling pe
 
 ### 1.3 Scope and non-goals
 
-MVP: current Windows development environment; Mineflayer protocol clients against vanilla 1.19.2 first and one locked E9E/Forge server after conformance; structured observations and bounded actions; native Codex plus the selected plugin; isolated agent state; private telemetry; a capability-gated keybinding skill/extension; one durable controller; long-horizon recovery; simultaneous teams when admitted; matched held-out evaluation and an auditable pilot/report. Vanilla backend success alone does not satisfy the modded MVP.
+**Initial task benchmark MVP (D21):** select a small versioned task suite, start
+each attempt from its declared fresh fixture, let the agent act through the
+existing bounded tools, check the outcome from game evidence, and produce a
+result table. One avatar, no helpers and the existing vanilla 1.19.2/Mineflayer
+profile are the initial implementation defaults. A separate E9E task profile
+follows its own applicable conformance; vanilla results never imply modded support.
+Reuse native Codex/Dovetail and existing provisioning, worker, accounting and
+evidence components. Do not build a second campaign controller for this slice.
+
+M1.7 completion requires:
+
+1. Versioned tasks bind a public goal, private fixture/success-check references,
+   initial inventory/world, backend capabilities and finite time/action/spend
+   limits. Select tasks supported by the current motors; do not expose hidden
+   evaluator criteria or operator context to agents.
+2. A repeatable operator entry point prepares a fresh attempt, runs the selected
+   agent, enforces limits, stops owned processes and retains terminal evidence.
+   An interrupted or uncertain attempt stops; it need not repair or resume.
+3. Outcomes distinguish success, ordinary task failure, timeout, infrastructure
+   error and unstarted/blocked attempts. A model's success statement is not a
+   success check. Failed and incomplete attempts remain visible; new attempts
+   have fresh IDs and do not overwrite failures or refund prior consumption.
+4. A suite report includes every assigned task/attempt, success counts with
+   explicit denominators, elapsed time, actions, actual/unknown consumption,
+   failure reasons and exact source/model/pack/profile references. Setup time
+   and task execution time are distinguishable; unknown usage stays reserved.
+5. Scripted-provider tests and actual model/game runs are labeled separately.
+   Completion needs a bounded authentic task-suite demonstration and report,
+   under applicable execution authority; fixtures alone cannot establish it.
+
+Repair/resume, keybinding recovery, long soaks, simultaneous teams and controlled
+adaptation studies remain later deliverables. Minimal scoped access, evaluator
+separation, bounded actions, safe stop and accounting remain necessary for the
+selected task route. Complete G1 is not a prerequisite for development task runs:
+remaining isolation/scoring qualifications must be disclosed, and existing
+production admission guards must not be bypassed. Initial task results describe
+task performance, not protected competitive rankings or adaptation effects.
+D21 authorizes this implementation priority, not a new paid-inference allowance.
+
+**Full research MVP (original M0-M5/G4 scope, retained):** current Windows development environment; Mineflayer protocol clients against vanilla 1.19.2 first and one locked E9E/Forge server after conformance; structured observations and bounded actions; native Codex plus the selected plugin; isolated agent state; private telemetry; a capability-gated keybinding skill/extension; one durable controller; long-horizon recovery; simultaneous teams when admitted; matched held-out evaluation and an auditable pilot/report. Vanilla backend success alone does not satisfy the full modded research MVP. Earlier unqualified uses of "MVP" in this document describe this retained scope; D21 defines the smaller first delivery.
 
 Later: E6E and E2E compatibility modules, additional packs, distributed scheduling/storage, optional dashboard, separately labeled pixel and expanded-assistance conditions, optional mechanic interventions and budgeted practice worlds. A structured Forge client bridge is the fallback candidate if Mineflayer cannot pass a mandatory expert-pack mechanic; introducing it requires a recorded backend/system identity and its own conformance, never an invisible in-run switch.
 
@@ -3022,6 +3070,10 @@ Mineflayer is always the first backend implemented. If a mandatory E9E mechanic 
 
 ### 16.2 Release gates
 
+D21 adds the earlier M1.7 task benchmark deliverable with the explicit acceptance
+list in section 1.3. It does not rename, waive or satisfy any gate below. G1's full
+keybinding/isolation/probe contracts and G4's research claims remain later work.
+
 | Gate | Prerequisites and exit evidence | Release meaning |
 |---|---|---|
 | G0: Mineflayer-first pack/host/API slice | T02–T06/T10/T12 subset and the six items above | Feasibility demonstrated for one exact profile only. |
@@ -3032,6 +3084,11 @@ Mineflayer is always the first backend implemented. If a mandatory E9E mechanic 
 | G5: graduation/catalog expansion | G4 plus T16/T17 for new targets | Versioned promotion claims and individually qualified packs. |
 
 ## 17. Delivery roadmap and executable work breakdown
+
+D21 delivery order: complete M1.7's task definition, bounded runner, outcome
+checks and suite report first. Then return to the outstanding G1 contracts and
+the full roadmap below. M1.7 may reuse the required narrow scorer/report services
+without starting full M3/M5 studies; repair completion is not its dependency.
 
 The following are implementation deliverables, not work performed for this specification. Estimates are deliberately omitted until G0 provides installation/host/control effort and cost evidence. Each milestone produces runnable commands, fixture inputs and an evidence bundle, not just documentation. Milestones M0–M5 form the MVP; M6 onward is later expansion.
 

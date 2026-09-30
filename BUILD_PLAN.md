@@ -4,18 +4,19 @@ Project name: **Strata**. Public repository: **[OpenCnid/strata-bench](https://g
 
 Research baseline: 2026-09-17; architecture updated 2026-09-18 by D01. The plan below is supporting design. **September 27 checkpoint: M1 in progress under D20; no complete G1 acceptance suite has closed.** M0 is verified and G0 passes only the D14 development feasibility slice. Start with [the current handoff](docs/STATUS_AND_HANDOFF.md), [ledger](MILESTONES.md) and [September 27 checkpoint](docs/verification/2026-09-27-session-handoff.md). Unrelated M2–M7 implementation remains outside scope.
 
-The next delivery target is a connected authentic play/repair/restart/account/resume
-workflow, including verified restoration after failure. Owned worker/controller
-repair, inference closure, immutable publication evidence and continuous body-tick
-allocation exist with component/process evidence. Complete wall/disconnected-time
-accounting, original-lease controller completion and full profile qualification
-are missing. The retained native-health failure needs evidence-based diagnosis;
-the gate must not be reduced to make the existing tests sufficient.
+**September 29 D21 supersedes the checkpoint's next action:** build M1.7's short
+task benchmark MVP. Connect task definitions and fresh fixtures to the existing
+bounded native/game runner, outcome verification and suite reporting. Default to
+one vanilla avatar without helpers. An interrupted attempt stops and retains its
+result; repair/resume is later work. Full G1 closure is not a prerequisite for
+this development benchmark. Preserve scoped tools, private evaluator separation,
+time/cost bounds and honest qualification. See SPEC section 1.3 for acceptance.
 
-After those joins, close every applicable T01/T04/T05/T06/T10/T11 case against the
-same declared profiles. Include only the scorer/probe and other dependencies G1
-requires. Do not begin long soaks, broader teams, confirmation, later packs or a
-dashboard merely because some foundation components are implemented.
+The existing repair/accounting implementation and native-health failure remain
+recorded. Diagnose that failure before reusing the affected profile; it does not
+block independent vanilla task-runner work. Complete repair and every remaining
+G1 contract before claiming the full integrity/research release. Broader teams,
+long soaks, confirmation, later packs and dashboards remain outside the first MVP.
 
 The implemented harness gives GPT-6 Luna filtered observations and typed commands to a persistent Mineflayer worker. The model chooses actions; local scripts supply fixed motors, fixture setup and checks. Live15 verifies actual turn/walk/helper play. Live18's independent19/19 audit joins a zero-input refusal and corrected turn with source/pack/worker identity, saved player, costs and clocks; its two-action goal still fails because no walk occurred. Exact E9E has a separate development Forge fallback, not a Mineflayer pass.
 

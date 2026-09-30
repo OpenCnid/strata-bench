@@ -2,6 +2,28 @@
 
 ## Current position
 
+**September 29 — D21: task benchmark MVP first.** The user explicitly moved
+repair/resume behind running tasks and the benchmark. Active work is **M1.7**:
+task definitions -> fresh fixtures -> bounded agent runs -> checked outcomes ->
+suite report. One vanilla avatar without helpers is the initial implementation
+default. The next concrete change is M1.7a/b: define a small task suite and connect
+it to the existing native/game runner. No new campaign controller is required.
+
+Interruptions stop attempts and remain in results. Full repair/resume, complete
+G1, teams, long soaks and controlled adaptation studies are later delivery work;
+their original requirements and statuses remain. Preserve scoped tools, private
+evaluator separation, safe stop, evidence and actual/unknown consumption. Task
+MVP results must disclose remaining isolation/scoring qualification and cannot
+grant production admission or scientific claims. See [SPEC 1.3](SPEC.md#13-scope-and-non-goals).
+
+This change is documentation/planning only: M1.7 implementation and authentic
+acceptance are not yet delivered. M0/G0 retain their named development pass;
+M1 remains in_progress and G1-G5 remain not_run. D18/D19 remain M0-only;
+D21 creates no paid allowance. No durable authority database or installation was
+changed. Preserve the recorded $4.887796 exposure and eight telemetry holds.
+
+### September 27 checkpoint (historical next actions superseded by D21)
+
 **September 27 fresh-session checkpoint requested.** The user requested updated
 documentation and a PR/merge to main, then continuation in a fresh session.
 M1 remains `in_progress`; G1 and complete T01/T04/T05/T06/T10/T11 remain `not_run`.
@@ -1370,7 +1392,7 @@ unqualified single-run or full-backend claim.
 | ID | Owner | Dependencies | Required deliverables / exit | Status | Implementation / evidence | Next action |
 |---|---|---|---|---|---|---|
 | M0 | GI; AR owns host seam | Execution prerequisites | Mineflayer/host vanilla slice followed immediately by exact E9E API/recipe/machine conformance, cancel/reconnect, private milestone and complete charges; G0 | verified | [Six-outcome D14 development assembly](docs/verification/2026-09-24-g0-assembly.md), [all child dispositions](docs/verification/2026-09-24-g0-child-dispositions.md) | M0 scope complete. Wider child contracts retain statuses and later gates; D20 now authorizes M1/G1 only. |
-| M1 | PL | M0 | Typed Python/TypeScript/conditional Java contracts, scoped local CLI, durable controller, capability isolation; full keybinding skill/extension T05; G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), M1.1–M1.4; contracts/storage/grants/settings workflow implemented partially. Actual isolation and Forge adapter remain open. | D20: audit complete T01/T04/T05/T06/T10/T11, qualify root/helper boundary first, then required settings/scorer/probe integrations; no milestone closure. |
+| M1 | PL | M0 | D21 initial task benchmark MVP M1.7, followed by full typed contracts, scoped CLI, durable controller, capability isolation and keybinding extension T05/G1 | in_progress | [Core services](docs/verification/2026-09-18-controller-evaluator.md), existing M1 children; M1.7 has a scope contract only, no runnable suite acceptance. | D21: connect task definitions/fresh fixtures to bounded execution, checked outcomes and reports first. Return to repair and all full G1 suites afterward; no milestone closure. |
 | M2 | QA | M1 | Durable single-agent play, input fencing/watchdog, complete snapshots, recovery, budgets/clocks and operational report; G2 | in_progress | [Budgets](src/mcbench/budgets.py), [clocks](src/mcbench/clocks.py), [checkpoints](src/mcbench/checkpoints.py); synthetic fault/recovery tests pass, full supervisor and real soaks open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M3 | RS | M1 | Private fixtures/scorers/probes, artifact projections, ablations, pairing/analysis and canary tests; T10/T11/T13 | in_progress | [Private evaluator](evaluator/src/strata_evaluator/), artifact projections and scorer/analysis controls; live telemetry/probe runner/isolation open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
 | M4 | PL | M2 | Team communication, simultaneous capacity, atomic N-body admission, distinct accounts/routing; G3 | in_progress | [Admission](src/mcbench/controller.py), [messages](src/mcbench/communication.py); whole-team synthetic cases pass, measured simultaneous capacity and actual accounts open. | Complete child integrations and preserve the named exit gate; no milestone closure. |
@@ -1379,6 +1401,16 @@ unqualified single-run or full-backend claim.
 | M7 | PL | Stable M5 workload and demonstrated need | Distributed workers/storage/scheduling and optional dashboard, with unchanged integrity/conformance guarantees | deferred | — | Activate individual extensions only on measured need or user request. |
 
 Dependencies govern milestone closure. Shared foundation work can advance before an entire prerequisite milestone closes when its own inputs are available; this does not waive gates. M1's G1 includes probe-isolation evidence also developed in M3: start that minimal evidence in M1, then extend it in M3, avoiding a circular dependency. MVP is M0–M5; later mandatory work and conditional extensions remain separate.
+
+### D21 task benchmark MVP work items
+
+| ID | Owner | Scope / affected coverage | Status | Evidence / next action |
+|---|---|---|---|---|
+| M1.7 | PL/AR/GI/RS | Initial development task benchmark; F01/F03/F06/F10/F11/F13/F16, N01-N06/N08; applicable T01/T03/T04/T10/T12/T13 subsets. Complete acceptance in SPEC 1.3, separate from full G1/G4. | in_progress | Scope and priority recorded only. Reuse existing runtime/worker/evidence services; start M1.7a/b. No benchmark run or gate pass. |
+| M1.7a | GI/RS | Small versioned task catalog: public goals, private initial fixtures/checkers, exact capabilities and finite limits | not_started | Select tasks supported by existing mechanics. Validate references and success/failure criteria without exposing private checks to the agent. |
+| M1.7b | PL/AR | Repeatable operator runner: fresh attempt, bounded native/game execution, safe stop, durable terminal result; no repair/resume dependency | not_started | Reuse existing native piloting and game ownership. Contract checks cover limits, uncertain effects, interruption and no blind replay. |
+| M1.7c | RS/GI | Evidence-based outcome checks and suite report with all assignments, denominators, times, consumption, profiles and failure reasons | not_started | Reuse evaluator/accounting readers; distinguish task failure from infrastructure error and retain incomplete attempts. No unqualified protected-scoring claim. |
+| M1.7d | QA/AR | Connected task-suite acceptance: labeled scripted checks followed by bounded authentic model/game demonstration and independently reconstructable report | not_started | Requires M1.7a-c and applicable execution authority. D18/D19 remain M0-only; no paid task trial selected. Full G1 and research claims remain later. |
 
 ### D01 child work items
 
@@ -2368,6 +2400,18 @@ September 19 route-cancel addendum: [fresh bounded trial](docs/verification/2026
 September 19 native-budget addendum: [exact CLI/schema and two local provider probes](docs/verification/2026-09-19-native-budget.md) cover synthetic rejection/retry transport with no paid model or credentials. Turn-start and actual requests lack an output-token bound; no authenticated monetary/call-exposure proof exists. T04/T12 remain incomplete; no all-call gateway qualification or live host admission.
 
 ## Blockers, open decisions, and change history
+
+**D21 — initial task benchmark MVP before repair/resume (2026-09-29):** the user
+stated that repair/resume was too broad a priority and directed building an MVP
+that runs tasks and the benchmark first. SPEC 1.3 now defines M1.7's smaller
+development deliverable. This explicitly changes delivery scope/order: complete
+repair and G1 are not prerequisites for the task MVP. Their requirements are
+retained for the later full G1/research release; no prior result is promoted.
+Single-avatar vanilla without helpers is the implementation default, not a new
+user pack/model decision. Existing E9E support and M0-M7/T01-T17/G0-G5 remain.
+Bounded execution, private evaluator separation, scoped access, safe stop and
+honest accounting remain required. No new spending, installed profile change or
+experiment is selected. Next implement M1.7a/b, not M1.1c.3.4.
 
 **Protected client candidate admission resolved (2026-09-23):** same-hash runtime placement fixes error5; startup-bound history transport fixes case03; exact rank-owner discrimination and a declared45s worker reservation resolve case04 blockers. Case05 passes the connected craft and normal shutdown,46/46 audit checks. All old failures remain, and full isolation remains deferred under D14. Next address remaining setup-field authority/scorer controls rather than repeat startup. [Evidence](docs/verification/2026-09-23-rank-owner-history.md).
 
@@ -11630,3 +11674,38 @@ Checkpoint evidence sealed: 608 files / 14,788,129 bytes, SHA-256
 the archived documentation snapshot. Final publication scan: 562 changed paths,
 no sensitive runtime filenames or credential-pattern candidates; historical
 scan also retained. PR/merge metadata must be checked separately after publication.
+
+### 2026-09-29 — D21 prioritizes the task benchmark MVP
+
+The user directed running tasks and the benchmark before repair/resume. Recorded
+D21 in SPEC and project instructions; updated README, BUILD_PLAN, STATUS and the
+handoff so the next session starts M1.7a/b rather than M1.1c.3.4. M1.7 and four
+children track task definitions, bounded fresh attempts, evidence-based outcomes,
+suite reporting and authentic acceptance. This is a documentation/scope change;
+no new runner, task catalog or runtime behavior is implemented or verified.
+
+Coverage: F01/F03/F06/F10/F11/F13/F16, N01-N06/N08 and applicable
+T01/T03/T04/T10/T12/T13 subsets. The full roadmap, repair requirements and
+G1-G5 remain unpassed. Existing task-independent recovery, team, probe and
+adaptation work is retained for later delivery. Failure ends an MVP attempt
+without automatic repair/resume; scoped access, private evaluator separation,
+safe stop and honest accounting remain necessary.
+
+Fetched origin and confirmed HEAD/main at PR #9 merge 816dda9; started clean
+branch codex/task-benchmark-mvp. Documentation validation checked seven files
+and 1,988 resolving local links, retained all 460 old milestone IDs (465 with
+M1.7 and its children), preserved the prior progress log and found zero changes
+to existing T01-T17/G0-G5 rows. git diff --check passed. No source/runtime tests
+were rerun for this documentation-only change; no private authority store,
+installation, game process or paid inference was touched. D18/D19 remain
+M0-only; known exposure and unresolved holds remain recorded, not newly audited.
+
+Next: define the smallest useful tasks supported by the existing vanilla actions
+and connect them to a repeatable bounded native/game runner and result report.
+Complete G1 and repair are no longer prerequisites for that development MVP.
+
+The user subsequently requested pushing this documentation change, creating and
+merging its GitHub PR, and supplying a fresh-session implementation prompt. That
+authorizes publication/merge, not a game or paid model run. The handoff explicitly
+requires updated main containing D21/M1.7, rather than PR #9's older priority.
+Actual publication outcome is established by GitHub and the fetched merge head.

@@ -1,8 +1,16 @@
-# M1/G1 fresh-session handoff
+# Task benchmark MVP handoff
 
-Checkpoint: [PR #9](https://github.com/OpenCnid/strata-bench/pull/9). The user
-requested merging it to main, then continuation in a fresh session. **This is a handoff, not M1/G1 completion.** The current session should
-stop implementation after publishing the checkpoint. M0 is verified; G0 passes
+**September 29, D21:** the user reprioritized running tasks and the benchmark
+before repair/resume. Implement M1.7's small task benchmark first. Defaults:
+one avatar, no helpers, existing vanilla profile; separate E9E support remains
+on the roadmap. Full G1 and the repair lifecycle are later work. An interrupted
+MVP attempt stops with a retained result. SPEC section 1.3 defines acceptance.
+This update changes scope/order only; no task runner or benchmark result is
+delivered by the documentation change.
+
+Implementation baseline: [PR #9](https://github.com/OpenCnid/strata-bench/pull/9),
+confirmed merged at `816dda9` by GitHub and fetched main on September 29.
+**This is not M1/G1 completion.** M0 is verified; G0 passes
 only its named D14 development slice. M1 is `in_progress`; G1 and every complete
 T01/T04/T05/T06/T10/T11 suite remain `not_run`.
 
@@ -15,23 +23,43 @@ T01/T04/T05/T06/T10/T11 suite remain `not_run`.
    [opening profile audit](verification/2026-09-24-g1-coverage-audit.md) and
    [G0 assembly](verification/2026-09-24-g0-assembly.md) /
    [child dispositions](verification/2026-09-24-g0-child-dispositions.md) as needed.
-2. Fetch origin, verify the actual checkpoint PR is merged and its implementation
-   is present on main, preserve existing changes and branch from updated main.
+2. Fetch origin, verify main contains the merged D21/M1.7 priority update as well
+   as PR #9's implementation, preserve existing changes and branch from updated main.
    Do not assume a local branch name or this document proves remote state.
 3. Recheck the durable authority database with WAL-aware read-only access,
    unresolved telemetry holds, installed hashes and actual process inventory.
    Historical locks/files do not establish that a process is live.
-4. Continue the connected repair/accounting workflow below, then complete every
-   remaining G1 suite. Keep unrelated M2–M7 work untouched. Do not restart G0,
+4. Implement the task benchmark workflow below. Repair and full G1 qualification
+   follow this MVP; do not substitute them for task execution. Do not restart G0,
    repeat unchanged suites or run another authentic trial for a lucky result.
 
 ## Next implementation work
+
+Connect **task definition → fresh fixture → bounded agent execution → checked
+outcome → report** through existing services. Start with M1.7a's small versioned
+task suite and M1.7b's repeatable operator entry point. Reuse existing native
+piloting/game lifecycle, worker and accounting code; no second controller.
+
+Each task binds the public goal, private fixture/success checker, supported
+profile and finite limits. Report all assigned attempts, including blocked,
+failed, timed-out and interrupted ones, with distinct reasons and retained
+consumption. Check success against actual game evidence, not agent statements.
+Keep setup and execution timings distinct and preserve exact identities.
+
+Use synthetic providers for runner contracts, explicitly labeled; completion
+requires an authentic task-suite run under applicable execution authority.
+No paid allowance is created by D21. Retain scoped access, safe stop, private
+evaluator separation and unknown-cost reservations. Disclose incomplete
+isolation/scoring; this development MVP does not confer scientific validity or
+production admission. Full acceptance is in SPEC section 1.3 / M1.7.
+
+## Deferred repair continuation (after task MVP)
 
 The visible target is ordinary play → conflict diagnosis → owned pause → repair
 → same-server client restart → intended/competing and essential-control checks →
 complete accounting → commit or verified restoration → resumed gameplay.
 
-Current focus is **M1.1c.3.4**. Finish active/reserved wall and disconnected-time
+The previous focus was **M1.1c.3.4**. When returning to it, finish active/reserved wall and disconnected-time
 allocation, complete the consumption/settlement join, and restore the original
 worker lease/history through the controller. Generic `Reconfigurations.finish`
 correctly refuses worker-backed repairs; do not bypass it with a fabricated ready
@@ -76,12 +104,13 @@ policy; diagnostic elapsed time was 1,438 ms. The concurrent status read was
 was 668.7582 ms within D13's 1,000-ms bound; normal-stop acceptance still failed.
 Do not confuse termination success with successful gameplay or normal shutdown.
 
-Diagnose the retained source/journals before selecting changed verification.
+Diagnose the retained source/journals before selecting changed verification on
+the affected native profile; independent vanilla task implementation can proceed.
 Do not relax the health bound, clear uncertainty, reuse consumed decisions or
 repeat the unchanged attempt. All client/server processes were terminal at that
 checkpoint; check current state afresh.
 
-## Other required G1 work
+## Other required G1 work (after task MVP)
 
 [STATUS](STATUS.md) lists every remaining suite. In particular, do not let repair
 work obscure final root/helper isolation, native selected-skill integration,
@@ -99,8 +128,9 @@ These are named partial scopes, not interchangeable exact-profile certificates.
 
 ## Durable authority and private state
 
-D20 authorizes complete M1/G1 implementation/scripted conformance; no new scope
-approval is needed for that work. D17 selects `gpt-6-luna`. D18/D19 remain M0-only:
+D21 makes the task MVP the active implementation priority; D20's full G1 work
+remains later, without requiring repeated scope approval. D17 selects
+`gpt-6-luna`. D18/D19 remain M0-only:
 **no M1 paid-inference allowance exists**. Ask only for genuinely missing bounded
 paid authority when the proposed verification is concrete and ready. Continue
 independent authorized work in the meantime.
@@ -161,11 +191,14 @@ failures and historical profiles remain in [MILESTONES](../MILESTONES.md).
 
 Suggested continuation:
 
-> Continue Strata M1/G1 from checkpoint PR #9 (verify it is merged). Read AGENTS.md,
+> Continue Strata's D21 task benchmark MVP, M1.7, from updated main containing
+> the merged D21 scope change and PR #9 implementation. Read AGENTS.md,
 > docs/STATUS.md, docs/STATUS_AND_HANDOFF.md, the dated checkpoint, MILESTONES.md
 > and applicable SPEC contracts. Verify the merged remote state and durable
 > accounting/process state, preserve existing work and branch from updated main.
-> Continue complete repair/accounting/controller integration and all remaining
-> G1 contracts, native/keybinding, isolation, scorer and probe requirements. D20
-> authority persists; D18/D19 remain M0-only. Preserve failures, profiles, holds
-> and consumed decisions. Close M1/G1 only on complete applicable evidence.
+> Connect task definitions and fresh fixtures to bounded native/game execution,
+> outcome checks and a report containing every attempt, timing and consumption.
+> Repair/resume and full G1 closure follow the first development task benchmark.
+> Preserve scoped tools, private evaluator separation, safe stop and accounting.
+> D18/D19 remain M0-only; no paid allowance is inferred. Preserve failures,
+> profiles, holds and consumed decisions. No research/gate pass is implied.

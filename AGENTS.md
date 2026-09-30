@@ -10,7 +10,32 @@ Follow system/developer instructions and the user's current and previously estab
 
 The user authorized public publication of this design/source repository (D03). Operator-only describes gameplay-agent access, not a ban on that authorized publication. Never commit credentials, account auth caches, private evaluator instances, sealed fixtures, live run data or proprietary game/modpack installations. Keep those in separate storage; ignore rules are an additional guard, not an access boundary.
 
-## September 27 fresh-session checkpoint
+## September 29 task benchmark MVP priority (D21)
+
+The user explicitly reprioritized running tasks and the benchmark before adding
+repair/resume. The active deliverable is **M1.7: a short task benchmark MVP**:
+task definition -> fresh initial state -> bounded agent run -> independently
+checked outcome -> results with time, consumption and failure reasons.
+Use the existing runtime, workers and evidence services. Start with one avatar,
+helpers disabled and the existing vanilla profile as the implementation default;
+retain the separate E9E profile and full roadmap. These defaults are engineering
+choices, not new user model/pack decisions.
+
+Do not make complete repair/resume, full G1 closure, long soaks, teams or matched
+adaptation studies prerequisites for this development task benchmark. Failures
+stop the attempt and remain in the results; automatic repair/restart/resume is
+later work. Retain scoped tools, private evaluator separation, bounded execution,
+safe stop, no blind replay and honest accounting. Unqualified isolation/scoring
+must remain explicit; this MVP does not grant production campaign admission or
+scientific validity. Repair remains required for the later G1/research release.
+
+D21 changes delivery order and the initial MVP scope, not historical results,
+runtime thresholds or paid authority. D18/D19 remain M0-only. No new inference
+allowance or game trial is selected by this planning change. Read SPEC section
+1.3 and MILESTONES M1.7 before implementation. The September 27 next-action list
+below is historical and superseded where it prioritizes repair or complete G1.
+
+## September 27 fresh-session checkpoint (historical priority)
 
 The user requested a documentation/handoff PR and merge to main, followed by
 continuation in a fresh session. This is an **incomplete M1 checkpoint**, not
